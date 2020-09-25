@@ -2,9 +2,9 @@
 {
     public class RebarSteel
     {
-        public readonly double Epsilon0;
-        public readonly double ElasticModulusE;
-        public readonly double Fyk;
+        private readonly double _Epsilon0;
+        private readonly double _ElasticModulusE;
+        private readonly double _Fyk;
 
         /// <summary>
         /// </summary>
@@ -13,9 +13,13 @@
         /// <param name="fyk">yielding stress [kPa]</param>
         public RebarSteel(double epsilon0, double elasticModulusE, double fyk)
         {
-            this.Epsilon0 = epsilon0;
-            this.ElasticModulusE = elasticModulusE;
-            this.Fyk = fyk;
+            this._Epsilon0 = epsilon0;
+            this._ElasticModulusE = elasticModulusE;
+            this._Fyk = fyk;
         }
+
+        public virtual double Epsilon0 => _Epsilon0;
+        public virtual double ElasticModulusE => _ElasticModulusE;
+        public virtual double Fyk => _Fyk;
     }
 }

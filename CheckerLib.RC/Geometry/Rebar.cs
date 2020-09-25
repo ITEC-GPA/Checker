@@ -5,10 +5,10 @@ namespace CheckerLib.RC.Geometry
 {
     public class Rebar
     {
-        public readonly double Diameter;
-        public readonly double EffectiveArea;
-        public readonly Point2d Position;
-        public readonly RebarSteel RebarSteel;
+        private readonly double _diameter;
+        private readonly double _effectiveArea;
+        private readonly Point2d _position;
+        private readonly RebarSteel _rebarSteel;
 
         /// <summary>
         /// </summary>
@@ -18,10 +18,14 @@ namespace CheckerLib.RC.Geometry
         /// <param name="rebarSteel"></param>
         internal Rebar(double diameter, double effectiveAreaMm, Point2d position, RebarSteel rebarSteel)
         {
-            Diameter = diameter;
-            EffectiveArea = effectiveAreaMm;
-            Position = new Point2d(position);
-            RebarSteel = rebarSteel;
+            this._diameter = diameter;
+            this._effectiveArea = effectiveAreaMm;
+            this._position = new Point2d(position);
+            this._rebarSteel = rebarSteel;
         }
+
+
+
+
     }
 }

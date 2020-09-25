@@ -8,8 +8,8 @@ namespace CheckerLib.RC.Materials
 {
     public class Concrete
     {
-        private readonly double ElasticModulusE;
-        private readonly double Fck;
+        private readonly double _ElasticModulusE;
+        private readonly double _Fck;
 
         /// <summary>
         /// </summary>
@@ -17,8 +17,10 @@ namespace CheckerLib.RC.Materials
         /// <param name="fck">cylindric concrete resistance [kPa]</param>
         public Concrete(double elasticModulusE, double fck)
         {
-            this.ElasticModulusE = elasticModulusE;
-            this.Fck = fck;
+            this._ElasticModulusE = elasticModulusE;
+            this._Fck = fck;
         }
+        public virtual double Fck => _Fck;
+        public virtual double ElasticModulusE => _ElasticModulusE;
     }
 }

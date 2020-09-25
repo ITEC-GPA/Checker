@@ -8,7 +8,7 @@ using CheckerLib.Common;
 namespace CheckerLib.RC.Checker
 {
     // classe astratta. da fare verificatori per ogni normativa
-    public abstract class RCChecker : CheckerLib.Common.Checker
+    public abstract class RCChecker : CheckerLib.Common.Checker.Checker
     {
         public RCChecker() : base()
         {
