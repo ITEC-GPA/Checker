@@ -32,15 +32,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GPC.Utilities">
-      <HintPath>..\..\GPCUtilities\GPCUtilities\bin\Debug\GPC.Utilities.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="GPCGeometry">
-      <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\GPCGeometry.dll</HintPath>
-    </Reference>
     <Reference Include="GPCModel">
-      <HintPath>..\..\GPCModel\bin\Debug\GPCModel.dll</HintPath>
+      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\GPCModel.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCUtilities">
+      <HintPath>..\..\GPCUtilities\GPCUtilities\bin\Debug\GPCUtilities.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

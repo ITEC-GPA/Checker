@@ -35,7 +35,7 @@
       <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\GPCGeometry.dll</HintPath>
     </Reference>
     <Reference Include="GPCModel">
-      <HintPath>..\..\GPCModel\bin\Debug\GPCModel.dll</HintPath>
+      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCUtilities">
       <HintPath>..\..\GPCUtilities\GPCUtilities\bin\Debug\GPCUtilities.dll</HintPath>
@@ -50,21 +50,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="WASTAGE\RCBars.cs" />
     <Compile Include="ConcreteCheckerSection\RCCheckingSection.cs" />
     <Compile Include="ConcreteCheckerSection\RCSection.cs" />
     <Compile Include="ConcreteCheckerSolver\RCChecker.cs" />
     <Compile Include="ConcreteCheckerSolver\RCChecker.Viviani.cs" />
     <Compile Include="ConcreteCheckerSolver\RCFailureDomain.cs" />
-    <Compile Include="WASTAGE\Geometry\RCCheckingSection.cs" />
-    <Compile Include="WASTAGE\Rebar.cs" />
-    <Compile Include="WASTAGE\Rebars.cs" />
-    <Compile Include="WASTAGE\Geometry\RCSection.cs" />
-    <Compile Include="WASTAGE\Concrete.cs" />
-    <Compile Include="WASTAGE\RebarSteel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WASTAGE\RCChecker.cs" />
-    <Compile Include="TEMPLATE_CLASS.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GPCChecker.Common\GPCChecker.Common.csproj">
@@ -73,10 +64,7 @@
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="WASTAGE\Checker\" />
-    <Folder Include="WASTAGE\Materials\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
