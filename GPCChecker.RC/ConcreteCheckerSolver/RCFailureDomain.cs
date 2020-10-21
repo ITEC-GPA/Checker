@@ -8,7 +8,7 @@ using GPC.Utilities;
 using GPC.Model;
 using GPC.Geometry;
 
-namespace GPCChecker.ReinforcedConcrete
+namespace GPC.Checker.ReinforcedConcrete
 {
     public class RCFailureDomain
     {

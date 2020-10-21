@@ -8,7 +8,7 @@ using GPC.Model.Elements;
 using GPC.Model.Materials;
 using GPC.Geometry;
 
-namespace GPCChecker.ReinforcedConcrete
+namespace GPC.Checker.ReinforcedConcrete
 {
     public class RCSection : Element
     {

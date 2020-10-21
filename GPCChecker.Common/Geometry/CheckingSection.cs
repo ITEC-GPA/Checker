@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPCChecker.Common.Geometry
+namespace GPC.Checker.Common.Geometry
 {
     public abstract class CheckingSection
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPCChecker.Common
+namespace GPC.Checker.Common
 {
     public abstract class CheckingSection
     {    

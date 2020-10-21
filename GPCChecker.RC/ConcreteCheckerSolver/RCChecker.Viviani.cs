@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using GPC.Model;
 using GPC.Geometry;
 
-namespace GPCChecker.ReinforcedConcrete
+namespace GPC.Checker.ReinforcedConcrete
 {
     public partial class RCChecker
     {

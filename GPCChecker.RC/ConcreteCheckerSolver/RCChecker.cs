@@ -10,7 +10,7 @@ using GPC.Model.Elements;
 using GPC.Geometry;
 
 
-namespace GPCChecker.ReinforcedConcrete
+namespace GPC.Checker.ReinforcedConcrete
 {
     public partial class RCChecker : Checker
     {

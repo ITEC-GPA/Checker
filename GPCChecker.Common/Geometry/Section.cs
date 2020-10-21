@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Geometry;
 
-namespace GPCChecker.Common.Geometry
+namespace GPC.Checker.Common.Geometry
 {
     public abstract class Section
     {

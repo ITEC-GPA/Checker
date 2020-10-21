@@ -7,7 +7,7 @@
     <ProjectGuid>{468983DC-5288-4A32-BA38-B06FB247A1B8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GPCCheckerLib.Common</RootNamespace>
+    <RootNamespace>GPC.Checker.Common</RootNamespace>
     <AssemblyName>GPCChecker.Common</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
