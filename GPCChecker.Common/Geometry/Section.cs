@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utilities.Geometry;
+using GPC.Geometry;
 
-namespace CheckerLib.Common.Geometry
+namespace GPCChecker.Common.Geometry
 {
     public abstract class Section
     {
