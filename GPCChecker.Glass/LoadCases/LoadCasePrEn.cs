@@ -9,16 +9,15 @@ namespace GPC.Checker.Glass.LoadCases
         public double LoadDuration => _loadDuration;
 
 
-        public LoadCasePrEn(string name, LoadCaseType loadCaseType, LoadCasePrEnType loadCasePrEnType, Guid guid) 
+        public LoadCasePrEn(string name, double loadDuration, LoadCaseType loadCaseType, LoadCasePrEnType loadCasePrEnType, Guid guid) 
             : base(name, loadCaseType, loadCasePrEnType, guid)
         {
-
+            this._loadDuration = loadDuration;
         }
 
         public LoadCasePrEn(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-
             _loadDuration = info.GetDouble("LoadDuration");
         }
 

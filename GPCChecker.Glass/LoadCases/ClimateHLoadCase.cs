@@ -9,10 +9,10 @@ namespace GPC.Checker.Glass.LoadCases
         public double LoadDuration => _loadDuration;
 
 
-        public ClimateHLoadCase(string name, double manufactoringHeight, double installationHeight, LoadCaseType loadCaseType, Guid guid) 
-            : base(manufactoringHeight, installationHeight, name, loadCaseType, guid)
+        public ClimateHLoadCase(string name, double loadDuration, double manufactoringHeight, double installationHeight, LoadCaseType loadCaseType, Guid guid) 
+            : base(name, manufactoringHeight, installationHeight, loadCaseType, guid)
         {
-
+            this._loadDuration = loadDuration;
         }
 
         public ClimateHLoadCase(SerializationInfo info, StreamingContext context)
