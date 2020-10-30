@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Model;
 using GPC.Geometry;
 
 namespace GPC.Checker.Common.Geometry

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GPCChecker.Common;
+using GPC.Checker.Common;
 using GPC.Utilities;
 using GPC.Model;
 using GPC.Geometry;
@@ -125,8 +125,8 @@ namespace GPC.Checker.ReinforcedConcrete
                             }
                             else
                             {
-                                mrdx = GPC.Utilities.Maths.Math.GetLinearInterpolation(nrd, nextNrd, _mxRds[rotCount][i], _mxRds[rotCount][i + 1], nRdLevel);
-                                mrdy = GPC.Utilities.Maths.Math.GetLinearInterpolation(nrd, nextNrd, _myRds[rotCount][i], _myRds[rotCount][i + 1], nRdLevel);
+                                mrdx = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(nrd, nextNrd, _mxRds[rotCount][i], _mxRds[rotCount][i + 1], nRdLevel);
+                                mrdy = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(nrd, nextNrd, _myRds[rotCount][i], _myRds[rotCount][i + 1], nRdLevel);
                             }
 
                             mRds.Add(new Point2d(mrdx, mrdy));
@@ -425,6 +425,7 @@ namespace GPC.Checker.ReinforcedConcrete
                 else
                 {
                     //nextmRdDir = nextMRd / lengthNextMrd;
+                    
                     nextmRdDir.Unitize();
                 }
 
@@ -469,7 +470,8 @@ namespace GPC.Checker.ReinforcedConcrete
             {
                 //Situazione standard. origine contenuta in bbox. il max è il punto resistente
                 result = bbox.Max * (new Point2d(dirEd.X, dirEd.Y));
-                cs = Math.Abs(bbox.Max) / lengthEd;
+                //cs = Math.Abs(bbox.Max) / lengthEd;
+                cs = lengthEd / Math.Abs(bbox.Max);
             }
             else
             {
@@ -488,13 +490,15 @@ namespace GPC.Checker.ReinforcedConcrete
                     {
                         //più vicino a max
                         result = bbox.Max * (new Point2d(dirEd.X, dirEd.Y));
+                        //cs = bbox.Max / lengthEd;
                         cs = bbox.Max / lengthEd;
                     }
                     else
                     {
                         //più vicino a min
                         result = bbox.Min * (new Point2d(dirEd.X, dirEd.Y));
-                        cs = lengthEd / bbox.Min;
+                        //cs = lengthEd / bbox.Min;
+                        cs =  bbox.Min / lengthEd;
                     }
                 }
             }

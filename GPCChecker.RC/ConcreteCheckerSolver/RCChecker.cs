@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GPCChecker.Common;
+using GPC.Checker.Common;
 using GPC.Utilities;
 using GPC.Utilities.Maths;
 using GPC.Model.Elements;
@@ -12,7 +12,7 @@ using GPC.Geometry;
 
 namespace GPC.Checker.ReinforcedConcrete
 {
-    public partial class RCChecker : Checker
+    public partial class RCChecker : GPC.Checker.Common.Checker
     {
         public RCChecker() : base()
         {
@@ -145,7 +145,8 @@ namespace GPC.Checker.ReinforcedConcrete
             //left of dirNeutral=compression
 
             //dirNeutral = Geom.Normal(gradient, true);
-            dirNeutral = ((Vector2d)gradient).Normal(true);
+            Vector2d vector = ((Vector2d)gradient).Normal(true);
+            dirNeutral = new Point2d(vector.X, vector.Y);
 
             if (System.Math.Abs(z2) > 1e-10)
             {
@@ -314,15 +315,18 @@ namespace GPC.Checker.ReinforcedConcrete
 
             if (System.Math.Abs(nEd) > 0.1)
             {
-                cs = nRd / nEd;
+                //cs = nRd / nEd;
+                cs = nEd / nRd;
             }
             else if (System.Math.Abs(mxEd) > 0.1)
             {
-                cs = mxRd / mxEd;
+                //cs = mxRd / mxEd;
+                cs = mxEd / mxRd;
             }
             else if (System.Math.Abs(myEd) > 0.1)
             {
-                cs = myEd / myEd;
+                //cs = myEd / myEd;
+                cs = myEd / myRd;
             }
             else
             {
@@ -367,6 +371,8 @@ namespace GPC.Checker.ReinforcedConcrete
             mxRds = new List<List<double>>();
             myRds = new List<List<double>>();
             campoIndexes = new List<List<int>>();
+
+
             for (int i = 0; i < numberRotations; i++)
             {
                 double teta = deltaAngle * i;
@@ -540,12 +546,19 @@ namespace GPC.Checker.ReinforcedConcrete
             {
                 foreach (Rebar bar in checkingSection.Section.Bars)
                 {
+                    /// Area efficace
                     vsList.Add(bar.EffectiveArea);
+                    /// Posizione baricentro in X
                     vsList.Add(bar.Position.X - xG);
+                    /// Posizione baricentro in Y
                     vsList.Add(bar.Position.Y - yG);
+                    /// Modulo Elastico
                     vseList.Add(bar.Material.ElasticModulus);
-                    vseList.Add(bar.Material.Epsilon0 * bar.Material.ElasticModulus);
-                    vseList.Add(bar.Material.Ftk);
+                    /// Prentensione
+                    //vseList.Add(bar.Material.Epsilon0 * bar.Material.ElasticModulus);
+                    vseList.Add(0);
+                    /// Tensione Ultima
+                    vseList.Add(bar.Material.Fu);
                 }
             }
             vsList.Insert(0, 0);
@@ -606,16 +619,16 @@ namespace GPC.Checker.ReinforcedConcrete
                     Polygon2d triangle = new Polygon2d();
                     if(s.IsTriangle == true)
                     {
-                        triangle.Add(mesh.Vertices[s.A].Point.X, mesh.Vertices[s.A - 1].Point.Y);
-                        triangle.Add(mesh.Vertices[s.B].Point.X, mesh.Vertices[s.B - 1].Point.Y);
-                        triangle.Add(mesh.Vertices[s.C].Point.X, mesh.Vertices[s.C - 1].Point.Y);
+                        triangle.Add(mesh.Vertices[s.A - 1].Point.X, mesh.Vertices[s.A - 1].Point.Y);
+                        triangle.Add(mesh.Vertices[s.B - 1].Point.X, mesh.Vertices[s.B - 1].Point.Y);
+                        triangle.Add(mesh.Vertices[s.C - 1].Point.X, mesh.Vertices[s.C - 1].Point.Y);
                     }
                     else if(s.IsQuad == true)
                     {
-                        triangle.Add(mesh.Vertices[s.A].Point.X, mesh.Vertices[s.A - 1].Point.Y);
-                        triangle.Add(mesh.Vertices[s.B].Point.X, mesh.Vertices[s.B - 1].Point.Y);
-                        triangle.Add(mesh.Vertices[s.C].Point.X, mesh.Vertices[s.C - 1].Point.Y);
-                        triangle.Add(mesh.Vertices[s.D].Point.X, mesh.Vertices[s.D - 1].Point.Y);
+                        //triangle.Add(mesh.Vertices[s.A - 1].Point.X, mesh.Vertices[s.A - 1].Point.Y);
+                        //triangle.Add(mesh.Vertices[s.B - 1].Point.X, mesh.Vertices[s.B - 1].Point.Y);
+                        //triangle.Add(mesh.Vertices[s.C - 1].Point.X, mesh.Vertices[s.C - 1].Point.Y);
+                        //triangle.Add(mesh.Vertices[s.D - 1].Point.X, mesh.Vertices[s.D - 1].Point.Y);
                     }
 
                     ipcList.Add(triangle.Count * (isHole ? -1 : 1));
@@ -657,7 +670,11 @@ namespace GPC.Checker.ReinforcedConcrete
                 nextP = poly.GetNextPoint(i);
                 nextnextP = poly.GetNextPoint(poly.GetNextIndex(i));
                 //Point2d rightOrto = Geom.Normal(Geom.Direction(p, nextP), isRightHandOrdered);
-                Point2d rightOrto = ((Vector2d)(p - nextP)).Normal(isRightHandOrdered);
+                //Point2d rightOrto = ((Vector2d)(p - nextP)).Normal(isRightHandOrdered);
+                Vector2d vector1 = ((Vector2d)(nextP - p));
+                Vector2d vector2 = vector1.Normal(isRightHandOrdered);
+                vector2.Unitize();
+                Point2d rightOrto = new Point2d(vector2.X, vector2.Y);
                 if ((nextnextP - p) * rightOrto < -0.001)
                 {
                     return false;
@@ -773,7 +790,7 @@ namespace GPC.Checker.ReinforcedConcrete
                     localBars.Add(new KeyValuePair<Point2d, Rebar>(localP, bar));
                     minYs = System.Math.Min(minYs, localP.Y);
                     maxYs = System.Math.Max(maxYs, localP.Y);
-                    epsYd = bar.Material.Ftk / gammaS / bar.Material.ElasticModulus;
+                    epsYd = bar.Material.Fu / gammaS / bar.Material.ElasticModulus;
                     maxEyd = System.Math.Max(epsYd, maxEyd);
                     minEyd = System.Math.Min(epsYd, minEyd);
                 }
@@ -784,7 +801,7 @@ namespace GPC.Checker.ReinforcedConcrete
                 if (maxYs - minYs > 0.001)
                 {
                     //startingY = minYs + (maxYs - minYs) / (epsUd - maxEyd) * epsUd;
-                    startingY = GPC.Utilities.Maths.Math.GetLinearInterpolation(epsUd, maxEyd, minYs, maxYs, 0);
+                    startingY = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(epsUd, maxEyd, minYs, maxYs, 0);
                 }
                 else
                 {
@@ -823,7 +840,7 @@ namespace GPC.Checker.ReinforcedConcrete
 
                 //Campo 2
                 upperY = maxY;
-                lowerY = GPC.Utilities.Maths.Math.GetLinearInterpolation(epsCU, epsUd, maxY, minYs, 0);
+                lowerY = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(epsCU, epsUd, maxY, minYs, 0);
                 deltaY = (upperY - lowerY) / number2;
                 y0 = minYs;
                 epsilon0 = epsUd;
@@ -832,7 +849,7 @@ namespace GPC.Checker.ReinforcedConcrete
 
                 //Campo 3
                 upperY = lowerY;
-                lowerY = GPC.Utilities.Maths.Math.GetLinearInterpolation(epsCU, minEyd, maxY, minYs, 0);
+                lowerY = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(epsCU, minEyd, maxY, minYs, 0);
                 deltaY = (upperY - lowerY) / number3;
                 y0 = maxY;
                 epsilon0 = epsCU;
@@ -861,7 +878,7 @@ namespace GPC.Checker.ReinforcedConcrete
                 upperY = lowerY;
                 lowerY = minY - 10 * heigth;
                 deltaY = (upperY - lowerY) / number5;
-                y0 = GPC.Utilities.Maths.Math.GetLinearInterpolation(minY, maxY, 0, epsCU, epsC2);
+                y0 = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(minY, maxY, 0, epsCU, epsC2);
                 epsilon0 = epsC2;
                 for (int i = 0; i < number6; i++)
                 {
@@ -872,10 +889,10 @@ namespace GPC.Checker.ReinforcedConcrete
                     myRd = 0;
                     nRd = 0;
                     AddUltimateResistanceBars(localBars, yNeutral, y0, epsilon0, gammaS, fcd, epsC2, parabolaExponent, epsCU, ref nRd, ref mxRd, ref myRd);
-                    epsTop = GPC.Utilities.Maths.Math.GetLinearInterpolation(yNeutral, y0, 0, epsilon0, maxY);
+                    epsTop = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(yNeutral, y0, 0, epsilon0, maxY);
                     Polygon2d rectangular;
                     double yEpsC2;
-                    yEpsC2 = GPC.Utilities.Maths.Math.GetLinearInterpolation(epsilon0, 0, y0, yNeutral, epsC2);
+                    yEpsC2 = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(epsilon0, 0, y0, yNeutral, epsC2);
                     if (epsTop < epsC2)
                     {
                         rectangular = localPolygon.GetLeftPolygon(new Point2d(0, yEpsC2), new Point2d(100, yEpsC2));
@@ -900,7 +917,7 @@ namespace GPC.Checker.ReinforcedConcrete
                 minNRds = -area * fcd * pureCompressionReductionCoeff;
                 foreach (Rebar b in checkingSection.Section.Bars)
                 {
-                    minNRds -= b.EffectiveArea * b.Material.Ftk / gammaS;
+                    minNRds -= b.EffectiveArea * b.Material.Fu / gammaS;
                 }
                 for (int i = 0; i < bufferNRds.Count; i++)
                 {
@@ -921,7 +938,7 @@ namespace GPC.Checker.ReinforcedConcrete
                                   double y0,
                                   double epsilon0)
         {
-            return GPC.Utilities.Maths.Math.GetLinearInterpolation(y0, yNeutralAxes, epsilon0, 0, y);
+            return GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(y0, yNeutralAxes, epsilon0, 0, y);
         }
 
         private double GetBarN(Rebar bar,
@@ -935,7 +952,7 @@ namespace GPC.Checker.ReinforcedConcrete
             double epsyd, fyd;
             double totalBarDeform;
             double sigmaC;
-            fyd = bar.Material.Ftk / gammaS;
+            fyd = bar.Material.Fu / gammaS;
             epsyd = fyd / bar.Material.ElasticModulus;
             totalBarDeform = epsilon + bar.Material.Epsilon0;
             sigmaC = GetConcreteStress(epsilon, fcd, epsC2, parabolaExponent, epsCU);
@@ -980,14 +997,14 @@ namespace GPC.Checker.ReinforcedConcrete
                 myRd = 0;
                 nRd = 0;
                 AddUltimateResistanceBars(localBars, yNeutral, y0, epsilon0, gammaS, fcd, epsC2, parabolaExponent, epsCU, ref nRd, ref mxRd, ref myRd);
-                epsTop = GPC.Utilities.Maths.Math.GetLinearInterpolation(yNeutral, y0, 0, epsilon0, maxY);
+                epsTop = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(yNeutral, y0, 0, epsilon0, maxY);
                 parabolicPolygon = localPolygon.GetLeftPolygon(new Point2d(0, yNeutral), new Point2d(100, yNeutral));
                 if (parabolicPolygon != null && parabolicPolygon.Count > 2)
                 {
                     Polygon2d rectangular;
                     double yEpsC2;
                     rectangular = null;
-                    yEpsC2 = GPC.Utilities.Maths.Math.GetLinearInterpolation(epsilon0, 0, y0, yNeutral, epsC2);
+                    yEpsC2 = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(epsilon0, 0, y0, yNeutral, epsC2);
                     if (epsTop < epsC2)
                     {
                         rectangular = parabolicPolygon.GetLeftPolygon(new Point2d(0, yEpsC2), new Point2d(100, yEpsC2));
