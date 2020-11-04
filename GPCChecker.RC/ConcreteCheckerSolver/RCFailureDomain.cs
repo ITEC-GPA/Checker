@@ -7,6 +7,7 @@ using GPC.Checker.Common;
 using GPC.Utilities;
 using GPC.Model;
 using GPC.Geometry;
+using GPC.Model.Sections;
 
 namespace GPC.Checker.ReinforcedConcrete
 {
@@ -14,7 +15,7 @@ namespace GPC.Checker.ReinforcedConcrete
     {
         private const int LEVEL_CURVE_NUMBER = 200;
 
-        private readonly RCCheckingSection _section;
+        private readonly ConcreteSectionShape _section;
         private readonly double _gammaC;
         private readonly double _alfaCC;
         private readonly double _gammaS;
@@ -32,7 +33,7 @@ namespace GPC.Checker.ReinforcedConcrete
         private readonly double[] _levelNRds;
         private readonly List<Point2d>[] _levelMRds;
 
-        internal RCFailureDomain(RCCheckingSection section,
+        internal RCFailureDomain(ConcreteSectionShape section,
                                 double gammaC,
                                 double alfaCC,
                                 double gammaS,
@@ -381,6 +382,8 @@ namespace GPC.Checker.ReinforcedConcrete
             Vector2d nextmRdDir = null;
             Point2d nextMRd = null;
             result = new BoundingBox1d();
+
+
             for (int i = 0; i < polygon.Count; i++)
             {
                 const double PROD_TOLL = 1e-6;
@@ -424,9 +427,8 @@ namespace GPC.Checker.ReinforcedConcrete
                 }
                 else
                 {
-                    //nextmRdDir = nextMRd / lengthNextMrd;
-                    
-                    nextmRdDir.Unitize();
+                    nextmRdDir = nextMRd / lengthNextMrd;            
+                    //nextmRdDir.Unitize();
                 }
 
                 //searched int points have a point at right and one at left

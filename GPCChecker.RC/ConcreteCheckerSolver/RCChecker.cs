@@ -8,6 +8,8 @@ using GPC.Utilities;
 using GPC.Utilities.Maths;
 using GPC.Model.Elements;
 using GPC.Geometry;
+using GPC.Model.Sections;
+using GPC.Model.Materials;
 
 
 namespace GPC.Checker.ReinforcedConcrete
@@ -39,7 +41,7 @@ namespace GPC.Checker.ReinforcedConcrete
         /// <param name="p0">point on Neutral axes</param>
         /// <param name="nOmogeneizz">omogeneization coeff (15)</param>
         ///  <param name="isTractionConcrete">say if concrete work on traction or not</param>
-        public void GetElasticTensions(RCCheckingSection section,
+        public void GetElasticTensions(ConcreteSectionShape section,
                                        double mxx,
                                        double myy,
                                        double nAxial,
@@ -62,7 +64,7 @@ namespace GPC.Checker.ReinforcedConcrete
             areaList = new List<double>();
 
             //Bar datas
-            foreach (Rebar bar in section.Section.Bars)
+            foreach (Rebar bar in section.Rebars)
             {
                 xList.Add(bar.Position.X);
                 yList.Add(bar.Position.Y);
@@ -80,7 +82,7 @@ namespace GPC.Checker.ReinforcedConcrete
                 yme[i + 1] = yList[i];
             }
 
-            List<Point2d> points = RCChecker.GetPoints(section.Section.Shapes);
+            List<Point2d> points = RCChecker.GetPoints(section.Shapes);
 
             m = points.Count;
             xve = new double[m + 1];
@@ -91,22 +93,36 @@ namespace GPC.Checker.ReinforcedConcrete
                 yve[i + 1] = points[i].Y;
             }
 
+
+            Shapes shapes = new Shapes(section.Shapes);
+            shapes.GetAreaBarycentre(out double xG, out double yG, out double buffer);
+            double xg = xG;
+            double yg = yG;
+
             //Considering bar prestress
-            foreach (Rebar bar in section.Section.Bars)
+            foreach (Rebar bar in section.Rebars)
             {
                 if (bar.Material.Epsilon0 != 0)
                 {
                     double nAdd = bar.Material.Epsilon0 * bar.Material.ElasticModulus * bar.Diameter * bar.Diameter * System.Math.PI / 4;
                     nAxial -= nAdd;
-                    mxx -= nAdd * (bar.Position.Y - section.Barycentre.Y);
-                    myy += nAdd * (bar.Position.X - section.Barycentre.X);
+
+
+
+                    mxx -= nAdd * (bar.Position.Y - yg);
+                    myy += nAdd * (bar.Position.X - xg);
+
+                    //mxx -= nAdd * (bar.Position.Y - section.Centroid.Y);
+                    //myy += nAdd * (bar.Position.X - section.Centroid.X);
                 }
             }
 
             //moving soll from barycentre
             double mx, my;
-            mx = mxx + nAxial * section.Barycentre.Y;
-            my = myy - nAxial * section.Barycentre.X;
+            //mx = mxx + nAxial * section.Centroid.Y;
+            //my = myy - nAxial * section.Centroid.X;
+            mx = mxx + nAxial * yg;
+            my = myy - nAxial * xg;
 
             //Soll convenzione Gelfi
             vt = -nAxial;
@@ -118,7 +134,7 @@ namespace GPC.Checker.ReinforcedConcrete
             barTensions = new List<KeyValuePair<Rebar, double>>();
             for (int i = 0; i < n; i++)
             {
-                Rebar bar = section.Section.Bars[i];
+                Rebar bar = section.Rebars[i];
                 double stress = ttt[i + 1];
                 if (bar.Material.Epsilon0 != 0)
                     stress += bar.Material.Epsilon0 * bar.Material.ElasticModulus;
@@ -134,9 +150,13 @@ namespace GPC.Checker.ReinforcedConcrete
 
             //deformation plane epsilon=a0+x*a1+y*a2
             double a0, a1, a2;
-            a0 = z0 / section.Section.ElasticModulusE;
-            a1 = z1 / section.Section.ElasticModulusE;
-            a2 = z2 / section.Section.ElasticModulusE;
+            //a0 = z0 / section.Section.ElasticModulusE;
+            //a1 = z1 / section.Section.ElasticModulusE;
+            //a2 = z2 / section.Section.ElasticModulusE;
+
+            a0 = z0 / section.ConcreteMat.ElasticModulus;
+            a1 = z1 / section.ConcreteMat.ElasticModulus;
+            a2 = z2 / section.ConcreteMat.ElasticModulus;
 
             Point2d gradient;
             //gradient: increase epsilon direction=from compression to tension
@@ -194,7 +214,7 @@ namespace GPC.Checker.ReinforcedConcrete
         public void GetLimitPoint(double nEd,
                                   double mxEd,
                                   double myEd,
-                                  RCCheckingSection section,
+                                  ConcreteSectionShape section,
                                   out double nRd,
                                   out double mxRd,
                                   out double myRd,
@@ -242,7 +262,7 @@ namespace GPC.Checker.ReinforcedConcrete
                 maxY = double.MinValue;
                 minY = double.MaxValue;
                 t = new Trans2d(p0, p0 + dirNeural, p0);
-                foreach (Shape2d s in section.Section.Shapes)
+                foreach (Shape2d s in section.Shapes)
                 {
                     Point2d localP;
                     foreach (Point2d p in s.Fill)
@@ -337,7 +357,7 @@ namespace GPC.Checker.ReinforcedConcrete
         /// <summary>
         /// Failure domain ricavato da procedura Viviani
         /// </summary>
-        public RCFailureDomain GetFailureDomainMV(RCCheckingSection section,
+        public RCFailureDomain GetFailureDomainMV(ConcreteSectionShape section,
                                                  double gammaC,
                                                  double gammaS,
                                                  double epsCMin,
@@ -448,7 +468,7 @@ namespace GPC.Checker.ReinforcedConcrete
         /// <summary>
         /// Resistenza sezione CA da procedura Viviani
         /// </summary>
-        public void GetPlasticResistance(RCCheckingSection section,
+        public void GetPlasticResistance(ConcreteSectionShape section,
                                          int campoIndex, double gammaS, double gammaC,
                                          double epsCMin, double epsSMax, double fiTensAASHTO, double fiCompAASHTO, bool useLimit34AASHTO, double alfaCC,
                                          double eta, double teta,
@@ -498,7 +518,7 @@ namespace GPC.Checker.ReinforcedConcrete
             y = myEd / (b * b * h * fck);//per MV positivo se antiorario, ovvero destrogiro
         }
 
-        private void GetVivianiCheckDatas(RCCheckingSection checkingSection,
+        private void GetVivianiCheckDatas(ConcreteSectionShape checkingSection,
                                           out double[] vc, out double[] vs, out double[] vsl,
                                           out int nvc, out int nvs, out int nvsl,
                                           out double fysl, out double fck, out double esl,
@@ -512,7 +532,9 @@ namespace GPC.Checker.ReinforcedConcrete
             //- manca limitazione a 0.8NMaxRd per stati di compressione senza M
 
             //getting g
-            checkingSection.Section.Shapes.GetAreaBarycentre(out double xG, out double yG, out double buffer);
+
+            Shapes shapes = new Shapes(checkingSection.Shapes);
+            shapes.GetAreaBarycentre(out double xG, out double yG, out double buffer);
 
             //checking section formed by convex shapes. If not, triangulate the polygon
             vcList = new List<double>();
@@ -520,7 +542,7 @@ namespace GPC.Checker.ReinforcedConcrete
             nvc = 0;
             npc = 0;
             bbox = new BoundingBox2d();
-            foreach (Shape2d s in checkingSection.Section.Shapes)
+            foreach (Shape2d s in checkingSection.Shapes)
             {
                 FillPolygonDatas(s.Fill, xG, yG, false, bbox, ref ipcList, ref npc, ref nvc, ref vcList);
                 if (s.Holes != null)
@@ -536,15 +558,15 @@ namespace GPC.Checker.ReinforcedConcrete
             vc = vcList.ToArray();
             ipcList.Insert(0, 0);
             ipc = ipcList.ToArray();
-            fck = checkingSection.Section.Fck;
+            fck = checkingSection.ConcreteMat.Fck;
 
             //bars
-            nvs = checkingSection.Section.Bars.Count;
+            nvs = checkingSection.Rebars.Count;
             vsList = new List<double>();
             vseList = new List<double>();
             if (nvs > 0)
             {
-                foreach (Rebar bar in checkingSection.Section.Bars)
+                foreach (Rebar bar in checkingSection.Rebars)
                 {
                     /// Area efficace
                     vsList.Add(bar.EffectiveArea);
@@ -614,6 +636,7 @@ namespace GPC.Checker.ReinforcedConcrete
             {
                 Mesh mesh;
                 mesh = Mesh.Triangulate(poly, null);
+
                 foreach (MeshFace s in mesh.Faces)
                 {
                     Polygon2d triangle = new Polygon2d();
@@ -707,7 +730,7 @@ namespace GPC.Checker.ReinforcedConcrete
         /// <param name="number5">number of step campo5</param>
         /// <param name="number6">number of step campo6</param>
         /// <returns></returns>
-        public RCFailureDomain GetFailureDomainEN(RCCheckingSection checkingSection,
+        public RCFailureDomain GetFailureDomainEN(ConcreteSectionShape checkingSection,
                                                  double gammaC = 1.5,
                                                  double alfaCC = 0.85,
                                                  double gammaS = 1.15,
@@ -736,21 +759,25 @@ namespace GPC.Checker.ReinforcedConcrete
             List<List<int>> campoIndexes;
 
             deltaAngle = 2 * System.Math.PI / numberRotations;
-            baricentricPoints = GetPoints(checkingSection.Section.Shapes);
+            baricentricPoints = GetPoints(checkingSection.Shapes);
 
             //Moving to barycentre
-            checkingSection.Section.Shapes.GetAreaBarycentre(out xG, out yG, out area);
+            //checkingSection.Shapes.GetAreaBarycentre(out xG, out yG, out area);
+
+            Shapes shapes = new Shapes(checkingSection.Shapes);
+            shapes.GetAreaBarycentre(out xG, out yG, out area);
+
             for (int i = 0; i < baricentricPoints.Count; i++)
             {
                 baricentricPoints[i] = new Point2d(baricentricPoints[i].X - xG, baricentricPoints[i].Y - yG);
             }
             baricentricBars = new Rebars();
-            foreach (Rebar bar in checkingSection.Section.Bars)
+            foreach (Rebar bar in checkingSection.Rebars)
             {
                 baricentricBars.AddRebar(bar.Diameter, bar.EffectiveArea, new Point2d(0,0), new Point2d(0, 0), new Point2d(bar.Position.X - xG, bar.Position.Y - yG), bar.Material, Guid.Empty);
             }
 
-            fcd = checkingSection.Section.Fck * alfaCC / gammaC;
+            fcd = checkingSection.ConcreteMat.Fck * alfaCC / gammaC;
 
             nRds = new List<List<double>>();
             mxRds = new List<List<double>>();
@@ -915,7 +942,7 @@ namespace GPC.Checker.ReinforcedConcrete
                 //limiting nRds to minimum admissible
                 double minNRds;
                 minNRds = -area * fcd * pureCompressionReductionCoeff;
-                foreach (Rebar b in checkingSection.Section.Bars)
+                foreach (Rebar b in checkingSection.Rebars)
                 {
                     minNRds -= b.EffectiveArea * b.Material.Fu / gammaS;
                 }
@@ -1288,7 +1315,7 @@ namespace GPC.Checker.ReinforcedConcrete
 
         #endregion
 
-        private static List<Point2d> GetPoints(Shapes ss)
+        private static List<Point2d> GetPoints(List<Shape2d> ss)
         {
             List<Point2d> result;
             result = new List<Point2d>();
