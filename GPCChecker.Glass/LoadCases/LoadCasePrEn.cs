@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace GPC.Checker.Glass.LoadCases
+namespace GPC.Checker.Glasses.LoadCases
 {
     public class LoadCasePrEn : GPC.Model.LoadCases.LoadCasePrEn, IGlassLoadCase
     {
