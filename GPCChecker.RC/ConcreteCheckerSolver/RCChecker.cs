@@ -104,10 +104,8 @@ namespace GPC.Checker.ReinforcedConcrete
             {
                 if (bar.Material.Epsilon0 != 0)
                 {
-                    double nAdd = bar.Material.Epsilon0 * bar.Material.ElasticModulus * bar.Diameter * bar.Diameter * System.Math.PI / 4;
+                    double nAdd = bar.EpsilonP * bar.Material.ElasticModulus * bar.Diameter * bar.Diameter * System.Math.PI / 4;
                     nAxial -= nAdd;
-
-
 
                     mxx -= nAdd * (bar.Position.Y - yg);
                     myy += nAdd * (bar.Position.X - xg);
@@ -136,8 +134,8 @@ namespace GPC.Checker.ReinforcedConcrete
             {
                 Rebar bar = section.Rebars[i];
                 double stress = ttt[i + 1];
-                if (bar.Material.Epsilon0 != 0)
-                    stress += bar.Material.Epsilon0 * bar.Material.ElasticModulus;
+                if (bar.EpsilonP != 0)
+                    stress += bar.EpsilonP * bar.Material.ElasticModulus;
                 barTensions.Add(new KeyValuePair<Rebar, double>(bar, stress));
             }
 

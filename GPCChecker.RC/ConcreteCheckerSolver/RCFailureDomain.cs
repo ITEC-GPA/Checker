@@ -408,7 +408,7 @@ namespace GPC.Checker.ReinforcedConcrete
                     }
                     else
                     {
-                        mRdDir.Unitize();
+                        mRdDir = mRd / lengthMRd;
                     }
                 }
                 if (i == polygon.Count - 1)
