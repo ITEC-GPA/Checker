@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.Glass", "GPCChec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.Steel", "GPCChecker.Steel\GPCChecker.Steel.csproj", "{EA309DF3-9824-4C30-9301-5E97C097FCAC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.Test", "GPCChecker.Test\GPCChecker.Test.csproj", "{9DAE8B1F-D63B-4620-8266-4E676705A275}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{EA309DF3-9824-4C30-9301-5E97C097FCAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA309DF3-9824-4C30-9301-5E97C097FCAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA309DF3-9824-4C30-9301-5E97C097FCAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DAE8B1F-D63B-4620-8266-4E676705A275}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DAE8B1F-D63B-4620-8266-4E676705A275}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DAE8B1F-D63B-4620-8266-4E676705A275}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DAE8B1F-D63B-4620-8266-4E676705A275}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
