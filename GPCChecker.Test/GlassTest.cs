@@ -25,7 +25,7 @@ namespace GlassTests
         }
 
         [TestMethod]
-        public void ExampleTest1()
+        public void TotalThickness()
         {
 
         }

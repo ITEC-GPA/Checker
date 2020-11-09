@@ -54,6 +54,7 @@
     <Compile Include="Wrappers\DoubleInsulatingGlassWrapper.cs" />
     <Compile Include="Wrappers\GlassPanelWrapper.cs" />
     <Compile Include="Wrappers\GlassWrapper.cs" />
+    <Compile Include="Wrappers\IGlassPanelWrapper.cs" />
     <Compile Include="Wrappers\InsulatedGlassWrapper.cs" />
     <Compile Include="Wrappers\LaminatedGlassWrapper.cs" />
     <Compile Include="Wrappers\MonolithicGlassWrapper.cs" />
