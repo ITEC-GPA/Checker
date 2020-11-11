@@ -11,6 +11,8 @@ namespace GPC.Checker.Glasses.Wrappers
     {
         protected new LaminatedGlass GlassProperty => (LaminatedGlass)_glassSurface.GlassProperty;
 
+        protected readonly MonolithicGlassWrapper[] _monolithicGlassWrappers;
+
         public LaminatedGlassWrapper(GlassSurface glassSurface) : base(glassSurface)
         {
             if (!(glassSurface.GlassProperty is LaminatedGlass))

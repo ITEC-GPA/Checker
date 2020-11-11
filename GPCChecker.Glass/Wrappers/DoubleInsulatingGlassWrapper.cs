@@ -11,6 +11,9 @@ namespace GPC.Checker.Glasses.Wrappers
     {
         protected new DoubleInsulatingGlass GlassProperty => (DoubleInsulatingGlass)_glassSurface.GlassProperty;
 
+        protected readonly GlassPanelWrapper _glassPanelWrapperOuter;
+        protected readonly GlassPanelWrapper _glassPanelWrapperInner;
+
         public DoubleInsulatingGlassWrapper(GlassSurface glassSurface, GlassPanelWrapper[] glassPanelWrappers) 
             : base(glassSurface, glassPanelWrappers)
 
