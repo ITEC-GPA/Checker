@@ -39,6 +39,10 @@
     <Reference Include="GPCModel">
       <HintPath>..\..\GPCModel\GPCModel\bin\Debug\GPCModel.dll</HintPath>
     </Reference>
+    <Reference Include="GPCUtilities, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\GPCUtilities\GPCUtilities\bin\Debug\GPCUtilities.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -52,6 +56,7 @@
     <Compile Include="Checkers\AstmGlassChecker.cs" />
     <Compile Include="Checkers\GlassChecker.cs" />
     <Compile Include="Checkers\PrEnGlassChecker.cs" />
+    <Compile Include="FemModel\FemModelWrapper.cs" />
     <Compile Include="LoadCases\ClimateHLoadCase.cs" />
     <Compile Include="LoadCases\ClimatePLoadCase.cs" />
     <Compile Include="LoadCases\ClimateTLoadCase.cs" />
