@@ -1,5 +1,4 @@
-﻿using GPC.Checker.Common;
-using GPC.Checker.Glasses.Checker;
+﻿using GPC.Checker.Glasses.Checker;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace GPC.Checker.Glasses.Checkers
 {
-    public class PrEnChecker : GlassChecker
+    public class PrEnGlassChecker : GlassChecker
     {
-        public PrEnChecker() : base()
+        public PrEnGlassChecker(Model model) : base(model)
         {
 
         }

@@ -49,8 +49,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Checkers\AstmGlassChecker.cs" />
     <Compile Include="Checkers\GlassChecker.cs" />
-    <Compile Include="Checkers\PrEnChecker.cs" />
+    <Compile Include="Checkers\PrEnGlassChecker.cs" />
     <Compile Include="LoadCases\ClimateHLoadCase.cs" />
     <Compile Include="LoadCases\ClimatePLoadCase.cs" />
     <Compile Include="LoadCases\ClimateTLoadCase.cs" />

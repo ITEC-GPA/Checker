@@ -1,10 +1,6 @@
-﻿using GPC.Checker.Glasses.Wrappers;
-using GPC.Model.Elements.Glasses;
+﻿using GPC.Model.Elements.Glasses;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GPC.Checker.Glasses
 {
@@ -22,9 +18,6 @@ namespace GPC.Checker.Glasses
             this._glassSurfaces = glassSurfaces;
         }
 
-        public GlassWrapper GetWrappers()
-        {
-            throw new NotImplementedException();
-        }
+
     }
 }

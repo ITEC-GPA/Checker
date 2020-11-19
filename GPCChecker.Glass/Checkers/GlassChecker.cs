@@ -8,9 +8,11 @@ namespace GPC.Checker.Glasses.Checker
 {
     public abstract class GlassChecker : GPC.Checker.Common.Checker
     {
-        public GlassChecker()
-        {
+        protected Model _model;
 
+        public GlassChecker(Model model)
+        {
+            this._model = model;
         }
 
         protected abstract override string GetCheckerName();
