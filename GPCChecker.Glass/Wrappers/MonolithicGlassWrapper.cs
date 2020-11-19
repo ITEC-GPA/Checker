@@ -17,19 +17,45 @@ namespace GPC.Checker.Glasses.Wrappers
                 throw new ArgumentException("Glass property should be a Monolithic Glass Property");
         }
 
-        public override double GetDeformationThickness()
+        #region Public methods
+
+        public override double GetDeformationThickness(double loadDuration)
         {
-            throw new NotImplementedException();
+            return GlassProperty.Thickness;
         }
 
-        public override double GetStressThickness()
+        public override double GetStressThickness(double loadDuration)
         {
-            throw new NotImplementedException();
+            return GlassProperty.Thickness;
         }
 
         public override double GetTotalThickness()
         {
-            return this.GlassProperty.Thickness;
+            return GlassProperty.Thickness;
         }
+
+        public override double GetElasticModulus()
+        {
+            return GlassProperty.Material.E;
+        }
+
+        public override double GetPoissonRatios()
+        {
+            return GlassProperty.Material.Ni;
+        }
+
+        public override double GetSelfWeightPerUnitArea()
+        {
+            // mm * T/mm3 => T / mm2
+            return GlassProperty.Thickness * GlassProperty.Material.Density;
+        }
+
+        public override double GetSelfWeightTotal()
+        {
+            // mm2 * mm * T/mm3 => T
+            return _glassSurface.Shape.GetArea() * GlassProperty.Thickness * GlassProperty.Material.Density;
+        }
+        
+        #endregion
     }
 }
