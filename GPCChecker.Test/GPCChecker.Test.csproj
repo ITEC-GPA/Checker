@@ -40,6 +40,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="GPCGeometry">
+      <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\GPCGeometry.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCModel">
+      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\GPCModel.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\MSTest.TestFramework.2.1.2\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
     </Reference>
@@ -56,6 +62,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GPCChecker.Common\GPCChecker.Common.csproj">
+      <Project>{468983dc-5288-4a32-ba38-b06fb247a1b8}</Project>
+      <Name>GPCChecker.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GPCChecker.Glass\GPCChecker.Glass.csproj">
+      <Project>{19977875-dc88-47e0-92c9-d9ace7ce4f3d}</Project>
+      <Name>GPCChecker.Glass</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

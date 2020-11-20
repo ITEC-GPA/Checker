@@ -1,4 +1,5 @@
-﻿using GPC.Model.Elements.Glasses;
+﻿using GPC.Geometry;
+using GPC.Model.Elements.Glasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,8 @@ namespace GPC.Checker.Glasses.Wrappers
     public abstract class InsulatedGlassWrapper : GlassWrapper
     {
         protected GlassPanelWrapper[] _glassPanelWrappers;
+
+        protected List<Mesh> _mesh;
 
         protected new IInsulatingGlass GlassProperty => (IInsulatingGlass)_glassSurface.GlassProperty;
 

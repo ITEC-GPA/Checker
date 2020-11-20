@@ -1,4 +1,5 @@
-﻿using GPC.Model.Elements.Glasses;
+﻿using GPC.Geometry;
+using GPC.Model.Elements.Glasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,9 @@ namespace GPC.Checker.Glasses.Wrappers
     public class MonolithicGlassWrapper : GlassPanelWrapper
     {
         protected new MonolithicGlass GlassProperty => (MonolithicGlass)_glassSurface.GlassProperty;
+
+        protected Mesh _mesh;
+
 
         public MonolithicGlassWrapper(GlassSurface glassSurface) : base(glassSurface)
         {
