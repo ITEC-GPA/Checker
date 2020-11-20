@@ -1,5 +1,4 @@
-﻿using GPC.Checker.Glasses.Checker;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,9 +8,14 @@ namespace GPC.Checker.Glasses.Checkers
 {
     public class AstmGlassChecker : GlassChecker
     {
-        public AstmGlassChecker(Model model) : base(model)
+        public AstmGlassChecker(Model model, LaminatedAnalysisType laminatedAnalysisType) : base(model, laminatedAnalysisType)
         {
 
+        }
+
+        public override void Run()
+        {
+            throw new NotImplementedException();
         }
 
         protected override string GetCheckerName()

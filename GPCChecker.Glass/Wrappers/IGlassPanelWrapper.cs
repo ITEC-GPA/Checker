@@ -27,6 +27,5 @@ namespace GPC.Checker.Glasses.Wrappers
 
         #endregion
 
-        List<Mesh> GenerateMesh();
     }
 }
