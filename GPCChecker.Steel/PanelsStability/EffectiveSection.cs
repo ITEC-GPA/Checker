@@ -15,7 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPCChecker.Steel.Class4Section
+namespace GPCChecker.Steel.PanelsStability
 {
     public class EffectiveSection
     {
@@ -61,13 +61,13 @@ namespace GPCChecker.Steel.Class4Section
             }
             /// Upper flange
             double B11 = _B2 - 2 * _tw;
-            UnstiffenedPanel TopFlangeCompression = new UnstiffenedPanel(_code, _tf, B11, phiComp, ksigmaComp, fy, E, ni, _Ldiaf, _IsUnstiffened);
+            UnstiffenedPanel TopFlangeCompression = new UnstiffenedPanel(_code, _tf, B11, phiComp, ksigmaComp, fy, E, ni, _Ldiaf);
             /// Bottom flange
             double B22 = _B2 - 2 * _tw;
-            UnstiffenedPanel BottomFlangeCompression = new UnstiffenedPanel(_code, _tf, B22, phiComp, ksigmaComp, fy, E, ni, _Ldiaf, _IsUnstiffened);
+            UnstiffenedPanel BottomFlangeCompression = new UnstiffenedPanel(_code, _tf, B22, phiComp, ksigmaComp, fy, E, ni, _Ldiaf);
             //  UNSTIFFENED WEBS_PURE-COMPRESSION
             double h = _H - 2 * _tf;
-            UnstiffenedPanel WebsCompression = new UnstiffenedPanel(_code, _tw, h, phiComp, ksigmaComp, fy, E, ni, _Ldiaf, _IsUnstiffened);
+            UnstiffenedPanel WebsCompression = new UnstiffenedPanel(_code, _tw, h, phiComp, ksigmaComp, fy, E, ni, _Ldiaf);
 
             //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             //  STIFFENED_1_WEBS_PURE-COMPRESSION
@@ -76,7 +76,7 @@ namespace GPCChecker.Steel.Class4Section
             /// WEB Panel2
             UnstiffenedPanel Stiff_1_P2 = new UnstiffenedPanel(_code, _tw, (_H - 2 * _tf) / 2, phiComp, ksigmaComp, fy, E, ni);
             /// Single Stiffener
-            FlatStiffener Stiff_1_Stiffener1 = new FlatStiffener(_code, _ts, _bs, Stiff_1_P1.t, Stiff_1_P1.b, Stiff_1_P2.b, Stiff_1_P1.bbottom, Stiff_1_P2.btop, _Ldiaf, StiffenerType.Open, fy, E, ni);
+            FlatStiffener Stiff_1_Stiffener1 = new FlatStiffener(_code, _ts, _bs, Stiff_1_P1.t, Stiff_1_P1.b, Stiff_1_P2.b, Stiff_1_P1.bbottom, Stiff_1_P2.btop, _Ldiaf, StiffenerLongitudinalType.Open, fy, E, ni);
             /// 
             List<UnstiffenedPanel> Stiff_1_PanelArray = new List<UnstiffenedPanel>();
             Stiff_1_PanelArray.Add(Stiff_1_P1);
@@ -95,11 +95,11 @@ namespace GPCChecker.Steel.Class4Section
             /// WEB Panel 1a-1b - Uniform Compression
             UnstiffenedPanel Stiff_2_WPMiddlec = new UnstiffenedPanel(_code, _tw, (_H - _tf) / 2, phiComp, ksigmaComp, fy, E, ni);
             /// Stiffener 1
-            FlatStiffener Stiff_2_FlatStiffener1 = new FlatStiffener(_code, _ts, _bs, Stiff_2_P1.t, Stiff_2_P1.b, Stiff_2_P2.b, Stiff_2_P1.bbottom, Stiff_2_P2.btop, _Ldiaf, StiffenerType.Open, fy, E, ni);
+            FlatStiffener Stiff_2_FlatStiffener1 = new FlatStiffener(_code, _ts, _bs, Stiff_2_P1.t, Stiff_2_P1.b, Stiff_2_P2.b, Stiff_2_P1.bbottom, Stiff_2_P2.btop, _Ldiaf, StiffenerLongitudinalType.Open, fy, E, ni);
             /// Stiffener 2
-            FlatStiffener Stiff_2_FlatStiffener2 = new FlatStiffener(_code, _ts, _bs, Stiff_2_P2.t, Stiff_2_P2.b, Stiff_2_P3.b, Stiff_2_P2.bbottom, Stiff_2_P3.btop, _Ldiaf, StiffenerType.Open, fy, E, ni);
+            FlatStiffener Stiff_2_FlatStiffener2 = new FlatStiffener(_code, _ts, _bs, Stiff_2_P2.t, Stiff_2_P2.b, Stiff_2_P3.b, Stiff_2_P2.bbottom, Stiff_2_P3.btop, _Ldiaf, StiffenerLongitudinalType.Open, fy, E, ni);
             /// Stiffener Lumped
-            FlatStiffener Stiff_2_FlatStiffenerLumped = new FlatStiffener(_code, _ts, _bs, Stiff_2_P2.t, (_H - _bs) / 2.0, (_H - _tf) / 2.0, Stiff_2_WPMiddlec.bbottom, Stiff_2_WPMiddlec.btop, _Ldiaf, StiffenerType.Open, fy, E, ni);
+            FlatStiffener Stiff_2_FlatStiffenerLumped = new FlatStiffener(_code, _ts, _bs, Stiff_2_P2.t, (_H - _bs) / 2.0, (_H - _tf) / 2.0, Stiff_2_WPMiddlec.bbottom, Stiff_2_WPMiddlec.btop, _Ldiaf, StiffenerLongitudinalType.Open, fy, E, ni);
             /// Arrays of Panels and Stiffeners
             List<UnstiffenedPanel> Stiff_2_PanelArray = new List<UnstiffenedPanel>();
             Stiff_2_PanelArray.Add(Stiff_2_P1);
@@ -653,15 +653,15 @@ namespace GPCChecker.Steel.Class4Section
 
                 double P1bottom = Math.Min(Panel1.bbottom, Panel1.b / 2);
                 double P2top = Math.Min(Panel2.btop, Panel2.b / 2);
-                FlatStiffener Stiff1 = new FlatStiffener(_code, _ts, _bs, Panel1.t, Panel1.b, Panel2.b, P1bottom, P2top, _Ldiaf, StiffenerType.Open);
+                FlatStiffener Stiff1 = new FlatStiffener(_code, _ts, _bs, Panel1.t, Panel1.b, Panel2.b, P1bottom, P2top, _Ldiaf, StiffenerLongitudinalType.Open);
                 StiffenerArray.Add(Stiff1);
                 double P2bottom = Math.Min(Panel2.bbottom, Panel2.b / 2);
                 double P3top = Math.Min(Panel3.btop, Panel3.b / 2);
-                FlatStiffener Stiff2 = new FlatStiffener(_code, _ts, _bs, Panel2.t, Panel2.b, Panel3.b, P2bottom, P3top, _Ldiaf, StiffenerType.Open);
+                FlatStiffener Stiff2 = new FlatStiffener(_code, _ts, _bs, Panel2.t, Panel2.b, Panel3.b, P2bottom, P3top, _Ldiaf, StiffenerLongitudinalType.Open);
                 StiffenerArray.Add(Stiff2);
                 P1bottom = Math.Min(Panel1.bbottom, Panel1.b / 2);
                 double P4top = Math.Min(Panel4.btop, Panel4.b / 2);
-                FlatStiffener Stiff3 = new FlatStiffener(_code, _ts, _bs, Panel4.t, Panel1.b, Panel3.b, P1bottom, P4top, _Ldiaf, StiffenerType.Open);
+                FlatStiffener Stiff3 = new FlatStiffener(_code, _ts, _bs, Panel4.t, Panel1.b, Panel3.b, P1bottom, P4top, _Ldiaf, StiffenerLongitudinalType.Open);
                 StiffenerArray.Add(Stiff3);
                 StiffenedPanel bWEBST = new StiffenedPanel(_code, 2, PanelArray, StiffenerArray, psiALL); /// Stiffened Panel
                 double rho = bWEBST.Rhoc;

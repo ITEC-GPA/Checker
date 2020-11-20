@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="GPCModel">
+      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\GPCModel.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -41,8 +44,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class4Section\EffectiveSection.cs" />
-    <Compile Include="Class4Section\PanelStability.cs" />
+    <Compile Include="PanelsStability\Class4SectionDefinitions.cs" />
+    <Compile Include="PanelsStability\EffectiveSection.cs" />
+    <Compile Include="PanelsStability\FlatStiffener.cs" />
+    <Compile Include="PanelsStability\PanelShearStability.cs" />
+    <Compile Include="PanelsStability\PanelStability.cs" />
+    <Compile Include="PanelsStability\StiffenedPanel.cs" />
+    <Compile Include="PanelsStability\TransverseStiffener.cs" />
+    <Compile Include="PanelsStability\UnstiffenedPanel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
