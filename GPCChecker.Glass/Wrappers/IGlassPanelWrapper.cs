@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
-    public interface IGlassPanelWrapper
+    internal interface IGlassPanelWrapper
     {
         #region Properties
         double GetTotalThickness();

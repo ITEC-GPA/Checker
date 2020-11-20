@@ -15,33 +15,44 @@ namespace GPC.Checker.Glasses
 
         protected List<Combination> _combinations;
 
+        protected string _outputFolder;
+
         #endregion
 
         #region Properties
 
         public List<GlassSurface> GlassSurfaces => _glassSurfaces;
+        public string OutputFolder => _outputFolder;
 
         #endregion
 
 
         #region Public constructors
 
-        public Model()
-            : this(new List<GlassSurface>(), new List<Combination>())
+        public Model(string outputFolder)
+            : this(new List<GlassSurface>(), new List<Combination>(), outputFolder)
         {
 
         }
 
-        public Model(List<GlassSurface> glassSurfaces)
-            : this(glassSurfaces, new List<Combination>())
+        public Model(List<GlassSurface> glassSurfaces, string outputFolder)
+            : this(glassSurfaces, new List<Combination>(), outputFolder)
         {
 
         }
 
-        public Model(List<GlassSurface> glassSurfaces, List<Combination> combinations)
+        public Model(List<GlassSurface> glassSurfaces, List<Combination> combinations, string outputFolder)
         {
             this._glassSurfaces = glassSurfaces ?? new List<GlassSurface>();
             this._combinations = combinations ?? new List<Combination>();
+
+            if (!string.IsNullOrEmpty(outputFolder) && !string.IsNullOrWhiteSpace(outputFolder))
+                if (!System.IO.Directory.Exists(outputFolder))
+                    throw new ArgumentException("Output folder does not exist");
+                else
+                    _outputFolder = outputFolder;
+            else
+                throw new ArgumentNullException("Output folder cannot be null or empty");
         }
 
         #endregion

@@ -43,8 +43,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\GPCUtilities\GPCUtilities\bin\Debug\GPCUtilities.dll</HintPath>
     </Reference>
+    <Reference Include="St7ApiWrapper">
+      <HintPath>..\..\StrausApi64\St7ApiServer\bin\Debug\St7ApiWrapper.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -81,4 +85,11 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>If "$(ConfigurationName)"=="Debug" (
+Copy "..\..\..\..\GPCGeometry\GPCGeometry\bin\Debug\gmsh-4.7.dll" "$(TargetDir)"
+)
+If "$(ConfigurationName)"=="Release" (Copy "..\..\..\..\GPCGeometry\GPCGeometry\bin\Release\gmsh-4.7.dll" "$(TargetDir)"
+)</PostBuildEvent>
+  </PropertyGroup>
 </Project>

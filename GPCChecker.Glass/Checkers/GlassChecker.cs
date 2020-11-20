@@ -1,5 +1,6 @@
 ﻿using GPC.Checker.Glasses.Wrappers;
 using GPC.Model.Elements.Glasses;
+using GPC.Model.Loads;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,6 @@ namespace GPC.Checker.Glasses.Checkers
             this._laminatedAnalysisType = laminatedAnalysisType;
         }
 
-
         protected List<GlassWrapper> GetWrappers()
         {
             List<GlassWrapper> wrappers = new List<GlassWrapper>();
@@ -37,6 +37,10 @@ namespace GPC.Checker.Glasses.Checkers
                 if (surface.GlassProperty is MonolithicGlass mg)
                 {
                     MonolithicGlassWrapper mgw = new MonolithicGlassWrapper(surface);
+
+                    mgw.AddLoads(surface.Loads);
+
+                    mgw.GeneratePlateMesh();
 
                     wrappers.Add(mgw);
                 }

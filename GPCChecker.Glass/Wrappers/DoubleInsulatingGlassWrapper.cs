@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
-    public class DoubleInsulatingGlassWrapper : InsulatedGlassWrapper
+    internal class DoubleInsulatingGlassWrapper : InsulatedGlassWrapper
     {
         protected new DoubleInsulatingGlass GlassProperty => (DoubleInsulatingGlass)_glassSurface.GlassProperty;
 
         protected readonly GlassPanelWrapper _glassPanelWrapperOuter;
         protected readonly GlassPanelWrapper _glassPanelWrapperInner;
 
-        public DoubleInsulatingGlassWrapper(GlassSurface glassSurface, GlassPanelWrapper[] glassPanelWrappers) 
+        internal DoubleInsulatingGlassWrapper(GlassSurface glassSurface, GlassPanelWrapper[] glassPanelWrappers) 
             : base(glassSurface, glassPanelWrappers)
 
         {
@@ -24,7 +24,7 @@ namespace GPC.Checker.Glasses.Wrappers
             
         }
 
-        public DoubleInsulatingGlassWrapper(GlassSurface glassSurface, GlassPanelWrapper glassPanelWrapperOuter, GlassPanelWrapper glassPanelWrapperInner) 
+        internal DoubleInsulatingGlassWrapper(GlassSurface glassSurface, GlassPanelWrapper glassPanelWrapperOuter, GlassPanelWrapper glassPanelWrapperInner) 
             : this(glassSurface, new GlassPanelWrapper[2] { glassPanelWrapperOuter, glassPanelWrapperInner })
         {
 

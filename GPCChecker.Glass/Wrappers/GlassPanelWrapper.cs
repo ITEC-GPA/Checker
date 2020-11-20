@@ -7,20 +7,22 @@ using System.Collections.Generic;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
-    public abstract class GlassPanelWrapper : GlassWrapper, IGlassPanelWrapper
+    internal abstract class GlassPanelWrapper : GlassWrapper, IGlassPanelWrapper
     {
-        protected Load _load;
+        protected List<Load> _loads;
 
 
         protected new IGlassPanel GlassProperty => (IGlassPanel)_glassSurface.GlassProperty;
 
+
         protected GlassPanelWrapper(GlassSurface glassSurface) : base(glassSurface)
         {
+            _loads = new List<Load>();
             if (!(glassSurface.GlassProperty is IGlassPanel))
                 throw new ArgumentException("Glass property should be a GlassPanel");
         }
 
-        #region Public methods
+        #region Public methods - geometry
 
         public abstract double GetDeformationThickness(double loadDuration);
 
@@ -34,16 +36,25 @@ namespace GPC.Checker.Glasses.Wrappers
 
         public abstract double GetSelfWeightPerUnitArea();
 
-        public abstract double GetSelfWeightTotal(); 
-        
+        public abstract double GetSelfWeightTotal();
+
         #endregion
 
-        public List<Mesh> GeneratePlateMesh()
-        {
-            var shapes = new List<Shape>();
-            shapes.Add(_glassSurface.Shape);
+        #region Public methods - analysis
 
-            return Mesh.Generate(shapes, null, null);
+        public void AddLoad(Load load)
+        {
+            _loads.Add(load);
         }
+
+        public void AddLoads(List<Load> loads)
+        {
+            _loads.AddRange(loads);
+        }
+
+        public abstract void GeneratePlateMesh();
+
+        #endregion
+
     }
 }

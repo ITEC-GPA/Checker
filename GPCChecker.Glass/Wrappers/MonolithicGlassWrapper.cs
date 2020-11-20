@@ -8,20 +8,22 @@ using System.Threading.Tasks;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
-    public class MonolithicGlassWrapper : GlassPanelWrapper
+    internal class MonolithicGlassWrapper : GlassPanelWrapper
     {
         protected new MonolithicGlass GlassProperty => (MonolithicGlass)_glassSurface.GlassProperty;
 
         protected Mesh _mesh;
 
+        internal List<Mesh> Meshes => new List<Mesh>() { _mesh };
 
-        public MonolithicGlassWrapper(GlassSurface glassSurface) : base(glassSurface)
+
+        internal MonolithicGlassWrapper(GlassSurface glassSurface) : base(glassSurface)
         {
             if (!(glassSurface.GlassProperty is MonolithicGlass))
                 throw new ArgumentException("Glass property should be a Monolithic Glass Property");
         }
 
-        #region Public methods
+        #region Public methods - geometry
 
         public override double GetDeformationThickness(double loadDuration)
         {
@@ -59,7 +61,20 @@ namespace GPC.Checker.Glasses.Wrappers
             // mm2 * mm * T/mm3 => T
             return _glassSurface.Shape.GetArea() * GlassProperty.Thickness * GlassProperty.Material.Density;
         }
-        
+
         #endregion
+
+        #region Public methods - Analysis
+        public override void GeneratePlateMesh()
+        {
+            var shapes = new List<Shape>();
+            shapes.Add(_glassSurface.Shape);
+
+            Mesh.GenerateMeshOptions.Size = 10;
+
+            _mesh = Mesh.Generate(shapes, null, null).First();
+        } 
+        #endregion
+
     }
 }

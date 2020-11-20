@@ -6,7 +6,7 @@ using GPC.Model.Elements.Glasses;
 using GPC.Geometry;
 using GPC.Model.Materials;
 using GPC.Model.Loads;
-using GPC.Model.LoadCases;
+using GPC.Checker.Glasses.LoadCases;
 using GPC.Model.Combinations;
 using GPC.Checker.Glasses.Checkers;
 
@@ -53,10 +53,10 @@ namespace GlassTests
         {
             Polygon3d poly = new Polygon3d()
             {
-                new Point3d(p),
+                new Point3d(p.X, p.Y, p.Z),
                 new Point3d(p.X + vector.X, p.Y + vector.Y, p.Z), 
                 new Point3d(p.X + vector.X, p.Y + vector.Y, p.Z + vector.Z),
-                new Point3d(p.X + vector.X, p.Y, p.Z + vector.Z)
+                new Point3d(p.X, p.Y, p.Z + vector.Z)
             };
 
             return new Shape(poly, null, null);
@@ -76,8 +76,8 @@ namespace GlassTests
             GlassSurface gs1 = new GlassSurface(mg, s1, 0, Guid.NewGuid());
             GlassSurface gs2 = new GlassSurface(mg, s2, 0, Guid.NewGuid());
 
-            LoadCase lc1 = new LoadCase("LC1", LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
-            LoadCase lc2 = new LoadCase("LC2", LoadCase.LoadCaseType.Wind, Guid.NewGuid());
+            LoadCase lc1 = new LoadCase("LC1", 100, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
+            LoadCase lc2 = new LoadCase("LC2", 5, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
 
             NormalAreaLoad s1allc1 = new NormalAreaLoad(100, s1, lc1, Guid.NewGuid());
             NormalAreaLoad s1allc2 = new NormalAreaLoad(300, s1, lc2, Guid.NewGuid());
@@ -100,8 +100,10 @@ namespace GlassTests
             cmb2[lc1] = 3;
             cmb2[lc2] = 5;
 
+            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
+            Directory.CreateDirectory(outputFolder);
 
-            Model model = new Model();
+            Model model = new Model(outputFolder);
             model.AddSurface(gs1);
             model.AddSurface(gs2);
 

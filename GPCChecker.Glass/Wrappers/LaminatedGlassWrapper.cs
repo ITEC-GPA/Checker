@@ -1,4 +1,5 @@
-﻿using GPC.Model.Elements.Glasses;
+﻿using GPC.Geometry;
+using GPC.Model.Elements.Glasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,21 +8,26 @@ using System.Threading.Tasks;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
-    public class LaminatedGlassWrapper : GlassPanelWrapper
+    internal class LaminatedGlassWrapper : GlassPanelWrapper
     {
         #region Variables
         protected readonly MonolithicGlassWrapper[] _monolithicGlassWrappers;
 
         protected Dictionary<double, double> _thicknessesW;
 
-        protected Dictionary<double, double> _thicknessesStress; 
+        protected Dictionary<double, double> _thicknessesStress;
+
+        protected Mesh[] _mesh;
+
         #endregion
 
         protected new LaminatedGlass GlassProperty => (LaminatedGlass)_glassSurface.GlassProperty;
 
+        internal List<Mesh> Meshes => _mesh.ToList();
+
 
         #region Public constructors
-        public LaminatedGlassWrapper(GlassSurface glassSurface) : base(glassSurface)
+        internal LaminatedGlassWrapper(GlassSurface glassSurface) : base(glassSurface)
         {
             if (!(glassSurface.GlassProperty is LaminatedGlass))
                 throw new ArgumentException("Glass property should be a Laminated Glass Property");
@@ -29,7 +35,7 @@ namespace GPC.Checker.Glasses.Wrappers
 
         #endregion
 
-        #region Public methods
+        #region Public methods - Geometry
         public override double GetDeformationThickness(double loadDuration)
         {
             if (_thicknessesW.ContainsKey(loadDuration))
@@ -98,7 +104,20 @@ namespace GPC.Checker.Glasses.Wrappers
         {
             return _glassSurface.Shape.GetArea() *
                     (GlassProperty.MonolithicGlasses.Select(i => i.Thickness * i.Material.Density).Sum() + GlassProperty.Interlayers.Select(i => i.Thickness * i.Material.Density).Sum());
-        } 
+        }
+        #endregion
+
+
+        #region Public methods - Analysis
+        public override void GeneratePlateMesh()
+        {
+            var shapes = new List<Shape>();
+            shapes.Add(_glassSurface.Shape);
+
+            Mesh.GenerateMeshOptions.Size = 10;
+
+            _mesh = Mesh.Generate(shapes, null, null).ToArray();
+        }
         #endregion
     }
 }
