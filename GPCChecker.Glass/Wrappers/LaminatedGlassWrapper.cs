@@ -109,7 +109,8 @@ namespace GPC.Checker.Glasses.Wrappers
 
 
         #region Public methods - Analysis
-        public override void GeneratePlateMesh()
+
+        public override List<FemModel.FemMesh> GeneratePlateMesh()
         {
             var shapes = new List<Shape>();
             shapes.Add(_glassSurface.Shape);
@@ -117,7 +118,10 @@ namespace GPC.Checker.Glasses.Wrappers
             Mesh.GenerateMeshOptions.Size = 10;
 
             _mesh = Mesh.Generate(shapes, null, null).ToArray();
+
+            throw new NotSupportedException();
         }
+
         #endregion
     }
 }

@@ -13,7 +13,8 @@ namespace GPC.Checker.Glasses.Checkers
 
 
 
-        public PrEnGlassChecker(Model model, LaminatedAnalysisType laminatedAnalysisType) : base(model, laminatedAnalysisType)
+        public PrEnGlassChecker(Model model, LaminatedAnalysisType laminatedAnalysisType) 
+            : base(model, laminatedAnalysisType)
         {
 
         }
@@ -22,27 +23,25 @@ namespace GPC.Checker.Glasses.Checkers
         {
             List<GlassWrapper> wrappers = GetWrappers();
 
-            FemModelWrapper femWrapper = new FemModelWrapper();
-
-            //Setup wrapper
+            var meshes = new List<List<FemMesh>>();
             foreach (var wrapper in wrappers)
             {
                 if (wrapper is MonolithicGlassWrapper mgw)
                 {
-                    mgw.GeneratePlateMesh();
-
-                    femWrapper.AddMeshes(mgw.Meshes);
+                    meshes.Add(mgw.GeneratePlateMesh());
                 }
-
-
                 else if (wrapper is InsulatedGlassWrapper igw)
                 {
 
                 }
                 else
                     throw new NotSupportedException("Glass wrapper not supported");
-
             }
+
+            //femWrapper.ExportMeshMSHFormat(System.IO.Path.Combine(this._model.OutputFolder, "mesh.msh"), l);
+
+            FemModelWrapper femWrapper = new FemModelWrapper(meshes);
+
 
             femWrapper.ToSt7(System.IO.Path.Combine(this._model.OutputFolder, "1.st7"));
         }

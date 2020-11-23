@@ -52,7 +52,7 @@ namespace GPC.Checker.Glasses.Wrappers
             _loads.AddRange(loads);
         }
 
-        public abstract void GeneratePlateMesh();
+        public abstract List<FemModel.FemMesh> GeneratePlateMesh();
 
         #endregion
 

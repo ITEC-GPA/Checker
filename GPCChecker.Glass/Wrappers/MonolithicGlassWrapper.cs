@@ -12,11 +12,6 @@ namespace GPC.Checker.Glasses.Wrappers
     {
         protected new MonolithicGlass GlassProperty => (MonolithicGlass)_glassSurface.GlassProperty;
 
-        protected Mesh _mesh;
-
-        internal List<Mesh> Meshes => new List<Mesh>() { _mesh };
-
-
         internal MonolithicGlassWrapper(GlassSurface glassSurface) : base(glassSurface)
         {
             if (!(glassSurface.GlassProperty is MonolithicGlass))
@@ -65,15 +60,25 @@ namespace GPC.Checker.Glasses.Wrappers
         #endregion
 
         #region Public methods - Analysis
-        public override void GeneratePlateMesh()
+
+        public override List<FemModel.FemMesh> GeneratePlateMesh()
         {
             var shapes = new List<Shape>();
             shapes.Add(_glassSurface.Shape);
 
             Mesh.GenerateMeshOptions.Size = 10;
+            Mesh.GenerateMeshOptions.UseGlobalProgressID = true;
 
-            _mesh = Mesh.Generate(shapes, null, null).First();
+            var meshes = Mesh.Generate(shapes, null, null);
+
+            List<FemModel.FemMesh> femMesh = new List<FemModel.FemMesh>();
+            foreach(var mesh in meshes)
+            {
+                femMesh.Add(new FemModel.FemMesh(mesh.Vertices, mesh.Faces));
+            }
+            return femMesh;
         } 
+
         #endregion
 
     }

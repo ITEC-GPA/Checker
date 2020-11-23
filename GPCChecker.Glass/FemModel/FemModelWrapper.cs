@@ -14,36 +14,95 @@ namespace GPC.Checker.Glasses.FemModel
 {
     internal class FemModelWrapper
     {
-        private List<GlassFemNode> _nodes;
-        private List<GlassFemPlate> _plates;
-        private string _ip;
+        #region Variables
+        /// <summary>
+        /// List of mesh for each glass. Each glass can be rapresneted by a list of mesh
+        /// </summary>
+        private List<List<FemMesh>> _singleGlassMeshes;
 
-        //public FemModelWrapper(List<Mesh> meshes)
-        //{
-        //    _ = meshes ?? throw new ArgumentNullException(nameof(meshes));
-        //}
+        private string _st7ServerIp;
+
+        #endregion
+
+
+        #region Public constructors
 
         internal FemModelWrapper()
+            : this(null)
         {
-            _ip = "localhost";
 
-            _nodes = new List<GlassFemNode>();
-            _plates = new List<GlassFemPlate>();
         }
 
-        internal void AddMeshes(List<Mesh> meshes)
+        internal FemModelWrapper(List<List<FemMesh>> meshes)
         {
-            foreach(var mesh in meshes)
+            _st7ServerIp = "localhost";
+
+            _singleGlassMeshes = meshes ?? new List<List<FemMesh>>();
+
+            SetGlobalConnectivity();
+        }
+
+        #endregion
+
+        #region
+
+        private void SetGlobalConnectivity()
+        {
+            int nodeId = 1;
+            int faceId = 1;
+
+            foreach(var sgm in _singleGlassMeshes)
             {
-                foreach (var vertex in mesh.Vertices)
+                Dictionary<Point3d, int> nodeGlobalId = new Dictionary<Point3d, int>();
+                foreach(var femMesh in sgm)
                 {
-                    _nodes.Add(new GlassFemNode(vertex));
-                }
-                foreach (var face in mesh.Faces)
-                {
-                    _plates.Add(new GlassFemPlate(face));
+                    femMesh.SetGlobalIds(ref nodeId, ref faceId);
+
+                    foreach (var node in femMesh.Vertices)
+                    {
+                        if (nodeGlobalId.ContainsKey(node.Point))
+                        {
+                            (node as FemNode).GlobalId = nodeGlobalId[node.Point];
+                        }
+                        else
+                        {
+                            nodeGlobalId[node.Point] = (node as FemNode).GlobalId;
+                        }
+                    }
                 }
             }
+        }
+
+        #endregion
+
+
+
+
+        #region STRAUS7
+
+        internal void ToSt7(string filePath)
+        {
+            if (ConnectService(_st7ServerIp, out St7ApiWrapper.ISt7ApiService aw, out TcpChannel channel))
+            {
+                bool status = CreateSt7Model(aw, filePath, out int mId, out List<string> warnings, out List<string> errors);
+
+                if (status)
+                {
+                    aw.SaveFile(mId);
+                    aw.CloseFile(mId);
+                }
+                else
+                {
+                    throw new Exception("Error");
+                }
+            }
+            else
+            {
+                throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
+            }
+
+            if (channel != null)
+                ChannelServices.UnregisterChannel(channel);
         }
 
         private static bool ConnectService(string ip, out St7ApiWrapper.ISt7ApiService ro, out TcpChannel channel)
@@ -69,31 +128,6 @@ namespace GPC.Checker.Glasses.FemModel
             }
         }
 
-        internal void ToSt7(string filePath)
-        {
-            if (ConnectService(_ip, out St7ApiWrapper.ISt7ApiService aw, out TcpChannel channel))
-            {
-                bool status = CreateSt7Model(aw, filePath, out int mId, out List<string> warnings, out List<string> errors);
-
-                if (status)
-                {
-                    aw.SaveFile(mId);
-                    aw.CloseFile(mId);
-                }
-                else
-                {
-                    throw new Exception("Error");
-                }
-            }
-            else
-            {
-                throw new Exception($"Unable to connect to Apiservice through ip: {_ip}");
-            }
-
-            if (channel != null)
-                ChannelServices.UnregisterChannel(channel);
-        }
-
         private bool CreateSt7Model(St7ApiWrapper.ISt7ApiService aw, string filePath, out int mId, out List<string> warnings, out List<string> errors)
         {
             warnings = new List<string>();
@@ -117,65 +151,61 @@ namespace GPC.Checker.Glasses.FemModel
             if (!aw.SetUnits(mId, st7Units))
                 throw new Exception("Failed to set the units");
 
-            foreach(var nodes in _nodes)
+            foreach (var sgm in _singleGlassMeshes)
             {
-                aw.SetNodeXYZ(mId, nodes.Id, nodes.Point.X, nodes.Point.Y, nodes.Point.Z);
+                foreach (var femMesh in sgm)
+                {
+                    foreach (var node in femMesh.Vertices)
+                    {
+                        aw.SetNodeXYZ(mId, (node as FemNode).GlobalId, node.Point.X, node.Point.Y, node.Point.Z);  
+                    }
+                }
             }
 
-            foreach (var plate in _plates)
+            foreach (var sgm in _singleGlassMeshes)
             {
-                aw.SetElementConnection(mId, aw.Const("tyPLATE"), plate.Id, 1, plate.GetConnection());
+                foreach (var femMesh in sgm)
+                {
+                    foreach (var face in femMesh.Faces)
+                    {
+                        int[] globalConnectivity;
+
+                        if (face.IsQuad)
+                        {
+                            globalConnectivity = new int[5];
+                            globalConnectivity[0] = 4;
+                            globalConnectivity[1] = (femMesh.Vertices.Where(i => i.Id == face.A).FirstOrDefault() as FemNode).GlobalId;
+                            globalConnectivity[2] = (femMesh.Vertices.Where(i => i.Id == face.B).FirstOrDefault() as FemNode).GlobalId;
+                            globalConnectivity[3] = (femMesh.Vertices.Where(i => i.Id == face.C).FirstOrDefault() as FemNode).GlobalId;
+                            globalConnectivity[4] = (femMesh.Vertices.Where(i => i.Id == face.D).FirstOrDefault() as FemNode).GlobalId;
+                        }
+                        else
+                        {
+                            globalConnectivity = new int[4];
+                            globalConnectivity[0] = 3;
+                            globalConnectivity[1] = (femMesh.Vertices.Where(i => i.Id == face.A).FirstOrDefault() as FemNode).GlobalId;
+                            globalConnectivity[2] = (femMesh.Vertices.Where(i => i.Id == face.B).FirstOrDefault() as FemNode).GlobalId;
+                            globalConnectivity[3] = (femMesh.Vertices.Where(i => i.Id == face.C).FirstOrDefault() as FemNode).GlobalId;
+                        }
+                        aw.SetElementConnection(mId, St7ApiWrapper.St7ApiConst.tyPLATE, (face as FemPlate).GlobalId, 1, globalConnectivity);
+                    }
+                }
             }
 
             return true;
-        }
+        } 
+        
+        #endregion
 
         internal void ToFeM()
         {
             throw new NotSupportedException();
         }
 
-
-        #region Nested classes
-
-        private sealed class GlassFemNode : MeshVertex
+        internal void ExportMeshMSHFormat(string filePath, List<Mesh> meshes)
         {
-            public GlassFemNode(MeshVertex vertex)
-                : base(vertex)
-            {
-
-            }
+            GPC.Utilities.Meshes.MeshExport.ExportToMshFormatv2(filePath, meshes);
         }
 
-        private sealed class GlassFemPlate : MeshFace
-        {
-
-
-            public GlassFemPlate(MeshFace face)
-                : base(face)
-            {
-
-            }
-
-            public GlassFemPlate(SerializationInfo info, StreamingContext context)
-                : base(info, context)
-            {
-
-            }
-
-            public GlassFemPlate(int id, int a, int b, int c)
-                : base(id, a, b, c)
-            {
-
-            }
-
-            public GlassFemPlate(int id, int a, int b, int c, int d)
-                : base(id, a, b, c, d)
-            {
-
-            }
-        } 
-        
-        #endregion
     }
 }
