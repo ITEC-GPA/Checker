@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using GPC.Checker.Glasses;
 using GPC.Model.Elements.Glasses;
@@ -9,6 +10,7 @@ using GPC.Model.Loads;
 using GPC.Checker.Glasses.LoadCases;
 using GPC.Model.Combinations;
 using GPC.Checker.Glasses.Checkers;
+using GPC.Model.Elements;
 
 namespace GlassTests
 {
@@ -69,10 +71,11 @@ namespace GlassTests
         public void MonolithicGlass1()
         {
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 400, 100));
+            var restrains = s1.Fill.Explode().Select(i => new LineRestrain(s1.GetCoordinateSystem(), i)).ToList();
 
-            MonolithicGlass mg = new MonolithicGlass(10, GetGlassMaterialPrEn() );
 
-            GlassSurface gs1 = new GlassSurface(mg, s1, 0, Guid.NewGuid());
+            MonolithicGlass mg = new MonolithicGlass(10, GetGlassMaterialPrEn());
+            GlassSurface gs1 = new GlassSurface(mg, s1, null, restrains, null, 0, Guid.NewGuid());
 
             LoadCase lc1 = new LoadCase("LC1", 100, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
             LoadCase lc2 = new LoadCase("LC2", 5, LoadCase.LoadCaseType.Wind, Guid.NewGuid());

@@ -22,6 +22,7 @@ namespace GPC.Checker.Glasses
         #region Properties
 
         public List<GlassSurface> GlassSurfaces => _glassSurfaces;
+
         public string OutputFolder => _outputFolder;
 
         #endregion

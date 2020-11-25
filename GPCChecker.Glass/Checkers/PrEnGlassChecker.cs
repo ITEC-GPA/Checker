@@ -11,8 +11,6 @@ namespace GPC.Checker.Glasses.Checkers
     public class PrEnGlassChecker : GlassChecker
     {
 
-
-
         public PrEnGlassChecker(Model model, LaminatedAnalysisType laminatedAnalysisType) 
             : base(model, laminatedAnalysisType)
         {

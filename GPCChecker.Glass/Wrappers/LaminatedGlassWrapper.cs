@@ -117,7 +117,7 @@ namespace GPC.Checker.Glasses.Wrappers
 
             Mesh.GenerateMeshOptions.Size = 10;
 
-            _mesh = Mesh.Generate(shapes, null, null).ToArray();
+            _mesh = Mesh.Generate(shapes).ToArray();
 
             throw new NotSupportedException();
         }

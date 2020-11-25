@@ -2,24 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using GPC.Geometry;
+using GPC.Model.Elements;
 
 namespace GPC.Checker.Glasses.FemModel
 {
     internal class FemMesh : Mesh
     {
-        public FemMesh()
-        {
 
-        }
-
-        public FemMesh(List<MeshVertex> vertices, List<MeshFace> faces)
+        public FemMesh(List<MeshVertex> vertices, List<MeshFace> faces, Dictionary<int, Restrain> pointRestrainVertexIndex)
         {
             foreach (var vertex in vertices)
             {
-                this._vertices.Add(new FemNode(vertex));
+                if (pointRestrainVertexIndex.ContainsKey(vertex.Id))
+                {
+                    this._vertices.Add(new FemNode(vertex, pointRestrainVertexIndex[vertex.Id]));
+                }
+                else
+                {
+                    this._vertices.Add(new FemNode(vertex));
+                }
             }
 
             foreach (var face in faces)

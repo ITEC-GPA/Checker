@@ -12,6 +12,7 @@ namespace GPC.Checker.Glasses.FemModel
     {
         public int GlobalId { get; set; }
 
+
         public FemPlate(MeshFace face) 
             : base(face)
         {

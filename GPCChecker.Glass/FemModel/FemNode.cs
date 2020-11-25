@@ -5,12 +5,19 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Geometry;
+using GPC.Model.Elements;
 
 namespace GPC.Checker.Glasses.FemModel
 {
     internal class FemNode : MeshVertex
     {
-        public int GlobalId { get; set; }
+        private Restrain _restrain;
+        private int _globalId;
+
+
+        public int GlobalId { get { return _globalId; } set { _globalId = value; } }
+
+        public Restrain Restrain => _restrain;
 
         public FemNode(Point3d point) 
             : base(point)
@@ -24,6 +31,12 @@ namespace GPC.Checker.Glasses.FemModel
 
         }
 
+        public FemNode(MeshVertex vertex, Restrain restrain)
+            : this(vertex)
+        {
+            _restrain = restrain;
+        }
+
         public FemNode(int id, Point3d point) 
             : base(id, point)
         {
@@ -35,6 +48,10 @@ namespace GPC.Checker.Glasses.FemModel
         {
 
         }
+
+        public bool[] GetRestrains() => _restrain.GetRestrains();
+
+        public double[] GetStiffnesses() => _restrain.GetStiffnesses();
 
         public override string ToString()
         {
