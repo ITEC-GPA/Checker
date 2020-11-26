@@ -27,6 +27,11 @@ namespace GPC.Checker.Glasses.Checkers
                 if (wrapper is MonolithicGlassWrapper mgw)
                 {
                     meshes.Add(mgw.GeneratePlateMesh());
+
+                    foreach (var load in mgw.Loads)
+                    {
+                        
+                    }
                 }
                 else if (wrapper is InsulatedGlassWrapper igw)
                 {

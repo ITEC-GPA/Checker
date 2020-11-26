@@ -4,19 +4,20 @@ using System.Linq;
 using System.Runtime.Serialization;
 using GPC.Geometry;
 using GPC.Model.Elements;
+using GPC.Model.Loads;
 
 namespace GPC.Checker.Glasses.FemModel
 {
     internal class FemMesh : Mesh
     {
 
-        public FemMesh(List<MeshVertex> vertices, List<MeshFace> faces, Dictionary<int, Restrain> pointRestrainVertexIndex)
+        public FemMesh(List<MeshVertex> vertices, List<MeshFace> faces, Dictionary<int, Restrain> pointRestrainVertexIndex, Dictionary<Load, int[]> pointLoadVertexIndex)
         {
             foreach (var vertex in vertices)
             {
                 if (pointRestrainVertexIndex.ContainsKey(vertex.Id))
                 {
-                    this._vertices.Add(new FemNode(vertex, pointRestrainVertexIndex[vertex.Id]));
+                    this._vertices.Add(new FemNode(vertex, pointRestrainVertexIndex[vertex.Id], null));
                 }
                 else
                 {
@@ -28,6 +29,18 @@ namespace GPC.Checker.Glasses.FemModel
             {
                 this._faces.Add(new FemPlate(face));
             }
+
+            foreach(Load load in pointLoadVertexIndex.Keys)
+            {
+                if (load is GlobalPointLoad gpl)
+                {
+                    foreach (int id in pointLoadVertexIndex[load])
+                    {
+                        (this._vertices.Where(i => i.Id == id).FirstOrDefault() as FemNode).GlobalPointLoad = gpl;
+                    }
+                }
+            }
+            
         }
 
         /// <summary>
@@ -40,6 +53,11 @@ namespace GPC.Checker.Glasses.FemModel
             foreach(var vertex in _vertices)
             {
                 (vertex as FemNode).GlobalId = nodeId++;
+
+                if ((vertex as FemNode).Restrain != null)
+                {
+                    Console.WriteLine((vertex as FemNode).GlobalId + " " + vertex.Point.X.ToString() + " " + vertex.Point.Y.ToString() + " " + vertex.Point.Z.ToString());
+                }
             }
             foreach (var face in _faces)
             {

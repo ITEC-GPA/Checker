@@ -11,6 +11,7 @@ namespace GPC.Checker.Glasses.Wrappers
     {
         protected List<Load> _loads;
 
+        internal List<Load> Loads => _loads;
 
         protected new IGlassPanel GlassProperty => (IGlassPanel)_glassSurface.GlassProperty;
 

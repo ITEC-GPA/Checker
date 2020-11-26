@@ -1,6 +1,7 @@
 ﻿using GPC.Geometry;
 using GPC.Model.Elements;
 using GPC.Model.Elements.Glasses;
+using GPC.Model.Loads;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,15 +69,19 @@ namespace GPC.Checker.Glasses.Wrappers
             var shapes = new List<Shape>();
             shapes.Add(_glassSurface.Shape);
 
-            Dictionary<Shape, GeometryBase[]> embeddedGeometries = new Dictionary<Shape, GeometryBase[]>();
+            List<GeometryBase> embeddedGeometriesBuffer = new List<GeometryBase>();
+
+            // Aggiungo geometria relativa a vincoli
+            embeddedGeometriesBuffer.AddRange(_glassSurface.LineRestrain.Select(i => i.Line).ToList<GeometryBase>());
+            embeddedGeometriesBuffer.AddRange(_glassSurface.PointRestrain.Select(i => i.Point).ToList<GeometryBase>());
+
+            // Aggiungo geometria relativa a carichi - se è diversa dalla superficie di partenza.
+            embeddedGeometriesBuffer.AddRange(_loads.Where(i => i.GetGeometry() != _glassSurface.Shape).Select(i => i.GetGeometry()).ToList());
+
+            // Meshatura
             Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex = new Dictionary<Mesh, Dictionary<GeometryBase, int[]>>();
-
-            var restrains = _glassSurface.LineRestrain.Select(i => i.Line).ToList<GeometryBase>();
-            var pointsRestrain = _glassSurface.PointRestrain.Select(i => i.Point).ToList<GeometryBase>();
-            
-            restrains.AddRange(pointsRestrain);
-
-            embeddedGeometries[_glassSurface.Shape] = restrains.ToArray();
+            Dictionary<Shape, GeometryBase[]> embeddedGeometries = new Dictionary<Shape, GeometryBase[]>();
+            embeddedGeometries[_glassSurface.Shape] = embeddedGeometriesBuffer.ToArray();
 
             Mesh.GenerateMeshOptions.Algorithm = Mesh.GenerateMeshOptions.MeshAlgorithm.PackingOfParallelograms;
             Mesh.GenerateMeshOptions.Recombine = true;
@@ -86,15 +91,26 @@ namespace GPC.Checker.Glasses.Wrappers
 
             var meshes = Mesh.Generate(shapes, embeddedGeometries, out embeddedGeometriesMapVertex);
 
+            //foreach (var mesh in meshes)
+            //{
+            //    foreach (var vertex in mesh.Vertices)
+            //    {
+            //        Console.WriteLine($"Mesh: {_glassSurface.Index} - Vertex: {vertex.Id} {vertex.Point.X} {vertex.Point.Y} { vertex.Point.Z}");
+            //    }
+            //}
+
+
             List<FemModel.FemMesh> femMesh = new List<FemModel.FemMesh>();
+
             foreach(var mesh in meshes)
             {
                 var pointRestrainVertexIndex = new Dictionary<int, Restrain>();
+                Dictionary<Load, int[]> pointLoadVertexIndex = new Dictionary<Load, int[]>();
 
                 foreach (var kvp in embeddedGeometriesMapVertex[mesh])
                 {
                     GeometryBase geometry = kvp.Key;
-                    int[] vertex = kvp.Value;
+                    int[] vertexIndex = kvp.Value;
 
                     if (geometry is Line3d || geometry is Line2d)
                     {
@@ -106,8 +122,11 @@ namespace GPC.Checker.Glasses.Wrappers
 
                         var restrain = _glassSurface.LineRestrain.Where(i => i.Line == line).Select(i => i.Restrain).FirstOrDefault();
 
-                        foreach (int v in vertex)
+                        foreach (int v in vertexIndex)
+                        {
                             pointRestrainVertexIndex[v] = restrain;
+                        }
+
                     }
                     else if (geometry is Point3d || geometry is Point2d)
                     {
@@ -119,8 +138,13 @@ namespace GPC.Checker.Glasses.Wrappers
 
                         var restrain = _glassSurface.PointRestrain.Where(i => i.Point == point).Select(i => i.Restrain).FirstOrDefault();
 
-                        foreach (int v in vertex)
-                            pointRestrainVertexIndex[v] = restrain;
+                        if (restrain != null)
+                            foreach (int v in vertexIndex)
+                                pointRestrainVertexIndex[v] = restrain;
+                                               
+                        var load = _glassSurface.Loads.Where(i => i.GetGeometry().GetType() == typeof(Point3d)).Where(i => i.GetGeometry() == point).FirstOrDefault();
+                        if (load != null)
+                            pointLoadVertexIndex[load] = vertexIndex;
                     }
                     else
                     {
@@ -128,8 +152,10 @@ namespace GPC.Checker.Glasses.Wrappers
                     }
                 }
 
-                femMesh.Add(new FemModel.FemMesh(mesh.Vertices, mesh.Faces, pointRestrainVertexIndex));
+                femMesh.Add(new FemModel.FemMesh(mesh.Vertices, mesh.Faces, pointRestrainVertexIndex, pointLoadVertexIndex));
             }
+
+
             return femMesh;
         }
 

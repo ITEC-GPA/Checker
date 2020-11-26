@@ -73,19 +73,24 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 400, 100));
             var restrains = s1.Fill.Explode().Select(i => new LineRestrain(s1.GetCoordinateSystem(), i)).ToList();
 
-
+            // Surface
             MonolithicGlass mg = new MonolithicGlass(10, GetGlassMaterialPrEn());
             GlassSurface gs1 = new GlassSurface(mg, s1, null, restrains, null, 0, Guid.NewGuid());
 
+            // LoadCases
             LoadCase lc1 = new LoadCase("LC1", 100, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
             LoadCase lc2 = new LoadCase("LC2", 5, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
 
+            // Loads
             NormalAreaLoad s1allc1 = new NormalAreaLoad(100, s1, lc1, Guid.NewGuid());
             NormalAreaLoad s1allc2 = new NormalAreaLoad(300, s1, lc2, Guid.NewGuid());
+            GlobalPointLoad s1gpl = new GlobalPointLoad(1, 2, 3, 4, 5, 6, new Point3d(100, 200, 50), lc2, Guid.NewGuid());
 
             gs1.AddLoad(s1allc1);
             gs1.AddLoad(s1allc2);
+            gs1.AddLoad(s1gpl);
 
+            // Combination 
             Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural, Guid.NewGuid());
             cmb1[lc1] = 2;
             cmb1[lc2] = 3;
@@ -114,10 +119,13 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 400, 100));
             Shape s2 = GetRectangularShape(new Point3d(100, 100, 100), new Vector3d(300, 500, 200));
 
+            var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(s1.GetCoordinateSystem(), i)).ToList();
+            var restrains2 = s2.Fill.Explode().Select(i => new LineRestrain(s2.GetCoordinateSystem(), i)).ToList();
+
             MonolithicGlass mg = new MonolithicGlass(10, GetGlassMaterialPrEn());
 
-            GlassSurface gs1 = new GlassSurface(mg, s1, 0, Guid.NewGuid());
-            GlassSurface gs2 = new GlassSurface(mg, s2, 0, Guid.NewGuid());
+            GlassSurface gs1 = new GlassSurface(mg, s1, null, restrains1, null, 0, Guid.NewGuid());
+            GlassSurface gs2 = new GlassSurface(mg, s2, null, null, null, 1, Guid.NewGuid());
 
             LoadCase lc1 = new LoadCase("LC1", 100, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
             LoadCase lc2 = new LoadCase("LC2", 5, LoadCase.LoadCaseType.Wind, Guid.NewGuid());

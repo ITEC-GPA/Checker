@@ -11,6 +11,7 @@ using System.Runtime.Remoting.Channels;
 using System.IO;
 using St7ApiWrapper;
 using GPC.Model.Elements;
+using GPC.Model.Loads;
 
 namespace GPC.Checker.Glasses.FemModel
 {
@@ -164,6 +165,9 @@ namespace GPC.Checker.Glasses.FemModel
 
                         if ((node as FemNode).Restrain != null)
                             SetSt7NodeRestrain(aw, mId, (node as FemNode).GlobalId, 1, 1, (node as FemNode).Restrain);
+
+                        if ((node as FemNode).GlobalPointLoad != null)
+                            SetSt7Load(aw, mId, (node as FemNode).GlobalId, 1, (node as FemNode).GlobalPointLoad);
                     }
                 }
             }
@@ -217,10 +221,15 @@ namespace GPC.Checker.Glasses.FemModel
             return aw.SetNodeRestraint(mid, nodeNumber, caseNumber, ucsId, status, doubles);
         }
 
+        private bool SetSt7Load(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, GlobalPointLoad gpl)
+        {            
+            return aw.SetNodeForce(mid, nodeNumber, caseNumber, gpl.Fx, gpl.Fy, gpl.Fz) && aw.SetNodeMoment(mid, nodeNumber, caseNumber, gpl.Mx, gpl.My, gpl.Mz);
+        }
+
         #endregion
 
         #region FeM
-        
+
         internal void ToFeM()
         {
             throw new NotSupportedException();
