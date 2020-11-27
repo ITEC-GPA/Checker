@@ -41,7 +41,6 @@ namespace GPC.Checker.Glasses.Checkers
                     mgw.AddLoads(surface.Loads);
 
                     mgw.GeneratePlateMesh();
-
                     
                     wrappers.Add(mgw);
                 }

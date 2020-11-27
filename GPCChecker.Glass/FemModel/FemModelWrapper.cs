@@ -12,6 +12,8 @@ using System.IO;
 using St7ApiWrapper;
 using GPC.Model.Elements;
 using GPC.Model.Loads;
+using GPC.Model.FEM.Attributes;
+using System.Diagnostics;
 
 namespace GPC.Checker.Glasses.FemModel
 {
@@ -164,10 +166,17 @@ namespace GPC.Checker.Glasses.FemModel
                         aw.SetNodeXYZ(mId, (node as FemNode).GlobalId, node.Point.X, node.Point.Y, node.Point.Z);
 
                         if ((node as FemNode).Restrain != null)
-                            SetSt7NodeRestrain(aw, mId, (node as FemNode).GlobalId, 1, 1, (node as FemNode).Restrain);
+                            St7SetNodeRestrain(aw, mId, (node as FemNode).GlobalId, 1, 1, (node as FemNode).Restrain);
 
-                        if ((node as FemNode).GlobalPointLoad != null)
-                            SetSt7Load(aw, mId, (node as FemNode).GlobalId, 1, (node as FemNode).GlobalPointLoad);
+                        foreach (var attribute in (node as FemNode).Attributes)
+                        {
+                            if (attribute is NodeGlobalForceAttribute pgfa)
+                            {
+                                St7SetNodeGlobalLoad(aw, mId, (node as FemNode).GlobalId, 1, pgfa);
+                            }
+                            else
+                                throw new NotSupportedException("Point attribute not supported");
+                        }
                     }
                 }
             }
@@ -199,6 +208,16 @@ namespace GPC.Checker.Glasses.FemModel
                             globalConnectivity[3] = (femMesh.Vertices.Where(i => i.Id == face.C).FirstOrDefault() as FemNode).GlobalId;
                         }
                         aw.SetElementConnection(mId, St7ApiConst.tyPLATE, (face as FemPlate).GlobalId, 1, globalConnectivity);
+
+                        foreach (var attribute in (face as FemPlate).Attributes)
+                        {
+                            if (attribute is PlateGlobalPressureAttribute pgpa)
+                            {
+                                St7SetPlateGlobalPressure(aw, mId, (face as FemPlate).GlobalId, 1, pgpa);
+                            }
+                            else
+                                throw new NotSupportedException("Point attribute not supported");
+                        }
                     }
                 }
             }
@@ -206,7 +225,7 @@ namespace GPC.Checker.Glasses.FemModel
             return true;
         }
 
-        private bool SetSt7NodeRestrain(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, int ucsId, Restrain restrain)
+        private bool St7SetNodeRestrain(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, int ucsId, Restrain restrain)
         {
             int[] status = new int[6];
             status[0] = restrain.D1 == true ? St7ApiConst.btTrue : St7ApiConst.btFalse;
@@ -221,10 +240,61 @@ namespace GPC.Checker.Glasses.FemModel
             return aw.SetNodeRestraint(mid, nodeNumber, caseNumber, ucsId, status, doubles);
         }
 
-        private bool SetSt7Load(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, GlobalPointLoad gpl)
+        private bool St7SetNodeGlobalLoad(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, NodeGlobalForceAttribute pgfa)
         {            
-            return aw.SetNodeForce(mid, nodeNumber, caseNumber, gpl.Fx, gpl.Fy, gpl.Fz) && aw.SetNodeMoment(mid, nodeNumber, caseNumber, gpl.Mx, gpl.My, gpl.Mz);
+            return aw.SetNodeForce(mid, nodeNumber, caseNumber, pgfa.Fx, pgfa.Fy, pgfa.Fz) && aw.SetNodeMoment(mid, nodeNumber, caseNumber, pgfa.Mx, pgfa.My, pgfa.Mz);
         }
+
+        private bool St7SetNodeLocalLoad(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, NodeGlobalForceAttribute gpl)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool St7SetPlateGlobalPressure(ISt7ApiService aw, int mid, int plateNumber, int caseNumber, PlateGlobalPressureAttribute gpl)
+        {
+            return aw.SetPlateGlobalPressure(mid, plateNumber, St7ApiConst.btFalse, caseNumber, gpl.Px, gpl.Py, gpl.Pz);
+        }
+
+        private bool St7RunLinearSolver(ISt7ApiService aw, int mid, string filePath)
+        {
+            string resultExtension = "lsa";
+            ProcessStartInfo pInfo = new ProcessStartInfo
+            {
+                FileName = Path.Combine(filePath, "St7Solver.exe"),
+                Arguments = string.Format("\"{0}\" {1}", filePath, 1)
+            };
+
+            if (!File.Exists(pInfo.FileName))
+                throw new FileNotFoundException($"File {pInfo.FileName} not found");
+            else
+            {
+                Process p = Process.Start(pInfo);
+                
+                p.WaitForExit(); // Wait for the process to end.
+
+                if (p.ExitCode == 0) // Analysis terminated with success
+                {
+                    string resultPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + "." + resultExtension);
+                    int numPrimary = 0, numSecondary = 0;
+
+                    if (aw.OpenResultFile(mid, resultPath, null, (byte)St7ApiConst.btTrue, ref numPrimary, ref numSecondary))
+                    {
+                        aw.CloseResultFile(mid);
+                    }
+                    return true;
+                }
+                else
+                {
+                    string err = "";
+                    if (p.ExitCode < 1000)
+                        err = aw.GetAPIErrorString(p.ExitCode);
+                    else
+                        err = aw.GetSolverErrorString(p.ExitCode);
+                    throw new Exception($"St7 solver error {err}");
+                }
+            }
+        }
+
 
         #endregion
 
