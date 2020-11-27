@@ -18,7 +18,6 @@ namespace GPC.Checker.Glasses.FemModel
 
         private List<INodeFemAttribute> _attributes;
 
-
         public int GlobalId { get { return _globalId; } set { _globalId = value; } }
 
         public Restrain Restrain => _restrain;

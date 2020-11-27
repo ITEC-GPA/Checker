@@ -71,7 +71,7 @@ namespace GlassTests
         public void MonolithicGlass1()
         {
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 400, 100));
-            var restrains = s1.Fill.Explode().Select(i => new LineRestrain(s1.GetCoordinateSystem(), i)).ToList();
+            var restrains = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
 
             // Surface
             MonolithicGlass mg = new MonolithicGlass(10, GetGlassMaterialPrEn());
@@ -119,8 +119,8 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 400, 100));
             Shape s2 = GetRectangularShape(new Point3d(100, 100, 100), new Vector3d(300, 500, 200));
 
-            var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(s1.GetCoordinateSystem(), i)).ToList();
-            var restrains2 = s2.Fill.Explode().Select(i => new LineRestrain(s2.GetCoordinateSystem(), i)).ToList();
+            var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
+            var restrains2 = s2.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s2.GetCoordinateSystem()))).ToList();
 
             MonolithicGlass mg = new MonolithicGlass(10, GetGlassMaterialPrEn());
 

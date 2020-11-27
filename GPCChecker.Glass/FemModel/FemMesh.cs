@@ -12,7 +12,6 @@ namespace GPC.Checker.Glasses.FemModel
 {
     internal class FemMesh : Mesh
     {
-
         public FemMesh(List<MeshVertex> vertices, List<MeshFace> faces, Dictionary<int, Restrain> pointRestrainVertexIndex, Dictionary<INodeFemAttribute, int[]> pointLoadVertexIndex, 
             Dictionary<IPlateFemAttribute, int[]> plateLoadIndex)
         {
