@@ -2,11 +2,14 @@
 using GPC.Model.Elements;
 using GPC.Model.Elements.Glasses;
 using GPC.Model.Loads;
+using GPC.Model.FEM.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Checker.Glasses.FemModel;
+using GPC.Checker.Glasses.LoadCases;
 
 
 namespace GPC.Checker.Glasses.Wrappers
@@ -64,7 +67,7 @@ namespace GPC.Checker.Glasses.Wrappers
 
         #region Public methods - Analysis
 
-        public override List<FemModel.FemMesh> GeneratePlateMesh()
+        public override List<FemMesh> GeneratePlateMesh()
         {
             var shapes = new List<Shape>();
             shapes.Add(_glassSurface.Shape);
@@ -77,6 +80,8 @@ namespace GPC.Checker.Glasses.Wrappers
 
             // Aggiungo geometria relativa a carichi - se è diversa dalla superficie di partenza.
             embeddedGeometriesBuffer.AddRange(_loads.Where(i => i.GetGeometry() != _glassSurface.Shape).Select(i => i.GetGeometry()).ToList());
+
+            List<Load> uniformPressureLoads = _loads.Where(i => i.GetGeometry() == _glassSurface.Shape).ToList();
 
             // Meshatura
             Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex = new Dictionary<Mesh, Dictionary<GeometryBase, int[]>>();
@@ -91,26 +96,36 @@ namespace GPC.Checker.Glasses.Wrappers
 
             var meshes = Mesh.Generate(shapes, embeddedGeometries, out embeddedGeometriesMapVertex);
 
-            //foreach (var mesh in meshes)
-            //{
-            //    foreach (var vertex in mesh.Vertices)
-            //    {
-            //        Console.WriteLine($"Mesh: {_glassSurface.Index} - Vertex: {vertex.Id} {vertex.Point.X} {vertex.Point.Y} { vertex.Point.Z}");
-            //    }
-            //}
 
-
-            List<FemModel.FemMesh> femMesh = new List<FemModel.FemMesh>();
-
+            // Set up fem mesh
+            List<FemMesh> femMeshes = new List<FemMesh>();
+            
             foreach(var mesh in meshes)
             {
                 var pointRestrainVertexIndex = new Dictionary<int, Restrain>();
-                Dictionary<Load, int[]> pointLoadVertexIndex = new Dictionary<Load, int[]>();
+                Dictionary<INodeFemAttribute, int[]> nodeLoadVertexIndex = new Dictionary<INodeFemAttribute, int[]>();
+                Dictionary<IPlateFemAttribute, int[]> plateLoadFaceIndex = new Dictionary<IPlateFemAttribute, int[]>();
+
+                foreach (var load in uniformPressureLoads)
+                {
+                    if (load is NormalAreaLoad nal)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    else if (load is GlobalAreaLoad gal)
+                    {
+                        PlateGlobalPressureAttribute pgpa = new PlateGlobalPressureAttribute((LoadCase)gal.LoadCase, gal.Px, gal.Py, gal.Pz);
+                        plateLoadFaceIndex[pgpa] = mesh.Faces.Select(I => I.Id).ToArray();
+                    }
+                    else
+                        throw new NotSupportedException("Load type not supported");
+                }
+
 
                 foreach (var kvp in embeddedGeometriesMapVertex[mesh])
                 {
                     GeometryBase geometry = kvp.Key;
-                    int[] vertexIndex = kvp.Value;
+                    int[] vertexIndexes = kvp.Value;
 
                     if (geometry is Line3d || geometry is Line2d)
                     {
@@ -122,11 +137,8 @@ namespace GPC.Checker.Glasses.Wrappers
 
                         var restrain = _glassSurface.LineRestrain.Where(i => i.Line == line).Select(i => i.Restrain).FirstOrDefault();
 
-                        foreach (int v in vertexIndex)
-                        {
+                        foreach (int v in vertexIndexes)
                             pointRestrainVertexIndex[v] = restrain;
-                        }
-
                     }
                     else if (geometry is Point3d || geometry is Point2d)
                     {
@@ -139,24 +151,33 @@ namespace GPC.Checker.Glasses.Wrappers
                         var restrain = _glassSurface.PointRestrain.Where(i => i.Point == point).Select(i => i.Restrain).FirstOrDefault();
 
                         if (restrain != null)
-                            foreach (int v in vertexIndex)
+                            foreach (int v in vertexIndexes)
                                 pointRestrainVertexIndex[v] = restrain;
-                                               
-                        var load = _glassSurface.Loads.Where(i => i.GetGeometry().GetType() == typeof(Point3d)).Where(i => i.GetGeometry() == point).FirstOrDefault();
-                        if (load != null)
-                            pointLoadVertexIndex[load] = vertexIndex;
+                                                        
+                        var loads = _glassSurface.Loads.Where(i => i.GetGeometry().GetType() == typeof(Point3d)).Where(i => i.GetGeometry() == point);
+                        
+                        foreach (var load in loads)
+                        {
+                            if (load is GlobalPointLoad gpl)
+                            {
+                                NodeGlobalForceAttribute pgfa = new NodeGlobalForceAttribute((LoadCase)gpl.LoadCase, gpl.Fx, gpl.Fy, gpl.Fz, gpl.Mx, gpl.My, gpl.Mz);
+                                nodeLoadVertexIndex[pgfa] = vertexIndexes;
+                            }
+                        }
                     }
                     else
                     {
                         throw new NotSupportedException($"Geometry of type {geometry.GetType()} is not supported.");
                     }
                 }
-
-                femMesh.Add(new FemModel.FemMesh(mesh.Vertices, mesh.Faces, pointRestrainVertexIndex, pointLoadVertexIndex));
+                
+                var femMesh = new FemMesh(mesh.Vertices, mesh.Faces, pointRestrainVertexIndex, nodeLoadVertexIndex, plateLoadFaceIndex);
+               
+                femMeshes.Add(femMesh);
             }
 
 
-            return femMesh;
+            return femMeshes;
         }
 
         #endregion

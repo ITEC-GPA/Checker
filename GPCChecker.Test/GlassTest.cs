@@ -82,12 +82,12 @@ namespace GlassTests
             LoadCase lc2 = new LoadCase("LC2", 5, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
 
             // Loads
-            NormalAreaLoad s1allc1 = new NormalAreaLoad(100, s1, lc1, Guid.NewGuid());
-            NormalAreaLoad s1allc2 = new NormalAreaLoad(300, s1, lc2, Guid.NewGuid());
+            GlobalAreaLoad s1GalLc1 = new GlobalAreaLoad(100, 200, 300, s1, lc1, Guid.NewGuid());
+            GlobalAreaLoad s1GalLc2 = new GlobalAreaLoad(101, 201, 301, s1, lc2, Guid.NewGuid());
             GlobalPointLoad s1gpl = new GlobalPointLoad(1, 2, 3, 4, 5, 6, new Point3d(100, 200, 50), lc2, Guid.NewGuid());
 
-            gs1.AddLoad(s1allc1);
-            gs1.AddLoad(s1allc2);
+            gs1.AddLoad(s1GalLc1);
+            gs1.AddLoad(s1GalLc2);
             gs1.AddLoad(s1gpl);
 
             // Combination 
@@ -130,17 +130,17 @@ namespace GlassTests
             LoadCase lc1 = new LoadCase("LC1", 100, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
             LoadCase lc2 = new LoadCase("LC2", 5, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
 
-            NormalAreaLoad s1allc1 = new NormalAreaLoad(100, s1, lc1, Guid.NewGuid());
-            NormalAreaLoad s1allc2 = new NormalAreaLoad(300, s1, lc2, Guid.NewGuid());
+            GlobalAreaLoad s1GalLc1 = new GlobalAreaLoad(100, 200, 300, s1, lc1, Guid.NewGuid());
+            GlobalAreaLoad s1GalLc2 = new GlobalAreaLoad(101, 201, 301, s1, lc2, Guid.NewGuid());
 
-            NormalAreaLoad s2allc1 = new NormalAreaLoad(150, s2, lc1, Guid.NewGuid());
-            NormalAreaLoad s2allc2 = new NormalAreaLoad(350, s2, lc2, Guid.NewGuid());
+            GlobalAreaLoad s2GalLc1 = new GlobalAreaLoad(150, 250, 350, s2, lc1, Guid.NewGuid());
+            GlobalAreaLoad s2GalLc2 = new GlobalAreaLoad(151, 251, 351, s2, lc2, Guid.NewGuid());
 
-            gs1.AddLoad(s1allc1);
-            gs1.AddLoad(s1allc2);
+            gs1.AddLoad(s1GalLc1);
+            gs1.AddLoad(s1GalLc2);
 
-            gs2.AddLoad(s2allc1);
-            gs2.AddLoad(s2allc2);
+            gs2.AddLoad(s2GalLc1);
+            gs2.AddLoad(s2GalLc2);
 
             Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural, Guid.NewGuid());
             cmb1[lc1] = 2;

@@ -6,32 +6,32 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Geometry;
 using GPC.Model.Elements;
-using GPC.Model.Loads;
+using GPC.Model.FEM.Attributes;
 
 namespace GPC.Checker.Glasses.FemModel
 {
     internal class FemNode : MeshVertex
     {
         private Restrain _restrain;
+
         private int _globalId;
 
-        private GlobalPointLoad _globalPointLoad;
+        private List<INodeFemAttribute> _attributes;
 
 
         public int GlobalId { get { return _globalId; } set { _globalId = value; } }
 
-
-
         public Restrain Restrain => _restrain;
-        public GlobalPointLoad GlobalPointLoad { get { return _globalPointLoad; } set { _globalPointLoad = value; } }
+
+        public List<INodeFemAttribute> Attributes { get { return _attributes; } set { _attributes = value; } }
 
 
 
-        public FemNode(MeshVertex vertex, Restrain restrain, GlobalPointLoad globalPointLoad)
+        public FemNode(MeshVertex vertex, Restrain restrain, List<INodeFemAttribute> attributes)
             : base(vertex)
         {
             _restrain = restrain;
-            _globalPointLoad = globalPointLoad;
+            _attributes = attributes ?? new List<INodeFemAttribute>() ;
         }
 
         public FemNode(MeshVertex vertex)
@@ -58,6 +58,7 @@ namespace GPC.Checker.Glasses.FemModel
         {
 
         }
+
 
         public bool[] GetRestrains() => _restrain.GetRestrains();
 

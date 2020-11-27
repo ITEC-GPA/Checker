@@ -12,6 +12,7 @@ using System.IO;
 using St7ApiWrapper;
 using GPC.Model.Elements;
 using GPC.Model.Loads;
+using GPC.Model.FEM.Attributes;
 
 namespace GPC.Checker.Glasses.FemModel
 {
@@ -166,8 +167,15 @@ namespace GPC.Checker.Glasses.FemModel
                         if ((node as FemNode).Restrain != null)
                             SetSt7NodeRestrain(aw, mId, (node as FemNode).GlobalId, 1, 1, (node as FemNode).Restrain);
 
-                        if ((node as FemNode).GlobalPointLoad != null)
-                            SetSt7Load(aw, mId, (node as FemNode).GlobalId, 1, (node as FemNode).GlobalPointLoad);
+                        foreach (var attribute in (node as FemNode).Attributes)
+                        {
+                            if (attribute is NodeGlobalForceAttribute pgfa)
+                            {
+                                SetSt7NodeGlobalLoad(aw, mId, (node as FemNode).GlobalId, 1, pgfa);
+                            }
+                            else
+                                throw new NotSupportedException("Point attribute not supported");
+                        }
                     }
                 }
             }
@@ -199,6 +207,16 @@ namespace GPC.Checker.Glasses.FemModel
                             globalConnectivity[3] = (femMesh.Vertices.Where(i => i.Id == face.C).FirstOrDefault() as FemNode).GlobalId;
                         }
                         aw.SetElementConnection(mId, St7ApiConst.tyPLATE, (face as FemPlate).GlobalId, 1, globalConnectivity);
+
+                        foreach (var attribute in (face as FemPlate).Attributes)
+                        {
+                            if (attribute is PlateGlobalPressureAttribute pgpa)
+                            {
+                                SetSt7PlateGlobalPressure(aw, mId, (face as FemPlate).GlobalId, 1, pgpa);
+                            }
+                            else
+                                throw new NotSupportedException("Point attribute not supported");
+                        }
                     }
                 }
             }
@@ -221,9 +239,19 @@ namespace GPC.Checker.Glasses.FemModel
             return aw.SetNodeRestraint(mid, nodeNumber, caseNumber, ucsId, status, doubles);
         }
 
-        private bool SetSt7Load(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, GlobalPointLoad gpl)
+        private bool SetSt7NodeGlobalLoad(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, NodeGlobalForceAttribute pgfa)
         {            
-            return aw.SetNodeForce(mid, nodeNumber, caseNumber, gpl.Fx, gpl.Fy, gpl.Fz) && aw.SetNodeMoment(mid, nodeNumber, caseNumber, gpl.Mx, gpl.My, gpl.Mz);
+            return aw.SetNodeForce(mid, nodeNumber, caseNumber, pgfa.Fx, pgfa.Fy, pgfa.Fz) && aw.SetNodeMoment(mid, nodeNumber, caseNumber, pgfa.Mx, pgfa.My, pgfa.Mz);
+        }
+
+        private bool SetSt7NodeLocalLoad(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, NodeGlobalForceAttribute gpl)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool SetSt7PlateGlobalPressure(ISt7ApiService aw, int mid, int plateNumber, int caseNumber, PlateGlobalPressureAttribute gpl)
+        {
+            return aw.SetPlateGlobalPressure(mid, plateNumber, St7ApiConst.btFalse, caseNumber, gpl.Px, gpl.Py, gpl.Pz);
         }
 
         #endregion

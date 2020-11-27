@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Geometry;
+using GPC.Model.FEM.Attributes;
 
 namespace GPC.Checker.Glasses.FemModel
 {
@@ -12,11 +13,15 @@ namespace GPC.Checker.Glasses.FemModel
     {
         public int GlobalId { get; set; }
 
+        private List<IPlateFemAttribute> _attributes;
 
-        public FemPlate(MeshFace face) 
+        public List<IPlateFemAttribute> Attributes { get { return _attributes; } set { _attributes = value; } }
+
+
+        public FemPlate(MeshFace face, List<IPlateFemAttribute> attributes) 
             : base(face)
         {
-
+            _attributes = attributes ?? new List<IPlateFemAttribute>();
         }
 
         public FemPlate(SerializationInfo info, StreamingContext context) 
@@ -36,6 +41,5 @@ namespace GPC.Checker.Glasses.FemModel
         {
 
         }
-
     }
 }

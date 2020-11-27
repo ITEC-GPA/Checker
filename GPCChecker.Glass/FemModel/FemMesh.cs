@@ -4,14 +4,17 @@ using System.Linq;
 using System.Runtime.Serialization;
 using GPC.Geometry;
 using GPC.Model.Elements;
+using GPC.Model.FEM.Attributes;
 using GPC.Model.Loads;
+using GPC.Checker.Glasses.LoadCases;
 
 namespace GPC.Checker.Glasses.FemModel
 {
     internal class FemMesh : Mesh
     {
 
-        public FemMesh(List<MeshVertex> vertices, List<MeshFace> faces, Dictionary<int, Restrain> pointRestrainVertexIndex, Dictionary<Load, int[]> pointLoadVertexIndex)
+        public FemMesh(List<MeshVertex> vertices, List<MeshFace> faces, Dictionary<int, Restrain> pointRestrainVertexIndex, Dictionary<INodeFemAttribute, int[]> pointLoadVertexIndex, 
+            Dictionary<IPlateFemAttribute, int[]> plateLoadIndex)
         {
             foreach (var vertex in vertices)
             {
@@ -27,20 +30,24 @@ namespace GPC.Checker.Glasses.FemModel
 
             foreach (var face in faces)
             {
-                this._faces.Add(new FemPlate(face));
+                this._faces.Add(new FemPlate(face, null));
             }
 
-            foreach(Load load in pointLoadVertexIndex.Keys)
+            foreach (IPlateFemAttribute load in plateLoadIndex.Keys)
             {
-                if (load is GlobalPointLoad gpl)
+                foreach (int id in plateLoadIndex[load])
                 {
-                    foreach (int id in pointLoadVertexIndex[load])
-                    {
-                        (this._vertices.Where(i => i.Id == id).FirstOrDefault() as FemNode).GlobalPointLoad = gpl;
-                    }
+                    (this._faces.Where(i => i.Id == id).FirstOrDefault() as FemPlate).Attributes.Add(load);
                 }
             }
-            
+
+            foreach (INodeFemAttribute load in pointLoadVertexIndex.Keys)
+            {
+                foreach (int id in pointLoadVertexIndex[load])
+                {
+                    (this._vertices.Where(i => i.Id == id).FirstOrDefault() as FemNode).Attributes.Add(load);
+                }
+            }
         }
 
         /// <summary>

@@ -28,10 +28,6 @@ namespace GPC.Checker.Glasses.Checkers
                 {
                     meshes.Add(mgw.GeneratePlateMesh());
 
-                    foreach (var load in mgw.Loads)
-                    {
-                        
-                    }
                 }
                 else if (wrapper is InsulatedGlassWrapper igw)
                 {
