@@ -14,6 +14,7 @@ using GPC.Model.Elements;
 using GPC.Model.Loads;
 using GPC.Model.FEM.Attributes;
 using System.Diagnostics;
+using GPC.Geometry.Meshes;
 
 namespace GPC.Checker.Glasses.FemModel
 {
@@ -306,12 +307,6 @@ namespace GPC.Checker.Glasses.FemModel
         } 
         
         #endregion
-
-        [System.Diagnostics.Conditional("Debug")]
-        internal void ExportMeshMSHFormat(string filePath, List<Mesh> meshes)
-        {
-            GPC.Utilities.Meshes.MeshExport.ExportToMshFormatv2(filePath, meshes);
-        }
 
     }
 }

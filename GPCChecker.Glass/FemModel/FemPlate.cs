@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Geometry;
 using GPC.Model.FEM.Attributes;
+using GPC.Geometry.Meshes;
 
 namespace GPC.Checker.Glasses.FemModel
 {

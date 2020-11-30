@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Geometry.Meshes;
 
 namespace GPC.Checker.Glasses.Wrappers
 {

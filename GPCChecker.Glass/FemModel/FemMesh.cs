@@ -7,6 +7,7 @@ using GPC.Model.Elements;
 using GPC.Model.FEM.Attributes;
 using GPC.Model.Loads;
 using GPC.Checker.Glasses.LoadCases;
+using GPC.Geometry.Meshes;
 
 namespace GPC.Checker.Glasses.FemModel
 {

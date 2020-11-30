@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Checker.Glasses.FemModel;
 using GPC.Checker.Glasses.LoadCases;
+using GPC.Geometry.Meshes;
 
 
 namespace GPC.Checker.Glasses.Wrappers
