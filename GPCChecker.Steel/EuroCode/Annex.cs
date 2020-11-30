@@ -12,12 +12,17 @@ namespace GPC.Checker.Steel.EuroCode
         public double Gm1 { get; set; }
         public double Gm2 { get; set; }
 
-        public Annex(double gm0, double gm1, double gm2)
+        public double LambdaLT0 { get; set; } //EN 1993-1-1:2005
+        public double Beta { get; set; } //EN 1993-1-1:2005
+
+        /*public Annex(double gm0, double gm1, double gm2)
         {
             Gm0 = gm0;
             Gm1 = gm1;
             Gm2 = gm2;
-        }
+            LambdaLT0 = 0.4;
+            Beta = 0.75;
+        }*/
 
         public Annex() { }
     }
@@ -29,6 +34,9 @@ namespace GPC.Checker.Steel.EuroCode
             Gm0 = 1.0;
             Gm0 = 1.1;
             Gm0 = 1.25;
+
+            LambdaLT0 = 0.4;
+            Beta = 0.75;
         }
     }
 
