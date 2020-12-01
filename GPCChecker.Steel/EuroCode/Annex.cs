@@ -24,16 +24,10 @@ namespace GPC.Checker.Steel.EuroCode
             Beta = 0.75;
         }*/
 
-        public Annex() { }
-    }
-
-    public class DefaultAnnex : Annex
-    {
-        public DefaultAnnex()
-        {
+        public Annex() {
             Gm0 = 1.0;
-            Gm0 = 1.1;
-            Gm0 = 1.25;
+            Gm1= 1.1;
+            Gm2 = 1.25;
 
             LambdaLT0 = 0.4;
             Beta = 0.75;
@@ -44,8 +38,8 @@ namespace GPC.Checker.Steel.EuroCode
     {
         public ItalyAnnex() {
             Gm0 = 1.05;
-            Gm0 = 1.1;
-            Gm0 = 1.25;
+            Gm1 = 1.1;
+            Gm2 = 1.25;
         }
     }
 }
