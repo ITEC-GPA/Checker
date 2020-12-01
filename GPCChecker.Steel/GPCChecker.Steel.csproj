@@ -32,6 +32,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="GPCGeometry, Version=1.0.1.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\GPCGeometry.dll</HintPath>
+    </Reference>
     <Reference Include="GPCModel">
       <HintPath>..\..\GPCModel\GPCModel\bin\Debug\GPCModel.dll</HintPath>
     </Reference>
@@ -46,7 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EuroCode\Annex.cs" />
-    <Compile Include="EuroCode\ECBeamCheckerResistance.cs" />
+    <Compile Include="EuroCode\EuroCodeBeamChecker.cs" />
     <Compile Include="PanelsStability\Class4SectionDefinitions.cs" />
     <Compile Include="PanelsStability\EffectiveSection.cs" />
     <Compile Include="PanelsStability\FlatStiffener.cs" />

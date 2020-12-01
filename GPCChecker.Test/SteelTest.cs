@@ -30,23 +30,31 @@ namespace SteelTests
         [TestMethod]
         public void CircularSectionTest1()
         {
-            SteelMaterial steel = new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850);
-            Section circularSect = new SectionCircular(100, 10, steel);
+            Annex annex = new Annex();
+            double fy = 355;
+            double fu = 510;
+            SteelMaterial steel = new SteelMaterial("S355", 200000, 0.3, fy, fu, 7850);
+            Section circularSect = new SectionCHS(100, 10, steel);
+            //double A = Math.PI * (100 * 100 - 80 * 80) / 4.0 *355 / 1000;
 
             double N, V1, V2,  M1, M2, T;
             N = V1 = V2 = M1 = M2 = T = 0;
 
-            ECBeamCheckerResistance check = new ECBeamCheckerResistance(circularSect, N, V1, V2, M1, M2, T);
-            /*double NtRd = check.GetNtRd(circularSect.Area, steel.Fyk, circularSect.Area, steel.Fu, 1.0, 1.25);
-            double NcRd = check.GetNcRd(circularSect.Area, steel.Fyk, 1.0);
+            EuroCodeBeamChecker check = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, annex);
+            /*check.NRd;
+            check.VRdy;
+            check.VRdz;
+            check.TRd;
+            check.MRdy;
+            check.MRdz;
 
-            double MRdy, MRdz;
-            check.GetMRd(circularSect, steel.Fyk, 0, 0, 10000, 1.0, out MRdy, out MRdz);
-
-            Assert.AreEqual(NtRd/1000, (Math.PI * (100 * 100 - 80 * 80) / 4.0) * 355/1000);
-            Assert.AreEqual(NcRd/1000, (Math.PI * (100 * 100 - 80 * 80) / 4.0) * 355/1000);
-
-            Console.WriteLine(MRdy / 1000000);*/
+            check.WRAxial;
+            check.WRShear1;
+            check.WRShear2;
+            check.WRTorsion;
+            check.WRBending1;
+            check.WRBending2;
+            check.WRResistance;*/
         }
     }
 }
