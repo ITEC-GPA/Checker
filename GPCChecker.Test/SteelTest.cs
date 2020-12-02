@@ -37,14 +37,14 @@ namespace SteelTests
             Section circularSect = new SectionCHS(100, 10, steel);
             //double A = Math.PI * (100 * 100 - 80 * 80) / 4.0 *355 / 1000;
 
-            double N = 1;
-            double V1 = 2;
-            double V2 = 3;
-            double M1 = 4;
-            double M2 = 5;
-            double T = 6;
+            double N = -1e4;
+            double V1 = 0;
+            double V2 = 0;
+            double M1 = 0;
+            double M2 = 0;
+            double T = 0;
 
-            double L = 0;
+            double L = 1000;
             double betay = 1;
             double betaz = 1;
             double betaLT = 1;
