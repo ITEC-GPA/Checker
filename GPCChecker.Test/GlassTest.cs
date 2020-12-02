@@ -47,7 +47,7 @@ namespace GlassTests
 
         private GlassMaterialPrEn GetGlassMaterialPrEn()
         {
-            return new GlassMaterialPrEn(70000, 0.23, 25, GlassMaterialPrEn.GlassType.DrawnSheetGlass, GlassMaterialPrEn.SurfaceTreatment.AsProduced,
+            return new GlassMaterialPrEn("Glass", 70000, 0.23, 25, GlassMaterialPrEn.GlassType.DrawnSheetGlass, GlassMaterialPrEn.SurfaceTreatment.AsProduced,
                                         GlassMaterialPrEn.PrestressType.HeatStrengthened, GlassMaterialPrEn.ManufactoringProcess.HorizontalToughening, 2700 * 10E-12, 0);
         }
 
@@ -74,7 +74,7 @@ namespace GlassTests
             var restrains = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
 
             // Surface
-            MonolithicGlass mg = new MonolithicGlass(10, GetGlassMaterialPrEn());
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 10, GetGlassMaterialPrEn());
             GlassSurface gs1 = new GlassSurface(mg, s1, null, restrains, null, 0, Guid.NewGuid());
 
             // LoadCases
@@ -122,10 +122,11 @@ namespace GlassTests
             var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
             var restrains2 = s2.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s2.GetCoordinateSystem()))).ToList();
 
-            MonolithicGlass mg = new MonolithicGlass(10, GetGlassMaterialPrEn());
+            MonolithicGlass mg1 = new MonolithicGlass("mg1", 10, GetGlassMaterialPrEn());
+            MonolithicGlass mg2 = new MonolithicGlass("mg2", 20, GetGlassMaterialPrEn());
 
-            GlassSurface gs1 = new GlassSurface(mg, s1, null, restrains1, null, 0, Guid.NewGuid());
-            GlassSurface gs2 = new GlassSurface(mg, s2, null, null, null, 1, Guid.NewGuid());
+            GlassSurface gs1 = new GlassSurface(mg1, s1, null, restrains1, null, 0, Guid.NewGuid());
+            GlassSurface gs2 = new GlassSurface(mg2, s2, null, null, null, 1, Guid.NewGuid());
 
             LoadCase lc1 = new LoadCase("LC1", 100, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
             LoadCase lc2 = new LoadCase("LC2", 5, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
@@ -157,6 +158,66 @@ namespace GlassTests
             Model model = new Model(outputFolder);
             model.AddSurface(gs1);
             model.AddSurface(gs2);
+
+            model.AddCombination(cmb1);
+            model.AddCombination(cmb2);
+
+            PrEnGlassChecker check = new PrEnGlassChecker(model, GlassChecker.LaminatedAnalysisType.EquivalentThickness);
+            check.Run();
+        }
+
+
+        [TestMethod]
+        public void MonolithicGlass3()
+        {
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 400, 100));
+            Shape s2 = GetRectangularShape(new Point3d(100, 100, 100), new Vector3d(300, 500, 200));
+            Shape s3 = GetRectangularShape(new Point3d(300, 300, 100), new Vector3d(300, 500, 200));
+
+            var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
+            var restrains2 = s2.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s2.GetCoordinateSystem()))).ToList();
+            var restrains3 = s3.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s3.GetCoordinateSystem()))).ToList();
+            restrains3.RemoveAt(0);
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 10, GetGlassMaterialPrEn());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg2", 20, GetGlassMaterialPrEn());
+            MonolithicGlass mg3 = new MonolithicGlass("Mg3", 30, GetGlassMaterialPrEn());
+
+            GlassSurface gs1 = new GlassSurface(mg1, s1, null, restrains1, null, 0, Guid.NewGuid());
+            GlassSurface gs2 = new GlassSurface(mg2, s2, null, restrains2, null, 1, Guid.NewGuid());
+            GlassSurface gs3 = new GlassSurface(mg3, s3, null, restrains3, null, 2, Guid.NewGuid());
+
+            LoadCase lc1 = new LoadCase("LC1", 100, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
+            LoadCase lc2 = new LoadCase("LC2", 5, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
+
+            GlobalAreaLoad s1GalLc1 = new GlobalAreaLoad(100, 200, 300, s1, lc1, Guid.NewGuid());
+            GlobalAreaLoad s1GalLc2 = new GlobalAreaLoad(101, 201, 301, s1, lc2, Guid.NewGuid());
+
+            GlobalAreaLoad s2GalLc1 = new GlobalAreaLoad(150, 250, 350, s2, lc1, Guid.NewGuid());
+            GlobalAreaLoad s2GalLc2 = new GlobalAreaLoad(151, 251, 351, s2, lc2, Guid.NewGuid());
+
+            gs1.AddLoad(s1GalLc1);
+            gs1.AddLoad(s1GalLc2);
+
+            gs2.AddLoad(s2GalLc1);
+            gs2.AddLoad(s2GalLc2);
+
+            Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural, Guid.NewGuid());
+            cmb1[lc1] = 2;
+            cmb1[lc2] = 3;
+
+            Combination cmb2 = new CombinationEn("CMB2", CombinationEn.CombinationType.ServiceabilityCharacteristic, Guid.NewGuid());
+            cmb2[lc1] = 4;
+            cmb2[lc1] = 3;
+            cmb2[lc2] = 5;
+
+            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
+            Directory.CreateDirectory(outputFolder);
+
+            Model model = new Model(outputFolder);
+            model.AddSurface(gs1);
+            model.AddSurface(gs2);
+            model.AddSurface(gs3);
 
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
