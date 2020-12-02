@@ -447,25 +447,32 @@ namespace GPC.Checker.Steel.EuroCode
 
             if (typeShape == typeof(SectionCHS))
             {
-                //Bredt
+                //Bredt - Plastic Theory
+                /*
                 SectionCHS sec = (SectionCHS)_sec;
                 double Dmed = sec.Dext - sec.T / 2.0;
                 double Omega = Math.PI * Math.Pow(Dmed, 2.0) / 4.0;
                 double denom = 2.0 * Omega * sec.T;
-                tauT = Math.Abs(_TEd) / denom;
+                tauT = Math.Abs(_TEd) / denom;*/
 
-                TRd = fy / Math.Pow(3.0, 0.5) * denom;
+                //Elastic Theory
+                SectionCHS sec = (SectionCHS)_sec;
+                double Wt = (_sec.Jt * sec.D / 2.0);
+                tauT = Math.Abs(_TEd) / Wt;
+
+                TRd = fy / Math.Pow(3.0, 0.5) * Wt;
             } else if (typeShape == typeof(SectionRHS))
             {
-                //Bredt
-                SectionRHS sec = (SectionRHS)_sec;
+                //Bredt - Plastic Theory
+                /*SectionRHS sec = (SectionRHS)_sec;
                 double Hmed = sec.H - sec.ThicknessFlange;
                 double Bmed = sec.B - sec.ThicknessWeb;
                 double Omega = Hmed * Bmed;
                 double denom = 2.0 * Omega * Math.Min(sec.ThicknessWeb, sec.ThicknessFlange);
                 tauT = Math.Abs(_TEd) / denom;
 
-                TRd = fy / Math.Pow(3.0, 0.5) * denom;
+                TRd = fy / Math.Pow(3.0, 0.5) * denom;*/
+                throw new Exception("to be implemented elastic theory");
             } else if (typeShape == typeof(SectionC))
             {
                 SectionC sec = (SectionC)_sec;
