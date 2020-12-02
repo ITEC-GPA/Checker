@@ -62,8 +62,8 @@
     <Compile Include="Checkers\PrEnGlassChecker.cs" />
     <Compile Include="FemModel\FemMesh.cs" />
     <Compile Include="FemModel\FemModelWrapper.cs" />
-    <Compile Include="FemModel\FemNode.cs" />
-    <Compile Include="FemModel\FemPlate.cs" />
+    <Compile Include="FemModel\Node.cs" />
+    <Compile Include="FemModel\Plate.cs" />
     <Compile Include="LoadCases\ClimateHLoadCase.cs" />
     <Compile Include="LoadCases\ClimatePLoadCase.cs" />
     <Compile Include="LoadCases\ClimateTLoadCase.cs" />
