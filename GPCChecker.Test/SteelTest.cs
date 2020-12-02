@@ -37,24 +37,35 @@ namespace SteelTests
             Section circularSect = new SectionCHS(100, 10, steel);
             //double A = Math.PI * (100 * 100 - 80 * 80) / 4.0 *355 / 1000;
 
-            double N, V1, V2,  M1, M2, T;
-            N = V1 = V2 = M1 = M2 = T = 0;
+            double N = 1;
+            double V1 = 2;
+            double V2 = 3;
+            double M1 = 4;
+            double M2 = 5;
+            double T = 6;
 
-            EuroCodeBeamChecker check = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, annex);
-            /*check.NRd;
-            check.VRdy;
-            check.VRdz;
-            check.TRd;
-            check.MRdy;
-            check.MRdz;
+            double L = 0;
+            double betay = 1;
+            double betaz = 1;
+            double betaLT = 1;
 
-            check.WRAxial;
-            check.WRShear1;
-            check.WRShear2;
-            check.WRTorsion;
-            check.WRBending1;
-            check.WRBending2;
-            check.WRResistance;*/
+            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, annex);
+
+            double Nrd = checker.NRd;
+            double Mrdy = checker.MRdy;
+            double Mrdz = checker.MRdz;
+            double Trd = checker.TRd;
+            double Vrdy = checker.VRdy;
+            double Vrdz = checker.VRdz;
+            double WrAxial = checker.WRAxial;
+            double WRBending1 = checker.WRBending1;
+            double WRBending2 = checker.WRBending2;
+            double WRBuckling1 = checker.WRBuckling1;
+            double WRBuckling2 = checker.WRBuckling2;
+            double WRResistance = checker.WRResistance;
+            double WRShear1 = checker.WRShear1;
+            double WRShear2 = checker.WRShear2;
+            double WRTorsion = checker.WRTorsion;
         }
     }
 }
