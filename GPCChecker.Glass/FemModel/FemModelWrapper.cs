@@ -4,17 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Geometry;
-using GPC.Checker.Glasses.Wrappers;
 using System.Runtime.Serialization;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.IO;
 using St7ApiWrapper;
 using GPC.Model.Elements;
-using GPC.Model.Loads;
+using GPC.Model.LoadCases;
 using GPC.Model.FEM.Attributes;
+using GPC.Model.Elements.Glasses;
 using System.Diagnostics;
-using GPC.Geometry.Meshes;
 
 namespace GPC.Checker.Glasses.FemModel
 {
@@ -26,6 +25,10 @@ namespace GPC.Checker.Glasses.FemModel
         /// List of mesh for each glass. Each glass can be can be made by one or more meshes
         /// </summary>
         private List<List<FemMesh>> _singleGlassMeshes;
+
+        private List<LoadCase> _loadCases;
+
+        private Dictionary<IGlassPanelProperty, int> _glassPanelProperties;
 
         private string _st7ServerIp;
 
@@ -45,7 +48,7 @@ namespace GPC.Checker.Glasses.FemModel
             _st7ServerIp = "localhost";
 
             _singleGlassMeshes = meshes ?? new List<List<FemMesh>>();
-
+            _glassPanelProperties = new Dictionary<IGlassPanelProperty, int>();
             SetGlobalConnectivity();
         }
 
@@ -61,19 +64,19 @@ namespace GPC.Checker.Glasses.FemModel
             foreach(var sgm in _singleGlassMeshes)
             {
                 Dictionary<Point3d, int> nodeGlobalId = new Dictionary<Point3d, int>();
-                foreach(var femMesh in sgm)
+                foreach(FemMesh femMesh in sgm)
                 {
                     femMesh.SetGlobalIds(ref nodeId, ref faceId);
 
-                    foreach (var node in femMesh.Vertices)
+                    foreach (var node in femMesh.Nodes)
                     {
-                        if (nodeGlobalId.ContainsKey(node.Point))
+                        if (nodeGlobalId.ContainsKey(node.Position))
                         {
-                            (node as FemNode).GlobalId = nodeGlobalId[node.Point];
+                            node.GlobalId = nodeGlobalId[node.Position];
                         }
                         else
                         {
-                            nodeGlobalId[node.Point] = (node as FemNode).GlobalId;
+                            nodeGlobalId[node.Position] = node.GlobalId;
                         }
                     }
                 }
@@ -162,19 +165,19 @@ namespace GPC.Checker.Glasses.FemModel
             {
                 foreach (var femMesh in sgm)
                 {
-                    foreach (var node in femMesh.Vertices)
+                    foreach (var node in femMesh.Nodes)
                     {
-                        aw.SetNodeXYZ(mId, (node as FemNode).GlobalId, node.Point.X, node.Point.Y, node.Point.Z);
+                        aw.SetNodeXYZ(mId, node.GlobalId, node.Position.X, node.Position.Y, node.Position.Z);
 
-                        if ((node as FemNode).Restrain != null)
-                            St7SetNodeRestrain(aw, mId, (node as FemNode).GlobalId, 1, 1, (node as FemNode).Restrain);
+                        if (node.GetRestrain() != null)
+                            St7SetNodeRestrain(aw, mId, node.GlobalId, 1, 1, node.GetRestrain());
+                        
 
-                        foreach (var attribute in (node as FemNode).Attributes)
+                        foreach (var attribute in node.Attributes)
                         {
                             if (attribute is NodeGlobalForceAttribute pgfa)
-                            {
-                                St7SetNodeGlobalLoad(aw, mId, (node as FemNode).GlobalId, 1, pgfa);
-                            }
+
+                                St7SetNodeGlobalLoad(aw, mId, node.GlobalId, 1, pgfa);
                             else
                                 throw new NotSupportedException("Point attribute not supported");
                         }
@@ -187,35 +190,37 @@ namespace GPC.Checker.Glasses.FemModel
             {
                 foreach (var femMesh in sgm)
                 {
-                    foreach (var face in femMesh.Faces)
+                    foreach (var face in femMesh.Plates)
                     {
                         int[] globalConnectivity;
-
+                        
                         if (face.IsQuad)
                         {
                             globalConnectivity = new int[5];
                             globalConnectivity[0] = 4;
-                            globalConnectivity[1] = (femMesh.Vertices.Where(i => i.Id == face.A).FirstOrDefault() as FemNode).GlobalId;
-                            globalConnectivity[2] = (femMesh.Vertices.Where(i => i.Id == face.B).FirstOrDefault() as FemNode).GlobalId;
-                            globalConnectivity[3] = (femMesh.Vertices.Where(i => i.Id == face.C).FirstOrDefault() as FemNode).GlobalId;
-                            globalConnectivity[4] = (femMesh.Vertices.Where(i => i.Id == face.D).FirstOrDefault() as FemNode).GlobalId;
+                            globalConnectivity[1] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[0]).FirstOrDefault().GlobalId;
+                            globalConnectivity[2] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[1]).FirstOrDefault().GlobalId;
+                            globalConnectivity[3] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[2]).FirstOrDefault().GlobalId;
+                            globalConnectivity[4] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[3]).FirstOrDefault().GlobalId;
                         }
                         else
                         {
                             globalConnectivity = new int[4];
                             globalConnectivity[0] = 3;
-                            globalConnectivity[1] = (femMesh.Vertices.Where(i => i.Id == face.A).FirstOrDefault() as FemNode).GlobalId;
-                            globalConnectivity[2] = (femMesh.Vertices.Where(i => i.Id == face.B).FirstOrDefault() as FemNode).GlobalId;
-                            globalConnectivity[3] = (femMesh.Vertices.Where(i => i.Id == face.C).FirstOrDefault() as FemNode).GlobalId;
+                            globalConnectivity[1] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[0]).FirstOrDefault().GlobalId;
+                            globalConnectivity[2] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[1]).FirstOrDefault().GlobalId;
+                            globalConnectivity[3] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[2]).FirstOrDefault().GlobalId;
                         }
-                        aw.SetElementConnection(mId, St7ApiConst.tyPLATE, (face as FemPlate).GlobalId, 1, globalConnectivity);
 
-                        foreach (var attribute in (face as FemPlate).Attributes)
+                        int propNum = GetSt7Property(aw, mId, face.Property);
+
+                        aw.SetElementConnection(mId, St7ApiConst.tyPLATE, face.GlobalId, propNum, globalConnectivity);
+
+                        foreach (var attribute in face.Attributes)
                         {
-                            if (attribute is PlateGlobalPressureAttribute pgpa)
-                            {
-                                St7SetPlateGlobalPressure(aw, mId, (face as FemPlate).GlobalId, 1, pgpa);
-                            }
+                            if (attribute is PlateGlobalPressureAttribute pgpa)                            
+                                St7SetPlateGlobalPressure(aw, mId, face.GlobalId, 1, pgpa);
+                            
                             else
                                 throw new NotSupportedException("Point attribute not supported");
                         }
@@ -225,6 +230,37 @@ namespace GPC.Checker.Glasses.FemModel
 
             return true;
         }
+
+        private int GetSt7Property(ISt7ApiService aw, int mid, ElementProperty property)
+        {
+            if (property is MonolithicGlass mg)
+            {
+                if (_glassPanelProperties.ContainsKey(mg))
+                    return _glassPanelProperties[mg];
+                else 
+                {
+                    int propNum = _glassPanelProperties.Values.DefaultIfEmpty().Max() + 1;
+
+                    aw.NewPlateProperty(mid, propNum, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, mg.Name);
+
+                    aw.SetPlateThickness(mid, propNum, new double[] { mg.Thickness, mg.Thickness });
+
+                    aw.SetPlateIsotropicMaterial(mid, propNum, mg.Material.E, mg.Material.Ni, mg.Material.Density, mg.Material.AlfaThermalExpansion, 0, 0, 0, 0);
+
+                    _glassPanelProperties[mg] = propNum;
+                    return propNum;
+                }
+            }
+            else
+            {
+                throw new NotSupportedException("Glass property not supported");
+            }
+        }
+
+        //private int GetSt7LoadCase(ISt7ApiService aw, int mid, LoadCase loadCase)
+        //{
+
+        //}
 
         private bool St7SetNodeRestrain(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, int ucsId, Restrain restrain)
         {
