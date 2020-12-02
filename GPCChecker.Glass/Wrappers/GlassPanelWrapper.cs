@@ -13,13 +13,13 @@ namespace GPC.Checker.Glasses.Wrappers
 
         internal List<Load> Loads => _loads;
 
-        protected new IGlassPanel GlassProperty => (IGlassPanel)_glassSurface.GlassProperty;
+        protected new IGlassPanelProperty GlassProperty => (IGlassPanelProperty)_glassSurface.GlassProperty;
 
 
         protected GlassPanelWrapper(GlassSurface glassSurface) : base(glassSurface)
         {
             _loads = new List<Load>();
-            if (!(glassSurface.GlassProperty is IGlassPanel))
+            if (!(glassSurface.GlassProperty is IGlassPanelProperty))
                 throw new ArgumentException("Glass property should be a GlassPanel");
         }
 

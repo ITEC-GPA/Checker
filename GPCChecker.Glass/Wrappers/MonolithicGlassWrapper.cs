@@ -95,7 +95,8 @@ namespace GPC.Checker.Glasses.Wrappers
             Mesh.GenerateMeshOptions.Size = 50;
             Mesh.GenerateMeshOptions.UseGlobalProgressID = true;
 
-            var meshes = Mesh.Generate(shapes, embeddedGeometries, out embeddedGeometriesMapVertex);
+
+            List<Mesh> meshes = Mesh.Generate(shapes, embeddedGeometries, out embeddedGeometriesMapVertex);
 
 
             // Set up fem mesh
@@ -104,9 +105,17 @@ namespace GPC.Checker.Glasses.Wrappers
             foreach(var mesh in meshes)
             {
                 var pointRestrainVertexIndex = new Dictionary<int, Restrain>();
-                Dictionary<INodeFemAttribute, int[]> nodeLoadVertexIndex = new Dictionary<INodeFemAttribute, int[]>();
-                Dictionary<IPlateFemAttribute, int[]> plateLoadFaceIndex = new Dictionary<IPlateFemAttribute, int[]>();
+                Dictionary<INodeFemAttribute, int[]> nodeAttributeVertexIndex = new Dictionary<INodeFemAttribute, int[]>();
+                Dictionary<IPlateFemAttribute, int[]> plateAttributeFaceIndex = new Dictionary<IPlateFemAttribute, int[]>();
+                List<IGlassPanelProperty> plateProperties = new List<IGlassPanelProperty>();
 
+                // proprietà
+                foreach (var face in mesh.Faces)
+                {
+                    plateProperties.Add(this.GlassProperty);
+                }
+
+                // loads
                 foreach (var load in uniformPressureLoads)
                 {
                     if (load is NormalAreaLoad nal)
@@ -116,13 +125,13 @@ namespace GPC.Checker.Glasses.Wrappers
                     else if (load is GlobalAreaLoad gal)
                     {
                         PlateGlobalPressureAttribute pgpa = new PlateGlobalPressureAttribute((LoadCase)gal.LoadCase, gal.Px, gal.Py, gal.Pz);
-                        plateLoadFaceIndex[pgpa] = mesh.Faces.Select(I => I.Id).ToArray();
+                        plateAttributeFaceIndex[pgpa] = mesh.Faces.Select(I => I.Id).ToArray();
                     }
                     else
                         throw new NotSupportedException("Load type not supported");
                 }
 
-
+                // geometria embedded
                 foreach (var kvp in embeddedGeometriesMapVertex[mesh])
                 {
                     GeometryBase geometry = kvp.Key;
@@ -138,8 +147,9 @@ namespace GPC.Checker.Glasses.Wrappers
 
                         var restrain = _glassSurface.LineRestrain.Where(i => i.Line == line).Select(i => i.Restrain).FirstOrDefault();
 
-                        foreach (int v in vertexIndexes)
-                            pointRestrainVertexIndex[v] = restrain;
+                        if (restrain != null)
+                            foreach (int v in vertexIndexes)
+                                pointRestrainVertexIndex[v] = restrain;
                     }
                     else if (geometry is Point3d || geometry is Point2d)
                     {
@@ -150,19 +160,22 @@ namespace GPC.Checker.Glasses.Wrappers
                             point = new Point3d((Point2d)geometry);
 
                         var restrain = _glassSurface.PointRestrain.Where(i => i.Point == point).Select(i => i.Restrain).FirstOrDefault();
-
+                        
                         if (restrain != null)
                             foreach (int v in vertexIndexes)
                                 pointRestrainVertexIndex[v] = restrain;
-                                                        
-                        var loads = _glassSurface.Loads.Where(i => i.GetGeometry().GetType() == typeof(Point3d)).Where(i => i.GetGeometry() == point);
-                        
+
+                        var loads = _glassSurface.Loads.Where(i => i.GetGeometry().GetType() == typeof(Point3d)).Where(i => (Point3d)i.GetGeometry() == point);
                         foreach (var load in loads)
                         {
                             if (load is GlobalPointLoad gpl)
                             {
                                 NodeGlobalForceAttribute pgfa = new NodeGlobalForceAttribute((LoadCase)gpl.LoadCase, gpl.Fx, gpl.Fy, gpl.Fz, gpl.Mx, gpl.My, gpl.Mz);
-                                nodeLoadVertexIndex[pgfa] = vertexIndexes;
+                                nodeAttributeVertexIndex[pgfa] = vertexIndexes;
+                            }
+                            else
+                            {
+                                throw new NotSupportedException("Load type not supported");
                             }
                         }
                     }
@@ -172,7 +185,7 @@ namespace GPC.Checker.Glasses.Wrappers
                     }
                 }
                 
-                var femMesh = new FemMesh(mesh.Vertices, mesh.Faces, pointRestrainVertexIndex, nodeLoadVertexIndex, plateLoadFaceIndex);
+                var femMesh = new FemMesh(mesh.Vertices, mesh.Faces, plateProperties, pointRestrainVertexIndex, nodeAttributeVertexIndex, plateAttributeFaceIndex);
                
                 femMeshes.Add(femMesh);
             }

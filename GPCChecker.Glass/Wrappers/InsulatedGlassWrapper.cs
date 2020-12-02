@@ -15,12 +15,12 @@ namespace GPC.Checker.Glasses.Wrappers
 
         protected List<Mesh> _mesh;
 
-        protected new IInsulatingGlass GlassProperty => (IInsulatingGlass)_glassSurface.GlassProperty;
+        protected new IInsulatingGlassProperty GlassProperty => (IInsulatingGlassProperty)_glassSurface.GlassProperty;
 
 
         internal InsulatedGlassWrapper(GlassSurface glassSurface, GlassPanelWrapper[] glassPanelWrappers) : base(glassSurface)
         {
-            if (!(glassSurface.GlassProperty is IInsulatingGlass))
+            if (!(glassSurface.GlassProperty is IInsulatingGlassProperty))
                 throw new ArgumentException("Glass property should be an insulating Glass Property");
 
             this._glassPanelWrappers = glassPanelWrappers;

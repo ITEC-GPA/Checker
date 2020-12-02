@@ -2,80 +2,99 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using GPC.Geometry;
 using GPC.Model.Elements;
 using GPC.Model.FEM.Attributes;
-using GPC.Model.Loads;
-using GPC.Checker.Glasses.LoadCases;
+using GPC.Model.Elements.Glasses;
 using GPC.Geometry.Meshes;
 
 namespace GPC.Checker.Glasses.FemModel
 {
-    internal class FemMesh : Mesh
+    internal class FemMesh 
     {
-        public FemMesh(List<MeshVertex> vertices, List<MeshFace> faces, Dictionary<int, Restrain> pointRestrainVertexIndex, Dictionary<INodeFemAttribute, int[]> pointLoadVertexIndex, 
-            Dictionary<IPlateFemAttribute, int[]> plateLoadIndex)
+        private List<Node> _nodes;
+
+        private List<Plate> _plates;
+
+
+        public List<Node> Nodes => _nodes;
+
+        public List<Plate> Plates => _plates;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="vertices"></param>
+        /// <param name="faces"></param>
+        /// <param name="properties">List of properties associated to faces</param>
+        /// <param name="pointRestrainVertexIndex"></param>
+        /// <param name="nodeAttributeIndex"></param>
+        /// <param name="plateAttributeIndex"></param>
+        public FemMesh(List<MeshVertex> vertices, List<MeshFace> faces, List<IGlassPanelProperty> properties, Dictionary<int, Restrain> pointRestrainVertexIndex, 
+                                                     Dictionary<INodeFemAttribute, int[]> nodeAttributeIndex, Dictionary<IPlateFemAttribute, int[]> plateAttributeIndex)
         {
+            _nodes = new List<Node>();
+            _plates = new List<Plate>();
+
+            if (faces.Count != properties.Count)
+                throw new ArgumentException("Lenght of faces and properties list are different");
+
             foreach (var vertex in vertices)
             {
                 if (pointRestrainVertexIndex.ContainsKey(vertex.Id))
                 {
-                    this._vertices.Add(new FemNode(vertex, pointRestrainVertexIndex[vertex.Id], null));
+                    this._nodes.Add(new Node(vertex.Point, vertex.Id, pointRestrainVertexIndex[vertex.Id]));
                 }
                 else
                 {
-                    this._vertices.Add(new FemNode(vertex));
+                    this._nodes.Add(new Node(vertex.Point, vertex.Id, null));
                 }
             }
 
-            foreach (var face in faces)
+            for (int i = 0; i < faces.Count; i++)
             {
-                this._faces.Add(new FemPlate(face, null));
+                if (faces[i].IsQuad)
+                    this._plates.Add(new Plate(properties[i], faces[i].Id, _nodes.Where(j => j.NodeIndex == faces[i].A).First(), _nodes.Where(j => j.NodeIndex == faces[i].B).First(),
+                                                     _nodes.Where(j => j.NodeIndex == faces[i].C).First(), _nodes.Where(j => j.NodeIndex == faces[i].D).First()));
+                else
+                    this._plates.Add(new Plate(properties[i], faces[i].Id, _nodes.Where(j => j.NodeIndex == faces[i].A).First(), _nodes.Where(j => j.NodeIndex == faces[i].B).First(),
+                                                     _nodes.Where(j => j.NodeIndex == faces[i].C).First()));
             }
 
-            foreach (IPlateFemAttribute load in plateLoadIndex.Keys)
+
+            foreach (IPlateFemAttribute att in plateAttributeIndex.Keys)
             {
-                foreach (int id in plateLoadIndex[load])
+                foreach (int id in plateAttributeIndex[att])
                 {
-                    (this._faces.Where(i => i.Id == id).FirstOrDefault() as FemPlate).Attributes.Add(load);
+                    this._plates.Where(i => i.Index == id).FirstOrDefault().AddAttribute(att);
                 }
             }
 
-            foreach (INodeFemAttribute load in pointLoadVertexIndex.Keys)
+            foreach (INodeFemAttribute att in nodeAttributeIndex.Keys)
             {
-                foreach (int id in pointLoadVertexIndex[load])
+                foreach (int id in nodeAttributeIndex[att])
                 {
-                    (this._vertices.Where(i => i.Id == id).FirstOrDefault() as FemNode).Attributes.Add(load);
+                    this._nodes.Where(i => i.NodeIndex == id).FirstOrDefault().AddAttribute(att);
                 }
             }
         }
+
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="nodeId">Nodes globalId will be setted starting from next int</param>
-        /// <param name="faceId">Faces globalId will be setted starting from next int</param>
-        public void SetGlobalIds(ref int nodeId, ref int faceId)
+        /// <param name="plateId">Plate globalId will be setted starting from next int</param>
+        public void SetGlobalIds(ref int nodeId, ref int plateId)
         {
-            foreach(var vertex in _vertices)
+            foreach(var node in _nodes)
             {
-                (vertex as FemNode).GlobalId = nodeId++;
-
-                if ((vertex as FemNode).Restrain != null)
-                {
-                    Console.WriteLine((vertex as FemNode).GlobalId + " " + vertex.Point.X.ToString() + " " + vertex.Point.Y.ToString() + " " + vertex.Point.Z.ToString());
-                }
+                node.GlobalId = nodeId++;
             }
-            foreach (var face in _faces)
+            foreach (var face in _plates)
             {
-                (face as FemPlate).GlobalId = faceId++;
+                face.GlobalId = plateId++;
             }
         }
 
-        protected FemMesh(SerializationInfo info, StreamingContext context) 
-            : base(info, context)
-        {
-
-        }
     }
 }
