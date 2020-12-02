@@ -9,6 +9,19 @@ using GPC.Geometry;
 
 namespace GPC.Checker.Steel.EuroCode
 {
+    public enum LoadCondition
+    {
+        Constant,
+        SingleForce,
+        NotDirectlyLoaded
+    }
+    public enum SupportCondition
+    {
+        FixHinge,
+        Restrained,
+        OneSideRestrained_OneSideHinged
+    }
+
     public class EuroCodeBeamChecker
     {
         #region Variables
@@ -34,7 +47,7 @@ namespace GPC.Checker.Steel.EuroCode
         protected double _L0LT;
 
         protected bool _method1AnnexA = true;
-        protected bool _useEquation_6_57 = true; //EN1993-1-1
+        protected bool _useEquation_6_57 = false; //EN1993-1-1
 
         protected double _NEd;
         protected double _VEd1;
@@ -111,20 +124,7 @@ namespace GPC.Checker.Steel.EuroCode
         public double WRBuckling2 { get; }
         #endregion
 
-        protected enum LoadCondition
-        {
-            Constant,
-            SingleForce,
-            NotDirectlyLoaded
-        }
-        protected enum SupportCondition
-        {
-            FixHinge,
-            Restrained,
-            OneSideRestrained_OneSideHinged
-        }
-
-        public EuroCodeBeamChecker(Section sect, double NEd, double V1Ed, double V2Ed, double M1Ed, double M2Ed, double TEd, double L, double betay, double betaz, double betaLT, Annex annex)
+        public EuroCodeBeamChecker(Section sect, double NEd, double V1Ed, double V2Ed, double M1Ed, double M2Ed, double TEd, double L, double betay, double betaz, double betaLT, SupportCondition supportCondition, LoadCondition loadCondition, Annex annex)
         {
             _sec = sect;
             _annex = annex;
@@ -243,7 +243,7 @@ namespace GPC.Checker.Steel.EuroCode
                     Point2d shearCenterToCentroid = _sec.Centroid - _sec.ShearCenter;
                     double ncrTorsional = GetNcrT(iy, iz, shearCenterToCentroid.Y, shearCenterToCentroid.X, E, G, _sec.Jt, _sec.Jw, _L0LT);
                     double ncrFlexuralTorsional = GetNcrTF(iy, iz, shearCenterToCentroid.Y, _Ncry, _Ncrz, ncrTorsional);
-
+                    
                     double mcrLateralTorsional = GetMcrLT(_L, _sec.Jt, _sec.Jw, _sec.J11, E, G, _psiy, _supportConditiony, _loadConditiony, 0, _betaLT);
 
                     double lambdaSegnLT;
