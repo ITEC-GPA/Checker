@@ -89,9 +89,15 @@
   <Import Project="..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.targets')" />
   <PropertyGroup>
     <PostBuildEvent>If "$(ConfigurationName)"=="Debug" (
-Copy "..\..\..\..\GPCGeometry\GPCGeometry\bin\Debug\gmsh-4.7.dll" "$(TargetDir)"
+        Echo Copying Libraries debug version
+         Copy "..\..\..\..\GPCGeometry\GPCGeometry\bin\Debug\gmsh-4.7.dll" "$(TargetDir)"
+         Copy "..\..\..\..\..\Libs\St7Solver\bin\Debug\St7Solver.exe" "$(TargetDir)"
 )
-If "$(ConfigurationName)"=="Release" (Copy "..\..\..\..\GPCGeometry\GPCGeometry\bin\Release\gmsh-4.7.dll" "$(TargetDir)"
-)</PostBuildEvent>
+If "$(ConfigurationName)"=="Release" (
+      Echo Copying Libraries release version
+       Copy "..\..\..\..\GPCGeometry\GPCGeometry\bin\Release\gmsh-4.7.dll" "$(TargetDir)"
+       Copy "..\..\..\..\..\Libs\St7Solver\bin\Release\St7Solver.exe" "$(TargetDir)"
+)
+</PostBuildEvent>
   </PropertyGroup>
 </Project>
