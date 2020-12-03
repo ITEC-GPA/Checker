@@ -5,47 +5,71 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Checker.Glasses.Wrappers;
 using GPC.Checker.Glasses.FemModel;
+using GPC.Model.Loads;
+using GPC.Geometry.Meshes;
+using GPC.Geometry;
 
 namespace GPC.Checker.Glasses.Checkers
 {
     public class PrEnGlassChecker : GlassChecker
     {
 
-        public PrEnGlassChecker(Model model, LaminatedAnalysisType laminatedAnalysisType) 
-            : base(model, laminatedAnalysisType)
+        public PrEnGlassChecker(Model model, CheckParameters checkParameters) 
+            : base(model, checkParameters)
         {
 
         }
 
-        public override void Run()
+
+        #region Override public methods
+
+        /// <summary>
+        /// Metodo responsabile della verifica
+        /// 1 - Genera la mesh
+        /// 2 - Orchestra il modello fem
+        /// 3 - Prende i risultati 
+        /// 4 - Fa la verifica
+        /// </summary>
+        /// 
+        public override void PerformCheck()
         {
             List<GlassWrapper> wrappers = GetWrappers();
 
-            var meshes = new List<List<FemMesh>>();
+            FemModelWrapper femWrapper = new FemModelWrapper();
+            
             foreach (var wrapper in wrappers)
             {
                 if (wrapper is MonolithicGlassWrapper mgw)
                 {
-                    meshes.Add(mgw.GeneratePlateMesh());
+                    var geometryMeshes = mgw.GenerateGeometryMesh(out Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex);
+                    var restrains = mgw.GetRestrains();
 
+                    mgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
+                    
+                    femWrapper.SetUpMonolithic(geometryMeshes, embeddedGeometriesMapVertex, restrains, mgw.GlassProperty, uniformPressureLoads, notUniformPressureLoads);
+                }
+                else if (wrapper is LaminatedGlassWrapper lgw)
+                {
+                    //var geometryMeshes = lgw.GenerateGeometryMesh();
+
+                    //femWrapper.SetUpLaminated(geometryMeshes);
                 }
                 else if (wrapper is InsulatedGlassWrapper igw)
                 {
-
+                    throw new NotImplementedException();
                 }
                 else
                     throw new NotSupportedException("Glass wrapper not supported");
             }
 
-            //femWrapper.ExportMeshMSHFormat(System.IO.Path.Combine(this._model.OutputFolder, "mesh.msh"), l);
-
-            FemModelWrapper femWrapper = new FemModelWrapper(meshes);
 
 
-            femWrapper.ToSt7(System.IO.Path.Combine(this._model.OutputFolder, "1.st7"));
+            femWrapper.ToSt7(System.IO.Path.Combine(this._model.OutputFolder, "1.st7"), CheckParameters.AnalysisType.LinearStaticAnalisys);
         }
 
-        protected override string GetCheckerName() => "prEN 16612 - 2019";
+        protected override string GetCheckerName() => "prEN 16612 - 2019"; 
+       
+        #endregion
 
     }
 }

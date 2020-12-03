@@ -1,31 +1,20 @@
 ﻿using GPC.Checker.Glasses.Wrappers;
 using GPC.Model.Elements.Glasses;
-using GPC.Model.Loads;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GPC.Checker.Glasses.Checkers
 {
     public abstract class GlassChecker : GPC.Checker.Common.Checker
     {
-        public enum LaminatedAnalysisType
-        {
-            EquivalentThickness,
-            MultiElement,
-            MultiLayer,
-        }
-
         protected Model _model;
 
-        protected LaminatedAnalysisType _laminatedAnalysisType;
+        protected CheckParameters _checkParameters;
 
-        public GlassChecker(Model model, LaminatedAnalysisType laminatedAnalysisType)
+        public GlassChecker(Model model, CheckParameters checkParameters)
         {
             this._model = model ?? throw new ArgumentNullException(nameof(model));
-            this._laminatedAnalysisType = laminatedAnalysisType;
+            this._checkParameters = checkParameters; 
         }
 
         protected List<GlassWrapper> GetWrappers()
@@ -40,9 +29,15 @@ namespace GPC.Checker.Glasses.Checkers
 
                     mgw.AddLoads(surface.Loads);
 
-                    mgw.GeneratePlateMesh();
-                    
                     wrappers.Add(mgw);
+                }
+                else if (surface.GlassProperty is LaminatedGlass lg)
+                {
+                    LaminatedGlassWrapper lgw = new LaminatedGlassWrapper(surface);
+
+                    lgw.AddLoads(surface.Loads);
+
+                    wrappers.Add(lgw);
                 }
                 else
                 {
@@ -53,11 +48,106 @@ namespace GPC.Checker.Glasses.Checkers
         }
 
 
+        #region abstract methods
+        
         protected abstract override string GetCheckerName();
 
-        public abstract void Run();
+        public abstract void PerformCheck(); 
+        
+        #endregion
 
 
 
+        public class CheckParameters
+        {
+            public enum LaminatedAnalysisType
+            {
+                /// <summary> Single plate with an equivalent thickness</summary>
+                EquivalentThickness,
+                /// <summary> Single plate for each monolithic connected by connection/links to interlayer modelled as brick</summary>
+                MultiElementBrickIntelayer,
+                /// <summary> Single plate for each monolithic connected by connection/links to interlayer modelled as plate</summary>
+                MultiElementPlateInterlayer,
+                /// <summary> Single plate that takes into account the interlayer slip </summary>
+                MultiLayer,
+            }
+
+            public enum AnalysisType
+            {
+                LinearStaticAnalisys,
+                NonLinearStaticAnalysis,
+            }
+
+            public enum CheckMethod
+            {
+                /// <summary> Ref prEn16612 annex A </summary>
+                DominantLoad = 0,
+                /// <summary> Ref prEn16612 annex A </summary>
+                ShorterLoad = 1,
+                /// <summary> Ref CNR-DT 210/2013 pag 224  </summary>
+                PalmgrenMiner = 2,
+                /// <summary> Ref. ASTM E1300-16 §X5 </summary>
+                ASTME1300 = 3
+            }
+
+            public enum LaminatedEqThicknessMethod
+            {
+                /// <summary> Ref CNR DT 210-13 </summary>
+                EET = 0,
+                /// <summary> Ref prEn16612 </summary>
+                Omega = 1,
+                /// <summary> Ref ASTM E1300-16 §X9 </summary>
+                ASTME1300 = 2,
+                /// <summary> Ref NEN 2608:2014 §F </summary>
+                NEN = 3,
+            }
+
+            private LaminatedAnalysisType _laminatedAnalysisType;
+            private AnalysisType _analysisType;
+            private CheckMethod _checkMethod;
+            private LaminatedEqThicknessMethod _laminatedEqThicknessMethod;
+
+            public CheckParameters()
+            {
+                _laminatedAnalysisType = LaminatedAnalysisType.MultiElementPlateInterlayer;
+                _analysisType = AnalysisType.LinearStaticAnalisys;
+                _checkMethod = CheckMethod.PalmgrenMiner;
+                _laminatedEqThicknessMethod = LaminatedEqThicknessMethod.EET;
+            }
+
+            public CheckParameters(LaminatedAnalysisType laminatedAnalysisType, AnalysisType analysisType, CheckMethod checkMethod, LaminatedEqThicknessMethod laminatedEqThicknessMethod)
+            {
+                _laminatedAnalysisType = laminatedAnalysisType;
+                _analysisType = analysisType;
+                _checkMethod = checkMethod;
+                _laminatedEqThicknessMethod = laminatedEqThicknessMethod;
+            }
+
+            public LaminatedAnalysisType GetLaminatedAnalysisType() => _laminatedAnalysisType;
+            public AnalysisType GetAnalysisType() => _analysisType;
+            public CheckMethod GetCheckMethod() => _checkMethod;
+            public LaminatedEqThicknessMethod GetLaminatedEqThicknessMethod() => _laminatedEqThicknessMethod;
+
+            public void SetLaminatedAnalysisType(LaminatedAnalysisType value)
+            {
+                _laminatedAnalysisType = value;
+            }
+
+            public void SetAnalysisType(AnalysisType value)
+            {
+                _analysisType = value;
+            }
+
+            public void SetCheckMethod(CheckMethod value)
+            {
+                _checkMethod = value;
+            }
+
+            public void SetLaminatedEqThicknessMethod(LaminatedEqThicknessMethod value)
+            {
+                _laminatedEqThicknessMethod = value;
+            }
+
+        }
     }
 }

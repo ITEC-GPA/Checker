@@ -4,6 +4,11 @@ using System;
 using System.Linq;
 using GPC.Geometry;
 using System.Collections.Generic;
+using GPC.Checker.Glasses.FemModel;
+using GPC.Geometry.Meshes;
+using GPC.Model.Elements;
+using GPC.Model.FEM.Attributes;
+using GPC.Checker.Glasses.LoadCases;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
@@ -53,7 +58,54 @@ namespace GPC.Checker.Glasses.Wrappers
             _loads.AddRange(loads);
         }
 
-        public abstract List<FemModel.FemMesh> GeneratePlateMesh();
+        public List<IGeometryRestrain> GetRestrains()
+        {
+            var list = new List<IGeometryRestrain>();
+            list.AddRange(_glassSurface.LineRestrain);
+            list.AddRange(_glassSurface.PointRestrain);
+
+            return list;
+        }
+
+        public void GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads)
+        {
+            uniformPressureLoads = _loads.Where(i => i.GetGeometry() == _glassSurface.Shape).ToList();
+
+            notUniformPressureLoads = _loads.Except(uniformPressureLoads).ToList();
+        }
+
+        public List<Mesh> GenerateGeometryMesh(out Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex)
+        {
+            var shapes = new List<Shape>();
+            shapes.Add(_glassSurface.Shape);
+
+            List<GeometryBase> embeddedGeometriesBuffer = new List<GeometryBase>();
+
+            // Aggiungo geometria relativa a vincoli
+            embeddedGeometriesBuffer.AddRange(_glassSurface.LineRestrain.Select(i => i.Line).ToList<GeometryBase>());
+            embeddedGeometriesBuffer.AddRange(_glassSurface.PointRestrain.Select(i => i.Point).ToList<GeometryBase>());
+
+            // Aggiungo geometria relativa a carichi - se è diversa dalla superficie di partenza.
+            embeddedGeometriesBuffer.AddRange(_loads.Where(i => i.GetGeometry() != _glassSurface.Shape).Select(i => i.GetGeometry()).ToList());
+
+            //List<Load> uniformPressureLoads = _loads.Where(i => i.GetGeometry() == _glassSurface.Shape).ToList();
+
+            // Meshatura
+            //Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex = new Dictionary<Mesh, Dictionary<GeometryBase, int[]>>();
+            Dictionary<Shape, GeometryBase[]> embeddedGeometries = new Dictionary<Shape, GeometryBase[]>();
+            embeddedGeometries[_glassSurface.Shape] = embeddedGeometriesBuffer.ToArray();
+
+            Mesh.GenerateMeshOptions.Algorithm = Mesh.GenerateMeshOptions.MeshAlgorithm.PackingOfParallelograms;
+            Mesh.GenerateMeshOptions.Recombine = true;
+            Mesh.GenerateMeshOptions.RecombinationAlgorithm = Mesh.GenerateMeshOptions.RecombinationMeshAlgorithm.BlossomFullQuad;
+            Mesh.GenerateMeshOptions.Size = 50;
+            Mesh.GenerateMeshOptions.UseGlobalProgressID = true;
+
+
+            List<Mesh> geometryMeshes = Mesh.Generate(shapes, embeddedGeometries, out embeddedGeometriesMapVertex);
+
+            return geometryMeshes;
+        }
 
         #endregion
 

@@ -8,12 +8,12 @@ namespace GPC.Checker.Glasses.Checkers
 {
     public class AstmGlassChecker : GlassChecker
     {
-        public AstmGlassChecker(Model model, LaminatedAnalysisType laminatedAnalysisType) : base(model, laminatedAnalysisType)
+        public AstmGlassChecker(Model model, CheckParameters checkParameters) : base(model, checkParameters)
         {
 
         }
 
-        public override void Run()
+        public override void PerformCheck()
         {
             throw new NotImplementedException();
         }

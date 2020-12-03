@@ -11,6 +11,7 @@ using GPC.Checker.Glasses.LoadCases;
 using GPC.Model.Combinations;
 using GPC.Checker.Glasses.Checkers;
 using GPC.Model.Elements;
+using System.Collections.Generic;
 
 namespace GlassTests
 {
@@ -49,6 +50,14 @@ namespace GlassTests
         {
             return new GlassMaterialPrEn("Glass", 70000, 0.23, 25, GlassMaterialPrEn.GlassType.DrawnSheetGlass, GlassMaterialPrEn.SurfaceTreatment.AsProduced,
                                         GlassMaterialPrEn.PrestressType.HeatStrengthened, GlassMaterialPrEn.ManufactoringProcess.HorizontalToughening, 2700 * 10E-12, 0);
+        }
+
+        private InterlayerMaterial GetInterlayerMaterial()
+        {
+            var it = new InterlayerMaterial(1, 0, InterlayerMaterial.InterlayerType.NormalPVB);
+            it.AddShearModule(3, new double[] { 10, 20, 50 }, new double[] { 0.1, 0.2, 0.30 });
+            it.AddShearModule(100, new double[] { 10, 20, 50 }, new double[] { 0.15, 0.25, 0.35 });
+            return it;
         }
 
         private Shape GetRectangularShape(Point3d p, Vector3d vector)
@@ -109,8 +118,9 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            PrEnGlassChecker check = new PrEnGlassChecker(model, GlassChecker.LaminatedAnalysisType.EquivalentThickness);
-            check.Run();
+
+            PrEnGlassChecker check = new PrEnGlassChecker(model, new GlassChecker.CheckParameters()) ;
+            check.PerformCheck();
         }
         
 
@@ -163,8 +173,8 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            PrEnGlassChecker check = new PrEnGlassChecker(model, GlassChecker.LaminatedAnalysisType.EquivalentThickness);
-            check.Run();
+            PrEnGlassChecker check = new PrEnGlassChecker(model, new GlassChecker.CheckParameters());
+            check.PerformCheck();
         }
 
 
@@ -225,8 +235,61 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            PrEnGlassChecker check = new PrEnGlassChecker(model, GlassChecker.LaminatedAnalysisType.EquivalentThickness);
-            check.Run();
+            GlassChecker.CheckParameters checkParameters = new GlassChecker.CheckParameters();
+            checkParameters.SetAnalysisType(GlassChecker.CheckParameters.AnalysisType.LinearStaticAnalisys);
+            checkParameters.SetLaminatedAnalysisType(GlassChecker.CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
+
+            PrEnGlassChecker check = new PrEnGlassChecker(model, new GlassChecker.CheckParameters()) ;
+            check.PerformCheck();
+        }
+
+        [TestMethod]
+        public void MonoAndLaminatedGlass()
+        {
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 0, 1000));
+            Shape s2 = GetRectangularShape(new Point3d(300, 0, 0), new Vector3d(200, 0, 1500));
+
+            var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
+            var restrains2 = s2.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s2.GetCoordinateSystem()))).ToList();
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 10, GetGlassMaterialPrEn());
+
+            MonolithicGlass mg21 = new MonolithicGlass("Mg21", 5, GetGlassMaterialPrEn());
+            MonolithicGlass mg22 = new MonolithicGlass("Mg22", 20, GetGlassMaterialPrEn());
+
+
+            Interlayer intr = new Interlayer("Int", 0.76, GetInterlayerMaterial(), Guid.NewGuid());
+
+
+            LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[]{ mg21, mg22 }, new Interlayer[] { intr });
+
+            LoadCase lc1 = new LoadCase("LC1", 50, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
+            LoadCase lc2 = new LoadCase("LC2", 5, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
+            GlobalPointLoad s1gpl1 = new GlobalPointLoad(0, 2, 0, 0, 0, 0, new Point3d(80, 0, 500), lc1, Guid.NewGuid());
+            GlobalPointLoad s1gpl2 = new GlobalPointLoad(0, 2, 0, 0, 0, 0, new Point3d(80, 0, 700), lc2, Guid.NewGuid());
+            GlobalPointLoad s2gpl1 = new GlobalPointLoad(0, 10, 0, 0, 0, 0, new Point3d(380, 0, 600), lc1, Guid.NewGuid());
+            GlobalPointLoad s2gpl2 = new GlobalPointLoad(0, 10, 0, 0, 0, 0, new Point3d(380, 0, 1000), lc2, Guid.NewGuid());
+
+            GlassSurface gs1 = new GlassSurface(mg1, s1, new List<Load> { s1gpl1 }, restrains1, null, 0, Guid.NewGuid());
+            gs1.AddLoad(s1gpl2);
+            GlassSurface gs2 = new GlassSurface(lg1, s2, new List<Load> { s2gpl1 }, restrains2, null, 0, Guid.NewGuid());
+            gs2.AddLoad(s2gpl2);
+
+
+
+            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
+            Directory.CreateDirectory(outputFolder);
+
+
+            Model model = new Model(outputFolder);
+            model.AddSurface(gs1);
+            model.AddSurface(gs2);
+
+            var cp = new GlassChecker.CheckParameters();
+            cp.SetLaminatedAnalysisType(GlassChecker.CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
+
+            PrEnGlassChecker check = new PrEnGlassChecker(model, new GlassChecker.CheckParameters());
+            check.PerformCheck();
         }
     }
 }
