@@ -17,8 +17,8 @@ namespace GPC.Checker.Steel.EuroCode
     }
     public enum SupportCondition
     {
-        FixHinge,
-        Restrained,
+        HingesAtEnds,
+        EndsRestrained,
         OneSideRestrained_OneSideHinged
     }
 
@@ -32,8 +32,8 @@ namespace GPC.Checker.Steel.EuroCode
 
         protected double _L;
       
-        protected double _psiy; //MEd(End 2) = psi * MEd(End 1)
-        protected double _psiz;
+        protected double? _psiy; //MEd(End 2) = psi * MEd(End 1)
+        protected double? _psiz;
         protected LoadCondition _loadConditiony;
         protected SupportCondition _supportConditiony;
         protected LoadCondition _loadConditionz;
@@ -65,6 +65,7 @@ namespace GPC.Checker.Steel.EuroCode
 
         protected double _Ncry;
         protected double _Ncrz;
+        protected double _McrLateralTorsional;
 
         protected double _alphay;
         protected double _alphaz;
@@ -97,6 +98,7 @@ namespace GPC.Checker.Steel.EuroCode
         public double L0LT => _L0LT;
         public double Ncry => _Ncry;
         public double Ncrz => _Ncrz;
+        public double McrLateralTorsional => _McrLateralTorsional;
 
         public double Alphay => _alphay;
         public double Alphaz => _alphaz;
@@ -124,7 +126,7 @@ namespace GPC.Checker.Steel.EuroCode
         public double WRBuckling2 { get; }
         #endregion
 
-        public EuroCodeBeamChecker(Section sect, double NEd, double V1Ed, double V2Ed, double M1Ed, double M2Ed, double TEd, double L, double betay, double betaz, double betaLT, SupportCondition supportCondition, LoadCondition loadCondition, Annex annex)
+        public EuroCodeBeamChecker(Section sect, double NEd, double V1Ed, double V2Ed, double M1Ed, double M2Ed, double TEd, double L, double betay, double betaz, double betaLT, SupportCondition supportConditiony, LoadCondition loadConditiony, SupportCondition supportConditionz, LoadCondition loadConditionz, Annex annex)
         {
             _sec = sect;
             _annex = annex;
@@ -140,6 +142,12 @@ namespace GPC.Checker.Steel.EuroCode
             _betaLT = betaLT;
             _betay = betay;
             _betaz = betaz;
+
+            _supportConditiony = supportConditiony;
+            _supportConditionz = supportConditionz;
+
+            _loadConditiony = loadConditiony;
+            _loadConditionz = loadConditionz;
 
             #region classification
             double fy = ((SteelMaterial)_sec.Material).Fyk;
@@ -244,13 +252,13 @@ namespace GPC.Checker.Steel.EuroCode
                     double ncrTorsional = GetNcrT(iy, iz, shearCenterToCentroid.Y, shearCenterToCentroid.X, E, G, _sec.Jt, _sec.Jw, _L0LT);
                     double ncrFlexuralTorsional = GetNcrTF(iy, iz, shearCenterToCentroid.Y, _Ncry, _Ncrz, ncrTorsional);
                     
-                    double mcrLateralTorsional = GetMcrLT(_L, _sec.Jt, _sec.Jw, _sec.J11, E, G, _psiy, _supportConditiony, _loadConditiony, 0, _betaLT);
+                    _McrLateralTorsional = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, _psiy, 1, 1);
 
                     double lambdaSegnLT;
                     if (_classificationSection < 3) {
-                        lambdaSegnLT = GetLambdaSegn(_sec.Wpl22, fy, mcrLateralTorsional);
+                        lambdaSegnLT = GetLambdaSegn(_sec.Wpl22, fy, _McrLateralTorsional);
                     } else if (_classificationSection == 3) {
-                        lambdaSegnLT = GetLambdaSegn(_sec.Wel22Min, fy, mcrLateralTorsional);
+                        lambdaSegnLT = GetLambdaSegn(_sec.Wel22Min, fy, _McrLateralTorsional);
                     } else
                     {
                         throw new Exception("class 4 not yet supported");
@@ -289,10 +297,10 @@ namespace GPC.Checker.Steel.EuroCode
                     if (_method1AnnexA)
                     {
                         //Annex A
-                        double MEdyMax = 0;
-                        double deflectiony = 0;
-                        double MEdzMax = 0;
-                        double deflectionz = 0;
+                        double? MEdyMax = null;
+                        double? deflectiony = null;
+                        double? MEdzMax = null;
+                        double? deflectionz = null;
 
                         double cmy0 = GetCMi0(_loadConditiony, _supportConditiony, _psiy, MEdyMax, deflectiony, _NEd, _Ncry);
                         double cmz0 = GetCMi0(_loadConditionz, _supportConditionz, _psiz, MEdzMax, deflectionz, _NEd, _Ncrz);
@@ -300,12 +308,20 @@ namespace GPC.Checker.Steel.EuroCode
                         double muy = GetMu(_NEd, _Ncry, _Chiy);
                         double muz = GetMu(_NEd, _Ncrz, _Chiz);
 
-                        double wy = Math.Min(_sec.Wpl22 / _sec.Wel22Min, 1.5);
-                        double wz = Math.Min(_sec.Wpl11 / _sec.Wel11Min, 1.5);
+                        double wy, wz;
+                        if (_classificationSection < 3) //Rules for member stability in en 1993-1-1 pg. 113
+                        {
+                            wy = Math.Min(_sec.Wpl22 / _sec.Wel22Min, 1.5);
+                            wz = Math.Min(_sec.Wpl11 / _sec.Wel11Min, 1.5);
+                        } else
+                        {
+                            wy = 1.0;
+                            wz = 1.0;
+                        }
 
                         double lambdaMax = Math.Max(lambday, lambdaz);
 
-                        double mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, 1.0, _supportConditiony, _loadConditiony, 0, 1, 1);
+                        double mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, 1.0, 1, 1);
                         double lambda0 = GetLambdaSegn(_sec.Wpl22, fy, mCrLT0);
 
                         double epsilony;
@@ -365,12 +381,12 @@ namespace GPC.Checker.Steel.EuroCode
                         } else
                         {
                             //epsilony = _MEd2 / _NEd * _sec.Area / _sec.Weff;
-                            throw new Exception();
+                            throw new Exception("calss 4 not supperted");
                         }
                     } else
                     {
                         //Annex B
-                        _kyy = _kzy = _kyz = _kzz = 0;
+                        throw new Exception("Annex B not implemented yet");
                     }
 
                     double deltaMy = 0;
@@ -390,7 +406,7 @@ namespace GPC.Checker.Steel.EuroCode
                         mzrk = _sec.Wel11Min * fy;
                     } else
                     {
-                        throw new Exception("not supported yet");
+                        throw new Exception("section 4 not supported yet");
                     }
                     WRBuckling1 = _NEd / (_Chiy * nrk / _annex.Gm1) + _kyy * (_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kyz * (_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
                     WRBuckling2 = _NEd / (_Chiz * nrk / _annex.Gm1) + _kzy * (_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kzz * (_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
@@ -586,7 +602,7 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 tauT = 0;
                 TRd = 0;
-                new Exception("Section not supported");
+                new Exception("Section not yet supported");
             }
             #endregion
 
@@ -712,7 +728,7 @@ namespace GPC.Checker.Steel.EuroCode
                 MRdNz = Math.Min(Mrdz * (1.0 - n) / (1 - 0.5 * af), Mrdz);
             } else
             {
-                throw new Exception("");
+                throw new Exception("Section not yet supported");
             }
         }
 
@@ -839,7 +855,7 @@ namespace GPC.Checker.Steel.EuroCode
             }
         }
 
-        protected double GetMcrLT(double L, double Jt, double Jw, double Jz,   double E, double G, double psi, SupportCondition supportCondition, LoadCondition loadCondition,  double zg = 0, double k = 1.0, double kw = 1.0)
+        protected double GetMcrLT(double L, double Jt, double Jw, double Jz,   double E, double G, SupportCondition supportCondition, LoadCondition loadCondition, double? psi, double k = 1.0, double kw = 1.0)
         {
             /*
              * C1 = factor that account for the shaper of the moment diagram
@@ -851,17 +867,30 @@ namespace GPC.Checker.Steel.EuroCode
              *      -negativa se il carico è diretto dall'alto verso il basso ed è applicato all'intradosso.
              * 
              */
+
+            //calculation of zg calculatet from the top of section to the shear center:
+            double zg;
+            Type typeSection = _sec.GetType();
+            if (typeSection == typeof(SectionCHS))
+            {
+                SectionCHS sec = (SectionCHS)_sec;
+                zg = sec.D - sec.ShearCenter.Y;
+            } else
+            {
+                throw new Exception("not yet supported");
+            }
+
             double C1;
             double C2;
             double C3;
             //symmetric section at least along Z-Z
-            if (_sec.IsSymmetricAlongZLocalAxis)
+            if (_sec.IsDoubleSymmetric)
             {
                 C3 = 0.0;
                 double zj = 0.0;
 
                 if (loadCondition != LoadCondition.NotDirectlyLoaded) { 
-                    if (supportCondition == SupportCondition.FixHinge)
+                    if (supportCondition == SupportCondition.HingesAtEnds)
                     {
                         if (loadCondition == LoadCondition.Constant)
                         {
@@ -874,10 +903,10 @@ namespace GPC.Checker.Steel.EuroCode
                             C2 = 0.630;
                         } else
                         {
-                            throw new NotSupportedException();
+                            throw new NotSupportedException("Load condition + Support not yet supported");
                         }
                     }
-                    else if (supportCondition == SupportCondition.Restrained)
+                    else if (supportCondition == SupportCondition.EndsRestrained)
                     {
                         if (loadCondition == LoadCondition.Constant)
                         {
@@ -890,27 +919,37 @@ namespace GPC.Checker.Steel.EuroCode
                             C2 = 1.645;
                         } else
                         {
-                            throw new NotSupportedException();
+                            throw new NotSupportedException("Load condition + Support not yet supported");
                         }
                     } else
                     {
-                        throw new Exception();
+                        throw new Exception("SupportCondition not supported");
                     }
                 } else if (loadCondition == LoadCondition.NotDirectlyLoaded)//Beam not directly loaded but with bending moment at the ends
                 {
-                    C1 = Math.Min(1.77 - 1.04 * psi + 0.27 * psi * psi, 2.6);
-                    //C1 = Math.Min(1.88 - 1.40 * psi + 0.52 * psi * psi, 2.7);
-                    C2 = 0;
+                    if (psi.HasValue)
+                    {
+                        C1 = Math.Min(1.77 - 1.04 * psi.Value + 0.27 * psi.Value * psi.Value, 2.6);
+                        //C1 = Math.Min(1.88 - 1.40 * psi + 0.52 * psi * psi, 2.7);
+                        C2 = 0;
+                    } else
+                    {
+                        throw new Exception("set a value to psi = M(x=0)/M(x=L)");
+                    }
                 } else
                 {
-                    throw new Exception();
+                    throw new Exception("Load condition + Support not yet supported");
                 }
-                double McrLT = C1 * Math.Pow(Math.PI, 2.0) * E * Jz / Math.Pow(k * L, 2.0) * (Math.Pow(Math.Pow(k / kw, 2.0) * Jw / Jz + Math.Pow(k * L, 2.0) * G * Jt / (Math.Pow(Math.PI, 2.0) * E * Jz) + Math.Pow(C2 * zg, 2.0), 0.5) - (C2 * zg - C3 * zj));
+                double McrLT = C1 * Math.Pow(Math.PI, 2.0) * E * Jz / Math.Pow(k * L, 2.0) * (Math.Pow(Math.Pow(k / kw, 2.0) * Jw / Jz + Math.Pow(k * L, 2.0) * G * Jt / (Math.Pow(Math.PI, 2.0) * E * Jz) + Math.Pow(C2 * zg - C3 * zj, 2.0), 0.5) - (C2 * zg - C3 * zj));
                 return McrLT;
             }
-            else
+            else if (_sec.IsSymmetricAlongZLocalAxis)
             {
-                //double zj = zs - 0.5 * INTEGRALE(y^2+z^2)*z dA / Jy
+                    //double zj = zs - 0.5 * INTEGRALE(y^2+z^2)*z dA / Jy
+                    throw new Exception("cannot calc McrLT");
+                
+            } else //NO sysmmetry
+            {
                 throw new Exception("cannot calc McrLT");
             }
         }
@@ -1107,24 +1146,24 @@ namespace GPC.Checker.Steel.EuroCode
             return alpha_LT;
         }
 
-        protected double Getkc(double lambda_segn_LT, SupportCondition supportCondition, LoadCondition loadCondition, double psi)
+        protected double Getkc(double lambda_segn_LT, SupportCondition supportCondition, LoadCondition loadCondition, double? psi)
         {
             double kc;
             if (loadCondition != LoadCondition.NotDirectlyLoaded)
             {
-                if (supportCondition == SupportCondition.FixHinge && loadCondition == LoadCondition.Constant)
+                if (supportCondition == SupportCondition.HingesAtEnds && loadCondition == LoadCondition.Constant)
                 {
                     kc = 0.94;
-                } else if (supportCondition == SupportCondition.Restrained && loadCondition ==  LoadCondition.Constant)
+                } else if (supportCondition == SupportCondition.EndsRestrained && loadCondition ==  LoadCondition.Constant)
                 {
                     kc = 0.90;
                 } else if (supportCondition == SupportCondition.OneSideRestrained_OneSideHinged && loadCondition == LoadCondition.Constant)
                 {
                     kc = 0.91;
-                } else if (supportCondition == SupportCondition.FixHinge && loadCondition == LoadCondition.SingleForce)
+                } else if (supportCondition == SupportCondition.HingesAtEnds && loadCondition == LoadCondition.SingleForce)
                 {
                     kc = 0.86;
-                } else if (supportCondition == SupportCondition.Restrained && loadCondition == LoadCondition.SingleForce)
+                } else if (supportCondition == SupportCondition.EndsRestrained && loadCondition == LoadCondition.SingleForce)
                 {
                     kc = 0.77;
                 } else if (supportCondition == SupportCondition.OneSideRestrained_OneSideHinged && loadCondition == LoadCondition.SingleForce)
@@ -1136,30 +1175,42 @@ namespace GPC.Checker.Steel.EuroCode
                 }
             } else
             {
-                if (psi == 1)
+                if (psi.HasValue)
                 {
-                    kc = 1;
-                }  else
+                    kc = 1.0 / (1.33 - 0.33 * psi.Value);
+                } else
                 {
-                    kc = 1.0 / (1.33 - 0.33 * psi);
+                    throw new Exception("Se a psi value = M(x=0)/M(x=L)");
                 }
             }
             return kc;
         }
 
-        protected double GetCMi0(LoadCondition loadCondition, SupportCondition supportCondition, double psi, double MEdMax, double deflection, double NEd, double Ncr)
+        protected double GetCMi0(LoadCondition loadCondition, SupportCondition supportCondition, double? psi, double? MEdMax, double? deflection, double NEd, double Ncr)
         {
-            if (loadCondition == LoadCondition.SingleForce && supportCondition == SupportCondition.FixHinge)
+            if (loadCondition == LoadCondition.SingleForce && supportCondition == SupportCondition.HingesAtEnds)
             {
                 return 1.0 - 0.18 * NEd / Ncr;
-            } else if (loadCondition == LoadCondition.Constant && supportCondition == SupportCondition.FixHinge)
+            } else if (loadCondition == LoadCondition.Constant && supportCondition == SupportCondition.HingesAtEnds)
             {
                 return 1 + 0.03 * NEd / Ncr;
             } else if (loadCondition == LoadCondition.NotDirectlyLoaded)
             {
-                return 0.79 + 0.21 * psi + 0.36 * (psi - 0.33) * NEd / Ncr;
+                if (psi.HasValue)
+                {
+                    return 0.79 + 0.21 * psi.Value + 0.36 * (psi.Value - 0.33) * NEd / Ncr;
+                } else
+                {
+                    throw new Exception("Set a value to phi = M(x=0)/M(x=L);");
+                }
             } else {
-                return 1.0 + (Math.PI * Math.PI * _sec.Material.E * Math.Abs(deflection) / (_L * _L * MEdMax) - 1.0) * NEd / Ncr;
+                if (deflection.HasValue && MEdMax.HasValue)
+                {
+                    return 1.0 + (Math.PI * Math.PI * _sec.Material.E * Math.Abs(deflection.Value) / (_L * _L * MEdMax.Value) - 1.0) * NEd / Ncr;
+                } else
+                {
+                    throw new Exception("Set delta and Mmax");
+                }
             }            
         }
 

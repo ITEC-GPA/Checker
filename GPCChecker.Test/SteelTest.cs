@@ -114,7 +114,7 @@ namespace SteelTests
 
             Annex annex = new Annex();
             annex.Gm0 = 1.0;
-            annex.Gm1 = 1.0;
+            annex.Gm1 = 1.10;
             annex.Gm2 = 1.25;
 
             double fy = 355;
@@ -134,10 +134,13 @@ namespace SteelTests
             double betaz = 1;
             double betaLT = 1;
 
-            SupportCondition supportCondition = SupportCondition.FixHinge;
-            LoadCondition loadCondition = LoadCondition.NotDirectlyLoaded;
+            SupportCondition supportConditiony = SupportCondition.EndsRestrained;
+            LoadCondition loadConditiony = LoadCondition.Constant;
 
-            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportCondition, loadCondition, annex);
+            SupportCondition supportConditionz = SupportCondition.EndsRestrained;
+            LoadCondition loadConditionz = LoadCondition.Constant;
+
+            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, supportConditionz, loadConditionz, annex);
 
             Assert.AreEqual(checker.NRd, 1003738.853, 0.01);
             Assert.AreEqual(checker.MRdy / 28873333.33, 1, 0.03);
