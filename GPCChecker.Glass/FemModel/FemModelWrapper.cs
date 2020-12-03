@@ -14,6 +14,7 @@ using GPC.Model.LoadCases;
 using GPC.Model.FEM.Attributes;
 using GPC.Model.Elements.Glasses;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace GPC.Checker.Glasses.FemModel
 {
@@ -26,7 +27,7 @@ namespace GPC.Checker.Glasses.FemModel
         /// </summary>
         private List<List<FemMesh>> _singleGlassMeshes;
 
-        private List<LoadCase> _loadCases;
+        private Dictionary<LoadCase, int> _loadCases;
 
         private Dictionary<IGlassPanelProperty, int> _glassPanelProperties;
 
@@ -49,6 +50,8 @@ namespace GPC.Checker.Glasses.FemModel
 
             _singleGlassMeshes = meshes ?? new List<List<FemMesh>>();
             _glassPanelProperties = new Dictionary<IGlassPanelProperty, int>();
+            _loadCases = new Dictionary<LoadCase, int>();
+
             SetGlobalConnectivity();
         }
 
@@ -90,18 +93,25 @@ namespace GPC.Checker.Glasses.FemModel
 
         internal void ToSt7(string filePath)
         {
-            if (ConnectService(_st7ServerIp, out St7ApiWrapper.ISt7ApiService aw, out TcpChannel channel))
+            if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
             {
-                bool status = CreateSt7Model(aw, filePath, out int mId, out List<string> warnings, out List<string> errors);
+                bool status = CreateSt7Model(aw, filePath, out int mid, out List<string> warnings, out List<string> errors);
 
                 if (status)
+                    status = St7LinearSolverSetup(aw, mid);
+
+                if (status)
+                    status = aw.SaveFile(mid);
+
+                if (status)
+                    status = St7RunLinearSolver(aw, mid, filePath);
+
+                if (status)
+                    status = aw.CloseFile(mid);
+
+                if(!status)
                 {
-                    aw.SaveFile(mId);
-                    aw.CloseFile(mId);
-                }
-                else
-                {
-                    throw new Exception("Error");
+                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
                 }
             }
             else
@@ -176,8 +186,10 @@ namespace GPC.Checker.Glasses.FemModel
                         foreach (var attribute in node.Attributes)
                         {
                             if (attribute is NodeGlobalForceAttribute pgfa)
-
-                                St7SetNodeGlobalLoad(aw, mId, node.GlobalId, 1, pgfa);
+                            {
+                                int lcNum = GetSt7LoadCase(aw, mId, pgfa.LoadCase);
+                                St7SetNodeGlobalLoad(aw, mId, node.GlobalId, lcNum, pgfa);
+                            }
                             else
                                 throw new NotSupportedException("Point attribute not supported");
                         }
@@ -212,14 +224,17 @@ namespace GPC.Checker.Glasses.FemModel
                             globalConnectivity[3] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[2]).FirstOrDefault().GlobalId;
                         }
 
-                        int propNum = GetSt7Property(aw, mId, face.Property);
+                        int propNum = GetSt7PlateProperty(aw, mId, face.Property);
 
                         aw.SetElementConnection(mId, St7ApiConst.tyPLATE, face.GlobalId, propNum, globalConnectivity);
 
                         foreach (var attribute in face.Attributes)
                         {
-                            if (attribute is PlateGlobalPressureAttribute pgpa)                            
-                                St7SetPlateGlobalPressure(aw, mId, face.GlobalId, 1, pgpa);
+                            if (attribute is PlateGlobalPressureAttribute pgpa)
+                            {
+                                int lcNum = GetSt7LoadCase(aw, mId, pgpa.LoadCase);
+                                St7SetPlateGlobalPressure(aw, mId, face.GlobalId, lcNum, pgpa);
+                            }                           
                             
                             else
                                 throw new NotSupportedException("Point attribute not supported");
@@ -231,7 +246,7 @@ namespace GPC.Checker.Glasses.FemModel
             return true;
         }
 
-        private int GetSt7Property(ISt7ApiService aw, int mid, ElementProperty property)
+        private int GetSt7PlateProperty(ISt7ApiService aw, int mid, ElementProperty property)
         {
             if (property is MonolithicGlass mg)
             {
@@ -257,10 +272,65 @@ namespace GPC.Checker.Glasses.FemModel
             }
         }
 
-        //private int GetSt7LoadCase(ISt7ApiService aw, int mid, LoadCase loadCase)
-        //{
+        private int GetSt7LoadCase(ISt7ApiService aw, int mid, LoadCase loadCase)
+        {
+            if (_loadCases.ContainsKey(loadCase))
+            {
+                return _loadCases[loadCase];
+            }
+            else
+            {
+                int lcNum = _loadCases.Values.DefaultIfEmpty().Max() + 1;
 
-        //}
+                if (lcNum == 1)
+                {
+                    aw.SetLoadCaseName(mid, lcNum, loadCase.Name);
+
+                    if (loadCase.GetLoadCaseType() == LoadCase.LoadCaseType.SelfWeight)
+                    {
+                        aw.SetLoadCaseType(mid, lcNum, St7ApiConst.kGravity);
+                        aw.SetLoadCaseGravityDir(mid, lcNum, 3);
+                        var doubles = new double[13];
+                        doubles[4] = 0;
+                        doubles[5] = 0;
+                        doubles[6] = -9806.65; //mm/s2
+                        aw.SetLoadCaseDefaults(mid, lcNum, doubles);
+                    }
+                    else
+                        aw.SetLoadCaseType(mid, lcNum, St7ApiConst.kNoInertia);
+
+                    _loadCases[loadCase] = lcNum;
+                    return lcNum;
+                }
+                else if (lcNum > 1)
+                {
+                    if (aw.NewLoadCase(mid, loadCase.Name))
+                    {
+                        if (loadCase.GetLoadCaseType() == LoadCase.LoadCaseType.SelfWeight)
+                        {
+                            aw.SetLoadCaseType(mid, lcNum, St7ApiConst.kGravity);
+                            aw.SetLoadCaseGravityDir(mid, lcNum, 3);
+                            var doubles = new double[13];
+                            doubles[4] = 0;
+                            doubles[5] = 0;
+                            doubles[6] = -9806.65; //mm/s2
+                            aw.SetLoadCaseDefaults(mid, lcNum, doubles);
+                        }
+                        else
+                            aw.SetLoadCaseType(mid, lcNum, St7ApiConst.kNoInertia);
+
+                        _loadCases[loadCase] = lcNum;
+                        return lcNum;
+                    }
+                    else
+                        throw new Exception($"Unable lo add loadCase {loadCase.Name}");
+                }
+                else
+                {
+                    throw new Exception(); // lcnum è sempre maggiore di 1s
+                }
+            }
+        }
 
         private bool St7SetNodeRestrain(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, int ucsId, Restrain restrain)
         {
@@ -292,13 +362,28 @@ namespace GPC.Checker.Glasses.FemModel
             return aw.SetPlateGlobalPressure(mid, plateNumber, St7ApiConst.btFalse, caseNumber, gpl.Px, gpl.Py, gpl.Pz);
         }
 
+        private bool St7LinearSolverSetup(ISt7ApiService aw, int mid)
+        {
+            foreach(var lc in _loadCases)
+            {
+                aw.EnableLSALoadCase(mid, lc.Value, 1);
+            }
+            return true;
+        }
+
         private bool St7RunLinearSolver(ISt7ApiService aw, int mid, string filePath)
         {
+            //var c = Assembly.GetExecutingAssembly().GetName().Name;
+            //var b = AppDomain.CurrentDomain.GetAssemblies();
+
+            Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.StartsWith(Assembly.GetExecutingAssembly().GetName().Name)).First();
+            string directory = Path.GetDirectoryName(assembly.Location);
+
             string resultExtension = "lsa";
             ProcessStartInfo pInfo = new ProcessStartInfo
             {
-                FileName = Path.Combine(filePath, "St7Solver.exe"),
-                Arguments = string.Format("\"{0}\" {1}", filePath, 1)
+                FileName = Path.Combine(directory, "St7Solver.exe"),
+                Arguments = $"{filePath} 0",
             };
 
             if (!File.Exists(pInfo.FileName))
@@ -312,13 +397,9 @@ namespace GPC.Checker.Glasses.FemModel
                 if (p.ExitCode == 0) // Analysis terminated with success
                 {
                     string resultPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + "." + resultExtension);
-                    int numPrimary = 0, numSecondary = 0;
 
-                    if (aw.OpenResultFile(mid, resultPath, null, (byte)St7ApiConst.btTrue, ref numPrimary, ref numSecondary))
-                    {
-                        aw.CloseResultFile(mid);
-                    }
-                    return true;
+                    bool status = St7ReadResults(aw, mid, resultPath);
+                    return status;
                 }
                 else
                 {
@@ -332,6 +413,26 @@ namespace GPC.Checker.Glasses.FemModel
             }
         }
 
+        //private bool St7ReadResults(ISt7ApiService aw, int mid, string resultFilePath)
+        //{
+        //    int numPrimary = 0;
+        //    int numSecondary = 0;
+        //    aw.OpenResultFile(mid, resultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
+            
+        //    foreach(var singleGlassMesh in _singleGlassMeshes)
+        //    {
+        //        foreach (var mesh in singleGlassMesh)
+        //        {
+        //            foreach (var plate in mesh.Plates)
+        //            {
+        //                plate.AddStressResultsGaussPoint()
+        //            }
+        //        }
+        //    }
+
+        //    aw.CloseResultFile(mid);
+        //    return true;
+        //}
 
         #endregion
 

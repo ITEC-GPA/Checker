@@ -113,6 +113,7 @@ namespace GlassTests
             check.Run();
         }
         
+
         [TestMethod]
         public void MonolithicGlass2()
         {
@@ -171,8 +172,8 @@ namespace GlassTests
         public void MonolithicGlass3()
         {
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 400, 100));
-            Shape s2 = GetRectangularShape(new Point3d(100, 100, 100), new Vector3d(300, 500, 200));
-            Shape s3 = GetRectangularShape(new Point3d(300, 300, 100), new Vector3d(300, 500, 200));
+            Shape s2 = GetRectangularShape(new Point3d(000, 100, 400), new Vector3d(300, 500, 200));
+            Shape s3 = GetRectangularShape(new Point3d(000, 300, 800), new Vector3d(300, 500, 200));
 
             var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
             var restrains2 = s2.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s2.GetCoordinateSystem()))).ToList();
@@ -189,18 +190,20 @@ namespace GlassTests
 
             LoadCase lc1 = new LoadCase("LC1", 100, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
             LoadCase lc2 = new LoadCase("LC2", 5, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
+            LoadCase lc3 = new LoadCase("LC3", 10000, LoadCase.LoadCaseType.SelfWeight, Guid.NewGuid());
 
             GlobalAreaLoad s1GalLc1 = new GlobalAreaLoad(100, 200, 300, s1, lc1, Guid.NewGuid());
-            GlobalAreaLoad s1GalLc2 = new GlobalAreaLoad(101, 201, 301, s1, lc2, Guid.NewGuid());
-
-            GlobalAreaLoad s2GalLc1 = new GlobalAreaLoad(150, 250, 350, s2, lc1, Guid.NewGuid());
             GlobalAreaLoad s2GalLc2 = new GlobalAreaLoad(151, 251, 351, s2, lc2, Guid.NewGuid());
+            GlobalAreaLoad s3GalLc3 = new GlobalAreaLoad(151, 251, 351, s3, lc3, Guid.NewGuid());
+
+            GlobalPointLoad s1gpl = new GlobalPointLoad(1, 2, 3, 4, 5, 6, new Point3d(100, 200, 50), lc2, Guid.NewGuid());
 
             gs1.AddLoad(s1GalLc1);
-            gs1.AddLoad(s1GalLc2);
+            gs1.AddLoad(s1gpl);
 
-            gs2.AddLoad(s2GalLc1);
             gs2.AddLoad(s2GalLc2);
+
+            gs3.AddLoad(s3GalLc3);
 
             Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural, Guid.NewGuid());
             cmb1[lc1] = 2;
