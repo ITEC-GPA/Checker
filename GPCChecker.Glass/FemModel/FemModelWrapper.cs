@@ -54,141 +54,134 @@ namespace GPC.Checker.Glasses.FemModel
 
         #region Public methods
 
-        private List<FemMesh> GenerateFemMesh(List<Mesh> geometryMesh, IGlassPanelProperty glassProperty, Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex, 
+        private FemMesh GenerateFemMesh(Mesh geometryMesh, IGlassPanelProperty glassProperty, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, 
                                     List<IGeometryRestrain> restrains, List<Load> uniformPressureLoads, List<Load> nonUniformPressureLoads)
         {
-            // Set up fem mesh
-            List<FemMesh> femMeshes = new List<FemMesh>();
+            var pointRestrainVertexIndex = new Dictionary<int, Restrain>();
+            Dictionary<INodeFemAttribute, int[]> nodeAttributeVertexIndex = new Dictionary<INodeFemAttribute, int[]>();
+            Dictionary<IPlateFemAttribute, int[]> plateAttributeFaceIndex = new Dictionary<IPlateFemAttribute, int[]>();
+            List<IGlassPanelProperty> plateProperties = new List<IGlassPanelProperty>();
 
-            foreach (var mesh in geometryMesh)
+            // proprietà
+            foreach (var face in geometryMesh.Faces)
             {
-                var pointRestrainVertexIndex = new Dictionary<int, Restrain>();
-                Dictionary<INodeFemAttribute, int[]> nodeAttributeVertexIndex = new Dictionary<INodeFemAttribute, int[]>();
-                Dictionary<IPlateFemAttribute, int[]> plateAttributeFaceIndex = new Dictionary<IPlateFemAttribute, int[]>();
-                List<IGlassPanelProperty> plateProperties = new List<IGlassPanelProperty>();
-
-                // proprietà
-                foreach (var face in mesh.Faces)
-                {
-                    plateProperties.Add(glassProperty);
-                }
-
-                if (!_glassPanelProperties.ContainsKey(glassProperty))
-                {
-                    _glassPanelProperties[glassProperty] = _glassPanelProperties.Values.DefaultIfEmpty().Max() + 1; ;
-                }
-
-                // Uniform loads
-                foreach (var load in uniformPressureLoads)
-                {
-                    if (load is NormalAreaLoad nal)
-                    {
-                        throw new NotImplementedException();
-                    }
-                    else if (load is GlobalAreaLoad gal)
-                    {
-                        PlateGlobalPressureAttribute pgpa = new PlateGlobalPressureAttribute(gal.LoadCase, gal.Px, gal.Py, gal.Pz);
-                        plateAttributeFaceIndex[pgpa] = mesh.Faces.Select(I => I.Id).ToArray();
-
-                    }
-                    else
-                        throw new NotSupportedException("Load type not supported");
-
-                    if (!_loadCases.ContainsKey(load.LoadCase))
-                    {
-                        _loadCases[load.LoadCase] = _loadCases.Values.DefaultIfEmpty().Max() + 1; ;
-                    }
-                }
-
-                // geometria embedded
-                foreach (var kvp in embeddedGeometriesMapVertex[mesh])
-                {
-                    GeometryBase geometry = kvp.Key;
-                    int[] vertexIndexes = kvp.Value;
-
-                    if (geometry is Line3d || geometry is Line2d)
-                    {
-                        Line3d line;
-                        if (geometry is Line3d l)
-                            line = l;
-                        else
-                            line = new Line3d((Line2d)geometry);
-
-                        var restrain = restrains.Where(i => i.GetType() == typeof(LineRestrain)).Where(i => (i as LineRestrain).Line == line)
-                                                 .Select(i => (i as LineRestrain).Restrain).FirstOrDefault();
-
-                        if (restrain != null)
-                            foreach (int v in vertexIndexes)
-                                pointRestrainVertexIndex[v] = restrain;
-                    }
-                    else if (geometry is Point3d || geometry is Point2d)
-                    {
-                        Point3d point;
-                        if (geometry is Point3d p)
-                            point = p;
-                        else
-                            point = new Point3d((Point2d)geometry);
-
-                        var restrain = restrains.Where(i => i.GetType() == typeof(PointRestrain)).Where(i => (i as PointRestrain).Point == point)
-                                                 .Select(i => (i as PointRestrain).Restrain).FirstOrDefault();
-
-                        if (restrain != null)
-                            foreach (int v in vertexIndexes)
-                                pointRestrainVertexIndex[v] = restrain;
-
-                        var loads = nonUniformPressureLoads.Where(i => i.GetGeometry().GetType() == typeof(Point3d)).Where(i => (Point3d)i.GetGeometry() == point);
-
-                        //var loads = _glassSurface.Loads.Where(i => i.GetGeometry().GetType() == typeof(Point3d)).Where(i => (Point3d)i.GetGeometry() == point);
-
-                        foreach (var load in loads)
-                        {
-                            if (load is GlobalPointLoad gpl)
-                            {
-                                NodeGlobalForceAttribute pgfa = new NodeGlobalForceAttribute(gpl.LoadCase, gpl.Fx, gpl.Fy, gpl.Fz, gpl.Mx, gpl.My, gpl.Mz);
-                                nodeAttributeVertexIndex[pgfa] = vertexIndexes;
-                            }
-                            else
-                            {
-                                throw new NotSupportedException("Load type not supported");
-                            }
-
-                            if (!_loadCases.ContainsKey(load.LoadCase))
-                            {
-                                _loadCases[load.LoadCase] = _loadCases.Values.DefaultIfEmpty().Max() + 1; ;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        throw new NotSupportedException($"Geometry of type {geometry.GetType()} is not supported.");
-                    }
-                }
-
-                var femMesh = new FemMesh(mesh.Vertices, mesh.Faces, plateProperties, pointRestrainVertexIndex, nodeAttributeVertexIndex, plateAttributeFaceIndex);
-
-                femMeshes.Add(femMesh);
+                plateProperties.Add(glassProperty);
             }
 
-            return femMeshes;
+            if (!_glassPanelProperties.ContainsKey(glassProperty))
+            {
+                _glassPanelProperties[glassProperty] = _glassPanelProperties.Values.DefaultIfEmpty().Max() + 1; ;
+            }
+
+            // Uniform loads
+            foreach (var load in uniformPressureLoads)
+            {
+                if (load is NormalAreaLoad nal)
+                {
+                    throw new NotImplementedException();
+                }
+                else if (load is GlobalAreaLoad gal)
+                {
+                    PlateGlobalPressureAttribute pgpa = new PlateGlobalPressureAttribute(gal.LoadCase, gal.Px, gal.Py, gal.Pz);
+                    plateAttributeFaceIndex[pgpa] = geometryMesh.Faces.Select(I => I.Id).ToArray();
+
+                }
+                else
+                    throw new NotSupportedException("Load type not supported");
+
+                if (!_loadCases.ContainsKey(load.LoadCase))
+                {
+                    _loadCases[load.LoadCase] = _loadCases.Values.DefaultIfEmpty().Max() + 1; ;
+                }
+            }
+
+            // geometria embedded
+            foreach (var kvp in embeddedGeometriesMapVertex)
+            {
+                GeometryBase geometry = kvp.Key;
+                int[] vertexIndexes = kvp.Value;
+
+                if (geometry is Line3d || geometry is Line2d)
+                {
+                    Line3d line;
+                    if (geometry is Line3d l)
+                        line = l;
+                    else
+                        line = new Line3d((Line2d)geometry);
+
+                    var restrain = restrains.Where(i => i.GetType() == typeof(LineRestrain)).Where(i => (i as LineRestrain).Line == line)
+                                             .Select(i => (i as LineRestrain).Restrain).FirstOrDefault();
+
+                    if (restrain != null)
+                        foreach (int v in vertexIndexes)
+                            pointRestrainVertexIndex[v] = restrain;
+                }
+                else if (geometry is Point3d || geometry is Point2d)
+                {
+                    Point3d point;
+                    if (geometry is Point3d p)
+                        point = p;
+                    else
+                        point = new Point3d((Point2d)geometry);
+
+                    var restrain = restrains.Where(i => i.GetType() == typeof(PointRestrain)).Where(i => (i as PointRestrain).Point == point)
+                                             .Select(i => (i as PointRestrain).Restrain).FirstOrDefault();
+
+                    if (restrain != null)
+                        foreach (int v in vertexIndexes)
+                            pointRestrainVertexIndex[v] = restrain;
+
+                    var loads = nonUniformPressureLoads.Where(i => i.GetGeometry().GetType() == typeof(Point3d)).Where(i => (Point3d)i.GetGeometry() == point);
+
+                    //var loads = _glassSurface.Loads.Where(i => i.GetGeometry().GetType() == typeof(Point3d)).Where(i => (Point3d)i.GetGeometry() == point);
+
+                    foreach (var load in loads)
+                    {
+                        if (load is GlobalPointLoad gpl)
+                        {
+                            NodeGlobalForceAttribute pgfa = new NodeGlobalForceAttribute(gpl.LoadCase, gpl.Fx, gpl.Fy, gpl.Fz, gpl.Mx, gpl.My, gpl.Mz);
+                            nodeAttributeVertexIndex[pgfa] = vertexIndexes;
+                        }
+                        else
+                        {
+                            throw new NotSupportedException("Load type not supported");
+                        }
+
+                        if (!_loadCases.ContainsKey(load.LoadCase))
+                        {
+                            _loadCases[load.LoadCase] = _loadCases.Values.DefaultIfEmpty().Max() + 1; ;
+                        }
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException($"Geometry of type {geometry.GetType()} is not supported.");
+                }
+            }
+
+            var femMesh = new FemMesh(geometryMesh.Vertices, geometryMesh.Faces, plateProperties, pointRestrainVertexIndex, nodeAttributeVertexIndex, plateAttributeFaceIndex);
+
+
+            return femMesh;
         }
 
 
         /// <summary>
         /// Set up a single monolithic glass
         /// </summary>
-        /// <param name="meshes">List of mesh composing a single monolithic glass</param>
-        public void SetUpMonolithic(List<Mesh> geometryMeshes, Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains, 
+        /// <param name="geometryMesh">geometry mesh composing a single monolithic glass</param>
+        public void SetUpMonolithic(Mesh geometryMesh, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains, 
                                     IGlassPanelProperty property, List<Load> uniformPressureLoads, List<Load> notUniformPressureLoads)
         {
-            List<FemMesh> meshes = GenerateFemMesh(geometryMeshes, property, embeddedGeometriesMapVertex, restrains, uniformPressureLoads, notUniformPressureLoads);
+            FemMesh meshes = GenerateFemMesh(geometryMesh, property, embeddedGeometriesMapVertex, restrains, uniformPressureLoads, notUniformPressureLoads);
 
-            _singleGlassMeshes.Add(meshes);
+            _singleGlassMeshes.Add(new List<FemMesh>() { meshes });
 
             SetGlobalConnectivity();
         }
 
 
-        public void SetUpLaminated(List<Mesh> geometryMeshes, Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains,
+        public void SetUpLaminated(Mesh geometryMesh, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains,
                                     LaminatedGlassWrapper laminatedGlassWrapper, List<Load> uniformPressureLoads, List<Load> notUniformPressureLoads, 
                                     GlassChecker.CheckParameters.LaminatedAnalysisType laminatedAnalysisType)
         {
@@ -196,11 +189,23 @@ namespace GPC.Checker.Glasses.FemModel
             {
                 case GlassChecker.CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer:
 
-                    List<FemMesh> meshes = GenerateFemMesh(geometryMeshes, laminatedGlassWrapper.GlassProperty, embeddedGeometriesMapVertex, restrains, uniformPressureLoads, notUniformPressureLoads);
-
+                    var normal = laminatedGlassWrapper.GetNormalVector();
                     var glassDistances = laminatedGlassWrapper.GetMonolithicBarycenterDistances();
                     var interlayerDistances = laminatedGlassWrapper.GetInterlayerBarycenterDistances();
 
+                    List<FemMesh> femMeshes = new List<FemMesh>();
+
+                    for (int i = 0; i < glassDistances.Length; i++)
+                    {
+                        Mesh movedMesh = (geometryMesh.Clone() as Mesh);
+                        movedMesh.Pan(normal * glassDistances[i]);
+
+                        femMeshes.Add(GenerateFemMesh(movedMesh, laminatedGlassWrapper.GlassProperty.MonolithicGlasses[i], embeddedGeometriesMapVertex, restrains,
+                                                        uniformPressureLoads, notUniformPressureLoads));
+                    }
+
+                    _singleGlassMeshes.Add(femMeshes);
+                    SetGlobalConnectivity();
                     break;
 
                 default:
@@ -427,6 +432,7 @@ namespace GPC.Checker.Glasses.FemModel
                 int propNum = gpkvp.Value;
                 if ((propNum - _bufferId) != 1)
                     throw new NotSupportedException("Plate properties not in order");
+                _bufferId = propNum;
 
                 if (property is MonolithicGlass mg)
                 {

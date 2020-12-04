@@ -41,18 +41,22 @@ namespace GPC.Checker.Glasses.Checkers
             {
                 if (wrapper is MonolithicGlassWrapper mgw)
                 {
-                    var geometryMeshes = mgw.GenerateGeometryMesh(out Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex);
+                    var geometryMesh = mgw.GenerateGeometryMesh(out Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex);
                     var restrains = mgw.GetRestrains();
 
                     mgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
                     
-                    femWrapper.SetUpMonolithic(geometryMeshes, embeddedGeometriesMapVertex, restrains, mgw.GlassProperty, uniformPressureLoads, notUniformPressureLoads);
+                    femWrapper.SetUpMonolithic(geometryMesh, embeddedGeometriesMapVertex, restrains, mgw.GlassProperty, uniformPressureLoads, notUniformPressureLoads);
                 }
                 else if (wrapper is LaminatedGlassWrapper lgw)
                 {
-                    //var geometryMeshes = lgw.GenerateGeometryMesh();
+                    var geometryMesh = lgw.GenerateGeometryMesh(out Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex);
 
-                    //femWrapper.SetUpLaminated(geometryMeshes);
+                    var restrains = lgw.GetRestrains();
+
+                    lgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
+
+                    femWrapper.SetUpLaminated(geometryMesh, embeddedGeometriesMapVertex, restrains, lgw, uniformPressureLoads, notUniformPressureLoads, CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
                 }
                 else if (wrapper is InsulatedGlassWrapper igw)
                 {

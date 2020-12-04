@@ -74,12 +74,11 @@ namespace GPC.Checker.Glasses.Wrappers
             notUniformPressureLoads = _loads.Except(uniformPressureLoads).ToList();
         }
 
-        public List<Mesh> GenerateGeometryMesh(out Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex)
+        public Mesh GenerateGeometryMesh(out Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex)
         {
-            var shapes = new List<Shape>();
-            shapes.Add(_glassSurface.Shape);
-
             List<GeometryBase> embeddedGeometriesBuffer = new List<GeometryBase>();
+
+            Dictionary<Mesh, Dictionary<GeometryBase, int[]>> _embeddedGeometriesMapVertex;
 
             // Aggiungo geometria relativa a vincoli
             embeddedGeometriesBuffer.AddRange(_glassSurface.LineRestrain.Select(i => i.Line).ToList<GeometryBase>());
@@ -88,10 +87,8 @@ namespace GPC.Checker.Glasses.Wrappers
             // Aggiungo geometria relativa a carichi - se è diversa dalla superficie di partenza.
             embeddedGeometriesBuffer.AddRange(_loads.Where(i => i.GetGeometry() != _glassSurface.Shape).Select(i => i.GetGeometry()).ToList());
 
-            //List<Load> uniformPressureLoads = _loads.Where(i => i.GetGeometry() == _glassSurface.Shape).ToList();
 
             // Meshatura
-            //Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex = new Dictionary<Mesh, Dictionary<GeometryBase, int[]>>();
             Dictionary<Shape, GeometryBase[]> embeddedGeometries = new Dictionary<Shape, GeometryBase[]>();
             embeddedGeometries[_glassSurface.Shape] = embeddedGeometriesBuffer.ToArray();
 
@@ -102,9 +99,14 @@ namespace GPC.Checker.Glasses.Wrappers
             Mesh.GenerateMeshOptions.UseGlobalProgressID = true;
 
 
-            List<Mesh> geometryMeshes = Mesh.Generate(shapes, embeddedGeometries, out embeddedGeometriesMapVertex);
+            List<Mesh> geometryMeshes = Mesh.Generate(new List<Shape>() { _glassSurface.Shape }, embeddedGeometries, out _embeddedGeometriesMapVertex);
 
-            return geometryMeshes;
+            if (geometryMeshes.Count > 1)
+                throw new NotSupportedException("Number of mesh for single glass higher than one");
+
+            embeddedGeometriesMapVertex = _embeddedGeometriesMapVertex[geometryMeshes.First()];
+
+            return geometryMeshes.First();
         }
 
         #endregion
