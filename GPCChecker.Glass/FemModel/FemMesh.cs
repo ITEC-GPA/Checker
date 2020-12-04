@@ -6,6 +6,7 @@ using GPC.Model.Elements;
 using GPC.Model.FEM.Attributes;
 using GPC.Model.Elements.Glasses;
 using GPC.Geometry.Meshes;
+using GPC.Geometry;
 
 namespace GPC.Checker.Glasses.FemModel
 {
@@ -77,6 +78,7 @@ namespace GPC.Checker.Glasses.FemModel
                 }
             }
         }
+
 
 
         /// <summary>
