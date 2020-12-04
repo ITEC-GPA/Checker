@@ -124,6 +124,7 @@ namespace GPC.Checker.Steel.EuroCode
         public double WRResistance { get; }
         public double WRBuckling1 { get; }
         public double WRBuckling2 { get; }
+        public double WRMax { get; }
         #endregion
 
         public EuroCodeBeamChecker(Section sect, double NEd, double V1Ed, double V2Ed, double M1Ed, double M2Ed, double TEd, double L, double betay, double betaz, double betaLT, SupportCondition supportConditiony, LoadCondition loadConditiony, double? psiy, SupportCondition supportConditionz, LoadCondition loadConditionz, double? psiz, Annex annex)
@@ -153,6 +154,18 @@ namespace GPC.Checker.Steel.EuroCode
             _psiz = psiz;
 
             #region classification
+
+            /*
+             * IMPORTANTE NOTE:
+             * EN 1993-1-1 6.2.9.3 (2) is possible to calculate:
+             * - Aeff onòy for N
+             *  - Meffy only for My
+             *  - Meffz only for Mz
+             *  
+             *  and check
+             *  N/Nreff + My/Mreffy + Mz/Mreffz
+            */
+
             double fy = ((SteelMaterial)_sec.Material).Fyk;
             double epsilon = Math.Sqrt(235.0/fy);
 
@@ -199,14 +212,22 @@ namespace GPC.Checker.Steel.EuroCode
                 WRShear1 = Math.Abs(_VEd1) / _VRdz;
                 WRShear2 = Math.Abs(_VEd2) / _VRdy;
                 WRTorsion = Math.Abs(_TEd) / _TRd;
+
+                WRMax = Math.Max(WRShear1, WRAxial);
+                WRMax = Math.Max(WRShear2, WRMax);
+                WRMax = Math.Max(WRTorsion, WRMax);
                 #endregion
 
                 #region bending
                 GetMRd(out _MRdy, out _MRdz);
-                WRBending1 = Math.Abs(_MEd1) / _MRdz;
-                WRBending2 = Math.Abs(_MEd2) / _MRdy;
+                WRBending1 = _MEd1 / _MRdz;
+                WRBending2 = _MEd2 / _MRdy;
+
+                WRMax = Math.Max(WRBending1, WRMax);
+                WRMax = Math.Max(WRBending2, WRMax);
 
                 WRResistance = GetWrCombined();
+                WRMax = Math.Max(WRResistance, WRMax);
                 #endregion
             }
             #endregion
@@ -222,6 +243,8 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         _NEd = 0;
                     }
+                    _MEd1 = Math.Abs(_MEd1);
+                    _MEd2 = Math.Abs(_MEd2);
 
                     double E = _sec.Material.E;
                     double G = E / (2.0 * (1.0 + _sec.Material.Ni));
@@ -244,9 +267,9 @@ namespace GPC.Checker.Steel.EuroCode
                     _Chiy = GetChi(_Phiy, lambday);
                     _Chiz = GetChi(_Phiz, lambdaz);
 
-                    double nbRdy = _Chiy * _sec.Area * fy / _annex.Gm1;
+                    /*double nbRdy = _Chiy * _sec.Area * fy / _annex.Gm1;
                     double nbRdz = _Chiz * _sec.Area * fy / _annex.Gm1;
-                    double nbRd = Math.Min(nbRdy, nbRdz);
+                    double nbRd = Math.Min(nbRdy, nbRdz);*/
 
                     double iy = _sec.InertiaRadius1;
                     double iz = _sec.InertiaRadius2;
@@ -411,8 +434,11 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         throw new Exception("section 4 not supported yet");
                     }
-                    WRBuckling1 = _NEd / (_Chiy * nrk / _annex.Gm1) + _kyy * (_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kyz * (_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
-                    WRBuckling2 = _NEd / (_Chiz * nrk / _annex.Gm1) + _kzy * (_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kzz * (_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
+                    WRBuckling1 = _NEd / (_Chiy * nrk / _annex.Gm1) + _kyy * Math.Abs(_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kyz * Math.Abs(_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
+                    WRBuckling2 = _NEd / (_Chiz * nrk / _annex.Gm1) + _kzy * Math.Abs(_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kzz * Math.Abs(_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
+
+                    WRMax = Math.Max(WRBuckling1, WRMax);
+                    WRMax = Math.Max(WRBuckling2, WRMax);
 
                 } else
                 {
