@@ -136,11 +136,13 @@ namespace SteelTests
 
             SupportCondition supportConditiony = SupportCondition.EndsRestrained;
             LoadCondition loadConditiony = LoadCondition.Constant;
+            double? psiy = 1;
+            double? psiz = 1;
 
             SupportCondition supportConditionz = SupportCondition.EndsRestrained;
             LoadCondition loadConditionz = LoadCondition.Constant;
 
-            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, supportConditionz, loadConditionz, annex);
+            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz, annex);
 
             Assert.AreEqual(checker.NRd, 1003738.853, 0.01);
             Assert.AreEqual(checker.MRdy / 28873333.33, 1, 0.03);
