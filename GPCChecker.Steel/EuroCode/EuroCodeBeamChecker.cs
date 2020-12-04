@@ -83,7 +83,7 @@ namespace GPC.Checker.Steel.EuroCode
         protected double _kzz;        
         #endregion
 
-        #region 
+        #region Properties
         public double NRd => _NRd;
         public double VRdy => _VRdy;
         public double VRdz => _VRdz;
@@ -126,7 +126,7 @@ namespace GPC.Checker.Steel.EuroCode
         public double WRBuckling2 { get; }
         #endregion
 
-        public EuroCodeBeamChecker(Section sect, double NEd, double V1Ed, double V2Ed, double M1Ed, double M2Ed, double TEd, double L, double betay, double betaz, double betaLT, SupportCondition supportConditiony, LoadCondition loadConditiony, SupportCondition supportConditionz, LoadCondition loadConditionz, Annex annex)
+        public EuroCodeBeamChecker(Section sect, double NEd, double V1Ed, double V2Ed, double M1Ed, double M2Ed, double TEd, double L, double betay, double betaz, double betaLT, SupportCondition supportConditiony, LoadCondition loadConditiony, double? psiy, SupportCondition supportConditionz, LoadCondition loadConditionz, double? psiz, Annex annex)
         {
             _sec = sect;
             _annex = annex;
@@ -148,6 +148,9 @@ namespace GPC.Checker.Steel.EuroCode
 
             _loadConditiony = loadConditiony;
             _loadConditionz = loadConditionz;
+
+            _psiy = psiy;
+            _psiz = psiz;
 
             #region classification
             double fy = ((SteelMaterial)_sec.Material).Fyk;
