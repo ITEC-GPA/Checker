@@ -21,5 +21,6 @@ namespace GPC.Checker.Glasses.Wrappers
         /// <returns>The normal vector unitized</returns>
         public Vector3d GetNormalVector() => _glassSurface.Shape.GetNormalVector();
 
+        public int GetSurfaceId => _glassSurface.Index;
     }
 }

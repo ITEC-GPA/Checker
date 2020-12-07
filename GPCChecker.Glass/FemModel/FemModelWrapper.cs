@@ -19,7 +19,7 @@ using GPC.Checker.Glasses.Wrappers;
 
 namespace GPC.Checker.Glasses.FemModel
 {
-    internal class FemModelWrapper
+    public class FemModelWrapper
     {
         #region Variables
 
@@ -30,21 +30,24 @@ namespace GPC.Checker.Glasses.FemModel
 
         private Dictionary<LoadCase, int> _loadCases;
 
-        private Dictionary<IGlassPanelProperty, int> _glassPanelProperties;
+        private Dictionary<IFemGlassProperty, int> _femGlassProperties;
 
         private string _st7ServerIp;
 
+        private string _name;
+
         #endregion
 
+        public string Name => _name;
 
         #region Public constructors
 
-        internal FemModelWrapper()
+        internal FemModelWrapper(string name)
         {
             _st7ServerIp = "localhost";
-
+            _name = name;
             _singleGlassMeshes = new List<List<FemMesh>>();
-            _glassPanelProperties = new Dictionary<IGlassPanelProperty, int>();
+            _femGlassProperties = new Dictionary<IFemGlassProperty, int>();
             _loadCases = new Dictionary<LoadCase, int>();
 
             SetGlobalConnectivity();
@@ -54,13 +57,13 @@ namespace GPC.Checker.Glasses.FemModel
 
         #region Public methods
 
-        private FemMesh GenerateFemMesh(Mesh geometryMesh, IGlassPanelProperty glassProperty, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, 
+        private FemMesh GenerateFemMesh(int surfaceId, Mesh geometryMesh, IFemGlassProperty glassProperty, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, 
                                     List<IGeometryRestrain> restrains, List<Load> uniformPressureLoads, List<Load> nonUniformPressureLoads)
         {
             var pointRestrainVertexIndex = new Dictionary<int, Restrain>();
             Dictionary<INodeFemAttribute, int[]> nodeAttributeVertexIndex = new Dictionary<INodeFemAttribute, int[]>();
             Dictionary<IPlateFemAttribute, int[]> plateAttributeFaceIndex = new Dictionary<IPlateFemAttribute, int[]>();
-            List<IGlassPanelProperty> plateProperties = new List<IGlassPanelProperty>();
+            List<IFemGlassProperty> plateProperties = new List<IFemGlassProperty>();
 
             // proprietà
             foreach (var face in geometryMesh.Faces)
@@ -68,9 +71,9 @@ namespace GPC.Checker.Glasses.FemModel
                 plateProperties.Add(glassProperty);
             }
 
-            if (!_glassPanelProperties.ContainsKey(glassProperty))
+            if (!_femGlassProperties.ContainsKey(glassProperty))
             {
-                _glassPanelProperties[glassProperty] = _glassPanelProperties.Values.DefaultIfEmpty().Max() + 1; ;
+                _femGlassProperties[glassProperty] = _femGlassProperties.Values.DefaultIfEmpty().Max() + 1; ;
             }
 
             // Uniform loads
@@ -159,7 +162,7 @@ namespace GPC.Checker.Glasses.FemModel
                 }
             }
 
-            var femMesh = new FemMesh(geometryMesh.Vertices, geometryMesh.Faces, plateProperties, pointRestrainVertexIndex, nodeAttributeVertexIndex, plateAttributeFaceIndex);
+            var femMesh = new FemMesh(surfaceId, geometryMesh.Vertices, geometryMesh.Faces, plateProperties, pointRestrainVertexIndex, nodeAttributeVertexIndex, plateAttributeFaceIndex);
 
 
             return femMesh;
@@ -170,10 +173,10 @@ namespace GPC.Checker.Glasses.FemModel
         /// Set up a single monolithic glass
         /// </summary>
         /// <param name="geometryMesh">geometry mesh composing a single monolithic glass</param>
-        public void SetUpMonolithic(Mesh geometryMesh, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains, 
-                                    IGlassPanelProperty property, List<Load> uniformPressureLoads, List<Load> notUniformPressureLoads)
+        public void SetUpMonolithic(int surfaceId, Mesh geometryMesh, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains, 
+                                    IFemGlassProperty property, List<Load> uniformPressureLoads, List<Load> notUniformPressureLoads)
         {
-            FemMesh meshes = GenerateFemMesh(geometryMesh, property, embeddedGeometriesMapVertex, restrains, uniformPressureLoads, notUniformPressureLoads);
+            FemMesh meshes = GenerateFemMesh(surfaceId, geometryMesh, property, embeddedGeometriesMapVertex, restrains, uniformPressureLoads, notUniformPressureLoads);
 
             _singleGlassMeshes.Add(new List<FemMesh>() { meshes });
 
@@ -181,7 +184,7 @@ namespace GPC.Checker.Glasses.FemModel
         }
 
 
-        public void SetUpLaminated(Mesh geometryMesh, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains,
+        public void SetUpLaminated(int surfaceId, Mesh geometryMesh, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains,
                                     LaminatedGlassWrapper laminatedGlassWrapper, List<Load> uniformPressureLoads, List<Load> notUniformPressureLoads, 
                                     GlassChecker.CheckParameters.LaminatedAnalysisType laminatedAnalysisType)
         {
@@ -194,13 +197,22 @@ namespace GPC.Checker.Glasses.FemModel
                     var interlayerDistances = laminatedGlassWrapper.GetInterlayerBarycenterDistances();
 
                     List<FemMesh> femMeshes = new List<FemMesh>();
-
+                   
                     for (int i = 0; i < glassDistances.Length; i++)
                     {
                         Mesh movedMesh = (geometryMesh.Clone() as Mesh);
                         movedMesh.Pan(normal * glassDistances[i]);
 
-                        femMeshes.Add(GenerateFemMesh(movedMesh, laminatedGlassWrapper.GlassProperty.MonolithicGlasses[i], embeddedGeometriesMapVertex, restrains,
+                        femMeshes.Add(GenerateFemMesh(surfaceId, movedMesh, laminatedGlassWrapper.GlassProperty.MonolithicGlasses[i], embeddedGeometriesMapVertex, restrains,
+                                                        uniformPressureLoads, notUniformPressureLoads));
+                    }
+
+                    for (int i = 0; i < interlayerDistances.Length; i++)
+                    {
+                        Mesh movedMesh = (geometryMesh.Clone() as Mesh);
+                        movedMesh.Pan(normal * interlayerDistances[i]);
+
+                        femMeshes.Add(GenerateFemMesh(surfaceId, movedMesh, laminatedGlassWrapper.GlassProperty.Interlayers[0], embeddedGeometriesMapVertex, restrains,
                                                         uniformPressureLoads, notUniformPressureLoads));
                     }
 
@@ -212,7 +224,6 @@ namespace GPC.Checker.Glasses.FemModel
                     throw new NotSupportedException($"LaminatedAnalysisType: {laminatedAnalysisType} not implemented");
 
             }
-
         }
 
         #endregion
@@ -266,10 +277,19 @@ namespace GPC.Checker.Glasses.FemModel
                 {
                     case GlassChecker.CheckParameters.AnalysisType.LinearStaticAnalisys:
                         if (status)
-                            status = St7LinearSolverSetup(aw, mid);
+                            St7NonLinearSolverSetupForLinearAnalysis(aw, mid);
+
+                        status = aw.SaveFile(mid);
+                        //if (status)
+                        //    status = St7LinearSolverSetup(aw, mid);
+                        //if (status)
+                        //    status = St7RunLinearSolver(aw, mid, filePath);
                         if (status)
-                            status = St7RunLinearSolver(aw, mid, filePath);
+                            status = St7RunNonLinearStagedSolver(aw, mid, filePath);
                         break;
+
+                    case GlassChecker.CheckParameters.AnalysisType.NonLinearStaticAnalysis:
+                        throw new NotImplementedException();
 
                     default:
                         throw new NotSupportedException($"Analysis type {analysisType} not supported");
@@ -279,9 +299,7 @@ namespace GPC.Checker.Glasses.FemModel
                     status = aw.CloseFile(mid);
 
                 if(!status)
-                {
                     throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
-                }
             }
             else
             {
@@ -339,9 +357,11 @@ namespace GPC.Checker.Glasses.FemModel
             if (!aw.SetUnits(mId, st7Units))
                 throw new Exception("Failed to set the units");
 
-            // Setup loadcases
+            // Setup Stages
+            St7SetStages(aw, mId);
 
-            SetSt7LoadCase(aw, mId);
+            // Setup loadcases
+            St7SetLoadCase(aw, mId);
 
             // Nodes
             foreach (var sgm in _singleGlassMeshes)
@@ -370,12 +390,15 @@ namespace GPC.Checker.Glasses.FemModel
                 }
             }
 
-            SetSt7PlateProperty(aw, mId);
+            St7SetPlateProperties(aw, mId);
+
             // Plate
             foreach (var sgm in _singleGlassMeshes)
             {
                 foreach (var femMesh in sgm)
                 {
+                    int glassGroupId = 0;
+                    aw.NewChildGroup(mId, 1, "Glass " + femMesh.SurfaceId, ref glassGroupId);
                     foreach (var face in femMesh.Plates)
                     {
                         int[] globalConnectivity;
@@ -398,9 +421,10 @@ namespace GPC.Checker.Glasses.FemModel
                             globalConnectivity[3] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[2]).FirstOrDefault().GlobalId;
                         }
 
-                        int propNum = _glassPanelProperties[(IGlassPanelProperty)face.Property];
+                        int propNum = _femGlassProperties[(IFemGlassProperty)face.Property];
 
                         aw.SetElementConnection(mId, St7ApiConst.tyPLATE, face.GlobalId, propNum, globalConnectivity);
+                        aw.SetEntityGroup(mId, St7ApiConst.tyPLATE, face.GlobalId, glassGroupId);
 
                         foreach (var attribute in face.Attributes)
                         {
@@ -420,13 +444,23 @@ namespace GPC.Checker.Glasses.FemModel
             return true;
         }
 
-        private void SetSt7PlateProperty(ISt7ApiService aw, int mid)
+        private void St7SetStages(ISt7ApiService aw, int mid)
         {
-            if (_glassPanelProperties.Values.Min() != 1)
+            // Creo stage per ogni loadcase
+
+            foreach (var lc in _loadCases.OrderBy(x => x.Value))
+            {
+                aw.AddStage(mid, lc.Key.Name, new int[] { St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
+            }
+        }
+
+        private void St7SetPlateProperties(ISt7ApiService aw, int mid)
+        {
+            if (_femGlassProperties.Values.Min() != 1)
                 throw new NotSupportedException("Minimum plate properties id different than 1");
 
             int _bufferId = 0;
-            foreach (var gpkvp in _glassPanelProperties.OrderBy(k => k.Value))
+            foreach (var gpkvp in _femGlassProperties.OrderBy(k => k.Value))
             {
                 var property = gpkvp.Key;
                 int propNum = gpkvp.Value;
@@ -442,6 +476,15 @@ namespace GPC.Checker.Glasses.FemModel
 
                     aw.SetPlateIsotropicMaterial(mid, propNum, mg.Material.E, mg.Material.Ni, mg.Material.Density, mg.Material.AlfaThermalExpansion, 0, 0, 0, 0);
                 }
+                else if (property is Interlayer itr)
+                {
+                    aw.NewPlateProperty(mid, propNum, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, itr.Name);
+
+                    aw.SetPlateThickness(mid, propNum, new double[] { itr.Thickness, itr.Thickness });
+
+                    //aw.SetPlateIsotropicMaterial(mid, propNum, mg.Material.E, mg.Material.Ni, mg.Material.Density, mg.Material.AlfaThermalExpansion, 0, 0, 0, 0);
+
+                }
                 else
                 {
                     throw new NotSupportedException("Glass property not supported");
@@ -449,7 +492,7 @@ namespace GPC.Checker.Glasses.FemModel
             }
         }
 
-        private void SetSt7LoadCase(ISt7ApiService aw, int mid)
+        private void St7SetLoadCase(ISt7ApiService aw, int mid)
         {
             if (_loadCases.Values.Min() != 1)
                 throw new NotSupportedException("Minimum load case id different than 1");
@@ -552,6 +595,22 @@ namespace GPC.Checker.Glasses.FemModel
             return true;
         }
 
+        private void St7NonLinearSolverSetupForLinearAnalysis(ISt7ApiService aw, int mid)
+        {
+            aw.SetSolverNonlinearMaterial(mid, false);
+            aw.SetSolverNonlinearGeometry(mid, false);
+
+            aw.SetNLAStagedAnalysis(mid, true);
+
+
+            foreach(var lcKvp in _loadCases)
+            {
+                aw.AddNLAIncrement(mid, lcKvp.Value, lcKvp.Key.Name);
+                aw.SetNLALoadIncrementFactor(mid, lcKvp.Value, 1, lcKvp.Value, 1);
+            }
+            
+        }
+
         private bool St7RunLinearSolver(ISt7ApiService aw, int mid, string filePath)
         {
             //var c = Assembly.GetExecutingAssembly().GetName().Name;
@@ -560,7 +619,7 @@ namespace GPC.Checker.Glasses.FemModel
             Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.StartsWith(Assembly.GetExecutingAssembly().GetName().Name)).First();
             string directory = Path.GetDirectoryName(assembly.Location);
 
-            string resultExtension = "lsa";
+            //string resultExtension = "lsa";
             ProcessStartInfo pInfo = new ProcessStartInfo
             {
                 FileName = Path.Combine(directory, "St7Solver.exe"),
@@ -595,12 +654,56 @@ namespace GPC.Checker.Glasses.FemModel
             }
         }
 
+
+        private bool St7RunNonLinearStagedSolver(ISt7ApiService aw, int mid, string filePath)
+        {
+            //var c = Assembly.GetExecutingAssembly().GetName().Name;
+            //var b = AppDomain.CurrentDomain.GetAssemblies();
+
+            Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.StartsWith(Assembly.GetExecutingAssembly().GetName().Name)).First();
+            string directory = Path.GetDirectoryName(assembly.Location);
+
+            //string resultExtension = "nla";
+            ProcessStartInfo pInfo = new ProcessStartInfo
+            {
+                FileName = Path.Combine(directory, "St7Solver.exe"),
+                Arguments = $"{filePath} 2",
+            };
+
+            if (!File.Exists(pInfo.FileName))
+                throw new FileNotFoundException($"File {pInfo.FileName} not found");
+            else
+            {
+                Process p = Process.Start(pInfo);
+
+                p.WaitForExit(); // Wait for the process to end.
+
+                if (p.ExitCode == 0) // Analysis terminated with success
+                {
+                    //string resultPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + "." + resultExtension);
+
+                    return true;
+                    //bool status = St7ReadResults(aw, mid, resultPath);
+                    //return status;
+                }
+                else
+                {
+                    string err = "";
+                    if (p.ExitCode < 1000)
+                        err = aw.GetAPIErrorString(p.ExitCode);
+                    else
+                        err = aw.GetSolverErrorString(p.ExitCode);
+                    throw new Exception($"St7 solver error {err}");
+                }
+            }
+        }
+
         //private bool St7ReadResults(ISt7ApiService aw, int mid, string resultFilePath)
         //{
         //    int numPrimary = 0;
         //    int numSecondary = 0;
         //    aw.OpenResultFile(mid, resultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
-            
+
         //    foreach(var singleGlassMesh in _singleGlassMeshes)
         //    {
         //        foreach (var mesh in singleGlassMesh)

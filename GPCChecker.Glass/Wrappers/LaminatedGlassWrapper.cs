@@ -7,7 +7,7 @@ using GPC.Geometry.Meshes;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
-    internal class LaminatedGlassWrapper : GlassPanelWrapper
+    public class LaminatedGlassWrapper : GlassPanelWrapper
     {
         #region Variables
 

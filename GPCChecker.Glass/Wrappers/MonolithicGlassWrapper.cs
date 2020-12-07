@@ -15,7 +15,7 @@ using GPC.Geometry.Meshes;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
-    internal class MonolithicGlassWrapper : GlassPanelWrapper
+    public class MonolithicGlassWrapper : GlassPanelWrapper
     {
         internal new MonolithicGlass GlassProperty => (MonolithicGlass)_glassSurface.GlassProperty;
 

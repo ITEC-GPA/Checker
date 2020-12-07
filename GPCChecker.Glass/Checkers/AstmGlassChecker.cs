@@ -13,7 +13,7 @@ namespace GPC.Checker.Glasses.Checkers
 
         }
 
-        public override void PerformCheck()
+        public override void SetUpFemModels()
         {
             throw new NotImplementedException();
         }

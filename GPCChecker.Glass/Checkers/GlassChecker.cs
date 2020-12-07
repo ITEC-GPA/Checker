@@ -1,6 +1,8 @@
 ﻿using GPC.Checker.Glasses.Wrappers;
 using GPC.Model.Elements.Glasses;
 using System;
+using System.IO;
+using GPC.Checker.Glasses.FemModel;
 using System.Collections.Generic;
 
 namespace GPC.Checker.Glasses.Checkers
@@ -11,10 +13,13 @@ namespace GPC.Checker.Glasses.Checkers
 
         protected CheckParameters _checkParameters;
 
+        protected List<FemModelWrapper> _femModels;
+
         public GlassChecker(Model model, CheckParameters checkParameters)
         {
             this._model = model ?? throw new ArgumentNullException(nameof(model));
-            this._checkParameters = checkParameters; 
+            this._checkParameters = checkParameters;
+            this._femModels = new List<FemModelWrapper>();
         }
 
         protected List<GlassWrapper> GetWrappers()
@@ -52,8 +57,20 @@ namespace GPC.Checker.Glasses.Checkers
         
         protected abstract override string GetCheckerName();
 
-        public abstract void PerformCheck(); 
-        
+        public abstract void SetUpFemModels();
+
+        public void ExportToSt7()
+        {
+            foreach(FemModelWrapper femModel in _femModels)
+            {
+                femModel.ToSt7(Path.Combine(_model.OutputFolder, Path.ChangeExtension(femModel.Name, "st7")), _checkParameters.GetAnalysisType());
+            }
+        }
+
+
+
+
+
         #endregion
 
 

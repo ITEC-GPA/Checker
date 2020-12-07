@@ -16,11 +16,14 @@ namespace GPC.Checker.Glasses.FemModel
 
         private List<Plate> _plates;
 
+        private int _surfaceId;
+
 
         public List<Node> Nodes => _nodes;
 
         public List<Plate> Plates => _plates;
 
+        public int SurfaceId => _surfaceId;
         /// <summary>
         /// 
         /// </summary>
@@ -30,9 +33,10 @@ namespace GPC.Checker.Glasses.FemModel
         /// <param name="pointRestrainVertexIndex"></param>
         /// <param name="nodeAttributeIndex"></param>
         /// <param name="plateAttributeIndex"></param>
-        public FemMesh(List<MeshVertex> vertices, List<MeshFace> faces, List<IGlassPanelProperty> properties, Dictionary<int, Restrain> pointRestrainVertexIndex, 
-                                                     Dictionary<INodeFemAttribute, int[]> nodeAttributeIndex, Dictionary<IPlateFemAttribute, int[]> plateAttributeIndex)
+        public FemMesh(int surfaceID, List<MeshVertex> vertices, List<MeshFace> faces, List<IFemGlassProperty> properties, Dictionary<int, Restrain> pointRestrainVertexIndex, 
+                                                  Dictionary<INodeFemAttribute, int[]> nodeAttributeIndex, Dictionary<IPlateFemAttribute, int[]> plateAttributeIndex)
         {
+            _surfaceId = surfaceID;
             _nodes = new List<Node>();
             _plates = new List<Plate>();
 

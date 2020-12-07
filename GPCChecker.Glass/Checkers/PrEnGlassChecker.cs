@@ -31,11 +31,11 @@ namespace GPC.Checker.Glasses.Checkers
         /// 4 - Fa la verifica
         /// </summary>
         /// 
-        public override void PerformCheck()
+        public override void SetUpFemModels()
         {
             List<GlassWrapper> wrappers = GetWrappers();
 
-            FemModelWrapper femWrapper = new FemModelWrapper();
+            FemModelWrapper femWrapper = new FemModelWrapper("fem1.st7");
             
             foreach (var wrapper in wrappers)
             {
@@ -46,7 +46,7 @@ namespace GPC.Checker.Glasses.Checkers
 
                     mgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
                     
-                    femWrapper.SetUpMonolithic(geometryMesh, embeddedGeometriesMapVertex, restrains, mgw.GlassProperty, uniformPressureLoads, notUniformPressureLoads);
+                    femWrapper.SetUpMonolithic(mgw.GetSurfaceId, geometryMesh, embeddedGeometriesMapVertex, restrains, mgw.GlassProperty, uniformPressureLoads, notUniformPressureLoads);
                 }
                 else if (wrapper is LaminatedGlassWrapper lgw)
                 {
@@ -56,7 +56,7 @@ namespace GPC.Checker.Glasses.Checkers
 
                     lgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
 
-                    femWrapper.SetUpLaminated(geometryMesh, embeddedGeometriesMapVertex, restrains, lgw, uniformPressureLoads, notUniformPressureLoads, CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
+                    femWrapper.SetUpLaminated(lgw.GetSurfaceId, geometryMesh, embeddedGeometriesMapVertex, restrains, lgw, uniformPressureLoads, notUniformPressureLoads, CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
                 }
                 else if (wrapper is InsulatedGlassWrapper igw)
                 {
@@ -65,10 +65,7 @@ namespace GPC.Checker.Glasses.Checkers
                 else
                     throw new NotSupportedException("Glass wrapper not supported");
             }
-
-
-
-            femWrapper.ToSt7(System.IO.Path.Combine(this._model.OutputFolder, "1.st7"), CheckParameters.AnalysisType.LinearStaticAnalisys);
+            _femModels.Add(femWrapper);
         }
 
         protected override string GetCheckerName() => "prEN 16612 - 2019"; 

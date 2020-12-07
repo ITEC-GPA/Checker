@@ -12,7 +12,7 @@ using GPC.Checker.Glasses.LoadCases;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
-    internal abstract class GlassPanelWrapper : GlassWrapper, IGlassPanelWrapper
+    public abstract class GlassPanelWrapper : GlassWrapper, IGlassPanelWrapper
     {
         protected List<Load> _loads;
 
