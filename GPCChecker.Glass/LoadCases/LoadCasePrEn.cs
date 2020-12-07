@@ -6,12 +6,17 @@ namespace GPC.Checker.Glasses.LoadCases
     public class LoadCasePrEn : GPC.Model.LoadCases.LoadCasePrEn, IGlassLoadCase
     {
         private double _loadDuration;
+
+        private double _temperature;
+
         public double LoadDuration => _loadDuration;
 
+        public double Temperature => _temperature;
 
-        public LoadCasePrEn(string name, double loadDuration, LoadCaseType loadCaseType, LoadCasePrEnType loadCasePrEnType, Guid guid) 
+        public LoadCasePrEn(string name, double loadDuration, double temperature, LoadCaseType loadCaseType, LoadCasePrEnType loadCasePrEnType, Guid guid) 
             : base(name, loadCaseType, loadCasePrEnType, guid)
         {
+            this._temperature = temperature;
             this._loadDuration = loadDuration;
         }
 

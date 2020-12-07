@@ -5,14 +5,19 @@ namespace GPC.Checker.Glasses.LoadCases
 {
     public class ClimateHLoadCase : GPC.Model.LoadCases.ClimateHLoadCase, IGlassLoadCase
     {
+        private double _temperature;
+
         private double _loadDuration;
+
         public double LoadDuration => _loadDuration;
 
+        public double Temperature => _temperature;
 
-        public ClimateHLoadCase(string name, double loadDuration, double manufactoringHeight, double installationHeight, LoadCaseType loadCaseType, Guid guid) 
+        public ClimateHLoadCase(string name, double loadDuration, double temperature, double manufactoringHeight, double installationHeight, LoadCaseType loadCaseType, Guid guid) 
             : base(name, manufactoringHeight, installationHeight, loadCaseType, guid)
         {
             this._loadDuration = loadDuration;
+            this._temperature = temperature;
         }
 
         public ClimateHLoadCase(SerializationInfo info, StreamingContext context)
