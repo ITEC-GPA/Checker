@@ -154,11 +154,11 @@ namespace GPC.Checker.Steel.EuroCode
             _psiz = psiz;
 
             #region classification
-
+            double minSigma = _sec.MinSigma(_NEd, _MEd2, _MEd1);
             /*
              * IMPORTANTE NOTE:
-             * EN 1993-1-1 6.2.9.3 (2) is possible to calculate:
-             * - Aeff onòy for N
+             * EN 1993-1-1 6.2.9.3 (2) is possible to check:
+             *  - Aeff only for N
              *  - Meffy only for My
              *  - Meffz only for Mz
              *  
@@ -166,28 +166,75 @@ namespace GPC.Checker.Steel.EuroCode
              *  N/Nreff + My/Mreffy + Mz/Mreffz
             */
 
+            /*
+             * Try to set the classification only for axial compression that is worst case, then if class is in class 1 or 2 then go to calculation, else....
+             * try to understood how to continue
+             */
+
             double fy = ((SteelMaterial)_sec.Material).Fyk;
             double epsilon = Math.Sqrt(235.0/fy);
 
-            Type typeShape = _sec.GetType();
-            if (typeShape == typeof(SectionCHS))
+            if (minSigma < 0)
             {
-                SectionCHS sec = (SectionCHS)_sec;
-                double D = sec.D;
-                double t = sec.T;
-                if ( D / t  <= 50.0 * epsilon * epsilon)
+                Type typeShape = _sec.GetType();
+                if (typeShape == typeof(SectionCHS))
                 {
-                    _classificationSection = 1;
-                } else if (D /t <= 70.0 * epsilon * epsilon)
-                {
-                    _classificationSection = 2;
-                } else if (D/t <= 90.0 * epsilon * epsilon)
-                {
-                    _classificationSection = 3;
-                } else
-                {
-                    _classificationSection = 4;
+                    SectionCHS sec = (SectionCHS)_sec;
+                    double D = sec.D;
+                    double t = sec.T;
+                    if (D / t <= 50.0 * epsilon * epsilon)
+                    {
+                        _classificationSection = 1;
+                    }
+                    else if (D / t <= 70.0 * epsilon * epsilon)
+                    {
+                        _classificationSection = 2;
+                    }
+                    else if (D / t <= 90.0 * epsilon * epsilon)
+                    {
+                        _classificationSection = 3;
+                    }
+                    else
+                    {
+                        _classificationSection = 4;
+                    }
                 }
+                else if (typeShape == typeof(SectionRHS))
+                {
+                    SectionRHS sec = (SectionRHS)_sec;
+
+                    //Classification Axial + Bending strong axis
+                    //from equilibrium of Σ sigma = Ned
+                    double alpha = _NEd / (4.0 * sec.Thickness * fy * sec.Hw) + 0.5;
+                    
+                    if (alpha > 0.5 && alpha < 1)
+                    {
+                        
+                    } else if (alpha <= 0.5 && alpha > 0)
+                    {
+
+                    } else
+                    {
+                        throw new Exception("Classification RHS");
+                    }
+
+                    /*if (sec.Hw / sec.TWebLeft <= 33.0 * epsilon && sec.Hw / sec.TWebRight <= 33.0 * epsilon && sec.Bint / sec.TTop <= 33.0 * epsilon && sec.Bint / sec.TBottom <= 33.0 * epsilon)
+                    {
+                        _classificationSection = 1;
+                    } else if (sec.Hw / sec.TWebLeft <= 38.0 * epsilon && sec.Hw / sec.TWebRight <= 38.0 * epsilon && sec.Bint / sec.TTop <= 38.0 * epsilon && sec.Bint / sec.TBottom <= 38.0 * epsilon)
+                    {
+                        _classificationSection = 2;
+                    } else if (sec.Hw / sec.TWebLeft <= 42.0 * epsilon && sec.Hw / sec.TWebRight <= 42.0 * epsilon && sec.Bint / sec.TTop <= 42.0 * epsilon && sec.Bint / sec.TBottom <= 42.0 * epsilon)
+                    {
+                        _classificationSection = 3;
+                    } else
+                    {
+                        _classificationSection = 4;
+                    }*/
+                }
+            } else
+            {
+                _classificationSection = 1;
             }
                 
             #endregion
@@ -234,7 +281,7 @@ namespace GPC.Checker.Steel.EuroCode
 
             #region buckling
             {
-                if (_sec.MinSigma(_NEd, _MEd2, _MEd1) < 0.0)
+                if (minSigma < 0.0)
                 {
                     if (_NEd < 0)
                     {
