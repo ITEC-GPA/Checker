@@ -203,34 +203,29 @@ namespace GPC.Checker.Steel.EuroCode
                 {
                     SectionRHS sec = (SectionRHS)_sec;
 
-                    //Classification Axial + Bending strong axis
+                    #region ClassificationAxialBendingStrongAxis
+                    double cTFlange = sec.Bint / sec.Thickness;
+                    //flange are load with constant load
+                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
+
+                    //classification webs
                     //from equilibrium of Σ sigma = Ned
-                    double alpha = _NEd / (4.0 * sec.Thickness * fy * sec.Hw) + 0.5;
-                    
-                    if (alpha > 0.5 && alpha < 1)
-                    {
-                        
-                    } else if (alpha <= 0.5 && alpha > 0)
-                    {
+                    double alphaClassification = - _NEd / (4.0 * sec.Thickness * fy * sec.Hw) + 0.5;
 
-                    } else
-                    {
-                        throw new Exception("Classification RHS");
-                    }
+                    //from equlibrium sigma = N/A+M/W:
+                    double psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
 
-                    /*if (sec.Hw / sec.TWebLeft <= 33.0 * epsilon && sec.Hw / sec.TWebRight <= 33.0 * epsilon && sec.Bint / sec.TTop <= 33.0 * epsilon && sec.Bint / sec.TBottom <= 33.0 * epsilon)
-                    {
-                        _classificationSection = 1;
-                    } else if (sec.Hw / sec.TWebLeft <= 38.0 * epsilon && sec.Hw / sec.TWebRight <= 38.0 * epsilon && sec.Bint / sec.TTop <= 38.0 * epsilon && sec.Bint / sec.TBottom <= 38.0 * epsilon)
-                    {
-                        _classificationSection = 2;
-                    } else if (sec.Hw / sec.TWebLeft <= 42.0 * epsilon && sec.Hw / sec.TWebRight <= 42.0 * epsilon && sec.Bint / sec.TTop <= 42.0 * epsilon && sec.Bint / sec.TBottom <= 42.0 * epsilon)
-                    {
-                        _classificationSection = 3;
-                    } else
-                    {
-                        _classificationSection = 4;
-                    }*/
+                    double cTWeb = sec.Hw / sec.Thickness;
+                    _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
+                    #endregion
+
+                    #region ClassificationAxialBendingWeakAxis
+                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
+
+                    alphaClassification = -_NEd / (4.0 * sec.Thickness * fy * sec.Bint) + 0.5;
+                    psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
+                    _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTFlange, epsilon, alphaClassification, psiClassification));
+                    #endregion
                 }
             } else
             {
@@ -496,6 +491,117 @@ namespace GPC.Checker.Steel.EuroCode
             }
             #endregion
         }
+
+        #region Classification
+        public int GetClassCompressedInnerPlate(double ctRatio, double epsilon)
+        {
+            if (ctRatio <= 33.0 * epsilon)
+            {
+                return 1;
+            }
+            else if (ctRatio <= 38.0 * epsilon)
+            {
+                return 2;
+            }
+            else if (ctRatio <= 42.0 * epsilon)
+            {
+                return 3;
+            }
+            else
+            {
+                return 4;
+            }
+        }
+
+        public int GetClassInnerPlate(double ctRatio, double epsilon, double alpha, double psi)
+        {
+            if (alpha > 0.5 && alpha < 1)
+            {
+                if (ctRatio <= 396.0 * epsilon / (13.0 * alpha - 1.0))
+                {
+                    return 1;
+                }
+                else if (ctRatio <= 456.0 * epsilon / (13.0 * alpha - 1.0))
+                {
+                    return 2;
+                }
+                else //class 3 or 4
+                {
+                    if (psi > -1)
+                    {
+                        if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    }
+                    else if (psi <= -1)
+                    {
+                        if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    } else
+                    {
+                        return 4;
+                        throw new Exception("classification");
+                    }
+                }
+            }
+            else if (alpha <= 0.5 && alpha > 0)
+            {
+                if (ctRatio <= 36.0 * epsilon / alpha)
+                {
+                    return 1;
+                }
+                else if (ctRatio <= 41.5 * epsilon / alpha)
+                {
+                    return 2;
+                }
+                else //class 3 or 4
+                {
+                    if (psi > -1)
+                    {
+                        if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    }
+                    else if (psi <= -1)
+                    {
+                        if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    } else
+                    {
+                        return 4;
+                        throw new Exception("classification");
+                    }
+                }
+            }
+            else
+            {
+                return 4; 
+                throw new Exception("Problems classification");
+            }
+        }
+        #endregion
 
         #region ResistanceFunctions
         protected double GetNtRd(double Anet)
