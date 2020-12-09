@@ -213,7 +213,11 @@ namespace GPC.Checker.Steel.EuroCode
                     double alphaClassification = - _NEd / (4.0 * sec.Thickness * fy * sec.Hw) + 0.5;
 
                     //from equlibrium sigma = N/A+M/W:
-                    double psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
+                    double psiClassification = 1;
+                    if (_classificationSection < 4)
+                    {
+                        psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
+                    }
 
                     double cTWeb = sec.Hw / sec.Thickness;
                     _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
@@ -226,6 +230,41 @@ namespace GPC.Checker.Steel.EuroCode
                     psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
                     _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTFlange, epsilon, alphaClassification, psiClassification));
                     #endregion
+                } else if (typeShape == typeof(SectionH)) {
+                    SectionH sec = (SectionH)_sec;
+                    double cTWeb = sec.HeightWeb / sec.ThicknessWeb;
+                    double cTFlange = sec.LenghtBottomFlange / 2.0 / sec.ThicknessBottomFlange;
+
+                    if (sec.IsDoubleSymmetric)
+                    {
+                        #region AxialAndBendingStrongDirection
+                        //classification of flanged for axial force due to bending
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlange, epsilon));
+
+                        //classification web
+                        double alphaClassification = -NEd / (2.0 * sec.HeightWeb * fy * sec.ThicknessWeb) + 0.5;
+                        double psiClassification = 1;
+                        if (_classificationSection < 4)
+                        {
+                            psiClassification = -2.0 * _NEd / (sec.Area) - 1.0;
+                        }
+                        _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
+                        #endregion
+
+                        #region AxialAndBendingWeakDirection
+                        //classification only for Compression.
+                        //Other detailed calculation should be found and implemented
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
+                        #endregion
+                    }
+                    else
+                    {
+                        //classification only for Compression.
+                        //Other detailed calculation should be found and implemented
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
+                    } 
                 }
             } else
             {
@@ -599,6 +638,26 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 return 4; 
                 throw new Exception("Problems classification");
+            }
+        }
+
+        public int GetClassCompressedOuterPlate(double ctRatio, double epsilon)
+        {
+            if (ctRatio <= 9.0 * epsilon)
+            {
+                return 1;
+            }
+            else if (ctRatio <= 10.0 * epsilon)
+            {
+                return 2;
+            }
+            else if (ctRatio <= 14.0 * epsilon)
+            {
+                return 3;
+            }
+            else
+            {
+                return 4;
             }
         }
         #endregion
