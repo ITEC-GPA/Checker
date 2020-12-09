@@ -224,11 +224,14 @@ namespace GPC.Checker.Steel.EuroCode
                     #endregion
 
                     #region ClassificationAxialBendingWeakAxis
-                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
+                    if (Math.Abs(_MEd1) > 0)
+                    {
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
 
-                    alphaClassification = -_NEd / (4.0 * sec.Thickness * fy * sec.Bint) + 0.5;
-                    psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
-                    _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTFlange, epsilon, alphaClassification, psiClassification));
+                        alphaClassification = -_NEd / (4.0 * sec.Thickness * fy * sec.Bint) + 0.5;
+                        psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
+                        _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTFlange, epsilon, alphaClassification, psiClassification));
+                    }
                     #endregion
                 } else if (typeShape == typeof(SectionH)) {
                     SectionH sec = (SectionH)_sec;
@@ -252,10 +255,13 @@ namespace GPC.Checker.Steel.EuroCode
                         #endregion
 
                         #region AxialAndBendingWeakDirection
-                        //classification only for Compression.
-                        //Other detailed calculation should be found and implemented
-                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
-                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
+                        if (Math.Abs(_MEd1) > 0)
+                        {
+                            //classification only for Compression.
+                            //Other detailed calculation should be found and implemented
+                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
+                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
+                        }
                         #endregion
                     }
                     else
@@ -764,15 +770,15 @@ namespace GPC.Checker.Steel.EuroCode
             } else if (typeShape == typeof(SectionRHS))
             {
                 //Bredt - Plastic Theory
-                /*SectionRHS sec = (SectionRHS)_sec;
+                SectionRHS sec = (SectionRHS)_sec;
                 double Hmed = sec.H - sec.ThicknessFlange;
                 double Bmed = sec.B - sec.ThicknessWeb;
                 double Omega = Hmed * Bmed;
                 double denom = 2.0 * Omega * Math.Min(sec.ThicknessWeb, sec.ThicknessFlange);
                 tauT = Math.Abs(_TEd) / denom;
 
-                TRd = fy / Math.Pow(3.0, 0.5) * denom;*/
-                throw new Exception("to be implemented elastic theory");
+                TRd = fy / Math.Pow(3.0, 0.5) * denom;
+                
             } else if (typeShape == typeof(SectionC))
             {
                 SectionC sec = (SectionC)_sec;
@@ -1116,6 +1122,10 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 SectionCHS sec = (SectionCHS)_sec;
                 zg = sec.D - sec.ShearCenter.Y;
+            } else if (typeSection == typeof(SectionRHS))
+            {
+                SectionRHS sec = (SectionRHS)_sec;
+                zg = sec.H - sec.ShearCenter.Y;
             } else
             {
                 throw new Exception("not yet supported");

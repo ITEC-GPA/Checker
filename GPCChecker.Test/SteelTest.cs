@@ -328,17 +328,17 @@ namespace SteelTests
             double t = 4;
 
             SectionRHS sec = new SectionRHS(h, b, t, t, t, t, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
-            EuroCodeBeamChecker axialCheck1 = new EuroCodeBeamChecker(sec, -318e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            EuroCodeBeamChecker axialCheck1 = new EuroCodeBeamChecker(sec, -230e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             MessageBox.Show(axialCheck1.ClassificationSection.ToString());
 
-            EuroCodeBeamChecker axialCheck2 = new EuroCodeBeamChecker(sec, -232e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
-            MessageBox.Show(axialCheck2.ClassificationSection.ToString());
+            /*EuroCodeBeamChecker axialCheck2 = new EuroCodeBeamChecker(sec, -232e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            MessageBox.Show(axialCheck2.ClassificationSection.ToString());*/
 
-            EuroCodeBeamChecker axialCheck3 = new EuroCodeBeamChecker(sec, -318e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
-            MessageBox.Show(axialCheck3.ClassificationSection.ToString());
+            /*EuroCodeBeamChecker axialCheck3 = new EuroCodeBeamChecker(sec, -318e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            MessageBox.Show(axialCheck3.ClassificationSection.ToString());*/
 
-            EuroCodeBeamChecker axialCheck4 = new EuroCodeBeamChecker(sec, -672e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
-            MessageBox.Show(axialCheck4.ClassificationSection.ToString());
+            /*EuroCodeBeamChecker axialCheck4 = new EuroCodeBeamChecker(sec, -672e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            MessageBox.Show(axialCheck4.ClassificationSection.ToString());*/
 
             EuroCodeBeamChecker bendingCheck = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 1e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             MessageBox.Show(bendingCheck.ClassificationSection.ToString());
