@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows;
 using GPC.Geometry;
 using GPC.Model.Materials;
 using GPC.Model.Sections;
@@ -73,17 +74,32 @@ namespace ECPlateTest
 
             Class4Section class4 = new Class4Section(plateSec);
             
-            double N = -10000;
-            
-            double A0 = class4.Aeff;
-            double sigma0 = N / A0;
+            double N = -1000;
+            double My = 0*1e6;
+            double Mz = 0*1e6;
 
-            for (int i = 0; i < class4.Plates.Count; i++)
+            double Aeffk = sec.Area;
+            double Aeffkp1 = 0;
+            int iter = 0;
+            while (Math.Abs(Aeffkp1-Aeffk) > 0.01*Aeffk)
             {
-                class4.Plates[i].SetSigma(sigma0, sigma0);
-            }
-            double A1 = class4.Aeff;
+                iter++;
 
+                Aeffk = class4.Aeff;
+                for (int i = 0; i < class4.Plates.Count; i++)
+                {
+                    //calculation sigma in initial point always active
+                    Class4Point2d p = class4.Plates[i].InitialPoint;
+                    double sigmaInitialPoint = N / class4.Aeff + My / class4.J2eff * (p.Y - class4.Centroid.Y) + Mz / class4.J1eff * (p.X - class4.Centroid.X);
+
+                    //calculation of sigma in the active point
+                    p = class4.Plates[i].LastPointActive;
+                    double sigmaLastPointActive = N / class4.Aeff + My / class4.J2eff * (p.Y - class4.Centroid.Y) + Mz / class4.J1eff * (p.X - class4.Centroid.X);
+                    class4.Plates[i].SetSigma(sigmaInitialPoint, sigmaLastPointActive);
+                }
+                Aeffkp1 = class4.Aeff; 
+            }
+            MessageBox.Show(iter.ToString());
             double x = 0;
         }
     }
