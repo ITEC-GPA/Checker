@@ -1,4 +1,5 @@
 ﻿using GPC.Geometry;
+using GPC.Model.Sections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,17 +8,86 @@ using System.Threading.Tasks;
 
 namespace GPCChecker.Steel.EuroCode
 {
-    public class ECPlate
+    public class Class4Section
     {
-        public enum TypePlate
+        List<ECPlate> _plates;
+
+        public Class4Section(List<ECPlate> plates)
         {
-            inner,
-            outer
+            _plates = plates;
         }
 
+        public List<ECPlate> Plates => _plates;
+
+        public double Aeff
+        {
+            get
+            {
+                double area = 0;
+                for (int i = 0; i < _plates.Count; i++)
+                {
+                    area = area + _plates[i].Aeff;
+                }
+                return area;
+            }
+        }
+
+        public Point2d Centroid
+        {
+            get
+            {
+                double area = Aeff;
+                double Sx = 0;
+                double Sy = 0;
+
+                for (int i = 0; i < _plates.Count; i++)
+                {
+                    Sx = Sx + _plates[i].Aeff * _plates[i].CentroidEff.X;
+                    Sy = Sy + _plates[i].Aeff * _plates[i].CentroidEff.Y;
+                }
+
+                return new Point2d(Sx/area, Sy/area);
+            }
+        }
+
+        public double J2eff
+        {
+            get
+            {
+                double J = 0;
+                Point2d centroid = Centroid;
+
+                for (int i = 0; i < _plates.Count; i++)
+                {
+                    J = J + _plates[i].JyEffCentroid + _plates[i].Aeff * Math.Pow(_plates[i].CentroidEff.Y - centroid.Y,2.0);
+                }
+
+                return J;
+            }
+        }
+
+        public double J1eff
+        {
+            get
+            {
+                double J = 0;
+                Point2d centroid = Centroid;
+
+                for (int i = 0; i < _plates.Count; i++)
+                {
+                    J = J + _plates[i].JzEffCentroid + _plates[i].Aeff * Math.Pow(_plates[i].CentroidEff.X - centroid.X, 2.0);
+                }
+
+                return J;
+            }
+        }
+    }
+
+    public class ECPlate
+    {
         double _t;
         double _B;
-        TypePlate _type;
+        Plate.TypePlate _type;
 
         double _removeLengthSide1;
         double _removeLengthSide2;
@@ -33,10 +103,10 @@ namespace GPCChecker.Steel.EuroCode
         Point2d _pInitialEff2;
         Point2d _pFinalEff2;
 
-        public ECPlate(double t, double x0, double y0, double x1, double y1, double fy, TypePlate typePlate, double removeLengthSide1, double removeLengthSide2) : this(t, new Point2d(x0, y0), new Point2d(x1, y1), fy, typePlate, removeLengthSide1, removeLengthSide2)
+        public ECPlate(double t, double x0, double y0, double x1, double y1, double fy, Plate.TypePlate typePlate, double removeLengthSide1, double removeLengthSide2) : this(t, new Point2d(x0, y0), new Point2d(x1, y1), fy, typePlate, removeLengthSide1, removeLengthSide2)
         {
         }
-        public ECPlate(double t, Point2d initialPoint, Point2d endPoint, double fy, TypePlate typePlate, double removeLengthSide1, double removeLengthSide2)
+        public ECPlate(double t, Point2d initialPoint, Point2d endPoint, double fy, Plate.TypePlate typePlate, double removeLengthSide1, double removeLengthSide2)
         {
             _initialPoint = initialPoint;
             _endPoint = endPoint;
@@ -48,7 +118,7 @@ namespace GPCChecker.Steel.EuroCode
             _removeLengthSide1 = removeLengthSide1;
             _removeLengthSide2 = removeLengthSide2;
 
-            if (_type == TypePlate.inner)
+            if (_type == Plate.TypePlate.inner)
             {
                 _pInitialEff1 = _initialPoint;
                 _pFinalEff1 = new Point2d((_endPoint.X - _initialPoint.X) / 2.0, (_endPoint.Y - _initialPoint.Y) / 2.0);
@@ -64,6 +134,11 @@ namespace GPCChecker.Steel.EuroCode
                 _pFinalEff2 = null;
                 _pInitialEff2 = null;
             }
+        }
+
+        public ECPlate(Plate p) : this(p.Thickness, p.InitialPoint, p.EndPoint, p.Fyk, p.GetType, p.RemoveLengthSide1, p.RemoveLengthSide2)
+        {
+            
         }
 
         protected Point2d[] CentroidsEff
@@ -225,7 +300,7 @@ namespace GPCChecker.Steel.EuroCode
                 throw new Exception("something wrong with psi");
             }
 
-            if (_type == TypePlate.inner)
+            if (_type == Plate.TypePlate.inner)
             {
                 if (psi == 1)
                 {
@@ -320,7 +395,7 @@ namespace GPCChecker.Steel.EuroCode
 
         protected void CalcBEff(double lambdaP, double psi, double sigmaX0, double sigmaXvar)
         {
-            if (_type == TypePlate.inner)
+            if (_type == Plate.TypePlate.inner)
             {
                 double lambdaPLimit = 0.5 + Math.Sqrt(0.085 - 0.055 * psi);
                 if (lambdaP <= lambdaPLimit)
@@ -418,7 +493,7 @@ namespace GPCChecker.Steel.EuroCode
                     }
                 }
             }
-            else if (_type == TypePlate.outer)
+            else if (_type == Plate.TypePlate.outer)
             {
                 if (lambdaP <= 0.748)
                 {
@@ -496,7 +571,7 @@ namespace GPCChecker.Steel.EuroCode
             if (sigma0 >= 0 && sigma2 >= 0)
             {
                 //reset -> plate completely effective
-                if (_type == TypePlate.inner)
+                if (_type == Plate.TypePlate.inner)
                 {
                     _pInitialEff1 = _initialPoint;
                     _pFinalEff1 = new Point2d((_endPoint.X - _initialPoint.X) / 2.0, (_endPoint.Y - _initialPoint.Y) / 2.0);

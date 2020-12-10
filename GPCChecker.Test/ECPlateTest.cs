@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using GPC.Geometry;
+using GPC.Model.Materials;
+using GPC.Model.Sections;
 using GPCChecker.Steel.EuroCode;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -16,7 +19,7 @@ namespace ECPlateTest
             Point2d p0 = new Point2d(0, 0);
             Point2d p1 = new Point2d(0, h);
             double t = 4;
-            ECPlate inner = new ECPlate(t, p0, p1, fy, ECPlate.TypePlate.inner, 0, 0);
+            ECPlate inner = new ECPlate(t, p0, p1, fy, Plate.TypePlate.inner, 0, 0);
 
             double A = inner.Aeff;
             double J = inner.J2EffCentroid;
@@ -42,7 +45,7 @@ namespace ECPlateTest
             Point2d p0 = new Point2d(0, 0);
             Point2d p1 = new Point2d(L, 0);
             double t = 4;
-            ECPlate inner = new ECPlate(t, p0, p1, fy, ECPlate.TypePlate.outer, 0, 0);
+            ECPlate inner = new ECPlate(t, p0, p1, fy, Plate.TypePlate.outer, 0, 0);
 
             double A = inner.Aeff;
             double J = inner.J2EffCentroid;
@@ -56,6 +59,32 @@ namespace ECPlateTest
             double Aeff = inner.Aeff;
             Point2d centroidEff = inner.CentroidEff;
             double Jeff = inner.J2EffCentroid;
+        }
+
+        [TestMethod]
+        public void SectionHTest1()
+        {
+            SectionH sec = new SectionH(500, 10, 400, 10, 400, 10, new SteelMaterial("steel", 200000, 0.3, 355, 510, 7850));
+            List<ECPlate> plateSec = new List<ECPlate>(5);
+            for (int i = 0; i < sec.Plates.Length; i++)
+            {
+                plateSec.Add(new ECPlate(sec.Plates[i]));
+            }
+
+            Class4Section class4 = new Class4Section(plateSec);
+            
+            double N = -10000;
+            
+            double A0 = class4.Aeff;
+            double sigma0 = N / A0;
+
+            for (int i = 0; i < class4.Plates.Count; i++)
+            {
+                class4.Plates[i].SetSigma(sigma0, sigma0);
+            }
+            double A1 = class4.Aeff;
+
+            double x = 0;
         }
     }
 }
