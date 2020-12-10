@@ -1,0 +1,531 @@
+﻿using GPC.Geometry;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace GPCChecker.Steel.EuroCode
+{
+    public class ECPlate
+    {
+        public enum TypePlate
+        {
+            inner,
+            outer
+        }
+
+        double _t;
+        double _B;
+        TypePlate _type;
+
+        double _removeLengthSide1;
+        double _removeLengthSide2;
+
+        double _fy;
+
+        Point2d _initialPoint;
+        Point2d _endPoint;
+
+        Point2d _pInitialEff1;
+        Point2d _pFinalEff1;
+
+        Point2d _pInitialEff2;
+        Point2d _pFinalEff2;
+
+        public ECPlate(double t, double x0, double y0, double x1, double y1, double fy, TypePlate typePlate, double removeLengthSide1, double removeLengthSide2) : this(t, new Point2d(x0, y0), new Point2d(x1, y1), fy, typePlate, removeLengthSide1, removeLengthSide2)
+        {
+        }
+        public ECPlate(double t, Point2d initialPoint, Point2d endPoint, double fy, TypePlate typePlate, double removeLengthSide1, double removeLengthSide2)
+        {
+            _initialPoint = initialPoint;
+            _endPoint = endPoint;
+            _t = t;
+            _type = typePlate;
+            _B = Math.Sqrt(Math.Pow(_endPoint.X - _initialPoint.X, 2.0) + Math.Pow(_endPoint.Y - _initialPoint.Y, 2.0));
+            _fy = fy;
+
+            _removeLengthSide1 = removeLengthSide1;
+            _removeLengthSide2 = removeLengthSide2;
+
+            if (_type == TypePlate.inner)
+            {
+                _pInitialEff1 = _initialPoint;
+                _pFinalEff1 = new Point2d((_endPoint.X - _initialPoint.X) / 2.0, (_endPoint.Y - _initialPoint.Y) / 2.0);
+
+                _pFinalEff2 = _pFinalEff1;
+                _pInitialEff2 = _endPoint;
+            }
+            else
+            {
+                _pInitialEff1 = _initialPoint;
+                _pFinalEff1 = _endPoint;
+
+                _pFinalEff2 = null;
+                _pInitialEff2 = null;
+            }
+        }
+
+        protected Point2d[] CentroidsEff
+        {
+            get
+            {
+                Point2d[] centroids = new Point2d[2];
+                centroids[0] = new Point2d((_pInitialEff1.X + _pFinalEff1.X) / 2.0, (_pInitialEff1.Y + _pFinalEff1.Y) / 2.0);
+                if (_pInitialEff2 != null)
+                {
+                    centroids[1] = new Point2d((_pInitialEff2.X + _pFinalEff2.X) / 2.0, (_pInitialEff2.Y + _pFinalEff2.Y) / 2.0);
+                }
+                return centroids;
+            }
+        }
+
+        public Point2d CentroidEff
+        {
+            get
+            {
+                Point2d[] centroids = CentroidsEff;
+                double[] bEff = Beff;
+
+                double xg;
+                double yg;
+                if (_pInitialEff2 != null)
+                {
+                    xg = (_t * bEff[0] * centroids[0].X + _t * bEff[1] * centroids[1].X) / (_t * bEff[0] + _t * bEff[1]);
+                    yg = (_t * bEff[0] * centroids[0].Y + _t * bEff[1] * centroids[1].Y) / (_t * bEff[0] + _t * bEff[1]);
+                }
+                else
+                {
+                    xg = (_t * bEff[0] * centroids[0].X) / (_t * bEff[0]);
+                    yg = (_t * bEff[0] * centroids[0].Y) / (_t * bEff[0]);
+                }
+
+                Point2d centroid = new Point2d(xg, yg);
+                return centroid;
+            }
+        }
+
+        public double Aeff
+        {
+            get
+            {
+                double[] beff = Beff;
+                return _t * (beff[0] + beff[1]);
+            }
+        }
+
+        public double J2EffCentroid
+        {
+            get
+            {
+                double[] beff = Beff;
+                double J1 = 1.0 / 12.0 * _t * Math.Pow(beff[0], 3.0);
+                double J2 = 1.0 / 12.0 * _t * Math.Pow(beff[1], 3.0);
+
+                Point2d centroid0 = CentroidEff;
+
+                Point2d[] centroids = CentroidsEff;
+                double d1 = Math.Sqrt(Math.Pow(centroid0.X - centroids[0].X, 2.0) + Math.Pow(centroid0.Y - centroids[0].Y, 2.0));
+                double d2;
+                if (_pInitialEff2 != null)
+                {
+                    d2 = Math.Sqrt(Math.Pow(centroid0.X - centroids[1].X, 2.0) + Math.Pow(centroid0.Y - centroids[1].Y, 2.0));
+                }
+                else
+                {
+                    d2 = 0;
+                }
+
+                return J1 + (beff[0] * _t) * Math.Pow(d1, 2.0) + J2 + (beff[1] * _t) * Math.Pow(d2, 2.0);
+            }
+        }
+
+        public double JzEffCentroid
+        {
+            get
+            {
+                double dy = _endPoint.Y - _initialPoint.Y;
+                double dx = _endPoint.X - _initialPoint.X;
+
+                if (dy != 0 && dx == 0) //vertical plate
+                {
+                    return J1EffCentroid;
+                }
+                else if (dx != 0 && dy == 0) //horizontal plate
+                {
+                    return J2EffCentroid;
+                }
+                else
+                {
+                    throw new Exception("Oblique plate not yet supported");
+                }
+            }
+        }
+
+        public double JyEffCentroid
+        {
+            get
+            {
+                double dy = _endPoint.Y - _initialPoint.Y;
+                double dx = _endPoint.X - _initialPoint.X;
+
+                if (dy != 0 && dx == 0) //vertical plate
+                {
+                    return J2EffCentroid;
+                }
+                else if (dx != 0 && dy == 0) //horizontal plate
+                {
+                    return J1EffCentroid;
+                }
+                else
+                {
+                    throw new Exception("Oblique plate not yet supported");
+                }
+            }
+        }
+
+        public double J1EffCentroid
+        {
+            get
+            {
+                double[] beff = Beff;
+                double J1 = 1.0 / 12.0 * beff[0] * Math.Pow(_t, 3.0);
+                double J2 = 1.0 / 12.0 * beff[1] * Math.Pow(_t, 3.0);
+
+                return J1 + J2;
+            }
+        }
+
+        public double[] Beff
+        {
+            get
+            {
+                double[] beff = new double[2];
+                beff[0] = Math.Sqrt(Math.Pow(_pFinalEff1.X - _pInitialEff1.X, 2.0) + Math.Pow(_pFinalEff1.Y - _pInitialEff1.Y, 2.0));
+                if (_pInitialEff2 != null)
+                {
+                    beff[1] = Math.Sqrt(Math.Pow(_pFinalEff2.X - _pInitialEff2.X, 2.0) + Math.Pow(_pFinalEff2.Y - _pInitialEff2.Y, 2.0));
+                }
+                return beff;
+            }
+        }
+
+        public double B
+        {
+            get
+            {
+                return _B;
+            }
+        }
+
+        protected double GetKSigma(double psi, double sigma0, double sigmaX)
+        {
+            if (psi > 1)
+            {
+                throw new Exception("something wrong with psi");
+            }
+
+            if (_type == TypePlate.inner)
+            {
+                if (psi == 1)
+                {
+                    return 4;
+                }
+                else if (psi > 0 && psi < 1)
+                {
+                    return 8.2 / (1.05 + psi);
+                }
+                else if (psi == 0)
+                {
+                    return 7.81;
+                }
+                else if (psi < 0 && psi > -1)
+                {
+                    return 7.81 - 6.29 * psi + 9.78 * psi * psi;
+                }
+                else if (psi == -1)
+                {
+                    return 23.9;
+                }
+                else if (psi > -3 && psi < -1)
+                {
+                    return 5.98 * (1 - psi) * (1 - psi);
+                }
+                else
+                {
+                    throw new Exception("out of range");
+                }
+            }
+            else //Outer
+            {
+                if (sigma0 > sigmaX)
+                {
+                    if (psi == 1)
+                    {
+                        return 0.43;
+                    }
+                    else if (psi == 0)
+                    {
+                        return 0.57;
+                    }
+                    else if (psi == -1)
+                    {
+                        return 0.85;
+                    }
+                    else if (psi >= -3 && psi <= 1)
+                    {
+                        return 0.57 - 0.21 * psi + 0.07 * psi * psi;
+                    }
+                    else
+                    {
+                        throw new Exception("out of range psi");
+                    }
+                }
+                else
+                {
+                    if (psi == 1)
+                    {
+                        return 0.43;
+                    }
+                    else if (psi > 0 && psi < 1)
+                    {
+                        return 0.578 / (psi + 0.34);
+                    }
+                    else if (psi == 0)
+                    {
+                        return 1.7;
+                    }
+                    else if (psi < 0 && psi > -1)
+                    {
+                        return 1.7 - 5 * psi + 17.1 * psi * psi;
+                    }
+                    else if (psi == -1)
+                    {
+                        return 23.8;
+                    }
+                    else
+                    {
+                        throw new Exception("out of range psi");
+                    }
+                }
+            }
+        }
+
+        protected double GetLambdaP(double ksigma, double fy)
+        {
+            double epsilon = Math.Sqrt(235 / fy);
+            double b = _B - _removeLengthSide1 - _removeLengthSide2;
+            return b / _t / (28.4 * epsilon * Math.Sqrt(ksigma));
+        }
+
+        protected void CalcBEff(double lambdaP, double psi, double sigmaX0, double sigmaXvar)
+        {
+            if (_type == TypePlate.inner)
+            {
+                double lambdaPLimit = 0.5 + Math.Sqrt(0.085 - 0.055 * psi);
+                if (lambdaP <= lambdaPLimit)
+                {
+                    double rho = 1;
+                    //-> no change
+                }
+                else
+                {
+                    double rho = Math.Min((lambdaP - 0.055 * (3 + psi)) / (lambdaP * lambdaP), 1);
+                    if (psi == 1)
+                    {
+                        double beff = rho * _B;
+                        double beff1 = 0.5 * beff;
+                        double beff2 = 0.5 * beff;
+
+                        double xP = (_endPoint.X - _initialPoint.X) / _B * (beff1 + _removeLengthSide1) + _initialPoint.X;
+                        double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff1 + _removeLengthSide1) + _initialPoint.Y;
+                        _pInitialEff1 = _initialPoint;
+                        _pFinalEff1 = new Point2d(xP, yP);
+
+                        xP = -(_endPoint.X - _initialPoint.X) / _B * (beff2 + _removeLengthSide2) + _endPoint.X;
+                        yP = -(_endPoint.Y - _initialPoint.Y) / _B * (beff2 + _removeLengthSide2) + _endPoint.Y;
+                        _pInitialEff2 = _endPoint;
+                        _pFinalEff2 = new Point2d(xP, yP);
+                    }
+                    else if (psi >= 0 && psi < 1)
+                    {
+                        double beff = rho * _B;
+                        double beff1 = (2.0 / (5.0 - psi)) * beff;
+                        double beff2 = beff - beff1;
+
+                        if (sigmaX0 < sigmaXvar)
+                        {
+                            double xP = (_endPoint.X - _initialPoint.X) / _B * (beff1 + _removeLengthSide1) + _initialPoint.X;
+                            double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff1 + _removeLengthSide1) + _initialPoint.Y;
+                            _pInitialEff1 = _initialPoint;
+                            _pFinalEff1 = new Point2d(xP, yP);
+
+                            xP = -(_endPoint.X - _initialPoint.X) / _B * (beff2 + _removeLengthSide2) + _endPoint.X;
+                            yP = -(_endPoint.Y - _initialPoint.Y) / _B * (beff2 + _removeLengthSide2) + _endPoint.Y;
+                            _pInitialEff2 = _endPoint;
+                            _pFinalEff2 = new Point2d(xP, yP);
+                        }
+                        else
+                        {
+                            double xP = (_endPoint.X - _initialPoint.X) / _B * (beff2 + _removeLengthSide2) + _initialPoint.X;
+                            double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff2 + _removeLengthSide2) + _initialPoint.Y;
+                            _pInitialEff1 = _initialPoint;
+                            _pFinalEff1 = new Point2d(xP, yP);
+
+                            xP = -(_endPoint.X - _initialPoint.X) / _B * (beff1 + _removeLengthSide1) + _endPoint.X;
+                            yP = -(_endPoint.Y - _initialPoint.Y) / _B * (beff1 + _removeLengthSide1) + _endPoint.Y;
+                            _pInitialEff2 = _endPoint;
+                            _pFinalEff2 = new Point2d(xP, yP);
+                        }
+                    }
+                    else if (psi < 0)
+                    {
+                        double bT = _B / (1.0 + Math.Abs(psi)) * Math.Abs(psi);
+                        double bC = _B - bT;
+
+                        double beff = rho * bC;
+                        double beff1 = 0.4 * beff;
+                        double beff2 = 0.6 * beff;
+
+                        if (sigmaX0 < sigmaXvar)
+                        {
+                            double xP = (_endPoint.X - _initialPoint.X) / _B * (beff1 + _removeLengthSide1) + _initialPoint.X;
+                            double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff1 + _removeLengthSide1) + _initialPoint.Y;
+                            _pInitialEff1 = _initialPoint;
+                            _pFinalEff1 = new Point2d(xP, yP);
+
+                            xP = -(_endPoint.X - _initialPoint.X) / _B * (beff2 + bT + _removeLengthSide2) + _endPoint.X;
+                            yP = -(_endPoint.Y - _initialPoint.Y) / _B * (beff2 + bT + _removeLengthSide2) + _endPoint.Y;
+                            _pInitialEff2 = _endPoint;
+                            _pFinalEff2 = new Point2d(xP, yP);
+                        }
+                        else
+                        {
+                            double xP = (_endPoint.X - _initialPoint.X) / _B * (beff2 + bT + _removeLengthSide2) + _initialPoint.X;
+                            double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff2 + bT + _removeLengthSide2) + _initialPoint.Y;
+                            _pInitialEff1 = _initialPoint;
+                            _pFinalEff1 = new Point2d(xP, yP);
+
+                            xP = -(_endPoint.X - _initialPoint.X) / _B * (beff1 + _removeLengthSide1) + _endPoint.X;
+                            yP = -(_endPoint.Y - _initialPoint.Y) / _B * (beff1 + _removeLengthSide1) + _endPoint.Y;
+                            _pInitialEff2 = _endPoint;
+                            _pFinalEff2 = new Point2d(xP, yP);
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("psi not supported");
+                    }
+                }
+            }
+            else if (_type == TypePlate.outer)
+            {
+                if (lambdaP <= 0.748)
+                {
+                    double rho = 1;
+                    //--> no changes
+                }
+                else
+                {
+                    double rho = Math.Min((lambdaP - 0.188) / (lambdaP * lambdaP), 1);
+                    if (psi >= 0 && psi <= 1)
+                    {
+                        double beff = rho * _B;
+                        double xP = (_endPoint.X - _initialPoint.X) / _B * (beff + _removeLengthSide1) + _initialPoint.X;
+                        double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff + _removeLengthSide1) + _initialPoint.Y;
+                        _pInitialEff1 = _initialPoint;
+                        _pFinalEff1 = new Point2d(xP, yP);
+
+                        _pInitialEff2 = null;
+                        _pFinalEff2 = null;
+                    }
+                    else if (psi < 0)
+                    {
+                        double bT = _B / (1.0 + Math.Abs(psi)) * Math.Abs(psi);
+                        double bC = _B - bT;
+
+                        double beff = rho * bC;
+                        if (sigmaX0 < 0 && sigmaXvar < 0)
+                        {
+                            double xP = (_endPoint.X - _initialPoint.X) / _B * (beff + _removeLengthSide1) + _initialPoint.X;
+                            double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff + _removeLengthSide1) + _initialPoint.Y;
+                            _pInitialEff1 = _initialPoint;
+                            _pFinalEff1 = new Point2d(xP, yP);
+
+                            _pInitialEff2 = null;
+                            _pFinalEff2 = null;
+                        }
+                        else if (sigmaX0 > 0 && sigmaXvar < 0)
+                        {
+                            double xP = (_endPoint.X - _initialPoint.X) / _B * (bT + beff + _removeLengthSide1) + _initialPoint.X;
+                            double yP = (_endPoint.Y - _initialPoint.Y) / _B * (bT + beff + _removeLengthSide1) + _initialPoint.Y;
+                            _pInitialEff1 = _initialPoint;
+                            _pFinalEff1 = new Point2d(xP, yP);
+
+                            _pInitialEff2 = null;
+                            _pFinalEff2 = null;
+                        }
+                        else if (sigmaX0 < 0 && sigmaXvar > 0)
+                        {
+                            double xP = (_endPoint.X - _initialPoint.X) / _B * (beff + _removeLengthSide1) + _initialPoint.X;
+                            double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff + _removeLengthSide1) + _initialPoint.Y;
+                            _pInitialEff1 = _initialPoint;
+                            _pFinalEff1 = new Point2d(xP, yP);
+
+                            xP = -(_endPoint.X - _initialPoint.X) / _B * (bT + _removeLengthSide2) + _endPoint.X;
+                            yP = -(_endPoint.Y - _initialPoint.Y) / _B * (bT + _removeLengthSide2) + _endPoint.Y;
+
+                            _pInitialEff2 = _endPoint;
+                            _pFinalEff2 = new Point2d(xP, yP);
+                        }
+                        else
+                        {
+                            throw new Exception("distribution stress not recognized");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                throw new Exception("type of plate not supported");
+            }
+        }
+
+        public void SetSigma(double sigma0, double sigma2)
+        {
+            if (sigma0 >= 0 && sigma2 >= 0)
+            {
+                //reset -> plate completely effective
+                if (_type == TypePlate.inner)
+                {
+                    _pInitialEff1 = _initialPoint;
+                    _pFinalEff1 = new Point2d((_endPoint.X - _initialPoint.X) / 2.0, (_endPoint.Y - _initialPoint.Y) / 2.0);
+
+                    _pFinalEff2 = _pFinalEff1;
+                    _pInitialEff2 = _endPoint;
+                }
+                else
+                {
+                    _pInitialEff1 = _initialPoint;
+                    _pFinalEff1 = _endPoint;
+
+                    _pFinalEff2 = null;
+                    _pInitialEff2 = null;
+                }
+                return;
+            }
+
+            double sigmaMin = Math.Min(sigma0, sigma2);
+            double sigmaMax = Math.Max(sigma0, sigma2);
+
+            //sigma > 0 compression
+            double psi = -sigmaMax / -sigmaMin;
+
+            double ksigma = GetKSigma(psi, sigma0, sigma2);
+
+            double lambdap = GetLambdaP(ksigma, _fy);
+
+            CalcBEff(lambdap, psi, sigma0, sigma2);
+        }
+    }
+}
