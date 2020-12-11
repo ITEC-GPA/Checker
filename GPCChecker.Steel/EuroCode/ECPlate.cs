@@ -19,6 +19,33 @@ namespace GPCChecker.Steel.EuroCode
 
         public List<ECPlate> Plates => _plates;
 
+        public void Calc(double N, double My, double Mz)
+        {
+            double Aeffk = 0;;
+            int iter = 0;
+            while (Math.Abs(Aeff - Aeffk) > 0.005 * Aeffk && iter <= 10)
+            {
+                iter++;
+
+                Aeffk = Aeff;
+                for (int i = 0; i < Plates.Count; i++)
+                {
+                    double aEff = Aeff;
+                    double j1Eff = J1eff;
+                    double j2Eff = J2eff;
+
+                    //calculation sigma in initial point always active
+                    Point2d p0 = Plates[i].InitialPoint;
+                    double sigmaInitialPoint = N / aEff + My / j2Eff * (Centroid.Y - p0.Y) + Mz / j1Eff * (Centroid.X - p0.X);
+
+                    //calculation of sigma in the active point
+                    Point2d p1 = Plates[i].LastPointActive;
+                    double sigmaLastPointActive = N / aEff + My / j2Eff * (Centroid.Y - p1.Y) + Mz / j1Eff * (Centroid.X - p1.X);
+                    Plates[i].SetSigma(sigmaInitialPoint, sigmaLastPointActive);
+                }
+            }
+        }
+
         public double Aeff
         {
             get
@@ -94,22 +121,22 @@ namespace GPCChecker.Steel.EuroCode
 
         double _fy;
 
-        Class4Point2d _initialPoint;
-        Class4Point2d _endPoint;
+        Point2d _initialPoint;
+        Point2d _endPoint;
 
-        Class4Point2d _pInitialEff1;
-        Class4Point2d _pFinalEff1;
+        Point2d _pInitialEff1;
+        Point2d _pFinalEff1;
 
-        Class4Point2d _pInitialEff2;
-        Class4Point2d _pFinalEff2;
+        Point2d _pInitialEff2;
+        Point2d _pFinalEff2;
 
         public ECPlate(double t, double x0, double y0, double x1, double y1, double fy, Plate.TypePlate typePlate, double removeLengthSide1, double removeLengthSide2) : this(t, new Point2d(x0, y0), new Point2d(x1, y1), fy, typePlate, removeLengthSide1, removeLengthSide2)
         {
         }
         public ECPlate(double t, Point2d initialPoint, Point2d endPoint, double fy, Plate.TypePlate typePlate, double removeLengthSide1, double removeLengthSide2)
         {
-            _initialPoint = new Class4Point2d(initialPoint, true);
-            _endPoint = new Class4Point2d(endPoint, true);
+            _initialPoint = new Point2d(initialPoint);
+            _endPoint = new Point2d(endPoint);
 
             _t = t;
             _type = typePlate;
@@ -122,7 +149,7 @@ namespace GPCChecker.Steel.EuroCode
             if (_type == Plate.TypePlate.inner)
             {
                 _pInitialEff1 = _initialPoint;
-                _pFinalEff1 = new Class4Point2d((_endPoint.X - _initialPoint.X) / 2.0, (_endPoint.Y - _initialPoint.Y) / 2.0, true);
+                _pFinalEff1 = new Point2d((_endPoint.X - _initialPoint.X) / 2.0, (_endPoint.Y - _initialPoint.Y) / 2.0);
 
                 _pFinalEff2 = _pFinalEff1;
                 _pInitialEff2 = _endPoint;
@@ -409,23 +436,23 @@ namespace GPCChecker.Steel.EuroCode
                     double rho = Math.Min((lambdaP - 0.055 * (3 + psi)) / (lambdaP * lambdaP), 1);
                     if (psi == 1)
                     {
-                        double beff = rho * _B;
+                        double beff = rho * (_B - _removeLengthSide1 - _removeLengthSide2);
                         double beff1 = 0.5 * beff;
                         double beff2 = 0.5 * beff;
 
                         double xP = (_endPoint.X - _initialPoint.X) / _B * (beff1 + _removeLengthSide1) + _initialPoint.X;
                         double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff1 + _removeLengthSide1) + _initialPoint.Y;
                         _pInitialEff1 = _initialPoint;
-                        _pFinalEff1 = new Class4Point2d(xP, yP, true);
+                        _pFinalEff1 = new Point2d(xP, yP);
 
                         xP = -(_endPoint.X - _initialPoint.X) / _B * (beff2 + _removeLengthSide2) + _endPoint.X;
                         yP = -(_endPoint.Y - _initialPoint.Y) / _B * (beff2 + _removeLengthSide2) + _endPoint.Y;
                         _pInitialEff2 = _endPoint;
-                        _pFinalEff2 = new Class4Point2d(xP, yP, true);
+                        _pFinalEff2 = new Point2d(xP, yP);
                     }
                     else if (psi >= 0 && psi < 1)
                     {
-                        double beff = rho * _B;
+                        double beff = rho * (_B - _removeLengthSide1 - _removeLengthSide2);
                         double beff1 = (2.0 / (5.0 - psi)) * beff;
                         double beff2 = beff - beff1;
 
@@ -434,30 +461,30 @@ namespace GPCChecker.Steel.EuroCode
                             double xP = (_endPoint.X - _initialPoint.X) / _B * (beff1 + _removeLengthSide1) + _initialPoint.X;
                             double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff1 + _removeLengthSide1) + _initialPoint.Y;
                             _pInitialEff1 = _initialPoint;
-                            _pFinalEff1 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff1 = new Point2d(xP, yP);
 
                             xP = -(_endPoint.X - _initialPoint.X) / _B * (beff2 + _removeLengthSide2) + _endPoint.X;
                             yP = -(_endPoint.Y - _initialPoint.Y) / _B * (beff2 + _removeLengthSide2) + _endPoint.Y;
                             _pInitialEff2 = _endPoint;
-                            _pFinalEff2 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff2 = new Point2d(xP, yP);
                         }
                         else
                         {
                             double xP = (_endPoint.X - _initialPoint.X) / _B * (beff2 + _removeLengthSide2) + _initialPoint.X;
                             double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff2 + _removeLengthSide2) + _initialPoint.Y;
                             _pInitialEff1 = _initialPoint;
-                            _pFinalEff1 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff1 = new Point2d(xP, yP);
 
                             xP = -(_endPoint.X - _initialPoint.X) / _B * (beff1 + _removeLengthSide1) + _endPoint.X;
                             yP = -(_endPoint.Y - _initialPoint.Y) / _B * (beff1 + _removeLengthSide1) + _endPoint.Y;
                             _pInitialEff2 = _endPoint;
-                            _pFinalEff2 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff2 = new Point2d(xP, yP);
                         }
                     }
                     else if (psi < 0)
                     {
-                        double bT = _B / (1.0 + Math.Abs(psi)) * Math.Abs(psi);
-                        double bC = _B - bT;
+                        double bT = (_B - _removeLengthSide1 - _removeLengthSide2) / (1.0 + Math.Abs(psi)) * Math.Abs(psi);
+                        double bC = (_B - _removeLengthSide1 - _removeLengthSide2) - bT;
 
                         double beff = rho * bC;
                         double beff1 = 0.4 * beff;
@@ -468,24 +495,24 @@ namespace GPCChecker.Steel.EuroCode
                             double xP = (_endPoint.X - _initialPoint.X) / _B * (beff1 + _removeLengthSide1) + _initialPoint.X;
                             double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff1 + _removeLengthSide1) + _initialPoint.Y;
                             _pInitialEff1 = _initialPoint;
-                            _pFinalEff1 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff1 = new Point2d(xP, yP);
 
                             xP = -(_endPoint.X - _initialPoint.X) / _B * (beff2 + bT + _removeLengthSide2) + _endPoint.X;
                             yP = -(_endPoint.Y - _initialPoint.Y) / _B * (beff2 + bT + _removeLengthSide2) + _endPoint.Y;
                             _pInitialEff2 = _endPoint;
-                            _pFinalEff2 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff2 = new Point2d(xP, yP);
                         }
                         else
                         {
                             double xP = (_endPoint.X - _initialPoint.X) / _B * (beff2 + bT + _removeLengthSide2) + _initialPoint.X;
                             double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff2 + bT + _removeLengthSide2) + _initialPoint.Y;
                             _pInitialEff1 = _initialPoint;
-                            _pFinalEff1 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff1 = new Point2d(xP, yP);
 
                             xP = -(_endPoint.X - _initialPoint.X) / _B * (beff1 + _removeLengthSide1) + _endPoint.X;
                             yP = -(_endPoint.Y - _initialPoint.Y) / _B * (beff1 + _removeLengthSide1) + _endPoint.Y;
                             _pInitialEff2 = _endPoint;
-                            _pFinalEff2 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff2 = new Point2d(xP, yP);
                         }
                     }
                     else
@@ -506,19 +533,19 @@ namespace GPCChecker.Steel.EuroCode
                     double rho = Math.Min((lambdaP - 0.188) / (lambdaP * lambdaP), 1);
                     if (psi >= 0 && psi <= 1)
                     {
-                        double beff = rho * _B;
+                        double beff = rho * (_B - _removeLengthSide1 - _removeLengthSide2);
                         double xP = (_endPoint.X - _initialPoint.X) / _B * (beff + _removeLengthSide1) + _initialPoint.X;
                         double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff + _removeLengthSide1) + _initialPoint.Y;
                         _pInitialEff1 = _initialPoint;
-                        _pFinalEff1 = new Class4Point2d(xP, yP, true);
+                        _pFinalEff1 = new Point2d(xP, yP);
 
                         _pInitialEff2 = null;
                         _pFinalEff2 = null;
                     }
                     else if (psi < 0)
                     {
-                        double bT = _B / (1.0 + Math.Abs(psi)) * Math.Abs(psi);
-                        double bC = _B - bT;
+                        double bT = (_B - _removeLengthSide1 - _removeLengthSide2) / (1.0 + Math.Abs(psi)) * Math.Abs(psi);
+                        double bC = (_B - _removeLengthSide1 - _removeLengthSide2) - bT;
 
                         double beff = rho * bC;
                         if (sigmaX0 < 0 && sigmaXvar < 0)
@@ -526,7 +553,7 @@ namespace GPCChecker.Steel.EuroCode
                             double xP = (_endPoint.X - _initialPoint.X) / _B * (beff + _removeLengthSide1) + _initialPoint.X;
                             double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff + _removeLengthSide1) + _initialPoint.Y;
                             _pInitialEff1 = _initialPoint;
-                            _pFinalEff1 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff1 = new Point2d(xP, yP);
 
                             _pInitialEff2 = null;
                             _pFinalEff2 = null;
@@ -536,7 +563,7 @@ namespace GPCChecker.Steel.EuroCode
                             double xP = (_endPoint.X - _initialPoint.X) / _B * (bT + beff + _removeLengthSide1) + _initialPoint.X;
                             double yP = (_endPoint.Y - _initialPoint.Y) / _B * (bT + beff + _removeLengthSide1) + _initialPoint.Y;
                             _pInitialEff1 = _initialPoint;
-                            _pFinalEff1 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff1 = new Point2d(xP, yP);
 
                             _pInitialEff2 = null;
                             _pFinalEff2 = null;
@@ -546,13 +573,13 @@ namespace GPCChecker.Steel.EuroCode
                             double xP = (_endPoint.X - _initialPoint.X) / _B * (beff + _removeLengthSide1) + _initialPoint.X;
                             double yP = (_endPoint.Y - _initialPoint.Y) / _B * (beff + _removeLengthSide1) + _initialPoint.Y;
                             _pInitialEff1 = _initialPoint;
-                            _pFinalEff1 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff1 = new Point2d(xP, yP);
 
                             xP = -(_endPoint.X - _initialPoint.X) / _B * (bT + _removeLengthSide2) + _endPoint.X;
                             yP = -(_endPoint.Y - _initialPoint.Y) / _B * (bT + _removeLengthSide2) + _endPoint.Y;
 
                             _pInitialEff2 = _endPoint;
-                            _pFinalEff2 = new Class4Point2d(xP, yP, true);
+                            _pFinalEff2 = new Point2d(xP, yP);
                         }
                         else
                         {
@@ -575,7 +602,7 @@ namespace GPCChecker.Steel.EuroCode
                 if (_type == Plate.TypePlate.inner)
                 {
                     _pInitialEff1 = _initialPoint;
-                    _pFinalEff1 = new Class4Point2d((_endPoint.X - _initialPoint.X) / 2.0, (_endPoint.Y - _initialPoint.Y) / 2.0, true);
+                    _pFinalEff1 = new Point2d((_endPoint.X - _initialPoint.X) / 2.0, (_endPoint.Y - _initialPoint.Y) / 2.0);
 
                     _pFinalEff2 = _pFinalEff1;
                     _pInitialEff2 = _endPoint;
@@ -604,14 +631,14 @@ namespace GPCChecker.Steel.EuroCode
             CalcBEff(lambdap, psi, sigma0, sigma2);
         }
 
-        public Class4Point2d InitialPoint => _initialPoint;
-        public Class4Point2d LastPointActive
+        public Point2d InitialPoint => _initialPoint;
+        public Point2d LastPointActive
         {
             get
             {
-                if (_pFinalEff2 != null)
+                if (_pInitialEff2 != null)
                 {
-                    return _pFinalEff2;
+                    return _pInitialEff2;
                 } else if (_pFinalEff1 != null)
                 {
                     return _pFinalEff1;
@@ -620,21 +647,6 @@ namespace GPCChecker.Steel.EuroCode
                     throw new Exception("point?");
                 }
             }
-        }
-    }
-
-    public class Class4Point2d : Point2d
-    {
-        public bool Active { get; set; }
-
-        public Class4Point2d(double x, double y, bool active) : base(x,y)
-        {
-            Active = active;
-        }
-
-        public Class4Point2d(Point2d p, bool active) : base(p.X, p.Y)
-        {
-            Active = active;
         }
     }
 }

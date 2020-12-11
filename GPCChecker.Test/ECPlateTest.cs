@@ -65,7 +65,16 @@ namespace ECPlateTest
         [TestMethod]
         public void SectionHTest1()
         {
-            SectionH sec = new SectionH(500, 10, 400, 10, 400, 10, new SteelMaterial("steel", 200000, 0.3, 355, 510, 7850));
+            double tw = 10;
+            double tf = 25;
+            double h = 1400 + 2 * tf;
+            double b = 400;
+
+            SectionH sec = new SectionH(h, tw, b, tf, b, tf, new SteelMaterial("steel", 200000, 0.3, 355, 510, 7850));
+
+            double A = sec.Area;
+            double Iy = sec.J22;
+
             List<ECPlate> plateSec = new List<ECPlate>(5);
             for (int i = 0; i < sec.Plates.Length; i++)
             {
@@ -74,32 +83,16 @@ namespace ECPlateTest
 
             Class4Section class4 = new Class4Section(plateSec);
             
-            double N = -1000;
-            double My = 0*1e6;
+            double N = 0;
+            double My = 6.1*1e9;
             double Mz = 0*1e6;
 
-            double Aeffk = sec.Area;
-            double Aeffkp1 = 0;
-            int iter = 0;
-            while (Math.Abs(Aeffkp1-Aeffk) > 0.01*Aeffk)
-            {
-                iter++;
+            class4.Calc(N, My, Mz);
+            
+            double Aeff = class4.Aeff;
+            double Jeff = class4.J2eff;
+            Point2d diffCentroid = sec.Centroid - class4.Centroid;
 
-                Aeffk = class4.Aeff;
-                for (int i = 0; i < class4.Plates.Count; i++)
-                {
-                    //calculation sigma in initial point always active
-                    Class4Point2d p = class4.Plates[i].InitialPoint;
-                    double sigmaInitialPoint = N / class4.Aeff + My / class4.J2eff * (p.Y - class4.Centroid.Y) + Mz / class4.J1eff * (p.X - class4.Centroid.X);
-
-                    //calculation of sigma in the active point
-                    p = class4.Plates[i].LastPointActive;
-                    double sigmaLastPointActive = N / class4.Aeff + My / class4.J2eff * (p.Y - class4.Centroid.Y) + Mz / class4.J1eff * (p.X - class4.Centroid.X);
-                    class4.Plates[i].SetSigma(sigmaInitialPoint, sigmaLastPointActive);
-                }
-                Aeffkp1 = class4.Aeff; 
-            }
-            MessageBox.Show(iter.ToString());
             double x = 0;
         }
     }
