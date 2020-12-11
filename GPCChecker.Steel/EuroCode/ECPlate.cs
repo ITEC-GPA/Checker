@@ -35,7 +35,7 @@ namespace GPCChecker.Steel.EuroCode
                     double j2Eff = J2eff;
 
                     //calculation sigma in initial point always active
-                    Point2d p0 = Plates[i].InitialPoint;
+                    Point2d p0 = Plates[i].FirstPointActive;
                     double sigmaInitialPoint = N / aEff + My / j2Eff * (Centroid.Y - p0.Y) + Mz / j1Eff * (Centroid.X - p0.X);
 
                     //calculation of sigma in the active point
@@ -631,14 +631,75 @@ namespace GPCChecker.Steel.EuroCode
             CalcBEff(lambdap, psi, sigma0, sigma2);
         }
 
-        public Point2d InitialPoint => _initialPoint;
+        public Point2d FirstPointActive
+        {
+            get
+            {
+                if (_removeLengthSide1 == 0)
+                {
+                    return _initialPoint;
+                } else
+                {
+                    //calc coordinates
+                    var delta = _endPoint - _initialPoint;
+                    if (delta.X == 0 && delta.Y > 0) //vertical
+                    {
+                        return new Point2d(_initialPoint.X, _initialPoint.Y + _removeLengthSide1);
+                    } else if (delta.X == 0 && delta.Y < 0) //vertical
+                    {
+                        return new Point2d(_initialPoint.X, _initialPoint.Y - _removeLengthSide1);
+                    } else if (delta.X > 0 && delta.Y == 0) //horiz
+                    {
+                        return new Point2d(_initialPoint.X + _removeLengthSide1, _initialPoint.Y);
+                    } else if (delta.X < 0 && delta.Y == 0) //horiz
+                    {
+                        return new Point2d(_initialPoint.X - _removeLengthSide1, _initialPoint.Y);
+                    }
+                    else { //obliqual
+                        double angle = Math.Atan(delta.Y / delta.X);
+                        
+                        return new Point2d(_initialPoint.X + _removeLengthSide1 * Math.Cos(angle), _initialPoint.Y + _removeLengthSide1 * Math.Sin(angle));
+                    } 
+                }
+            }
+        }
         public Point2d LastPointActive
         {
             get
             {
                 if (_pInitialEff2 != null)
                 {
-                    return _pInitialEff2;
+                    if (_pInitialEff2 == _endPoint)
+                    {
+                        //calc coordinates
+                        var delta = _endPoint - _initialPoint;
+                        if (delta.X == 0 && delta.Y > 0) //vertical
+                        {
+                            return new Point2d(_endPoint.X, _endPoint.Y - _removeLengthSide2);
+                        }
+                        else if (delta.X == 0 && delta.Y < 0) //vertical
+                        {
+                            return new Point2d(_endPoint.X, _endPoint.Y + _removeLengthSide2);
+                        }
+                        else if (delta.X > 0 && delta.Y == 0) //horiz
+                        {
+                            return new Point2d(_endPoint.X - _removeLengthSide2, _endPoint.Y);
+                        }
+                        else if (delta.X < 0 && delta.Y == 0) //horiz
+                        {
+                            return new Point2d(_endPoint.X + _removeLengthSide2, _endPoint.Y);
+                        }
+                        else
+                        { //obliqual
+                            double angle = Math.Atan(delta.Y / delta.X);
+
+                            return new Point2d(_endPoint.X - _removeLengthSide2 * Math.Cos(angle), _endPoint.Y - _removeLengthSide2 * Math.Sin(angle));
+                        }
+                    }
+                    else
+                    {
+                        return _pInitialEff2;
+                    }
                 } else if (_pFinalEff1 != null)
                 {
                     return _pFinalEff1;
