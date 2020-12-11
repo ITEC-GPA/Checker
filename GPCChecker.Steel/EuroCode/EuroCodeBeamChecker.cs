@@ -154,11 +154,11 @@ namespace GPC.Checker.Steel.EuroCode
             _psiz = psiz;
 
             #region classification
-
+            double minSigma = _sec.MinSigma(_NEd, _MEd2, _MEd1);
             /*
              * IMPORTANTE NOTE:
-             * EN 1993-1-1 6.2.9.3 (2) is possible to calculate:
-             * - Aeff onòy for N
+             * EN 1993-1-1 6.2.9.3 (2) is possible to check:
+             *  - Aeff only for N
              *  - Meffy only for My
              *  - Meffz only for Mz
              *  
@@ -166,28 +166,115 @@ namespace GPC.Checker.Steel.EuroCode
              *  N/Nreff + My/Mreffy + Mz/Mreffz
             */
 
+            /*
+             * Try to set the classification only for axial compression that is worst case, then if class is in class 1 or 2 then go to calculation, else....
+             * try to understood how to continue
+             */
+
             double fy = ((SteelMaterial)_sec.Material).Fyk;
             double epsilon = Math.Sqrt(235.0/fy);
 
-            Type typeShape = _sec.GetType();
-            if (typeShape == typeof(SectionCHS))
+            if (minSigma < 0)
             {
-                SectionCHS sec = (SectionCHS)_sec;
-                double D = sec.D;
-                double t = sec.T;
-                if ( D / t  <= 50.0 * epsilon * epsilon)
+                Type typeShape = _sec.GetType();
+                if (typeShape == typeof(SectionCHS))
                 {
-                    _classificationSection = 1;
-                } else if (D /t <= 70.0 * epsilon * epsilon)
-                {
-                    _classificationSection = 2;
-                } else if (D/t <= 90.0 * epsilon * epsilon)
-                {
-                    _classificationSection = 3;
-                } else
-                {
-                    _classificationSection = 4;
+                    SectionCHS sec = (SectionCHS)_sec;
+                    double D = sec.D;
+                    double t = sec.T;
+                    if (D / t <= 50.0 * epsilon * epsilon)
+                    {
+                        _classificationSection = 1;
+                    }
+                    else if (D / t <= 70.0 * epsilon * epsilon)
+                    {
+                        _classificationSection = 2;
+                    }
+                    else if (D / t <= 90.0 * epsilon * epsilon)
+                    {
+                        _classificationSection = 3;
+                    }
+                    else
+                    {
+                        _classificationSection = 4;
+                    }
                 }
+                else if (typeShape == typeof(SectionRHS))
+                {
+                    SectionRHS sec = (SectionRHS)_sec;
+
+                    #region ClassificationAxialBendingStrongAxis
+                    double cTFlange = sec.Bint / sec.Thickness;
+                    //flange are load with constant load
+                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
+
+                    //classification webs
+                    //from equilibrium of Σ sigma = Ned
+                    double alphaClassification = - _NEd / (4.0 * sec.Thickness * fy * sec.Hw) + 0.5;
+
+                    //from equlibrium sigma = N/A+M/W:
+                    double psiClassification = 1;
+                    if (_classificationSection < 4)
+                    {
+                        psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
+                    }
+
+                    double cTWeb = sec.Hw / sec.Thickness;
+                    _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
+                    #endregion
+
+                    #region ClassificationAxialBendingWeakAxis
+                    if (Math.Abs(_MEd1) > 0)
+                    {
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
+
+                        alphaClassification = -_NEd / (4.0 * sec.Thickness * fy * sec.Bint) + 0.5;
+                        psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
+                        _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTFlange, epsilon, alphaClassification, psiClassification));
+                    }
+                    #endregion
+                } else if (typeShape == typeof(SectionH)) {
+                    SectionH sec = (SectionH)_sec;
+                    double cTWeb = sec.HeightWeb / sec.ThicknessWeb;
+                    double cTFlange = sec.LenghtBottomFlange / 2.0 / sec.ThicknessBottomFlange;
+
+                    if (sec.IsDoubleSymmetric)
+                    {
+                        #region AxialAndBendingStrongDirection
+                        //classification of flanged for axial force due to bending
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlange, epsilon));
+
+                        //classification web
+                        double alphaClassification = -NEd / (2.0 * sec.HeightWeb * fy * sec.ThicknessWeb) + 0.5;
+                        double psiClassification = 1;
+                        if (_classificationSection < 4)
+                        {
+                            psiClassification = -2.0 * _NEd / (sec.Area) - 1.0;
+                        }
+                        _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
+                        #endregion
+
+                        #region AxialAndBendingWeakDirection
+                        if (Math.Abs(_MEd1) > 0)
+                        {
+                            //classification only for Compression.
+                            //Other detailed calculation should be found and implemented
+                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
+                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
+                        }
+                        #endregion
+                    }
+                    else
+                    {
+                        //classification only for Compression.
+                        //Other detailed calculation should be found and implemented
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
+                    } 
+                }
+            } else
+            {
+                _classificationSection = 1;
             }
                 
             #endregion
@@ -234,7 +321,7 @@ namespace GPC.Checker.Steel.EuroCode
 
             #region buckling
             {
-                if (_sec.MinSigma(_NEd, _MEd2, _MEd1) < 0.0)
+                if (minSigma < 0.0)
                 {
                     if (_NEd < 0)
                     {
@@ -450,6 +537,137 @@ namespace GPC.Checker.Steel.EuroCode
             #endregion
         }
 
+        #region Classification
+        public int GetClassCompressedInnerPlate(double ctRatio, double epsilon)
+        {
+            if (ctRatio <= 33.0 * epsilon)
+            {
+                return 1;
+            }
+            else if (ctRatio <= 38.0 * epsilon)
+            {
+                return 2;
+            }
+            else if (ctRatio <= 42.0 * epsilon)
+            {
+                return 3;
+            }
+            else
+            {
+                return 4;
+            }
+        }
+
+        public int GetClassInnerPlate(double ctRatio, double epsilon, double alpha, double psi)
+        {
+            if (alpha > 0.5 && alpha < 1)
+            {
+                if (ctRatio <= 396.0 * epsilon / (13.0 * alpha - 1.0))
+                {
+                    return 1;
+                }
+                else if (ctRatio <= 456.0 * epsilon / (13.0 * alpha - 1.0))
+                {
+                    return 2;
+                }
+                else //class 3 or 4
+                {
+                    if (psi > -1)
+                    {
+                        if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    }
+                    else if (psi <= -1)
+                    {
+                        if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    } else
+                    {
+                        return 4;
+                        throw new Exception("classification");
+                    }
+                }
+            }
+            else if (alpha <= 0.5 && alpha > 0)
+            {
+                if (ctRatio <= 36.0 * epsilon / alpha)
+                {
+                    return 1;
+                }
+                else if (ctRatio <= 41.5 * epsilon / alpha)
+                {
+                    return 2;
+                }
+                else //class 3 or 4
+                {
+                    if (psi > -1)
+                    {
+                        if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    }
+                    else if (psi <= -1)
+                    {
+                        if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    } else
+                    {
+                        return 4;
+                        throw new Exception("classification");
+                    }
+                }
+            }
+            else
+            {
+                return 4; 
+                throw new Exception("Problems classification");
+            }
+        }
+
+        public int GetClassCompressedOuterPlate(double ctRatio, double epsilon)
+        {
+            if (ctRatio <= 9.0 * epsilon)
+            {
+                return 1;
+            }
+            else if (ctRatio <= 10.0 * epsilon)
+            {
+                return 2;
+            }
+            else if (ctRatio <= 14.0 * epsilon)
+            {
+                return 3;
+            }
+            else
+            {
+                return 4;
+            }
+        }
+        #endregion
+
         #region ResistanceFunctions
         protected double GetNtRd(double Anet)
         {
@@ -552,15 +770,15 @@ namespace GPC.Checker.Steel.EuroCode
             } else if (typeShape == typeof(SectionRHS))
             {
                 //Bredt - Plastic Theory
-                /*SectionRHS sec = (SectionRHS)_sec;
+                SectionRHS sec = (SectionRHS)_sec;
                 double Hmed = sec.H - sec.ThicknessFlange;
                 double Bmed = sec.B - sec.ThicknessWeb;
                 double Omega = Hmed * Bmed;
                 double denom = 2.0 * Omega * Math.Min(sec.ThicknessWeb, sec.ThicknessFlange);
                 tauT = Math.Abs(_TEd) / denom;
 
-                TRd = fy / Math.Pow(3.0, 0.5) * denom;*/
-                throw new Exception("to be implemented elastic theory");
+                TRd = fy / Math.Pow(3.0, 0.5) * denom;
+                
             } else if (typeShape == typeof(SectionC))
             {
                 SectionC sec = (SectionC)_sec;
@@ -904,6 +1122,10 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 SectionCHS sec = (SectionCHS)_sec;
                 zg = sec.D - sec.ShearCenter.Y;
+            } else if (typeSection == typeof(SectionRHS))
+            {
+                SectionRHS sec = (SectionRHS)_sec;
+                zg = sec.H - sec.ShearCenter.Y;
             } else
             {
                 throw new Exception("not yet supported");

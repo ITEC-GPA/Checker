@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="EuroCode\Annex.cs" />
     <Compile Include="EuroCode\EuroCodeBeamChecker.cs" />
+    <Compile Include="EuroCode\ECPlate.cs" />
     <Compile Include="PanelsStability\Class4SectionDefinitions.cs" />
     <Compile Include="PanelsStability\EffectiveSection.cs" />
     <Compile Include="PanelsStability\FlatStiffener.cs" />
