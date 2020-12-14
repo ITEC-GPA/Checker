@@ -457,11 +457,11 @@ namespace GPC.Checker.Steel.EuroCode
                             {
                                 cmy = cmy0 + (1.0 - cmy0) * Math.Sqrt(epsilony) * aLT / (1.0 + Math.Sqrt(epsilony) * aLT);
                                 cmz = cmz0;
-                                cmLT = cmy*cmy * aLT / (Math.Sqrt(1.0-_NEd/_Ncrz) * (1.0 - _NEd/ncrTorsional));
-                                if (cmLT < 1)
+                                cmLT = Math.Min(cmy*cmy * aLT / (Math.Sqrt(1.0-_NEd/_Ncrz) * (1.0 - _NEd/ncrTorsional)),1.0);
+                                /*if (cmLT < 1)
                                 {
                                     throw new Exception("cmLT < 1");
-                                }
+                                }*/
                             }
 
                             double mplyRd = _sec.Wpl22 * fy / _annex.Gm0;
@@ -907,7 +907,7 @@ namespace GPC.Checker.Steel.EuroCode
             } else
             {
                 Wy = Wz = 0;
-                new Exception("not yet supported");
+                new Exception("class 4 not yet supported");
             }
             Type typeShape = _sec.GetType();
 
@@ -1126,9 +1126,15 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 SectionRHS sec = (SectionRHS)_sec;
                 zg = sec.H - sec.ShearCenter.Y;
-            } else
+            }
+            else if (typeSection == typeof(SectionH))
             {
-                throw new Exception("not yet supported");
+                SectionH sec = (SectionH)_sec;
+                zg = sec.H - sec.ShearCenter.Y;
+            }
+            else
+            {
+                throw new Exception("McrLT not yet supported for this section");
             }
 
             double C1;
