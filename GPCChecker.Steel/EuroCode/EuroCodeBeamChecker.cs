@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GPC.Model.Materials;
 using GPC.Model.Sections;
 using GPC.Geometry;
+using GPCChecker.Steel.EuroCode;
 
 namespace GPC.Checker.Steel.EuroCode
 {
@@ -48,6 +49,11 @@ namespace GPC.Checker.Steel.EuroCode
 
         protected bool _method1AnnexA = true;
         protected bool _useEquation_6_57 = false; //EN1993-1-1
+
+        protected double _Aeff;
+        protected double _Weffy;
+        protected double _Weffz;
+        protected Point2d _deltaG;
 
         protected double _NEd;
         protected double _VEd1;
@@ -166,11 +172,6 @@ namespace GPC.Checker.Steel.EuroCode
              *  N/Nreff + My/Mreffy + Mz/Mreffz
             */
 
-            /*
-             * Try to set the classification only for axial compression that is worst case, then if class is in class 1 or 2 then go to calculation, else....
-             * try to understood how to continue
-             */
-
             double fy = ((SteelMaterial)_sec.Material).Fyk;
             double epsilon = Math.Sqrt(235.0/fy);
 
@@ -197,6 +198,7 @@ namespace GPC.Checker.Steel.EuroCode
                     else
                     {
                         _classificationSection = 4;
+                        throw new Exception("CHS class 4 not supported");
                     }
                 }
                 else if (typeShape == typeof(SectionRHS))
@@ -204,54 +206,86 @@ namespace GPC.Checker.Steel.EuroCode
                     SectionRHS sec = (SectionRHS)_sec;
 
                     #region ClassificationAxialBendingStrongAxis
-                    double cTFlange = sec.Bint / sec.Thickness;
-                    //flange are load with constant load
-                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
-
-                    //classification webs
-                    //from equilibrium of Σ sigma = Ned
-                    double alphaClassification = - _NEd / (4.0 * sec.Thickness * fy * sec.Hw) + 0.5;
-
-                    //from equlibrium sigma = N/A+M/W:
-                    double psiClassification = 1;
-                    if (_classificationSection < 4)
+                    if (Math.Abs(M2Ed) > 0)
                     {
-                        psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
-                    }
+                        double cTFlange;
+                        /*if (M2Ed > 0)
+                        {
+                            cTFlange = sec.Bint / sec.TTop;
+                        } else
+                        {
+                            cTFlange = sec.Bint / sec.TBottom;
+                        }*/
+                        cTFlange = Math.Max(sec.Bint / sec.TBottom, sec.Bint / sec.TTop);
 
-                    double cTWeb = sec.Hw / sec.Thickness;
-                    _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
+                        //flange are load with constant load
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
+
+                        //classification webs
+                        //from equilibrium of Σ sigma = Ned
+                        if (sec.TTop == sec.TBottom && sec.TWebLeft == sec.TWebRight)
+                        {
+                            double alphaClassification = -_NEd / (4.0 * sec.ThicknessWeb * fy * sec.Hw) + 0.5;
+
+                            //from equlibrium sigma = N/A+M/W:
+                            double psiClassification = 1;
+                            if (_classificationSection < 4)
+                            {
+                                psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
+                            }
+
+                            double cTWeb = sec.Hw / sec.Thickness;
+                            _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
+                        }
+                        else
+                        {
+                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(sec.Hw / sec.TWebLeft, epsilon));
+                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(sec.Hw / sec.TWebRight, epsilon));
+                        }
+                    }
                     #endregion
 
                     #region ClassificationAxialBendingWeakAxis
                     if (Math.Abs(_MEd1) > 0)
                     {
-                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(sec.Hw / sec.TWebLeft, epsilon));
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(sec.Hw / sec.TWebRight, epsilon));
 
-                        alphaClassification = -_NEd / (4.0 * sec.Thickness * fy * sec.Bint) + 0.5;
-                        psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
-                        _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTFlange, epsilon, alphaClassification, psiClassification));
+                        if (sec.TWebLeft == sec.TWebRight && sec.TTop == sec.TBottom)
+                        {
+                            double alphaClassification = -_NEd / (4.0 * sec.ThicknessFlange * fy * sec.Bint) + 0.5;
+                            double psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
+                            _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(sec.Bint / sec.TTop, epsilon, alphaClassification, psiClassification));
+                        } else
+                        {
+                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(sec.Bint / sec.TTop, epsilon));
+                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(sec.Bint / sec.TBottom, epsilon));
+                        }
                     }
                     #endregion
                 } else if (typeShape == typeof(SectionH)) {
                     SectionH sec = (SectionH)_sec;
                     double cTWeb = sec.HeightWeb / sec.ThicknessWeb;
-                    double cTFlange = sec.LenghtBottomFlange / 2.0 / sec.ThicknessBottomFlange;
+                    double cTFlangeTop = (sec.LenghtTopFlange / 2.0 - sec.ThicknessWeb / 2.0) / sec.ThicknessTopFlange;
+                    double cTFlangeBottom = (sec.LenghtBottomFlange / 2.0 - sec.ThicknessWeb / 2.0) / sec.ThicknessBottomFlange;
 
                     if (sec.IsDoubleSymmetric)
                     {
                         #region AxialAndBendingStrongDirection
-                        //classification of flanged for axial force due to bending
-                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlange, epsilon));
-
-                        //classification web
-                        double alphaClassification = -NEd / (2.0 * sec.HeightWeb * fy * sec.ThicknessWeb) + 0.5;
-                        double psiClassification = 1;
-                        if (_classificationSection < 4)
+                        if (Math.Abs(M2Ed) > 0)
                         {
-                            psiClassification = -2.0 * _NEd / (sec.Area) - 1.0;
+                            //classification of flanged for axial force due to bending
+                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
+
+                            //classification web
+                            double alphaClassification = -NEd / (2.0 * sec.HeightWeb * fy * sec.ThicknessWeb) + 0.5;
+                            double psiClassification = 1;
+                            if (_classificationSection < 4)
+                            {
+                                psiClassification = -2.0 * _NEd / (sec.Area) - 1.0;
+                            }
+                            _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
                         }
-                        _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
                         #endregion
 
                         #region AxialAndBendingWeakDirection
@@ -260,7 +294,8 @@ namespace GPC.Checker.Steel.EuroCode
                             //classification only for Compression.
                             //Other detailed calculation should be found and implemented
                             _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
-                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
+                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlangeTop, epsilon));
+                            _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlangeBottom, epsilon));
                         }
                         #endregion
                     }
@@ -269,14 +304,25 @@ namespace GPC.Checker.Steel.EuroCode
                         //classification only for Compression.
                         //Other detailed calculation should be found and implemented
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
-                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlangeTop, epsilon));
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlangeBottom, epsilon));
                     } 
                 }
             } else
             {
                 _classificationSection = 1;
             }
-                
+            
+            if (_classificationSection == 4)
+            {
+                Class4Section sectionCL4 = new Class4Section(_sec);
+                sectionCL4.Calc(_NEd, _MEd2, _MEd1);
+                _Aeff = sectionCL4.Aeff;
+                _Weffy = sectionCL4.Weff2;
+                _Weffz = sectionCL4.Weff1;
+                _deltaG = _sec.Centroid - sectionCL4.Centroid;
+            }
+
             #endregion
 
             #region resistance
@@ -340,11 +386,11 @@ namespace GPC.Checker.Steel.EuroCode
                     _L0z = _betaz * _L;
                     _L0LT = _betaLT * _L;
 
-                    _Ncry = GetNcrEuler(E, _sec.J22, _L0y);
-                    _Ncrz = GetNcrEuler(E, _sec.J11, _L0z);
+                    _Ncry = GetNcrEuler(E, _sec.J22, _L0y); //Jeff?
+                    _Ncrz = GetNcrEuler(E, _sec.J11, _L0z); //Jeff?
 
-                    double lambday = GetLambdaSegn(_sec.Area, fy, _Ncry);
-                    double lambdaz = GetLambdaSegn(_sec.Area, fy, _Ncrz);
+                    double lambday = GetLambdaSegn(_sec.Area, fy, _Ncry); //AreaEff?
+                    double lambdaz = GetLambdaSegn(_sec.Area, fy, _Ncrz); //AreaEff?
 
                     GetImperfectionFactor(out _alphay, out _alphaz);
 
@@ -374,7 +420,7 @@ namespace GPC.Checker.Steel.EuroCode
                         lambdaSegnLT = GetLambdaSegn(_sec.Wel22Min, fy, _McrLateralTorsional);
                     } else
                     {
-                        throw new Exception("class 4 not yet supported");
+                        lambdaSegnLT = GetLambdaSegn(_Weffy, fy, _McrLateralTorsional);
                     }
 
                     _alphaLT = GetImperfectionFactorLT(_useEquation_6_57);
@@ -404,7 +450,8 @@ namespace GPC.Checker.Steel.EuroCode
                     }
                     else
                     {
-                        throw new Exception("class 4 not yet supported");
+                        MbRdy = _ChiLT * _Weffy * fy / annex.Gm1;
+                        MbRdz = _Weffz * fy / annex.Gm1;
                     }
 
                     if (_method1AnnexA)
@@ -424,8 +471,8 @@ namespace GPC.Checker.Steel.EuroCode
                         double wy, wz;
                         if (_classificationSection < 3) //Rules for member stability in en 1993-1-1 pg. 113
                         {
-                            wy = Math.Min(_sec.Wpl22 / _sec.Wel22Min, 1.5);
-                            wz = Math.Min(_sec.Wpl11 / _sec.Wel11Min, 1.5);
+                            wy = Math.Min(_sec.Wpl22 / _sec.Wel22Min, 1.5); //Weff?
+                            wz = Math.Min(_sec.Wpl11 / _sec.Wel11Min, 1.5); //Weff?
                         } else
                         {
                             wy = 1.0;
@@ -434,76 +481,89 @@ namespace GPC.Checker.Steel.EuroCode
 
                         double lambdaMax = Math.Max(lambday, lambdaz);
 
-                        double mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, 1.0, 1, 1);
-                        double lambda0 = GetLambdaSegn(_sec.Wpl22, fy, mCrLT0);
+                        double mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, 1.0, 1, 1); //Jeff?
 
-                        double epsilony;
-                        if (_classificationSection < 4) {
-                            epsilony = _MEd2 / _NEd * _sec.Area / _sec.Wel22Min;
-                            double aLT = Math.Max(1.0 - _sec.Jt / _sec.J22,0.0);
-                            
-                            double C1 = Math.Pow(kc, -2.0);
-                            double lambda0Limit = 0.2 * Math.Pow(C1, 0.5) * Math.Pow((1.0 - NEd / _Ncrz) * (1.0 - NEd / ncrFlexuralTorsional), 0.25);
-
-                            double cmy;
-                            double cmz;
-                            double cmLT;
-                            if (lambda0 <= lambda0Limit)
-                            {
-                                cmy = cmy0;
-                                cmz = cmz0;
-                                cmLT = 1.0;
-                            } else
-                            {
-                                cmy = cmy0 + (1.0 - cmy0) * Math.Sqrt(epsilony) * aLT / (1.0 + Math.Sqrt(epsilony) * aLT);
-                                cmz = cmz0;
-                                cmLT = Math.Min(cmy*cmy * aLT / (Math.Sqrt(1.0-_NEd/_Ncrz) * (1.0 - _NEd/ncrTorsional)),1.0);
-                                /*if (cmLT < 1)
-                                {
-                                    throw new Exception("cmLT < 1");
-                                }*/
-                            }
-
-                            double mplyRd = _sec.Wpl22 * fy / _annex.Gm0;
-                            double mplzRd = _sec.Wpl11 * fy / _annex.Gm0;
-
-                            double bLT = 0.5 * aLT * lambda0 * lambda0 * _MEd2 * _MEd1 / (_ChiLT * mplyRd * mplzRd);
-                            double cLT = 10.0 * aLT * lambda0 * lambda0 * _MEd2 / (5.0 + Math.Pow(lambdaz,4.0) * cmy * _ChiLT * mplyRd);
-                            double dLT = 2.0 * aLT * lambda0 * _MEd2 * _MEd1 / ((0.1 + Math.Pow(lambdaz,4.0)) * cmy * _ChiLT * mplyRd * cmz * mplzRd);
-                            double eLT = 1.7 * aLT * lambda0 * _MEd2 / ((0.1 + Math.Pow(lambdaz, 4.0)) * cmy * _ChiLT * mplyRd);
-
-                            double npl = _NEd / (fy * _sec.Area / _annex.Gm0);
-                            double cyy = Math.Max(1.0 + (wy - 1.0) * ((2.0 - 1.6/wy * cmy * cmy * lambdaMax - 1.6 / wy * cmy * cmy * lambdaMax * lambdaMax) * npl - bLT), _sec.Wel22Min / _sec.Wpl22);
-                            double cyz = Math.Max(1.0 + (wz - 1.0) * ((2.0 - 14.0 * cmz * cmz * lambdaMax * lambdaMax / Math.Pow(wz,5.0)) * npl - cLT), 0.6 * Math.Sqrt(wz / wy) * _sec.Wel11Min / _sec.Wel22Min);
-                            double czy = Math.Max(1.0 + (wy - 1.0) * ((2.0 - 14.0 * cmy * cmy * lambdaMax * lambdaMax / Math.Pow(wy, 5.0)) * npl - dLT),0.6 * Math.Sqrt(wy / wz) * _sec.Wel22Min / _sec.Wel11Min);
-                            double czz = Math.Max(1.0 + (wz - 1) * (2.0 - 1.6 / wz * cmz * cmz * lambdaMax - 1.6 / wz * cmz * cmz * lambdaMax * lambdaMax - eLT) * npl, _sec.Wel11Min / _sec.Wpl11);
-  
-                            if (_classificationSection <= 2)
-                            {
-                                _kyy = cmy * cmLT * muy / (1.0 - _NEd / _Ncry) * 1.0 / cyy;
-                                _kyz = cmz * muy/(1.0 - _NEd/_Ncrz) * 1.0 / cyz * 0.6 * Math.Sqrt(wz/wy);
-                                _kzy = cmy * cmLT * muz/(1.0 - _NEd/_Ncry) * 1.0 / czy * 0.6 * Math.Sqrt(wy/wz);
-                                _kzz = cmz * muz / (1.0 - _NEd/_Ncrz) * 1.0 / czz;
-                            } else
-                            {
-                                _kyy = cmy * cmLT * muy / (1.0 - _NEd / _Ncry);
-                                _kyz = cmz * muy / (1.0 - _NEd / _Ncrz);
-                                _kzy = cmy * cmLT * muz / (1.0 - NEd/_Ncry);
-                                _kzz = cmz * muz / (1.0 - _NEd / _Ncrz);
-                            }
+                        double lambda0;
+                        if (_classificationSection < 3)
+                        {
+                            lambda0 = GetLambdaSegn(_sec.Wpl22, fy, mCrLT0);
+                        } else if (_classificationSection == 3)
+                        {
+                            lambda0 = GetLambdaSegn(_sec.Wel22Min, fy, mCrLT0);
                         } else
                         {
-                            //epsilony = _MEd2 / _NEd * _sec.Area / _sec.Weff;
-                            throw new Exception("calss 4 not supperted");
+                            lambda0 = GetLambdaSegn(_Weffy, fy, mCrLT0); //or Wel?
+                        } 
+
+                        double epsilony;
+                        if (_classificationSection < 4)
+                        {
+                            epsilony = _MEd2 / _NEd * _sec.Area / _sec.Wel22Min;
+                        } else
+                        {
+                            epsilony = _MEd2 / _NEd * _Aeff / _Weffy;
                         }
+
+                        double aLT = Math.Max(1.0 - _sec.Jt / _sec.J22,0.0);
+                            
+                        double C1 = Math.Pow(kc, -2.0);
+                        double lambda0Limit = 0.2 * Math.Pow(C1, 0.5) * Math.Pow((1.0 - NEd / _Ncrz) * (1.0 - NEd / ncrFlexuralTorsional), 0.25);
+
+                        double cmy;
+                        double cmz;
+                        double cmLT;
+                        if (lambda0 <= lambda0Limit)
+                        {
+                            cmy = cmy0;
+                            cmz = cmz0;
+                            cmLT = 1.0;
+                        } else
+                        {
+                            cmy = cmy0 + (1.0 - cmy0) * Math.Sqrt(epsilony) * aLT / (1.0 + Math.Sqrt(epsilony) * aLT);
+                            cmz = cmz0;
+                            cmLT = Math.Min(cmy*cmy * aLT / (Math.Sqrt(1.0-_NEd/_Ncrz) * (1.0 - _NEd/ncrTorsional)),1.0);
+                            /*if (cmLT < 1)
+                            {
+                                throw new Exception("cmLT < 1");
+                            }*/
+                        }
+
+                        double mplyRd = _sec.Wpl22 * fy / _annex.Gm0;
+                        double mplzRd = _sec.Wpl11 * fy / _annex.Gm0;
+
+                        double bLT = 0.5 * aLT * lambda0 * lambda0 * _MEd2 * _MEd1 / (_ChiLT * mplyRd * mplzRd);
+                        double cLT = 10.0 * aLT * lambda0 * lambda0 * _MEd2 / (5.0 + Math.Pow(lambdaz,4.0) * cmy * _ChiLT * mplyRd);
+                        double dLT = 2.0 * aLT * lambda0 * _MEd2 * _MEd1 / ((0.1 + Math.Pow(lambdaz,4.0)) * cmy * _ChiLT * mplyRd * cmz * mplzRd);
+                        double eLT = 1.7 * aLT * lambda0 * _MEd2 / ((0.1 + Math.Pow(lambdaz, 4.0)) * cmy * _ChiLT * mplyRd);
+
+                        double npl = _NEd / (fy * _sec.Area / _annex.Gm0);
+                        double cyy = Math.Max(1.0 + (wy - 1.0) * ((2.0 - 1.6/wy * cmy * cmy * lambdaMax - 1.6 / wy * cmy * cmy * lambdaMax * lambdaMax) * npl - bLT), _sec.Wel22Min / _sec.Wpl22);
+                        double cyz = Math.Max(1.0 + (wz - 1.0) * ((2.0 - 14.0 * cmz * cmz * lambdaMax * lambdaMax / Math.Pow(wz,5.0)) * npl - cLT), 0.6 * Math.Sqrt(wz / wy) * _sec.Wel11Min / _sec.Wel22Min);
+                        double czy = Math.Max(1.0 + (wy - 1.0) * ((2.0 - 14.0 * cmy * cmy * lambdaMax * lambdaMax / Math.Pow(wy, 5.0)) * npl - dLT),0.6 * Math.Sqrt(wy / wz) * _sec.Wel22Min / _sec.Wel11Min);
+                        double czz = Math.Max(1.0 + (wz - 1) * (2.0 - 1.6 / wz * cmz * cmz * lambdaMax - 1.6 / wz * cmz * cmz * lambdaMax * lambdaMax - eLT) * npl, _sec.Wel11Min / _sec.Wpl11);
+  
+                        if (_classificationSection <= 2)
+                        {
+                            _kyy = cmy * cmLT * muy / (1.0 - _NEd / _Ncry) * 1.0 / cyy;
+                            _kyz = cmz * muy/(1.0 - _NEd/_Ncrz) * 1.0 / cyz * 0.6 * Math.Sqrt(wz/wy);
+                            _kzy = cmy * cmLT * muz/(1.0 - _NEd/_Ncry) * 1.0 / czy * 0.6 * Math.Sqrt(wy/wz);
+                            _kzz = cmz * muz / (1.0 - _NEd/_Ncrz) * 1.0 / czz;
+                        } else
+                        {
+                            _kyy = cmy * cmLT * muy / (1.0 - _NEd / _Ncry);
+                            _kyz = cmz * muy / (1.0 - _NEd / _Ncrz);
+                            _kzy = cmy * cmLT * muz / (1.0 - NEd/_Ncry);
+                            _kzz = cmz * muz / (1.0 - _NEd / _Ncrz);
+                        }
+                        
                     } else
                     {
                         //Annex B
                         throw new Exception("Annex B not implemented yet");
                     }
 
-                    double deltaMy = 0;
-                    double deltaMz = 0;
+                    double deltaMy = _NEd * _deltaG.Y; //check segno
+                    double deltaMz = _NEd * _deltaG.X; //check segno
                     double nrk;
                     double myrk;
                     double mzrk;
@@ -519,7 +579,9 @@ namespace GPC.Checker.Steel.EuroCode
                         mzrk = _sec.Wel11Min * fy;
                     } else
                     {
-                        throw new Exception("section 4 not supported yet");
+                        nrk = _Aeff * fy;
+                        myrk = _Weffy * fy;
+                        mzrk = _Weffz * fy;
                     }
                     WRBuckling1 = _NEd / (_Chiy * nrk / _annex.Gm1) + _kyy * Math.Abs(_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kyz * Math.Abs(_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
                     WRBuckling2 = _NEd / (_Chiz * nrk / _annex.Gm1) + _kzy * Math.Abs(_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kzz * Math.Abs(_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
@@ -682,7 +744,15 @@ namespace GPC.Checker.Steel.EuroCode
         }
         protected double GetNcRd()
         {
-            double A = _sec.Area;
+            double A;
+            if (_classificationSection == 4)
+            {
+                A = _Aeff;
+            }
+            else
+            {
+                A = _sec.Area;
+            }
             double fy = ((SteelMaterial)_sec.Material).Fyk;
             double gm0 = _annex.Gm0;
 
@@ -748,6 +818,10 @@ namespace GPC.Checker.Steel.EuroCode
             double VplRdz = Avz * fy / gm0 / Math.Pow(3.0, 0.5);
 
             #region calculationTauTandTauW
+            if (_classificationSection == 4 && Math.Abs(_TEd) > 0)
+            {
+                throw new Exception("Class 4 with torsion not supported by Eurocode.");
+            }
             double tau_w = 0;
             double tauT;
 
@@ -896,6 +970,7 @@ namespace GPC.Checker.Steel.EuroCode
             double A = _sec.Area;
             double Wy;
             double Wz;
+
             if (_classificationSection < 3)
             {
                 Wy = _sec.Wpl22;
@@ -906,8 +981,8 @@ namespace GPC.Checker.Steel.EuroCode
                 Wz = _sec.Wel11Min;
             } else
             {
-                Wy = Wz = 0;
-                new Exception("class 4 not yet supported");
+                Wy = _Weffy;
+                Wz = _Weffz;
             }
             Type typeShape = _sec.GetType();
 
@@ -926,56 +1001,69 @@ namespace GPC.Checker.Steel.EuroCode
             double Mrdy = Wy * (1.0 - rhoy) * fy / gm0;
             double Mrdz = Wz * (1.0 - rhoz) * fy / gm0;
 
-            MRdNy = 0.0;
-            MRdNz = 0.0;
-            double NplRd = fy * A / gm0;
-            double n = Math.Abs(NEd) / NplRd;
+            if (_classificationSection < 4)
+            {
+                MRdNy = 0.0;
+                MRdNz = 0.0;
+                double NplRd = fy * A / gm0;
+                double n = Math.Abs(NEd) / NplRd;
 
-            if (typeShape == typeof(SectionRectangular)) {
-                MRdNy = Mrdy * Math.Pow(1.0 - Math.Abs(NEd) / NplRd, 2.0);
-                MRdNz = Mrdz * Math.Pow(1.0 - Math.Abs(NEd) / NplRd, 2.0);
-            } else if (typeShape == typeof(SectionH)) {
-                SectionH secH = (SectionH) _sec;
-                if (secH.LenghtBottomFlange == secH.LenghtTopFlange && secH.ThicknessTopFlange == secH.ThicknessBottomFlange)
+                if (typeShape == typeof(SectionRectangular))
                 {
-                    double a = Math.Min((A - 2.0 * secH.LenghtTopFlange * secH.ThicknessTopFlange) / A, 0.5);
-                    double MNyRd = Math.Min(Mrdy * (1.0 - n) / (1.0 - 0.5 * a), Mrdy);
-                    double MNzRd = 0.0;
-                    if (n <= a)
+                    MRdNy = Mrdy * Math.Pow(1.0 - Math.Abs(NEd) / NplRd, 2.0);
+                    MRdNz = Mrdz * Math.Pow(1.0 - Math.Abs(NEd) / NplRd, 2.0);
+                }
+                else if (typeShape == typeof(SectionH))
+                {
+                    SectionH secH = (SectionH)_sec;
+                    if (secH.LenghtBottomFlange == secH.LenghtTopFlange && secH.ThicknessTopFlange == secH.ThicknessBottomFlange)
                     {
-                        MNzRd = Mrdz;
+                        double a = Math.Min((A - 2.0 * secH.LenghtTopFlange * secH.ThicknessTopFlange) / A, 0.5);
+                        MRdNy = Math.Min(Mrdy * (1.0 - n) / (1.0 - 0.5 * a), Mrdy);
+                        MRdNz = 0.0;
+                        if (n <= a)
+                        {
+                            MRdNz = Mrdz;
+                        }
+                        else
+                        {
+                            MRdNy = Mrdz * (1.0 - Math.Pow((n - a) / (1.0 - a), 2.0));
+                        }
                     }
                     else
                     {
-                        MNzRd = Mrdz * (1.0 - Math.Pow((n - a) / (1.0 - a), 2.0));
+                        MRdNy = 0.0;
+                        MRdNz = 0.0;
                     }
+                }
+                else if (typeShape == typeof(SectionCHS))
+                {
+                    MRdNy = Mrdy * (1.0 - Math.Pow(n, 1.7));
+                    MRdNz = Mrdz * (1.0 - Math.Pow(n, 1.7));
+                }
+                else if (typeShape == typeof(SectionRHS))
+                {
+                    SectionRHS secRHS = (SectionRHS)_sec;
+                    double b = secRHS.B;
+                    double h = secRHS.H;
+                    double thk_flange = secRHS.ThicknessFlange;
+                    double thk_web = secRHS.ThicknessWeb;
+
+                    double aw = Math.Min((A - 2.0 * b * thk_flange) / A, 0.5);
+                    double af = Math.Min((A - 2.0 * h * thk_web) / A, 0.5);
+
+                    MRdNy = Math.Min(Mrdy * (1.0 - n) / (1 - 0.5 * aw), Mrdy);
+
+                    MRdNz = Math.Min(Mrdz * (1.0 - n) / (1 - 0.5 * af), Mrdz);
                 }
                 else
                 {
-                    MRdNy = 0.0;
-                    MRdNz = 0.0;
+                    throw new Exception("Section not yet supported");
                 }
-            } else if (typeShape == typeof(SectionCHS))
-            {
-                MRdNy = Mrdy * (1.0 - Math.Pow(n, 1.7));
-                MRdNz = Mrdz * (1.0 - Math.Pow(n, 1.7));
-            } else if (typeShape == typeof(SectionRHS))
-            {
-                SectionRHS secRHS = (SectionRHS)_sec;
-                double b = secRHS.B;
-                double h = secRHS.H;
-                double thk_flange = secRHS.ThicknessFlange;
-                double thk_web = secRHS.ThicknessWeb;
-
-                double aw = Math.Min((A - 2.0 * b * thk_flange) / A, 0.5);
-                double af = Math.Min((A - 2.0 * h * thk_web) / A, 0.5);
-
-                MRdNy = Math.Min(Mrdy * (1.0 - n) / (1 - 0.5 * aw), Mrdy);
-
-                MRdNz = Math.Min(Mrdz * (1.0 - n) / (1 - 0.5 * af), Mrdz);
             } else
             {
-                throw new Exception("Section not yet supported");
+                MRdNy = Mrdy;
+                MRdNz = Mrdz;
             }
         }
 
@@ -1031,8 +1119,7 @@ namespace GPC.Checker.Steel.EuroCode
             }
             else
             {
-                return  Math.Abs(_NEd / _NRd) + Math.Abs(_MEd2) / _MRdy + Math.Abs(_MEd1) / _MRdz;
-                throw new Exception("Section class 4 not supported");
+                return  Math.Abs(_NEd / _NRd) + Math.Abs(_MEd2 + _NEd * _deltaG.Y) / _MRdy + Math.Abs(_MEd1 + _NEd * _deltaG.X) / _MRdz; //attention to sign
             }
         }
         #endregion

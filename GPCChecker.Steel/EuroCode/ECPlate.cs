@@ -12,9 +12,27 @@ namespace GPCChecker.Steel.EuroCode
     {
         List<ECPlate> _plates;
 
-        public Class4Section(List<ECPlate> plates)
+        public Class4Section(Section sect)
         {
-            _plates = plates;
+            Type typeSect = sect.GetType();
+            if (typeSect == typeof(SectionH))
+            {
+                SectionH sec = (SectionH)sect;
+                ECPlate bottomLeft = new ECPlate(sec.Plates[0], sec.ThicknessWeb / 2.0, 0);
+                ECPlate bottomRight = new ECPlate(sec.Plates[1], sec.ThicknessWeb / 2.0, 0);
+                ECPlate Web = new ECPlate(sec.Plates[2], 0, 0);
+                ECPlate TopLeft = new ECPlate(sec.Plates[3], sec.ThicknessWeb / 2.0, 0);
+                ECPlate TopRight = new ECPlate(sec.Plates[4], sec.ThicknessWeb / 2.0, 0);
+                
+                _plates.Add(bottomLeft);
+                _plates.Add(bottomRight);
+                _plates.Add(Web);
+                _plates.Add(TopLeft);
+                _plates.Add(TopRight);
+            } else
+            {
+                throw new Exception("Section 4 of this type not yet supported");
+            }
         }
 
         public List<ECPlate> Plates => _plates;
@@ -93,6 +111,27 @@ namespace GPCChecker.Steel.EuroCode
             }
         }
 
+        public double Weff2
+        {
+            get {
+                double Weff2 = 0;
+                double Jeff2 = J2eff;
+                double yg = Centroid.Y;
+                for (int i = 0; i < _plates.Count; i++)
+                {
+                    if (_plates[i].FirstPointActive != null)
+                    {
+                        Weff2 = Math.Max(Weff2, Jeff2 / Math.Abs(_plates[i].FirstPointActive.Y - yg));
+                    }
+                    if (_plates[i].LastPointActive != null)
+                    {
+                        Weff2 = Math.Max(Weff2, Jeff2 / Math.Abs(_plates[i].LastPointActive.Y - yg));
+                    }
+                }
+                return Weff2;
+            }
+        }
+
         public double J1eff
         {
             get
@@ -106,6 +145,28 @@ namespace GPCChecker.Steel.EuroCode
                 }
 
                 return J;
+            }
+        }
+
+        public double Weff1
+        {
+            get
+            {
+                double Weff1 = 0;
+                double Jeff1 = J1eff;
+                double xg = Centroid.X;
+                for (int i = 0; i < _plates.Count; i++)
+                {
+                    if (_plates[i].FirstPointActive != null)
+                    {
+                        Weff1 = Math.Max(Weff1, Jeff1 / Math.Abs(_plates[i].FirstPointActive.X - xg));
+                    }
+                    if (_plates[i].LastPointActive != null)
+                    {
+                        Weff1 = Math.Max(Weff1, Jeff1 / Math.Abs(_plates[i].LastPointActive.X - xg));
+                    }
+                }
+                return Weff1;
             }
         }
     }
@@ -164,7 +225,7 @@ namespace GPCChecker.Steel.EuroCode
             }
         }
 
-        public ECPlate(Plate p) : this(p.Thickness, p.InitialPoint, p.EndPoint, p.Fyk, p.GetType, p.RemoveLengthSide1, p.RemoveLengthSide2)
+        public ECPlate(Plate p, double removeLengthSide1, double removeLengthSide2) : this(p.Thickness, p.InitialPoint, p.EndPoint, p.Fyk, p.GetTypePlate, removeLengthSide1, removeLengthSide2)
         {
             
         }
