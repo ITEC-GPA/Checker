@@ -327,7 +327,7 @@ namespace SteelTests
             double b = 100;
             double t = 4;
 
-            SectionRHS sec = new SectionRHS(h, b, t, t, t, t, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
+            SectionRHS sec = new SectionRHS(h, b, t, t, t, t, false, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
             EuroCodeBeamChecker axialCheck1 = new EuroCodeBeamChecker(sec, -230e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             MessageBox.Show(axialCheck1.ClassificationSection.ToString());
 
@@ -342,6 +342,19 @@ namespace SteelTests
 
             EuroCodeBeamChecker bendingCheck = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 1e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             MessageBox.Show(bendingCheck.ClassificationSection.ToString());
+        }
+
+        [TestMethod]
+        public void SectionHTest1()
+        {
+            double h = 200;
+            double b = 100;
+            double t = 10;
+
+            SectionH sec = new SectionH(h, t, b, t, b, t, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
+            EuroCodeBeamChecker Check1 = new EuroCodeBeamChecker(sec, -230e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+
+            double Mrdy = Check1.MRdy;
         }
     }
 }

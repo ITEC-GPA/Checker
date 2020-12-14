@@ -70,18 +70,12 @@ namespace ECPlateTest
             double h = 1400 + 2 * tf;
             double b = 400;
 
-            SectionH sec = new SectionH(h, tw, b, tf, b, tf, new SteelMaterial("steel", 200000, 0.3, 355, 510, 7850));
+            SectionH sec = new SectionH(h, tw, b, tf, b, tf, false, new SteelMaterial("steel", 200000, 0.3, 355, 510, 7850));
 
             double A = sec.Area;
             double Iy = sec.J22;
 
-            List<ECPlate> plateSec = new List<ECPlate>(5);
-            for (int i = 0; i < sec.Plates.Length; i++)
-            {
-                plateSec.Add(new ECPlate(sec.Plates[i]));
-            }
-
-            Class4Section class4 = new Class4Section(plateSec);
+            Class4Section class4 = new Class4Section(sec);
             
             double N = 0;
             double My = 6.1*1e9;
