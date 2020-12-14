@@ -316,10 +316,16 @@ namespace GPC.Checker.Steel.EuroCode
             if (_classificationSection == 4)
             {
                 Class4Section sectionCL4 = new Class4Section(_sec);
-                sectionCL4.Calc(_NEd, _MEd2, _MEd1);
-                _Aeff = sectionCL4.Aeff;
+                
+                sectionCL4.Calc(0, _MEd2, 0);
                 _Weffy = sectionCL4.Weff2;
+
+                sectionCL4.Calc(0, 0, _MEd1);
                 _Weffz = sectionCL4.Weff1;
+
+                sectionCL4.Calc(_NEd, 0, 0);
+                _Aeff = sectionCL4.Aeff;
+
                 _deltaG = _sec.Centroid - sectionCL4.Centroid;
             }
 

@@ -117,18 +117,23 @@ namespace GPCChecker.Steel.EuroCode
                 double Weff2 = 0;
                 double Jeff2 = J2eff;
                 double yg = Centroid.Y;
+                double yMax = yg;
+                double yMin = yg;
                 for (int i = 0; i < _plates.Count; i++)
                 {
                     if (_plates[i].FirstPointActive != null)
                     {
-                        Weff2 = Math.Max(Weff2, Jeff2 / Math.Abs(_plates[i].FirstPointActive.Y - yg));
+                        yMax = Math.Max(yg, _plates[i].FirstPointActive.Y);
+                        yMin = Math.Min(yg, _plates[i].FirstPointActive.Y);
                     }
                     if (_plates[i].LastPointActive != null)
                     {
-                        Weff2 = Math.Max(Weff2, Jeff2 / Math.Abs(_plates[i].LastPointActive.Y - yg));
+                        yMax = Math.Max(yg, _plates[i].LastPointActive.Y);
+                        yMin = Math.Min(yg, _plates[i].LastPointActive.Y);
                     }
                 }
-                return Weff2;
+                double dy = Math.Min(Math.Abs(yMax - yg), Math.Abs(yMin - yg));
+                return Jeff2 / dy;
             }
         }
 
@@ -155,18 +160,23 @@ namespace GPCChecker.Steel.EuroCode
                 double Weff1 = 0;
                 double Jeff1 = J1eff;
                 double xg = Centroid.X;
+                double xMax = xg;
+                double xMin = xg;
                 for (int i = 0; i < _plates.Count; i++)
                 {
                     if (_plates[i].FirstPointActive != null)
                     {
-                        Weff1 = Math.Max(Weff1, Jeff1 / Math.Abs(_plates[i].FirstPointActive.X - xg));
+                        xMax = Math.Max(xg, _plates[i].FirstPointActive.X);
+                        xMin = Math.Min(xg, _plates[i].FirstPointActive.X);
                     }
                     if (_plates[i].LastPointActive != null)
                     {
-                        Weff1 = Math.Max(Weff1, Jeff1 / Math.Abs(_plates[i].LastPointActive.X - xg));
+                        xMax = Math.Max(xg, _plates[i].LastPointActive.X);
+                        xMin = Math.Min(xg, _plates[i].LastPointActive.X);
                     }
                 }
-                return Weff1;
+                double dx = Math.Min(Math.Abs(xMax - xg), Math.Abs(xMin - xg));
+                return Jeff1 / dx;
             }
         }
     }
