@@ -52,7 +52,9 @@ namespace GPC.Checker.Steel.EuroCode
 
         protected double _Aeff;
         protected double _Weffy;
+        protected double _J2eff;
         protected double _Weffz;
+        protected double _J1eff;
         protected Point2d _deltaG;
 
         protected double _NEd;
@@ -98,6 +100,12 @@ namespace GPC.Checker.Steel.EuroCode
         public double TRd => _TRd;
 
         public int ClassificationSection => _classificationSection;
+
+        public double Aeff => _Aeff;
+        public double Weffy => _Weffy;
+        public double J2eff => _J2eff;
+        public double Weffz => _Weffz;
+        public double J1eff => _J1eff;
 
         public double L0y => _L0y;
         public double L0z => _L0z;
@@ -161,16 +169,6 @@ namespace GPC.Checker.Steel.EuroCode
 
             #region classification
             double minSigma = _sec.MinSigma(_NEd, _MEd2, _MEd1);
-            /*
-             * IMPORTANTE NOTE:
-             * EN 1993-1-1 6.2.9.3 (2) is possible to check:
-             *  - Aeff only for N
-             *  - Meffy only for My
-             *  - Meffz only for Mz
-             *  
-             *  and check
-             *  N/Nreff + My/Mreffy + Mz/Mreffz
-            */
 
             double fy = ((SteelMaterial)_sec.Material).Fyk;
             double epsilon = Math.Sqrt(235.0/fy);
@@ -223,7 +221,7 @@ namespace GPC.Checker.Steel.EuroCode
 
                         //classification webs
                         //from equilibrium of Σ sigma = Ned
-                        if (sec.TTop == sec.TBottom && sec.TWebLeft == sec.TWebRight)
+                        if (sec.TTop == sec.TBottom && sec.TWebLeft == sec.TWebRight && _classificationSection <= 3)
                         {
                             double alphaClassification = -_NEd / (4.0 * sec.ThicknessWeb * fy * sec.Hw) + 0.5;
 
@@ -234,7 +232,7 @@ namespace GPC.Checker.Steel.EuroCode
                                 psiClassification = -_NEd * 2.0 / (sec.Area * fy) - 1.0;
                             }
 
-                            double cTWeb = sec.Hw / sec.Thickness;
+                            double cTWeb = sec.Hw / sec.ThicknessWeb;
                             _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
                         }
                         else
@@ -315,18 +313,20 @@ namespace GPC.Checker.Steel.EuroCode
             
             if (_classificationSection == 4)
             {
-                Class4Section sectionCL4 = new Class4Section(_sec);
+                Class4Section secCL4 = new Class4Section(_sec);
                 
-                sectionCL4.Calc(0, _MEd2, 0);
-                _Weffy = sectionCL4.Weff2;
+                secCL4.Calc(0, _MEd2, 0);
+                _Weffy = secCL4.Weff2;
+                _J2eff = secCL4.J2eff;
 
-                sectionCL4.Calc(0, 0, _MEd1);
-                _Weffz = sectionCL4.Weff1;
+                secCL4.Calc(0, 0, _MEd1);
+                _Weffz = secCL4.Weff1;
+                _J1eff = secCL4.J1eff;
 
-                sectionCL4.Calc(_NEd, 0, 0);
-                _Aeff = sectionCL4.Aeff;
+                secCL4.Calc(_NEd, 0, 0);
+                _Aeff = secCL4.Aeff;
 
-                _deltaG = _sec.Centroid - sectionCL4.Centroid;
+                _deltaG = _sec.Centroid - _sec.Centroid;
             }
 
             #endregion
@@ -392,11 +392,23 @@ namespace GPC.Checker.Steel.EuroCode
                     _L0z = _betaz * _L;
                     _L0LT = _betaLT * _L;
 
-                    _Ncry = GetNcrEuler(E, _sec.J22, _L0y); //Jeff?
-                    _Ncrz = GetNcrEuler(E, _sec.J11, _L0z); //Jeff?
+                    double lambday;
+                    double lambdaz;
+                    if (_classificationSection < 4)
+                    {
+                        _Ncry = GetNcrEuler(E, _sec.J22, _L0y);
+                        _Ncrz = GetNcrEuler(E, _sec.J11, _L0z);
 
-                    double lambday = GetLambdaSegn(_sec.Area, fy, _Ncry); //AreaEff?
-                    double lambdaz = GetLambdaSegn(_sec.Area, fy, _Ncrz); //AreaEff?
+                        lambday = GetLambdaSegn(_sec.Area, fy, _Ncry);
+                        lambdaz = GetLambdaSegn(_sec.Area, fy, _Ncrz);
+                    } else
+                    {
+                        _Ncry = GetNcrEuler(E, _J2eff, _L0y);
+                        _Ncrz = GetNcrEuler(E, _J1eff, _L0z);
+
+                        lambday = GetLambdaSegn(_Aeff, fy, _Ncry);
+                        lambdaz = GetLambdaSegn(_Aeff, fy, _Ncrz);
+                    }
 
                     GetImperfectionFactor(out _alphay, out _alphaz);
 
@@ -477,17 +489,23 @@ namespace GPC.Checker.Steel.EuroCode
                         double wy, wz;
                         if (_classificationSection < 3) //Rules for member stability in en 1993-1-1 pg. 113
                         {
-                            wy = Math.Min(_sec.Wpl22 / _sec.Wel22Min, 1.5); //Weff?
-                            wz = Math.Min(_sec.Wpl11 / _sec.Wel11Min, 1.5); //Weff?
+                            wy = Math.Min(_sec.Wpl22 / _sec.Wel22Min, 1.5);
+                            wz = Math.Min(_sec.Wpl11 / _sec.Wel11Min, 1.5);
                         } else
                         {
-                            wy = 1.0;
-                            wz = 1.0;
+                            wy = 1.0; //e con Weff?
+                            wz = 1.0; //e con Weff?
                         }
 
                         double lambdaMax = Math.Max(lambday, lambdaz);
-
-                        double mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, 1.0, 1, 1); //Jeff?
+                        double mCrLT0;
+                        if (_classificationSection < 4)
+                        {
+                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, 1.0, 1, 1);
+                        } else
+                        {
+                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _J1eff, E, G, _supportConditiony, _loadConditiony, 1.0, 1, 1); //Jw eff?
+                        }
 
                         double lambda0;
                         if (_classificationSection < 3)
@@ -1322,7 +1340,7 @@ namespace GPC.Checker.Steel.EuroCode
             _alphay = 1;
             _alphaz = 1;
             Type typeShape = _sec.GetType();
-            if (typeShape == typeof(SectionRectangular))
+            if (typeShape == typeof(SectionH))
             {
                 SectionH sec = (SectionH)_sec;
                 if (sec.IsRolled)
@@ -1397,7 +1415,7 @@ namespace GPC.Checker.Steel.EuroCode
                         else //steel S235, 275, 355, 420
                         {
                             _alphay = SectionBucklingCurves["b"];
-                            _alphaz = SectionBucklingCurves["v"];
+                            _alphaz = SectionBucklingCurves["c"];
                         }
                     } else
                     {
@@ -1449,6 +1467,9 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 _alphay = SectionBucklingCurves["b"];
                 _alphaz = SectionBucklingCurves["b"];
+            } else
+            {
+                throw new Exception("Which curve for buckling?");
             }
         }
 

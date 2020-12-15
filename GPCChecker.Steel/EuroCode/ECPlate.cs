@@ -10,7 +10,7 @@ namespace GPCChecker.Steel.EuroCode
 {
     public class Class4Section
     {
-        List<ECPlate> _plates;
+        List<ECPlate> _plates = new List<ECPlate>();
 
         public Class4Section(Section sect)
         {
@@ -23,7 +23,8 @@ namespace GPCChecker.Steel.EuroCode
                 ECPlate Web = new ECPlate(sec.Plates[2], 0, 0);
                 ECPlate TopLeft = new ECPlate(sec.Plates[3], sec.ThicknessWeb / 2.0, 0);
                 ECPlate TopRight = new ECPlate(sec.Plates[4], sec.ThicknessWeb / 2.0, 0);
-                
+
+                _plates.Clear();
                 _plates.Add(bottomLeft);
                 _plates.Add(bottomRight);
                 _plates.Add(Web);
@@ -39,26 +40,27 @@ namespace GPCChecker.Steel.EuroCode
 
         public void Calc(double N, double My, double Mz)
         {
-            double Aeffk = 0;;
+            double Aeffk = 0;
             int iter = 0;
-            while (Math.Abs(Aeff - Aeffk) > 0.005 * Aeffk && iter <= 10)
+            while (Math.Abs(Aeff - Aeffk) > 0.0001 * Aeffk && iter <= 10)
             {
                 iter++;
 
                 Aeffk = Aeff;
+
+                double aEff = Aeff;
+                double j1Eff = J1eff;
+                double j2Eff = J2eff;
+                Point2d centroid = Centroid;
                 for (int i = 0; i < Plates.Count; i++)
                 {
-                    double aEff = Aeff;
-                    double j1Eff = J1eff;
-                    double j2Eff = J2eff;
-
                     //calculation sigma in initial point always active
                     Point2d p0 = Plates[i].FirstPointActive;
-                    double sigmaInitialPoint = N / aEff + My / j2Eff * (Centroid.Y - p0.Y) + Mz / j1Eff * (Centroid.X - p0.X);
+                    double sigmaInitialPoint = N / aEff + My / j2Eff * (centroid.Y - p0.Y) + Mz / j1Eff * (centroid.X - p0.X);
 
                     //calculation of sigma in the active point
                     Point2d p1 = Plates[i].LastPointActive;
-                    double sigmaLastPointActive = N / aEff + My / j2Eff * (Centroid.Y - p1.Y) + Mz / j1Eff * (Centroid.X - p1.X);
+                    double sigmaLastPointActive = N / aEff + My / j2Eff * (centroid.Y - p1.Y) + Mz / j1Eff * (centroid.X - p1.X);
                     Plates[i].SetSigma(sigmaInitialPoint, sigmaLastPointActive);
                 }
             }
@@ -91,7 +93,7 @@ namespace GPCChecker.Steel.EuroCode
                     Sy = Sy + _plates[i].Aeff * _plates[i].CentroidEff.Y;
                 }
 
-                return new Point2d(Sx/area, Sy/area);
+                return new Point2d(Sx / area, Sy / area);
             }
         }
 
@@ -104,7 +106,7 @@ namespace GPCChecker.Steel.EuroCode
 
                 for (int i = 0; i < _plates.Count; i++)
                 {
-                    J = J + _plates[i].JyEffCentroid + _plates[i].Aeff * Math.Pow(_plates[i].CentroidEff.Y - centroid.Y,2.0);
+                    J = J + _plates[i].JyEffCentroid + _plates[i].Aeff * Math.Pow(_plates[i].CentroidEff.Y - centroid.Y, 2.0);
                 }
 
                 return J;
@@ -114,25 +116,36 @@ namespace GPCChecker.Steel.EuroCode
         public double Weff2
         {
             get {
-                double Weff2 = 0;
                 double Jeff2 = J2eff;
                 double yg = Centroid.Y;
                 double yMax = yg;
                 double yMin = yg;
                 for (int i = 0; i < _plates.Count; i++)
                 {
+                    double halfT = _plates[i].T / 2.0;
+
                     if (_plates[i].FirstPointActive != null)
                     {
-                        yMax = Math.Max(yg, _plates[i].FirstPointActive.Y);
-                        yMin = Math.Min(yg, _plates[i].FirstPointActive.Y);
+                        if (_plates[i].isHorizontal) { } else { halfT = 0; }
+                        
+                        yMax = Math.Max(yMax, _plates[i].FirstPointActive.Y + halfT);
+                        yMax = Math.Max(yMax, _plates[i].FirstPointActive.Y - halfT);
+
+                        yMin = Math.Min(yMin, _plates[i].FirstPointActive.Y + halfT);
+                        yMin = Math.Min(yMin, _plates[i].FirstPointActive.Y - halfT);
                     }
                     if (_plates[i].LastPointActive != null)
                     {
-                        yMax = Math.Max(yg, _plates[i].LastPointActive.Y);
-                        yMin = Math.Min(yg, _plates[i].LastPointActive.Y);
+                        if (_plates[i].isHorizontal) { }  else { halfT = 0; }
+
+                        yMax = Math.Max(yMax, _plates[i].LastPointActive.Y + halfT);
+                        yMax = Math.Max(yMax, _plates[i].LastPointActive.Y - halfT);
+
+                        yMin = Math.Min(yMin, _plates[i].LastPointActive.Y + halfT);
+                        yMin = Math.Min(yMin, _plates[i].LastPointActive.Y - halfT);
                     }
                 }
-                double dy = Math.Min(Math.Abs(yMax - yg), Math.Abs(yMin - yg));
+                double dy = Math.Max(Math.Abs(yMax - yg), Math.Abs(yMin - yg));
                 return Jeff2 / dy;
             }
         }
@@ -157,25 +170,36 @@ namespace GPCChecker.Steel.EuroCode
         {
             get
             {
-                double Weff1 = 0;
                 double Jeff1 = J1eff;
                 double xg = Centroid.X;
                 double xMax = xg;
                 double xMin = xg;
                 for (int i = 0; i < _plates.Count; i++)
                 {
+                    double halfT = _plates[i].T / 2.0;
+
                     if (_plates[i].FirstPointActive != null)
                     {
-                        xMax = Math.Max(xg, _plates[i].FirstPointActive.X);
-                        xMin = Math.Min(xg, _plates[i].FirstPointActive.X);
+                        if (_plates[i].isVertical) { } else { halfT = 0; }
+
+                        xMax = Math.Max(xMax, _plates[i].FirstPointActive.X + halfT);
+                        xMax = Math.Max(xMax, _plates[i].FirstPointActive.X - halfT);
+
+                        xMin = Math.Min(xMin, _plates[i].FirstPointActive.X + halfT);
+                        xMin = Math.Min(xMin, _plates[i].FirstPointActive.X - halfT);
                     }
                     if (_plates[i].LastPointActive != null)
                     {
-                        xMax = Math.Max(xg, _plates[i].LastPointActive.X);
-                        xMin = Math.Min(xg, _plates[i].LastPointActive.X);
+                        if (_plates[i].isVertical) { } else { halfT = 0; }
+
+                        xMax = Math.Max(xMax, _plates[i].LastPointActive.X + halfT);
+                        xMax = Math.Max(xMax, _plates[i].LastPointActive.X - halfT);
+
+                        xMin = Math.Min(xMin, _plates[i].LastPointActive.X + halfT);
+                        xMin = Math.Min(xMin, _plates[i].LastPointActive.X - halfT);
                     }
                 }
-                double dx = Math.Min(Math.Abs(xMax - xg), Math.Abs(xMin - xg));
+                double dx = Math.Max(Math.Abs(xMax - xg), Math.Abs(xMin - xg));
                 return Jeff1 / dx;
             }
         }
@@ -384,11 +408,38 @@ namespace GPCChecker.Steel.EuroCode
             }
         }
 
-        public double B
+        public double B => _B;
+
+        public double T => _t;        
+
+        public bool isVertical
         {
             get
             {
-                return _B;
+                var delta = _endPoint - _initialPoint;
+                if (delta.X == 0 && Math.Abs(delta.Y) > 0) //vertical
+                {
+                    return true;
+                } else
+                {
+                    return false;
+                }
+            }
+        }
+
+        public bool isHorizontal
+        {
+            get
+            {
+                var delta = _endPoint - _initialPoint;
+                if (Math.Abs(delta.X) > 0 && delta.Y == 0) //horizontal
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 

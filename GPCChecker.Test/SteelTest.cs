@@ -347,14 +347,56 @@ namespace SteelTests
         [TestMethod]
         public void SectionHTest1()
         {
-            double h = 200;
-            double b = 100;
-            double t = 10;
+            double h = 1024;
+            double b = 500;
+            double t = 12;
+            double tw = 8;
 
-            SectionH sec = new SectionH(h, t, b, t, b, t, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
-            EuroCodeBeamChecker Check1 = new EuroCodeBeamChecker(sec, -230e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
+            double Wel = sec.Wel22Min;
+            //EuroCodeBeamChecker Check1 = new EuroCodeBeamChecker(sec, -230e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            //EuroCodeBeamChecker Check2 = new EuroCodeBeamChecker(sec, 0, 0, 0, 1e6, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            EuroCodeBeamChecker Check3 = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 2600e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            //double Mrdy = Check1.MRdy;
+            double Weff = Check3.Weffy;
 
-            double Mrdy = Check1.MRdy;
+            var x = "";
+        }
+
+        [TestMethod]
+        public void SectionHTest2()
+        {
+            double h = 1024;
+            double b = 500;
+            double t = 12;
+            double tw = 8;
+
+            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
+            double Wel = sec.Wel22Min;
+            
+            EuroCodeBeamChecker Check = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 2600e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            
+            double Weff = Check.Weffy;
+
+            var x = "";
+        }
+
+        [TestMethod]
+        public void SectionHTest3()
+        {
+            double h = 1060;
+            double b = 400;
+            double t = 30;
+            double tw = 8;
+
+            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
+            double Wel = sec.Wel22Min;
+
+            EuroCodeBeamChecker Check = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 2600e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+
+            double Weff = Check.Weffy;
+
+            var x = "";
         }
     }
 }
