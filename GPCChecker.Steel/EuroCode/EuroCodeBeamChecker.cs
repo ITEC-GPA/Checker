@@ -206,7 +206,7 @@ namespace GPC.Checker.Steel.EuroCode
                     SectionRHS sec = (SectionRHS)_sec;
 
                     #region ClassificationAxialBendingStrongAxis
-                    if (Math.Abs(M2Ed) > 0)
+                    if (Math.Abs(M2Ed) > 0 || Math.Abs(_NEd) > 0)
                     {
                         double cTFlange;
                         /*if (M2Ed > 0)
@@ -272,7 +272,7 @@ namespace GPC.Checker.Steel.EuroCode
                     if (sec.IsDoubleSymmetric)
                     {
                         #region AxialAndBendingStrongDirection
-                        if (Math.Abs(M2Ed) > 0)
+                        if (Math.Abs(M2Ed) > 0 || Math.Abs(_NEd) > 0)
                         {
                             //classification of flanged for axial force due to bending
                             _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
@@ -568,8 +568,8 @@ namespace GPC.Checker.Steel.EuroCode
                         throw new Exception("Annex B not implemented yet");
                     }
 
-                    double deltaMy = _NEd * _deltaG.Y; //check segno
-                    double deltaMz = _NEd * _deltaG.X; //check segno
+                    double deltaMy;
+                    double deltaMz;
                     double nrk;
                     double myrk;
                     double mzrk;
@@ -578,16 +578,22 @@ namespace GPC.Checker.Steel.EuroCode
                         nrk = _sec.Area * fy;
                         myrk = _sec.Wpl22 * fy;
                         mzrk = _sec.Wpl11 * fy;
+                        deltaMy = 0;
+                        deltaMz = 0;
                     } else if (_classificationSection == 3)
                     {
                         nrk = _sec.Area * fy;
                         myrk = _sec.Wel22Min * fy;
                         mzrk = _sec.Wel11Min * fy;
+                        deltaMy = 0;
+                        deltaMz = 0;
                     } else
                     {
                         nrk = _Aeff * fy;
                         myrk = _Weffy * fy;
                         mzrk = _Weffz * fy;
+                        deltaMy = _NEd * _deltaG.Y; //check segno
+                        deltaMz = _NEd * _deltaG.X; //check segno
                     }
                     WRBuckling1 = _NEd / (_Chiy * nrk / _annex.Gm1) + _kyy * Math.Abs(_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kyz * Math.Abs(_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
                     WRBuckling2 = _NEd / (_Chiz * nrk / _annex.Gm1) + _kzy * Math.Abs(_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kzz * Math.Abs(_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
