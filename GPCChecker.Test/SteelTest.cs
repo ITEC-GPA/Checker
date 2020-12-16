@@ -345,6 +345,24 @@ namespace SteelTests
         }
 
         [TestMethod]
+        public void RHSClasstificationTest2()
+        {
+            double h = 500;
+            double b = 100;
+            double t = 5;
+
+            SectionRHS sec = new SectionRHS(h, b, t, t, t, t, false, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
+            double A = sec.Area;
+            double J2 = sec.J22;
+            double Wel = sec.Wel22Min;
+            EuroCodeBeamChecker axialCheck1 = new EuroCodeBeamChecker(sec, -230e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            double Aeff = axialCheck1.Aeff;
+            double J2eff = axialCheck1.J2eff;
+            double Weff = axialCheck1.Weffy;
+            var x = "";
+        }
+
+        [TestMethod]
         public void SectionHTest1()
         {
             double h = 1024;

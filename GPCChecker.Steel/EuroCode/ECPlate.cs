@@ -30,7 +30,19 @@ namespace GPCChecker.Steel.EuroCode
                 _plates.Add(Web);
                 _plates.Add(TopLeft);
                 _plates.Add(TopRight);
-            } else
+            } else if (typeSect == typeof(SectionRHS)) {
+                SectionRHS sec = (SectionRHS)sect;
+                ECPlate top = new ECPlate(sec.Plates[0], sec.TWebLeft, sec.TWebRight);
+                ECPlate bottom = new ECPlate(sec.Plates[1], sec.TWebLeft, sec.TWebRight);
+                ECPlate web1 = new ECPlate(sec.Plates[2], 0, 0);
+                ECPlate web2 = new ECPlate(sec.Plates[3], 0, 0);
+
+                _plates.Clear();
+                _plates.Add(top);
+                _plates.Add(bottom);
+                _plates.Add(web1);
+                _plates.Add(web2);
+            } else 
             {
                 throw new Exception("Section 4 of this type not yet supported");
             }
@@ -244,7 +256,7 @@ namespace GPCChecker.Steel.EuroCode
             if (_type == Plate.TypePlate.inner)
             {
                 _pInitialEff1 = _initialPoint;
-                _pFinalEff1 = new Point2d((_endPoint.X - _initialPoint.X) / 2.0, (_endPoint.Y - _initialPoint.Y) / 2.0);
+                _pFinalEff1 = new Point2d((_endPoint.X + _initialPoint.X) / 2.0, (_endPoint.Y + _initialPoint.Y) / 2.0);
 
                 _pFinalEff2 = _pFinalEff1;
                 _pInitialEff2 = _endPoint;
@@ -724,7 +736,7 @@ namespace GPCChecker.Steel.EuroCode
                 if (_type == Plate.TypePlate.inner)
                 {
                     _pInitialEff1 = _initialPoint;
-                    _pFinalEff1 = new Point2d((_endPoint.X - _initialPoint.X) / 2.0, (_endPoint.Y - _initialPoint.Y) / 2.0);
+                    _pFinalEff1 = new Point2d((_endPoint.X + _initialPoint.X) / 2.0, (_endPoint.Y + _initialPoint.Y) / 2.0);
 
                     _pFinalEff2 = _pFinalEff1;
                     _pInitialEff2 = _endPoint;
