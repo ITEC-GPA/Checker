@@ -101,11 +101,72 @@ namespace GPC.Checker.Steel.EuroCode
 
         public int ClassificationSection => _classificationSection;
 
-        public double Aeff => _Aeff;
-        public double Weffy => _Weffy;
-        public double J2eff => _J2eff;
-        public double Weffz => _Weffz;
-        public double J1eff => _J1eff;
+        public double Aeff {
+            get {
+                if (_classificationSection == 4) {
+                    return _Aeff;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+        public double Weffy
+        {
+            get
+            {
+                if (_classificationSection == 4)
+                {
+                    return _Weffy;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+        public double J2eff
+        {
+            get
+            {
+                if (_classificationSection == 4)
+                {
+                    return _J2eff;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+        public double Weffz
+        {
+            get
+            {
+                if (_classificationSection == 4)
+                {
+                    return _Weffz;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+        public double J1eff
+        {
+            get
+            {
+                if (_classificationSection == 4)
+                {
+                    return _J1eff;
+                } else
+                {
+                    return 0;
+                }
+            }
+        }
 
         public double L0y => _L0y;
         public double L0z => _L0z;
@@ -135,7 +196,7 @@ namespace GPC.Checker.Steel.EuroCode
         public double WRBending2 { get; }
         public double WRBending1 { get; }
         public double WRTorsion { get; }
-        public double WRResistance { get; }
+        public double WRCombined { get; }
         public double WRBuckling1 { get; }
         public double WRBuckling2 { get; }
         public double WRMax { get; }
@@ -315,15 +376,15 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 Class4Section secCL4 = new Class4Section(_sec);
                 
-                secCL4.Calc(0, _MEd2, 0);
+                secCL4.Calc(0, Math.Sign(_MEd2)*1e6, 0); //indipendent from the value
                 _Weffy = secCL4.Weff2;
                 _J2eff = secCL4.J2eff;
 
-                secCL4.Calc(0, 0, _MEd1);
+                secCL4.Calc(0, 0, Math.Sign(_MEd1) * 1e6); //indipendent from the value
                 _Weffz = secCL4.Weff1;
                 _J1eff = secCL4.J1eff;
 
-                secCL4.Calc(_NEd, 0, 0);
+                secCL4.Calc(-1000, 0, 0); //indipendent from the value
                 _Aeff = secCL4.Aeff;
 
                 _deltaG = _sec.Centroid - _sec.Centroid;
@@ -365,8 +426,8 @@ namespace GPC.Checker.Steel.EuroCode
                 WRMax = Math.Max(WRBending1, WRMax);
                 WRMax = Math.Max(WRBending2, WRMax);
 
-                WRResistance = GetWrCombined();
-                WRMax = Math.Max(WRResistance, WRMax);
+                WRCombined = GetWrCombined();
+                WRMax = Math.Max(WRCombined, WRMax);
                 #endregion
             }
             #endregion
@@ -528,7 +589,11 @@ namespace GPC.Checker.Steel.EuroCode
                             epsilony = _MEd2 / _NEd * _Aeff / _Weffy;
                         }
 
-                        double aLT = Math.Max(1.0 - _sec.Jt / _sec.J22,0.0);
+                        double aLT = 1.0 - _sec.Jt / _sec.J22;
+                        if (aLT < 0)
+                        {
+                            throw new Exception("aLT < 0 ...");
+                        }
                             
                         double C1 = Math.Pow(kc, -2.0);
                         double lambda0Limit = 0.2 * Math.Pow(C1, 0.5) * Math.Pow((1.0 - NEd / _Ncrz) * (1.0 - NEd / ncrFlexuralTorsional), 0.25);
@@ -545,15 +610,28 @@ namespace GPC.Checker.Steel.EuroCode
                         {
                             cmy = cmy0 + (1.0 - cmy0) * Math.Sqrt(epsilony) * aLT / (1.0 + Math.Sqrt(epsilony) * aLT);
                             cmz = cmz0;
-                            cmLT = Math.Min(cmy*cmy * aLT / (Math.Sqrt(1.0-_NEd/_Ncrz) * (1.0 - _NEd/ncrTorsional)),1.0);
+                            cmLT = Math.Max(cmy*cmy * aLT / (Math.Sqrt(1.0-_NEd/_Ncrz) * (1.0 - _NEd/ncrTorsional)),1.0);
                             /*if (cmLT < 1)
                             {
                                 throw new Exception("cmLT < 1");
                             }*/
                         }
 
-                        double mplyRd = _sec.Wpl22 * fy / _annex.Gm0;
-                        double mplzRd = _sec.Wpl11 * fy / _annex.Gm0;
+                        double mplyRd;
+                        double mplzRd;
+                        if (_classificationSection < 3)
+                        {
+                            mplyRd = _sec.Wpl22 * fy / _annex.Gm0;
+                            mplzRd = _sec.Wpl11 * fy / _annex.Gm0;
+                        } else if (_classificationSection == 3)
+                        {
+                            mplyRd = _sec.Wel22 * fy / _annex.Gm0;
+                            mplzRd = _sec.Wel11 * fy / _annex.Gm0;
+                        } else
+                        {
+                            mplyRd = _Weffy * fy / _annex.Gm0;
+                            mplzRd = _Weffz * fy / _annex.Gm0;
+                        }                        
 
                         double bLT = 0.5 * aLT * lambda0 * lambda0 * _MEd2 * _MEd1 / (_ChiLT * mplyRd * mplzRd);
                         double cLT = 10.0 * aLT * lambda0 * lambda0 * _MEd2 / (5.0 + Math.Pow(lambdaz,4.0) * cmy * _ChiLT * mplyRd);

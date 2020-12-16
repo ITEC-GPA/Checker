@@ -157,7 +157,7 @@ namespace SteelTests
             double WRBending2 = checker.WRBending2;
             double WRBuckling1 = checker.WRBuckling1;
             double WRBuckling2 = checker.WRBuckling2;
-            double WRResistance = checker.WRResistance;
+            double WRCombined = checker.WRCombined;
             double WRShear1 = checker.WRShear1;
             double WRShear2 = checker.WRShear2;
             double WRTorsion = checker.WRTorsion;
@@ -302,7 +302,7 @@ namespace SteelTests
             double WRBending2 = checker.WRBending2;
             double WRBuckling1 = checker.WRBuckling1;
             double WRBuckling2 = checker.WRBuckling2;
-            double WRResistance = checker.WRResistance;
+            double WRCombined = checker.WRCombined;
             double WRShear1 = checker.WRShear1;
             double WRShear2 = checker.WRShear2;
             double WRTorsion = checker.WRTorsion;
@@ -318,6 +318,43 @@ namespace SteelTests
             Assert.AreEqual(0.635, checker.Phiy, 0.001);
             Assert.AreEqual(0.635, checker.Phiz, 0.01);
             //Assert.AreEqual(0.465, checker.PhiLT, 0.001); //SAP calcola in modo diverso non documentato
+        }
+
+        [TestMethod]
+        public void CircularSectionTestAxial3()
+        {
+            Annex annex = new Annex();
+            annex.Gm0 = 1.0;
+            annex.Gm1 = 1.0;
+            annex.Gm2 = 1.25;
+
+            double fy = 355;
+            double fu = 510;
+
+            SteelMaterial steel = new SteelMaterial("S355", 210000, 0.3, fy, fu, 7850);
+            Section circularSect = new SectionCHS(400, 10, steel);
+
+            double N = 100 * 1000;
+            double V1 = 100 * 1000;
+            double V2 = 1000 * 1000;
+            double M1 = 20 * 1e6;
+            double M2 = 400 * 1e6;
+            double T = 0;
+
+            double L = 1000;
+            double betay = 1;
+            double betaz = 1;
+            double betaLT = 1;
+
+            SupportCondition supportConditiony = SupportCondition.EndsRestrained;
+            LoadCondition loadConditiony = LoadCondition.NotDirectlyLoaded;
+            double? psiy = 1;
+            double? psiz = 1;
+
+            SupportCondition supportConditionz = SupportCondition.EndsRestrained;
+            LoadCondition loadConditionz = LoadCondition.NotDirectlyLoaded;
+
+            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz, annex);
         }
 
         [TestMethod]
@@ -342,6 +379,24 @@ namespace SteelTests
 
             EuroCodeBeamChecker bendingCheck = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 1e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             MessageBox.Show(bendingCheck.ClassificationSection.ToString());
+        }
+
+        [TestMethod]
+        public void RHSClasstificationTest2()
+        {
+            double h = 500;
+            double b = 100;
+            double t = 5;
+
+            SectionRHS sec = new SectionRHS(h, b, t, t, t, t, false, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
+            double A = sec.Area;
+            double J2 = sec.J22;
+            double Wel = sec.Wel22Min;
+            EuroCodeBeamChecker axialCheck1 = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            double Aeff = axialCheck1.Aeff;
+            double J2eff = axialCheck1.J2eff;
+            double Weff = axialCheck1.Weffy;
+            var x = "";
         }
 
         [TestMethod]
