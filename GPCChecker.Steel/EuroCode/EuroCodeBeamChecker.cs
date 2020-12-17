@@ -56,6 +56,7 @@ namespace GPC.Checker.Steel.EuroCode
         protected double _Weffz;
         protected double _J1eff;
         protected Point2d _deltaG;
+        protected Point2d _centroidEff;
 
         protected double _NEd;
         protected double _VEd1;
@@ -192,6 +193,19 @@ namespace GPC.Checker.Steel.EuroCode
                 } else
                 {
                     return 0;
+                }
+            }
+        }
+        public Point2d CentroidEff
+        {
+            get
+            {
+                if (_classificationSection == 4)
+                {
+                    return _centroidEff;
+                } else
+                {
+                    return _sec.Centroid;
                 }
             }
         }
@@ -442,7 +456,8 @@ namespace GPC.Checker.Steel.EuroCode
                 secCL4.Calc(-1000, 0, 0); //indipendent from the value
                 _Aeff = secCL4.Aeff;
 
-                _deltaG = _sec.Centroid - _sec.Centroid;
+                _deltaG = _sec.Centroid - secCL4.CentroidEff;
+                _centroidEff = secCL4.CentroidEff;
             }
 
             #endregion
@@ -1181,8 +1196,8 @@ namespace GPC.Checker.Steel.EuroCode
                     }
                     else
                     {
-                        MRdNy = 0.0;
-                        MRdNz = 0.0;
+                        MRdNy = Mrdy;
+                        MRdNz = Mrdz;
                     }
                 }
                 else if (typeShape == typeof(SectionCHS))
@@ -1238,6 +1253,9 @@ namespace GPC.Checker.Steel.EuroCode
                         {
                             beta = 1.0;
                         }
+                    } else
+                    {
+                        return Math.Abs(_NEd / _NRd) + Math.Abs(_MEd2) / _MRdy + Math.Abs(_MEd1) / _MRdz;
                     }
                 }
                 else if (typeShape == typeof(SectionCHS))

@@ -63,7 +63,7 @@ namespace GPCChecker.Steel.EuroCode
                 double aEff = Aeff;
                 double j1Eff = J1eff;
                 double j2Eff = J2eff;
-                Point2d centroid = Centroid;
+                Point2d centroid = CentroidEff;
                 for (int i = 0; i < Plates.Count; i++)
                 {
                     //calculation sigma in initial point always active
@@ -91,7 +91,7 @@ namespace GPCChecker.Steel.EuroCode
             }
         }
 
-        public Point2d Centroid
+        public Point2d CentroidEff
         {
             get
             {
@@ -114,7 +114,7 @@ namespace GPCChecker.Steel.EuroCode
             get
             {
                 double J = 0;
-                Point2d centroid = Centroid;
+                Point2d centroid = CentroidEff;
 
                 for (int i = 0; i < _plates.Count; i++)
                 {
@@ -129,7 +129,7 @@ namespace GPCChecker.Steel.EuroCode
         {
             get {
                 double Jeff2 = J2eff;
-                double yg = Centroid.Y;
+                double yg = CentroidEff.Y;
                 double yMax = yg;
                 double yMin = yg;
                 for (int i = 0; i < _plates.Count; i++)
@@ -167,7 +167,7 @@ namespace GPCChecker.Steel.EuroCode
             get
             {
                 double J = 0;
-                Point2d centroid = Centroid;
+                Point2d centroid = CentroidEff;
 
                 for (int i = 0; i < _plates.Count; i++)
                 {
@@ -183,7 +183,7 @@ namespace GPCChecker.Steel.EuroCode
             get
             {
                 double Jeff1 = J1eff;
-                double xg = Centroid.X;
+                double xg = CentroidEff.X;
                 double xMax = xg;
                 double xMin = xg;
                 for (int i = 0; i < _plates.Count; i++)

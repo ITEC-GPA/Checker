@@ -421,15 +421,17 @@ namespace SteelTests
         [TestMethod]
         public void SectionHTest2()
         {
-            double h = 1024;
-            double b = 500;
-            double t = 12;
+            double h = 500;
+            double bt = 500;
+            double bb = 100;
+            double tft = 12;
+            double tfb = 5;
             double tw = 8;
 
-            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
+            SectionH sec = new SectionH(h, tw, bt, tft, bb, tfb, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
             double Wel = sec.Wel22Min;
             
-            EuroCodeBeamChecker Check = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 2600e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            EuroCodeBeamChecker Check = new EuroCodeBeamChecker(sec, 1e3, 0, 0, 0, 0 ,0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             
             double Weff = Check.Weffy;
 
