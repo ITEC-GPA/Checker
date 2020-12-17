@@ -63,7 +63,7 @@ namespace GPCChecker.Steel.EuroCode
                 double aEff = Aeff;
                 double j1Eff = J1eff;
                 double j2Eff = J2eff;
-                Point2d centroid = Centroid;
+                Point2d centroid = CentroidEff;
                 for (int i = 0; i < Plates.Count; i++)
                 {
                     //calculation sigma in initial point always active
@@ -91,7 +91,7 @@ namespace GPCChecker.Steel.EuroCode
             }
         }
 
-        public Point2d Centroid
+        public Point2d CentroidEff
         {
             get
             {
@@ -114,7 +114,7 @@ namespace GPCChecker.Steel.EuroCode
             get
             {
                 double J = 0;
-                Point2d centroid = Centroid;
+                Point2d centroid = CentroidEff;
 
                 for (int i = 0; i < _plates.Count; i++)
                 {
@@ -129,7 +129,7 @@ namespace GPCChecker.Steel.EuroCode
         {
             get {
                 double Jeff2 = J2eff;
-                double yg = Centroid.Y;
+                double yg = CentroidEff.Y;
                 double yMax = yg;
                 double yMin = yg;
                 for (int i = 0; i < _plates.Count; i++)
@@ -167,7 +167,7 @@ namespace GPCChecker.Steel.EuroCode
             get
             {
                 double J = 0;
-                Point2d centroid = Centroid;
+                Point2d centroid = CentroidEff;
 
                 for (int i = 0; i < _plates.Count; i++)
                 {
@@ -183,7 +183,7 @@ namespace GPCChecker.Steel.EuroCode
             get
             {
                 double Jeff1 = J1eff;
-                double xg = Centroid.X;
+                double xg = CentroidEff.X;
                 double xMax = xg;
                 double xMin = xg;
                 for (int i = 0; i < _plates.Count; i++)
@@ -490,12 +490,12 @@ namespace GPCChecker.Steel.EuroCode
                 }
                 else
                 {
-                    throw new Exception("out of range");
+                    throw new Exception("psi = " + psi + " is out of range for inner plate");
                 }
             }
             else //Outer
             {
-                if (sigma0 > sigmaX)
+                if (sigma0 > sigmaX) //tension or less compression near attached point
                 {
                     if (psi == 1)
                     {
@@ -515,10 +515,10 @@ namespace GPCChecker.Steel.EuroCode
                     }
                     else
                     {
-                        throw new Exception("out of range psi");
+                        throw new Exception("sigma0 = " + sigma0 + " sigmaX = " +sigmaX+ " psi = " + psi +" out of range - outer plate - tension / less tension near attached point");
                     }
                 }
-                else
+                else //tension near attached point
                 {
                     if (psi == 1)
                     {
@@ -536,13 +536,13 @@ namespace GPCChecker.Steel.EuroCode
                     {
                         return 1.7 - 5 * psi + 17.1 * psi * psi;
                     }
-                    else if (psi == -1)
+                    else if (psi <= -1) //aded < instead of = because if I got 3MPa/(-0.01) MPA => psi = -240 -> out of range -> take the higher ks
                     {
                         return 23.8;
                     }
                     else
                     {
-                        throw new Exception("out of range psi");
+                        throw new Exception("sigma0 = " + sigma0 + " sigmaX = " + sigmaX + " psi = " + psi + " out of range - outer plate - compression higher near attached point");
                     }
                 }
             }

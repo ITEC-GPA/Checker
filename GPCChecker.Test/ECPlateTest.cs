@@ -85,7 +85,7 @@ namespace ECPlateTest
             
             double Aeff = class4.Aeff;
             double Jeff = class4.J2eff;
-            Point2d diffCentroid = sec.Centroid - class4.Centroid;
+            Point2d diffCentroid = sec.Centroid - class4.CentroidEff;
 
             double x = 0;
         }

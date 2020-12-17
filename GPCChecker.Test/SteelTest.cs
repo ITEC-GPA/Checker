@@ -144,7 +144,7 @@ namespace SteelTests
             SupportCondition supportConditionz = SupportCondition.EndsRestrained;
             LoadCondition loadConditionz = LoadCondition.NotDirectlyLoaded;
 
-            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz, annex);
+            EuroCodeBeamChecker checker = null; // new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz, annex);
 
             Assert.AreEqual(checker.NRd, 1003738.853, 0.01);
             Assert.AreEqual(checker.MRdy / 28873333.33, 1, 0.03);
@@ -289,7 +289,7 @@ namespace SteelTests
             SupportCondition supportConditionz = SupportCondition.EndsRestrained;
             LoadCondition loadConditionz = LoadCondition.NotDirectlyLoaded;
 
-            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz, annex);
+            EuroCodeBeamChecker checker = null;//new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz, annex);
 
             Assert.AreEqual(checker.NRd, 1003738.853, 0.01);
             Assert.AreEqual(checker.MRdy / 28873333.33, 1, 0.03);
@@ -354,7 +354,7 @@ namespace SteelTests
             SupportCondition supportConditionz = SupportCondition.EndsRestrained;
             LoadCondition loadConditionz = LoadCondition.NotDirectlyLoaded;
 
-            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz, annex);
+            EuroCodeBeamChecker checker = null; // new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz, annex);
         }
 
         [TestMethod]
@@ -365,7 +365,7 @@ namespace SteelTests
             double t = 4;
 
             SectionRHS sec = new SectionRHS(h, b, t, t, t, t, false, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
-            EuroCodeBeamChecker axialCheck1 = new EuroCodeBeamChecker(sec, -230e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            EuroCodeBeamChecker axialCheck1 = null; //new EuroCodeBeamChecker(sec, -230e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             MessageBox.Show(axialCheck1.ClassificationSection.ToString());
 
             /*EuroCodeBeamChecker axialCheck2 = new EuroCodeBeamChecker(sec, -232e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
@@ -377,7 +377,7 @@ namespace SteelTests
             /*EuroCodeBeamChecker axialCheck4 = new EuroCodeBeamChecker(sec, -672e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             MessageBox.Show(axialCheck4.ClassificationSection.ToString());*/
 
-            EuroCodeBeamChecker bendingCheck = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 1e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            EuroCodeBeamChecker bendingCheck = null; //new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 1e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             MessageBox.Show(bendingCheck.ClassificationSection.ToString());
         }
 
@@ -392,7 +392,7 @@ namespace SteelTests
             double A = sec.Area;
             double J2 = sec.J22;
             double Wel = sec.Wel22Min;
-            EuroCodeBeamChecker axialCheck1 = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            EuroCodeBeamChecker axialCheck1 = null; // new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             double Aeff = axialCheck1.Aeff;
             double J2eff = axialCheck1.J2eff;
             double Weff = axialCheck1.Weffy;
@@ -411,7 +411,7 @@ namespace SteelTests
             double Wel = sec.Wel22Min;
             //EuroCodeBeamChecker Check1 = new EuroCodeBeamChecker(sec, -230e3, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             //EuroCodeBeamChecker Check2 = new EuroCodeBeamChecker(sec, 0, 0, 0, 1e6, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
-            EuroCodeBeamChecker Check3 = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 2600e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            EuroCodeBeamChecker Check3 = null; // new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 2600e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             //double Mrdy = Check1.MRdy;
             double Weff = Check3.Weffy;
 
@@ -421,15 +421,17 @@ namespace SteelTests
         [TestMethod]
         public void SectionHTest2()
         {
-            double h = 1024;
-            double b = 500;
-            double t = 12;
+            double h = 500;
+            double bt = 500;
+            double bb = 100;
+            double tft = 12;
+            double tfb = 5;
             double tw = 8;
 
-            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
+            SectionH sec = new SectionH(h, tw, bt, tft, bb, tfb, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
             double Wel = sec.Wel22Min;
-            
-            EuroCodeBeamChecker Check = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 2600e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+
+            EuroCodeBeamChecker Check = null; // new EuroCodeBeamChecker(sec, 1e3, 0, 0, 0, 0 ,0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
             
             double Weff = Check.Weffy;
 
@@ -447,7 +449,7 @@ namespace SteelTests
             SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
             double Wel = sec.Wel22Min;
 
-            EuroCodeBeamChecker Check = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 2600e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            EuroCodeBeamChecker Check = null; // new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 2600e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
 
             double Weff = Check.Weffy;
 
