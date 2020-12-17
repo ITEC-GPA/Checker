@@ -490,12 +490,12 @@ namespace GPCChecker.Steel.EuroCode
                 }
                 else
                 {
-                    throw new Exception("out of range");
+                    throw new Exception("psi = " + psi + " is out of range for inner plate");
                 }
             }
             else //Outer
             {
-                if (sigma0 > sigmaX)
+                if (sigma0 > sigmaX) //tension or less compression near attached point
                 {
                     if (psi == 1)
                     {
@@ -515,10 +515,10 @@ namespace GPCChecker.Steel.EuroCode
                     }
                     else
                     {
-                        throw new Exception("out of range psi");
+                        throw new Exception("sigma0 = " + sigma0 + " sigmaX = " +sigmaX+ " psi = " + psi +" out of range - outer plate - tension / less tension near attached point");
                     }
                 }
-                else
+                else //tension near attached point
                 {
                     if (psi == 1)
                     {
@@ -536,13 +536,13 @@ namespace GPCChecker.Steel.EuroCode
                     {
                         return 1.7 - 5 * psi + 17.1 * psi * psi;
                     }
-                    else if (psi == -1)
+                    else if (psi <= -1) //aded < instead of = because if I got 3MPa/(-0.01) MPA => psi = -240 -> out of range -> take the higher ks
                     {
                         return 23.8;
                     }
                     else
                     {
-                        throw new Exception("out of range psi");
+                        throw new Exception("sigma0 = " + sigma0 + " sigmaX = " + sigmaX + " psi = " + psi + " out of range - outer plate - compression higher near attached point");
                     }
                 }
             }
