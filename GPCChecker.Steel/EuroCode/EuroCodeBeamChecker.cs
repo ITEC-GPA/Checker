@@ -559,8 +559,8 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         NEd = 0;
                     }
-                    _MEd1 = Math.Abs(_MEd1);
-                    _MEd2 = Math.Abs(_MEd2);
+                    double MEd1 = Math.Abs(_MEd1);
+                    double MEd2 = Math.Abs(_MEd2);
 
                     double E = _sec.Material.E;
                     double G = E / (2.0 * (1.0 + _sec.Material.Ni));
@@ -720,12 +720,12 @@ namespace GPC.Checker.Steel.EuroCode
 
                         if (_classificationSection < 4)
                         {
-                            _epsilony = _MEd2 / NEd * _sec.Area / _sec.Wel22Min;
+                            _epsilony = MEd2 / Math.Max(NEd,1E-3) * _sec.Area / _sec.Wel22Min;
                         } else
                         {
-                            _epsilony = _MEd2 / NEd * _Aeff / _Weffy;
+                            _epsilony = MEd2 / Math.Max(NEd, 1E-3) * _Aeff / _Weffy;
                         }
-
+         
                         _aLT = Math.Max(1.0 - _sec.Jt / _sec.J22,0);
                                                    
                         double C1 = Math.Pow(kc, -2.0);
@@ -763,10 +763,10 @@ namespace GPC.Checker.Steel.EuroCode
                             mplzRd = _Weffz * fy / _annex.Gm0;
                         }                        
 
-                        _bLT = 0.5 * _aLT * lambda0 * lambda0 * _MEd2 * _MEd1 / (_ChiLT * mplyRd * mplzRd);
-                        _cLT = 10.0 * _aLT * lambda0 * lambda0 * _MEd2 / (5.0 + Math.Pow(_lambdaz,4.0) * _cmy * _ChiLT * mplyRd);
-                        _dLT = 2.0 * _aLT * lambda0 * _MEd2 * _MEd1 / ((0.1 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd * _cmz * mplzRd);
-                        _eLT = 1.7 * _aLT * lambda0 * _MEd2 / ((0.1 + Math.Pow(_lambdaz, 4.0)) * _cmy * _ChiLT * mplyRd);
+                        _bLT = 0.5 * _aLT * lambda0 * lambda0 * MEd2 * MEd1 / (_ChiLT * mplyRd * mplzRd);
+                        _cLT = 10.0 * _aLT * lambda0 * lambda0 * MEd2 / (5.0 + Math.Pow(_lambdaz,4.0) * _cmy * _ChiLT * mplyRd);
+                        _dLT = 2.0 * _aLT * lambda0 * MEd2 * MEd1 / ((0.1 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd * _cmz * mplzRd);
+                        _eLT = 1.7 * _aLT * lambda0 * MEd2 / ((0.1 + Math.Pow(_lambdaz, 4.0)) * _cmy * _ChiLT * mplyRd);
 
                         double npl = NEd / (fy * _sec.Area / _annex.Gm0);
                         _cyy = Math.Max(1.0 + (_wy - 1.0) * ((2.0 - 1.6/_wy * _cmy * _cmy * lambdaMax - 1.6 / _wy * _cmy * _cmy * lambdaMax * lambdaMax) * npl - _bLT), _sec.Wel22Min / _sec.Wpl22);
@@ -821,8 +821,8 @@ namespace GPC.Checker.Steel.EuroCode
                         deltaMy = NEd * _deltaG.Y; //check segno
                         deltaMz = NEd * _deltaG.X; //check segno
                     }
-                    WRBuckling1 = NEd / (_Chiy * nrk / _annex.Gm1) + _kyy * Math.Abs(_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kyz * Math.Abs(_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
-                    WRBuckling2 = NEd / (_Chiz * nrk / _annex.Gm1) + _kzy * Math.Abs(_MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kzz * Math.Abs(_MEd1 + deltaMz) / (mzrk / _annex.Gm1);
+                    WRBuckling1 = NEd / (_Chiy * nrk / _annex.Gm1) + _kyy * Math.Abs(MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kyz * Math.Abs(MEd1 + deltaMz) / (mzrk / _annex.Gm1);
+                    WRBuckling2 = NEd / (_Chiz * nrk / _annex.Gm1) + _kzy * Math.Abs(MEd2 + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kzz * Math.Abs(MEd1 + deltaMz) / (mzrk / _annex.Gm1);
                     WRBuckling3 = NEd / _NbRdT;
 
                     WRMax = Math.Max(WRBuckling1, WRMax);

@@ -455,5 +455,25 @@ namespace SteelTests
 
             var x = "";
         }
+
+        [TestMethod]
+        public void SectionHTest4()
+        {
+            double h = 300;
+            double b = 200;
+            double t = 10;
+            double tw = 10;
+
+            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
+            double Wel = sec.Wel22Min;
+
+            EuroCodeBeamChecker Check = new EuroCodeBeamChecker(sec, 0, 0, 0, 1e6, 0, 0, new Annex());
+            Check.CheckResistance();
+            Check.CheckBuckling(1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1);
+
+            double Weff = Check.Weffy;
+
+            var x = "";
+        }
     }
 }
