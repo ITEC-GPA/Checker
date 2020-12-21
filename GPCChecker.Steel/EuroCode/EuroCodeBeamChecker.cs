@@ -840,7 +840,7 @@ namespace GPC.Checker.Steel.EuroCode
         }
 
         #region Classification
-        public int GetClassCompressedInnerPlate(double ctRatio, double epsilon)
+        protected int GetClassCompressedInnerPlate(double ctRatio, double epsilon)
         {
             if (ctRatio <= 33.0 * epsilon)
             {
@@ -860,7 +860,7 @@ namespace GPC.Checker.Steel.EuroCode
             }
         }
 
-        public int GetClassInnerPlate(double ctRatio, double epsilon, double alpha, double psi)
+        protected int GetClassInnerPlate(double ctRatio, double epsilon, double alpha, double psi)
         {
             if (alpha > 0.5 && alpha < 1)
             {
@@ -949,7 +949,7 @@ namespace GPC.Checker.Steel.EuroCode
             }
         }
 
-        public int GetClassCompressedOuterPlate(double ctRatio, double epsilon)
+        protected int GetClassCompressedOuterPlate(double ctRatio, double epsilon)
         {
             if (ctRatio <= 9.0 * epsilon)
             {
@@ -1804,7 +1804,7 @@ namespace GPC.Checker.Steel.EuroCode
             }            
         }
 
-        public double GetMu(double Ned, double Ncr, double Chi)
+        protected double GetMu(double Ned, double Ncr, double Chi)
         { 
             double mu = (1.0 - Ned / Ncr) / (1.0 - Chi * Ned / Ncr);
             return mu;

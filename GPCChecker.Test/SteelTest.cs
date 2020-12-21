@@ -144,23 +144,29 @@ namespace SteelTests
             SupportCondition supportConditionz = SupportCondition.EndsRestrained;
             LoadCondition loadConditionz = LoadCondition.NotDirectlyLoaded;
 
-            EuroCodeBeamChecker checker = null; // new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz, annex);
+            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, annex);
 
             Assert.AreEqual(checker.NRd, 1003738.853, 0.01);
             Assert.AreEqual(checker.MRdy / 28873333.33, 1, 0.03);
             Assert.AreEqual(checker.MRdz / 28873333.33, 1, 0.03);
+
             double Trd = checker.TRd;
             double Vrdy = checker.VRdy;
             double Vrdz = checker.VRdz;
-            double WrAxial = checker.WRAxial;
+
+            Assert.AreEqual(checker.WRAxial, 0.112);
+
             double WRBending1 = checker.WRBending1;
             double WRBending2 = checker.WRBending2;
-            double WRBuckling1 = checker.WRBuckling1;
-            double WRBuckling2 = checker.WRBuckling2;
-            double WRCombined = checker.WRCombined;
             double WRShear1 = checker.WRShear1;
             double WRShear2 = checker.WRShear2;
             double WRTorsion = checker.WRTorsion;
+
+            checker.CheckBuckling(L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz);
+            double WRBuckling1 = checker.WRBuckling1;
+            double WRBuckling2 = checker.WRBuckling2;
+            double WRCombined = checker.WRCombined;
+
             Assert.AreEqual(0.893, checker.Chiy, 0.001);
             Assert.AreEqual(0.893, checker.Chiz, 0.001);
             Assert.AreEqual(1.0, checker.ChiLT, 0.001);
@@ -289,7 +295,9 @@ namespace SteelTests
             SupportCondition supportConditionz = SupportCondition.EndsRestrained;
             LoadCondition loadConditionz = LoadCondition.NotDirectlyLoaded;
 
-            EuroCodeBeamChecker checker = null;//new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz, annex);
+            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, annex);
+
+            checker.CheckBuckling(L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz);
 
             Assert.AreEqual(checker.NRd, 1003738.853, 0.01);
             Assert.AreEqual(checker.MRdy / 28873333.33, 1, 0.03);
@@ -298,8 +306,9 @@ namespace SteelTests
             double Vrdy = checker.VRdy;
             double Vrdz = checker.VRdz;
             double WrAxial = checker.WRAxial;
-            double WRBending1 = checker.WRBending1;
-            double WRBending2 = checker.WRBending2;
+            Assert.AreEqual(checker.WRBending1, 0.346);
+            Assert.AreEqual(checker.WRBending2, 0.52);
+
             double WRBuckling1 = checker.WRBuckling1;
             double WRBuckling2 = checker.WRBuckling2;
             double WRCombined = checker.WRCombined;
@@ -318,43 +327,6 @@ namespace SteelTests
             Assert.AreEqual(0.635, checker.Phiy, 0.001);
             Assert.AreEqual(0.635, checker.Phiz, 0.01);
             //Assert.AreEqual(0.465, checker.PhiLT, 0.001); //SAP calcola in modo diverso non documentato
-        }
-
-        [TestMethod]
-        public void CircularSectionTestAxial3()
-        {
-            Annex annex = new Annex();
-            annex.Gm0 = 1.0;
-            annex.Gm1 = 1.0;
-            annex.Gm2 = 1.25;
-
-            double fy = 355;
-            double fu = 510;
-
-            SteelMaterial steel = new SteelMaterial("S355", 210000, 0.3, fy, fu, 7850);
-            Section circularSect = new SectionCHS(400, 10, steel);
-
-            double N = 100 * 1000;
-            double V1 = 100 * 1000;
-            double V2 = 1000 * 1000;
-            double M1 = 20 * 1e6;
-            double M2 = 400 * 1e6;
-            double T = 0;
-
-            double L = 1000;
-            double betay = 1;
-            double betaz = 1;
-            double betaLT = 1;
-
-            SupportCondition supportConditiony = SupportCondition.EndsRestrained;
-            LoadCondition loadConditiony = LoadCondition.NotDirectlyLoaded;
-            double? psiy = 1;
-            double? psiz = 1;
-
-            SupportCondition supportConditionz = SupportCondition.EndsRestrained;
-            LoadCondition loadConditionz = LoadCondition.NotDirectlyLoaded;
-
-            EuroCodeBeamChecker checker = null; // new EuroCodeBeamChecker(circularSect, N, V1, V2, M1, M2, T, L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz, annex);
         }
 
         [TestMethod]
