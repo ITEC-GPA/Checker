@@ -438,7 +438,7 @@ namespace GPC.Checker.Steel.EuroCode
                             double psiClassification = 1;
                             if (_classificationSection < 4)
                             {
-                                psiClassification = -2.0 * _NEd / (sec.Area) - 1.0;
+                                psiClassification = -2.0 * _NEd / (sec.Area * fy) - 1.0;
                             }
                             _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
                         }
