@@ -364,19 +364,27 @@ namespace SteelTests
         [TestMethod]
         public void RHSClasstificationTest2()
         {
-            double h = 500;
-            double b = 100;
-            double t = 5;
+            //in hot formed h = H - 2 * t - (0.5+0.5) * t
+            //in favour of safety h = H - 2 t, for this reason a value of 0.95 * Ned has been used to take this tolerance
+            double h = 350;
+            double b = 250;
+            double t = 10;
 
-            SectionRHS sec = new SectionRHS(h, b, t, t, t, t, false, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
-            double A = sec.Area;
-            double J2 = sec.J22;
-            double Wel = sec.Wel22Min;
-            EuroCodeBeamChecker axialCheck1 = null; // new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 0, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
-            /*double Aeff = axialCheck1.Aeff;
-            double J2eff = axialCheck1.J2eff;
-            double Weff = axialCheck1.Weffy;*/
-            var x = "";
+            SectionRHS sec = new SectionRHS(h, b, t, t, t, t, false, new SteelMaterial("S355", 210000, 0.3, 355, 510, 7850));
+            EuroCodeBeamChecker classification = new EuroCodeBeamChecker(sec, -1597e3 * 0.95, 0, 0, 0, 0, 0, new Annex());
+            Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 75
+
+            classification = new EuroCodeBeamChecker(sec, -2130e3 * 0.95, 0, 0, 0, 0, 0, new Annex());
+            Assert.AreEqual(classification.ClassificationSection, 2); //Cordova cap. 2 pag. 75
+
+            classification = new EuroCodeBeamChecker(sec, sec.Area * -355, 0, 0, 0, 0, 0, new Annex());
+            Assert.AreEqual(classification.ClassificationSection, 3); //Cordova cap. 2 pag. 75
+
+            classification = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 1e6, 0, new Annex());
+            Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 75
+
+            classification = new EuroCodeBeamChecker(sec, 0, 0, 0, 1e6, 0, 0, new Annex());
+            Assert.AreEqual(classification.ClassificationSection, 3); //Cordova cap. 2 pag. 75
         }
 
         [TestMethod]

@@ -875,8 +875,33 @@ namespace GPC.Checker.Steel.EuroCode
                     return 2;
                 } else
                 {
-                    return 4;
-                    throw new Exception("Problems classification");
+                    if (psi > -1)
+                    {
+                        if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    }
+                    else if (psi <= -1)
+                    {
+                        if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    }
+                    else
+                    {
+                        return 4;
+                        throw new Exception("classification");
+                    }
                 }
             }
             else if (alpha <= 0.5 && alpha > 0)
@@ -890,8 +915,33 @@ namespace GPC.Checker.Steel.EuroCode
                     return 2;
                 } else
                 {
-                    return 4;
-                    throw new Exception("Problems classification");
+                    if (psi > -1)
+                    {
+                        if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    }
+                    else if (psi <= -1)
+                    {
+                        if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
+                        {
+                            return 3;
+                        }
+                        else
+                        {
+                            return 4;
+                        }
+                    }
+                    else
+                    {
+                        return 4;
+                        throw new Exception("classification");
+                    }
                 }
             } else if (alpha > 1)
             {
