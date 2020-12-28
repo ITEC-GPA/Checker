@@ -319,6 +319,8 @@ namespace GPC.Checker.Steel.EuroCode
             _MEd1 = M1Ed;
             _MEd2 = M2Ed;
             _TEd = TEd;
+
+            CheckResistance();
         }
 
         public void CheckResistance() {
@@ -871,35 +873,10 @@ namespace GPC.Checker.Steel.EuroCode
                 else if (ctRatio <= 456.0 * epsilon / (13.0 * alpha - 1.0))
                 {
                     return 2;
-                }
-                else //class 3 or 4
+                } else
                 {
-                    if (psi > -1)
-                    {
-                        if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
-                        {
-                            return 3;
-                        }
-                        else
-                        {
-                            return 4;
-                        }
-                    }
-                    else if (psi <= -1)
-                    {
-                        if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
-                        {
-                            return 3;
-                        }
-                        else
-                        {
-                            return 4;
-                        }
-                    } else
-                    {
-                        return 4;
-                        throw new Exception("classification");
-                    }
+                    return 4;
+                    throw new Exception("Problems classification");
                 }
             }
             else if (alpha <= 0.5 && alpha > 0)
@@ -911,35 +888,39 @@ namespace GPC.Checker.Steel.EuroCode
                 else if (ctRatio <= 41.5 * epsilon / alpha)
                 {
                     return 2;
-                }
-                else //class 3 or 4
+                } else
                 {
-                    if (psi > -1)
+                    return 4;
+                    throw new Exception("Problems classification");
+                }
+            } else if (alpha > 1)
+            {
+                if (psi > -1)
+                {
+                    if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
                     {
-                        if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
-                        {
-                            return 3;
-                        }
-                        else
-                        {
-                            return 4;
-                        }
+                        return 3;
                     }
-                    else if (psi <= -1)
-                    {
-                        if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
-                        {
-                            return 3;
-                        }
-                        else
-                        {
-                            return 4;
-                        }
-                    } else
+                    else
                     {
                         return 4;
-                        throw new Exception("classification");
                     }
+                }
+                else if (psi <= -1)
+                {
+                    if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
+                    {
+                        return 3;
+                    }
+                    else
+                    {
+                        return 4;
+                    }
+                }
+                else
+                {
+                    return 4;
+                    throw new Exception("classification");
                 }
             }
             else
