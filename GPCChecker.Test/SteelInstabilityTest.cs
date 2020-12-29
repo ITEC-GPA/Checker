@@ -431,5 +431,140 @@ namespace SteelTests
             Assert.AreEqual(0.895, checker.Cmz, 0.005);
             Assert.AreEqual(0.999, checker.Muz, 0.005);
         }
+
+        [TestMethod]
+        public void HSectionTest2()
+        {
+            /*
+            Eurocode 3-2005 STEEL SECTION CHECK    (Flexural Details for Combo and Station)
+ Units  :  KN, m, C
+ 
+ Frame :  4        X Mid:  -2.5      Combo:  N+M1+M2 SLU COMPDesign Type:  Beam                 
+ Length:  6.       Y Mid:  3.        Shape:  H Symmetric     Frame Type:  DCH-MRF            
+ Loc   :  6.       Z Mid:  0.        Class:  Class 1         Rolled : No                      
+ 
+ Country=CEN Default                 Combination=Eq. 6.10                  Reliability=Class 2                 
+ Interaction=Method 1 (Annex A)      MultiResponse=Envelopes               P-Delta Done? No                    
+ Consider Torsion? No                
+ 
+ GammaM0=1.        GammaM1=1.        GammaM2=1.25      
+ An/Ag=1.          RLLF=1.           PLLF=0.75         D/C Lim=0.95      
+ 
+ Aeff=0.012        eNy=0.            eNz=0.            
+ A=0.012           Iyy=3.287E-04     iyy=0.166         Wel,yy=0.002        Weff,yy=0.002     
+ It=0.             Izz=3.912E-05     izz=0.057         Wel,zz=3.129E-04    Weff,zz=3.129E-04 
+ Iw=1.449E-06      Iyz=0.            h=0.4             Wpl,yy=0.002        Av,y=0.008        
+ E=210000000.      fy=355000.        fu=510000.        Wpl,zz=4.821E-04    Av,z=0.005        
+ 
+ 
+ STRESS CHECK FORCES & MOMENTS
+     Location             Ned      Med,yy      Med,zz       Ved,z       Ved,y         Ted
+     6.                 -100.        100.       -100.      -8.333       8.333          0.
+ 
+ PMM DEMAND/CAPACITY RATIO   (Governing Equation EC3 6.3.3(4)-6.62)
+     D/C Ratio:    0.781 = 0.066 + 0.138 + 0.577   <         0.95          OK
+                        = NEd/(Chi_z NRk/GammaM1) + kzy (My,Ed+NEd eNy)/(Chi_LT My,Rk/GammaM1)
+                            + kzz (Mz,Ed+NEd eNz)/(Mz,Rk/GammaM1)       (EC3 6.3.3(4)-6.62)  
+ 
+ BASIC FACTORS
+     Buckling Mode   K Factor    L Factor       Lcr/i
+     Major (y-y)           2.          1.      72.322
+     Major Braced          2.          1.      72.322
+     Minor (z-z)           1.          1.     104.828
+     Minor Braced          1.          1.     104.828
+     LTB                   1.          1.     104.828
+ 
+ AXIAL FORCE DESIGN
+                          Ned       Nc,Rd       Nt,Rd
+                        Force    Capacity    Capacity
+     Axial              -100.      4238.7      4238.7
+ 
+                       Npl,Rd       Nu,Rd       Ncr,T      Ncr,TF       An/Ag
+                       4238.7    4384.368    4675.221    4675.221          1.
+ 
+                Curve   Alpha         Ncr   LambdaBar         Phi         Chi       Nb,Rd
+     Major (y-y)    b    0.34    4731.259       0.947       1.075       0.631    2675.634
+     MajorB(y-y)    b    0.34    4731.259       0.947       1.075       0.631    2675.634
+     Minor (z-z)    c    0.49    2252.001       1.372       1.728        0.36    1525.154
+     MinorB(z-z)    c    0.49    2252.001       1.372       1.728        0.36    1525.154
+     Torsional TF   c    0.49    4675.221       0.952       1.138       0.568    2408.229
+ 
+ MOMENT DESIGN
+                          Med    Med,span       Mc,Rd       Mv,Rd       Mn,Rd       Mb,Rd
+                       Moment      Moment    Capacity    Capacity    Capacity    Capacity
+     Major (y-y)         100.        100.      658.33      658.33      658.33     380.769
+     Minor (z-z)        -100.       -100.     171.135     171.135     171.135
+ 
+                      Section      Flange         Web     Epsilon       Alpha         Psi
+     Compactness      Class 1     Class 1     Class 1       0.814       0.532      -0.953
+ 
+                Curve AlphaLT LambdaBarLT       PhiLT       ChiLT          Iw         Mcr
+     LTB            c    0.49       0.935       1.117       0.578   1.449E-06     752.777
+ 
+     Factors      kw       C1          C2          C3
+                   1.   1.322          0.       0.728
+                   za      zs          zg          zz          zj
+                  0.2      0.         0.2          0.          0.
+ 
+     Factors  aLT         bLT         cLT         dLT         eLT        MueY        MueZ
+            0.998       0.088       0.362       0.103       0.135       0.992       0.971
+ 
+              nPL          wy          wz         Cyy         Cyz         Czy         Czz
+            0.024       1.128         1.5       0.982        0.81       0.952       0.923
+ 
+              Cmy         Cmz        CmLT         kyy         kyz         kzy         kzz
+            0.972       0.898          1.       1.003       0.796       0.527       0.988
+             */
+
+            Annex annex = new Annex();
+            annex.Gm0 = 1.0;
+            annex.Gm1 = 1.0;
+            annex.Gm2 = 1.25;
+
+            double fy = 355;
+            double fu = 510;
+
+            SteelMaterial steel = new SteelMaterial("S355", 210000, 0.3, fy, fu, 7850);
+            Section sect = new SectionH(400, 12, 250, 15, 250, 15, true, steel);
+
+            double N = -100 * 1000;
+            double V1 = 50 * 1000;
+            double V2 = 50 * 1000;
+            double M1 = -100 * 1e6;
+            double M2 = 100 * 1e6;
+            double T = 0;
+
+            double L = 6000;
+            double betay = 2.0;
+            double betaz = 1.0;
+            double betaLT = 1.0;
+
+            SupportCondition supportConditiony = SupportCondition.EndsRestrained;
+            LoadCondition loadConditiony = LoadCondition.NotDirectlyLoaded;
+            double? psiy = 0.5;
+
+            SupportCondition supportConditionz = SupportCondition.EndsRestrained;
+            LoadCondition loadConditionz = LoadCondition.NotDirectlyLoaded;
+            double? psiz = 0.5;
+
+            EuroCodeBeamChecker checker = new EuroCodeBeamChecker(sect, N, V1, V2, M1, M2, T, annex);
+
+            Assert.AreEqual(checker.NRd / (4238.7 * 1000.0), 1, 0.01);
+            Assert.AreEqual(checker.MRdy / (658.33 * 1e6), 1, 0.03);
+            Assert.AreEqual(checker.MRdz / (171.135 * 1e6), 1, 0.03);
+
+            checker.CheckBuckling(L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz);
+
+            Assert.AreEqual(0.631, checker.Chiy, 0.001);
+            Assert.AreEqual(0.36, checker.Chiz, 0.001);
+            Assert.AreEqual(0.578 / checker.ChiLT, 1, 0.01);
+
+            Assert.AreEqual(1.003, checker.Kyy, 0.005);
+            Assert.AreEqual(0.796, checker.Kyz, 0.005);
+            Assert.AreEqual(0.527, checker.Kzy, 0.005);
+            //Assert.AreEqual(0.901, checker.Kzz, 0.005); //in SAP 2000 there is a WRONG version of czz -> kzz(Cmz, muz, Ncrz, Czz) -> check Cmz, muz, Ncrz
+            Assert.AreEqual(0.898, checker.Cmz, 0.005);
+            Assert.AreEqual(0.971, checker.Muz, 0.005);
+        }
     }
 }
