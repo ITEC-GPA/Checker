@@ -766,7 +766,7 @@ namespace GPC.Checker.Steel.EuroCode
                         }                        
 
                         _bLT = 0.5 * _aLT * lambda0 * lambda0 * MEd2 * MEd1 / (_ChiLT * mplyRd * mplzRd);
-                        _cLT = 10.0 * _aLT * lambda0 * lambda0 * MEd2 / (5.0 + Math.Pow(_lambdaz,4.0) * _cmy * _ChiLT * mplyRd);
+                        _cLT = 10.0 * _aLT * lambda0 * lambda0 * MEd2 / ((5.0 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd);
                         _dLT = 2.0 * _aLT * lambda0 * MEd2 * MEd1 / ((0.1 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd * _cmz * mplzRd);
                         _eLT = 1.7 * _aLT * lambda0 * MEd2 / ((0.1 + Math.Pow(_lambdaz, 4.0)) * _cmy * _ChiLT * mplyRd);
 
@@ -774,8 +774,10 @@ namespace GPC.Checker.Steel.EuroCode
                         _cyy = Math.Max(1.0 + (_wy - 1.0) * ((2.0 - 1.6/_wy * _cmy * _cmy * lambdaMax - 1.6 / _wy * _cmy * _cmy * lambdaMax * lambdaMax) * npl - _bLT), _sec.Wel22Min / _sec.Wpl22);
                         _cyz = Math.Max(1.0 + (_wz - 1.0) * ((2.0 - 14.0 * _cmz * _cmz * lambdaMax * lambdaMax / Math.Pow(_wz,5.0)) * npl - _cLT), 0.6 * Math.Sqrt(_wz / _wy) * _sec.Wel11Min / _sec.Wel22Min);
                         _czy = Math.Max(1.0 + (_wy - 1.0) * ((2.0 - 14.0 * _cmy * _cmy * lambdaMax * lambdaMax / Math.Pow(_wy, 5.0)) * npl - _dLT),0.6 * Math.Sqrt(_wy / _wz) * _sec.Wel22Min / _sec.Wel11Min);
-                        _czz = Math.Max(1.0 + (_wz - 1) * (2.0 - 1.6 / _wz * _cmz * _cmz * lambdaMax - 1.6 / _wz * _cmz * _cmz * lambdaMax * lambdaMax - _eLT) * npl, _sec.Wel11Min / _sec.Wpl11);
-  
+                        _czz = Math.Max(1.0 + (_wz - 1) * (2.0 - 1.6 / _wz * _cmz * _cmz * lambdaMax - 1.6 / _wz * _cmz * _cmz * lambdaMax * lambdaMax - _eLT) * npl, _sec.Wel11Min / _sec.Wpl11); //RIGHT VERSION
+                        /* WRONG - TO BE COMMENTED!! -  ONLY FOR COMPARISON WITH SAP */
+                        //_czz = Math.Max(1.0 + (_wz - 1) * ((2.0 - 1.6 / _wz * _cmz * _cmz * lambdaMax - 1.6 / _wz * _cmz * _cmz * lambdaMax * lambdaMax) * npl - _eLT), _sec.Wel11Min / _sec.Wpl11); //SAP200 WRONG OLD VERSION
+                        /* STOP WRONG */
                         if (_classificationSection <= 2)
                         {
                             _kyy = _cmy * _cmLT * _muy / (1.0 - NEd / _Ncry) * 1.0 / _cyy;
