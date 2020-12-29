@@ -419,61 +419,33 @@ namespace SteelTests
         }
 
         [TestMethod]
-        public void SectionHTest2()
+        public void ClassificationSectionHTest2()
         {
-            double h = 500;
-            double bt = 500;
-            double bb = 100;
-            double tft = 12;
-            double tfb = 5;
-            double tw = 8;
+            //HEA700
+            double h = 690; //Cordova cap. 2 pag. 61
+            double b = 300;
+            double t = 27;
+            double tw = 14.5;
 
-            SectionH sec = new SectionH(h, tw, bt, tft, bb, tfb, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
-            double Wel = sec.Wel22Min;
+            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S235", 200000, 0.3, 235, 510, 7850));
 
-            EuroCodeBeamChecker Check = null; // new EuroCodeBeamChecker(sec, 1e3, 0, 0, 0, 0 ,0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
-            
-            double Weff = Check.Weffy;
+            EuroCodeBeamChecker classification = new EuroCodeBeamChecker(sec, -1332e3 * 0.85, 0, 0, 0, 0, 0, new Annex());
+            Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 61
 
-            var x = "";
-        }
+            classification = new EuroCodeBeamChecker(sec, -1788e3 * 0.85, 0, 0, 0, 0, 0, new Annex());
+            Assert.AreEqual(classification.ClassificationSection, 2); //Cordova cap. 2 pag. 61
 
-        [TestMethod]
-        public void SectionHTest3()
-        {
-            double h = 1060;
-            double b = 400;
-            double t = 30;
-            double tw = 8;
+            classification = new EuroCodeBeamChecker(sec, -1788e3, 0, 0, 0, 0, 0, new Annex());
+            Assert.AreEqual(classification.ClassificationSection, 3); //Cordova cap. 2 pag. 61
 
-            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
-            double Wel = sec.Wel22Min;
+            classification = new EuroCodeBeamChecker(sec, sec.Area * -235, 0, 0, 0, 0, 0, new Annex());
+            Assert.AreEqual(classification.ClassificationSection, 4); //Cordova cap. 2 pag. 61 --> classe 3 considerando raggio curvatura interno
 
-            EuroCodeBeamChecker Check = null; // new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 2600e6, 0, 1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, new Annex());
+            classification = new EuroCodeBeamChecker(sec, 0, 0, 0, 1e6, 0, 0, new Annex());
+            Assert.AreEqual(classification.ClassificationSection, 4); //Cordova cap. 2 pag. 61 --> cordova non classifica anima perchè passa assse neutro ma per pressoflessione?*/
 
-            //double Weff = Check.Weffy;
-
-            var x = "";
-        }
-
-        [TestMethod]
-        public void SectionHTest4()
-        {
-            double h = 300;
-            double b = 200;
-            double t = 10;
-            double tw = 10;
-
-            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S355", 200000, 0.3, 355, 510, 7850));
-            double Wel = sec.Wel22Min;
-
-            EuroCodeBeamChecker Check = new EuroCodeBeamChecker(sec, 0, 0, 0, 1e6, 0, 0, new Annex());
-            Check.CheckResistance();
-            Check.CheckBuckling(1000, 1, 1, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1, SupportCondition.EndsRestrained, LoadCondition.NotDirectlyLoaded, 1);
-
-            double Weff = Check.Weffy;
-
-            var x = "";
+            classification = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 1e6, 0, new Annex());
+            Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 61
         }
     }
 }
