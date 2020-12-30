@@ -460,8 +460,8 @@ namespace GPC.Checker.Steel.EuroCode
                         //classification only for Compression.
                         //Other detailed calculation should be found and implemented
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
-                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlangeTop, epsilon));
-                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlangeBottom, epsilon));
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
+                        _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeBottom, epsilon));
                     }
                 }
             } else
@@ -1468,7 +1468,7 @@ namespace GPC.Checker.Steel.EuroCode
         protected double GetMcrLT(double L, double Jt, double Jw, double Jz,   double E, double G, SupportCondition supportCondition, LoadCondition loadCondition, double? psi, double k = 1.0, double kw = 1.0)
         {
             /*
-             * C1 = factor that account for the shaper of the moment diagram
+             * C1 = factor that account for the shape of the moment diagram
              * C2 = factor that account for the point of load application in relation to the shear center
              * C3 = factor that account asymmetry about y-axis
              * 
@@ -1514,11 +1514,13 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         if (loadCondition == LoadCondition.Constant)
                         {
-                            C1 = 1.127;
+                            //From NCCI: Elastic critical momnet for lateral torsional buckling SN003a-EN-EU
+                            C1 = 1.127; 
                             C2 = 0.454;
                         }
                         else if (loadCondition == LoadCondition.SingleForce)
                         {
+                            //From NCCI: Elastic critical momnet for lateral torsional buckling SN003a-EN-EU
                             C1 = 1.348;
                             C2 = 0.630;
                         } else
@@ -1530,11 +1532,13 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         if (loadCondition == LoadCondition.Constant)
                         {
+                            //From NCCI: Elastic critical momnet for lateral torsional buckling SN003a-EN-EU
                             C1 = 2.578;
                             C2 = 1.554;
                         }
                         else if (loadCondition == LoadCondition.SingleForce)
                         {
+                            //From NCCI: Elastic critical momnet for lateral torsional buckling SN003a-EN-EU
                             C1 = 1.683;
                             C2 = 1.645;
                         } else
@@ -1549,7 +1553,9 @@ namespace GPC.Checker.Steel.EuroCode
                 {
                     if (psi.HasValue)
                     {
+                        //Book: Rules for Member Stability in EN 1993-1-1 - Background documentation and design guidelines - ECCS Techinacl Committee - Stability
                         C1 = Math.Min(1.77 - 1.04 * psi.Value + 0.27 * psi.Value * psi.Value, 2.6);
+                        //ENV 1993-1-1:1992 (F3)
                         //C1 = Math.Min(1.88 - 1.40 * psi + 0.52 * psi * psi, 2.7);
                         C2 = 0;
                     } else
