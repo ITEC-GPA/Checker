@@ -1514,13 +1514,13 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         if (loadCondition == LoadCondition.Constant)
                         {
-                            //From NCCI: Elastic critical momnet for lateral torsional buckling SN003a-EN-EU
+                            //From NCCI: Elastic critical moment for lateral torsional buckling SN003a-EN-EU
                             C1 = 1.127; 
                             C2 = 0.454;
                         }
                         else if (loadCondition == LoadCondition.SingleForce)
                         {
-                            //From NCCI: Elastic critical momnet for lateral torsional buckling SN003a-EN-EU
+                            //From NCCI: Elastic critical moment for lateral torsional buckling SN003a-EN-EU
                             C1 = 1.348;
                             C2 = 0.630;
                         } else
@@ -1532,13 +1532,13 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         if (loadCondition == LoadCondition.Constant)
                         {
-                            //From NCCI: Elastic critical momnet for lateral torsional buckling SN003a-EN-EU
+                            //From NCCI: Elastic critical moment for lateral torsional buckling SN003a-EN-EU
                             C1 = 2.578;
                             C2 = 1.554;
                         }
                         else if (loadCondition == LoadCondition.SingleForce)
                         {
-                            //From NCCI: Elastic critical momnet for lateral torsional buckling SN003a-EN-EU
+                            //From NCCI: Elastic critical moment for lateral torsional buckling SN003a-EN-EU
                             C1 = 1.683;
                             C2 = 1.645;
                         } else
@@ -1549,18 +1549,24 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         throw new Exception("SupportCondition not supported");
                     }
-                } else if (loadCondition == LoadCondition.NotDirectlyLoaded)//Beam not directly loaded but with bending moment at the ends
+                } else if (loadCondition == LoadCondition.NotDirectlyLoaded) //Beam not directly loaded but with bending moment at the ends
                 {
                     if (psi.HasValue)
                     {
-                        //Book: Rules for Member Stability in EN 1993-1-1 - Background documentation and design guidelines - ECCS Techinacl Committee - Stability
-                        C1 = Math.Min(1.77 - 1.04 * psi.Value + 0.27 * psi.Value * psi.Value, 2.6);
+                        if (k == 1)
+                        {
+                            //Book: Rules for Member Stability in EN 1993-1-1 - Background documentation and design guidelines - ECCS Techinacl Committee - Stability
+                            C1 = Math.Min(1.77 - 1.04 * psi.Value + 0.27 * psi.Value * psi.Value, 2.6);
+                        } else
+                        {
+                            throw new Exception("k != 1 : cannot calculate C1 for Mcr");
+                        }
                         //ENV 1993-1-1:1992 (F3)
                         //C1 = Math.Min(1.88 - 1.40 * psi + 0.52 * psi * psi, 2.7);
                         C2 = 0;
                     } else
                     {
-                        throw new Exception("set a value to psi = M(x=0)/M(x=L)");
+                        throw new Exception("Set the value of psi = M(x=0)/M(x=L)");
                     }
                 } else
                 {
@@ -1571,9 +1577,42 @@ namespace GPC.Checker.Steel.EuroCode
             }
             else if (_sec.IsSymmetricAlongZLocalAxis)
             {
-                    //double zj = zs - 0.5 * INTEGRALE(y^2+z^2)*z dA / Jy
+                //double zj = zs - 0.5 * INTEGRALE(y^2+z^2)*z dA / Jy
+                if (typeSection == typeof(SectionH))
+                {
+                    SectionH sec = (SectionH)_sec;
+                    double Ifc; //inertia along the weak axis of the beam of compression flange
+                    double Ift; //inertia along the weak axis of the beam of tension flange
+                    if (_MEd2 > 0) { //tension bottom
+                        Ift = 1.0 / 12.0 * sec.ThicknessBottomFlange * Math.Pow(sec.LenghtBottomFlange,3);
+                        Ifc = 1.0 / 12.0 * sec.ThicknessTopFlange * Math.Pow(sec.LenghtTopFlange, 3);
+                    } else { //tension up
+                        Ifc = 1.0 / 12.0 * sec.ThicknessBottomFlange * Math.Pow(sec.LenghtBottomFlange, 3);
+                        Ift = 1.0 / 12.0 * sec.ThicknessTopFlange * Math.Pow(sec.LenghtTopFlange, 3);
+                    }
+                    //Book: Rules for Member Stability in EN 1993-1-1 - Background documentation and design guidelines - ECCS Techinacl Committee - Stability
+                    //pg 230
+                    double psif = (Ifc - Ift) / (Ifc + Ift);
+                    double hs = sec.H - sec.ThicknessBottomFlange /2.0 - sec.ThicknessTopFlange / 2.0; // distance between the shear center of the flanges
+                    double zj;
+                    if (psif >= 0)
+                    {
+                        zj = 0.8 * psif * hs / 2.0;
+                    } else
+                    {
+                        zj = psif * hs / 2.0;
+                    }
+
+                    //Book: Rules for Member Stability in EN 1993-1-1 - Background documentation and design guidelines - ECCS Techinacl Committee - Stability
+                    //pg 233
+                    if (psif <= 0.9 && psif >= 0.9)
+                    {
+                        //tables can be used
+
+                    }
+                } else {
                     throw new Exception("cannot calc McrLT");
-                
+                }
             } else //NO sysmmetry
             {
                 throw new Exception("cannot calc McrLT");
