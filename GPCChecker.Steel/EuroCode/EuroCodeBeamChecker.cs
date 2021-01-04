@@ -1596,7 +1596,7 @@ namespace GPC.Checker.Steel.EuroCode
                     
                     if (psif >= 0)
                     {
-                        zj = 0.8 * psif * hs / 2.0;
+                        zj = 0.8 * psif * hs / 2.0; //Wagner coeff
                     } else
                     {
                         zj = psif * hs / 2.0;
