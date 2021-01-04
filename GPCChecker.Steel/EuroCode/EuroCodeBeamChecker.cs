@@ -1479,7 +1479,8 @@ namespace GPC.Checker.Steel.EuroCode
              */
 
             //calculation of zg calculatet from the top of section to the shear center:
-            double zg;
+            double zg; //coordinate of point of application vs coordinate of shear center
+            double zj; //zs (shear center) - 0.5 integral(y^2+z^2) * z / Jy dA
             Type typeSection = _sec.GetType();
             if (typeSection == typeof(SectionCHS))
             {
@@ -1500,14 +1501,14 @@ namespace GPC.Checker.Steel.EuroCode
                 throw new Exception("McrLT not yet supported for this section");
             }
 
-            double C1;
-            double C2;
-            double C3;
-            //symmetric section at least along Z-Z
+            double C1 = 0;
+            double C2 = 0;
+            double C3 = 0;
+
             if (_sec.IsDoubleSymmetric)
             {
                 C3 = 0.0;
-                double zj = 0.0;
+                zj = 0.0;
 
                 if (loadCondition != LoadCondition.NotDirectlyLoaded) { 
                     if (supportCondition == SupportCondition.HingesAtEnds)
@@ -1572,12 +1573,10 @@ namespace GPC.Checker.Steel.EuroCode
                 {
                     throw new Exception("Load condition + Support not yet supported");
                 }
-                double McrLT = C1 * Math.Pow(Math.PI, 2.0) * E * Jz / Math.Pow(k * L, 2.0) * (Math.Pow(Math.Pow(k / kw, 2.0) * Jw / Jz + Math.Pow(k * L, 2.0) * G * Jt / (Math.Pow(Math.PI, 2.0) * E * Jz) + Math.Pow(C2 * zg - C3 * zj, 2.0), 0.5) - (C2 * zg - C3 * zj));
-                return McrLT;
+                
             }
-            else if (_sec.IsSymmetricAlongZLocalAxis)
+            else if (_sec.IsSymmetricAlongYLocalAxis)
             {
-                //double zj = zs - 0.5 * INTEGRALE(y^2+z^2)*z dA / Jy
                 if (typeSection == typeof(SectionH))
                 {
                     SectionH sec = (SectionH)_sec;
@@ -1594,7 +1593,7 @@ namespace GPC.Checker.Steel.EuroCode
                     //pg 230
                     double psif = (Ifc - Ift) / (Ifc + Ift);
                     double hs = sec.H - sec.ThicknessBottomFlange /2.0 - sec.ThicknessTopFlange / 2.0; // distance between the shear center of the flanges
-                    double zj;
+                    
                     if (psif >= 0)
                     {
                         zj = 0.8 * psif * hs / 2.0;
@@ -1605,18 +1604,222 @@ namespace GPC.Checker.Steel.EuroCode
 
                     //Book: Rules for Member Stability in EN 1993-1-1 - Background documentation and design guidelines - ECCS Techinacl Committee - Stability
                     //pg 233
-                    if (psif <= 0.9 && psif >= 0.9)
+                    if (psif <= 0.9 && psif >= -0.9)
                     {
-                        //tables can be used
-
+                        //tables 63 and 64 of Book: Rules for Member Stability in EN 1993-1-1 - Background documentation and design guidelines - ECCS Techinacl Committee - Stability can be used
+                        if (supportCondition == SupportCondition.EndsRestrained)
+                        {
+                            if (loadCondition == LoadCondition.NotDirectlyLoaded)
+                            {
+                                C2 = 0;
+                                double interpolation(double x0, double y0, double x1, double y1, double xc) { return (y1-y0)/(x1-x0)*(xc-x1)+y1; }
+                                if (k == 1)
+                                {
+                                    if (0.75 <= psi && psi <= 1.0)
+                                    {
+                                        C1 = interpolation(0.75, 1.14, 1, 1, psi.Value);
+                                        C3 = 1.0;
+                                    }
+                                    else if (0.5 <= psi && psi <= 0.75)
+                                    {
+                                        C1 = interpolation(0.5, 1.31, 0.75, 1.14, psi.Value);
+                                        C3 = 1.0;
+                                    }
+                                    else if (0.25 <= psi && psi <= 0.5)
+                                    {
+                                        C1 = interpolation(0.25, 1.52, 0.5, 1.31, psi.Value);
+                                        C3 = 1.0;
+                                    }
+                                    else if (0.0 <= psi && psi <= 0.25)
+                                    {
+                                        C1 = interpolation(0.0, 1.77, 0.25, 1.52, psi.Value);
+                                        C3 = 1.0;
+                                    }
+                                    else if (-0.25 <= psi && psi <= 0)
+                                    {
+                                        C1 = interpolation(-0.25, 2.06, 0, 1.77, psi.Value);
+                                        if (psif <= 0)
+                                        {
+                                            C3 = 1.0;
+                                        }
+                                        else
+                                        {
+                                            C3 = interpolation(-0.25, 0.85, 0, 1, psi.Value);
+                                        }
+                                    }
+                                    else if (-0.5 <= psi && psi <= -0.25)
+                                    {
+                                        C1 = interpolation(-0.5, 2.35, -0.25, 2.06, psi.Value);
+                                        if (psif <= 0)
+                                        {
+                                            C3 = 1.0;
+                                        }
+                                        else
+                                        {
+                                            C3 = interpolation(-0.5, 1.3-1.2*psif, -0.25, 0.85, psi.Value);
+                                        }
+                                    }
+                                    else if (-0.75 <= psi && psi <= -0.5)
+                                    {
+                                        C1 = interpolation(-0.75, 2.60, -0.50, 2.35, psi.Value);
+                                        if (psif <= 0)
+                                        {
+                                            C3 = 1.0;
+                                        }
+                                        else
+                                        {
+                                            C3 = interpolation(-0.75, 0.55 - psif, -0.5, 1.3 - 1.2 * psif, psi.Value);
+                                        }
+                                    }
+                                    else if (-1 <= psi && psi <= -0.75)
+                                    {
+                                        C1 = interpolation(-1.0, 2.60, -0.75, 2.60, psi.Value);
+                                        if (psif <= 0)
+                                        {
+                                            C3 = interpolation(-1.0, -psif, -0.75, 1.0, psi.Value);
+                                        }
+                                        else
+                                        {
+                                            C3 = interpolation(-1.0, -psif, -0.75, 0.55-psif, psi.Value);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new Exception("cannot calc McrLT");
+                                    }
+                                } else if (k == 0.5)
+                                {
+                                    if (0.75 <= psi && psi <= 1.0)
+                                    {
+                                        C1 = interpolation(0.75, 1.19, 1, 1.05, psi.Value);
+                                        C3 = interpolation(0.75, 1.017, 1, 1.019, psi.Value);
+                                    }
+                                    else if (0.5 <= psi && psi <= 0.75)
+                                    {
+                                        C1 = interpolation(0.5, 1.37, 0.75, 1.19, psi.Value);
+                                        C3 = 1.0;
+                                    }
+                                    else if (0.25 <= psi && psi <= 0.5)
+                                    {
+                                        C1 = interpolation(0.25, 1.60, 0.5, 1.37, psi.Value);
+                                        C3 = 1.0;
+                                    }
+                                    else if (0.0 <= psi && psi <= 0.25)
+                                    {
+                                        C1 = interpolation(0.0, 1.86, 0.25, 1.60, psi.Value);
+                                        C3 = 1.0;
+                                    }
+                                    else if (-0.25 <= psi && psi <= 0)
+                                    {
+                                        C1 = interpolation(-0.25, 2.15, 0, 1.86, psi.Value);
+                                        if (psif <= 0)
+                                        {
+                                            C3 = 1.0;
+                                        }
+                                        else
+                                        {
+                                            C3 = interpolation(-0.25, 0.65, 0, 1, psi.Value);
+                                        }
+                                    }
+                                    else if (-0.5 <= psi && psi <= -0.25)
+                                    {
+                                        C1 = interpolation(-0.5, 2.42, -0.25, 2.15, psi.Value);
+                                        if (psif <= 0)
+                                        {
+                                            C3 = interpolation(-0.5, 0.95, -0.25, 1, psi.Value);
+                                        }
+                                        else
+                                        {
+                                            C3 = interpolation(-0.5, 0.77 - psif, -0.25, 0.65, psi.Value);
+                                        }
+                                    }
+                                    else if (-0.75 <= psi && psi <= -0.5)
+                                    {
+                                        C1 = interpolation(-0.75, 2.45, -0.50, 2.42, psi.Value);
+                                        if (psif <= 0)
+                                        {
+                                            C3 = interpolation(-0.75, 0.85, -0.5, 0.95, psi.Value);
+                                        }
+                                        else
+                                        {
+                                            C3 = interpolation(-0.75, 0.35 - psif, -0.5, 0.77 - psif, psi.Value);
+                                        }
+                                    }
+                                    else if (-1 <= psi && psi <= -0.75)
+                                    {
+                                        C1 = 2.45;
+                                        if (psif <= 0)
+                                        {
+                                            C3 = interpolation(-1.0, 0.125-0.7*psif, -0.75, 0.85, psi.Value);
+                                        }
+                                        else
+                                        {
+                                            C3 = interpolation(-1.0, -0.125-0.7*psif, -0.75, 0.35 - psif, psi.Value);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new Exception("cannot calc McrLT, psi < -1 or psi > 1!");
+                                    }
+                                } else
+                                {
+                                    throw new Exception("cannot calc McrLT, k != 1 or k != 0.5");
+                                }
+                            } else
+                            {
+                                throw new Exception("cannot calc McrLT, no literature");
+                            }
+                        } else if (supportCondition == SupportCondition.HingesAtEnds)
+                        {
+                            if (k == 1)
+                            {
+                                if (loadCondition == LoadCondition.Constant)
+                                {
+                                    C1 = 1.12;
+                                    C2 = 0.45;
+                                    C3 = 0.525;
+                                } else if (loadCondition == LoadCondition.SingleForce)
+                                {
+                                    C1 = 1.35;
+                                    C2 = 0.59;
+                                    C3 = 0.411;
+                                }
+                            } else if (k == 0.5)
+                            {
+                                if (loadCondition == LoadCondition.Constant)
+                                {
+                                    C1 = 0.97;
+                                    C2 = 0.36;
+                                    C3 = 0.478;
+                                }
+                                else if (loadCondition == LoadCondition.SingleForce)
+                                {
+                                    C1 = 1.05;
+                                    C2 = 0.48;
+                                    C3 = 0.338;
+                                }
+                            } else
+                            {
+                                throw new Exception("cannot calc McrLT, no literature");
+                            }
+                        } else
+                        {
+                            throw new Exception("cannot calc McrLT, no literature");
+                        }
+                    } else
+                    {
+                        throw new Exception("cannot calc McrLT");
                     }
                 } else {
-                    throw new Exception("cannot calc McrLT");
+                    throw new Exception("Section not yet supported for calculation of McrLT");
                 }
             } else //NO sysmmetry
             {
                 throw new Exception("cannot calc McrLT");
             }
+
+            double McrLT = C1 * Math.Pow(Math.PI, 2.0) * E * Jz / Math.Pow(k * L, 2.0) * (Math.Pow(Math.Pow(k / kw, 2.0) * Jw / Jz + Math.Pow(k * L, 2.0) * G * Jt / (Math.Pow(Math.PI, 2.0) * E * Jz) + Math.Pow(C2 * zg - C3 * zj, 2.0), 0.5) - (C2 * zg - C3 * zj));
+            return McrLT;
         }
 
         protected void GetImperfectionFactor(out double _alphay, out double _alphaz)
@@ -1775,6 +1978,7 @@ namespace GPC.Checker.Steel.EuroCode
             SectionBucklingLTCurves.Add("d", 0.76);
 
             Type typeShape = _sec.GetType();
+            //TABLE 6.4 - EN 1993-1-1
             if (typeShape == typeof(SectionH))
             {
                 SectionH sec = (SectionH)_sec;
@@ -1798,9 +2002,16 @@ namespace GPC.Checker.Steel.EuroCode
                 }
                 else //welded
                 {
-                    if (sec.H / sec.B <= 2.0)
+                    if (sec.IsDoubleSymmetric)
                     {
-                        alpha_LT = SectionBucklingLTCurves["c"];
+                        if (sec.H / sec.B <= 2.0)
+                        {
+                            alpha_LT = SectionBucklingLTCurves["c"];
+                        }
+                        else
+                        {
+                            alpha_LT = SectionBucklingLTCurves["d"];
+                        }
                     } else
                     {
                         alpha_LT = SectionBucklingLTCurves["d"];
@@ -1859,33 +2070,63 @@ namespace GPC.Checker.Steel.EuroCode
             if (loadCondition == LoadCondition.SingleForce && supportCondition == SupportCondition.HingesAtEnds)
             {
                 return 1.0 - 0.18 * NEd / Ncr;
-            } else if (loadCondition == LoadCondition.Constant && supportCondition == SupportCondition.HingesAtEnds)
+            }
+            else if (loadCondition == LoadCondition.Constant && supportCondition == SupportCondition.HingesAtEnds)
             {
                 return 1 + 0.03 * NEd / Ncr;
-            } else if (loadCondition == LoadCondition.NotDirectlyLoaded)
+            }
+            else if (loadCondition == LoadCondition.NotDirectlyLoaded)
             {
                 if (psi.HasValue)
                 {
                     return 0.79 + 0.21 * psi.Value + 0.36 * (psi.Value - 0.33) * NEd / Ncr;
-                } else
+                }
+                else
                 {
                     throw new Exception("Set a value to phi = M(x=0)/M(x=L);");
                 }
-            } else {
+            }
+            else
+            {
                 if (deflection.HasValue && MEdMax.HasValue)
                 {
                     return 1.0 + (Math.PI * Math.PI * _sec.Material.E * Math.Abs(deflection.Value) / (_L * _L * MEdMax.Value) - 1.0) * NEd / Ncr;
-                } else
+                }
+                else
                 {
                     throw new Exception("Set delta and Mmax");
                 }
-            }            
+            }
         }
-
         protected double GetMu(double Ned, double Ncr, double Chi)
         { 
             double mu = (1.0 - Ned / Ncr) / (1.0 - Chi * Ned / Ncr);
             return mu;
+        }
+
+        public static double C1(double k, double kw, double MMax, double M1, double M2, double M3, double M4, double M5)
+        {
+            //C1 for Mcr = C1 * PI^2 * E Jz / (kz * L)^2 * ((kz/kw)^2 * Jw / Jz + (kz * L)^2 * G * Jt / (PI^2*E*Jz))^0.5
+            //valid for any distribution of bending moment, but, with bisymmetric section
+            //reference: Lateral torsional buckling of steel beams: a general expresion for the moment gradient factor - Aitzilber Lopez, Danny J. Yong and Miguel A. Serna
+            //Mmax = max abosolute bending moment in the beam
+            //M1 = M(x=0);
+            //M2 = M(x=L/4);
+            //M3 = M(x=L/2);
+            //M4 = M(x=3/4*L);
+            //M5 = M(x=L);
+            double keq = Math.Sqrt(k * kw);
+            double alpha1 = 1 - kw;
+            double alpha2 = 5.0 * Math.Pow(k, 3.0) / Math.Pow(kw, 2.0);
+            double alpha3 = 5.0 * (1.0 / k + 1.0 / kw);
+            double alpha4 = 5.0 * Math.Pow(kw, 3.0) / Math.Pow(k, 2.0);
+            double alpha5 = 1 - k;
+
+            double A1 = Math.Pow(MMax, 2.0) + alpha1 * Math.Pow(M1, 2.0) + alpha2 * Math.Pow(M2, 2.0) + alpha3 * Math.Pow(M3, 2.0) + alpha4 * Math.Pow(M4, 2.0) + alpha5 * Math.Pow(M5, 2.0);
+            A1 = A1 / ((1.0 + alpha1 + alpha2 + alpha3 + alpha4 + alpha5) * Math.Pow(MMax,2.0));
+            double A2 = Math.Abs((M1 + 2.0 * M2 + 3.0 * M3 + 2.0 * M4 + M5)/(9.0*MMax));
+            double C1 = (Math.Sqrt(Math.Sqrt(keq) * A1 + Math.Pow((1.0 - Math.Sqrt(keq))/2.0 * A2, 2.0)) + (1 - Math.Sqrt(keq)) / 2.0 * A2) / A1;
+            return C1;
         }
         #endregion
     }
