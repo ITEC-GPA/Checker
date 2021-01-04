@@ -36,6 +36,8 @@ namespace GPC.Checker.Glasses.FemModel
 
         private string _name;
 
+        private GlassChecker.CheckParameters.AnalysisType _analysisType;
+
         #endregion
 
         public string Name => _name;
@@ -54,6 +56,7 @@ namespace GPC.Checker.Glasses.FemModel
         }
 
         #endregion
+
 
         #region Public methods
 
@@ -226,6 +229,12 @@ namespace GPC.Checker.Glasses.FemModel
             }
         }
 
+
+        public void SetAnalysisType(GlassChecker.CheckParameters.AnalysisType analysisType)
+        {
+            _analysisType = analysisType;
+        }
+
         #endregion
 
 
@@ -264,7 +273,7 @@ namespace GPC.Checker.Glasses.FemModel
 
         #region STRAUS7
 
-        internal void ToSt7(string filePath, GlassChecker.CheckParameters.AnalysisType analysisType)
+        internal void SaveToSt7(string filePath)
         {
             if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
             {
@@ -273,26 +282,23 @@ namespace GPC.Checker.Glasses.FemModel
                 if (status)
                     status = aw.SaveFile(mid);
 
-                switch (analysisType)
+                switch (_analysisType)
                 {
                     case GlassChecker.CheckParameters.AnalysisType.LinearStaticAnalisys:
+
                         if (status)
                             St7NonLinearSolverSetupForLinearAnalysis(aw, mid);
 
-                        status = aw.SaveFile(mid);
-                        //if (status)
-                        //    status = St7LinearSolverSetup(aw, mid);
-                        //if (status)
-                        //    status = St7RunLinearSolver(aw, mid, filePath);
                         if (status)
-                            status = St7RunNonLinearStagedSolver(aw, mid, filePath);
+                            status = aw.SaveFile(mid);
+
                         break;
 
                     case GlassChecker.CheckParameters.AnalysisType.NonLinearStaticAnalysis:
                         throw new NotImplementedException();
 
                     default:
-                        throw new NotSupportedException($"Analysis type {analysisType} not supported");
+                        throw new NotSupportedException($"Analysis type {_analysisType} not supported");
                 }
 
                 if (status)
@@ -308,6 +314,51 @@ namespace GPC.Checker.Glasses.FemModel
 
             if (channel != null)
                 ChannelServices.UnregisterChannel(channel);
+        }
+
+        internal void RunSt7Solver(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"File {filePath}, not found");
+            }
+
+            if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
+            {
+                switch (_analysisType)
+                {
+                    case GlassChecker.CheckParameters.AnalysisType.LinearStaticAnalisys:
+
+                        int mid = 0;
+                        bool status = aw.OpenFile(filePath, Path.GetTempPath(), ref mid);
+
+                        //if (status)
+                        //    status = St7LinearSolverSetup(aw, mid);
+                        //if (status)
+                        //    status = St7RunLinearSolver(aw, mid, filePath);
+
+                        if (status)
+                            status = St7RunNonLinearStagedSolver(aw, mid, filePath);
+
+                        break;
+
+                    case GlassChecker.CheckParameters.AnalysisType.NonLinearStaticAnalysis:
+                        throw new NotImplementedException();
+
+                    default:
+                        throw new NotSupportedException($"Analysis type {_analysisType} not supported");
+                }
+            }
+            else
+            {
+                throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
+            }
+
+            if (channel != null)
+                ChannelServices.UnregisterChannel(channel);
+
+
+            
         }
 
         private static bool ConnectService(string ip, out ISt7ApiService ro, out TcpChannel channel)
@@ -674,27 +725,39 @@ namespace GPC.Checker.Glasses.FemModel
                 throw new FileNotFoundException($"File {pInfo.FileName} not found");
             else
             {
-                Process p = Process.Start(pInfo);
-
-                p.WaitForExit(); // Wait for the process to end.
-
-                if (p.ExitCode == 0) // Analysis terminated with success
+                try
                 {
-                    //string resultPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + "." + resultExtension);
+                    Process p = Process.Start(pInfo);
 
-                    return true;
-                    //bool status = St7ReadResults(aw, mid, resultPath);
-                    //return status;
-                }
-                else
-                {
-                    string err = "";
-                    if (p.ExitCode < 1000)
-                        err = aw.GetAPIErrorString(p.ExitCode);
+                    p.WaitForExit(); // Wait for the process to end.
+
+                    if (p.ExitCode == 0) // Analysis terminated with success
+                    {
+                        //string resultPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + "." + resultExtension);
+
+                        return true;
+                        //bool status = St7ReadResults(aw, mid, resultPath);
+                        //return status;
+                    }
                     else
-                        err = aw.GetSolverErrorString(p.ExitCode);
-                    throw new Exception($"St7 solver error {err}");
+                    {
+                        string err = "";
+                        if (p.ExitCode < 1000)
+                            err = aw.GetAPIErrorString(p.ExitCode);
+                        else if (p.ExitCode == 2000)
+                            err = "Number of arguments lower than two";
+                        else
+                            err = aw.GetSolverErrorString(p.ExitCode);
+
+                        throw new Exception($"St7 solver error {err}");
+                    }
                 }
+                catch (Exception e)
+                {
+                    throw e;
+                }
+
+                
             }
         }
 

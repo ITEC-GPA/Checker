@@ -35,8 +35,9 @@ namespace GPC.Checker.Glasses.Checkers
         {
             List<GlassWrapper> wrappers = GetWrappers();
 
-            FemModelWrapper femWrapper = new FemModelWrapper("fem1.st7");
-            
+            FemModelWrapper femWrapper = new FemModelWrapper("fem1");
+            femWrapper.SetAnalysisType(_checkParameters.GetAnalysisType());
+
             foreach (var wrapper in wrappers)
             {
                 if (wrapper is MonolithicGlassWrapper mgw)

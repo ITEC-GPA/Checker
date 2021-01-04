@@ -63,13 +63,17 @@ namespace GPC.Checker.Glasses.Checkers
         {
             foreach(FemModelWrapper femModel in _femModels)
             {
-                femModel.ToSt7(Path.Combine(_model.OutputFolder, Path.ChangeExtension(femModel.Name, "st7")), _checkParameters.GetAnalysisType());
+                femModel.SaveToSt7(Path.Combine(_model.OutputFolder, Path.ChangeExtension(femModel.Name, "st7")));
             }
         }
 
-
-
-
+        public void RunSt7Solver()
+        {
+            foreach (FemModelWrapper femModel in _femModels)
+            {
+                femModel.RunSt7Solver(Path.Combine(_model.OutputFolder, Path.ChangeExtension(femModel.Name, "st7")));
+            }
+        }
 
         #endregion
 

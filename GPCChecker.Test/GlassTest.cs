@@ -291,7 +291,11 @@ namespace GlassTests
 
             PrEnGlassChecker check = new PrEnGlassChecker(model, new GlassChecker.CheckParameters());
             check.SetUpFemModels();
+            
             check.ExportToSt7();
+
+            check.RunSt7Solver();
+
         }
     }
 }
