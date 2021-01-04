@@ -24,8 +24,10 @@ namespace GPC.Checker.Glasses.FemModel
         public List<Plate> Plates => _plates;
 
         public int SurfaceId => _surfaceId;
+
+
         /// <summary>
-        /// 
+        /// Per fem mesh si intende un insieme di plates collegati tra loro. Es. un vetro monolitico. Un vetro laminato modellato a multielement è composto da due mesh
         /// </summary>
         /// <param name="vertices"></param>
         /// <param name="faces"></param>

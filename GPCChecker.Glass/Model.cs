@@ -2,8 +2,6 @@
 using GPC.Model.Combinations;
 using System;
 using System.Collections.Generic;
-using GPC.Checker.Glasses.Wrappers;
-using GPC.Checker.Glasses.FemModel;
 
 namespace GPC.Checker.Glasses
 {

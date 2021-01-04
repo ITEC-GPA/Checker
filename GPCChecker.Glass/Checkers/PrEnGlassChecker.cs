@@ -35,13 +35,16 @@ namespace GPC.Checker.Glasses.Checkers
         {
             List<GlassWrapper> wrappers = GetWrappers();
 
-            FemModelWrapper femWrapper = new FemModelWrapper("fem1.st7");
-            
+            FemModelWrapper femWrapper = new FemModelWrapper("fem1");
+            femWrapper.SetAnalysisType(_checkParameters.GetAnalysisType());
+
             foreach (var wrapper in wrappers)
             {
                 if (wrapper is MonolithicGlassWrapper mgw)
                 {
-                    var geometryMesh = mgw.GenerateGeometryMesh(out Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex);
+                    var geometryMesh = mgw.Mesh;
+                    var embeddedGeometriesMapVertex = mgw.EmbeddedGeometriesMapVertex;
+
                     var restrains = mgw.GetRestrains();
 
                     mgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
@@ -50,7 +53,8 @@ namespace GPC.Checker.Glasses.Checkers
                 }
                 else if (wrapper is LaminatedGlassWrapper lgw)
                 {
-                    var geometryMesh = lgw.GenerateGeometryMesh(out Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex);
+                    var geometryMesh = lgw.Mesh;
+                    var embeddedGeometriesMapVertex = lgw.EmbeddedGeometriesMapVertex;
 
                     var restrains = lgw.GetRestrains();
 

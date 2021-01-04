@@ -4,24 +4,66 @@ using System;
 using System.Linq;
 using GPC.Geometry;
 using System.Collections.Generic;
-using GPC.Checker.Glasses.FemModel;
 using GPC.Geometry.Meshes;
 using GPC.Model.Elements;
-using GPC.Model.FEM.Attributes;
-using GPC.Checker.Glasses.LoadCases;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
     public abstract class GlassPanelWrapper : GlassWrapper, IGlassPanelWrapper
     {
+        #region Variables
+
         protected List<Load> _loads;
+
+        protected Mesh _mesh;
+
+        protected Dictionary<GeometryBase, int[]> _embeddedGeometriesMapVertex;
+
+        #endregion
+
+        #region Properties
 
         internal List<Load> Loads => _loads;
 
         protected new IGlassPanelProperty GlassProperty => (IGlassPanelProperty)_glassSurface.GlassProperty;
 
+        public Mesh Mesh
+        {
+            get
+            {
+                if (_mesh == null)
+                {
+                    _mesh = GenerateGeometryMesh(out _embeddedGeometriesMapVertex);
+                    return _mesh;
+                }
+                else
+                {
+                    return _mesh;
+                }
+            }
+        }
 
-        protected GlassPanelWrapper(GlassSurface glassSurface) : base(glassSurface)
+        public Dictionary<GeometryBase, int[]> EmbeddedGeometriesMapVertex
+        {
+            get
+            {
+                if (_embeddedGeometriesMapVertex == null)
+                {
+                    _mesh = GenerateGeometryMesh(out _embeddedGeometriesMapVertex);
+                    return _embeddedGeometriesMapVertex;
+                }
+                else
+                {
+                    return _embeddedGeometriesMapVertex;
+                }
+            }
+        }
+
+        #endregion
+
+
+        protected GlassPanelWrapper(GlassSurface glassSurface) 
+            : base(glassSurface)
         {
             _loads = new List<Load>();
             if (!(glassSurface.GlassProperty is IGlassPanelProperty))
@@ -92,6 +134,7 @@ namespace GPC.Checker.Glasses.Wrappers
             Dictionary<Shape, GeometryBase[]> embeddedGeometries = new Dictionary<Shape, GeometryBase[]>();
             embeddedGeometries[_glassSurface.Shape] = embeddedGeometriesBuffer.ToArray();
 
+            /// TODO: togliere le impostazioni hardcoded
             Mesh.GenerateMeshOptions.Algorithm = Mesh.GenerateMeshOptions.MeshAlgorithm.PackingOfParallelograms;
             Mesh.GenerateMeshOptions.Recombine = true;
             Mesh.GenerateMeshOptions.RecombinationAlgorithm = Mesh.GenerateMeshOptions.RecombinationMeshAlgorithm.BlossomFullQuad;
