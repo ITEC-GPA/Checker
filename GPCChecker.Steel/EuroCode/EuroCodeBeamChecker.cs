@@ -702,10 +702,10 @@ namespace GPC.Checker.Steel.EuroCode
                         double mCrLT0;
                         if (_classificationSection < 4)
                         {
-                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, 1.0, 1, 1);
+                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1, 1);
                         } else
                         {
-                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _J1eff, E, G, _supportConditiony, _loadConditiony, 1.0, 1, 1); //Jw eff?
+                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _J1eff, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1, 1); //Jw eff?
                         }
 
                         double lambda0;
@@ -1808,14 +1808,14 @@ namespace GPC.Checker.Steel.EuroCode
                         }
                     } else
                     {
-                        throw new Exception("cannot calc McrLT");
+                        throw new Exception("cannot calc McrLT. Section too asymmetric");
                     }
                 } else {
                     throw new Exception("Section not yet supported for calculation of McrLT");
                 }
             } else //NO sysmmetry
             {
-                throw new Exception("cannot calc McrLT");
+                throw new Exception("Cannot calc McrLT. Any symmetry");
             }
 
             double McrLT = C1 * Math.Pow(Math.PI, 2.0) * E * Jz / Math.Pow(k * L, 2.0) * (Math.Pow(Math.Pow(k / kw, 2.0) * Jw / Jz + Math.Pow(k * L, 2.0) * G * Jt / (Math.Pow(Math.PI, 2.0) * E * Jz) + Math.Pow(C2 * zg - C3 * zj, 2.0), 0.5) - (C2 * zg - C3 * zj));
