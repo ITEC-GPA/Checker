@@ -843,7 +843,7 @@ namespace SteelTests
         }
 
         [TestMethod]
-        public void C1McrTest1()
+        public void C1McrTest()
         {
             //single force simply supported beam 
             double F = 1;
@@ -862,89 +862,72 @@ namespace SteelTests
 
             double C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.25, C1Value, 0.01);
-        }
 
-        [TestMethod]
-        public void C1McrTest2()
-        {
             //distribuited force simply supported beam 
             double q = 1;
-            double L = 1000;
-            double R = q * L / 2.0;
+            R = q * L / 2.0;
 
-            double M1 = 0;
-            double M2 = R * L / 4.0 - q * Math.Pow(L/4.0 , 2.0) / 2;
-            double M3 = R * L / 2.0 - q * Math.Pow(L/2.0 , 2.0) / 2;
-            double M4 = M2;
-            double M5 = 0;
-            double MMax = M3;
+            M1 = 0;
+            M2 = R * L / 4.0 - q * Math.Pow(L / 4.0, 2.0) / 2;
+            M3 = R * L / 2.0 - q * Math.Pow(L / 2.0, 2.0) / 2;
+            M4 = M2;
+            M5 = 0;
+            MMax = M3;
 
-            double k = 1;
-            double kw = 1;
+            k = 1;
+            kw = 1;
 
-            double C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.12, C1Value, 0.01);
-        }
 
-        [TestMethod]
-        public void C1McrTest3()
-        {
             //single force restrained beam 
-            double F = 1;
-            double L = 1000;
-            double R = F / 2.0;
+            F = 1;
+            L = 1000;
+            R = F / 2.0;
 
-            double M1 = -1.0/8.0 * F * L;
-            double M2 = -1.0 / 8.0 * F * L + R * L / 4.0;
-            double M3 = -1.0 / 8.0 * F * L + R * L / 2.0;
-            double M4 = M2;
-            double M5 = 0;
-            double MMax = M3;
+            M1 = -1.0 / 8.0 * F * L;
+            M2 = -1.0 / 8.0 * F * L + R * L / 4.0;
+            M3 = -1.0 / 8.0 * F * L + R * L / 2.0;
+            M4 = M2;
+            M5 = 0;
+            MMax = M3;
 
-            double k = 1;
-            double kw = 1;
+            k = 1;
+            kw = 1;
 
-            double C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.38, C1Value, 0.01);
-        }
 
-        [TestMethod]
-        public void C1McrTest4()
-        {
             //ditribuited force restrained beam 
-            double q = 1;
-            double L = 1000;
-            double R = q * L / 2.0;
+            q = 1;
+            L = 1000;
+            R = q * L / 2.0;
 
-            double M1 = -1.0 / 12.0 * q * Math.Pow(L, 2.0);
-            double M2 = -1.0 / 12.0 * q * Math.Pow(L, 2.0) - q * Math.Pow(L / 4.0, 2.0) / 2.0 + R * L / 4.0;
-            double M3 = -1.0 / 12.0 * q * Math.Pow(L, 2.0) - q * Math.Pow(L / 2.0, 2.0) / 2.0 + R * L / 2.0;
-            double M4 = M2;
-            double M5 = 0;
-            double MMax = M1;
+            M1 = -1.0 / 12.0 * q * Math.Pow(L, 2.0);
+            M2 = -1.0 / 12.0 * q * Math.Pow(L, 2.0) - q * Math.Pow(L / 4.0, 2.0) / 2.0 + R * L / 4.0;
+            M3 = -1.0 / 12.0 * q * Math.Pow(L, 2.0) - q * Math.Pow(L / 2.0, 2.0) / 2.0 + R * L / 2.0;
+            M4 = M2;
+            M5 = 0;
+            MMax = M1;
 
-            double k = 1;
-            double kw = 1;
+            k = 1;
+            kw = 1;
 
-            double C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(2.40, C1Value, 0.01);
-        }
 
-        [TestMethod]
-        public void C1McrTest5()
-        {
             //end moments - psi = 1
-            double M1 = 1;
-            double M2 = 1;
-            double M3 = 1;
-            double M4 = 1;
-            double M5 = 1;
-            double MMax = 1;
+            M1 = 1;
+            M2 = 1;
+            M3 = 1;
+            M4 = 1;
+            M5 = 1;
+            MMax = 1;
 
-            double k = 1;
-            double kw = 1;
+            k = 1;
+            kw = 1;
 
-            double C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.0, C1Value, 0.01);
 
             //end moments - psi = 1
@@ -957,23 +940,19 @@ namespace SteelTests
 
             C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.0, C1Value, 0.01);
-        }
 
-        [TestMethod]
-        public void C1McrTest6()
-        {
             //end moments - psi = -1
-            double M1 = -1;
-            double M2 = -0.5;
-            double M3 = 0;
-            double M4 = 0.5;
-            double M5 = 1;
-            double MMax = 1;
+            M1 = -1;
+            M2 = -0.5;
+            M3 = 0;
+            M4 = 0.5;
+            M5 = 1;
+            MMax = 1;
 
-            double k = 1;
-            double kw = 1;
+            k = 1;
+            kw = 1;
 
-            double C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(2.45, C1Value, 0.01);
 
             //end moments - psi = -1
@@ -986,23 +965,19 @@ namespace SteelTests
 
             C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(2.45, C1Value, 0.01);
-        }
 
-        [TestMethod]
-        public void C1McrTest7()
-        {
             //end moments - psi = 0
-            double M1 = -1;
-            double M2 = -0.75;
-            double M3 = -0.5;
-            double M4 = -0.25;
-            double M5 = 0;
-            double MMax = -1;
+            M1 = -1;
+            M2 = -0.75;
+            M3 = -0.5;
+            M4 = -0.25;
+            M5 = 0;
+            MMax = -1;
 
-            double k = 1;
-            double kw = 1;
+            k = 1;
+            kw = 1;
 
-            double C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.78, C1Value, 0.01);
         }
     }
