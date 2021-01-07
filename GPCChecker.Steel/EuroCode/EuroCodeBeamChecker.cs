@@ -463,6 +463,21 @@ namespace GPC.Checker.Steel.EuroCode
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeBottom, epsilon));
                     }
+                } if (typeShape == typeof(SectionC)) {
+                    SectionC sec = (SectionC)_sec;
+                    double cTWeb = sec.Hw / sec.Tw;
+                    double cTFlangeTop = (sec.LTop - sec.Tw) / sec.ThicknessTop;
+                    double cTFlangeBottom = (sec.LBottom - sec.Tw) / sec.ThicknessBottom;
+
+                    //classification only for Compression.
+                    //Other detailed calculation should be found and implemented
+                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
+                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
+                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeBottom, epsilon));
+                }
+                else
+                {
+                    throw new Exception("Classification of this kind of section not yet implemented");
                 }
             } else
             {
@@ -1057,9 +1072,9 @@ namespace GPC.Checker.Steel.EuroCode
             } else if (typeShape == typeof(SectionC))
             {
                 SectionC sec = (SectionC)_sec;
-                if (sec.Lbottom == sec.Ltop && sec.ThicknessBottom == sec.ThicknessTop)
+                if (sec.LBottom == sec.LTop && sec.ThicknessBottom == sec.ThicknessTop)
                 {
-                    Avy = sec.Area - sec.ThicknessTop * sec.Ltop - sec.ThicknessBottom * sec.Lbottom;
+                    Avy = sec.Area - sec.ThicknessTop * sec.LTop - sec.ThicknessBottom * sec.LBottom;
                     Avz = sec.Area - sec.Hw * sec.Tw;
                 } else
                 {
@@ -1132,10 +1147,10 @@ namespace GPC.Checker.Steel.EuroCode
                 double tmax = Math.Max(sec.Tw, sec.ThicknessBottom);
                 tmax = Math.Max(tmax, sec.ThicknessTop);
 
-                double L1 = sec.Lbottom;
+                double L1 = sec.LBottom;
                 double a1 = sec.ThicknessBottom;
                 double denominator = L1 * Math.Pow(a1, 3.0);
-                double L2 = sec.Ltop;
+                double L2 = sec.LTop;
                 double a2 = sec.ThicknessTop;
                 denominator = denominator + L2 * Math.Pow(a2, 3.0);
                 double L3 = sec.Hw;
@@ -1259,7 +1274,6 @@ namespace GPC.Checker.Steel.EuroCode
             }
             Type typeShape = _sec.GetType();
 
-
             double rhoy = Math.Min(Math.Pow(2.0 * Math.Abs(VEdy) / _VRdy - 1.0, 2.0), 1.0);
             if (VEdy <= 0.5 * _VRdy)
             {
@@ -1274,7 +1288,7 @@ namespace GPC.Checker.Steel.EuroCode
             double Mrdy = Wy * (1.0 - rhoy) * fy / gm0;
             double Mrdz = Wz * (1.0 - rhoz) * fy / gm0;
 
-            if (_classificationSection < 4)
+            if (_classificationSection < 3)
             {
                 MRdNy = 0.0;
                 MRdNz = 0.0;
@@ -1331,7 +1345,9 @@ namespace GPC.Checker.Steel.EuroCode
                 }
                 else
                 {
-                    throw new Exception("Section not yet supported");
+                    MRdNy = Mrdy;
+                    MRdNz = Mrdz;
+                    //throw new Exception("Section not yet supported");
                 }
             } else
             {
@@ -1377,14 +1393,9 @@ namespace GPC.Checker.Steel.EuroCode
                     alpha = Math.Min(1.66 / (1.0 - 1.13 * Math.Pow(n, 2.0)), 6.0);
                     beta = alpha;
                 }
-                else if (typeShape == typeof(SectionT))
+                else
                 {
-                    alpha = 1.0;
-                    beta = 1.0;
-                } else
-                {
-                    alpha = 1.0;
-                    beta = 1.0;
+                    return Math.Abs(_NEd / _NRd) + Math.Abs(_MEd2) / _MRdy + Math.Abs(_MEd1) / _MRdz;
                 }
 
                 return Math.Pow(Math.Abs(_MEd2) / _MRdy, alpha) + Math.Pow(Math.Abs(_MEd1) / _MRdz, beta);
