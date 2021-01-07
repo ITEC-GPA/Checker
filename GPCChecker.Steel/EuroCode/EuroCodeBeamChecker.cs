@@ -1503,18 +1503,21 @@ namespace GPC.Checker.Steel.EuroCode
             /*
              * y0 coordinates of shear center in respect of the centroid gross section
              */
-            if (_sec.IsSymmetricAlongYLocalAxis)
-            {
-                double i0 = Math.Pow(Math.Pow(iy, 2.0) + Math.Pow(iz, 2.0) + Math.Pow(y0, 2.0), 0.5);
-                double beta = 1.0 - Math.Pow(y0 / i0, 2.0);
 
-                double Ncr_TF = Math.Min(Ncr_z, Ncr_y / (2.0 * beta) * (1.0 + Ncr_T / Ncr_y - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_y, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_y, 0.5)));
-                Ncr_TF = Math.Min(Ncr_TF, Ncr_y);
-                return Ncr_TF;
-            } else
+            double i0 = Math.Pow(Math.Pow(iy, 2.0) + Math.Pow(iz, 2.0) + Math.Pow(y0, 2.0), 0.5);
+            double beta = 1.0 - Math.Pow(y0 / i0, 2.0);
+
+            double Ncr_TF = Math.Min(Ncr_z, Ncr_y / (2.0 * beta) * (1.0 + Ncr_T / Ncr_y - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_y, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_y, 0.5)));
+            Ncr_TF = Math.Min(Ncr_TF, Ncr_y);
+            Ncr_TF = Math.Min(Ncr_TF, Ncr_z);
+            Ncr_TF = Math.Min(Ncr_TF, Ncr_T);
+
+            if (_sec.IsSymmetricAlongYLocalAxis == false)
             {
-                throw new Exception("Cannot calc NcrTF");
+                throw new Exception("Cannot calc NcrTF eq. 6.35 - EN 1993-1-3:2006 because no symmetry about y axes");
+                //should be send as "Warning" not as Exception...."
             }
+            return Ncr_TF;
         }
 
         protected double GetMcrLT(double L, double Jt, double Jw, double Jz,   double E, double G, SupportCondition supportCondition, LoadCondition loadCondition, double? psi, double k = 1.0, double kw = 1.0)
