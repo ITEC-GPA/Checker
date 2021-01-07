@@ -463,7 +463,7 @@ namespace GPC.Checker.Steel.EuroCode
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeBottom, epsilon));
                     }
-                } if (typeShape == typeof(SectionC)) {
+                } else if (typeShape == typeof(SectionC)) {
                     SectionC sec = (SectionC)_sec;
                     double cTWeb = sec.Hw / sec.Tw;
                     double cTFlangeTop = (sec.LTop - sec.Tw) / sec.ThicknessTop;
@@ -474,6 +474,28 @@ namespace GPC.Checker.Steel.EuroCode
                     _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTWeb, epsilon));
                     _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
                     _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeBottom, epsilon));
+                }
+                else if (typeShape == typeof(SectionT))
+                {
+                    SectionT sec = (SectionT)_sec;
+                    double cTWeb = sec.Hw / sec.Tw;
+                    double cTFlangeTop = (sec.B - sec.Tw) / 2.0 / sec.Tf;
+
+                    //classification only for Compression.
+                    //Other detailed calculation should be found and implemented
+                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTWeb, epsilon));
+                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
+                }
+                else if (typeShape == typeof(SectionL))
+                {
+                    SectionL sec = (SectionL)_sec;
+                    double cT1 = sec.L1 / sec.T1;
+                    double cT2 = sec.L2 / sec.T2;
+
+                    //classification only for Compression.
+                    //Other detailed calculation should be found and implemented
+                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cT1, epsilon));
+                    _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cT2, epsilon));
                 }
                 else
                 {
@@ -520,7 +542,7 @@ namespace GPC.Checker.Steel.EuroCode
                 WRAxial = Math.Abs(_NEd) / _NRd;
                 #endregion
 
-                #region shear
+                #region ShearAndTorsion
                 GetVRdTRd(out _VRdy, out _VRdz, out _TRd);
                 WRShear1 = Math.Abs(_VEd1) / _VRdz;
                 WRShear2 = Math.Abs(_VEd2) / _VRdy;
@@ -1195,7 +1217,7 @@ namespace GPC.Checker.Steel.EuroCode
                 denominator = denominator + L2 * Math.Pow(a2, 3.0);
                 denominator = denominator / 3.0;
 
-                tauT = 3.0 * Math.Abs(_TEd) * tmax / denominator;
+                tauT = Math.Abs(_TEd) * tmax / denominator;
 
                 TRd = fy / Math.Pow(3.0, 0.5) * denominator;
             } else if (typeShape == typeof(SectionRectangular))
@@ -1207,11 +1229,28 @@ namespace GPC.Checker.Steel.EuroCode
                 tauT = alpha * Math.Abs(_TEd) / (b * Math.Pow(a, 2.0));
 
                 TRd = b * Math.Pow(a, 2.0) / alpha * fy / (Math.Pow(3.0, 0.5));
-            } else
+            }
+            else if (typeShape == typeof(SectionT))
             {
+                SectionT sec = (SectionT)_sec;
+                double tmax = Math.Max(sec.Tf, sec.Tw);
+
+                double L1 = sec.B;
+                double a1 = sec.Tf;
+                double denominator = L1 * Math.Pow(a1, 3.0);
+                double L2 = sec.Hw;
+                double a2 = sec.Tw;
+                denominator = denominator + L2 * Math.Pow(a2, 3.0);
+                denominator = denominator / 3.0;
+
+                tauT = Math.Abs(_TEd) * tmax / denominator;
+                TRd = fy / Math.Pow(3.0, 0.5) * denominator;
+            }
+            else
+            {
+                throw new Exception("Torsion: Section not yet supported");
                 tauT = 0;
                 TRd = 0;
-                new Exception("Section not yet supported");
             }
             #endregion
 
@@ -1233,9 +1272,11 @@ namespace GPC.Checker.Steel.EuroCode
                     VplRdTy = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdy;
                     VplRdTz = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdz;
                 } else if (typeShape == typeof(SectionRHS)) { 
-                        VplRdTy = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdy;
-                } else if (typeShape == typeof(SectionT)) { 
-                        VplRdTz = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdz;
+                    VplRdTy = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdy;
+                    VplRdTz = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdz;
+                } else if (typeShape == typeof(SectionT)) {
+                    VplRdTy = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdy;
+                    VplRdTz = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdz;
                 } else {
                     VRdy = VplRdTy;
                     VRdz = VplRdTz;
@@ -1512,6 +1553,11 @@ namespace GPC.Checker.Steel.EuroCode
                 SectionC sec = (SectionC)_sec;
                 zg = sec.H - sec.ShearCenter.Y;
             }
+            else if (typeSection == typeof(SectionT))
+            {
+                SectionT sec = (SectionT)_sec;
+                zg = sec.H - sec.ShearCenter.Y;
+            }
             else
             {
                 throw new Exception("McrLT not yet supported for this section");
@@ -1591,10 +1637,9 @@ namespace GPC.Checker.Steel.EuroCode
                 }
                 
             }
-            else if (_sec.IsSymmetricAlongYLocalAxis || typeSection == typeof(SectionC))
+            else if (_sec.IsSymmetricAlongZLocalAxis || typeSection == typeof(SectionC))
             {
-                //note: use of Mcr also for C sections came from :
-                /*
+                /* note: use of Mcr also for C sections came from :
                 Lateral-torsional Buckling of Steel Channel Beams
                 A parametric study through FE - analysis
                 Master’s Thesis in the Master’s Programme Structural Engineering and Building Technology
