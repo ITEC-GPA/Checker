@@ -40,9 +40,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GPCChecker.Steel">
-      <HintPath>..\GPCChecker.Steel\bin\Debug\GPCChecker.Steel.dll</HintPath>
-    </Reference>
     <Reference Include="GPCGeometry">
       <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\GPCGeometry.dll</HintPath>
     </Reference>
@@ -79,6 +76,10 @@
     <ProjectReference Include="..\GPCChecker.Glass\GPCChecker.Glass.csproj">
       <Project>{19977875-dc88-47e0-92c9-d9ace7ce4f3d}</Project>
       <Name>GPCChecker.Glass</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GPCChecker.Steel\GPCChecker.Steel.csproj">
+      <Project>{ea309df3-9824-4c30-9301-5e97c097fcac}</Project>
+      <Name>GPCChecker.Steel</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

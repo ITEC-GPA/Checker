@@ -1057,9 +1057,9 @@ namespace GPC.Checker.Steel.EuroCode
             } else if (typeShape == typeof(SectionC))
             {
                 SectionC sec = (SectionC)_sec;
-                if (sec.Lbottom == sec.Ltop && sec.ThicknessBottom == sec.ThicknessTop)
+                if (sec.LBottom == sec.LTop && sec.ThicknessBottom == sec.ThicknessTop)
                 {
-                    Avy = sec.Area - sec.ThicknessTop * sec.Ltop - sec.ThicknessBottom * sec.Lbottom;
+                    Avy = sec.Area - sec.ThicknessTop * sec.LTop - sec.ThicknessBottom * sec.LBottom;
                     Avz = sec.Area - sec.Hw * sec.Tw;
                 } else
                 {
@@ -1132,10 +1132,10 @@ namespace GPC.Checker.Steel.EuroCode
                 double tmax = Math.Max(sec.Tw, sec.ThicknessBottom);
                 tmax = Math.Max(tmax, sec.ThicknessTop);
 
-                double L1 = sec.Lbottom;
+                double L1 = sec.LBottom;
                 double a1 = sec.ThicknessBottom;
                 double denominator = L1 * Math.Pow(a1, 3.0);
-                double L2 = sec.Ltop;
+                double L2 = sec.LTop;
                 double a2 = sec.ThicknessTop;
                 denominator = denominator + L2 * Math.Pow(a2, 3.0);
                 double L3 = sec.Hw;
