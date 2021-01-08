@@ -647,7 +647,7 @@ namespace GPC.Checker.Steel.EuroCode
 
                     Point2d shearCenterToCentroid = _sec.Centroid - _sec.ShearCenter;
                     _NcrTorsional = GetNcrT(iy, iz, shearCenterToCentroid.Y, shearCenterToCentroid.X, E, G, _sec.Jt, _sec.Jw, _L0LT);
-                    _NcrFlexuralTorsional = GetNcrTF(iy, iz, shearCenterToCentroid.Y, _Ncry, _Ncrz, _NcrTorsional);
+                    _NcrFlexuralTorsional = GetNcrTF(iy, iz, shearCenterToCentroid.X, shearCenterToCentroid.Y, _Ncry, _Ncrz, _NcrTorsional);;
 
                     if (_classificationSection < 4)
                     {
@@ -1516,7 +1516,7 @@ namespace GPC.Checker.Steel.EuroCode
             else if (y0 == 0 && z0 != 0)
             {
                 beta = 1.0 - Math.Pow(z0 / i0, 2.0);
-                Ncr_TF = Ncr_y / (2.0 * beta) * (1.0 + Ncr_T / Ncr_y - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_y, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_y, 0.5));
+                Ncr_TF = Ncr_z / (2.0 * beta) * (1.0 + Ncr_T / Ncr_z - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_z, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_z, 0.5));
             }
             if (z0 == 0 && y0 == 0)
             {
@@ -1524,7 +1524,20 @@ namespace GPC.Checker.Steel.EuroCode
             }
             else
             {
-                throw new Exception("Asymetric section not supported");
+                /* solve --> x:
+                 * (Ncrz * x ) * (Ncry * x) * (NcrT * x) - (Ncrz - x) * x^2 * x0^2/i0^2 - (Ncry - x) * x^2 * y0^2/i0^2 = 0
+                 * x = g(x)
+                 * x = - (Ncrz - x) / ((NcrT - x) * (Ncry - x)) * x * x * x0*x0/(i0*i0) - (Ncry - x) / ((NcrT - x) * (Ncry - x)) * x * x * y0*x0/(i0*i0) + Ncry;
+                 * check if Ncry and Ncrz should be inverted in this equation
+                 */
+                int iter = 0;
+                Ncr_TF = 0;
+                while (iter < 15)
+                {
+                    iter++;
+                    Ncr_TF = -(Ncr_z - Ncr_TF) / ((Ncr_T - Ncr_TF) * (Ncr_y - Ncr_TF)) * Ncr_TF * Ncr_TF * z0 * z0 / (i0 * i0) - (Ncr_y - Ncr_TF) / ((Ncr_T - Ncr_TF) * (Ncr_y - Ncr_TF)) * Ncr_TF * Ncr_TF * y0 * z0 / (i0 * i0) + Ncr_y;
+                }
+                //to be checked
             }
 
             Ncr_TF = Math.Min(Ncr_TF, Ncr_y);
@@ -1707,7 +1720,22 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         throw new Exception("Section not yet supported for calculation of McrLT");
                     }
-                } else {
+                }
+                else if (typeSection == typeof(SectionT))
+                {
+                    SectionC sec = (SectionC)_sec;
+                    double psif;
+                    if (_MEd2 > 0)
+                    {
+                        psif = 1;
+                    } else
+                    {
+                        psif = -1;
+                    }
+                    //this should be used if  -0.9 < psif < 0.9. There is no data...so...what to do?
+                    McrC1C2C3(supportCondition, loadCondition, k, psi, psif, out C1, out C2, out C3);
+                }
+                else {
                     throw new Exception("Section not yet supported for calculation of McrLT");
                 }
             } else //NO sysmmetry
