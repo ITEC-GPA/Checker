@@ -119,8 +119,9 @@ namespace GPC.Checker.Glasses.Wrappers
 
                 if (i != 0)
                 {
-                    distances[i] += GlassProperty.MonolithicGlasses[i - 1].Thickness;
+                    distances[i] += GlassProperty.MonolithicGlasses[i - 1].Thickness / 2.0;
                     distances[i] += distances[i - 1];
+                    distances[i] += GlassProperty.Interlayers[i - 1].Thickness;
                 }
             }
             return distances;
@@ -140,9 +141,9 @@ namespace GPC.Checker.Glasses.Wrappers
 
                 if (i != 0)
                 {
-                    distances[i] += GlassProperty.Interlayers[i - 1].Thickness;
                     distances[i] += distances[i - 1];
-                }
+                    distances[i] += GlassProperty.Interlayers[i - 1].Thickness / 2.0;
+                 }
             }
             return distances;
         }
