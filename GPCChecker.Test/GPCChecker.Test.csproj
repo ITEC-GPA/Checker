@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GlassTest.cs" />
+    <Compile Include="GlassWrapperTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SteelResistanceTest.cs" />
     <Compile Include="SteelInstabilityTest.cs" />
