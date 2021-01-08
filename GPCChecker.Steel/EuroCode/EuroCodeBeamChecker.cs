@@ -1498,25 +1498,40 @@ namespace GPC.Checker.Steel.EuroCode
             return Ncr_T;
         }
 
-        protected double GetNcrTF(double iy, double iz, double y0, double Ncr_y, double Ncr_z, double Ncr_T) //EN 1993-1-3 eq 6.35
+        protected double GetNcrTF(double iy, double iz, double x0, double y0, double Ncr_y, double Ncr_z, double Ncr_T) //EN 1993-1-3 eq 6.35
         {
             /*
+             * x0 coordinates of shear center in respect of the centroid gross section
              * y0 coordinates of shear center in respect of the centroid gross section
              */
 
             double i0 = Math.Pow(Math.Pow(iy, 2.0) + Math.Pow(iz, 2.0) + Math.Pow(y0, 2.0), 0.5);
-            double beta = 1.0 - Math.Pow(y0 / i0, 2.0);
+            double beta;
+            double Ncr_TF;
+            if (x0 == 0 && y0 != 0)
+            {
+                beta = 1.0 - Math.Pow(y0 / i0, 2.0);
+                Ncr_TF = Ncr_y / (2.0 * beta) * (1.0 + Ncr_T / Ncr_y - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_y, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_y, 0.5));
+            }
+            else if (y0 == 0 && x0 != 0)
+            {
+                beta = 1.0 - Math.Pow(x0 / i0, 2.0);
+                Ncr_TF = Ncr_y / (2.0 * beta) * (1.0 + Ncr_T / Ncr_y - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_y, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_y, 0.5));
+            }
+            if (x0 == 0 && y0 == 0)
+            {
+                beta = 1.0 - Math.Pow(y0 / i0, 2.0);
+                Ncr_TF = Ncr_y / (2.0 * beta) * (1.0 + Ncr_T / Ncr_y - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_y, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_y, 0.5));
+            }
+            else
+            {
+                throw new Exception("Asymetric section not supported");
+            }
 
-            double Ncr_TF = Math.Min(Ncr_z, Ncr_y / (2.0 * beta) * (1.0 + Ncr_T / Ncr_y - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_y, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_y, 0.5)));
             Ncr_TF = Math.Min(Ncr_TF, Ncr_y);
             Ncr_TF = Math.Min(Ncr_TF, Ncr_z);
             Ncr_TF = Math.Min(Ncr_TF, Ncr_T);
 
-            if (_sec.IsSymmetricAlongYLocalAxis == false)
-            {
-                throw new Exception("Cannot calc NcrTF eq. 6.35 - EN 1993-1-3:2006 because no symmetry about y axes");
-                //should be send as "Warning" not as Exception...."
-            }
             return Ncr_TF;
         }
 
