@@ -1498,30 +1498,29 @@ namespace GPC.Checker.Steel.EuroCode
             return Ncr_T;
         }
 
-        protected double GetNcrTF(double iy, double iz, double x0, double y0, double Ncr_y, double Ncr_z, double Ncr_T) //EN 1993-1-3 eq 6.35
+        protected double GetNcrTF(double iy, double iz, double z0, double y0, double Ncr_y, double Ncr_z, double Ncr_T) //EN 1993-1-3 eq 6.35
         {
             /*
-             * x0 coordinates of shear center in respect of the centroid gross section
+             * z0 coordinates of shear center in respect of the centroid gross section
              * y0 coordinates of shear center in respect of the centroid gross section
              */
 
             double i0 = Math.Pow(Math.Pow(iy, 2.0) + Math.Pow(iz, 2.0) + Math.Pow(y0, 2.0), 0.5);
             double beta;
             double Ncr_TF;
-            if (x0 == 0 && y0 != 0)
+            if (z0 == 0 && y0 != 0)
             {
                 beta = 1.0 - Math.Pow(y0 / i0, 2.0);
                 Ncr_TF = Ncr_y / (2.0 * beta) * (1.0 + Ncr_T / Ncr_y - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_y, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_y, 0.5));
             }
-            else if (y0 == 0 && x0 != 0)
+            else if (y0 == 0 && z0 != 0)
             {
-                beta = 1.0 - Math.Pow(x0 / i0, 2.0);
+                beta = 1.0 - Math.Pow(z0 / i0, 2.0);
                 Ncr_TF = Ncr_y / (2.0 * beta) * (1.0 + Ncr_T / Ncr_y - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_y, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_y, 0.5));
             }
-            if (x0 == 0 && y0 == 0)
+            if (z0 == 0 && y0 == 0)
             {
-                beta = 1.0 - Math.Pow(y0 / i0, 2.0);
-                Ncr_TF = Ncr_y / (2.0 * beta) * (1.0 + Ncr_T / Ncr_y - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_y, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_y, 0.5));
+                Ncr_TF = Ncr_T;
             }
             else
             {
