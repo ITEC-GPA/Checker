@@ -77,6 +77,12 @@ namespace GPC.Checker.Steel.EuroCode
         protected double _NcrTorsional;
         protected double _NcrFlexuralTorsional;
         protected double _McrLateralTorsional;
+        protected double _c1;
+        protected double _c2;
+        protected double _c3;
+        protected double _zg;
+        protected double _zj;
+
 
         protected double _alphay;
         protected double _alphaz;
@@ -236,7 +242,12 @@ namespace GPC.Checker.Steel.EuroCode
         public double NcrTF => _NcrFlexuralTorsional;
 
         public double McrLateralTorsional => _McrLateralTorsional;
-        
+        public double C1 => _c1;
+        public double C2 => _c2;
+        public double C3 => _c3;
+        public double Zg => _zg;
+        public double Zj => _zj;
+
         public double Alphay => _alphay;
         public double Alphaz => _alphaz;
         public double AlphaLT => _alphaLT;
@@ -670,7 +681,7 @@ namespace GPC.Checker.Steel.EuroCode
                         _NbRdT = _ChiT * _Aeff * fy / _annex.Gm1;
                     }
 
-                    _McrLateralTorsional = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, _psiy, 1, 1);
+                    _McrLateralTorsional = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, _psiy, 1, 1, out _c1, out _c2, out _c3, out _zg, out _zj);
 
                     if (_classificationSection < 3) {
                         _lambdaLT = GetLambdaSegn(_sec.Wpl22, fy, _McrLateralTorsional);
@@ -739,10 +750,10 @@ namespace GPC.Checker.Steel.EuroCode
                         double mCrLT0;
                         if (_classificationSection < 4)
                         {
-                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1, 1);
+                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1, 1, out double fakec1, out double fakec2, out double fakec3,out double fakezg, out double fakezj);
                         } else
                         {
-                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _J1eff, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1, 1); //Jw eff?
+                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _J1eff, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1, 1, out double fakec1, out double fakec2, out double fakec3, out double fakezg, out double fakezj); //Jw eff?
                         }
 
                         double lambda0;
@@ -1547,7 +1558,7 @@ namespace GPC.Checker.Steel.EuroCode
             return Ncr_TF;
         }
 
-        protected double GetMcrLT(double L, double Jt, double Jw, double Jz,   double E, double G, SupportCondition supportCondition, LoadCondition loadCondition, double? psi, double k = 1.0, double kw = 1.0)
+        protected double GetMcrLT(double L, double Jt, double Jw, double Jz,   double E, double G, SupportCondition supportCondition, LoadCondition loadCondition, double? psi, double k, double kw, out double c1, out double c2, out double c3, out double zg, out double zj)
         {
             /*
              * C1 = factor that account for the shape of the moment diagram
@@ -1561,8 +1572,8 @@ namespace GPC.Checker.Steel.EuroCode
              */
 
             //calculation of zg calculatet from the top of section to the shear center:
-            double zg; //coordinate of point of application vs coordinate of shear center
-            double zj; //zs (shear center) - 0.5 integral(y^2+z^2) * z / Jy dA
+            //zg coordinate of point of application vs coordinate of shear center
+            //zj zs (shear center) - 0.5 integral(y^2+z^2) * z / Jy dA
             Type typeSection = _sec.GetType();
             if (typeSection == typeof(SectionCHS))
             {
@@ -1593,13 +1604,9 @@ namespace GPC.Checker.Steel.EuroCode
                 throw new Exception("McrLT not yet supported for this section");
             }
 
-            double C1 = 0;
-            double C2 = 0;
-            double C3 = 0;
-
             if (_sec.IsDoubleSymmetric)
             {
-                C3 = 0.0;
+                c3 = 0.0;
                 zj = 0.0;
 
                 if (loadCondition != LoadCondition.NotDirectlyLoaded) { 
@@ -1608,14 +1615,14 @@ namespace GPC.Checker.Steel.EuroCode
                         if (loadCondition == LoadCondition.Constant)
                         {
                             //From NCCI: Elastic critical moment for lateral torsional buckling SN003a-EN-EU
-                            C1 = 1.127; 
-                            C2 = 0.454;
+                            c1 = 1.127; 
+                            c2 = 0.454;
                         }
                         else if (loadCondition == LoadCondition.SingleForce)
                         {
                             //From NCCI: Elastic critical moment for lateral torsional buckling SN003a-EN-EU
-                            C1 = 1.348;
-                            C2 = 0.630;
+                            c1 = 1.348;
+                            c2 = 0.630;
                         } else
                         {
                             throw new NotSupportedException("Load condition + Support not yet supported");
@@ -1626,14 +1633,14 @@ namespace GPC.Checker.Steel.EuroCode
                         if (loadCondition == LoadCondition.Constant)
                         {
                             //From NCCI: Elastic critical moment for lateral torsional buckling SN003a-EN-EU
-                            C1 = 2.578;
-                            C2 = 1.554;
+                            c1 = 2.578;
+                            c2 = 1.554;
                         }
                         else if (loadCondition == LoadCondition.SingleForce)
                         {
                             //From NCCI: Elastic critical moment for lateral torsional buckling SN003a-EN-EU
-                            C1 = 1.683;
-                            C2 = 1.645;
+                            c1 = 1.683;
+                            c2 = 1.645;
                         } else
                         {
                             throw new NotSupportedException("Load condition + Support not yet supported");
@@ -1649,14 +1656,14 @@ namespace GPC.Checker.Steel.EuroCode
                         if (k == 1)
                         {
                             //Book: Rules for Member Stability in EN 1993-1-1 - Background documentation and design guidelines - ECCS Techinacl Committee - Stability
-                            C1 = Math.Min(1.77 - 1.04 * psi.Value + 0.27 * psi.Value * psi.Value, 2.6);
+                            c1 = Math.Min(1.77 - 1.04 * psi.Value + 0.27 * psi.Value * psi.Value, 2.6);
                         } else
                         {
                             throw new Exception("k != 1 : cannot calculate C1 for Mcr");
                         }
                         //ENV 1993-1-1:1992 (F3)
                         //C1 = Math.Min(1.88 - 1.40 * psi + 0.52 * psi * psi, 2.7);
-                        C2 = 0;
+                        c2 = 0;
                     } else
                     {
                         throw new Exception("Set the value of psi = M(x=0)/M(x=L)");
@@ -1704,7 +1711,7 @@ namespace GPC.Checker.Steel.EuroCode
                     //pg 233
                     if (psif <= 0.9 && psif >= -0.9)
                     {
-                        McrC1C2C3(supportCondition, loadCondition, k, psi, psif, out C1, out C2, out C3);
+                        McrC1C2C3(supportCondition, loadCondition, k, psi, psif, out c1, out c2, out c3);
                     } else
                     {
                         throw new Exception("cannot calc McrLT. Section too asymmetric");
@@ -1714,8 +1721,8 @@ namespace GPC.Checker.Steel.EuroCode
                     if (sec.LBottom == sec.LTop && sec.ThicknessBottom == sec.ThicknessTop)
                     {
                         double psif = 0;
-                        zj = 0;
-                        McrC1C2C3(supportCondition, loadCondition, k, psi, psif, out C1, out C2, out C3);
+                        zj = 0; //z centroid = z shear center + integral is 0 due to symmetry
+                        McrC1C2C3(supportCondition, loadCondition, k, psi, psif, out c1, out c2, out c3);
                     } else
                     {
                         throw new Exception("Section not yet supported for calculation of McrLT");
@@ -1723,7 +1730,7 @@ namespace GPC.Checker.Steel.EuroCode
                 }
                 else if (typeSection == typeof(SectionT))
                 {
-                    SectionC sec = (SectionC)_sec;
+                    SectionT sec = (SectionT)_sec;
                     double psif;
                     if (_MEd2 > 0)
                     {
@@ -1732,8 +1739,47 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         psif = -1;
                     }
+
+                    //calculation of Wagner coefficiente: zj = zs - 0.5 integral((y^2 + z^2) * z dA) / Jy
+                    //needed for for Mcr calculation
+                    int nxFlange = 20;
+                    int nyFlange = 4;
+                    int nxWeb = 4;
+                    int nyWeb = 30;
+                    double integral = 0;
+                    if (_MEd2 >= 0)
+                    {
+                        for (int i = 0; i < nxFlange; i++)
+                        {
+                            for (int j = 0; j < nyFlange; j++)
+                            {
+                                double Ai = (sec.B / nxFlange) * (sec.Tf / nyFlange);
+                                double zi = sec.H - (2.0 * j + 1.0) / (2.0 * nyFlange) * sec.Tf - sec.Centroid.Y;
+                                double yi = -sec.B / 2.0 + (2.0 * i + 1.0) / (2.0 * nxFlange) * sec.B;
+
+                                integral = integral + (yi * yi + zi * zi) * zi * Ai;
+                            }
+                        }
+
+                        for (int i = 0; i < nxWeb; i++)
+                        {
+                            for (int j = 0; j < nyWeb; j++)
+                            {
+                                double Ai = (sec.Hw / nyWeb) * (sec.Tw / nxWeb);
+                                double zi = (2.0 * j + 1.0) / (2.0 * nyWeb) * (sec.Hw) - sec.Centroid.Y;
+                                double yi = -sec.Tw / 2.0 + (2.0 * i + 1.0) * sec.Tw / (2.0 * nxWeb);
+
+                                integral = integral + (yi * yi + zi * zi) * zi * Ai;
+                            }
+                        }
+                        zj = (sec.ShearCenter.Y - sec.Centroid.Y) - 0.5 * integral / sec.J22;
+                    } else
+                    {
+                        throw new Exception("Wagner coefficient for T reversed not yet implemented");
+                    }
+
                     //this should be used if  -0.9 < psif < 0.9. There is no data...so...what to do?
-                    McrC1C2C3(supportCondition, loadCondition, k, psi, psif, out C1, out C2, out C3);
+                    McrC1C2C3(supportCondition, loadCondition, k, psi, psif, out c1, out c2, out c3);
                 }
                 else {
                     throw new Exception("Section not yet supported for calculation of McrLT");
@@ -1743,7 +1789,7 @@ namespace GPC.Checker.Steel.EuroCode
                 throw new Exception("Cannot calc McrLT. Any symmetry");
             }
 
-            double McrLT = C1 * Math.Pow(Math.PI, 2.0) * E * Jz / Math.Pow(k * L, 2.0) * (Math.Pow(Math.Pow(k / kw, 2.0) * Jw / Jz + Math.Pow(k * L, 2.0) * G * Jt / (Math.Pow(Math.PI, 2.0) * E * Jz) + Math.Pow(C2 * zg - C3 * zj, 2.0), 0.5) - (C2 * zg - C3 * zj));
+            double McrLT = c1 * Math.Pow(Math.PI, 2.0) * E * Jz / Math.Pow(k * L, 2.0) * (Math.Pow(Math.Pow(k / kw, 2.0) * Jw / Jz + Math.Pow(k * L, 2.0) * G * Jt / (Math.Pow(Math.PI, 2.0) * E * Jz) + Math.Pow(c2 * zg - c3 * zj, 2.0), 0.5) - (c2 * zg - c3 * zj));
             return McrLT;
         }
 
@@ -2244,7 +2290,7 @@ namespace GPC.Checker.Steel.EuroCode
             return mu;
         }
 
-        public static double C1(double k, double kw, double MMax, double M1, double M2, double M3, double M4, double M5)
+        public static double getC1(double k, double kw, double MMax, double M1, double M2, double M3, double M4, double M5)
         {
             //C1 for Mcr = C1 * PI^2 * E Jz / (kz * L)^2 * ((kz/kw)^2 * Jw / Jz + (kz * L)^2 * G * Jt / (PI^2*E*Jz))^0.5
             //valid for any distribution of bending moment, but, with bisymmetric section
