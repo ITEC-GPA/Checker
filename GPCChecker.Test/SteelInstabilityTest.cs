@@ -860,7 +860,7 @@ namespace SteelTests
             double k = 1;
             double kw = 1;
 
-            double C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            double C1Value = EuroCodeBeamChecker.getC1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.25, C1Value, 0.01);
 
             //distribuited force simply supported beam 
@@ -877,7 +877,7 @@ namespace SteelTests
             k = 1;
             kw = 1;
 
-            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.getC1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.12, C1Value, 0.01);
 
             //single force restrained beam 
@@ -895,7 +895,7 @@ namespace SteelTests
             k = 1;
             kw = 1;
 
-            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.getC1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.38, C1Value, 0.01);
 
             //ditribuited force restrained beam 
@@ -913,7 +913,7 @@ namespace SteelTests
             k = 1;
             kw = 1;
 
-            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.getC1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(2.40, C1Value, 0.01);
 
             //end moments - psi = 1
@@ -927,7 +927,7 @@ namespace SteelTests
             k = 1;
             kw = 1;
 
-            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.getC1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.0, C1Value, 0.01);
 
             //end moments - psi = 1
@@ -938,7 +938,7 @@ namespace SteelTests
             M5 = -1;
             MMax = -1;
 
-            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.getC1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.0, C1Value, 0.01);
 
             //end moments - psi = -1
@@ -952,7 +952,7 @@ namespace SteelTests
             k = 1;
             kw = 1;
 
-            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.getC1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(2.45, C1Value, 0.01);
 
             //end moments - psi = -1
@@ -963,7 +963,7 @@ namespace SteelTests
             M5 = -1;
             MMax = -1;
 
-            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.getC1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(2.45, C1Value, 0.01);
 
             //end moments - psi = 0
@@ -977,7 +977,7 @@ namespace SteelTests
             k = 1;
             kw = 1;
 
-            C1Value = EuroCodeBeamChecker.C1(k, kw, MMax, M1, M2, M3, M4, M5);
+            C1Value = EuroCodeBeamChecker.getC1(k, kw, MMax, M1, M2, M3, M4, M5);
             Assert.AreEqual(1.78, C1Value, 0.01);
         }
     }
