@@ -508,8 +508,8 @@ namespace GPC.Checker.Steel.EuroCode
                 else if (typeShape == typeof(SectionL))
                 {
                     SectionL sec = (SectionL)_sec;
-                    double cT1 = sec.L1 / sec.T1;
-                    double cT2 = sec.L2 / sec.T2;
+                    double cT1 = sec.LHor / sec.THor;
+                    double cT2 = sec.LVert / sec.TVert;
 
                     //classification only for Compression.
                     //Other detailed calculation should be found and implemented
@@ -1162,12 +1162,16 @@ namespace GPC.Checker.Steel.EuroCode
             }
             else if (typeShape == typeof(SectionL))
             {
+                //Check along local axis not principal!
                 SectionL sec = (SectionL)_sec;
                 double angle = sec.AngleX1;
-                Avz = sec.L1*sec.T1;
-                Avy = sec.L2*sec.T2;
+                Avz = sec.LVert * sec.TVert;
+                Avy = sec.LHor*sec.THor;
 
-                //double VEdy = VyEd2
+                double angle2 = Math.PI / 2.0 - sec.AngleX1;
+
+                VyEd = _V1Ed * Math.Cos(sec.AngleX1) - _V2Ed * Math.Cos(angle2);
+                VzEd = _V1Ed * Math.Sin(sec.AngleX1) + _V2Ed * Math.Sin(angle2);
             }
             else
             {
@@ -1263,13 +1267,13 @@ namespace GPC.Checker.Steel.EuroCode
             } else if (typeShape == typeof(SectionL))
             {
                 SectionL sec = (SectionL)_sec;
-                double tmax = Math.Max(sec.T1, sec.T2);
+                double tmax = Math.Max(sec.TVert, sec.THor);
 
-                double L1 = sec.L1;
-                double a1 = sec.T1;
+                double L1 = sec.LHor;
+                double a1 = sec.THor;
                 double denominator = L1 * Math.Pow(a1, 3.0);
-                double L2 = sec.L2;
-                double a2 = sec.T2;
+                double L2 = sec.LVert;
+                double a2 = sec.TVert;
                 denominator = denominator + L2 * Math.Pow(a2, 3.0);
                 denominator = denominator / 3.0;
 
@@ -1452,6 +1456,28 @@ namespace GPC.Checker.Steel.EuroCode
                         throw new Exception("Section not yet supported");
                     }
                 }
+                else if (typeShape == typeof(SectionC) && _sec.IsSymmetricAlongYLocalAxis == true)
+                {
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
+                    MRdNy = Mrdy;
+                    MRdNz = Mrdz;
+                }
+                else if (typeShape == typeof(SectionT))
+                {
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
+                    MRdNy = Mrdy;
+                    MRdNz = Mrdz;
+                }
+                else if (typeShape == typeof(SectionL))
+                {
+                    //Check are made in principal axis
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
+                    MRdNy = Mrdy; //Mrd22
+                    MRdNz = Mrdz; //Mrd11
+                }
                 else
                 {
                     /*MzEd = _M1Ed;
@@ -1460,16 +1486,31 @@ namespace GPC.Checker.Steel.EuroCode
                     MRdNz = Mrdz;*/
                     throw new Exception("Section not yet supported");
                 }
-            } else
+            } else //Class 3 or 4: Ned/Nrd + My/Myrd + Mz/Mzrd --> No influence of N in Mrd
             {
-                if (typeShape == typeof(SectionH) || typeShape == typeof(SectionCHS) || typeShape == typeof(SectionRHS))
+                if (typeShape == typeof(SectionH) || typeShape == typeof(SectionCHS) || typeShape == typeof(SectionRHS) || typeShape == typeof(SectionT))
                 {
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = Mrdy;
                     MRdNz = Mrdz;
-                } else
+                }
+                else if (typeShape == typeof(SectionC) && _sec.IsSymmetricAlongYLocalAxis == true)
                 {
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
+                    MRdNy = Mrdy;
+                    MRdNz = Mrdz;
+                }
+                else if (typeShape == typeof(SectionL))
+                {
+                    //Check are made in principal axis
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
+                    MRdNy = Mrdy; //Mrd22
+                    MRdNz = Mrdz; //Mrd11
+                }
+                else { 
                     //Section L
                     throw new Exception("Section not yet supported");
                 }
