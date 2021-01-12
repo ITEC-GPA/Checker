@@ -90,20 +90,22 @@ namespace SteelTests
             double b = 250;
             double t = 10;
 
+            Annex annex = new Annex();
+
             SectionRHS sec = new SectionRHS(h, b, t, t, t, t, false, new SteelMaterial("S355", 210000, 0.3, 355, 510, 7850));
-            EuroCodeBeamChecker classification = new EuroCodeBeamChecker(sec, -1597e3 * 0.95, 0, 0, 0, 0, 0, new Annex());
+            EuroCodeBeamChecker classification = new EuroCodeBeamChecker(sec, -1597e3 * 0.95, 0, 0, 0, 0, 0, annex);
             Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 75
 
-            classification = new EuroCodeBeamChecker(sec, -2130e3 * 0.95, 0, 0, 0, 0, 0, new Annex());
+            classification = new EuroCodeBeamChecker(sec, -2130e3 * 0.95, 0, 0, 0, 0, 0, annex);
             Assert.AreEqual(classification.ClassificationSection, 2); //Cordova cap. 2 pag. 75
 
-            classification = new EuroCodeBeamChecker(sec, sec.Area * -355, 0, 0, 0, 0, 0, new Annex());
+            classification = new EuroCodeBeamChecker(sec, sec.Area * -355, 0, 0, 0, 0, 0, annex);
             Assert.AreEqual(classification.ClassificationSection, 3); //Cordova cap. 2 pag. 75
 
-            classification = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 1e6, 0, new Annex());
+            classification = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 1e6, 0, annex);
             Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 75
 
-            classification = new EuroCodeBeamChecker(sec, 0, 0, 0, 1e6, 0, 0, new Annex());
+            classification = new EuroCodeBeamChecker(sec, 0, 0, 0, 1e6, 0, 0, annex);
             Assert.AreEqual(classification.ClassificationSection, 3); //Cordova cap. 2 pag. 75
         }
 
@@ -162,7 +164,7 @@ namespace SteelTests
             Assert.AreEqual(classification.ClassificationSection, 4); //Cordova cap. 2 pag. 61 --> classe 3 considerando raggio curvatura interno
 
             classification = new EuroCodeBeamChecker(sec, 0, 0, 0, 1e6, 0, 0, new Annex());
-            Assert.AreEqual(classification.ClassificationSection, 4); //Cordova cap. 2 pag. 61 --> cordova non classifica anima perchè passa assse neutro ma per pressoflessione?*/
+            Assert.AreEqual(classification.ClassificationSection, 4); //Cordova cap. 2 pag. 61 --> Cordova non classifica anima perchè passa assse neutro ma per pressoflessione?*/
 
             classification = new EuroCodeBeamChecker(sec, 0, 0, 0, 0, 1e6, 0, new Annex());
             Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 61

@@ -59,11 +59,15 @@ namespace GPC.Checker.Steel.EuroCode
         protected Point2d _centroidEff;
 
         protected double _NEd;
-        protected double _VyEd;
+        protected double _V1Ed;
+        protected double _V2Ed;
+        protected double _M1Ed;
+        protected double _M2Ed;
+        protected double _TEd;
         protected double _VzEd;
+        protected double _VyEd;
         protected double _MzEd;
         protected double _MyEd;
-        protected double _TEd;
 
         protected double _NRd;
         protected double _VRdy;
@@ -149,6 +153,10 @@ namespace GPC.Checker.Steel.EuroCode
         public double MRdy => _MRdy;
         public double MRdz => _MRdz;
         public double TRd => _TRd;
+        public double VyEd => _VyEd;
+        public double VzEd => _VzEd;
+        public double MyEd => _MyEd;
+        public double MzEd => _MzEd;
 
         public int ClassificationSection => _classificationSection;
 
@@ -319,16 +327,16 @@ namespace GPC.Checker.Steel.EuroCode
         public double WRMax { get; set; }
         #endregion
 
-        public EuroCodeBeamChecker(Section sect, double NEd, double VyEd, double VzEd, double MzEd, double MyEd, double TEd, Annex annex)
+        public EuroCodeBeamChecker(Section sect, double NEd, double V1Ed, double V2Ed, double M1Ed, double M2Ed, double TEd, Annex annex)
         {
             _sec = sect;
             _annex = annex;
 
             _NEd = NEd;
-            _VyEd = VyEd; //horizontal
-            _VzEd = VzEd; //vertical
-            _MyEd = MyEd;
-            _MzEd = MzEd;
+            _V1Ed = V1Ed; //horizontal
+            _V2Ed = V2Ed; //vertical
+            _M1Ed = M1Ed;
+            _M2Ed = M2Ed;
             _TEd = TEd;
 
             CheckResistance();
@@ -337,7 +345,7 @@ namespace GPC.Checker.Steel.EuroCode
         public void CheckResistance() {
             
             #region classification
-            double minSigma = _sec.MinSigma(_NEd, _MyEd, _MzEd);
+            double minSigma = _sec.MinSigma(_NEd, _M2Ed, _M1Ed);
 
             double fy = ((SteelMaterial)_sec.Material).Fyk;
             double epsilon = Math.Sqrt(235.0 / fy);
@@ -373,7 +381,7 @@ namespace GPC.Checker.Steel.EuroCode
                     SectionRHS sec = (SectionRHS)_sec;
 
                     #region ClassificationAxialBendingStrongAxis
-                    if (Math.Abs(_MyEd) > 0 || Math.Abs(_NEd) > 0)
+                    if (Math.Abs(_M2Ed) > 0 || Math.Abs(_NEd) > 0)
                     {
                         double cTFlange;
                         /*if (M2Ed > 0)
@@ -413,7 +421,7 @@ namespace GPC.Checker.Steel.EuroCode
                     #endregion
 
                     #region ClassificationAxialBendingWeakAxis
-                    if (Math.Abs(_MzEd) > 0)
+                    if (Math.Abs(_M1Ed) > 0)
                     {
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(sec.Hw / sec.TWebLeft, epsilon));
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(sec.Hw / sec.TWebRight, epsilon));
@@ -439,7 +447,7 @@ namespace GPC.Checker.Steel.EuroCode
                     if (sec.IsDoubleSymmetric)
                     {
                         #region AxialAndBendingStrongDirection
-                        if (Math.Abs(_MyEd) > 0 || Math.Abs(_NEd) > 0)
+                        if (Math.Abs(_M2Ed) > 0 || Math.Abs(_NEd) > 0)
                         {
                             //classification of flanged for axial force due to bending
                             _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
@@ -456,7 +464,7 @@ namespace GPC.Checker.Steel.EuroCode
                         #endregion
 
                         #region AxialAndBendingWeakDirection
-                        if (Math.Abs(_MzEd) > 0)
+                        if (Math.Abs(_M1Ed) > 0)
                         {
                             //classification only for Compression.
                             //Other detailed calculation should be found and implemented
@@ -500,8 +508,8 @@ namespace GPC.Checker.Steel.EuroCode
                 else if (typeShape == typeof(SectionL))
                 {
                     SectionL sec = (SectionL)_sec;
-                    double cT1 = sec.L1 / sec.T1;
-                    double cT2 = sec.L2 / sec.T2;
+                    double cT1 = sec.LHor / sec.THor;
+                    double cT2 = sec.LVert / sec.TVert;
 
                     //classification only for Compression.
                     //Other detailed calculation should be found and implemented
@@ -514,6 +522,7 @@ namespace GPC.Checker.Steel.EuroCode
                 }
             } else
             {
+                //Section with no compression
                 _classificationSection = 1;
             }
 
@@ -521,15 +530,15 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 Class4Section secCL4 = new Class4Section(_sec);
 
-                secCL4.Calc(0, Math.Sign(_MzEd) * 1e6, 0); //indipendent from the value
+                secCL4.Calc(0, Math.Sign(_M2Ed) * 1e6, 0); //indipendent from the value but dependent on the sign
                 _Weffy = secCL4.Weff2;
                 _J2eff = secCL4.J2eff;
 
-                secCL4.Calc(0, 0, Math.Sign(_MzEd) * 1e6); //indipendent from the value
+                secCL4.Calc(0, 0, Math.Sign(_M1Ed) * 1e6); //indipendent from the value but dependent on the sign
                 _Weffz = secCL4.Weff1;
                 _J1eff = secCL4.J1eff;
 
-                secCL4.Calc(-1000, 0, 0); //indipendent from the value
+                secCL4.Calc(-1000, 0, 0); //indipendent from the value but dependent on the sign
                 _Aeff = secCL4.Aeff;
 
                 _deltaG = _sec.Centroid - secCL4.CentroidEff;
@@ -554,9 +563,9 @@ namespace GPC.Checker.Steel.EuroCode
                 #endregion
 
                 #region ShearAndTorsion
-                GetVRdTRd(out _VRdy, out _VRdz, out _TRd);
-                WRShear2 = Math.Abs(_VzEd) / _VRdz; //vertical
-                WRShear1 = Math.Abs(_VyEd) / _VRdy; //horizontal
+                GetVRdTRd(_V1Ed, _V2Ed, out _VyEd, out _VzEd, out _VRdy, out _VRdz, out _TRd);
+                WRShear2 = Math.Abs(VzEd) / _VRdz; //vertical
+                WRShear1 = Math.Abs(VyEd) / _VRdy; //horizontal
                 WRTorsion = Math.Abs(_TEd) / _TRd;
 
                 WRMax = Math.Max(WRShear1, WRAxial);
@@ -565,9 +574,9 @@ namespace GPC.Checker.Steel.EuroCode
                 #endregion
 
                 #region bending
-                GetMRd(out _MRdy, out _MRdz);
-                WRBending1 = _MzEd / _MRdz;
-                WRBending2 = _MyEd / _MRdy;
+                GetMRd(_M1Ed, _M2Ed, out _MzEd, out _MyEd, out _MRdz, out _MRdy);
+                WRBending1 = MzEd / _MRdz;
+                WRBending2 = MyEd / _MRdy;
 
                 WRMax = Math.Max(WRBending1, WRMax);
                 WRMax = Math.Max(WRBending2, WRMax);
@@ -581,6 +590,11 @@ namespace GPC.Checker.Steel.EuroCode
 
         public void CheckBuckling(double L, double betay, double betaz, double betaLT, SupportCondition supportConditiony, LoadCondition loadConditiony, double? psiy, SupportCondition supportConditionz, LoadCondition loadConditionz, double? psiz) {
             
+            if (_sec.IsSymmetricAlongYLocalAxis == false && _sec.IsSymmetricAlongZLocalAxis == false)
+            {
+                throw new Exception("No symmetry : Unapplicable");
+            }
+            //Should be valid only for Double Symmetric, 1 axis of symmetry accepted but should be show a warning
             _L = L;
             _betaLT = betaLT;
             _betay = betay;
@@ -600,7 +614,7 @@ namespace GPC.Checker.Steel.EuroCode
                 double NEd;
                 double fy = ((SteelMaterial)_sec.Material).Fyk;
 
-                if (_sec.MinSigma(_NEd, _MyEd, _MzEd) < 0.0)
+                if (_sec.MinSigma(_NEd, _M2Ed, _M1Ed) < 0.0)
                 {
                     if (_NEd < 0)
                     {
@@ -609,8 +623,8 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         NEd = 0;
                     }
-                    double MzEd = Math.Abs(_MzEd);
-                    double MyEd = Math.Abs(_MyEd);
+                    double AbsMzEd = Math.Abs(_MzEd);
+                    double AbsMyEd = Math.Abs(_MyEd);
 
                     double E = _sec.Material.E;
                     double G = E / (2.0 * (1.0 + _sec.Material.Ni));
@@ -770,10 +784,10 @@ namespace GPC.Checker.Steel.EuroCode
 
                         if (_classificationSection < 4)
                         {
-                            _epsilony = MyEd / Math.Max(NEd,1E-3) * _sec.Area / _sec.Wel22Min;
+                            _epsilony = AbsMyEd / Math.Max(NEd,1E-3) * _sec.Area / _sec.Wel22Min;
                         } else
                         {
-                            _epsilony = MyEd / Math.Max(NEd, 1E-3) * _Aeff / _Weffy;
+                            _epsilony = AbsMyEd / Math.Max(NEd, 1E-3) * _Aeff / _Weffy;
                         }
          
                         _aLT = Math.Max(1.0 - _sec.Jt / _sec.J22,0);
@@ -813,10 +827,10 @@ namespace GPC.Checker.Steel.EuroCode
                             mplzRd = _Weffz * fy / _annex.Gm0;
                         }                        
 
-                        _bLT = 0.5 * _aLT * lambda0 * lambda0 * MyEd * MzEd / (_ChiLT * mplyRd * mplzRd);
-                        _cLT = 10.0 * _aLT * lambda0 * lambda0 * MyEd / ((5.0 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd);
-                        _dLT = 2.0 * _aLT * lambda0 * MyEd * MzEd / ((0.1 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd * _cmz * mplzRd);
-                        _eLT = 1.7 * _aLT * lambda0 * MyEd / ((0.1 + Math.Pow(_lambdaz, 4.0)) * _cmy * _ChiLT * mplyRd);
+                        _bLT = 0.5 * _aLT * lambda0 * lambda0 * AbsMyEd * AbsMzEd / (_ChiLT * mplyRd * mplzRd);
+                        _cLT = 10.0 * _aLT * lambda0 * lambda0 * AbsMyEd / ((5.0 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd);
+                        _dLT = 2.0 * _aLT * lambda0 * AbsMyEd * AbsMzEd / ((0.1 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd * _cmz * mplzRd);
+                        _eLT = 1.7 * _aLT * lambda0 * AbsMyEd / ((0.1 + Math.Pow(_lambdaz, 4.0)) * _cmy * _ChiLT * mplyRd);
 
                         double npl = NEd / (fy * _sec.Area / _annex.Gm0);
                         _cyy = Math.Max(1.0 + (_wy - 1.0) * ((2.0 - 1.6/_wy * _cmy * _cmy * lambdaMax - 1.6 / _wy * _cmy * _cmy * lambdaMax * lambdaMax) * npl - _bLT), _sec.Wel22Min / _sec.Wpl22);
@@ -873,8 +887,8 @@ namespace GPC.Checker.Steel.EuroCode
                         deltaMy = NEd * _deltaG.Y; //check segno
                         deltaMz = NEd * _deltaG.X; //check segno
                     }
-                    WRBuckling1 = NEd / (_Chiy * nrk / _annex.Gm1) + _kyy * Math.Abs(MyEd + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kyz * Math.Abs(MzEd + deltaMz) / (mzrk / _annex.Gm1);
-                    WRBuckling2 = NEd / (_Chiz * nrk / _annex.Gm1) + _kzy * Math.Abs(MyEd + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kzz * Math.Abs(MzEd + deltaMz) / (mzrk / _annex.Gm1);
+                    WRBuckling1 = NEd / (_Chiy * nrk / _annex.Gm1) + _kyy * Math.Abs(AbsMyEd + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kyz * Math.Abs(AbsMzEd + deltaMz) / (mzrk / _annex.Gm1);
+                    WRBuckling2 = NEd / (_Chiz * nrk / _annex.Gm1) + _kzy * Math.Abs(AbsMyEd + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kzz * Math.Abs(AbsMzEd + deltaMz) / (mzrk / _annex.Gm1);
                     WRBuckling3 = NEd / _NbRdT;
 
                     WRMax = Math.Max(WRBuckling1, WRMax);
@@ -1081,8 +1095,11 @@ namespace GPC.Checker.Steel.EuroCode
             return NcRd;
         }
 
-        protected void GetVRdTRd(out double VRdy, out double VRdz, out double TRd)
+        protected void GetVRdTRd(double V1Ed, double V2Ed, out double VyEd, out double VzEd, out double VRdy, out double VRdz, out double TRd)
         {
+            VzEd = Double.MaxValue;
+            VyEd = Double.MaxValue;
+
             double eta = 1.0;
             double Avy, Avz;
             //z = vertical axis
@@ -1097,11 +1114,15 @@ namespace GPC.Checker.Steel.EuroCode
                 Avy = _sec.Area;
                 Avz = Avy;
             } else*/ if (typeShape == typeof(SectionH)) {
+                VzEd = V2Ed;
+                VyEd = V1Ed;
                 SectionH sec = (SectionH)_sec;
                 Avz = Math.Min(_sec.Area - sec.LenghtBottomFlange * sec.ThicknessBottomFlange - sec.LenghtTopFlange * sec.ThicknessTopFlange, eta * sec.ThicknessWeb * sec.HeightWeb);
                 Avy = sec.Area - sec.ThicknessWeb * sec.HeightWeb;
             } else if (typeShape == typeof(SectionCHS))
             {
+                VzEd = V2Ed;
+                VyEd = V1Ed;
                 Avz = 2.0 * _sec.Area / Math.PI;
                 Avy = Avz;
             } else if (typeShape == typeof(SectionC))
@@ -1109,6 +1130,8 @@ namespace GPC.Checker.Steel.EuroCode
                 SectionC sec = (SectionC)_sec;
                 if (sec.LBottom == sec.LTop && sec.ThicknessBottom == sec.ThicknessTop)
                 {
+                    VzEd = V2Ed;
+                    VyEd = V1Ed;
                     Avz = sec.Area - sec.ThicknessTop * sec.LTop - sec.ThicknessBottom * sec.LBottom;
                     Avy = sec.Area - sec.Hw * sec.Tw;
                 } else
@@ -1117,21 +1140,38 @@ namespace GPC.Checker.Steel.EuroCode
                 }
             } else if (typeShape == typeof(SectionT))
             {
+                VzEd = V2Ed;
+                VyEd = V1Ed;
                 SectionT sec = (SectionT)_sec;
                 Avz = sec.Tw * (sec.H - sec.Tf / 2.0);
                 Avy = sec.Tf * sec.H;
             } else if (typeShape == typeof(SectionRHS))
             {
                 SectionRHS sec = (SectionRHS)_sec;
-                Avz = eta * sec.H * sec.ThicknessWeb * 2.0;
-                Avy = sec.Area - 2.0 * sec.Hw * sec.ThicknessWeb;
+                if (sec.IsSymmetricAlongYLocalAxis && sec.IsSymmetricAlongZLocalAxis)
+                {
+                    VzEd = V2Ed;
+                    VyEd = V1Ed;
+
+                    Avz = eta * sec.H * sec.ThicknessWeb * 2.0;
+                    Avy = sec.Area - 2.0 * sec.Hw * sec.ThicknessWeb;
+                } else
+                {
+                    throw new Exception("Section not supported yet");
+                }
             }
             else if (typeShape == typeof(SectionL))
             {
+                //Check along local axis not principal!
                 SectionL sec = (SectionL)_sec;
                 double angle = sec.AngleX1;
-                Avz = sec.L1*sec.T1;
-                Avy = sec.L2*sec.T2;
+                Avz = sec.LVert * sec.TVert;
+                Avy = sec.LHor*sec.THor;
+
+                double angle2 = Math.PI / 2.0 - sec.AngleX1;
+
+                VyEd = _V1Ed * Math.Cos(sec.AngleX1) - _V2Ed * Math.Cos(angle2);
+                VzEd = _V1Ed * Math.Sin(sec.AngleX1) + _V2Ed * Math.Sin(angle2);
             }
             else
             {
@@ -1227,13 +1267,13 @@ namespace GPC.Checker.Steel.EuroCode
             } else if (typeShape == typeof(SectionL))
             {
                 SectionL sec = (SectionL)_sec;
-                double tmax = Math.Max(sec.T1, sec.T2);
+                double tmax = Math.Max(sec.TVert, sec.THor);
 
-                double L1 = sec.L1;
-                double a1 = sec.T1;
+                double L1 = sec.LHor;
+                double a1 = sec.THor;
                 double denominator = L1 * Math.Pow(a1, 3.0);
-                double L2 = sec.L2;
-                double a2 = sec.T2;
+                double L2 = sec.LVert;
+                double a2 = sec.TVert;
                 denominator = denominator + L2 * Math.Pow(a2, 3.0);
                 denominator = denominator / 3.0;
 
@@ -1307,7 +1347,7 @@ namespace GPC.Checker.Steel.EuroCode
             }
         }
 
-        protected void GetMRd(out double MRdNy, out double MRdNz)
+        protected void GetMRd(double M1Ed, double M2Ed, out double MzEd, out double MyEd, out double MRdNz, out double MRdNy)
         {
             double gm0 = _annex.Gm0;
             double fy = ((SteelMaterial)_sec.Material).Fyk;
@@ -1363,6 +1403,8 @@ namespace GPC.Checker.Steel.EuroCode
                 }
                 else */if (typeShape == typeof(SectionH))
                 {
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
                     SectionH secH = (SectionH)_sec;
                     if (secH.LenghtBottomFlange == secH.LenghtTopFlange && secH.ThicknessTopFlange == secH.ThicknessBottomFlange)
                     {
@@ -1386,34 +1428,92 @@ namespace GPC.Checker.Steel.EuroCode
                 }
                 else if (typeShape == typeof(SectionCHS))
                 {
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
                     MRdNy = Mrdy * (1.0 - Math.Pow(n, 1.7));
                     MRdNz = Mrdz * (1.0 - Math.Pow(n, 1.7));
                 }
                 else if (typeShape == typeof(SectionRHS))
                 {
                     SectionRHS secRHS = (SectionRHS)_sec;
-                    double b = secRHS.B;
-                    double h = secRHS.H;
-                    double thk_flange = secRHS.ThicknessFlange;
-                    double thk_web = secRHS.ThicknessWeb;
+                    if (secRHS.IsSymmetricAlongZLocalAxis && secRHS.IsSymmetricAlongYLocalAxis)
+                    {
+                        MzEd = _M1Ed;
+                        MyEd = _M2Ed;
 
-                    double aw = Math.Min((A - 2.0 * b * thk_flange) / A, 0.5);
-                    double af = Math.Min((A - 2.0 * h * thk_web) / A, 0.5);
+                        double b = secRHS.B;
+                        double h = secRHS.H;
+                        double thk_flange = secRHS.ThicknessFlange;
+                        double thk_web = secRHS.ThicknessWeb;
 
-                    MRdNy = Math.Min(Mrdy * (1.0 - n) / (1 - 0.5 * aw), Mrdy);
+                        double aw = Math.Min((A - 2.0 * b * thk_flange) / A, 0.5);
+                        double af = Math.Min((A - 2.0 * h * thk_web) / A, 0.5);
 
-                    MRdNz = Math.Min(Mrdz * (1.0 - n) / (1 - 0.5 * af), Mrdz);
+                        MRdNy = Math.Min(Mrdy * (1.0 - n) / (1 - 0.5 * aw), Mrdy);
+                        MRdNz = Math.Min(Mrdz * (1.0 - n) / (1 - 0.5 * af), Mrdz);
+                    } else
+                    {
+                        throw new Exception("Section not yet supported");
+                    }
+                }
+                else if (typeShape == typeof(SectionC) && _sec.IsSymmetricAlongYLocalAxis == true)
+                {
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
+                    MRdNy = Mrdy;
+                    MRdNz = Mrdz;
+                }
+                else if (typeShape == typeof(SectionT))
+                {
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
+                    MRdNy = Mrdy;
+                    MRdNz = Mrdz;
+                }
+                else if (typeShape == typeof(SectionL))
+                {
+                    //Check are made in principal axis
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
+                    MRdNy = Mrdy; //Mrd22
+                    MRdNz = Mrdz; //Mrd11
                 }
                 else
                 {
+                    /*MzEd = _M1Ed;
+                    MyEd = _M2Ed;
+                    MRdNy = Mrdy;
+                    MRdNz = Mrdz;*/
+                    throw new Exception("Section not yet supported");
+                }
+            } else //Class 3 or 4: Ned/Nrd + My/Myrd + Mz/Mzrd --> No influence of N in Mrd
+            {
+                if (typeShape == typeof(SectionH) || typeShape == typeof(SectionCHS) || typeShape == typeof(SectionRHS) || typeShape == typeof(SectionT))
+                {
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
                     MRdNy = Mrdy;
                     MRdNz = Mrdz;
-                    //throw new Exception("Section not yet supported");
                 }
-            } else
-            {
-                MRdNy = Mrdy;
-                MRdNz = Mrdz;
+                else if (typeShape == typeof(SectionC) && _sec.IsSymmetricAlongYLocalAxis == true)
+                {
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
+                    MRdNy = Mrdy;
+                    MRdNz = Mrdz;
+                }
+                else if (typeShape == typeof(SectionL))
+                {
+                    //Check are made in principal axis
+                    MzEd = _M1Ed;
+                    MyEd = _M2Ed;
+                    MRdNy = Mrdy; //Mrd22
+                    MRdNz = Mrdz; //Mrd11
+                }
+                else { 
+                    //Section L
+                    throw new Exception("Section not yet supported");
+                }
             }
         }
 
