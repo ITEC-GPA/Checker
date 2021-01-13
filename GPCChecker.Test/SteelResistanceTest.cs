@@ -152,7 +152,7 @@ namespace SteelTests
  
             Assert.AreEqual(1, checker.Chiy, 0.001);
             Assert.AreEqual(1, checker.Chiz, 0.001);
-            Assert.AreEqual(1.0, checker.ChiLT, 0.001);
+            Assert.AreEqual(1, checker.ChiLT, 0.001);
 
             Assert.AreEqual(0.895, checker.Kyy, 0.005);
             Assert.AreEqual(0.537, checker.Kyz, 0.005);

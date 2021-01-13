@@ -1882,6 +1882,10 @@ namespace GPC.Checker.Steel.EuroCode
                             }
                         }
                         zj = (sec.ShearCenter.Y - sec.Centroid.Y) - 0.5 * integral / sec.J22;
+                        if (_M2Ed < 0)
+                        {
+                            zj = -zj; //check this   
+                        }
                     } else
                     {
                         throw new Exception("Wagner coefficient for T reversed not yet implemented");
