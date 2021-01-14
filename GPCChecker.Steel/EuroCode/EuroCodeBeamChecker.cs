@@ -1471,9 +1471,11 @@ namespace GPC.Checker.Steel.EuroCode
                 }
                 VRdy = VplRdTy;
                 VRdz = VplRdTz;
-                if (VRdy < 0 || VRdz < 0)
+                if (VRdy < 0)
                 {
                     VRdy = 0;
+                }
+                if (VRdz < 0) { 
                     VRdz = 0;
                 }
             }
@@ -1659,6 +1661,23 @@ namespace GPC.Checker.Steel.EuroCode
                     //Section L
                     throw new Exception("Section not yet supported");
                 }
+            }
+
+            if (MvRdy < 0)
+            {
+                MvRdy = 0;
+            }
+            if (MvRdz < 0)
+            {
+                MvRdz = 0;
+            }
+            if (MRdNy < 0)
+            {
+                MRdNy = 0;
+            }
+            if (MRdNz < 0)
+            {
+                MRdNz = 0;
             }
         }
 
