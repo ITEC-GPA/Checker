@@ -146,8 +146,8 @@ namespace SteelTests
             EuroCodeBeamChecker checker = new EuroCodeBeamChecker(sect, N, V1, V2, M1, M2, T, annex);
 
             Assert.AreEqual(checker.NRd / (4238.7 * 1000.0), 1, 0.01);
-            Assert.AreEqual(checker.MRdy / (658.33 * 1e6), 1, 0.03);
-            Assert.AreEqual(checker.MRdz / (171.135 * 1e6), 1, 0.03);
+            Assert.AreEqual(checker.MRdNy / (658.33 * 1e6), 1, 0.03);
+            Assert.AreEqual(checker.MRdNz / (171.135 * 1e6), 1, 0.03);
 
             checker.CheckBuckling(L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz);
 
@@ -281,8 +281,8 @@ namespace SteelTests
             EuroCodeBeamChecker checker = new EuroCodeBeamChecker(sect, N, V1, V2, M1, M2, T, annex);
 
             Assert.AreEqual(checker.NRd / (5225.6 * 1000.0), 1, 0.01);
-            Assert.AreEqual(checker.MRdy / (615.258 * 1e6), 1, 0.03);
-            Assert.AreEqual(checker.MRdz / (435.088 * 1e6), 1, 0.03);
+            Assert.AreEqual(checker.MRdNy / (615.258 * 1e6), 1, 0.03);
+            Assert.AreEqual(checker.MRdNz / (435.088 * 1e6), 1, 0.03);
 
             checker.CheckBuckling(L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz);
 
@@ -415,8 +415,8 @@ namespace SteelTests
             EuroCodeBeamChecker checker = new EuroCodeBeamChecker(sect, N, V1, V2, M1, M2, T, annex);
 
             Assert.AreEqual(checker.NRd / (4349.535 * 1000.0), 1, 0.01);
-            Assert.AreEqual(checker.MRdy / (540.073 * 1e6), 1, 0.03);
-            Assert.AreEqual(checker.MRdz / (540.073 * 1e6), 1, 0.03);
+            Assert.AreEqual(checker.MRdNy / (540.073 * 1e6), 1, 0.03);
+            Assert.AreEqual(checker.MRdNz / (540.073 * 1e6), 1, 0.03);
 
             checker.CheckBuckling(L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz);
 
@@ -550,8 +550,8 @@ namespace SteelTests
             EuroCodeBeamChecker checker = new EuroCodeBeamChecker(sect, N, V1, V2, M1, M2, T, annex);
 
             Assert.AreEqual(checker.NRd / (4238.7 * 1000.0), 1, 0.01);
-            Assert.AreEqual(checker.MRdy / (658.33 * 1e6), 1, 0.03);
-            Assert.AreEqual(checker.MRdz / (171.135 * 1e6), 1, 0.03);
+            Assert.AreEqual(checker.MRdNy / (658.33 * 1e6), 1, 0.03);
+            Assert.AreEqual(checker.MRdNz / (171.135 * 1e6), 1, 0.03);
 
             checker.CheckBuckling(L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz);
 
@@ -688,8 +688,8 @@ namespace SteelTests
             EuroCodeBeamChecker checker = new EuroCodeBeamChecker(sect, N, V1, V2, M1, M2, T, annex);
 
             Assert.AreEqual(checker.NRd / (4927.4 * 1000.0), 1, 0.01);
-            Assert.AreEqual(checker.MRdy / (418.54 * 1e6), 1, 0.03); //to checked
-            Assert.AreEqual(checker.MRdz / (149.027 * 1e6), 1, 0.03);
+            Assert.AreEqual(checker.MRdNy / (418.54 * 1e6), 1, 0.03); //to checked
+            Assert.AreEqual(checker.MRdNz / (149.027 * 1e6), 1, 0.03);
 
             checker.CheckBuckling(L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz);
 
@@ -824,8 +824,8 @@ namespace SteelTests
             EuroCodeBeamChecker checker = new EuroCodeBeamChecker(sect, N, V1, V2, M1, M2, T, annex);
 
             Assert.AreEqual(checker.NRd / (4927.4 * 1000.0), 1, 0.01);
-            Assert.AreEqual(checker.MRdy / (418.54 * 1e6), 1, 0.03); //to checked
-            Assert.AreEqual(checker.MRdz / (149.027 * 1e6), 1, 0.03);
+            Assert.AreEqual(checker.MRdNy / (418.54 * 1e6), 1, 0.03); //to checked
+            Assert.AreEqual(checker.MRdNz / (149.027 * 1e6), 1, 0.03);
 
             checker.CheckBuckling(L, betay, betaz, betaLT, supportConditiony, loadConditiony, psiy, supportConditionz, loadConditionz, psiz);
 
