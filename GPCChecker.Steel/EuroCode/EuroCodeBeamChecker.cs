@@ -91,6 +91,7 @@ namespace GPC.Checker.Steel.EuroCode
         protected double _NcrTorsional;
         protected double _NcrFlexuralTorsional;
         protected double _McrLateralTorsional;
+        protected double _Mcr0LateralTorsional;
         protected double _c1;
         protected double _c2;
         protected double _c3;
@@ -107,7 +108,8 @@ namespace GPC.Checker.Steel.EuroCode
         protected double _lambdaz;
         protected double _lambdaLT;
         protected double _lambdaT;
-        
+        protected double _lambda0;
+
         protected double _Phiy;
         protected double _Phiz;
         protected double _PhiLT;
@@ -266,6 +268,8 @@ namespace GPC.Checker.Steel.EuroCode
         public double NcrTF => _NcrFlexuralTorsional;
 
         public double McrLateralTorsional => _McrLateralTorsional;
+        public double Mcr0LateralTorsional => _Mcr0LateralTorsional;
+
         public double C1 => _c1;
         public double C2 => _c2;
         public double C3 => _c3;
@@ -301,6 +305,7 @@ namespace GPC.Checker.Steel.EuroCode
         public double Lambdaz => _lambdaz;
         public double LambdaT => _lambdaT;
         public double LambdaLT => _lambdaLT;
+        public double Lambda0 => _lambda0;
 
         public double Wy => _wy;
         public double Wz => _wz;
@@ -849,25 +854,23 @@ namespace GPC.Checker.Steel.EuroCode
                         }
 
                         double lambdaMax = Math.Max(_lambday, _lambdaz);
-                        double mCrLT0;
                         if (_classificationSection < 4)
                         {
-                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1, 1, out double fakec1, out double fakec2, out double fakec3,out double fakezg, out double fakezj);
+                            _Mcr0LateralTorsional = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1.0, 1.0, out double fakec1, out double fakec2, out double fakec3,out double fakezg, out double fakezj);
                         } else
                         {
-                            mCrLT0 = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _J1eff, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1, 1, out double fakec1, out double fakec2, out double fakec3, out double fakezg, out double fakezj); //Jw eff?
+                            _Mcr0LateralTorsional = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _J1eff, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1.0, 1.0, out double fakec1, out double fakec2, out double fakec3, out double fakezg, out double fakezj); //Jw eff?
                         }
-
-                        double lambda0;
+                        
                         if (_classificationSection < 3)
                         {
-                            lambda0 = GetLambdaSegn(_sec.Wpl22, fy, mCrLT0);
+                            _lambda0 = GetLambdaSegn(_sec.Wpl22, fy, _Mcr0LateralTorsional);
                         } else if (_classificationSection == 3)
                         {
-                            lambda0 = GetLambdaSegn(_sec.Wel22Min, fy, mCrLT0);
+                            _lambda0 = GetLambdaSegn(_sec.Wel22Min, fy, _Mcr0LateralTorsional);
                         } else
                         {
-                            lambda0 = GetLambdaSegn(_Weffy, fy, mCrLT0); //or Wel?
+                            _lambda0 = GetLambdaSegn(_Weffy, fy, _Mcr0LateralTorsional); //or Wel?
                         } 
 
                         if (_classificationSection < 4)
@@ -883,7 +886,7 @@ namespace GPC.Checker.Steel.EuroCode
                         double C1 = Math.Pow(kc, -2.0);
                         double lambda0Limit = 0.2 * Math.Pow(C1, 0.5) * Math.Pow((1.0 - NEd / _Ncrz) * (1.0 - NEd / _NcrFlexuralTorsional), 0.25);
 
-                        if (lambda0 <= lambda0Limit)
+                        if (_lambda0 <= lambda0Limit)
                         {
                             _cmy = _cmy0;
                             _cmz = _cmz0;
@@ -892,7 +895,7 @@ namespace GPC.Checker.Steel.EuroCode
                         {
                             _cmy = _cmy0 + (1.0 - _cmy0) * Math.Sqrt(_epsilony) * _aLT / (1.0 + Math.Sqrt(_epsilony) * _aLT);
                             _cmz = _cmz0;
-                            _cmLT = Math.Max(_cmy*_cmy * _aLT / (Math.Sqrt(1.0-NEd/_Ncrz) * (1.0 - NEd/_NcrTorsional)),1.0);
+                            _cmLT = Math.Max(_cmy*_cmy * _aLT / Math.Sqrt((1.0-NEd/_Ncrz) * (1.0 - NEd/_NcrTorsional)),1.0);
                             /*if (cmLT < 1)
                             {
                                 throw new Exception("cmLT < 1");
@@ -915,10 +918,10 @@ namespace GPC.Checker.Steel.EuroCode
                             mplzRd = _Weffz * fy / _annex.Gm0;
                         }                        
 
-                        _bLT = 0.5 * _aLT * lambda0 * lambda0 * AbsMyEd * AbsMzEd / (_ChiLT * mplyRd * mplzRd);
-                        _cLT = 10.0 * _aLT * lambda0 * lambda0 * AbsMyEd / ((5.0 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd);
-                        _dLT = 2.0 * _aLT * lambda0 * AbsMyEd * AbsMzEd / ((0.1 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd * _cmz * mplzRd);
-                        _eLT = 1.7 * _aLT * lambda0 * AbsMyEd / ((0.1 + Math.Pow(_lambdaz, 4.0)) * _cmy * _ChiLT * mplyRd);
+                        _bLT = 0.5 * _aLT * _lambda0 * _lambda0 * AbsMyEd * AbsMzEd / (_ChiLT * mplyRd * mplzRd);
+                        _cLT = 10.0 * _aLT * _lambda0 * _lambda0 * AbsMyEd / ((5.0 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd);
+                        _dLT = 2.0 * _aLT * _lambda0 * AbsMyEd * AbsMzEd / ((0.1 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd * _cmz * mplzRd);
+                        _eLT = 1.7 * _aLT * _lambda0 * AbsMyEd / ((0.1 + Math.Pow(_lambdaz, 4.0)) * _cmy * _ChiLT * mplyRd);
 
                         double npl = NEd / (fy * _sec.Area / _annex.Gm0);
                         _cyy = Math.Max(1.0 + (_wy - 1.0) * ((2.0 - 1.6/_wy * _cmy * _cmy * lambdaMax - 1.6 / _wy * _cmy * _cmy * lambdaMax * lambdaMax) * npl - _bLT), _sec.Wel22Min / _sec.Wpl22);
@@ -1511,8 +1514,6 @@ namespace GPC.Checker.Steel.EuroCode
             McRdy = Wy * fy / gm0;
             McRdz = Wz * fy / gm0;
 
-            Type typeShape = _sec.GetType();
-
             double rhoy = Math.Min(Math.Pow(2.0 * Math.Abs(VyEd) / _VplTRdy - 1.0, 2.0), 1.0);
             if (VyEd <= 0.5 * _VplTRdy)
             {
@@ -1524,6 +1525,7 @@ namespace GPC.Checker.Steel.EuroCode
                 rhoz = 0.0;
             }
 
+            Type typeShape = _sec.GetType();
             //check if bending moment should be recalculated with each plate bending moment contribution multiplied for each rho
             if (typeShape == typeof(SectionH) && _sec.IsDoubleSymmetric == true && _classificationSection < 3)
             {
@@ -1789,7 +1791,7 @@ namespace GPC.Checker.Steel.EuroCode
              * y0 coordinates of shear center in respect of the centroid gross section
              */
 
-            double i0 = Math.Pow(Math.Pow(iy, 2.0) + Math.Pow(iz, 2.0) + Math.Pow(y0, 2.0), 0.5);
+            double i0 = Math.Pow(Math.Pow(iy, 2.0) + Math.Pow(iz, 2.0) + Math.Pow(y0, 2.0) + Math.Pow(z0, 2.0), 0.5);
             double beta;
             double Ncr_TF;
             if (z0 == 0 && y0 != 0)
