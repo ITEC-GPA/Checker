@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GPC.Model.Materials;
 using GPC.Model.Sections;
 using GPC.Geometry;
+using Word = Microsoft.Office.Interop.Word;
 using GPCChecker.Steel.EuroCode;
 
 namespace GPC.Checker.Steel.EuroCode
@@ -155,7 +156,10 @@ namespace GPC.Checker.Steel.EuroCode
         protected double _kyy;
         protected double _kyz;
         protected double _kzy;
-        protected double _kzz;        
+        protected double _kzz;
+
+        bool _createReport;
+        Word._Document _wordDocument;
         #endregion
 
         #region Properties
@@ -348,8 +352,11 @@ namespace GPC.Checker.Steel.EuroCode
         public double WRMax { get; set; }
         #endregion
 
-        public EuroCodeBeamChecker(Section sect, double NEd, double V1Ed, double V2Ed, double M1Ed, double M2Ed, double TEd, Annex annex)
+        #region Constructor
+        public EuroCodeBeamChecker(Section sect, double NEd, double V1Ed, double V2Ed, double M1Ed, double M2Ed, double TEd, Annex annex, bool createReport = false)
         {
+            _createReport = createReport;
+
             _sec = sect;
             _annex = annex;
 
@@ -362,14 +369,49 @@ namespace GPC.Checker.Steel.EuroCode
 
             CheckResistance();
         }
+        #endregion
 
+        #region Public Function
         public void CheckResistance() {
-            
+
+            NewParagraph("Safety Factor");
+            NewFormula(@"\gamma_{m0} = " + _annex.Gm0);
+            NewFormula(@"\gamma_{m1} = " + _annex.Gm1);
+            NewFormula(@"\gamma_{m2} = " + _annex.Gm2);
+
+            NewParagraph("Acting forces and moments");
+            NewFormula(@"N_{Ed} = " + _NEd + "kN");
+            NewFormula(@"V_{1,Ed} = " + _V1Ed + "kN");
+            NewFormula(@"V_{2,Ed} = " + _V2Ed + "kN");
+            NewFormula(@"M_{1,Ed} = " + _M1Ed + "kNm");
+            NewFormula(@"M_{2,Ed} = " + _M2Ed + "kNm");
+            NewFormula(@"T_{Ed} = " + _TEd + "kNm");
+
+            NewParagraph("Section Properties");
+            NewFormula(@"A = " + _sec.Area + "mm^2");
+            NewFormula(@"x_G = " + _sec.Centroid.X + "mm");
+            NewFormula(@"y_G = " + _sec.Centroid.Y + "mm");
+            NewFormula(@"\vartheta = " + _sec.AngleX1 * 180.0 / Math.PI + "deg");
+            NewFormula(@"x_C = " + _sec.ShearCenter.X + "mm");
+            NewFormula(@"y_C = " + _sec.ShearCenter.Y + "mm");
+            NewFormula(@"J_{max} = " + _sec.J22 + "mm^6");
+            NewFormula(@"J_{min} = " + _sec.J11 + "mm^6");
+            NewFormula(@"J_t = " + _sec.Jt + "mm^6");
+            NewFormula(@"J_w = " + _sec.Jw + "mm^6");
+            NewFormula(@"W_{el,max} = " + _sec.Wel22Min + "mm^3");
+            NewFormula(@"W_{el,min} = " + _sec.Wel11Min + "mm^3");
+            NewFormula(@"W_{pl,max} = " + _sec.Wpl22 + "mm^3");
+            NewFormula(@"W_{pl,min} = " + _sec.Wpl11 + "mm^3");
+
+
             #region classification
             double minSigma = _sec.MinSigma(_NEd, _M2Ed, _M1Ed);
 
             double fy = ((SteelMaterial)_sec.Material).Fyk;
+            NewFormula("f_y = " + fy + " MPa");
+
             double epsilon = Math.Sqrt(235.0 / fy);
+            NewFormula(@"\varepsilon = \sqrt{235/f_y} = " + epsilon);
 
             if (minSigma < 0)
             {
@@ -995,6 +1037,7 @@ namespace GPC.Checker.Steel.EuroCode
             }
             #endregion
         }
+        #endregion
 
         #region Classification
         protected int GetClassCompressedInnerPlate(double ctRatio, double epsilon)
@@ -2587,6 +2630,59 @@ namespace GPC.Checker.Steel.EuroCode
             double A2 = Math.Abs((M1 + 2.0 * M2 + 3.0 * M3 + 2.0 * M4 + M5)/(9.0*MMax));
             double C1 = (Math.Sqrt(Math.Sqrt(keq) * A1 + Math.Pow((1.0 - Math.Sqrt(keq))/2.0 * A2, 2.0)) + (1 - Math.Sqrt(keq)) / 2.0 * A2) / A1;
             return C1;
+        }
+        #endregion
+
+        #region Report
+        public void CreateReport()
+        {
+            object oMissing = System.Reflection.Missing.Value;
+            object oEndOfDoc = "\\endofdoc"; /* \endofdoc is a predefined bookmark */
+
+            //Start Word and create a new document.
+            Word._Application oWord;
+            oWord = new Word.Application();
+            oWord.Visible = true;
+            _wordDocument = oWord.Documents.Add(ref oMissing, ref oMissing, ref oMissing, ref oMissing);
+
+            _createReport = true;
+            _wordDocument.OMathJc = Word.WdOMathJc.wdOMathJcLeft;
+
+            CheckResistance();
+
+            //check.CheckBuckling();
+
+            _wordDocument.OMaths.BuildUp();
+        }
+
+        private void NewParagraph(string text)
+        {
+            if (_createReport)
+            {
+                object oMissing = System.Reflection.Missing.Value;
+                Word.Paragraph oPara1;
+                oPara1 = _wordDocument.Content.Paragraphs.Add(ref oMissing);
+                oPara1.Range.Text = text;
+                /*oPara1.Range.Font.Bold = 1;
+                oPara1.Format.SpaceAfter = 24;    //24 pt spacing after paragraph.*/
+                oPara1.Range.InsertParagraphAfter();
+            }
+        }
+
+        private void NewFormula(string text)
+        {
+            if (_createReport)
+            {
+                object oMissing = System.Reflection.Missing.Value;
+                Word.Paragraph oPara1;
+                oPara1 = _wordDocument.Content.Paragraphs.Add(ref oMissing);
+                oPara1.Range.Text = text;
+                /*oPara1.Range.Font.Bold = 1;
+                oPara1.Format.SpaceAfter = 24;    //24 pt spacing after paragraph.*/
+                _wordDocument.OMaths.Add(oPara1.Range);
+                
+                oPara1.Range.InsertParagraphAfter();
+            }
         }
         #endregion
     }
