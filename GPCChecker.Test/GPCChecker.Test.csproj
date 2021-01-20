@@ -57,6 +57,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GlassMonolithicTest.cs" />
     <Compile Include="GlassTest.cs" />
     <Compile Include="GlassWrapperTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
