@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GPC.Checker.Glasses.Wrappers;
 using GPC.Checker.Glasses.FemModel;
 using GPC.Model.Loads;
+using GPC.Model.Elements;
 using GPC.Geometry.Meshes;
 using GPC.Geometry;
 
@@ -48,8 +49,10 @@ namespace GPC.Checker.Glasses.Checkers
                     var restrains = mgw.GetRestrains();
 
                     mgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
-                    
-                    femWrapper.SetUpMonolithic(mgw.GetSurfaceId, geometryMesh, embeddedGeometriesMapVertex, restrains, mgw.GlassProperty, uniformPressureLoads, notUniformPressureLoads);
+
+                    var monolithicGlassProperty = new MonolithicGlassProperty(mgw.Glass);
+
+                    femWrapper.SetUpMonolithic(mgw.GetSurfaceId, geometryMesh, embeddedGeometriesMapVertex, restrains, monolithicGlassProperty, uniformPressureLoads, notUniformPressureLoads);
                 }
                 else if (wrapper is LaminatedGlassWrapper lgw)
                 {

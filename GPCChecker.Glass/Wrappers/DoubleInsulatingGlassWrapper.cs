@@ -9,7 +9,7 @@ namespace GPC.Checker.Glasses.Wrappers
 {
     internal class DoubleInsulatingGlassWrapper : InsulatedGlassWrapper
     {
-        protected new DoubleInsulatingGlass GlassProperty => (DoubleInsulatingGlass)_glassSurface.GlassProperty;
+        protected new DoubleInsulatingGlass Glass => (DoubleInsulatingGlass)_glassSurface.Glass;
 
         protected readonly GlassPanelWrapper _glassPanelWrapperOuter;
         protected readonly GlassPanelWrapper _glassPanelWrapperInner;
@@ -18,7 +18,7 @@ namespace GPC.Checker.Glasses.Wrappers
             : base(glassSurface, glassPanelWrappers)
 
         {
-            if (!(glassSurface.GlassProperty is DoubleInsulatingGlass))
+            if (!(glassSurface.Glass is DoubleInsulatingGlass))
                 throw new ArgumentException("Glass property should be a Double insulating Glass Property");
 
             

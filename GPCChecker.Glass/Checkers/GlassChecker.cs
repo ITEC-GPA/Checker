@@ -28,7 +28,7 @@ namespace GPC.Checker.Glasses.Checkers
 
             foreach (var surface in _model.GlassSurfaces)
             {
-                if (surface.GlassProperty is MonolithicGlass mg)
+                if (surface.Glass is MonolithicGlass mg)
                 {
                     MonolithicGlassWrapper mgw = new MonolithicGlassWrapper(surface);
 
@@ -36,7 +36,7 @@ namespace GPC.Checker.Glasses.Checkers
 
                     wrappers.Add(mgw);
                 }
-                else if (surface.GlassProperty is LaminatedGlass lg)
+                else if (surface.Glass is LaminatedGlass lg)
                 {
                     LaminatedGlassWrapper lgw = new LaminatedGlassWrapper(surface);
 

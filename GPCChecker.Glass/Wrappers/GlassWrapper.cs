@@ -8,7 +8,7 @@ namespace GPC.Checker.Glasses.Wrappers
     {
         protected GlassSurface _glassSurface;
 
-        protected virtual GlassProperty GlassProperty => _glassSurface.GlassProperty;
+        protected virtual Glass Glass => _glassSurface.Glass;
 
         protected GlassWrapper(GlassSurface glassSurface)
         {

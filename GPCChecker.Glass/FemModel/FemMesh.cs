@@ -35,8 +35,8 @@ namespace GPC.Checker.Glasses.FemModel
         /// <param name="pointRestrainVertexIndex"></param>
         /// <param name="nodeAttributeIndex"></param>
         /// <param name="plateAttributeIndex"></param>
-        public FemMesh(int surfaceID, List<MeshVertex> vertices, List<MeshFace> faces, List<IFemGlassProperty> properties, Dictionary<int, Restrain> pointRestrainVertexIndex, 
-                                                  Dictionary<INodeFemAttribute, int[]> nodeAttributeIndex, Dictionary<IPlateFemAttribute, int[]> plateAttributeIndex)
+        public FemMesh(int surfaceID, List<MeshVertex> vertices, List<MeshFace> faces, List<IGlassProperty> properties, Dictionary<int, Restrain> pointRestrainVertexIndex, 
+                                                  Dictionary<INodeFemAttribute, int[]> nodeAttributeIndex, Dictionary<IPlateFemAttribute, int[]> plateAttributeIndex, List<List<IGlassProperty>> stageProperties)
         {
             _surfaceId = surfaceID;
             _nodes = new List<Node>();
@@ -44,6 +44,15 @@ namespace GPC.Checker.Glasses.FemModel
 
             if (faces.Count != properties.Count)
                 throw new ArgumentException("Lenght of faces and properties list are different");
+
+            if (stageProperties != null)
+            {
+                foreach(List<IGlassProperty> stageProp in stageProperties)
+                {
+                    if (stageProp.Count != properties.Count)
+                        throw new ArgumentException("Lenght of faces and stage properties list are different");
+                }
+            }
 
             foreach (var vertex in vertices)
             {
@@ -57,6 +66,7 @@ namespace GPC.Checker.Glasses.FemModel
                 }
             }
 
+            // Creazione plate
             for (int i = 0; i < faces.Count; i++)
             {
                 if (faces[i].IsQuad)
@@ -67,7 +77,7 @@ namespace GPC.Checker.Glasses.FemModel
                                                      _nodes.Where(j => j.NodeIndex == faces[i].C).First()));
             }
 
-
+            // Aggiunta attributi
             foreach (IPlateFemAttribute att in plateAttributeIndex.Keys)
             {
                 foreach (int id in plateAttributeIndex[att])

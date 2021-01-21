@@ -17,12 +17,12 @@ namespace GPC.Checker.Glasses.Wrappers
 {
     public class MonolithicGlassWrapper : GlassPanelWrapper
     {
-        internal new MonolithicGlass GlassProperty => (MonolithicGlass)_glassSurface.GlassProperty;
+        internal new MonolithicGlass Glass => (MonolithicGlass)_glassSurface.Glass;
 
         internal MonolithicGlassWrapper(GlassSurface glassSurface) 
             : base(glassSurface)
         {
-            if (!(glassSurface.GlassProperty is MonolithicGlass))
+            if (!(glassSurface.Glass is MonolithicGlass))
                 throw new ArgumentException("Glass property should be a Monolithic Glass Property");
         }
 
@@ -30,39 +30,39 @@ namespace GPC.Checker.Glasses.Wrappers
 
         public override double GetDeformationThickness(double loadDuration)
         {
-            return GlassProperty.Thickness;
+            return Glass.Thickness;
         }
 
         public override double GetStressThickness(double loadDuration)
         {
-            return GlassProperty.Thickness;
+            return Glass.Thickness;
         }
 
         public override double GetTotalThickness()
         {
-            return GlassProperty.Thickness;
+            return Glass.Thickness;
         }
 
         public override double GetElasticModulus()
         {
-            return GlassProperty.Material.E;
+            return Glass.Material.E;
         }
 
         public override double GetPoissonRatios()
         {
-            return GlassProperty.Material.Ni;
+            return Glass.Material.Ni;
         }
 
         public override double GetSelfWeightPerUnitArea()
         {
             // mm * T/mm3 => T / mm2
-            return GlassProperty.Thickness * GlassProperty.Material.Density;
+            return Glass.Thickness * Glass.Material.Density;
         }
 
         public override double GetSelfWeightTotal()
         {
             // mm2 * mm * T/mm3 => T
-            return _glassSurface.Shape.GetArea() * GlassProperty.Thickness * GlassProperty.Material.Density;
+            return _glassSurface.Shape.GetArea() * Glass.Thickness * Glass.Material.Density;
         }
 
         #endregion

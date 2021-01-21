@@ -25,7 +25,7 @@ namespace GPC.Checker.Glasses.Wrappers
 
         internal List<Load> Loads => _loads;
 
-        protected new IGlassPanelProperty GlassProperty => (IGlassPanelProperty)_glassSurface.GlassProperty;
+        protected new IGlassPanel Glass => (IGlassPanel)_glassSurface.Glass;
 
         public Mesh Mesh
         {
@@ -66,7 +66,7 @@ namespace GPC.Checker.Glasses.Wrappers
             : base(glassSurface)
         {
             _loads = new List<Load>();
-            if (!(glassSurface.GlassProperty is IGlassPanelProperty))
+            if (!(glassSurface.Glass is IGlassPanel))
                 throw new ArgumentException("Glass property should be a GlassPanel");
         }
 

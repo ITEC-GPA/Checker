@@ -16,15 +16,15 @@ namespace GPC.Checker.Glasses.FemModel
 
 
 
-        public Plate(IFemGlassProperty property, int index, Node node1, Node node2, Node node3)
-            : base(Guid.NewGuid(), (ElementProperty)property, index, new Node[] { node1, node2, node3 })
+        public Plate(IGlassProperty property, int index, Node node1, Node node2, Node node3)
+            : base(Guid.NewGuid(), (IPlateProperty)property, index, new Node[] { node1, node2, node3 })
         {
 
         }
 
 
-        public Plate(IFemGlassProperty property, int index, Node node1, Node node2, Node node3, Node node4)
-            : base(Guid.NewGuid(), (ElementProperty)property, index, new Node[] { node1, node2, node3, node4 })
+        public Plate(IGlassProperty property, int index, Node node1, Node node2, Node node3, Node node4)
+            : base(Guid.NewGuid(), (IPlateProperty)property, index, new Node[] { node1, node2, node3, node4 })
         {
 
         }
