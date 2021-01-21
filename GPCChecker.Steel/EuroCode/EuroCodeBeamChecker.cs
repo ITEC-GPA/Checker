@@ -787,78 +787,88 @@ namespace GPC.Checker.Steel.EuroCode
                     double G = E / (2.0 * (1.0 + _sec.Material.Ni));
 
                     _L0y = _betay * _L;
+                    NewFormula(@"L_{0,y} = \beta_y \cdot L = " + (_L0y).ToString(_formatInt) + " mm");
                     _L0z = _betaz * _L;
+                    NewFormula(@"L_{0,z} = \beta_z \cdot L = " + (_L0z).ToString(_formatInt) + " mm");
                     _L0LT = _betaLT * _L;
+                    NewFormula(@"L_{0,LT} = \beta_{LT} \cdot L = " + (_L0LT).ToString(_formatInt) + " mm");
 
                     if (_classificationSection < 4)
                     {
                         _Ncry = GetNcrEuler(E, _sec.J22, _L0y);
-                        NewFormula(@"N_{cr,y} = " + (_Ncry / 1000.0).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{cr,y} = \pi^2 \cdot E \cdot J_y / L_{0y}^2 = " + (_Ncry / 1000.0).ToString(_formatDouble) + " kN");
                         _Ncrz = GetNcrEuler(E, _sec.J11, _L0z);
-                        NewFormula(@"N_{cr,z} = " + (_Ncrz / 1000.0).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{cr,z} = \pi^2 \cdot E \cdot J_z / L_{0z}^2 = " + (_Ncrz / 1000.0).ToString(_formatDouble) + " kN");
 
                         _lambday = GetLambdaSegn(_sec.Area, fy, _Ncry);
-                        NewFormula(@"\lambda_{y} = " + (_lambday).ToString(_formatDouble) + " ");
+                        NewFormula(@"\lambda_{y} = \sqrt{A \cdot f_y / N_{cr,y}} = " + (_lambday).ToString(_formatDouble) + " ");
+                        
                         _lambdaz = GetLambdaSegn(_sec.Area, fy, _Ncrz);
-                        NewFormula(@"\lambda_{z} = " + (_lambdaz).ToString(_formatDouble) + " ");
+                        NewFormula(@"\lambda_{z} = \sqrt{A \cdot f_y / N_{cr,z}} = " + (_lambdaz).ToString(_formatDouble) + " ");
                     } else
                     {
                         _Ncry = GetNcrEuler(E, _J2eff, _L0y);
-                        NewFormula(@"N_{cr,y} = " + (_Ncry / 1000.0).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{cr,y} = \pi^2 \cdot E \cdot J_y / L_{0y}^2 = " + (_Ncry / 1000.0).ToString(_formatDouble) + " kN");
                         _Ncrz = GetNcrEuler(E, _J1eff, _L0z);
-                        NewFormula(@"N_{cr,z} = " + (_Ncrz / 1000.0).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{cr,z} = \pi^2 \cdot E \cdot J_z / L_{0z}^2 = " + (_Ncrz / 1000.0).ToString(_formatDouble) + " kN");
 
                         _lambday = GetLambdaSegn(_Aeff, fy, _Ncry);
-                        NewFormula(@"\lambda_{y} = " + (_lambday).ToString(_formatDouble) + " ");
+                        NewFormula(@"\lambda_{y} = \sqrt{A \cdot f_y / N_{cr,y}} = " + (_lambday).ToString(_formatDouble) + " ");
                         _lambdaz = GetLambdaSegn(_Aeff, fy, _Ncrz);
-                        NewFormula(@"\lambda_{z} = " + (_lambdaz).ToString(_formatDouble) + " ");
+                        NewFormula(@"\lambda_{z} = \sqrt{A \cdot f_y / N_{cr,z}} = " + (_lambdaz).ToString(_formatDouble) + " ");
                     }
 
                     GetImperfectionFactor(out _alphay, out _alphaz);
 
                     _Phiy = GetPhi(_alphay, _lambday);
-                    NewFormula(@"\Phi_{y} = " + (_Phiy).ToString(_formatDouble) + " ");
+                    NewFormula(@"\Phi_{y} = 0.5 \cdot \left[ 1 + \alpha_{y} \cdot ( \lambda_{y} - 0.2 ) + \lambda_{y}^{2} \right] = " + (_Phiy).ToString(_formatDouble) + " ");
                     _Phiz = GetPhi(_alphaz, _lambdaz);
-                    NewFormula(@"\Phi_{z} = " + (_Phiz).ToString(_formatDouble) + " ");
+                    NewFormula(@"\Phi_{z} = 0.5 \cdot \left[ 1 + \alpha_{z} \cdot ( \lambda_{z} - 0.2 ) + \lambda_{z}^{2} \right] = " + (_Phiy).ToString(_formatDouble) + " ");
 
                     _Chiy = GetChi(_Phiy, _lambday);
-                    NewFormula(@"\chi_{y} = " + (_Chiy).ToString(_formatDouble) + " ");
+                    NewFormula(@"\chi_{y} = \frac{1}{\Phi_y + \sqrt{\Phi_y^2 - \lambda_y^2}} = " + (_Chiy).ToString(_formatDouble) + " ");
                     _Chiz = GetChi(_Phiz, _lambdaz);
-                    NewFormula(@"\chi_{z} = " + (_Chiz).ToString(_formatDouble) + " ");
+                    NewFormula(@"\chi_{z} = \frac{1}{\Phi_z + \sqrt{\Phi_z^2 - \lambda_z^2}} = " + (_Chiy).ToString(_formatDouble) + " ");
 
                     if (_classificationSection < 4)
                     {
                         _NbRdy = _Chiy * _sec.Area * fy / _annex.Gm1;
-                        NewFormula(@"N_{b,Rd,y} = " + (_NbRdy / 1000.0).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{b,Rd,y} = \chi_y \cdot A \cdot f_y / \gamma_{m1} = " + (_NbRdy / 1000.0).ToString(_formatDouble) + " kN");
                         _NbRdz = _Chiz * _sec.Area * fy / _annex.Gm1;
-                        NewFormula(@"N_{b,Rd,z} = " + (_NbRdz / 1000.0).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{b,Rd,z} = \chi_z \cdot A \cdot f_y / \gamma_{m1} = " + (_NbRdz / 1000.0).ToString(_formatDouble) + " kN");
 
                     } else
                     {
                         _NbRdy = _Chiy * _Aeff * fy / _annex.Gm1;
-                        NewFormula(@"N_{b,Rd,y} = " + (_NbRdy / 1000.0).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{b,Rd,y} = \chi_y \cdot A_{eff} \cdot f_y / \gamma_{m1} = " + (_NbRdy / 1000.0).ToString(_formatDouble) + " kN");
                         _NbRdz = _Chiz * _Aeff * fy / _annex.Gm1;
-                        NewFormula(@"N_{b,Rd,z} = " + (_NbRdz / 1000.0).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{b,Rd,z} = \chi_z \cdot A_{eff} \cdot f_y / \gamma_{m1} = " + (_NbRdz / 1000.0).ToString(_formatDouble) + " kN");
                     }
                     
                     double iy = _sec.InertiaRadius1;
+                    NewFormula(@"i_y = \sqrt{J_y / A} = " + (iy).ToString(_formatDouble) + " mm");
                     double iz = _sec.InertiaRadius2;
+                    NewFormula(@"i_z = \sqrt{J_z / A} = " + (iz).ToString(_formatDouble) + " mm");
 
                     Point2d shearCenterToCentroid = _sec.ShearCenter - _sec.Centroid;
+                    NewFormula(@"z_0 = z_C - z_G = " + (shearCenterToCentroid.X).ToString(_formatDouble) + " mm");
+                    NewFormula(@"y_0 = y_C - y_G = " + (shearCenterToCentroid.Y).ToString(_formatDouble) + " mm");
+
                     _NcrTorsional = GetNcrT(iy, iz, shearCenterToCentroid.Y, shearCenterToCentroid.X, E, G, _sec.Jt, _sec.Jw, _L0LT);
-                    NewFormula(@"N_{cr,T} = " + (_NcrTorsional / 1000.0).ToString(_formatDouble) + " kN");
-                    _NcrFlexuralTorsional = GetNcrTF(iy, iz, shearCenterToCentroid.X, shearCenterToCentroid.Y, _Ncry, _Ncrz, _NcrTorsional);;
-                    NewFormula(@"N_{cr,TF} = " + (_NcrFlexuralTorsional / 1000.0).ToString(_formatDouble) + " kN");
+                    //report written inside the last function
+
+                    _NcrFlexuralTorsional = GetNcrTF(iy, iz, shearCenterToCentroid.X, shearCenterToCentroid.Y, _Ncry, _Ncrz, _NcrTorsional);
+                    //report written inside the last function
 
                     if (_classificationSection < 4)
                     {
                         _lambdaT = GetLambdaSegn(_sec.Area, fy, Math.Min(_NcrTorsional, _NcrFlexuralTorsional));
-                        NewFormula(@"\lambda_{T} = " + (_lambdaT).ToString(_formatDouble) + " ");
+                        NewFormula(@"\lambda_{T} = \sqrt{A \cdot f_y / min(N_{cr,T}, N_{cr,TF})} = " + (_lambdaT).ToString(_formatDouble) + " ");
                     }
                     else
                     {
                         _lambdaT = GetLambdaSegn(_Aeff, fy, Math.Min(_NcrTorsional, _NcrFlexuralTorsional));
-                        NewFormula(@"\lambda_{T} = " + (_lambdaz).ToString(_formatDouble) + " ");
+                        NewFormula(@"\lambda_{T} = \sqrt{A_{eff} \cdot f_y / min(N_{cr,T}, N_{cr,TF})} = " + (_lambdaT).ToString(_formatDouble) + " ");
                     }
 
                     _alphaT = _alphaz;
@@ -871,11 +881,11 @@ namespace GPC.Checker.Steel.EuroCode
                     if (_classificationSection < 4)
                     {
                         _NbRdT = _ChiT * _sec.Area * fy / _annex.Gm1;
-                        NewFormula(@"N_{b,Rd,T} = " + (_NbRdT / 1000.0).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{b,Rd,T} = \chi_T \cdot A \cdot f_y / \gamma_{m1} = " + (_NbRdT / 1000.0).ToString(_formatDouble) + " kN");
                     } else
                     {
                         _NbRdT = _ChiT * _Aeff * fy / _annex.Gm1;
-                        NewFormula(@"N_{b,Rd,T} = " + (_NbRdT / 1000.0).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{b,Rd,T} =  \chi_T \cdot A_{eff} \cdot f_y / \gamma_{m1} = " + (_NbRdT / 1000.0).ToString(_formatDouble) + " kN");
                     }
 
                     _McrLateralTorsional = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, _psiy, 1, 1, out _c1, out _c2, out _c3, out _zg, out _zj);
@@ -952,9 +962,10 @@ namespace GPC.Checker.Steel.EuroCode
                         NewFormula(@"c_{mz0} = " + (_cmz0).ToString(_formatDouble) + "");
 
                         _muy = GetMu(NEd, _Ncry, _Chiy);
-                        NewFormula(@"\mu_y = " + (_muy).ToString(_formatDouble) + "");
+                        NewFormula(@"\mu_y = \frac{1-N_{Ed}/N_{cr,y}}{1 - \chi_y \cdot N_{Ed}/N_{cr_y}} = " + (_muy).ToString(_formatDouble) + "");
+                        
                         _muz = GetMu(NEd, _Ncrz, _Chiz);
-                        NewFormula(@"\mu_z = " + (_muy).ToString(_formatDouble) + "");
+                        NewFormula(@"\mu_z = \frac{1-N_{Ed}/N_{cr,z}}{1 - \chi_z \cdot N_{Ed}/N_{cr_z}} = " + (_muz).ToString(_formatDouble) + "");
 
                         if (_classificationSection < 3) //Rules for member stability in en 1993-1-1 pg. 113
                         {
@@ -2068,7 +2079,9 @@ namespace GPC.Checker.Steel.EuroCode
              * y0 and z0 = coordinates of shear center in respect of the centroid gross section
              */
             double i0 = Math.Pow(Math.Pow(iy, 2.0) + Math.Pow(iz, 2.0) + Math.Pow(y0, 2.0) + Math.Pow(z0, 2.0), 0.5);
+            NewFormula(@"i_0 = \sqrt{i_y^2 + i_z^2 + y_0^2 + z_0^2} = " + i0.ToString(_formatDouble) + " mm");
             double Ncr_T = 1.0 / Math.Pow(i0, 2.0) * (G * It + Math.Pow(Math.PI, 2.0) * E * Jw / Math.Pow(_L0LT, 2.0));
+            NewFormula(@"N_{cr,T} = \frac{1}{ i_{0}^{2} } \cdot \left( G \cdot J_{t} + \frac{ \pi^2 \cdot E \cdot J_{w} }{ L_{0,LT}^{2} } \right) = " + (NcrT/1e3).ToString(_formatDouble) + " kN");
             return Ncr_T;
         }
 
@@ -2085,16 +2098,21 @@ namespace GPC.Checker.Steel.EuroCode
             if (z0 == 0 && y0 != 0)
             {
                 beta = 1.0 - Math.Pow(y0 / i0, 2.0);
+                NewFormula(@"\beta = 1 - (y_0 / i_0)^2 = " + beta.ToString(_formatDouble));
                 Ncr_TF = Ncr_y / (2.0 * beta) * (1.0 + Ncr_T / Ncr_y - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_y, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * Ncr_T / Ncr_y, 0.5));
+                NewFormula(@"N_{cr,TF} = \frac{N_{cr,y}}{2 \cdot \beta} \cdot \left( 1 + N_{crT} / N_{cry} - \sqrt{(1 - N_{crT} / N_{cry})^{2} + 4 \cdot (y_0 / i_0)^{2} \cdot N_{crT} / N_{cr,y}} \right) = " + (NcrTF / 1e3).ToString(_formatDouble) + "kN");
             }
             else if (y0 == 0 && z0 != 0)
             {
                 beta = 1.0 - Math.Pow(z0 / i0, 2.0);
+                NewFormula(@"\beta = 1 - (z_0 / i_0)^2 = " + beta.ToString(_formatDouble));
                 Ncr_TF = Ncr_z / (2.0 * beta) * (1.0 + Ncr_T / Ncr_z - Math.Pow(Math.Pow(1.0 - Ncr_T / Ncr_z, 2.0) + 4.0 * Math.Pow(z0 / i0, 2.0) * Ncr_T / Ncr_z, 0.5));
+                NewFormula(@"N_{cr,TF} = \frac{N_{cr,z}}{2 \cdot \beta} \cdot \left( 1 + N_{crT} / N_{crz} - \sqrt{(1 - N_{crT} / N_{crz})^{2} + 4 \cdot (z_0 / i_0)^{2} \cdot N_{crT} / N_{cr,z}} \right) = " + (NcrTF / 1e3).ToString(_formatDouble) + "kN");
             }
             else if (z0 == 0 && y0 == 0)
             {
                 Ncr_TF = Ncr_T;
+                NewFormula(@"N_{cr,TF} = N_{cr,T} = " + (NcrTF / 1e3).ToString(_formatDouble) + " kN");
             }
             else
             {
@@ -2112,11 +2130,14 @@ namespace GPC.Checker.Steel.EuroCode
                     Ncr_TF = -(Ncr_z - Ncr_TF) / ((Ncr_T - Ncr_TF) * (Ncr_y - Ncr_TF)) * Ncr_TF * Ncr_TF * z0 * z0 / (i0 * i0) - (Ncr_y - Ncr_TF) / ((Ncr_T - Ncr_TF) * (Ncr_y - Ncr_TF)) * Ncr_TF * Ncr_TF * y0 * z0 / (i0 * i0) + Ncr_y;
                 }
                 //to be checked
+                NewParagraph("..iterations for NcrTF..");
+                NewFormula(@"N_{cr,TF} = " + (NcrTF / 1e3).ToString(_formatDouble) + " kN");
             }
 
             Ncr_TF = Math.Min(Ncr_TF, Ncr_y);
             Ncr_TF = Math.Min(Ncr_TF, Ncr_z);
             Ncr_TF = Math.Min(Ncr_TF, Ncr_T);
+            NewFormula(@"N_{cr,TF} = min(N_{cr,T}, N_{cr,y}, N_{cr,z}) =" + (NcrTF / 1e3).ToString(_formatDouble) + " kN");
 
             return Ncr_TF;
         }
