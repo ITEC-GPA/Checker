@@ -124,8 +124,8 @@ namespace GPCChecker.Steel.PanelsStability
             double a2_phi = -296.055 / 444.5479;
             UnstiffenedPanel WP2_bXX = new UnstiffenedPanel(_code, _tw, (_H - _tf - _a1 - _a3), a2_phi, 4, fy, E, ni);
 
-            double ciao = 0;
-            double ciao1 = 0;
+            /*double ciao = 0;
+            double ciao1 = 0;*/
 
             #region CALC_PROPERTIES
             CalcBoxGrossProperties();
@@ -139,14 +139,14 @@ namespace GPCChecker.Steel.PanelsStability
         public void CalcEffectivePropertiesCompression(UnstiffenedPanel FlangesPureComp, UnstiffenedPanel WebsComp, StiffenedPanel Stiffened_1_Panel, StiffenedPanel Stiffened_2_Panel)
         {
             double h1w = 0;
-            double h2w = 0;
-            double h3w = 0;
-            double h4w = 0;
-            double h5w = 0;
+            //double h2w = 0;
+            //double h3w = 0;
+            //double h4w = 0;
+            //double h5w = 0;
             double h6w = 0;
-            double htw = 0;
-            double hcw = 0;
-            double hbw = 0;
+            //double htw = 0;
+            //double hcw = 0;
+            //double hbw = 0;
             double t_w = 0;
             double B2effbottom = 0;
             double B2efftop = 0;
@@ -156,10 +156,10 @@ namespace GPCChecker.Steel.PanelsStability
             if (_stiffNum == 0 && _ts == 0 && _bs == 0)
             {
                 h1w = WebsComp.btop;
-                h2w = 0;
-                h3w = 0;
-                h4w = 0;
-                h5w = 0;
+                //h2w = 0;
+                //h3w = 0;
+                //h4w = 0;
+                //h5w = 0;
                 h6w = WebsComp.bbottom;
 
                 t_w = WebsComp.t;
@@ -233,14 +233,14 @@ namespace GPCChecker.Steel.PanelsStability
                 #region CALC_EFFECTIVE_AREA
                 #endregion
                 h1w = Stiffened_1_Panel.PanelArray[0].btop;
-                h2w = 0;
-                h3w = 0;
-                h4w = 0;
-                h5w = 0;
+                //h2w = 0;
+                //h3w = 0;
+                //h4w = 0;
+                //h5w = 0;
                 h6w = Stiffened_1_Panel.PanelArray[1].bbottom;
-                htw = 0;
-                hcw = 0;
-                hbw = 0;
+                //htw = 0;
+                //hcw = 0;
+                //hbw = 0;
                 t_w = Stiffened_1_Panel.PanelArray[0].t;
                 t_f = FlangesPureComp.t;
                 Aeffpanel = Stiffened_1_Panel.Atoteff;
@@ -301,14 +301,14 @@ namespace GPCChecker.Steel.PanelsStability
             {
                 #region CALC_EFFECTIVE_AREA
                 h1w = Stiffened_2_Panel.PanelArray[0].btop;
-                h2w = 0;
-                h3w = 0;
-                h4w = 0;
-                h5w = 0;
+                //h2w = 0;
+                //h3w = 0;
+                //h4w = 0;
+                //h5w = 0;
                 h6w = Stiffened_2_Panel.PanelArray[2].bbottom;
-                htw = 0;
-                hcw = 0;
-                hbw = 0;
+                //htw = 0;
+                //hcw = 0;
+                //hbw = 0;
                 t_w = Stiffened_2_Panel.PanelArray[0].t;
                 t_f = FlangesPureComp.t;
                 //Aeffpanel = Stiffened_2_Panel.Atoteff/* * Stiffened_2_Panel.Rhoc*/;
@@ -383,40 +383,40 @@ namespace GPCChecker.Steel.PanelsStability
             double h4w = 0;
             double h5w = 0;
             double h6w = 0;
-            double htw = 0;
-            double hcw = 0;
-            double hbw = 0;
+            //double htw = 0;
+            //double hcw = 0;
+            //double hbw = 0;
             double t_w = 0;
 
             double B2top = 0;
             double B2bottom = 0;
             double t_f = 0;
-            double rhoc = 0;
+            //double rhoc = 0;
 
-            double t_feq = 0;
-            double t_weq = 0;
+            //double t_feq = 0;
+            //double t_weq = 0;
 
-            double _Alor = 0;
-            double _SxG = 0;
-            double _SyG = 0;
-            double _Ixx = 0;
-            double _Iyy = 0;
-            double _xG = 0;
-            double _yG = 0;
+            //double _Alor = 0;
+            //double _SxG = 0;
+            //double _SyG = 0;
+            //double _Ixx = 0;
+            //double _Iyy = 0;
+            //double _xG = 0;
+            //double _yG = 0;
 
             double tweqgr = 0;
             double tweqeff = 0;
 
-            double tfeqgr1 = 0;
+            /*double tfeqgr1 = 0;
             double tfeqeq1 = 0;
             double tfeqgr2 = 0;
-            double tfeqeq2 = 0;
+            double tfeqeq2 = 0;*/
 
             double area = 0;
             double xg = 0;
             double yg = 0;
-            double Ixxeff = 0;
-            double Iyyeff = 0;
+            //double Ixxeff = 0;
+            //double Iyyeff = 0;
 
             double Aeffpanel = 0;
 
@@ -930,7 +930,9 @@ namespace GPCChecker.Steel.PanelsStability
         private double _Alfa_Iyy;
 
         private double _xgeff;
+        /*
         private double _ygeff;
+        */
 
         private double _Heff = 0;
         private double _Beff = 0;

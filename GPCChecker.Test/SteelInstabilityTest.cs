@@ -1235,7 +1235,7 @@ namespace SteelTests
             double M2 = 100 * 1e6;
             double T = 0;
 
-            double L = 12000;
+            /*double L = 12000;
             double betay = 1.0;
             double betaz = 1.0;
             double betaLT = 1.0;
@@ -1246,7 +1246,7 @@ namespace SteelTests
 
             SupportCondition supportConditionz = SupportCondition.EndsRestrained;
             LoadCondition loadConditionz = LoadCondition.NotDirectlyLoaded;
-            double? psiz = 0.5;
+            double? psiz = 0.5;*/
 
             EuroCodeBeamChecker checker = new EuroCodeBeamChecker(sect, N, V1, V2, M1, M2, T, annex);
 

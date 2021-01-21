@@ -375,7 +375,7 @@ namespace GPCChecker.Steel.PanelsStability
             }
             else if (_stiffNum >= 3)
             {
-                double Isl = 0;
+                //double Isl = 0;
                 double Ip = _b * Math.Pow(_t, 3.0) / 10.92;
 
                 double Asl = _StiffenerArray[0].Ast;
@@ -525,9 +525,9 @@ namespace GPCChecker.Steel.PanelsStability
             double sigmacsl1 = 0;
             double sigmacsl2 = 0;
 
-            double atoteff = 0;
-            double atotgross = 0;
-            double cu = 0;
+            //double atoteff = 0;
+            //double atotgross = 0;
+            //double cu = 0;
 
 
             ldiaffLIM = 4.33 * Math.Pow((((iirrgr * Math.Pow(b11, 2.0)) * Math.Pow(b22, 2.0)) / Math.Pow(t, 3.0)) / b, 0.25);

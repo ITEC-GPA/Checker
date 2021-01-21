@@ -137,7 +137,7 @@ namespace GPCChecker.Steel.PanelsStability
 
             double beff = b;
             double beff1 = 0;
-            double pi = Math.PI;
+            //double pi = Math.PI;
             double epsilon = Math.Sqrt(235 / fy);
 
             double rho = 1;
@@ -333,15 +333,15 @@ namespace GPCChecker.Steel.PanelsStability
             double Iirreff = (Isl + Aslg * Math.Pow((bs / 2 + t - yirreff), 2)) + (hw1eff * Math.Pow(t, 3) / 12 + hw1eff * t * Math.Pow((t / 2 - yirreff), 2));
             double rIrreff = Math.Sqrt(Iirreff / Airreff);
 
-            string CheckStiffener = "";
+            //string CheckStiffener;
             double stLimTorsional = 5.3 * fy * E;
             if ((Itst / Ipst) >= stLimTorsional)
             {
-                CheckStiffener = "Stiffness torsional requirement checked";
+                //CheckStiffener = "Stiffness torsional requirement checked";
             }
             else
             {
-                CheckStiffener = "Stiffness torsional requirement NOT checked";
+                //CheckStiffener = "Stiffness torsional requirement NOT checked";
             }
 
             /// COLUMN-LIKE BUCKLING
@@ -581,15 +581,15 @@ namespace GPCChecker.Steel.PanelsStability
             double Iirreff = (Ist + Ast * Math.Pow((bs / 2 + t - yirreff), 2)) + (hw1eff * Math.Pow(t, 3) / 12 + hw1eff * t * Math.Pow((t / 2 - yirreff), 2));
             double rIrreff = Math.Sqrt(Iirreff / Airreff);
 
-            string CheckStiffener = "";
+            //string CheckStiffener;
             double stLimTorsional = 5.3 * fy * E;
             if ((Itst / Ipst) >= stLimTorsional)
             {
-                CheckStiffener = "Stiffness torsional requirement checked";
+                //CheckStiffener = "Stiffness torsional requirement checked";
             }
             else
             {
-                CheckStiffener = "Stiffness torsional requirement NOT checked";
+                //CheckStiffener = "Stiffness torsional requirement NOT checked";
             }
 
             /// COLUMN-LIKE BUCKLING

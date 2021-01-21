@@ -1667,9 +1667,9 @@ namespace GPC.Checker.Steel.EuroCode
             }
             else
             {
-                throw new Exception("Torsion: Section not yet supported");
                 tauT = 0;
                 TRd = 0;
+                throw new Exception("Torsion: Section not yet supported");
             }
             #endregion
 
