@@ -27,6 +27,10 @@ namespace GPC.Checker.Steel.EuroCode
     public class EuroCodeBeamChecker
     {
         #region Variables
+        protected string _formatInt = "{0}";
+        protected string _formatDouble = "{0.00}";
+        protected string _formatExponential = "{0.##E+00}";
+
         protected Annex _annex;
 
         protected Section _sec;
@@ -375,46 +379,48 @@ namespace GPC.Checker.Steel.EuroCode
         public void CheckResistance() {
 
             NewParagraph("Safety Factor");
-            NewFormula(@"\gamma_{m0} = " + _annex.Gm0);
-            NewFormula(@"\gamma_{m1} = " + _annex.Gm1);
-            NewFormula(@"\gamma_{m2} = " + _annex.Gm2);
+            NewFormula(@"\gamma_{m0} = " + _annex.Gm0.ToString(_formatDouble));
+            NewFormula(@"\gamma_{m1} = " + _annex.Gm1.ToString(_formatDouble));
+            NewFormula(@"\gamma_{m2} = " + _annex.Gm2.ToString(_formatDouble));
 
             NewParagraph("Acting forces and moments");
-            NewFormula(@"N_{Ed} = " + _NEd + "kN");
-            NewFormula(@"V_{1,Ed} = " + _V1Ed + "kN");
-            NewFormula(@"V_{2,Ed} = " + _V2Ed + "kN");
-            NewFormula(@"M_{1,Ed} = " + _M1Ed + "kNm");
-            NewFormula(@"M_{2,Ed} = " + _M2Ed + "kNm");
-            NewFormula(@"T_{Ed} = " + _TEd + "kNm");
+            NewFormula(@"N_{Ed} = " + (_NEd/1000.0).ToString(_formatDouble) + " kN");
+            NewFormula(@"V_{1,Ed} = " + (_V1Ed/1000.0).ToString(_formatDouble) + " kN");
+            NewFormula(@"V_{2,Ed} = " + (_V2Ed/1000.0).ToString(_formatDouble) + " kN");
+            NewFormula(@"M_{1,Ed} = " + (_M1Ed/1e6).ToString(_formatDouble) + " kNm");
+            NewFormula(@"M_{2,Ed} = " + (_M2Ed/1e6).ToString(_formatDouble) + " kNm");
+            NewFormula(@"T_{Ed} = " + (_TEd/1e6).ToString(_formatDouble) + " kNm");
 
             NewParagraph("Section Properties");
-            NewFormula(@"A = " + _sec.Area + "mm^2");
-            NewFormula(@"x_G = " + _sec.Centroid.X + "mm");
-            NewFormula(@"y_G = " + _sec.Centroid.Y + "mm");
-            NewFormula(@"\vartheta = " + _sec.AngleX1 * 180.0 / Math.PI + "deg");
-            NewFormula(@"x_C = " + _sec.ShearCenter.X + "mm");
-            NewFormula(@"y_C = " + _sec.ShearCenter.Y + "mm");
-            NewFormula(@"J_{max} = " + _sec.J22 + "mm^6");
-            NewFormula(@"J_{min} = " + _sec.J11 + "mm^6");
-            NewFormula(@"J_t = " + _sec.Jt + "mm^6");
-            NewFormula(@"J_w = " + _sec.Jw + "mm^6");
-            NewFormula(@"W_{el,max} = " + _sec.Wel22Min + "mm^3");
-            NewFormula(@"W_{el,min} = " + _sec.Wel11Min + "mm^3");
-            NewFormula(@"W_{pl,max} = " + _sec.Wpl22 + "mm^3");
-            NewFormula(@"W_{pl,min} = " + _sec.Wpl11 + "mm^3");
+            NewFormula(@"A = " + _sec.Area.ToString(_formatDouble) + " mm^2");
+            NewFormula(@"x_G = " + _sec.Centroid.X.ToString(_formatDouble) + " mm");
+            NewFormula(@"y_G = " + _sec.Centroid.Y.ToString(_formatDouble) + " mm");
+            NewFormula(@"\vartheta = " + (_sec.AngleX1 * 180.0 / Math.PI).ToString(_formatDouble) + " deg");
+            NewFormula(@"x_C = " + _sec.ShearCenter.X.ToString(_formatDouble) + " mm");
+            NewFormula(@"y_C = " + _sec.ShearCenter.Y.ToString(_formatDouble) + " mm");
+            NewFormula(@"J_{max} = " + _sec.J22.ToString(_formatExponential) + " mm^6");
+            NewFormula(@"J_{min} = " + _sec.J11.ToString(_formatExponential) + " mm^6");
+            NewFormula(@"J_t = " + _sec.Jt.ToString(_formatExponential) + " mm^6");
+            NewFormula(@"J_w = " + _sec.Jw.ToString(_formatExponential) + " mm^6");
+            NewFormula(@"W_{el,max} = " + _sec.Wel22Min.ToString(_formatExponential) + " mm^3");
+            NewFormula(@"W_{el,min} = " + _sec.Wel11Min.ToString(_formatExponential) + " mm^3");
+            NewFormula(@"W_{pl,max} = " + _sec.Wpl22.ToString(_formatExponential) + " mm^3");
+            NewFormula(@"W_{pl,min} = " + _sec.Wpl11.ToString(_formatExponential) + " mm^3");
 
 
             #region classification
             double minSigma = _sec.MinSigma(_NEd, _M2Ed, _M1Ed);
+            NewFormula(@"\sigma_{Min} = f(N/A,M/W) = " + minSigma.ToString(_formatDouble) + " MPa");
 
             double fy = ((SteelMaterial)_sec.Material).Fyk;
             NewFormula("f_y = " + fy + " MPa");
 
-            double epsilon = Math.Sqrt(235.0 / fy);
-            NewFormula(@"\varepsilon = \sqrt{235/f_y} = " + epsilon);
-
             if (minSigma < 0)
             {
+                NewParagraph("Classification");
+                double epsilon = Math.Sqrt(235.0 / fy);
+                NewFormula(@"\varepsilon = \sqrt{235/f_y} = " + epsilon.ToString(_formatDouble));
+
                 Type typeShape = _sec.GetType();
                 if (typeShape == typeof(SectionCHS))
                 {
@@ -424,18 +430,22 @@ namespace GPC.Checker.Steel.EuroCode
                     if (D / t <= 50.0 * epsilon * epsilon)
                     {
                         _classificationSection = 1;
+                        NewFormula(@"D/t \leq 50 \varepsilon^2 -> " + _classificationSection.ToString(_formatInt));
                     }
                     else if (D / t <= 70.0 * epsilon * epsilon)
                     {
                         _classificationSection = 2;
+                        NewFormula(@"D/t \leq 70 \varepsilon^2 -> " + _classificationSection.ToString(_formatInt));
                     }
                     else if (D / t <= 90.0 * epsilon * epsilon)
                     {
                         _classificationSection = 3;
+                        NewFormula(@"D/t \leq 90 \varepsilon^2 -> " + _classificationSection.ToString(_formatInt));
                     }
                     else
                     {
                         _classificationSection = 4;
+                        NewFormula(@"D/t \geq 90 \varepsilon^2 -> " + _classificationSection.ToString(_formatInt));
                         throw new Exception("CHS class 4 not supported");
                     }
                 }
@@ -500,6 +510,7 @@ namespace GPC.Checker.Steel.EuroCode
                             _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(sec.Bint / sec.TBottom, epsilon));
                         }
                     }
+                    NewFormula(@"Classification RHS : " + _classificationSection.ToString(_formatInt));
                     #endregion
                 } else if (typeShape == typeof(SectionH)) {
                     SectionH sec = (SectionH)_sec;
@@ -545,6 +556,7 @@ namespace GPC.Checker.Steel.EuroCode
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeBottom, epsilon));
                     }
+                    NewFormula(@"Classification H : " + _classificationSection.ToString(_formatInt));
                 } else if (typeShape == typeof(SectionC)) {
                     SectionC sec = (SectionC)_sec;
                     double cTWeb = sec.Hw / sec.Tw;
@@ -590,6 +602,7 @@ namespace GPC.Checker.Steel.EuroCode
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeBottom, epsilon));
                     }
+                    NewFormula(@"Classification C : " + _classificationSection.ToString(_formatInt));
                 }
                 else if (typeShape == typeof(SectionT))
                 {
@@ -639,6 +652,7 @@ namespace GPC.Checker.Steel.EuroCode
                         if (_M1Ed != 0)
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
                     }
+                    NewFormula(@"Classification T : " + _classificationSection.ToString(_formatInt));
                 }
                 else if (typeShape == typeof(SectionL))
                 {
@@ -663,21 +677,29 @@ namespace GPC.Checker.Steel.EuroCode
 
             if (_classificationSection == 4)
             {
+                NewParagraph("Class 4 Section Properties:");
                 Class4Section secCL4 = new Class4Section(_sec);
 
                 secCL4.Calc(0, Math.Sign(_M2Ed) * 1e6, 0); //indipendent from the value but dependent on the sign
                 _Weffy = secCL4.Weff2;
                 _J2eff = secCL4.J2eff;
+                NewFormula(@"W_{eff,y}: " + _Weffy.ToString(_formatExponential));
+                NewFormula(@"J_{eff,y}: " + _J2eff.ToString(_formatExponential));
 
                 secCL4.Calc(0, 0, Math.Sign(_M1Ed) * 1e6); //indipendent from the value but dependent on the sign
                 _Weffz = secCL4.Weff1;
                 _J1eff = secCL4.J1eff;
+                NewFormula(@"W_{eff,z}: " + _Weffz.ToString(_formatExponential));
+                NewFormula(@"J_{eff,z}: " + _J1eff.ToString(_formatExponential));
 
                 secCL4.Calc(-1000, 0, 0); //indipendent from the value but dependent on the sign
                 _Aeff = secCL4.Aeff;
-
+                NewFormula(@"A_{eff}: " + _Aeff.ToString(_formatExponential));
+                
                 _deltaG = _sec.Centroid - secCL4.CentroidEff;
                 _centroidEff = secCL4.CentroidEff;
+                NewFormula(@"z_{G.eff}: " + _centroidEff.X.ToString(_formatDouble));
+                NewFormula(@"y_{G,eff}: " + _centroidEff.Y.ToString(_formatDouble));
             }
 
             #endregion
@@ -724,7 +746,7 @@ namespace GPC.Checker.Steel.EuroCode
         }
 
         public void CheckBuckling(double L, double betay, double betaz, double betaLT, SupportCondition supportConditiony, LoadCondition loadConditiony, double? psiy, SupportCondition supportConditionz, LoadCondition loadConditionz, double? psiz) {
-            
+            NewParagraph("Buckling");
             if (_sec.IsSymmetricAlongYLocalAxis == false && _sec.IsSymmetricAlongZLocalAxis == false)
             {
                 throw new Exception("No symmetry : §6.3.3 unapplicable, this element should be verified with §6.3.4 EN 1991-1-1.");
@@ -771,35 +793,52 @@ namespace GPC.Checker.Steel.EuroCode
                     if (_classificationSection < 4)
                     {
                         _Ncry = GetNcrEuler(E, _sec.J22, _L0y);
+                        NewFormula(@"N_{cr,y} = " + (_Ncry / 1000.0).ToString(_formatDouble) + " kN");
                         _Ncrz = GetNcrEuler(E, _sec.J11, _L0z);
+                        NewFormula(@"N_{cr,z} = " + (_Ncrz / 1000.0).ToString(_formatDouble) + " kN");
 
                         _lambday = GetLambdaSegn(_sec.Area, fy, _Ncry);
+                        NewFormula(@"\lambda_{y} = " + (_lambday).ToString(_formatDouble) + " ");
                         _lambdaz = GetLambdaSegn(_sec.Area, fy, _Ncrz);
+                        NewFormula(@"\lambda_{z} = " + (_lambdaz).ToString(_formatDouble) + " ");
                     } else
                     {
                         _Ncry = GetNcrEuler(E, _J2eff, _L0y);
+                        NewFormula(@"N_{cr,y} = " + (_Ncry / 1000.0).ToString(_formatDouble) + " kN");
                         _Ncrz = GetNcrEuler(E, _J1eff, _L0z);
+                        NewFormula(@"N_{cr,z} = " + (_Ncrz / 1000.0).ToString(_formatDouble) + " kN");
 
                         _lambday = GetLambdaSegn(_Aeff, fy, _Ncry);
+                        NewFormula(@"\lambda_{y} = " + (_lambday).ToString(_formatDouble) + " ");
                         _lambdaz = GetLambdaSegn(_Aeff, fy, _Ncrz);
+                        NewFormula(@"\lambda_{z} = " + (_lambdaz).ToString(_formatDouble) + " ");
                     }
 
                     GetImperfectionFactor(out _alphay, out _alphaz);
 
                     _Phiy = GetPhi(_alphay, _lambday);
+                    NewFormula(@"\Phi_{y} = " + (_Phiy).ToString(_formatDouble) + " ");
                     _Phiz = GetPhi(_alphaz, _lambdaz);
+                    NewFormula(@"\Phi_{z} = " + (_Phiz).ToString(_formatDouble) + " ");
 
                     _Chiy = GetChi(_Phiy, _lambday);
+                    NewFormula(@"\chi_{y} = " + (_Chiy).ToString(_formatDouble) + " ");
                     _Chiz = GetChi(_Phiz, _lambdaz);
+                    NewFormula(@"\chi_{z} = " + (_Chiz).ToString(_formatDouble) + " ");
 
                     if (_classificationSection < 4)
                     {
                         _NbRdy = _Chiy * _sec.Area * fy / _annex.Gm1;
+                        NewFormula(@"N_{b,Rd,y} = " + (_NbRdy / 1000.0).ToString(_formatDouble) + " kN");
                         _NbRdz = _Chiz * _sec.Area * fy / _annex.Gm1;
+                        NewFormula(@"N_{b,Rd,z} = " + (_NbRdz / 1000.0).ToString(_formatDouble) + " kN");
+
                     } else
                     {
                         _NbRdy = _Chiy * _Aeff * fy / _annex.Gm1;
+                        NewFormula(@"N_{b,Rd,y} = " + (_NbRdy / 1000.0).ToString(_formatDouble) + " kN");
                         _NbRdz = _Chiz * _Aeff * fy / _annex.Gm1;
+                        NewFormula(@"N_{b,Rd,z} = " + (_NbRdz / 1000.0).ToString(_formatDouble) + " kN");
                     }
                     
                     double iy = _sec.InertiaRadius1;
@@ -807,72 +846,100 @@ namespace GPC.Checker.Steel.EuroCode
 
                     Point2d shearCenterToCentroid = _sec.ShearCenter - _sec.Centroid;
                     _NcrTorsional = GetNcrT(iy, iz, shearCenterToCentroid.Y, shearCenterToCentroid.X, E, G, _sec.Jt, _sec.Jw, _L0LT);
+                    NewFormula(@"N_{cr,T} = " + (_NcrTorsional / 1000.0).ToString(_formatDouble) + " kN");
                     _NcrFlexuralTorsional = GetNcrTF(iy, iz, shearCenterToCentroid.X, shearCenterToCentroid.Y, _Ncry, _Ncrz, _NcrTorsional);;
+                    NewFormula(@"N_{cr,TF} = " + (_NcrFlexuralTorsional / 1000.0).ToString(_formatDouble) + " kN");
 
                     if (_classificationSection < 4)
                     {
                         _lambdaT = GetLambdaSegn(_sec.Area, fy, Math.Min(_NcrTorsional, _NcrFlexuralTorsional));
+                        NewFormula(@"\lambda_{T} = " + (_lambdaT).ToString(_formatDouble) + " ");
                     }
                     else
                     {
                         _lambdaT = GetLambdaSegn(_Aeff, fy, Math.Min(_NcrTorsional, _NcrFlexuralTorsional));
+                        NewFormula(@"\lambda_{T} = " + (_lambdaz).ToString(_formatDouble) + " ");
                     }
 
                     _alphaT = _alphaz;
+                    NewFormula(@"\alpha_{T} = \alpha_z = " + (_alphaT).ToString(_formatDouble) + " ");
                     _PhiT = GetPhi(_alphaT, _lambdaT);
+                    NewFormula(@"\Phi_{T} = " + (_PhiT).ToString(_formatDouble) + " ");
                     _ChiT = GetChi(_PhiT, _lambdaT);
+                    NewFormula(@"\chi_{LT} = " + (_ChiT).ToString(_formatDouble) + " ");
 
                     if (_classificationSection < 4)
                     {
                         _NbRdT = _ChiT * _sec.Area * fy / _annex.Gm1;
+                        NewFormula(@"N_{b,Rd,T} = " + (_NbRdT / 1000.0).ToString(_formatDouble) + " kN");
                     } else
                     {
                         _NbRdT = _ChiT * _Aeff * fy / _annex.Gm1;
+                        NewFormula(@"N_{b,Rd,T} = " + (_NbRdT / 1000.0).ToString(_formatDouble) + " kN");
                     }
 
                     _McrLateralTorsional = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, _psiy, 1, 1, out _c1, out _c2, out _c3, out _zg, out _zj);
+                    NewFormula(@"M_{cr} = " + (_McrLateralTorsional / 1e6).ToString(_formatDouble) + " kNm");
 
                     if (_classificationSection < 3) {
                         _lambdaLT = GetLambdaSegn(_sec.Wpl22, fy, _McrLateralTorsional);
+                        NewFormula(@"\lambda_{LT} = " + _lambdaLT.ToString(_formatDouble) + "");
                     } else if (_classificationSection == 3) {
                         _lambdaLT = GetLambdaSegn(_sec.Wel22Min, fy, _McrLateralTorsional);
+                        NewFormula(@"\lambda_{LT} = " + _lambdaLT.ToString(_formatDouble) + "");
                     } else
                     {
                         _lambdaLT = GetLambdaSegn(_Weffy, fy, _McrLateralTorsional);
+                        NewFormula(@"\lambda_{LT} = " + _lambdaLT.ToString(_formatDouble) + "");
                     }
 
                     _alphaLT = GetImperfectionFactorLT(_useEquation_6_57);
+                    NewFormula(@"\alpha_{LT} = " + _alphaLT.ToString(_formatDouble) + "");
                     double kc = Getkc(_lambdaLT, _supportConditiony, _loadConditiony, _psiy);
+                    NewFormula(@"k_c = " + kc.ToString(_formatDouble) + "");
 
                     if (_sec.GetType() == typeof(SectionH) && _useEquation_6_57 == true)
                     {
                         _PhiLT = GetPhi(_alphaLT, _lambdaLT, _annex.Beta, _annex.LambdaLT0);
+                        NewFormula(@"\Phi_{LT} = " + _PhiLT.ToString(_formatDouble) + "");
                         double factorF = Math.Min(1.0, 1.0 - 0.5 * (1.0 - kc) * (1.0 - 2.0 * Math.Pow(_lambdaLT - 0.8, 2.0)));
+                        NewFormula(@"f = " + factorF.ToString(_formatDouble) + "");
                         _ChiLT = GetChiLTmod(_PhiLT, _lambdaLT, _annex.Beta, factorF);
+                        NewFormula(@"\chi_{LT} = " + _ChiLT.ToString(_formatDouble) + "");
                     } else
                     {
                         _PhiLT = GetPhi(_alphaLT, _lambdaLT);
+                        NewFormula(@"\Phi_{LT} = " + _PhiLT.ToString(_formatDouble) + "");
                         _ChiLT = GetChi(_PhiLT, _lambdaLT);
+                        NewFormula(@"\chi_{LT} = " + _PhiLT.ToString(_formatDouble) + "");
                     }
 
                     if (_classificationSection < 3)
                     {
                         _MbRdy = _ChiLT * _sec.Wpl22 * fy / _annex.Gm1;
+                        NewFormula(@"M_{b,Rd,y} = " + (_MbRdy / 1e6).ToString(_formatDouble) + " kNm");
                         _MbRdz = _sec.Wpl11 * fy / _annex.Gm1;
+                        NewFormula(@"M_{b,Rd,z} = " + (_MbRdz / 1e6).ToString(_formatDouble) + " kNm");
                     }
                     else if (_classificationSection == 3)
                     {
                         _MbRdy = _ChiLT * _sec.Wel22Min * fy / _annex.Gm1;
+                        NewFormula(@"M_{b,Rd,y} = " + (_MbRdy / 1e6).ToString(_formatDouble) + " kNm");
                         _MbRdz = _sec.Wel11Min * fy / _annex.Gm1;
+                        NewFormula(@"M_{b,Rd,z} = " + (_MbRdz / 1e6).ToString(_formatDouble) + " kNm");
                     }
                     else
                     {
                         _MbRdy = _ChiLT * _Weffy * fy / _annex.Gm1;
+                        NewFormula(@"M_{b,Rd,y} = " + (_MbRdy / 1e6).ToString(_formatDouble) + " kNm");
                         _MbRdz = _Weffz * fy / _annex.Gm1;
+                        NewFormula(@"M_{b,Rd,z} = " + (_MbRdz / 1e6).ToString(_formatDouble) + " kNm");
                     }
 
                     if (_method1AnnexA)
                     {
+                        NewParagraph("Method 1 - Annex A - EN 1993-1-1");
+                        
                         //Annex A
                         double? MEdyMax = null;
                         double? deflectiony = null;
@@ -880,64 +947,88 @@ namespace GPC.Checker.Steel.EuroCode
                         double? deflectionz = null;
 
                         _cmy0 = GetCMi0(_loadConditiony, _supportConditiony, _psiy, MEdyMax, deflectiony, NEd, _Ncry);
+                        NewFormula(@"c_{my0} = " + (_cmy0).ToString(_formatDouble) + "");
                         _cmz0 = GetCMi0(_loadConditionz, _supportConditionz, _psiz, MEdzMax, deflectionz, NEd, _Ncrz);
+                        NewFormula(@"c_{mz0} = " + (_cmz0).ToString(_formatDouble) + "");
 
                         _muy = GetMu(NEd, _Ncry, _Chiy);
+                        NewFormula(@"\mu_y = " + (_muy).ToString(_formatDouble) + "");
                         _muz = GetMu(NEd, _Ncrz, _Chiz);
+                        NewFormula(@"\mu_z = " + (_muy).ToString(_formatDouble) + "");
 
                         if (_classificationSection < 3) //Rules for member stability in en 1993-1-1 pg. 113
                         {
                             _wy = Math.Min(_sec.Wpl22 / _sec.Wel22Min, 1.5);
+                            NewFormula(@"w_y = " + (_wy).ToString(_formatDouble) + "");
                             _wz = Math.Min(_sec.Wpl11 / _sec.Wel11Min, 1.5);
+                            NewFormula(@"w_z = " + (_muy).ToString(_formatDouble) + "");
                         } else
                         {
                             _wy = 1.0; //e con Weff?
+                            NewFormula(@"w_y = " + (_wy).ToString(_formatDouble) + "");
                             _wz = 1.0; //e con Weff?
+                            NewFormula(@"w_z = " + (_wz).ToString(_formatDouble) + "");
                         }
 
                         double lambdaMax = Math.Max(_lambday, _lambdaz);
                         if (_classificationSection < 4)
                         {
                             _Mcr0LateralTorsional = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1.0, 1.0, out double fakec1, out double fakec2, out double fakec3,out double fakezg, out double fakezj);
+                            NewFormula(@"M_{cr,LT,0} = " + (_Mcr0LateralTorsional / 1e6).ToString(_formatDouble) + " kNm");
                         } else
                         {
                             _Mcr0LateralTorsional = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _J1eff, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1.0, 1.0, out double fakec1, out double fakec2, out double fakec3, out double fakezg, out double fakezj); //Jw eff?
+                            NewFormula(@"M_{cr,LT,0} = " + (_Mcr0LateralTorsional / 1e6).ToString(_formatDouble) + " kNm");
                         }
                         
                         if (_classificationSection < 3)
                         {
                             _lambda0 = GetLambdaSegn(_sec.Wpl22, fy, _Mcr0LateralTorsional);
+                            NewFormula(@"\lambda_0 = " + _lambda0.ToString(_formatDouble) + "");
                         } else if (_classificationSection == 3)
                         {
                             _lambda0 = GetLambdaSegn(_sec.Wel22Min, fy, _Mcr0LateralTorsional);
+                            NewFormula(@"\lambda_0 = " + _lambda0.ToString(_formatDouble) + "");
                         } else
                         {
                             _lambda0 = GetLambdaSegn(_Weffy, fy, _Mcr0LateralTorsional); //or Wel?
+                            NewFormula(@"\lambda_0 = " + _lambda0.ToString(_formatDouble) + "");
                         } 
 
                         if (_classificationSection < 4)
                         {
                             _epsilony = AbsMyEd / Math.Max(NEd,1E-3) * _sec.Area / _sec.Wel22Min;
+                            NewFormula(@"\epsilon_y = " + _epsilony.ToString(_formatDouble) + "");
                         } else
                         {
                             _epsilony = AbsMyEd / Math.Max(NEd, 1E-3) * _Aeff / _Weffy;
+                            NewFormula(@"\epsilon_y = " + _epsilony.ToString(_formatDouble) + "");
                         }
          
                         _aLT = Math.Max(1.0 - _sec.Jt / _sec.J22,0);
-                                                   
+                        NewFormula(@"a_{LT} = " + _aLT.ToString(_formatDouble) + "");
+
                         double C1 = Math.Pow(kc, -2.0);
+                        NewFormula(@"C1 = " + C1.ToString(_formatDouble) + "");
                         double lambda0Limit = 0.2 * Math.Pow(C1, 0.5) * Math.Pow((1.0 - NEd / _Ncrz) * (1.0 - NEd / _NcrFlexuralTorsional), 0.25);
+                        NewFormula(@"\lambda_{0,lim} = " + lambda0Limit.ToString(_formatDouble) + "");
 
                         if (_lambda0 <= lambda0Limit)
                         {
                             _cmy = _cmy0;
+                            NewFormula(@"c_{my} = " + _cmy.ToString(_formatDouble) + "");
                             _cmz = _cmz0;
+                            NewFormula(@"c_{mz} = " + _cmz.ToString(_formatDouble) + "");
                             _cmLT = 1.0;
+                            NewFormula(@"c_{mLT} = " + _cmLT.ToString(_formatDouble) + "");
                         } else
                         {
                             _cmy = _cmy0 + (1.0 - _cmy0) * Math.Sqrt(_epsilony) * _aLT / (1.0 + Math.Sqrt(_epsilony) * _aLT);
+                            NewFormula(@"c_{my} = " + _cmy.ToString(_formatDouble) + "");
                             _cmz = _cmz0;
+                            NewFormula(@"c_{mz} = " + _cmz.ToString(_formatDouble) + "");
                             _cmLT = Math.Max(_cmy*_cmy * _aLT / Math.Sqrt((1.0-NEd/_Ncrz) * (1.0 - NEd/_NcrTorsional)),1.0);
+                            NewFormula(@"c_{mLT} = " + _cmLT.ToString(_formatDouble) + "");
                             /*if (cmLT < 1)
                             {
                                 throw new Exception("cmLT < 1");
@@ -949,42 +1040,64 @@ namespace GPC.Checker.Steel.EuroCode
                         if (_classificationSection < 3)
                         {
                             mplyRd = _sec.Wpl22 * fy / _annex.Gm0;
+                            NewFormula(@"M_{pl,Rd,y} = " + (mplyRd / 1e6).ToString(_formatDouble) + " kNm");
                             mplzRd = _sec.Wpl11 * fy / _annex.Gm0;
+                            NewFormula(@"M_{pl,Rd,z} = " + (mplzRd / 1e6).ToString(_formatDouble) + " kNm");
                         } else if (_classificationSection == 3)
                         {
                             mplyRd = _sec.Wel22Min * fy / _annex.Gm0;
+                            NewFormula(@"M_{pl,Rd,y} = " + (mplyRd / 1e6).ToString(_formatDouble) + " kNm");
                             mplzRd = _sec.Wel11Min * fy / _annex.Gm0;
+                            NewFormula(@"M_{pl,Rd,z} = " + (mplzRd / 1e6).ToString(_formatDouble) + " kNm");
                         } else
                         {
                             mplyRd = _Weffy * fy / _annex.Gm0;
+                            NewFormula(@"M_{pl,Rd,y} = " + (mplyRd / 1e6).ToString(_formatDouble) + " kNm");
                             mplzRd = _Weffz * fy / _annex.Gm0;
+                            NewFormula(@"M_{pl,Rd,z} = " + (mplzRd / 1e6).ToString(_formatDouble) + " kNm");
                         }                        
 
                         _bLT = 0.5 * _aLT * _lambda0 * _lambda0 * AbsMyEd * AbsMzEd / (_ChiLT * mplyRd * mplzRd);
+                        NewFormula(@"b_{LT} = " + (_bLT).ToString(_formatDouble) + "");
                         _cLT = 10.0 * _aLT * _lambda0 * _lambda0 * AbsMyEd / ((5.0 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd);
+                        NewFormula(@"c_{LT} = " + (_cLT).ToString(_formatDouble) + "");
                         _dLT = 2.0 * _aLT * _lambda0 * AbsMyEd * AbsMzEd / ((0.1 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd * _cmz * mplzRd);
+                        NewFormula(@"d_{LT} = " + (_dLT).ToString(_formatDouble) + "");
                         _eLT = 1.7 * _aLT * _lambda0 * AbsMyEd / ((0.1 + Math.Pow(_lambdaz, 4.0)) * _cmy * _ChiLT * mplyRd);
+                        NewFormula(@"e_{LT} = " + (_eLT).ToString(_formatDouble) + "");
 
                         double npl = NEd / (fy * _sec.Area / _annex.Gm0);
                         _cyy = Math.Max(1.0 + (_wy - 1.0) * ((2.0 - 1.6/_wy * _cmy * _cmy * lambdaMax - 1.6 / _wy * _cmy * _cmy * lambdaMax * lambdaMax) * npl - _bLT), _sec.Wel22Min / _sec.Wpl22);
+                        NewFormula(@"c_{yy} = " + (_cyy).ToString(_formatDouble) + "");
                         _cyz = Math.Max(1.0 + (_wz - 1.0) * ((2.0 - 14.0 * _cmz * _cmz * lambdaMax * lambdaMax / Math.Pow(_wz,5.0)) * npl - _cLT), 0.6 * Math.Sqrt(_wz / _wy) * _sec.Wel11Min / _sec.Wpl11);
+                        NewFormula(@"c_{yz} = " + (_cyz).ToString(_formatDouble) + "");
                         _czy = Math.Max(1.0 + (_wy - 1.0) * ((2.0 - 14.0 * _cmy * _cmy * lambdaMax * lambdaMax / Math.Pow(_wy, 5.0)) * npl - _dLT),0.6 * Math.Sqrt(_wy / _wz) * _sec.Wel22Min / _sec.Wpl22);
+                        NewFormula(@"c_{zy} = " + (_czy).ToString(_formatDouble) + "");
                         _czz = Math.Max(1.0 + (_wz - 1) * (2.0 - 1.6 / _wz * _cmz * _cmz * lambdaMax - 1.6 / _wz * _cmz * _cmz * lambdaMax * lambdaMax - _eLT) * npl, _sec.Wel11Min / _sec.Wpl11); //RIGHT VERSION
+                        NewFormula(@"c_{zz} = " + (_czz).ToString(_formatDouble) + "");
                         /* WRONG - TO BE COMMENTED!! -  ONLY FOR COMPARISON WITH SAP */
                         //_czz = Math.Max(1.0 + (_wz - 1) * ((2.0 - 1.6 / _wz * _cmz * _cmz * lambdaMax - 1.6 / _wz * _cmz * _cmz * lambdaMax * lambdaMax) * npl - _eLT), _sec.Wel11Min / _sec.Wpl11); //SAP200 WRONG OLD VERSION
                         /* STOP WRONG */
                         if (_classificationSection <= 2)
                         {
                             _kyy = _cmy * _cmLT * _muy / (1.0 - NEd / _Ncry) * 1.0 / _cyy;
+                            NewFormula(@"k_{yy} = " + (_kyy).ToString(_formatDouble) + "");
                             _kyz = _cmz * _muy/(1.0 - NEd/_Ncrz) * 1.0 / _cyz * 0.6 * Math.Sqrt(_wz/_wy);
+                            NewFormula(@"k_{yz} = " + (_kyz).ToString(_formatDouble) + "");
                             _kzy = _cmy * _cmLT * _muz/(1.0 - NEd/_Ncry) * 1.0 / _czy * 0.6 * Math.Sqrt(_wy/_wz);
+                            NewFormula(@"k_{zy} = " + (_kzy).ToString(_formatDouble) + "");
                             _kzz = _cmz * _muz / (1.0 - NEd/_Ncrz) * 1.0 / _czz;
+                            NewFormula(@"k_{zz} = " + (_kzz).ToString(_formatDouble) + "");
                         } else
                         {
                             _kyy = _cmy * _cmLT * _muy / (1.0 - NEd / _Ncry);
+                            NewFormula(@"k_{yy} = " + (_kyy).ToString(_formatDouble) + "");
                             _kyz = _cmz * _muy / (1.0 - NEd / _Ncrz);
+                            NewFormula(@"k_{yz} = " + (_kyz).ToString(_formatDouble) + "");
                             _kzy = _cmy * _cmLT * _muz / (1.0 - NEd/_Ncry);
+                            NewFormula(@"k_{zy} = " + (_kzy).ToString(_formatDouble) + "");
                             _kzz = _cmz * _muz / (1.0 - NEd / _Ncrz);
+                            NewFormula(@"k_zz} = " + (_kzz).ToString(_formatDouble) + "");
                         }
                         
                     } else
@@ -1001,28 +1114,42 @@ namespace GPC.Checker.Steel.EuroCode
                     if (_classificationSection < 3)
                     {
                         nrk = _sec.Area * fy;
+                        NewFormula(@"N_{Rk} = " + (nrk / 1e3).ToString(_formatDouble) + " kN");
                         myrk = _sec.Wpl22 * fy;
+                        NewFormula(@"M_{Rk,y} = " + (myrk / 1e6).ToString(_formatDouble) + " kNm");
                         mzrk = _sec.Wpl11 * fy;
+                        NewFormula(@"M_{Rk,z} = " + (mzrk / 1e6).ToString(_formatDouble) + " kNm");
                         deltaMy = 0;
                         deltaMz = 0;
                     } else if (_classificationSection == 3)
                     {
                         nrk = _sec.Area * fy;
+                        NewFormula(@"N_{Rk} = " + (nrk / 1e3).ToString(_formatDouble) + " kN");
                         myrk = _sec.Wel22Min * fy;
+                        NewFormula(@"M_{Rk,y} = " + (myrk / 1e6).ToString(_formatDouble) + " kNm");
                         mzrk = _sec.Wel11Min * fy;
+                        NewFormula(@"M_{Rk,z} = " + (mzrk / 1e6).ToString(_formatDouble) + " kNm");
                         deltaMy = 0;
                         deltaMz = 0;
                     } else
                     {
                         nrk = _Aeff * fy;
+                        NewFormula(@"N_{Rk} = " + (nrk / 1e3).ToString(_formatDouble) + " kN");
                         myrk = _Weffy * fy;
+                        NewFormula(@"M_{Rk,y} = " + (myrk / 1e6).ToString(_formatDouble) + " kNm");
                         mzrk = _Weffz * fy;
+                        NewFormula(@"M_{Rk,z} = " + (mzrk / 1e6).ToString(_formatDouble) + " kNm");
                         deltaMy = NEd * _deltaG.Y; //check segno
+                        NewFormula(@"\Delta M_{y} = " + (deltaMy / 1e6).ToString(_formatDouble) + " kNm");
                         deltaMz = NEd * _deltaG.X; //check segno
+                        NewFormula(@"\Delta M_{z} = " + (deltaMz / 1e6).ToString(_formatDouble) + " kNm");
                     }
                     WRBuckling1 = NEd / (_Chiy * nrk / _annex.Gm1) + _kyy * Math.Abs(AbsMyEd + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kyz * Math.Abs(AbsMzEd + deltaMz) / (mzrk / _annex.Gm1);
+                    NewFormula(@"w.r._{1} = \frac{N_{Ed}}{\chi_y \cdot N_{Rk} / \gamma_{m1}} + k_{yy} \cdot \frac{My_{Ed} + \Delta M_{y,Ed}}{\chi_{LT} \cdot M_{y,Rk} / \gamma_{m1} } + k_{zy} \cdot \frac{Mz_{Ed} + \Delta M_{z,Ed}}{ M_{z,Rk} / \gamma_{m1}} = " + (WRBuckling1).ToString(_formatDouble) + "");
                     WRBuckling2 = NEd / (_Chiz * nrk / _annex.Gm1) + _kzy * Math.Abs(AbsMyEd + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kzz * Math.Abs(AbsMzEd + deltaMz) / (mzrk / _annex.Gm1);
+                    NewFormula(@"w.r._{2} = \frac{N_{Ed}}{\chi_z \cdot N_{Rk} / \gamma_{m1}} + k_{zy} \cdot \frac{My_{Ed} + \Delta M_{y,Ed}}{\chi_{LT} \cdot M_{y,Rk} / \gamma_{m1} } + k_{zz} \cdot \frac{Mz_{Ed} + \Delta M_{z,Ed}}{ M_{z,Rk} / \gamma_{m1}} = " + (WRBuckling1).ToString(_formatDouble) + "");
                     WRBuckling3 = NEd / _NbRdT;
+                    NewFormula(@"w.r._{3} = " + (WRBuckling3).ToString(_formatDouble) + "");
 
                     WRMax = Math.Max(WRBuckling1, WRMax);
                     WRMax = Math.Max(WRBuckling2, WRMax);
@@ -1202,21 +1329,28 @@ namespace GPC.Checker.Steel.EuroCode
         #region ResistanceFunctions
         protected double GetNtRd(double Anet)
         {
+            NewParagraph("Tension Resistace");
             double A = _sec.Area;
             double fy = ((SteelMaterial)_sec.Material).Fyk;
             double fu = ((SteelMaterial)_sec.Material).Fu;
+            NewFormula(@"f_{u} = " + fu.ToString(_formatDouble) + " MPa");
             double gm0 = _annex.Gm0;
             double gm2 = _annex.Gm2;
 
+            NewFormula(@"A_{net} = " + Anet.ToString(_formatDouble) + " mm^2");
+
             double NtRd = Math.Min(A * fy / gm0, 0.9 * Anet * fu / gm2);
+            NewFormula(@"N_{t,Rd} = min(A \cdot f_y / \gamma_{m0}; A_{net} \cdot f_u / \gamma_{m2}) = " + (NtRd / 1000.0).ToString(_formatDouble) + " kN");
             return NtRd;
         }
         protected double GetNcRd()
         {
+            NewParagraph("Compression Resistance");
             double A;
             if (_classificationSection == 4)
             {
                 A = _Aeff;
+                NewFormula(@"A = A_{eff} =" + _Aeff.ToString(_formatDouble) + " kN");
             }
             else
             {
@@ -1226,15 +1360,20 @@ namespace GPC.Checker.Steel.EuroCode
             double gm0 = _annex.Gm0;
 
             double NcRd = A * fy / gm0;
+            NewFormula(@"N_{c,Rd} = A \cdot f_y / \gamma_{m0} = " + (NcRd / 1000.0).ToString(_formatDouble) + " kN");
             return NcRd;
         }
 
         protected void GetVRdTRd(double V1Ed, double V2Ed, out double VyEd, out double VzEd, out double VRdy, out double VRdz, out double TRd, out double VplRdz, out double VplRdy)
         {
+            NewParagraph("Shear Resistance");
+
             VzEd = Double.MaxValue;
             VyEd = Double.MaxValue;
 
             double eta = 1.0;
+            NewFormula(@"\eta = " + (eta).ToString(_formatDouble) + "");
+
             double Avy, Avz;
             //z = vertical axis
             //y = horizz axis
@@ -1252,11 +1391,16 @@ namespace GPC.Checker.Steel.EuroCode
                 VyEd = V1Ed;
                 SectionH sec = (SectionH)_sec;
                 Avz = Math.Min(_sec.Area - sec.LenghtBottomFlange * sec.ThicknessBottomFlange - sec.LenghtTopFlange * sec.ThicknessTopFlange, eta * sec.ThicknessWeb * sec.HeightWeb);
+                NewFormula(@"A_{v,z} = " + (Avz).ToString(_formatDouble) + " mm^2");
+
                 Avy = sec.Area - sec.ThicknessWeb * sec.HeightWeb;
+                NewFormula(@"A_{v,y} = " + (Avy).ToString(_formatDouble) + " mm^2");
 
                 double epsilon = Math.Sqrt(235.0 / ((SteelMaterial) sec.Material).Fyk);
                 if (sec.HeightWeb / sec.ThicknessWeb > 72.0 * epsilon / 1.0)
                 {
+                    NewFormula(@"h_w / t_w > 72 \cdot \varepsilon !");
+                    NewParagraph("Check shear buckling web!");
                     throw new Exception("Check shear buckling web!");
                 }
             } else if (typeShape == typeof(SectionCHS))
@@ -1264,7 +1408,9 @@ namespace GPC.Checker.Steel.EuroCode
                 VzEd = V2Ed;
                 VyEd = V1Ed;
                 Avz = 2.0 * _sec.Area / Math.PI;
+                NewFormula(@"A_{v,y} = " + (Avz).ToString(_formatDouble) + " mm^2");
                 Avy = Avz;
+                NewFormula(@"A_{v,y} = " + (Avy).ToString(_formatDouble) + " mm^2");
             } else if (typeShape == typeof(SectionC))
             {
                 SectionC sec = (SectionC)_sec;
@@ -1273,11 +1419,16 @@ namespace GPC.Checker.Steel.EuroCode
                     VzEd = V2Ed;
                     VyEd = V1Ed;
                     Avz = sec.Area - sec.ThicknessTop * sec.LTop - sec.ThicknessBottom * sec.LBottom;
+                    NewFormula(@"A_{v,z} = " + (Avz).ToString(_formatDouble) + " mm^2");
+
                     Avy = sec.Area - sec.Hw * sec.Tw;
+                    NewFormula(@"A_{v,y} = A - h_w * _t_w = " + (Avy).ToString(_formatDouble) + " mm^2");
 
                     double epsilon = Math.Sqrt(235.0 / ((SteelMaterial)sec.Material).Fyk);
                     if (sec.Hw / sec.Tw > 72.0 * epsilon / 1.0)
                     {
+                        NewFormula(@"h_w / t_w > 72 \cdot \varepsilon !");
+                        NewParagraph("Check shear buckling web!");
                         throw new Exception("Check shear buckling web!");
                     }
                 } else
@@ -1290,12 +1441,16 @@ namespace GPC.Checker.Steel.EuroCode
                 VyEd = V1Ed;
                 SectionT sec = (SectionT)_sec;
                 Avz = sec.Tw * (sec.H - sec.Tf / 2.0);
+                NewFormula(@"A_{v,z} = " + (Avz).ToString(_formatDouble) + " mm^2");
                 Avy = sec.Tf * sec.H;
+                NewFormula(@"A_{v,y} = " + (Avy).ToString(_formatDouble) + " mm^2");
 
                 eta = 1.0;
                 double epsilon = Math.Sqrt(235.0 / ((SteelMaterial)sec.Material).Fyk);
                 if (sec.Hw / sec.Tw > 72.0 * epsilon / eta)
                 {
+                    NewFormula(@"h_w / t_w > 72 \cdot \varepsilon !");
+                    NewParagraph("Check shear buckling web!");
                     throw new Exception("Check shear buckling web!");
                 }
             } else if (typeShape == typeof(SectionRHS))
@@ -1307,15 +1462,22 @@ namespace GPC.Checker.Steel.EuroCode
                     VyEd = V1Ed;
 
                     Avz = eta * sec.H * sec.ThicknessWeb * 2.0;
+                    NewFormula(@"A_{v,z} = " + (Avz).ToString(_formatDouble) + " mm^2");
+
                     Avy = sec.Area - 2.0 * sec.Hw * sec.ThicknessWeb;
+                    NewFormula(@"A_{v,y} = " + (Avy).ToString(_formatDouble) + " mm^2");
 
                     double epsilon = Math.Sqrt(235.0 / ((SteelMaterial)sec.Material).Fyk);
                     if (sec.Hw / sec.ThicknessWeb > 72.0 * epsilon / 1.0)
                     {
+                        NewFormula(@"h_w / t_w > 72 \cdot \varepsilon !");
+                        NewParagraph("Check shear buckling web!");
                         throw new Exception("Check shear buckling web!");
                     }
                     if (sec.Bint / sec.ThicknessFlange > 72.0 * epsilon / 1.0)
                     {
+                        NewFormula(@"h_w / t_w > 72 \cdot \varepsilon !");
+                        NewParagraph("Check shear buckling flanges!");
                         throw new Exception("Check shear buckling web!");
                     }
                 } else
@@ -1329,20 +1491,28 @@ namespace GPC.Checker.Steel.EuroCode
                 SectionL sec = (SectionL)_sec;
                 double angle = sec.AngleX1;
                 Avz = sec.LVert * sec.TVert;
+                NewFormula(@"A_{v,z} = " + (Avz).ToString(_formatDouble) + " mm^2");
                 Avy = sec.LHor*sec.THor;
+                NewFormula(@"A_{v,y} = " + (Avy).ToString(_formatDouble) + " mm^2");
 
                 double angle2 = Math.PI / 2.0 - sec.AngleX1;
 
                 VyEd = _V1Ed * Math.Cos(sec.AngleX1) - _V2Ed * Math.Cos(angle2);
+                NewFormula(@"V_{y,Ed} = " + (VyEd / 1000.0).ToString(_formatDouble) + " kN");
                 VzEd = _V1Ed * Math.Sin(sec.AngleX1) + _V2Ed * Math.Sin(angle2);
+                NewFormula(@"V_{z,y} = " + (VzEd / 1000.0).ToString(_formatDouble) + " kN");
 
                 double epsilon = Math.Sqrt(235.0 / ((SteelMaterial)sec.Material).Fyk);
                 if (sec.LVert / sec.TVert > 72.0 * epsilon / 1.0)
                 {
+                    NewFormula(@"h_w / t_w > 72 \cdot \varepsilon !");
+                    NewParagraph("Check shear buckling web!");
                     throw new Exception("Check shear buckling web!");
                 }
                 if (sec.LHor / sec.THor > 72.0 * epsilon / 1.0)
                 {
+                    NewFormula(@"h_w / t_w > 72 \cdot \varepsilon !");
+                    NewParagraph("Check shear buckling flanges!");
                     throw new Exception("Check shear buckling web!");
                 }
             }
@@ -1358,11 +1528,14 @@ namespace GPC.Checker.Steel.EuroCode
             double VplRdTz = 0.0;
 
             VplRdy = Avy * fy / gm0 / Math.Pow(3.0, 0.5);
+            NewFormula(@"V_{pl,Rd,y} = A_{vy} \cdot f_y / \gamma_{m0} / 3^{0.5} = " + (VplRdy / 1000.0).ToString(_formatDouble) + " kN");
             VplRdz = Avz * fy / gm0 / Math.Pow(3.0, 0.5);
+            NewFormula(@"V_{pl,Rd,z} =  A_{vz} \cdot f_y / \gamma_{m0} / 3^{0.5} = " + (VplRdz / 1000.0).ToString(_formatDouble) + " kN");
 
             #region calculationTauTandTauW
             if (_classificationSection == 4 && Math.Abs(_TEd) > 0)
             {
+                NewParagraph("Class 4 with torsion not supported by Eurocode.");
                 throw new Exception("Class 4 with torsion not supported by Eurocode.");
             }
             double tau_w = 0;
@@ -1382,8 +1555,10 @@ namespace GPC.Checker.Steel.EuroCode
                 SectionCHS sec = (SectionCHS)_sec;
                 double Wt = _sec.Jt / (sec.D / 2.0);
                 tauT = Math.Abs(_TEd) / Wt;
+                NewFormula(@"\tau(T_{Ed}) = " + (tauT).ToString(_formatDouble) + " MPa");
 
                 TRd = fy / Math.Pow(3.0, 0.5) * Wt;
+                NewFormula(@"T_{Rd} = " + (TRd / 1e6).ToString(_formatDouble) + " kNm");
             } else if (typeShape == typeof(SectionRHS))
             {
                 //Bredt - Plastic Theory
@@ -1393,9 +1568,11 @@ namespace GPC.Checker.Steel.EuroCode
                 double Omega = Hmed * Bmed;
                 double denom = 2.0 * Omega * Math.Min(sec.ThicknessWeb, sec.ThicknessFlange);
                 tauT = Math.Abs(_TEd) / denom;
+                NewFormula(@"\tau(T_{Ed}) = T_{Ed} / (2 \cdot \Omega \cdot t) = " + (tauT).ToString(_formatDouble) + " MPa");
 
                 TRd = fy / Math.Pow(3.0, 0.5) * denom;
-                
+                NewFormula(@"T_{Rd} = " + (TRd / 1e6).ToString(_formatDouble) + " kNm");
+
             } else if (typeShape == typeof(SectionC))
             {
                 SectionC sec = (SectionC)_sec;
@@ -1414,8 +1591,10 @@ namespace GPC.Checker.Steel.EuroCode
                 denominator = denominator / 3.0;
 
                 tauT = Math.Abs(_TEd) * tmax / denominator;
+                NewFormula(@"\tau(T_{Ed}) = " + (tauT).ToString(_formatDouble) + " MPa");
 
                 TRd = fy / Math.Pow(3.0, 0.5) * denominator / tmax;
+                NewFormula(@"T_{Rd} = " + (TRd / 1e6).ToString(_formatDouble) + " kNm");
 
             } else if (typeShape == typeof(SectionH))
             {
@@ -1435,8 +1614,10 @@ namespace GPC.Checker.Steel.EuroCode
                 denominator = denominator / 3.0;
 
                 tauT = Math.Abs(_TEd) * tmax / denominator;
+                NewFormula(@"\tau(T_{Ed}) = " + (tauT).ToString(_formatDouble) + " MPa");
 
                 TRd = fy / Math.Pow(3.0, 0.5) * denominator / tmax;
+                NewFormula(@"T_{Rd} = " + (TRd / 1e6).ToString(_formatDouble) + " kNm");
             } else if (typeShape == typeof(SectionL))
             {
                 SectionL sec = (SectionL)_sec;
@@ -1451,8 +1632,10 @@ namespace GPC.Checker.Steel.EuroCode
                 denominator = denominator / 3.0;
 
                 tauT = Math.Abs(_TEd) * tmax / denominator;
+                NewFormula(@"\tau(T_{Ed}) = " + (tauT).ToString(_formatDouble) + " MPa");
 
                 TRd = fy / Math.Pow(3.0, 0.5) * denominator / tmax;
+                NewFormula(@"T_{Rd} = " + (TRd / 1e6).ToString(_formatDouble) + " kNm");
             }/* else if (typeShape == typeof(SectionRectangular))
             {
                 SectionRectangular sec = (SectionRectangular)_sec;
@@ -1477,7 +1660,10 @@ namespace GPC.Checker.Steel.EuroCode
                 denominator = denominator / 3.0;
 
                 tauT = Math.Abs(_TEd) * tmax / denominator;
+                NewFormula(@"\tau(T_{Ed}) = " + (tauT).ToString(_formatDouble) + " MPa");
+
                 TRd = fy / Math.Pow(3.0, 0.5) * denominator / tmax;
+                NewFormula(@"T_{Rd} = " + (TRd / 1e6).ToString(_formatDouble) + " kNm");
             }
             else
             {
@@ -1497,19 +1683,29 @@ namespace GPC.Checker.Steel.EuroCode
                 if (typeShape == typeof(SectionH))
                 {
                     VplRdTy = Math.Pow(1.0 - Math.Abs(tauT) / (1.25 * (fy / Math.Pow(3.0, 0.5) / gm0)), 0.5) * VplRdy;
+                    NewFormula(@"V_{pl,Rd,T,y} = \sqrt{ 1 - \frac{\tau_{Ed}}{1.25 \cdot f_y / 3^{0.5} / \gamma_{m0}} } \cdot V_{pl,Rd,y} = " + (VplRdTy / 1e3).ToString(_formatDouble) + " kN");
                     VplRdTz = Math.Pow(1.0 - Math.Abs(tauT) / (1.25 * (fy / Math.Pow(3.0, 0.5) / gm0)), 0.5) * VplRdz;
+                    NewFormula(@"V_{pl,Rd,T,z} = \sqrt{ 1 - \frac{\tau_{Ed}}{1.25 \cdot f_y / 3^{0.5} / \gamma_{m0}} } \cdot V_{pl,Rd,z} = " + (VplRdTz / 1e3).ToString(_formatDouble) + " kN");
                 } else if (typeShape == typeof(SectionC)) {
                     VplRdTy = (Math.Pow(1.0 - Math.Abs(tauT) / (1.25 * (fy / Math.Pow(3.0, 0.5) / gm0)), 0.5) - tau_w / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdy;
+                    NewFormula(@"V_{pl,Rd,T,y} = \left[ sqrt{ 1 - \frac{\tau_{Ed}}{1.25 \cdot f_y / 3^{0.5} / \gamma_{m0}} } - \frac{\tau_w}{f_y / 3^{0.5} / \gamma_{m0}} \right] \cdot V_{pl,Rd,y} = " + (VplRdTy / 1e3).ToString(_formatDouble) + " kN");
                     VplRdTz = (Math.Pow(1.0 - Math.Abs(tauT) / (1.25 * (fy / Math.Pow(3.0, 0.5) / gm0)), 0.5) - tau_w / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdz;
+                    NewFormula(@"V_{pl,Rd,T,z} = \left[ sqrt{ 1 - \frac{\tau_{Ed}}{1.25 \cdot f_y / 3^{0.5} / \gamma_{m0}} } - \frac{\tau_w}{f_y / 3^{0.5} / \gamma_{m0}} \right] \cdot V_{pl,Rd,z} = " + (VplRdTz / 1e3).ToString(_formatDouble) + " kN");
                 } else if (typeShape == typeof(SectionCHS)) { 
                     VplRdTy = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdy;
+                    NewFormula(@"V_{pl,Rd,T,y} = \left[ 1 - \frac{\tau_{Ed}}{f_y / 3^{0.5} / \gamma_{m0}} \right] \cdot V_{pl,Rd,y} = " + (VplRdTy / 1e3).ToString(_formatDouble) + " kN");
                     VplRdTz = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdz;
+                    NewFormula(@"V_{pl,Rd,T,z} = \left[ 1 - \frac{\tau_{Ed}}{f_y / 3^{0.5} / \gamma_{m0}} \right] \cdot V_{pl,Rd,z} = " + (VplRdTy / 1e3).ToString(_formatDouble) + " kN");
                 } else if (typeShape == typeof(SectionRHS)) { 
                     VplRdTy = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdy;
+                    NewFormula(@"V_{pl,Rd,T,y} = \left[ 1 - \frac{\tau_{Ed}}{f_y / 3^{0.5} / \gamma_{m0}} \right] \cdot V_{pl,Rd,y} = " + (VplRdTy / 1e3).ToString(_formatDouble) + " kN");
                     VplRdTz = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdz;
+                    NewFormula(@"V_{pl,Rd,T,y} = \left[ 1 - \frac{\tau_{Ed}}{f_y / 3^{0.5} / \gamma_{m0}} \right] \cdot V_{pl,Rd,y} = " + (VplRdTy / 1e3).ToString(_formatDouble) + " kN");
                 } else if (typeShape == typeof(SectionT)) {
                     VplRdTy = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdy;
+                    NewFormula(@"V_{pl,Rd,T,y} = \left[ 1 - \frac{\tau_{Ed}}{f_y / 3^{0.5} / \gamma_{m0}} \right] \cdot V_{pl,Rd,y} = " + (VplRdTy / 1e3).ToString(_formatDouble) + " kN");
                     VplRdTz = (1.0 - Math.Abs(tauT) / (fy / Math.Pow(3.0, 0.5) / gm0)) * VplRdz;
+                    NewFormula(@"V_{pl,Rd,T,y} = \left[ 1 - \frac{\tau_{Ed}}{f_y / 3^{0.5} / \gamma_{m0}} \right] \cdot V_{pl,Rd,y} = " + (VplRdTy / 1e3).ToString(_formatDouble) + " kN");
                 } else {
                     VRdy = VplRdTy;
                     VRdz = VplRdTz;
@@ -1529,6 +1725,7 @@ namespace GPC.Checker.Steel.EuroCode
 
         protected void GetMRd(double M1Ed, double M2Ed, out double MzEd, out double MyEd, out double MRdNz, out double MRdNy, out double McRdy, out double McRdz, out double MvRdy, out double MvRdz)
         {
+            NewParagraph("Bending Moment Resistance");
             double gm0 = _annex.Gm0;
             double fy = ((SteelMaterial)_sec.Material).Fyk;
 
@@ -1555,18 +1752,23 @@ namespace GPC.Checker.Steel.EuroCode
             }
 
             McRdy = Wy * fy / gm0;
+            NewFormula(@"M_{c,Rd,y} = Wy \cdot f_y / \gamma_{m0} = " + (McRdy / 1e6).ToString(_formatDouble) + " kNm");
             McRdz = Wz * fy / gm0;
+            NewFormula(@"M_{c,Rd,z} = Wz \cdot f_y / \gamma_{m0} = " + (McRdz / 1e6).ToString(_formatDouble) + " kNm");
 
             double rhoy = Math.Min(Math.Pow(2.0 * Math.Abs(VyEd) / _VplTRdy - 1.0, 2.0), 1.0);
             if (VyEd <= 0.5 * _VplTRdy)
             {
                 rhoy = 0.0;
             }
+            NewFormula(@"\rho_y = " + (rhoy).ToString(_formatDouble) + "");
+
             double rhoz = Math.Min(Math.Pow(2.0 * Math.Abs(VzEd) / _VplTRdz - 1.0, 2.0), 1.0);
             if (VzEd <= 0.5 * _VplTRdz)
             {
                 rhoz = 0.0;
             }
+            NewFormula(@"\rho_z = " + (rhoz).ToString(_formatDouble) + "");
 
             Type typeShape = _sec.GetType();
             //check if bending moment should be recalculated with each plate bending moment contribution multiplied for each rho
@@ -1574,12 +1776,15 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 SectionH sec = (SectionH)_sec;
                 MvRdy = Math.Min((Wy - rhoz * Math.Pow(sec.HeightWeb * sec.ThicknessWeb,2.0)/(4.0 * sec.ThicknessWeb)) * fy / gm0,  Wy * fy / gm0);
+                NewFormula(@"M_{v,Rd,y} = " + (MvRdy / 1e6).ToString(_formatDouble) + " kNm");
             }
             else
             {
                 MvRdy = Wy * (1.0 - rhoz) * fy / gm0;
+                NewFormula(@"M_{v,Rd,y} = " + (MvRdy / 1e6).ToString(_formatDouble) + " kNm");
             }
             MvRdz = Wz * (1.0 - rhoy) * fy / gm0;
+            NewFormula(@"M_{v,Rd,z} = " + (MvRdz / 1e6).ToString(_formatDouble) + " kNm");
 
             if (_classificationSection < 3)
             {
@@ -1587,13 +1792,15 @@ namespace GPC.Checker.Steel.EuroCode
                 MRdNz = 0.0;
                 double NplRd = fy * A / gm0;
                 double n = Math.Abs(NEd) / NplRd;
+                NewFormula(@"n = N_{Ed} / N_{pl,Rd} = " + (n).ToString(_formatDouble) + " ");
 
                 /*if (typeShape == typeof(SectionRectangular))
                 {
                     MRdNy = Mrdy * Math.Pow(1.0 - Math.Abs(NEd) / NplRd, 2.0);
                     MRdNz = Mrdz * Math.Pow(1.0 - Math.Abs(NEd) / NplRd, 2.0);
                 }
-                else */if (typeShape == typeof(SectionH))
+                else */
+                if (typeShape == typeof(SectionH))
                 {
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
@@ -1601,21 +1808,27 @@ namespace GPC.Checker.Steel.EuroCode
                     if (secH.LenghtBottomFlange == secH.LenghtTopFlange && secH.ThicknessTopFlange == secH.ThicknessBottomFlange)
                     {
                         double a = Math.Min((A - 2.0 * secH.LenghtTopFlange * secH.ThicknessTopFlange) / A, 0.5);
+                        NewFormula(@"a = " + (a).ToString(_formatDouble) + "");
                         MRdNy = Math.Min(MvRdy * (1.0 - n) / (1.0 - 0.5 * a), MvRdy);
+                        NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                         MRdNz = 0.0;
                         if (n <= a)
                         {
                             MRdNz = MvRdz;
+                            NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                         }
                         else
                         {
-                            MRdNy = MvRdz * (1.0 - Math.Pow((n - a) / (1.0 - a), 2.0));
+                            MRdNz = MvRdz * (1.0 - Math.Pow((n - a) / (1.0 - a), 2.0));
+                            NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                         }
                     }
                     else
                     {
                         MRdNy = MvRdy;
+                        NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                         MRdNz = MvRdz;
+                        NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                     }
                 }
                 else if (typeShape == typeof(SectionCHS))
@@ -1623,7 +1836,9 @@ namespace GPC.Checker.Steel.EuroCode
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy * (1.0 - Math.Pow(n, 1.7));
+                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz * (1.0 - Math.Pow(n, 1.7));
+                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else if (typeShape == typeof(SectionRHS))
                 {
@@ -1642,7 +1857,9 @@ namespace GPC.Checker.Steel.EuroCode
                         double af = Math.Min((A - 2.0 * h * thk_web) / A, 0.5);
 
                         MRdNy = Math.Min(MvRdy * (1.0 - n) / (1 - 0.5 * aw), MvRdy);
+                        NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                         MRdNz = Math.Min(MvRdz * (1.0 - n) / (1 - 0.5 * af), MvRdz);
+                        NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                     } else
                     {
                         throw new Exception("Section not yet supported");
@@ -1653,14 +1870,18 @@ namespace GPC.Checker.Steel.EuroCode
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy;
+                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz;
+                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else if (typeShape == typeof(SectionT))
                 {
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy;
+                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz;
+                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else if (typeShape == typeof(SectionL))
                 {
@@ -1668,7 +1889,9 @@ namespace GPC.Checker.Steel.EuroCode
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy; //Mrd22
+                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz; //Mrd11
+                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else
                 {
@@ -1685,14 +1908,18 @@ namespace GPC.Checker.Steel.EuroCode
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy;
+                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz;
+                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else if (typeShape == typeof(SectionC) && _sec.IsSymmetricAlongYLocalAxis == true)
                 {
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy;
+                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz;
+                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else if (typeShape == typeof(SectionL))
                 {
@@ -1700,7 +1927,9 @@ namespace GPC.Checker.Steel.EuroCode
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy; //Mrd22
+                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz; //Mrd11
+                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else { 
                     //Section L
@@ -1728,6 +1957,7 @@ namespace GPC.Checker.Steel.EuroCode
 
         protected double GetWrCombined()
         {
+            NewParagraph("Bending combined with Axial Force");
             Type typeShape = _sec.GetType();
 
             if (_classificationSection < 3)
@@ -1742,41 +1972,56 @@ namespace GPC.Checker.Steel.EuroCode
                     if (sec.LenghtBottomFlange == sec.LenghtTopFlange && sec.ThicknessBottomFlange == sec.ThicknessTopFlange)
                     {
                         alpha = 2.0;
+                        NewFormula(@"\alpha = " + (alpha).ToString(_formatDouble) + "");
 
                         beta = 5.0 * n;
+                        NewFormula(@"\beta = " + (beta).ToString(_formatDouble) + "");
                         if (beta < 1.0)
                         {
                             beta = 1.0;
                         }
                     } else
                     {
-                        return Math.Abs(_NEd / _NRd) + Math.Abs(_MyEd) / _MRdNy + Math.Abs(_MzEd) / _MRdNz;
+                        double wr1 = Math.Abs(_NEd / _NRd) + Math.Abs(_MyEd) / _MRdNy + Math.Abs(_MzEd) / _MRdNz;
+                        NewFormula(@"w.r. = N/N_{Rd} + M_{Ed,y} / M_{Rd,N,y} + M_{Ed,z} / M_{Rd,N,z} = " + wr1.ToString(_formatDouble) + "");
+                        return wr1;
                     }
                 }
                 else if (typeShape == typeof(SectionCHS))
                 {
                     alpha = 2.0;
+                    NewFormula(@"\alpha = " + alpha.ToString(_formatDouble));
                     beta = 2.0;
+                    NewFormula(@"\beta = " + beta.ToString(_formatDouble));
                 }
                 else if (typeShape == typeof(SectionRHS))
                 {
                     alpha = Math.Min(1.66 / (1.0 - 1.13 * Math.Pow(n, 2.0)), 6.0);
+                    NewFormula(@"\alpha = " + alpha.ToString(_formatDouble));
                     beta = alpha;
+                    NewFormula(@"\beta = " + beta.ToString(_formatDouble));
                 }
                 else
                 {
-                    return Math.Abs(_NEd / _NRd) + Math.Abs(_MyEd) / _MRdNy + Math.Abs(_MzEd) / _MRdNz;
+                    double wr2 = Math.Abs(_NEd / _NRd) + Math.Abs(_MyEd) / _MRdNy + Math.Abs(_MzEd) / _MRdNz;
+                    NewFormula(@"w.r. = N/N_{Rd} + M_{Ed,y} / M_{Rd,N,y} + M_{Ed,z} / M_{Rd,N,z} = " + wr2.ToString(_formatDouble) + "");
+                    return wr2;
                 }
-
-                return Math.Pow(Math.Abs(_MyEd) / _MRdNy, alpha) + Math.Pow(Math.Abs(_MzEd) / _MRdNz, beta);
+                double wr3 = Math.Pow(Math.Abs(_MyEd) / _MRdNy, alpha) + Math.Pow(Math.Abs(_MzEd) / _MRdNz, beta);
+                NewFormula(@"w.r. = (M_{Ed,y} / M_{Rd,N,y})^{\alpha} + (M_{Ed,z} / M_{Rd,N,z})^{\beta} = " + wr3.ToString(_formatDouble) + "");
+                return wr3;
             }
             else if (_classificationSection == 3)
             {
-                return Math.Abs(_NEd / _NRd) + Math.Abs(_MyEd) / _MRdNy + Math.Abs(_MzEd) / _MRdNz;
+                double wr = Math.Abs(_NEd / _NRd) + Math.Abs(_MyEd) / _MRdNy + Math.Abs(_MzEd) / _MRdNz;
+                NewFormula(@"w.r. = N/N_{Rd} + M_{Ed,y} / M_{Rd,N,y} + M_{Ed,z} / M_{Rd,N,z} = " + wr.ToString(_formatDouble) + "");
+                return wr;
             }
             else
             {
-                return  Math.Abs(_NEd / _NRd) + Math.Abs(_MyEd + _NEd * _deltaG.Y) / _MRdNy + Math.Abs(_MyEd + _NEd * _deltaG.X) / _MRdNz; //attention to sign
+                double wr = Math.Abs(_NEd / _NRd) + Math.Abs(_MyEd + _NEd * _deltaG.Y) / _MRdNy + Math.Abs(_MyEd + _NEd * _deltaG.X) / _MRdNz; //attention to sign
+                NewFormula(@"w.r. = N/N_{Rd} + (N_{Ed} \cdot e + M_{Ed,y}) / M_{Rd,N,y} + (N_{Ed} \cdot e + M_{Ed,z}) / M_{Rd,N,z} = " + wr.ToString(_formatDouble) + "");
+                return wr;
             }
         }
         #endregion
@@ -2349,12 +2594,20 @@ namespace GPC.Checker.Steel.EuroCode
                             if (sec.Material.Name.Contains("460"))
                             {
                                 _alphay = SectionBucklingCurves["a0"];
+                                NewParagraph("y direction : curve a0");
+                                NewFormula(@"\alpha_y = " + _alphay.ToString(_formatDouble));
                                 _alphaz = SectionBucklingCurves["a0"];
+                                NewParagraph("z direction : curve a0");
+                                NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                             }
                             else //steel S235, 275, 355, 420
                             {
                                 _alphay = SectionBucklingCurves["a"];
+                                NewParagraph("y direction : curve a");
+                                NewFormula(@"\alpha_y = " + _alphaz.ToString(_formatDouble));
                                 _alphaz = SectionBucklingCurves["b"];
+                                NewParagraph("z direction : curve b");
+                                NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                             }
                         }
                         else if (sec.ThicknessBottomFlange <= 100.0 && sec.ThicknessTopFlange <= 100.0)
@@ -2362,12 +2615,20 @@ namespace GPC.Checker.Steel.EuroCode
                             if (sec.Material.Name.Contains("460"))
                             {
                                 _alphay = SectionBucklingCurves["a"];
+                                NewParagraph("y direction : curve a");
+                                NewFormula(@"\alpha_y = " + _alphay.ToString(_formatDouble));
                                 _alphaz = SectionBucklingCurves["a"];
+                                NewParagraph("z direction : curve a");
+                                NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                             }
                             else //steel S235, 275, 355, 420
                             {
                                 _alphay = SectionBucklingCurves["b"];
+                                NewParagraph("y direction : curve b");
+                                NewFormula(@"\alpha_y = " + _alphay.ToString(_formatDouble));
                                 _alphaz = SectionBucklingCurves["c"];
+                                NewParagraph("z direction : curve c");
+                                NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                             }
                         }
                     }
@@ -2378,12 +2639,20 @@ namespace GPC.Checker.Steel.EuroCode
                             if (sec.Material.Name.Contains("460"))
                             {
                                 _alphay = SectionBucklingCurves["a"];
+                                NewParagraph("y direction : curve a");
+                                NewFormula(@"\alpha_y = " + _alphay.ToString(_formatDouble));
                                 _alphaz = SectionBucklingCurves["a"];
+                                NewParagraph("z direction : curve a");
+                                NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                             }
                             else //steel S235, 275, 355, 420
                             {
                                 _alphay = SectionBucklingCurves["b"];
+                                NewParagraph("y direction : curve b");
+                                NewFormula(@"\alpha_y = " + _alphay.ToString(_formatDouble));
                                 _alphaz = SectionBucklingCurves["c"];
+                                NewParagraph("z direction : curve c");
+                                NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                             }
                         }
                         else //thicknessflanges > 100 mm 
@@ -2391,12 +2660,20 @@ namespace GPC.Checker.Steel.EuroCode
                             if (sec.Material.Name.Contains("460"))
                             {
                                 _alphay = SectionBucklingCurves["c"];
+                                NewParagraph("y direction : curve c");
+                                NewFormula(@"\alpha_y = " + _alphay.ToString(_formatDouble));
                                 _alphaz = SectionBucklingCurves["c"];
+                                NewParagraph("z direction : curve c");
+                                NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                             }
                             else //steel S235, 275, 355, 420
                             {
                                 _alphay = SectionBucklingCurves["d"];
+                                NewParagraph("y direction : curve d");
+                                NewFormula(@"\alpha_y = " + _alphay.ToString(_formatDouble));
                                 _alphaz = SectionBucklingCurves["d"];
+                                NewParagraph("z direction : curve d");
+                                NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                             }
                         }
                     }
@@ -2407,24 +2684,40 @@ namespace GPC.Checker.Steel.EuroCode
                         if (sec.Material.Name.Contains("460"))
                         {
                             _alphay = SectionBucklingCurves["b"];
+                            NewParagraph("y direction : curve b");
+                            NewFormula(@"\alpha_y = " + _alphay.ToString(_formatDouble));
                             _alphaz = SectionBucklingCurves["c"];
+                            NewParagraph("z direction : curve c");
+                            NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                         }
                         else //steel S235, 275, 355, 420
                         {
                             _alphay = SectionBucklingCurves["b"];
+                            NewParagraph("y direction : curve b");
+                            NewFormula(@"\alpha_y = " + _alphay.ToString(_formatDouble));
                             _alphaz = SectionBucklingCurves["c"];
+                            NewParagraph("z direction : curve c");
+                            NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                         }
                     } else
                     {
                         if (sec.Material.Name.Contains("460"))
                         {
                             _alphay = SectionBucklingCurves["c"];
+                            NewParagraph("y direction : curve c");
+                            NewFormula(@"\alpha_y = " + _alphaz.ToString(_formatDouble));
                             _alphaz = SectionBucklingCurves["d"];
+                            NewParagraph("z direction : curve d");
+                            NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                         }
                         else //steel S235, 275, 355, 420
                         {
                             _alphay = SectionBucklingCurves["c"];
+                            NewParagraph("y direction : curve c");
+                            NewFormula(@"\alpha_y = " + _alphay.ToString(_formatDouble));
                             _alphaz = SectionBucklingCurves["d"];
+                            NewParagraph("z direction : curve d");
+                            NewFormula(@"\alpha_z = " + _alphaz.ToString(_formatDouble));
                         }
                     }
                 }
@@ -2650,7 +2943,7 @@ namespace GPC.Checker.Steel.EuroCode
 
             CheckResistance();
 
-            //check.CheckBuckling();
+            CheckBuckling(_L, _betay, _betaz, _betaLT, _supportConditiony, _loadConditiony, _psiy, _supportConditionz, _loadConditionz, _psiz);
 
             _wordDocument.OMaths.BuildUp();
         }
