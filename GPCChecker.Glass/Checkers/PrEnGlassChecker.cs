@@ -52,7 +52,7 @@ namespace GPC.Checker.Glasses.Checkers
 
                     var monolithicGlassProperty = new MonolithicGlassProperty(mgw.Glass);
 
-                    femWrapper.SetUpMonolithic(mgw.GetSurfaceId, geometryMesh, embeddedGeometriesMapVertex, restrains, monolithicGlassProperty, uniformPressureLoads, notUniformPressureLoads);
+                    femWrapper.SetUpMonolithic(mgw.GetSurfaceId, geometryMesh, embeddedGeometriesMapVertex, restrains, mgw.Glass, uniformPressureLoads, notUniformPressureLoads);
                 }
                 else if (wrapper is LaminatedGlassWrapper lgw)
                 {
