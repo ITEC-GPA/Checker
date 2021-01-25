@@ -874,10 +874,11 @@ namespace GPC.Checker.Steel.EuroCode
                     _alphaT = _alphaz;
                     NewFormula(@"\alpha_{T} = \alpha_z = " + (_alphaT).ToString(_formatDouble) + " ");
                     _PhiT = GetPhi(_alphaT, _lambdaT);
-                    NewFormula(@"\Phi_{T} = " + (_PhiT).ToString(_formatDouble) + " ");
-                    _ChiT = GetChi(_PhiT, _lambdaT);
-                    NewFormula(@"\chi_{LT} = " + (_ChiT).ToString(_formatDouble) + " ");
+                    NewFormula(@"\Phi_{z} = 0.5 \cdot \left[ 1 + \alpha_{T} \cdot ( \lambda_{T} - 0.2 ) + \lambda_{T}^{2} \right] = " + (_PhiT).ToString(_formatDouble) + " ");
 
+                    _ChiT = GetChi(_PhiT, _lambdaT);
+                    NewFormula(@"\chi_{T} = \frac{1}{\Phi_T + \sqrt{\Phi_T^2 - \lambda_T^2}} = " + (_Chiy).ToString(_formatDouble) + " ");
+                   
                     if (_classificationSection < 4)
                     {
                         _NbRdT = _ChiT * _sec.Area * fy / _annex.Gm1;
@@ -888,32 +889,39 @@ namespace GPC.Checker.Steel.EuroCode
                         NewFormula(@"N_{b,Rd,T} =  \chi_T \cdot A_{eff} \cdot f_y / \gamma_{m1} = " + (_NbRdT / 1000.0).ToString(_formatDouble) + " kN");
                     }
 
+                    NewParagraph("Calculation of Mcr");
                     _McrLateralTorsional = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, _loadConditiony, _psiy, 1, 1, out _c1, out _c2, out _c3, out _zg, out _zj);
-                    NewFormula(@"M_{cr} = " + (_McrLateralTorsional / 1e6).ToString(_formatDouble) + " kNm");
 
                     if (_classificationSection < 3) {
                         _lambdaLT = GetLambdaSegn(_sec.Wpl22, fy, _McrLateralTorsional);
-                        NewFormula(@"\lambda_{LT} = " + _lambdaLT.ToString(_formatDouble) + "");
+                        NewFormula(@"\lambda_{LT} = \sqrt{ W_{pl,y} \cdot f_{y} / M_{cr,LT} } = " + _lambdaLT.ToString(_formatDouble) + "");
                     } else if (_classificationSection == 3) {
                         _lambdaLT = GetLambdaSegn(_sec.Wel22Min, fy, _McrLateralTorsional);
-                        NewFormula(@"\lambda_{LT} = " + _lambdaLT.ToString(_formatDouble) + "");
+                        NewFormula(@"\lambda_{LT} = \sqrt{ W_{el,y} \cdot f_{y} / M_{cr,LT} } = " + _lambdaLT.ToString(_formatDouble) + "");
                     } else
                     {
                         _lambdaLT = GetLambdaSegn(_Weffy, fy, _McrLateralTorsional);
-                        NewFormula(@"\lambda_{LT} = " + _lambdaLT.ToString(_formatDouble) + "");
+                        NewFormula(@"\lambda_{LT} = \sqrt{ W_{eff,y} \cdot f_{y} / M_{cr,LT} } = " + _lambdaLT.ToString(_formatDouble) + "");
                     }
 
                     _alphaLT = GetImperfectionFactorLT(_useEquation_6_57);
                     NewFormula(@"\alpha_{LT} = " + _alphaLT.ToString(_formatDouble) + "");
+
+                    NewParagraph("kc factor using Table 6.6 EN 1993-1-1:");
                     double kc = Getkc(_lambdaLT, _supportConditiony, _loadConditiony, _psiy);
                     NewFormula(@"k_c = " + kc.ToString(_formatDouble) + "");
 
                     if (_sec.GetType() == typeof(SectionH) && _useEquation_6_57 == true)
                     {
+                        NewFormula(@"\beta = " + _annex.Beta);
+                        NewFormula(@"\lambda_{LT0} = " + _annex.LambdaLT0);
+
                         _PhiLT = GetPhi(_alphaLT, _lambdaLT, _annex.Beta, _annex.LambdaLT0);
-                        NewFormula(@"\Phi_{LT} = " + _PhiLT.ToString(_formatDouble) + "");
+                        NewFormula(@"\Phi_{LT} = 0.5 \cdot [ 1 + \alpha_{LT} \cdot ( \lambda_{LT} - \lambda_{LT0} ) + \beta \cdot \lambda_{LT}^{2} ] = " + _PhiLT.ToString(_formatDouble) + "");
+
                         double factorF = Math.Min(1.0, 1.0 - 0.5 * (1.0 - kc) * (1.0 - 2.0 * Math.Pow(_lambdaLT - 0.8, 2.0)));
-                        NewFormula(@"f = " + factorF.ToString(_formatDouble) + "");
+                        NewFormula(@"f = min(1, 1 - 0.5 \cdot (1 - k_c) * (1 - 2 \cdot (_lambda_{LT} - 0.8)^{2} = " + factorF.ToString(_formatDouble) + "");
+                        
                         _ChiLT = GetChiLTmod(_PhiLT, _lambdaLT, _annex.Beta, factorF);
                         NewFormula(@"\chi_{LT} = " + _ChiLT.ToString(_formatDouble) + "");
                     } else
@@ -2065,11 +2073,15 @@ namespace GPC.Checker.Steel.EuroCode
         protected double GetChiLTmod(double Phi, double lambda_segn, double beta = 1.0, double f = 1.0) //beta_default = 1, f=1
         {
             double Chi = 1.0 / (Phi + Math.Pow(Math.Pow(Phi, 2.0) - beta * Math.Pow(lambda_segn, 2.0), 0.5));
+            NewFormula(@"\chi_{LT} = \frac{1}{\Phi_{LT} + \sqrt{\Phi_{LT}^2 - \beta \cdot \lambda_{LT}^2}} = " + Chi.ToString(_formatDouble));
             Chi = Math.Min(Chi, 1.0);
+            NewFormula(@"\chi_{LT} = min(\chi_{LT}, 1) = " + Chi.ToString(_formatDouble));
             Chi = Math.Min(Chi, 1.0 / Math.Pow(lambda_segn, 2.0));
+            NewFormula(@"\chi_{LT} = min(\chi_{LT}, 1 / \lambda_{LT}^2) = " + Chi.ToString(_formatDouble));
 
             double ChiLTMod = Math.Min(Chi/f, 1.0);
             ChiLTMod = Math.Min(ChiLTMod, 1.0 / Math.Pow(lambda_segn, 2.0));
+            NewFormula(@"\chi_{LT, mod} = min(\chi_{LT} / f, 1) = " + Chi.ToString(_formatDouble));
             return ChiLTMod;
         }
 
@@ -2163,25 +2175,30 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 SectionCHS sec = (SectionCHS)_sec;
                 zg = sec.D - sec.ShearCenter.Y;
+                //NewFormula("z_g = " + zg.ToString(_formatDouble));
             } else if (typeSection == typeof(SectionRHS))
             {
                 SectionRHS sec = (SectionRHS)_sec;
                 zg = sec.H - sec.ShearCenter.Y;
+                //NewFormula("z_g = " + zg.ToString(_formatDouble));
             }
             else if (typeSection == typeof(SectionH))
             {
                 SectionH sec = (SectionH)_sec;
                 zg = sec.H - sec.ShearCenter.Y;
+                //NewFormula("z_g = " + zg.ToString(_formatDouble));
             }
             else if (typeSection == typeof(SectionC))
             {
                 SectionC sec = (SectionC)_sec;
                 zg = sec.H - sec.ShearCenter.Y;
+                //NewFormula("z_g = " + zg.ToString(_formatDouble));
             }
             else if (typeSection == typeof(SectionT))
             {
                 SectionT sec = (SectionT)_sec;
                 zg = sec.H - sec.ShearCenter.Y;
+                //NewFormula("z_g = " + zg.ToString(_formatDouble));
             }
             else
             {
@@ -2372,7 +2389,16 @@ namespace GPC.Checker.Steel.EuroCode
                 throw new Exception("Cannot calc McrLT. Any symmetry");
             }
 
+            NewFormula("C_1 = " + c1.ToString(_formatDouble));
+            NewFormula("C_2 = " + c1.ToString(_formatDouble));
+            NewFormula("C_3 = " + c1.ToString(_formatDouble));
+            NewFormula("k = " + k.ToString(_formatDouble));
+            NewFormula("k_w = " + kw.ToString(_formatDouble));
+            NewFormula("z_g = " + zg.ToString(_formatDouble) + " mm");
+            NewFormula("z_j = " + zj.ToString(_formatDouble) + " mm");
+
             double McrLT = c1 * Math.Pow(Math.PI, 2.0) * E * Jz / Math.Pow(k * L, 2.0) * (Math.Pow(Math.Pow(k / kw, 2.0) * Jw / Jz + Math.Pow(k * L, 2.0) * G * Jt / (Math.Pow(Math.PI, 2.0) * E * Jz) + Math.Pow(c2 * zg - c3 * zj, 2.0), 0.5) - (c2 * zg - c3 * zj));
+            NewFormula(@"M_{cr,LT} = C_{1} \cdot \frac{ \pi^{2} \cdot E \cdot J_{z} }{ ( k \cdot L )^{2} } \left{ [ ( \frac{ k }{ k_{w} } )^{2} \cdot \frac{ J_{w} }{ J_{z} } + \frac{ ( k \cdot L )^{2} \cdot G \cdot J_{t} }{ \pi^{2} \cdot E \cdot J_{z} } + ( C_{2} \cdot z_{g} - C_{3} \cdot z_{j} )^{2} ]^{0.5} - ( C_{2} \cdot z_{g} - C_{3} \cdot z_{j} ) \right} = "+ (McrLT/1e6).ToString(_formatDouble) + " kNm");
             return McrLT;
         }
 
@@ -2786,6 +2812,10 @@ namespace GPC.Checker.Steel.EuroCode
 
         protected double GetImperfectionFactorLT(bool useEquation_6_57)
         {
+            if (useEquation_6_57 == true)
+            {
+                NewParagraph("Use eq. 6.57 EN 1993-1-1:");
+            }
             double alpha_LT;
 
             Dictionary<string, double> SectionBucklingLTCurves = new Dictionary<string, double>();
@@ -2962,7 +2992,7 @@ namespace GPC.Checker.Steel.EuroCode
             _createReport = true;
             _wordDocument.OMathJc = Word.WdOMathJc.wdOMathJcLeft;
 
-            CheckResistance();
+            //CheckResistance();
 
             CheckBuckling(_L, _betay, _betaz, _betaLT, _supportConditiony, _loadConditiony, _psiy, _supportConditionz, _loadConditionz, _psiz);
 
