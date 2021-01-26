@@ -391,6 +391,7 @@ namespace GPC.Checker.Steel.EuroCode
             NewFormula(@"T_{Ed} = " + (_TEd/1e6).ToString(_formatDouble) + " kNm");
 
             NewParagraph("Section Properties");
+            //NewParagraph(_sec.ToReport());
             NewFormula(@"A = " + _sec.Area.ToString(_formatDouble) + " mm^2");
             NewFormula(@"x_G = " + _sec.Centroid.X.ToString(_formatDouble) + " mm");
             NewFormula(@"y_G = " + _sec.Centroid.Y.ToString(_formatDouble) + " mm");
@@ -1762,35 +1763,50 @@ namespace GPC.Checker.Steel.EuroCode
             if (_classificationSection < 3)
             {
                 Wy = _sec.Wpl22;
+                NewFormula(@"W_y = W_{pl,y} = " + Wy.ToString(_formatExponential) + " mm^3");
                 Wz = _sec.Wpl11;
+                NewFormula(@"W_y = W_{pl,z} = " + Wz.ToString(_formatExponential) + " mm^3");
             } else if (_classificationSection == 3)
             {
                 Wy = _sec.Wel22Min;
+                NewFormula(@"W_y = W_{el,y} = " + Wy.ToString(_formatExponential) + " mm^3");
                 Wz = _sec.Wel11Min;
+                NewFormula(@"W_z = W_{el,z} = " + Wz.ToString(_formatExponential) + " mm^3");
             } else
             {
                 Wy = _Weffy;
+                NewFormula(@"W_y = W_{eff,y} = " + Wy.ToString(_formatExponential) + " mm^3");
                 Wz = _Weffz;
+                NewFormula(@"W_z = W_{eff,z} = " + Wz.ToString(_formatExponential) + " mm^3");
             }
 
             McRdy = Wy * fy / gm0;
-            NewFormula(@"M_{c,Rd,y} = Wy \cdot f_y / \gamma_{m0} = " + (McRdy / 1e6).ToString(_formatDouble) + " kNm");
+            NewFormula(@"M_{c,Rd,y} = W_y \cdot f_y / \gamma_{m0} = " + (McRdy / 1e6).ToString(_formatDouble) + " kNm");
             McRdz = Wz * fy / gm0;
-            NewFormula(@"M_{c,Rd,z} = Wz \cdot f_y / \gamma_{m0} = " + (McRdz / 1e6).ToString(_formatDouble) + " kNm");
+            NewFormula(@"M_{c,Rd,z} = W_z \cdot f_y / \gamma_{m0} = " + (McRdz / 1e6).ToString(_formatDouble) + " kNm");
 
-            double rhoy = Math.Min(Math.Pow(2.0 * Math.Abs(VyEd) / _VplTRdy - 1.0, 2.0), 1.0);
+            double rhoy;
             if (VyEd <= 0.5 * _VplTRdy)
             {
                 rhoy = 0.0;
+                NewFormula(@"V_{Edy} \leq 0.5 \cdot V_{pl,y,T,Rd} \rightarrow \rho_y = " + (rhoy).ToString(_formatDouble) + "");
+            } else
+            {
+                rhoy = Math.Min(Math.Pow(2.0 * Math.Abs(VyEd) / _VplTRdy - 1.0, 2.0), 1.0);
+                NewFormula(@"\rho_y = ( \frac{ 2 \cdot V_{Ed,y} }{ V_{pl,y,T,Rd} } - 1 )^2 = " + (rhoy).ToString(_formatDouble) + "");
             }
-            NewFormula(@"\rho_y = " + (rhoy).ToString(_formatDouble) + "");
 
-            double rhoz = Math.Min(Math.Pow(2.0 * Math.Abs(VzEd) / _VplTRdz - 1.0, 2.0), 1.0);
+
+            double rhoz;
             if (VzEd <= 0.5 * _VplTRdz)
             {
                 rhoz = 0.0;
+                NewFormula(@"V_{Edz} \leq 0.5 \cdot V_{pl,z,T,Rd} \rightarrow \rho_z = " + (rhoy).ToString(_formatDouble) + "");
+            } else
+            {
+                rhoz = Math.Min(Math.Pow(2.0 * Math.Abs(VzEd) / _VplTRdz - 1.0, 2.0), 1.0);
+                NewFormula(@"\rho_z = ( \frac{ 2 \cdot V_{Ed,z} }{ V_{pl,yzT,Rd} } - 1 )^2 = " + (rhoz).ToString(_formatDouble) + "");
             }
-            NewFormula(@"\rho_z = " + (rhoz).ToString(_formatDouble) + "");
 
             Type typeShape = _sec.GetType();
             //check if bending moment should be recalculated with each plate bending moment contribution multiplied for each rho
@@ -1798,15 +1814,15 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 SectionH sec = (SectionH)_sec;
                 MvRdy = Math.Min((Wy - rhoz * Math.Pow(sec.HeightWeb * sec.ThicknessWeb,2.0)/(4.0 * sec.ThicknessWeb)) * fy / gm0,  Wy * fy / gm0);
-                NewFormula(@"M_{v,Rd,y} = " + (MvRdy / 1e6).ToString(_formatDouble) + " kNm");
+                NewFormula(@"M_{v,Rd,y} = min(W_{y} - \rho_z \cdot (h_w \cdt t_W)^2/(4 \cdot t_w) \cdot f_y \cdot \gamma_{m0}, Wy \cdot f_y / \gamma_{m0}) = " + (MvRdy / 1e6).ToString(_formatDouble) + " kNm");
             }
             else
             {
                 MvRdy = Wy * (1.0 - rhoz) * fy / gm0;
-                NewFormula(@"M_{v,Rd,y} = " + (MvRdy / 1e6).ToString(_formatDouble) + " kNm");
+                NewFormula(@"M_{v,Rd,y} = W_y \cdot (1 - \rho_z) \cdot f_y / \gamma_{m0} = " + (MvRdy / 1e6).ToString(_formatDouble) + " kNm");
             }
             MvRdz = Wz * (1.0 - rhoy) * fy / gm0;
-            NewFormula(@"M_{v,Rd,z} = " + (MvRdz / 1e6).ToString(_formatDouble) + " kNm");
+            NewFormula(@"M_{v,Rd,z} = W_z \cdot (1 - \rho_y) \cdt f_y / \gamma_{m0} = " + (MvRdz / 1e6).ToString(_formatDouble) + " kNm");
 
             if (_classificationSection < 3)
             {
@@ -1837,20 +1853,20 @@ namespace GPC.Checker.Steel.EuroCode
                         if (n <= a)
                         {
                             MRdNz = MvRdz;
-                            NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
+                            NewFormula(@"n \leq a : M_{Rd,N,z} = M_{v,Rd,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                         }
                         else
                         {
                             MRdNz = MvRdz * (1.0 - Math.Pow((n - a) / (1.0 - a), 2.0));
-                            NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
+                            NewFormula(@"M_{Rd,N,z} = M_{v,Rd,z} \cdot (1 - (\frac{n-a}{1-a})^2 = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                         }
                     }
                     else
                     {
                         MRdNy = MvRdy;
-                        NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{Rd,N,y} = M_{v,Rd,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                         MRdNz = MvRdz;
-                        NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{Rd,N,z} = M_{v,Rd,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                     }
                 }
                 else if (typeShape == typeof(SectionCHS))
@@ -1858,9 +1874,9 @@ namespace GPC.Checker.Steel.EuroCode
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy * (1.0 - Math.Pow(n, 1.7));
-                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,y} = M_{v,Rd,y} \cdot (1 - n)^{1.7} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz * (1.0 - Math.Pow(n, 1.7));
-                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,z} = M_{v,Rd,z} \cdot (1 - n)^{1.7} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else if (typeShape == typeof(SectionRHS))
                 {
@@ -1876,12 +1892,14 @@ namespace GPC.Checker.Steel.EuroCode
                         double thk_web = secRHS.ThicknessWeb;
 
                         double aw = Math.Min((A - 2.0 * b * thk_flange) / A, 0.5);
+                        NewFormula(@"a_w = min(\frac{ A-2 \cdot b \cdot t_f }{ A },0.5) = " + aw.ToString(_formatDouble));
                         double af = Math.Min((A - 2.0 * h * thk_web) / A, 0.5);
+                        NewFormula(@"a_f = min(\frac{ A-2 \cdot h \cdot t_w }{ A },0.5) = " + af.ToString(_formatDouble));
 
                         MRdNy = Math.Min(MvRdy * (1.0 - n) / (1 - 0.5 * aw), MvRdy);
-                        NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{Rd,N,y} = min( M_{v,Rd,y} \cdot \frac{ 1-n }{ 1- 0.5 \cdot a_w } , M_{v,Rd,y} ) = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                         MRdNz = Math.Min(MvRdz * (1.0 - n) / (1 - 0.5 * af), MvRdz);
-                        NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{Rd,N,z} = min( M_{v,Rd,z} \cdot \frac{ 1-n }{ 1- 0.5 \cdot a_f } , M_{v,Rd,z} ) = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                     } else
                     {
                         throw new Exception("Section not yet supported");
@@ -1892,18 +1910,18 @@ namespace GPC.Checker.Steel.EuroCode
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy;
-                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,y} = M_{v,Rd,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz;
-                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,z} = M_{v,Rd,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else if (typeShape == typeof(SectionT))
                 {
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy;
-                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,y} = M_{v,Rd,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz;
-                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,z} = M_{v,Rd,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else if (typeShape == typeof(SectionL))
                 {
@@ -1911,9 +1929,9 @@ namespace GPC.Checker.Steel.EuroCode
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy; //Mrd22
-                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,y} = M_{v,Rd,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz; //Mrd11
-                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,z} = M_{v,Rd,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else
                 {
@@ -1930,18 +1948,18 @@ namespace GPC.Checker.Steel.EuroCode
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy;
-                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,y} = M_{v,Rd,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz;
-                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,z} = M_{v,Rd,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else if (typeShape == typeof(SectionC) && _sec.IsSymmetricAlongYLocalAxis == true)
                 {
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy;
-                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,y} = M_{v,Rd,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz;
-                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,z} = M_{v,Rd,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else if (typeShape == typeof(SectionL))
                 {
@@ -1949,9 +1967,9 @@ namespace GPC.Checker.Steel.EuroCode
                     MzEd = _M1Ed;
                     MyEd = _M2Ed;
                     MRdNy = MvRdy; //Mrd22
-                    NewFormula(@"M_{Rd,N,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,y} = M_{v,Rd,y} = " + (MRdNy / 1e6).ToString(_formatDouble) + " kNm");
                     MRdNz = MvRdz; //Mrd11
-                    NewFormula(@"M_{Rd,N,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
+                    NewFormula(@"M_{Rd,N,z} = M_{v,Rd,z} = " + (MRdNz / 1e6).ToString(_formatDouble) + " kNm");
                 }
                 else { 
                     //Section L
