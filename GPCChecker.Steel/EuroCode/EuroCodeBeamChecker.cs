@@ -923,35 +923,35 @@ namespace GPC.Checker.Steel.EuroCode
                         NewFormula(@"f = min(1, 1 - 0.5 \cdot (1 - k_c) * (1 - 2 \cdot (_lambda_{LT} - 0.8)^{2} = " + factorF.ToString(_formatDouble) + "");
                         
                         _ChiLT = GetChiLTmod(_PhiLT, _lambdaLT, _annex.Beta, factorF);
-                        NewFormula(@"\chi_{LT} = " + _ChiLT.ToString(_formatDouble) + "");
+                        NewFormula(@"\chi_{LT} = \frac{1}{ \Phi_{LT} + \sqrt{ \Phi_{LT}^2 - \lambda_{LT}^2 } } = " + _ChiLT.ToString(_formatDouble) + "");
                     } else
                     {
                         _PhiLT = GetPhi(_alphaLT, _lambdaLT);
-                        NewFormula(@"\Phi_{LT} = " + _PhiLT.ToString(_formatDouble) + "");
+                        NewFormula(@"\Phi_{LT} =  0.5 \cdot [ 1 + \alpha_{LT} \cdot ( \lambda_{LT} - 0.2 ) + \lambda_{LT}^{2} ] = " + _PhiLT.ToString(_formatDouble) + "");
                         _ChiLT = GetChi(_PhiLT, _lambdaLT);
-                        NewFormula(@"\chi_{LT} = " + _PhiLT.ToString(_formatDouble) + "");
+                        NewFormula(@"\chi_{LT} = \frac{1}{ \Phi_{LT} + \sqrt{ \Phi_{LT}^2 - \lambda_{LT}^2 } } =" + _ChiLT.ToString(_formatDouble) + "");
                     }
 
                     if (_classificationSection < 3)
                     {
                         _MbRdy = _ChiLT * _sec.Wpl22 * fy / _annex.Gm1;
-                        NewFormula(@"M_{b,Rd,y} = " + (_MbRdy / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{b,Rd,y} = \chi_{LT} \cdot W_{pl,y} \cdot f_{y} / \gamma_{m1} = " + (_MbRdy / 1e6).ToString(_formatDouble) + " kNm");
                         _MbRdz = _sec.Wpl11 * fy / _annex.Gm1;
-                        NewFormula(@"M_{b,Rd,z} = " + (_MbRdz / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{b,Rd,z} = W_{pl,z} \cdot f_{y} / \gamma_{m1} = " + (_MbRdz / 1e6).ToString(_formatDouble) + " kNm");
                     }
                     else if (_classificationSection == 3)
                     {
                         _MbRdy = _ChiLT * _sec.Wel22Min * fy / _annex.Gm1;
-                        NewFormula(@"M_{b,Rd,y} = " + (_MbRdy / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{b,Rd,y} = \chi_{LT} \cdot W_{el,y} \cdot f_{y} / \gamma_{m1} = " + (_MbRdy / 1e6).ToString(_formatDouble) + " kNm");
                         _MbRdz = _sec.Wel11Min * fy / _annex.Gm1;
-                        NewFormula(@"M_{b,Rd,z} = " + (_MbRdz / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{b,Rd,z} = W_{el,z} \cdot f_{y} / \gamma_{m1} = " + (_MbRdz / 1e6).ToString(_formatDouble) + " kNm");
                     }
                     else
                     {
                         _MbRdy = _ChiLT * _Weffy * fy / _annex.Gm1;
-                        NewFormula(@"M_{b,Rd,y} = " + (_MbRdy / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{b,Rd,y} = \chi_{LT} \cdot W_{eff,y} \cdot f_{y} / \gamma_{m1} = " + (_MbRdy / 1e6).ToString(_formatDouble) + " kNm");
                         _MbRdz = _Weffz * fy / _annex.Gm1;
-                        NewFormula(@"M_{b,Rd,z} = " + (_MbRdz / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{b,Rd,z} =  W_{eff,z} \cdot f_{y} / \gamma_{m1} = " + (_MbRdz / 1e6).ToString(_formatDouble) + " kNm");
                     }
 
                     if (_method1AnnexA)
@@ -978,9 +978,9 @@ namespace GPC.Checker.Steel.EuroCode
                         if (_classificationSection < 3) //Rules for member stability in en 1993-1-1 pg. 113
                         {
                             _wy = Math.Min(_sec.Wpl22 / _sec.Wel22Min, 1.5);
-                            NewFormula(@"w_y = " + (_wy).ToString(_formatDouble) + "");
+                            NewFormula(@"w_y = min(W_{pl,y} / W_{el,y} , 1.5) = " + (_wy).ToString(_formatDouble) + "");
                             _wz = Math.Min(_sec.Wpl11 / _sec.Wel11Min, 1.5);
-                            NewFormula(@"w_z = " + (_muy).ToString(_formatDouble) + "");
+                            NewFormula(@"w_z = min(W_{pl,z} / W_{el,z} , 1.5) = " + (_muy).ToString(_formatDouble) + "");
                         } else
                         {
                             _wy = 1.0; //e con Weff?
@@ -990,6 +990,9 @@ namespace GPC.Checker.Steel.EuroCode
                         }
 
                         double lambdaMax = Math.Max(_lambday, _lambdaz);
+                        NewFormula(@"\lambda_{max} = max(\lambda_y , \lambda_z) = " + lambdaMax.ToString(_formatDouble));
+
+                        NewParagraph(@"Calculation of non dimensional slenderness for lateral-torsional buckling due to uniform bending moment Ψ = 1:");
                         if (_classificationSection < 4)
                         {
                             _Mcr0LateralTorsional = GetMcrLT(_L0LT, _sec.Jt, _sec.Jw, _sec.J11, E, G, _supportConditiony, LoadCondition.NotDirectlyLoaded, 1.0, 1.0, 1.0, out double fakec1, out double fakec2, out double fakec3,out double fakezg, out double fakezj);
@@ -1003,49 +1006,49 @@ namespace GPC.Checker.Steel.EuroCode
                         if (_classificationSection < 3)
                         {
                             _lambda0 = GetLambdaSegn(_sec.Wpl22, fy, _Mcr0LateralTorsional);
-                            NewFormula(@"\lambda_0 = " + _lambda0.ToString(_formatDouble) + "");
+                            NewFormula(@"\lambda_0 = \sqrt{ W_{pl,y} \cdot f_y / M_{cr,LT,0} } = " + _lambda0.ToString(_formatDouble) + "");
                         } else if (_classificationSection == 3)
                         {
                             _lambda0 = GetLambdaSegn(_sec.Wel22Min, fy, _Mcr0LateralTorsional);
-                            NewFormula(@"\lambda_0 = " + _lambda0.ToString(_formatDouble) + "");
+                            NewFormula(@"\lambda_0 = \sqrt{ W_{el,y} \cdot f_y / M_{cr,LT,0} } = " + _lambda0.ToString(_formatDouble) + "");
                         } else
                         {
                             _lambda0 = GetLambdaSegn(_Weffy, fy, _Mcr0LateralTorsional); //or Wel?
-                            NewFormula(@"\lambda_0 = " + _lambda0.ToString(_formatDouble) + "");
+                            NewFormula(@"\lambda_0 = \sqrt{ W_{eff,y} \cdot f_y / M_{cr,LT,0} } = " + _lambda0.ToString(_formatDouble) + "");
                         } 
 
                         if (_classificationSection < 4)
                         {
                             _epsilony = AbsMyEd / Math.Max(NEd,1E-3) * _sec.Area / _sec.Wel22Min;
-                            NewFormula(@"\epsilon_y = " + _epsilony.ToString(_formatDouble) + "");
+                            NewFormula(@"\epsilon_y = M_{y,Ed} / N_{Ed} \cdot A / W_{el,y} = " + _epsilony.ToString(_formatDouble) + "");
                         } else
                         {
                             _epsilony = AbsMyEd / Math.Max(NEd, 1E-3) * _Aeff / _Weffy;
-                            NewFormula(@"\epsilon_y = " + _epsilony.ToString(_formatDouble) + "");
+                            NewFormula(@"\epsilon_y = M_{y,Ed} / N_{Ed} \cdot A_{eff} / W_{el,y} =  " + _epsilony.ToString(_formatDouble) + "");
                         }
          
                         _aLT = Math.Max(1.0 - _sec.Jt / _sec.J22,0);
-                        NewFormula(@"a_{LT} = " + _aLT.ToString(_formatDouble) + "");
+                        NewFormula(@"a_{LT} = max(1 - J_t / J_y , 0) = " + _aLT.ToString(_formatDouble) + "");
 
                         double C1 = Math.Pow(kc, -2.0);
-                        NewFormula(@"C1 = " + C1.ToString(_formatDouble) + "");
+                        NewFormula(@"C1 = k_{c}^{-2} = " + C1.ToString(_formatDouble) + "");
                         double lambda0Limit = 0.2 * Math.Pow(C1, 0.5) * Math.Pow((1.0 - NEd / _Ncrz) * (1.0 - NEd / _NcrFlexuralTorsional), 0.25);
-                        NewFormula(@"\lambda_{0,lim} = " + lambda0Limit.ToString(_formatDouble) + "");
+                        NewFormula(@"\lambda_{0,lim} = 0.2 \cdot \sqrt{C1} \cdot ((1-N_{Ed}/N_{cr,z}) \cdot (1-N_{Ed}/N_{cr,TF}))^{1/4} = " + lambda0Limit.ToString(_formatDouble) + "");
 
                         if (_lambda0 <= lambda0Limit)
                         {
                             _cmy = _cmy0;
-                            NewFormula(@"c_{my} = " + _cmy.ToString(_formatDouble) + "");
+                            NewFormula(@"c_{my} = c_{my0} = " + _cmy.ToString(_formatDouble) + "");
                             _cmz = _cmz0;
-                            NewFormula(@"c_{mz} = " + _cmz.ToString(_formatDouble) + "");
+                            NewFormula(@"c_{mz} = c_{mz0} = " + _cmz.ToString(_formatDouble) + "");
                             _cmLT = 1.0;
                             NewFormula(@"c_{mLT} = " + _cmLT.ToString(_formatDouble) + "");
                         } else
                         {
                             _cmy = _cmy0 + (1.0 - _cmy0) * Math.Sqrt(_epsilony) * _aLT / (1.0 + Math.Sqrt(_epsilony) * _aLT);
-                            NewFormula(@"c_{my} = " + _cmy.ToString(_formatDouble) + "");
+                            NewFormula(@"c_{my} = c_{my0} + (1 - c_{my0} ) \cdot \frac{ \sqrt{ \varepsilon_y \cdot a_{LT} } }{ 1 + \sqrt{ \varepsilon_y } \cdot a_{LT} } = " + _cmy.ToString(_formatDouble) + "");
                             _cmz = _cmz0;
-                            NewFormula(@"c_{mz} = " + _cmz.ToString(_formatDouble) + "");
+                            NewFormula(@"c_{mz} = c_{mz0} = " + _cmz.ToString(_formatDouble) + "");
                             _cmLT = Math.Max(_cmy*_cmy * _aLT / Math.Sqrt((1.0-NEd/_Ncrz) * (1.0 - NEd/_NcrTorsional)),1.0);
                             NewFormula(@"c_{mLT} = " + _cmLT.ToString(_formatDouble) + "");
                             /*if (cmLT < 1)
@@ -1059,64 +1062,65 @@ namespace GPC.Checker.Steel.EuroCode
                         if (_classificationSection < 3)
                         {
                             mplyRd = _sec.Wpl22 * fy / _annex.Gm0;
-                            NewFormula(@"M_{pl,Rd,y} = " + (mplyRd / 1e6).ToString(_formatDouble) + " kNm");
+                            NewFormula(@"M_{pl,Rd,y} = W_{pl,y} \cdot f_{y} / \gamma_{m0} = " + (mplyRd / 1e6).ToString(_formatDouble) + " kNm");
                             mplzRd = _sec.Wpl11 * fy / _annex.Gm0;
-                            NewFormula(@"M_{pl,Rd,z} = " + (mplzRd / 1e6).ToString(_formatDouble) + " kNm");
+                            NewFormula(@"M_{pl,Rd,z} = W_{pl,z} \cdot f_{y} / \gamma_{m0} =  " + (mplzRd / 1e6).ToString(_formatDouble) + " kNm");
                         } else if (_classificationSection == 3)
                         {
                             mplyRd = _sec.Wel22Min * fy / _annex.Gm0;
-                            NewFormula(@"M_{pl,Rd,y} = " + (mplyRd / 1e6).ToString(_formatDouble) + " kNm");
+                            NewFormula(@"M_{pl,Rd,y} =  W_{el,y} \cdot f_{y} / \gamma_{m0} = " + (mplyRd / 1e6).ToString(_formatDouble) + " kNm");
                             mplzRd = _sec.Wel11Min * fy / _annex.Gm0;
-                            NewFormula(@"M_{pl,Rd,z} = " + (mplzRd / 1e6).ToString(_formatDouble) + " kNm");
+                            NewFormula(@"M_{pl,Rd,z} =  W_{el,z} \cdot f_{y} / \gamma_{m0} = " + (mplzRd / 1e6).ToString(_formatDouble) + " kNm");
                         } else
                         {
                             mplyRd = _Weffy * fy / _annex.Gm0;
-                            NewFormula(@"M_{pl,Rd,y} = " + (mplyRd / 1e6).ToString(_formatDouble) + " kNm");
+                            NewFormula(@"M_{pl,Rd,y} = W_{eff,y} \cdot f_{y} / \gamma_{m0} = " + (mplyRd / 1e6).ToString(_formatDouble) + " kNm");
                             mplzRd = _Weffz * fy / _annex.Gm0;
-                            NewFormula(@"M_{pl,Rd,z} = " + (mplzRd / 1e6).ToString(_formatDouble) + " kNm");
+                            NewFormula(@"M_{pl,Rd,z} =  W_{eff,z} \cdot f_{y} / \gamma_{m0} = " + (mplzRd / 1e6).ToString(_formatDouble) + " kNm");
                         }                        
 
                         _bLT = 0.5 * _aLT * _lambda0 * _lambda0 * AbsMyEd * AbsMzEd / (_ChiLT * mplyRd * mplzRd);
-                        NewFormula(@"b_{LT} = " + (_bLT).ToString(_formatDouble) + "");
+                        NewFormula(@"b_{LT} = 0.5 \cdot a_{LT} \lambda_0^2 \frac{ M_{y,Ed} \cdot M_{z,Ed} }{ \chi_{LT} \cdot M_{pl,y,Rd} \cdot M_{pl,z,Rd} } = " + (_bLT).ToString(_formatDouble) + "");
                         _cLT = 10.0 * _aLT * _lambda0 * _lambda0 * AbsMyEd / ((5.0 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd);
-                        NewFormula(@"c_{LT} = " + (_cLT).ToString(_formatDouble) + "");
+                        NewFormula(@"c_{LT} = 10 \cdot a_{LT} \cdot \frac{ \lambda_0^2 }{ 5 + \lambda_z^4 } \cdot \frac{ M_{y,Ed} }{ c_{my} \chi_{LT} \cdot M_{pl,y,Rd} } = " + (_cLT).ToString(_formatDouble) + "");
                         _dLT = 2.0 * _aLT * _lambda0 * AbsMyEd * AbsMzEd / ((0.1 + Math.Pow(_lambdaz,4.0)) * _cmy * _ChiLT * mplyRd * _cmz * mplzRd);
-                        NewFormula(@"d_{LT} = " + (_dLT).ToString(_formatDouble) + "");
+                        NewFormula(@"d_{LT} = 2 \cdot a_{LT} \cdot \frac{ \lambda_0 }{ 0.1 + \lambda_z^4 } \cdot \frac{ M_{y,Ed} }{ c_{my} \cdot \chi_{LT} \cdot M_{pl,y,Rd} } \cdot \frac{ M_{z,Ed} }{ c_{mz} \cdot M_{pl,z,Rd} } = " + (_dLT).ToString(_formatDouble) + "");
                         _eLT = 1.7 * _aLT * _lambda0 * AbsMyEd / ((0.1 + Math.Pow(_lambdaz, 4.0)) * _cmy * _ChiLT * mplyRd);
-                        NewFormula(@"e_{LT} = " + (_eLT).ToString(_formatDouble) + "");
+                        NewFormula(@"e_{LT} = 1.7 a_{LT} \cdot \frac{ \lambda_0 }{0.1 + \lambda_z^4} \cdot \frac{ M_{y,Ed} }{ c_{my} \cdot \chi_{LT} \cdot M_{pl,y,Rd} } = " + (_eLT).ToString(_formatDouble) + "");
 
                         double npl = NEd / (fy * _sec.Area / _annex.Gm0);
+                        NewFormula(@"n_{pl} = N_{Ed} / (A \cdot f_y / \gamma_{m0} ) = " + npl.ToString(_formatDouble));
                         _cyy = Math.Max(1.0 + (_wy - 1.0) * ((2.0 - 1.6/_wy * _cmy * _cmy * lambdaMax - 1.6 / _wy * _cmy * _cmy * lambdaMax * lambdaMax) * npl - _bLT), _sec.Wel22Min / _sec.Wpl22);
-                        NewFormula(@"c_{yy} = " + (_cyy).ToString(_formatDouble) + "");
+                        NewFormula(@"c_{yy} = max(1 + (w_y - 1) \cdot [ (2 - \frac{1.6}{w_y} c_{my}^2 \lambda_{max} - \frac{1.6}{w_y} c_{my}^2 \lambda_max^2) n_{pl} - b_{LT} ] , \frac{ W_{el,y} }{ W_{pl,y} } ) = " + (_cyy).ToString(_formatDouble) + "");
                         _cyz = Math.Max(1.0 + (_wz - 1.0) * ((2.0 - 14.0 * _cmz * _cmz * lambdaMax * lambdaMax / Math.Pow(_wz,5.0)) * npl - _cLT), 0.6 * Math.Sqrt(_wz / _wy) * _sec.Wel11Min / _sec.Wpl11);
-                        NewFormula(@"c_{yz} = " + (_cyz).ToString(_formatDouble) + "");
+                        NewFormula(@"c_{yz} = max(1 + (w_z - 1) [ ( 2-14 \frac{ c_{mz}^2 \lambda_{max} }{ w_z^5 } ) n_{pl} - c_{LT} ] , 0.6 \cdot \sqrt{ \frac{ w_z }{ w_y } } \cdot \frac{ W_{el,z} }{ W_{pl,z} } ) = " + (_cyz).ToString(_formatDouble) + "");
                         _czy = Math.Max(1.0 + (_wy - 1.0) * ((2.0 - 14.0 * _cmy * _cmy * lambdaMax * lambdaMax / Math.Pow(_wy, 5.0)) * npl - _dLT),0.6 * Math.Sqrt(_wy / _wz) * _sec.Wel22Min / _sec.Wpl22);
-                        NewFormula(@"c_{zy} = " + (_czy).ToString(_formatDouble) + "");
+                        NewFormula(@"c_{zy} = max(1 + (w_y - 1) [ ( 2-14 \frac{ c_{my}^2 \lambda_{max} }{ w_y^5 } ) n_{pl} - d_{LT} ] , 0.6 \cdot \sqrt{ \frac{ w_y }{ w_z } } \cdot \frac{ W_{el,y} }{ W_{pl,y} } ) = " + (_czy).ToString(_formatDouble) + "");
                         _czz = Math.Max(1.0 + (_wz - 1) * (2.0 - 1.6 / _wz * _cmz * _cmz * lambdaMax - 1.6 / _wz * _cmz * _cmz * lambdaMax * lambdaMax - _eLT) * npl, _sec.Wel11Min / _sec.Wpl11); //RIGHT VERSION
-                        NewFormula(@"c_{zz} = " + (_czz).ToString(_formatDouble) + "");
+                        NewFormula(@"c_{zz} = max(1 + (w_z - 1) \cdot [ 2 - \frac{1.6}{w_z} c_{mz}^2 \lambda_{max} - \frac{1.6}{w_z} c_{mz}^2 \lambda_max^2 - e_{LT} ] n_{pl} , \frac{ W_{el,z} }{ W_{pl,z} } ) = " + (_czz).ToString(_formatDouble) + "");
                         /* WRONG - TO BE COMMENTED!! -  ONLY FOR COMPARISON WITH SAP */
                         //_czz = Math.Max(1.0 + (_wz - 1) * ((2.0 - 1.6 / _wz * _cmz * _cmz * lambdaMax - 1.6 / _wz * _cmz * _cmz * lambdaMax * lambdaMax) * npl - _eLT), _sec.Wel11Min / _sec.Wpl11); //SAP200 WRONG OLD VERSION
                         /* STOP WRONG */
                         if (_classificationSection <= 2)
                         {
                             _kyy = _cmy * _cmLT * _muy / (1.0 - NEd / _Ncry) * 1.0 / _cyy;
-                            NewFormula(@"k_{yy} = " + (_kyy).ToString(_formatDouble) + "");
+                            NewFormula(@"k_{yy} = c_{my} \cdot c_{mLT} \cdot \frac{ \mu_y }{ 1-N_{Ed} / N_{cr,y} } \cdot \frac{ 1 }{ c_{yy} } = " + (_kyy).ToString(_formatDouble) + "");
                             _kyz = _cmz * _muy/(1.0 - NEd/_Ncrz) * 1.0 / _cyz * 0.6 * Math.Sqrt(_wz/_wy);
-                            NewFormula(@"k_{yz} = " + (_kyz).ToString(_formatDouble) + "");
+                            NewFormula(@"k_{yz} = c_{mz} \cdot \frac{ \mu_y }{ 1 - N_{Ed} / N_{cr,z} } \cdot \frac{ 1 }{ c_{yz} } \cdot 0.6 \sqrt{ \frac{ w_z }{ w_y } } = " + (_kyz).ToString(_formatDouble) + "");
                             _kzy = _cmy * _cmLT * _muz/(1.0 - NEd/_Ncry) * 1.0 / _czy * 0.6 * Math.Sqrt(_wy/_wz);
-                            NewFormula(@"k_{zy} = " + (_kzy).ToString(_formatDouble) + "");
+                            NewFormula(@"k_{zy} = c_{my} \cdot c_{mLT} \frac{ \mu_z }{ 1 - N_{Ed} / N_{cr,y} } \cdot \frac{ 1 }{ c_{zy} } \cdot 0.6 \sqrt{ \frac{ w_y }{ w_z } } = " + (_kzy).ToString(_formatDouble) + "");
                             _kzz = _cmz * _muz / (1.0 - NEd/_Ncrz) * 1.0 / _czz;
-                            NewFormula(@"k_{zz} = " + (_kzz).ToString(_formatDouble) + "");
+                            NewFormula(@"k_{zz} = c_{mz} \cdot \frac{ \mu_z }{ 1-N_{Ed} / N_{cr,z} } \cdot \frac{ 1 }{ c_{zz} } = " + (_kzz).ToString(_formatDouble) + "");
                         } else
                         {
                             _kyy = _cmy * _cmLT * _muy / (1.0 - NEd / _Ncry);
-                            NewFormula(@"k_{yy} = " + (_kyy).ToString(_formatDouble) + "");
+                            NewFormula(@"k_{yy} = c_{my} \cdot c_{mLT} \cdot \frac{ \mu_y }{ 1-N_{Ed} / N_{cr,y} } = " + (_kyy).ToString(_formatDouble) + "");
                             _kyz = _cmz * _muy / (1.0 - NEd / _Ncrz);
-                            NewFormula(@"k_{yz} = " + (_kyz).ToString(_formatDouble) + "");
+                            NewFormula(@"k_{yz} = c_{mz} \cdot \frac{ \mu_y }{ 1 - N_{Ed} / N_{cr,z} } = " + (_kyz).ToString(_formatDouble) + "");
                             _kzy = _cmy * _cmLT * _muz / (1.0 - NEd/_Ncry);
-                            NewFormula(@"k_{zy} = " + (_kzy).ToString(_formatDouble) + "");
+                            NewFormula(@"k_{zy} = c_{my} \cdot c_{mLT} \frac{ \mu_z }{ 1 - N_{Ed} / N_{cr,y} } = " + (_kzy).ToString(_formatDouble) + "");
                             _kzz = _cmz * _muz / (1.0 - NEd / _Ncrz);
-                            NewFormula(@"k_zz} = " + (_kzz).ToString(_formatDouble) + "");
+                            NewFormula(@"k_zz} = c_{mz} \cdot \frac{ \mu_z }{ 1-N_{Ed} / N_{cr,z} } = " + (_kzz).ToString(_formatDouble) + "");
                         }
                         
                     } else
@@ -1133,42 +1137,42 @@ namespace GPC.Checker.Steel.EuroCode
                     if (_classificationSection < 3)
                     {
                         nrk = _sec.Area * fy;
-                        NewFormula(@"N_{Rk} = " + (nrk / 1e3).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{Rk} = A \cdot f_y = " + (nrk / 1e3).ToString(_formatDouble) + " kN");
                         myrk = _sec.Wpl22 * fy;
-                        NewFormula(@"M_{Rk,y} = " + (myrk / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{Rk,y} = W_{pl,y} \cdot f_y = " + (myrk / 1e6).ToString(_formatDouble) + " kNm");
                         mzrk = _sec.Wpl11 * fy;
-                        NewFormula(@"M_{Rk,z} = " + (mzrk / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{Rk,z} = W_{pl,z} \cdot f_y = " + (mzrk / 1e6).ToString(_formatDouble) + " kNm");
                         deltaMy = 0;
                         deltaMz = 0;
                     } else if (_classificationSection == 3)
                     {
                         nrk = _sec.Area * fy;
-                        NewFormula(@"N_{Rk} = " + (nrk / 1e3).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{Rk} = A \cdot f_y = " + (nrk / 1e3).ToString(_formatDouble) + " kN");
                         myrk = _sec.Wel22Min * fy;
-                        NewFormula(@"M_{Rk,y} = " + (myrk / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{Rk,y} = W_{el,y} \cdot f_y = " + (myrk / 1e6).ToString(_formatDouble) + " kNm");
                         mzrk = _sec.Wel11Min * fy;
-                        NewFormula(@"M_{Rk,z} = " + (mzrk / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{Rk,z} = W_{el,y} \cdot f_y = " + (mzrk / 1e6).ToString(_formatDouble) + " kNm");
                         deltaMy = 0;
                         deltaMz = 0;
                     } else
                     {
                         nrk = _Aeff * fy;
-                        NewFormula(@"N_{Rk} = " + (nrk / 1e3).ToString(_formatDouble) + " kN");
+                        NewFormula(@"N_{Rk} = A_{eff} \cdot f_y = " + (nrk / 1e3).ToString(_formatDouble) + " kN");
                         myrk = _Weffy * fy;
-                        NewFormula(@"M_{Rk,y} = " + (myrk / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{Rk,y} = W_{pl,y} \cdot f_y = " + (myrk / 1e6).ToString(_formatDouble) + " kNm");
                         mzrk = _Weffz * fy;
-                        NewFormula(@"M_{Rk,z} = " + (mzrk / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"M_{Rk,z} = W_{pl,z} \cdot f_y = " + (mzrk / 1e6).ToString(_formatDouble) + " kNm");
                         deltaMy = NEd * _deltaG.Y; //check segno
-                        NewFormula(@"\Delta M_{y} = " + (deltaMy / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"\Delta M_{y} = N_{Ed} \cdot \Delta_y = " + (deltaMy / 1e6).ToString(_formatDouble) + " kNm");
                         deltaMz = NEd * _deltaG.X; //check segno
-                        NewFormula(@"\Delta M_{z} = " + (deltaMz / 1e6).ToString(_formatDouble) + " kNm");
+                        NewFormula(@"\Delta M_{z} = N_{Ed} \cdot \Delta_z = " + (deltaMz / 1e6).ToString(_formatDouble) + " kNm");
                     }
                     WRBuckling1 = NEd / (_Chiy * nrk / _annex.Gm1) + _kyy * Math.Abs(AbsMyEd + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kyz * Math.Abs(AbsMzEd + deltaMz) / (mzrk / _annex.Gm1);
-                    NewFormula(@"w.r._{1} = \frac{N_{Ed}}{\chi_y \cdot N_{Rk} / \gamma_{m1}} + k_{yy} \cdot \frac{My_{Ed} + \Delta M_{y,Ed}}{\chi_{LT} \cdot M_{y,Rk} / \gamma_{m1} } + k_{zy} \cdot \frac{Mz_{Ed} + \Delta M_{z,Ed}}{ M_{z,Rk} / \gamma_{m1}} = " + (WRBuckling1).ToString(_formatDouble) + "");
+                    NewFormula(@"w.r._{1} = \frac{N_{Ed}}{\chi_y \cdot N_{Rk} / \gamma_{m1}} + k_{yy} \cdot \frac{M_{y,Ed} + \Delta M_{y,Ed}}{\chi_{LT} \cdot M_{y,Rk} / \gamma_{m1} } + k_{zy} \cdot \frac{Mz_{Ed} + \Delta M_{z,Ed}}{ M_{z,Rk} / \gamma_{m1}} = " + (WRBuckling1).ToString(_formatDouble) + "");
                     WRBuckling2 = NEd / (_Chiz * nrk / _annex.Gm1) + _kzy * Math.Abs(AbsMyEd + deltaMy) / (_ChiLT * myrk / _annex.Gm1) + _kzz * Math.Abs(AbsMzEd + deltaMz) / (mzrk / _annex.Gm1);
-                    NewFormula(@"w.r._{2} = \frac{N_{Ed}}{\chi_z \cdot N_{Rk} / \gamma_{m1}} + k_{zy} \cdot \frac{My_{Ed} + \Delta M_{y,Ed}}{\chi_{LT} \cdot M_{y,Rk} / \gamma_{m1} } + k_{zz} \cdot \frac{Mz_{Ed} + \Delta M_{z,Ed}}{ M_{z,Rk} / \gamma_{m1}} = " + (WRBuckling1).ToString(_formatDouble) + "");
+                    NewFormula(@"w.r._{2} = \frac{N_{Ed}}{\chi_z \cdot N_{Rk} / \gamma_{m1}} + k_{zy} \cdot \frac{M_{y,Ed} + \Delta M_{y,Ed}}{\chi_{LT} \cdot M_{y,Rk} / \gamma_{m1} } + k_{zz} \cdot \frac{Mz_{Ed} + \Delta M_{z,Ed}}{ M_{z,Rk} / \gamma_{m1}} = " + (WRBuckling1).ToString(_formatDouble) + "");
                     WRBuckling3 = NEd / _NbRdT;
-                    NewFormula(@"w.r._{3} = " + (WRBuckling3).ToString(_formatDouble) + "");
+                    NewFormula(@"w.r._{3} = N_{Ed}/N_{b,Rd,T} = " + (WRBuckling3).ToString(_formatDouble) + "");
 
                     WRMax = Math.Max(WRBuckling1, WRMax);
                     WRMax = Math.Max(WRBuckling2, WRMax);
@@ -2914,6 +2918,7 @@ namespace GPC.Checker.Steel.EuroCode
 
         protected double GetCMi0(LoadCondition loadCondition, SupportCondition supportCondition, double? psi, double? MEdMax, double? deflection, double NEd, double Ncr)
         {
+            NewParagraph("Calculation of Cmi according to Table A.2 EN 1993-1-1");
             if (loadCondition == LoadCondition.SingleForce && supportCondition == SupportCondition.HingesAtEnds)
             {
                 return 1.0 - 0.18 * NEd / Ncr;
