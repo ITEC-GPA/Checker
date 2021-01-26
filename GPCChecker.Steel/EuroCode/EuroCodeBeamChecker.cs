@@ -36,94 +36,93 @@ namespace GPC.Checker.Steel.EuroCode
         protected Section _sec;
         protected int _classificationSection; //for the current forces
 
-        protected double _L;
+        protected double _L; //lenght of the beams
       
-        protected double? _psiy; //MEd(End 2) = psi * MEd(End 1)
-        protected double? _psiz;
+        protected double? _psiy; //MEd(End 2) = psi * MEd(End 1) - y dir
+        protected double? _psiz; //MEd(End 2) = psi * MEd(End 1) - z dir
         protected LoadCondition _loadConditiony;
         protected SupportCondition _supportConditiony;
         protected LoadCondition _loadConditionz;
         protected SupportCondition _supportConditionz;
 
-        protected double _betay;
-        protected double _betaz;
-        protected double _betaLT;
-        protected double _L0y;
-        protected double _L0z;
-        protected double _L0LT;
+        protected double _betay; // L0y = betay * L
+        protected double _betaz; // L0z = betaz * L
+        protected double _betaLT; // L0LT = betaLT * L
+        protected double _L0y; //lunghezza libera di inflessione y dir
+        protected double _L0z; //lunghezza libera di inflessione z dir
+        protected double _L0LT; //lunghezza libera di inflessione lateral torsional
 
-        protected bool _method1AnnexA = true;
+        protected bool _method1AnnexA = true; //se false -> si usa method2AnnexB EN 1993-1-1
         protected bool _useEquation_6_57 = false; //EN1993-1-1
 
-        protected double _Aeff;
-        protected double _Weffy;
-        protected double _J2eff;
-        protected double _Weffz;
-        protected double _J1eff;
-        protected Point2d _deltaG;
-        protected Point2d _centroidEff;
+        protected double _Aeff;//area sezione efficace
+        protected double _Weffy;//modulo elastico sezione efficace
+        protected double _J2eff; //inerzia max sezione efficace
+        protected double _Weffz; //modulo elastico sezione efficace
+        protected double _J1eff; //inerzia min sezione efficace
+        protected Point2d _deltaG; //differenza tra baricentro sezione efficace e sezione lorda
+        protected Point2d _centroidEff; //baricentro sezione efficace
 
-        protected double _NEd;
-        protected double _V1Ed;
-        protected double _V2Ed;
-        protected double _M1Ed;
-        protected double _M2Ed;
-        protected double _TEd;
-        protected double _VzEd;
-        protected double _VyEd;
-        protected double _MzEd;
-        protected double _MyEd;
+        protected double _NEd; //sforzo assiale agente: NEd>0 trazione
+        protected double _V1Ed; //sforzo di taglio agente principale
+        protected double _V2Ed; //sforzo di taglio agente principale
+        protected double _M1Ed; //momento flettente agente principale
+        protected double _M2Ed; //momento flettente agente principale
+        protected double _TEd;  //momento torcente agente
+        protected double _VzEd; //taglio agente direzione z
+        protected double _VyEd; //taglio agente direzione y
+        protected double _MzEd; //momento flettente direzione z
+        protected double _MyEd; //momento flettente direzione y
 
-        protected double _NRd;
-        protected double _VplRdy;
-        protected double _VplRdz;
-        protected double _VplTRdy;
-        protected double _VplTRdz;
+        protected double _NRd; //sforzo assiale resistente
+        protected double _VplRdy; //taglio resistente
+        protected double _VplRdz; //taglio resistente
+        protected double _VplTRdy; //taglio resistente con decurtazione dovuta a torsione
+        protected double _VplTRdz; //taglio resistente con decurtazione dovuta a torsione
 
-        protected double _MRdNy;
-        protected double _MRdNz;
+        protected double _MRdNy; //momento flettente resistente decurtato per sforzo assiale
+        protected double _MRdNz;//momento flettente resistente decurtato per sforzo assiale
 
-        protected double _McRdy;
-        protected double _McRdz;
+        protected double _McRdy;//momento flettente resistente
+        protected double _McRdz;//momento flettente resistente
 
-        protected double _MvRdy;
-        protected double _MvRdz;
+        protected double _MvRdy;//momento flettente resistente decurtato per sforzo di taglio
+        protected double _MvRdz;//momento flettente resistente decurtato per sforzo di taglio
 
-        protected double _TRd;
+        protected double _TRd;//momento torcente resistente
 
-        protected double _Ncry;
-        protected double _Ncrz;
-        protected double _NcrTorsional;
-        protected double _NcrFlexuralTorsional;
-        protected double _McrLateralTorsional;
-        protected double _Mcr0LateralTorsional;
-        protected double _c1;
-        protected double _c2;
-        protected double _c3;
-        protected double _zg;
+        protected double _Ncry; //sforzo assiale di buckling laterale
+        protected double _Ncrz;//sforzo assiale di buckling laterale
+        protected double _NcrTorsional;//sforzo assiale di buckling torsionale
+        protected double _NcrFlexuralTorsional;//sforzo assiale di buckling flesso torsionale
+        protected double _McrLateralTorsional;//momento critico di buckling flesso torsionale
+        protected double _Mcr0LateralTorsional;//momento critico di buckling flesso torsionale per momento flettente costante
+        protected double _c1; //fattore per calcolo Mcr
+        protected double _c2;//fattore per calcolo Mcr
+        protected double _c3;//fattore per calcolo Mcr
+        protected double _zg; //distanza tra applicazione del carico e baricentro
         protected double _zj;
 
+        protected double _alphay; //fattore di imperfezione
+        protected double _alphaz;//fattore di imperfezione
+        protected double _alphaLT;//fattore di imperfezione
+        protected double _alphaT;//fattore di imperfezione
 
-        protected double _alphay;
-        protected double _alphaz;
-        protected double _alphaLT;
-        protected double _alphaT;
-
-        protected double _lambday;
-        protected double _lambdaz;
-        protected double _lambdaLT;
-        protected double _lambdaT;
-        protected double _lambda0;
+        protected double _lambday; //snellezza adimensionale
+        protected double _lambdaz;//snellezza adimensionale
+        protected double _lambdaLT;//snellezza adimensionale
+        protected double _lambdaT;//snellezza adimensionale
+        protected double _lambda0;//snellezza adimensionale
 
         protected double _Phiy;
         protected double _Phiz;
         protected double _PhiLT;
         protected double _PhiT;
 
-        protected double _Chiy;
-        protected double _Chiz;
-        protected double _ChiLT;
-        protected double _ChiT;
+        protected double _Chiy; //fattore riduzione per buckling
+        protected double _Chiz; //fattore riduzione per buckling 
+        protected double _ChiLT; //fattore riduzione per buckling
+        protected double _ChiT; //fattore riduzione per buckling
 
         protected double _cmy0;
         protected double _cmz0;
@@ -150,12 +149,12 @@ namespace GPC.Checker.Steel.EuroCode
 
         protected double _epsilony;
 
-        protected double _NbRdy;
-        protected double _NbRdz;
-        protected double _NbRdT;
+        protected double _NbRdy; //resistenza per buckling
+        protected double _NbRdz; //resistenza per buckling
+        protected double _NbRdT; //resistenza per buckling
 
-        protected double _MbRdy;
-        protected double _MbRdz;
+        protected double _MbRdy; //resistenza per buckling
+        protected double _MbRdz; //resistenza per buckling
 
         protected double _kyy;
         protected double _kyz;
@@ -2997,7 +2996,7 @@ namespace GPC.Checker.Steel.EuroCode
             _createReport = true;
             _wordDocument.OMathJc = Word.WdOMathJc.wdOMathJcLeft;
 
-            //CheckResistance();
+            CheckResistance();
 
             CheckBuckling(_L, _betay, _betaz, _betaLT, _supportConditiony, _loadConditiony, _psiy, _supportConditionz, _loadConditionz, _psiz);
 
