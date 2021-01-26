@@ -303,7 +303,7 @@ namespace GPCChecker.Steel.PanelsStability
         {
             _beff = _b;
             _bLIM = 0;
-            double pi = Math.PI;
+            //double pi = Math.PI;
             double epsilon = Math.Sqrt(235 / _fy);
             _SigmaE = Math.Pow(Math.PI, 2.0) *_E /(12.0 * (1 - _ni *_ni)) * Math.Pow((_t / _b), 2.0);
 

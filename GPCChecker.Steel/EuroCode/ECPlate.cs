@@ -562,8 +562,7 @@ namespace GPCChecker.Steel.EuroCode
                 double lambdaPLimit = 0.5 + Math.Sqrt(0.085 - 0.055 * psi);
                 if (lambdaP <= lambdaPLimit)
                 {
-                    double rho = 1;
-                    //-> no change
+                    //double rho = 1;-> no change
                 }
                 else
                 {
@@ -659,8 +658,7 @@ namespace GPCChecker.Steel.EuroCode
             {
                 if (lambdaP <= 0.748)
                 {
-                    double rho = 1;
-                    //--> no changes
+                    //double rho = 1; --> No Changes
                 }
                 else
                 {
