@@ -391,7 +391,12 @@ namespace GPC.Checker.Steel.EuroCode
             NewFormula(@"T_{Ed} = " + (_TEd/1e6).ToString(_formatDouble) + " kNm");
 
             NewParagraph("Section Properties");
-            //NewParagraph(_sec.ToReport());
+            string sectionDescription = _sec.ToString();
+            string[] rws = sectionDescription.Split('\n');
+            foreach (string s in rws)
+            {
+                NewParagraph(s);
+            }            
             NewFormula(@"A = " + _sec.Area.ToString(_formatDouble) + " mm^2");
             NewFormula(@"x_G = " + _sec.Centroid.X.ToString(_formatDouble) + " mm");
             NewFormula(@"y_G = " + _sec.Centroid.Y.ToString(_formatDouble) + " mm");
