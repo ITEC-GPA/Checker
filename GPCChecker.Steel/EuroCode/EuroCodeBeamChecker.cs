@@ -470,7 +470,7 @@ namespace GPC.Checker.Steel.EuroCode
                             cTFlange = sec.Bint / sec.TBottom;
                         }*/
                         cTFlange = Math.Max(sec.Bint / sec.TBottom, sec.Bint / sec.TTop);
-                        NewFormula("c_{flange}/t_{flange} = " + cTFlange.ToString(_formatDouble));
+                        NewFormula(@"c_{flange}/t_{flange} = " + cTFlange.ToString(_formatDouble));
 
                         //flange are load with constant load
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(cTFlange, epsilon));
@@ -489,6 +489,7 @@ namespace GPC.Checker.Steel.EuroCode
                             }
 
                             double cTWeb = sec.Hw / sec.ThicknessWeb;
+                            NewFormula(@"c_{web}/t_{web} = " + cTWeb.ToString(_formatDouble));
                             _classificationSection = Math.Max(_classificationSection, GetClassInnerPlate(cTWeb, epsilon, alphaClassification, psiClassification));
                         }
                         else
@@ -516,13 +517,16 @@ namespace GPC.Checker.Steel.EuroCode
                             _classificationSection = Math.Max(_classificationSection, GetClassCompressedInnerPlate(sec.Bint / sec.TBottom, epsilon));
                         }
                     }
-                    NewFormula(@"Classification RHS : " + _classificationSection.ToString(_formatInt));
+                    NewParagraph(@"Classification RHS : " + _classificationSection.ToString(_formatInt));
                     #endregion
                 } else if (typeShape == typeof(SectionH)) {
                     SectionH sec = (SectionH)_sec;
                     double cTWeb = sec.HeightWeb / sec.ThicknessWeb;
+                    NewFormula(@"c_{web}/t_{web} = " + cTWeb.ToString(_formatDouble));
                     double cTFlangeTop = (sec.LenghtTopFlange / 2.0 - sec.ThicknessWeb / 2.0) / sec.ThicknessTopFlange;
+                    NewFormula(@"c_{top}/t_{top} = " + cTFlangeTop.ToString(_formatDouble));
                     double cTFlangeBottom = (sec.LenghtBottomFlange / 2.0 - sec.ThicknessWeb / 2.0) / sec.ThicknessBottomFlange;
+                    NewFormula(@"c_{bottom}/t_{bottom} = " + cTFlangeBottom.ToString(_formatDouble));
 
                     if (sec.IsDoubleSymmetric)
                     {
@@ -562,12 +566,15 @@ namespace GPC.Checker.Steel.EuroCode
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeBottom, epsilon));
                     }
-                    NewFormula(@"Classification H : " + _classificationSection.ToString(_formatInt));
+                    NewParagraph(@"Classification H : " + _classificationSection.ToString(_formatInt));
                 } else if (typeShape == typeof(SectionC)) {
                     SectionC sec = (SectionC)_sec;
                     double cTWeb = sec.Hw / sec.Tw;
+                    NewFormula(@"c_{web}/t_{web} = " + cTWeb.ToString(_formatDouble));
                     double cTFlangeTop = (sec.LTop - sec.Tw) / sec.ThicknessTop;
+                    NewFormula(@"c_{top}/t_{top} = " + cTFlangeTop.ToString(_formatDouble));
                     double cTFlangeBottom = (sec.LBottom - sec.Tw) / sec.ThicknessBottom;
+                    NewFormula(@"c_{bottom}/t_{bottom} = " + cTFlangeBottom.ToString(_formatDouble));
 
                     if (sec.IsSymmetricAlongYLocalAxis)
                     {
@@ -608,13 +615,15 @@ namespace GPC.Checker.Steel.EuroCode
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeBottom, epsilon));
                     }
-                    NewFormula(@"Classification C : " + _classificationSection.ToString(_formatInt));
+                    NewParagraph(@"Classification C : " + _classificationSection.ToString(_formatInt));
                 }
                 else if (typeShape == typeof(SectionT))
                 {
                     SectionT sec = (SectionT)_sec;
                     double cTWeb = sec.Hw / sec.Tw;
+                    NewFormula(@"c_{web}/t_{web} = " + cTWeb.ToString(_formatDouble));
                     double cTFlangeTop = (sec.B - sec.Tw) / 2.0 / sec.Tf;
+                    NewFormula(@"c_{top}/t_{top} = " + cTFlangeTop.ToString(_formatDouble));
 
 
                     if (_NEd < 0)
@@ -658,13 +667,15 @@ namespace GPC.Checker.Steel.EuroCode
                         if (_M1Ed != 0)
                         _classificationSection = Math.Max(_classificationSection, GetClassCompressedOuterPlate(cTFlangeTop, epsilon));
                     }
-                    NewFormula(@"Classification T : " + _classificationSection.ToString(_formatInt));
+                    NewParagraph(@"Classification T : " + _classificationSection.ToString(_formatInt));
                 }
                 else if (typeShape == typeof(SectionL))
                 {
                     SectionL sec = (SectionL)_sec;
                     double cT1 = sec.LHor / sec.THor;
+                    NewFormula(@"c_{hor}/t_{hor} = " + cT1.ToString(_formatDouble));
                     double cT2 = sec.LVert / sec.TVert;
+                    NewFormula(@"c_{vert}/t_{vert} = " + cT2.ToString(_formatDouble));
 
                     //classification only for Compression.
                     //Other detailed calculation should be found and implemented
@@ -1200,22 +1211,22 @@ namespace GPC.Checker.Steel.EuroCode
         {
             if (ctRatio <= 33.0 * epsilon)
             {
-                NewFormula(@"c/t \leq 33 \cdot \varepsilon \arrow Class 1");
+                NewFormula(@"c/t \leq 33 \cdot \varepsilon \Rightarrow Class 1");
                 return 1;
             }
             else if (ctRatio <= 38.0 * epsilon)
             {
-                NewFormula(@"c/t \leq 38 \cdot \varepsilon \arrow Class 2");
+                NewFormula(@"c/t \leq 38 \cdot \varepsilon \Rightarrow Class 2");
                 return 2;
             }
             else if (ctRatio <= 42.0 * epsilon)
             {
-                NewFormula(@"c/t \leq 42 \cdot \varepsilon \arrow Class 3");
+                NewFormula(@"c/t \leq 42 \cdot \varepsilon \Rightarrow Class 3");
                 return 3;
             }
             else
             {
-                NewFormula(@"c/t \geq 42 \cdot \varepsilon \arrow Class 1");
+                NewFormula(@"c/t \geq 42 \cdot \varepsilon \Rightarrow Class 1");
                 return 4;
             }
         }
@@ -1229,12 +1240,12 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 if (ctRatio <= 396.0 * epsilon / (13.0 * alpha - 1.0))
                 {
-                    NewFormula(@"c/t \leq 396 \cdot \varepsilon / (13 \cdot \alpha - 1) \arrow Class 1");
+                    NewFormula(@"c/t \leq 396 \cdot \varepsilon / (13 \cdot \alpha - 1) \Rightarrow Class 1");
                     return 1;
                 }
                 else if (ctRatio <= 456.0 * epsilon / (13.0 * alpha - 1.0))
                 {
-                    NewFormula(@"c/t \leq 456 \cdot \varepsilon / (13 \cdot \alpha - 1) \arrow Class 2");
+                    NewFormula(@"c/t \leq 456 \cdot \varepsilon / (13 \cdot \alpha - 1) \Rightarrow Class 2");
                     return 2;
                 } else
                 {
@@ -1242,12 +1253,12 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
                         {
-                            NewFormula(@"c/t \leq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \arrow Class 3");
+                            NewFormula(@"c/t \leq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \Rightarrow Class 3");
                             return 3;
                         }
                         else
                         {
-                            NewFormula(@"c/t \geq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \arrow Class 4");
+                            NewFormula(@"c/t \geq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \Rightarrow Class 4");
                             return 4;
                         }
                     }
@@ -1255,12 +1266,12 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
                         {
-                            NewFormula(@"c/t \leq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \arrow Class 3");
+                            NewFormula(@"c/t \leq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \Rightarrow Class 3");
                             return 3;
                         }
                         else
                         {
-                            NewFormula(@"c/t \geq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \arrow Class 4");
+                            NewFormula(@"c/t \geq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \Rightarrow Class 4");
                             return 4;
                         }
                     }
@@ -1276,12 +1287,12 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 if (ctRatio <= 36.0 * epsilon / alpha)
                 {
-                    NewFormula(@"c/t \leq 36 \cdot \varepsilon / \alpha \arrow Class 1");
+                    NewFormula(@"c/t \leq 36 \cdot \varepsilon / \alpha \Rightarrow Class 1");
                     return 1;
                 }
                 else if (ctRatio <= 41.5 * epsilon / alpha)
                 {
-                    NewFormula(@"c/t \leq 41.5 \cdot \varepsilon / \alpha \arrow Class 2");
+                    NewFormula(@"c/t \leq 41.5 \cdot \varepsilon / \alpha \Rightarrow Class 2");
                     return 2;
                 } else
                 {
@@ -1289,12 +1300,12 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
                         {
-                            NewFormula(@"c/t \leq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \arrow Class 3");
+                            NewFormula(@"c/t \leq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \Rightarrow Class 3");
                             return 3;
                         }
                         else
                         {
-                            NewFormula(@"c/t \geq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \arrow Class 4");
+                            NewFormula(@"c/t \geq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \Rightarrow Class 4");
                             return 4;
                         }
                     }
@@ -1302,12 +1313,12 @@ namespace GPC.Checker.Steel.EuroCode
                     {
                         if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
                         {
-                            NewFormula(@"c/t \leq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \arrow Class 3");
+                            NewFormula(@"c/t \leq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \Rightarrow Class 3");
                             return 3;
                         }
                         else
                         {
-                            NewFormula(@"c/t \geq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \arrow Class 4");
+                            NewFormula(@"c/t \geq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \Rightarrow Class 4");
                             return 4;
                         }
                     }
@@ -1324,12 +1335,12 @@ namespace GPC.Checker.Steel.EuroCode
                 {
                     if (ctRatio <= 42.0 * epsilon / (0.67 + 0.33 * psi))
                     {
-                        NewFormula(@"c/t \leq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \arrow Class 3");
+                        NewFormula(@"c/t \leq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \Rightarrow Class 3");
                         return 3;
                     }
                     else
                     {
-                        NewFormula(@"c/t \geq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \arrow Class 4");
+                        NewFormula(@"c/t \geq 42 \cdot \varepsilon / (0.67 + 0.33 \cdot \psi) \Rightarrow Class 4");
                         return 4;
                     }
                 }
@@ -1337,12 +1348,12 @@ namespace GPC.Checker.Steel.EuroCode
                 {
                     if (ctRatio <= 62.0 * epsilon * (1 - psi) * Math.Sqrt(-psi))
                     {
-                        NewFormula(@"c/t \leq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \arrow Class 3");
+                        NewFormula(@"c/t \leq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \Rightarrow Class 3");
                         return 3;
                     }
                     else
                     {
-                        NewFormula(@"c/t \geq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \arrow Class 4");
+                        NewFormula(@"c/t \geq 62 \cdot \varepsilon (1 - \psi) \cdot \sqrt{-\psi} \Rightarrow Class 4");
                         return 4;
                     }
                 }
@@ -1364,22 +1375,22 @@ namespace GPC.Checker.Steel.EuroCode
         {
             if (ctRatio <= 9.0 * epsilon)
             {
-                NewFormula(@"c/t \leq 9 \cdot \varepsilon \arrow Class 1");
+                NewFormula(@"c/t \leq 9 \cdot \varepsilon \Rightarrow Class 1");
                 return 1;
             }
             else if (ctRatio <= 10.0 * epsilon)
             {
-                NewFormula(@"c/t \leq 10 \cdot \varepsilon \arrow Class 2");
+                NewFormula(@"c/t \leq 10 \cdot \varepsilon \Rightarrow Class 2");
                 return 2;
             }
             else if (ctRatio <= 14.0 * epsilon)
             {
-                NewFormula(@"c/t \leq 14 \cdot \varepsilon \arrow Class 3");
+                NewFormula(@"c/t \leq 14 \cdot \varepsilon \Rightarrow Class 3");
                 return 3;
             }
             else
             {
-                NewFormula(@"c/t \geq 14 \cdot \varepsilon \arrow Class 4");
+                NewFormula(@"c/t \geq 14 \cdot \varepsilon \Rightarrow Class 4");
                 return 4;
             }
         }
