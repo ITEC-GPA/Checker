@@ -2294,7 +2294,7 @@ namespace GPC.Checker.Steel.EuroCode
                             c2 = 0.630;
                         } else
                         {
-                            throw new NotSupportedException("Load condition + Support not yet supported");
+                            throw new NotSupportedException("Load condition + Support not yet supported in calculation of C1 and C2 for McrLT");
                         }
                     }
                     else if (supportCondition == SupportCondition.EndsRestrained)
@@ -2312,7 +2312,7 @@ namespace GPC.Checker.Steel.EuroCode
                             c2 = 1.645;
                         } else
                         {
-                            throw new NotSupportedException("Load condition + Support not yet supported");
+                            throw new NotSupportedException("Load condition + Support not yet supported in calculation of C1 and C2 for McrLT");
                         }
                     } else
                     {
@@ -2339,7 +2339,7 @@ namespace GPC.Checker.Steel.EuroCode
                     }
                 } else
                 {
-                    throw new Exception("Load condition + Support not yet supported");
+                    throw new Exception("Load condition + Support not yet supported in calculation of C1 and C2 for McrLT");
                 }
                 
             }
@@ -2383,7 +2383,7 @@ namespace GPC.Checker.Steel.EuroCode
                         McrC1C2C3(supportCondition, loadCondition, k, psi, psif, out c1, out c2, out c3);
                     } else
                     {
-                        throw new Exception("cannot calc McrLT. Section too asymmetric");
+                        throw new Exception("Cannot calc McrLT. Section too asymmetric");
                     }
                 } else if (typeSection == typeof(SectionC)) {
                     SectionC sec = (SectionC)_sec;
@@ -2446,7 +2446,7 @@ namespace GPC.Checker.Steel.EuroCode
                         zj = -zj; //check this   
                     }
             
-                    //this should be used if  -0.9 < psif < 0.9. There is no data...so...what to do?
+                    //this should be used if -0.9 < psif < 0.9. There is no data...so...what to do?
                     McrC1C2C3(supportCondition, loadCondition, k, psi, psif, out c1, out c2, out c3);
                 }
                 else {
@@ -2985,7 +2985,9 @@ namespace GPC.Checker.Steel.EuroCode
             NewParagraph("Calculation of Cmi according to Table A.2 EN 1993-1-1");
             if (loadCondition == LoadCondition.SingleForce && supportCondition == SupportCondition.HingesAtEnds)
             {
-                return 1.0 - 0.18 * NEd / Ncr;
+                double cmi0 = 1.0 - 0.18 * NEd / Ncr;
+                NewFormula(@"c_{mi,0} = 1 - 0.18 \cdot N_{Ed} / N_{ct} = " + cmi0.ToString(_formatDouble));
+                return cmi0;
             }
             else if (loadCondition == LoadCondition.Constant && supportCondition == SupportCondition.HingesAtEnds)
             {
@@ -2995,11 +2997,13 @@ namespace GPC.Checker.Steel.EuroCode
             {
                 if (psi.HasValue)
                 {
-                    return 0.79 + 0.21 * psi.Value + 0.36 * (psi.Value - 0.33) * NEd / Ncr;
+                    double cmi0 = 0.79 + 0.21 * psi.Value + 0.36 * (psi.Value - 0.33) * NEd / Ncr;
+                    NewFormula(@"c_{mi,0} = 0.79 + 0.21 \cdot \psi \cdot (\psi - 0.33) \cdot N_{Ed} / N_{cr} = " + cmi0.ToString(_formatDouble));
+                    return cmi0;
                 }
                 else
                 {
-                    throw new Exception("Set a value to phi = M(x=0)/M(x=L);");
+                    throw new Exception("Set a value to ψ = M(x=0)/M(x=L);");
                 }
             }
             else
@@ -3010,7 +3014,7 @@ namespace GPC.Checker.Steel.EuroCode
                 }
                 else
                 {
-                    throw new Exception("Set delta and Mmax");
+                    throw new Exception("Set delta and Mmax - Table A.2 EN 1993-1-1. Not yet implemented");
                 }
             }
         }
