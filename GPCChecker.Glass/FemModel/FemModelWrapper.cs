@@ -143,7 +143,7 @@ namespace GPC.Checker.Glasses.FemModel
 
                     foreach (var load in loads)
                     {
-                        if (load is GlobalPointLoad gpl)
+                        if (load is PointLoad gpl)
                         {
                             NodeGlobalForceAttribute pgfa = new NodeGlobalForceAttribute(gpl.LoadCase, gpl.Fx, gpl.Fy, gpl.Fz, gpl.Mx, gpl.My, gpl.Mz);
                             nodeAttributeVertexIndex[pgfa] = vertexIndexes;
