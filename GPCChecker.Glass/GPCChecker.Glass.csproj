@@ -104,14 +104,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>If "$(ConfigurationName)"=="Debug" (
-      Echo Copying Libraries debug version
-     Copy "..\..\..\..\..\Libs\St7Solver\bin\Debug\St7Solver.exe" "$(TargetDir)"
-)
-If "$(ConfigurationName)"=="Release" (
-      Echo Copying Libraries debug version
-     Copy "..\..\..\..\..\Libs\St7Solver\bin\Release\St7Solver.exe" "$(TargetDir)"
-)</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
