@@ -93,7 +93,7 @@ namespace GlassTests
             // Loads
             GlobalAreaLoad s1GalLc1 = new GlobalAreaLoad(100, 200, 300, s1, lc1, Guid.NewGuid());
             GlobalAreaLoad s1GalLc2 = new GlobalAreaLoad(101, 201, 301, s1, lc2, Guid.NewGuid());
-            GlobalPointLoad s1gpl = new GlobalPointLoad(1, 2, 3, 4, 5, 6, new Point3d(100, 200, 50), lc2, Guid.NewGuid());
+            PointLoad s1gpl = new PointLoad(1, 2, 3, 4, 5, 6, new Point3d(100, 200, 50), lc2, Guid.NewGuid());
 
             gs1.AddLoad(s1GalLc1);
             gs1.AddLoad(s1GalLc2);
@@ -208,7 +208,7 @@ namespace GlassTests
             GlobalAreaLoad s2GalLc2 = new GlobalAreaLoad(160, 0, 0, s2, lc2, Guid.NewGuid());
             GlobalAreaLoad s3GalLc3 = new GlobalAreaLoad(170, 0, 0, s3, lc3, Guid.NewGuid());
 
-            GlobalPointLoad s1gpl = new GlobalPointLoad(1, 2, 3, 4, 5, 6, new Point3d(100, 200, 50), lc2, Guid.NewGuid());
+            PointLoad s1gpl = new PointLoad(1, 2, 3, 4, 5, 6, new Point3d(100, 200, 50), lc2, Guid.NewGuid());
 
             gs1.AddLoad(s1GalLc1);
             gs1.AddLoad(s1gpl);
@@ -324,10 +324,10 @@ namespace GlassTests
             LoadCase lc1 = new LoadCase("LC1", 50, 20, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
             LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
 
-            GlobalPointLoad s1gpl1 = new GlobalPointLoad(0, 2, 0, 0, 0, 0, new Point3d(80, 0, 400), lc1, Guid.NewGuid());
-            GlobalPointLoad s1gpl2 = new GlobalPointLoad(0, 2, 0, 0, 0, 0, new Point3d(80, 0, 450), lc2, Guid.NewGuid());
-            GlobalPointLoad s2gpl1 = new GlobalPointLoad(0, 10, 0, 0, 0, 0, new Point3d(380, 0, 300), lc1, Guid.NewGuid());
-            GlobalPointLoad s2gpl2 = new GlobalPointLoad(0, 10, 0, 0, 0, 0, new Point3d(380, 0, 350), lc2, Guid.NewGuid());
+            PointLoad s1gpl1 = new PointLoad(0, 2, 0, 0, 0, 0, new Point3d(80, 0, 400), lc1, Guid.NewGuid());
+            PointLoad s1gpl2 = new PointLoad(0, 2, 0, 0, 0, 0, new Point3d(80, 0, 450), lc2, Guid.NewGuid());
+            PointLoad s2gpl1 = new PointLoad(0, 10, 0, 0, 0, 0, new Point3d(380, 0, 300), lc1, Guid.NewGuid());
+            PointLoad s2gpl2 = new PointLoad(0, 10, 0, 0, 0, 0, new Point3d(380, 0, 350), lc2, Guid.NewGuid());
 
             GlassSurface gs1 = new GlassSurface(mg1, s1, new List<Load> { s1gpl1 }, restrains1, null, 0, Guid.NewGuid());
             gs1.AddLoad(s1gpl2);
