@@ -109,9 +109,5 @@
     <Error Condition="!Exists('..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets'))" />
   </Target>
   <Import Project="..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.targets')" />
-  <PropertyGroup>
-    <PostBuildEvent>
-</PostBuildEvent>
-  </PropertyGroup>
   <Import Project="..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets')" />
 </Project>
