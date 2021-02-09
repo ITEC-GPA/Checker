@@ -81,7 +81,6 @@ namespace GPC.Checker.Glasses.FemModel
                 {
                     PlateGlobalPressureAttribute pgpa = new PlateGlobalPressureAttribute(gal.LoadCase, gal.Px, gal.Py, gal.Pz);
                     plateAttributeFaceIndex[pgpa] = geometryMesh.Faces.Select(I => I.Id).ToArray();
-
                 }
                 else
                     throw new NotSupportedException("Load type not supported");
