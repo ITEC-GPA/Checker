@@ -59,7 +59,7 @@
   <ItemGroup>
     <Compile Include="Checkers\AstmGlassChecker.cs" />
     <Compile Include="Checkers\GlassChecker.cs" />
-    <Compile Include="Checkers\PrEnGlassChecker.cs" />
+    <Compile Include="Checkers\En16612GlassChecker.cs" />
     <Compile Include="FemModel\FemMesh.cs" />
     <Compile Include="FemModel\FemModelWrapper.cs" />
     <Compile Include="FemModel\Node.cs" />

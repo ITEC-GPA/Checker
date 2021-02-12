@@ -12,10 +12,10 @@ using GPC.Geometry;
 
 namespace GPC.Checker.Glasses.Checkers
 {
-    public class PrEnGlassChecker : GlassChecker
+    public class En16612GlassChecker : GlassChecker
     {
 
-        public PrEnGlassChecker(Model model, CheckParameters checkParameters) 
+        public En16612GlassChecker(Model model, CheckParameters checkParameters) 
             : base(model, checkParameters)
         {
 
@@ -36,11 +36,12 @@ namespace GPC.Checker.Glasses.Checkers
         {
             List<GlassWrapper> wrappers = GetWrappers();
 
-            FemModelWrapper femWrapper = new FemModelWrapper("fem1");
-            femWrapper.SetAnalysisType(_checkParameters.GetAnalysisType());
+            //femWrapper.SetAnalysisType(_checkParameters.GetAnalysisType());
 
+            
             foreach (var wrapper in wrappers)
             {
+                FemModelWrapper2 femWrapper = new FemModelWrapper2("fem" + wrappers.IndexOf(wrapper), _checkParameters.GetAnalysisType());
                 if (wrapper is MonolithicGlassWrapper mgw)
                 {
                     var geometryMesh = mgw.Mesh;
@@ -52,7 +53,7 @@ namespace GPC.Checker.Glasses.Checkers
 
                     var monolithicGlassProperty = new MonolithicGlassProperty(mgw.Glass);
 
-                    femWrapper.SetUpMonolithic(mgw.GetSurfaceId, geometryMesh, embeddedGeometriesMapVertex, restrains, mgw.Glass, uniformPressureLoads, notUniformPressureLoads);
+                    femWrapper.SetUpMonolithic(geometryMesh, embeddedGeometriesMapVertex, restrains, mgw.Glass, uniformPressureLoads, notUniformPressureLoads);
                 }
                 else if (wrapper is LaminatedGlassWrapper lgw)
                 {
@@ -63,7 +64,7 @@ namespace GPC.Checker.Glasses.Checkers
 
                     lgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
 
-                    femWrapper.SetUpLaminated(lgw.GetSurfaceId, geometryMesh, embeddedGeometriesMapVertex, restrains, lgw, uniformPressureLoads, notUniformPressureLoads, CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
+                    femWrapper.SetUpLaminated(geometryMesh, embeddedGeometriesMapVertex, restrains, lgw, uniformPressureLoads, notUniformPressureLoads, CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
                 }
                 else if (wrapper is InsulatedGlassWrapper igw)
                 {
@@ -71,11 +72,12 @@ namespace GPC.Checker.Glasses.Checkers
                 }
                 else
                     throw new NotSupportedException("Glass wrapper not supported");
+
+                _femModels.Add(femWrapper);
             }
-            _femModels.Add(femWrapper);
         }
 
-        protected override string GetCheckerName() => "prEN 16612 - 2019"; 
+        protected override string GetCheckerName() => "EN 16612 - 2019"; 
        
         #endregion
 
