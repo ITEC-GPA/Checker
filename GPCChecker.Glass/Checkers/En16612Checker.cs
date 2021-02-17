@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using GPC.Checker.Glasses.Wrappers;
 using GPC.Checker.Glasses.FemModel;
 using GPC.Model.Loads;
 using GPC.Model.Elements;
-using GPC.Geometry.Meshes;
-using GPC.Geometry;
+using GPC.Checker.Glasses.Glasses;
 
 namespace GPC.Checker.Glasses.Checkers
 {
-    public class En16612GlassChecker : GlassChecker
+    public class En16612Checker : Checker
     {
 
-        public En16612GlassChecker(Model model, CheckParameters checkParameters) 
-            : base(model, checkParameters)
+        public En16612Checker(GlassSurface glassSurface) 
+            : base(glassSurface)
         {
+            if (_glassSurface.Prototype.GetStandard() != Models.Prototype.Standard.EN16612)
+                throw new ArgumentException($"Standard not supported for {Models.Prototype.Standard.EN16612.ToString()} {GetCheckerName()} Checker");
+
+
 
         }
 
@@ -41,7 +41,7 @@ namespace GPC.Checker.Glasses.Checkers
             
             foreach (var wrapper in wrappers)
             {
-                FemModelWrapper2 femWrapper = new FemModelWrapper2("fem" + wrappers.IndexOf(wrapper), _checkParameters.GetAnalysisType());
+                FemModelWrapper femWrapper = new FemModelWrapper2("fem" + wrappers.IndexOf(wrapper), _checkParameters.GetAnalysisType());
                 if (wrapper is MonolithicGlassWrapper mgw)
                 {
                     var geometryMesh = mgw.Mesh;

@@ -3,7 +3,7 @@ using GPC.Model.Combinations;
 using System;
 using System.Collections.Generic;
 
-namespace GPC.Checker.Glasses
+namespace GPC.Checker.Glasses.Models
 {
     public class Model 
     {
@@ -12,6 +12,7 @@ namespace GPC.Checker.Glasses
         protected List<GlassSurface> _glassSurfaces;
 
         protected List<Combination> _combinations;
+
 
         protected string _outputFolder;
 
@@ -57,7 +58,6 @@ namespace GPC.Checker.Glasses
         #endregion
 
         #region Public methods
-
 
         public void AddSurface(GlassSurface glassSurface)
         {

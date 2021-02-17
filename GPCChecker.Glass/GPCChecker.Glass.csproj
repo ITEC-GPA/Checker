@@ -57,9 +57,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Checkers\AstmGlassChecker.cs" />
-    <Compile Include="Checkers\GlassChecker.cs" />
-    <Compile Include="Checkers\En16612GlassChecker.cs" />
+    <Compile Include="Checkers\AstmChecker.cs" />
+    <Compile Include="Checkers\Checker.cs" />
+    <Compile Include="Checkers\En16612Checker.cs" />
     <Compile Include="FemModel\FemMesh.cs" />
     <Compile Include="FemModel\FemModelWrapper.cs" />
     <Compile Include="FemModel\Node.cs" />
@@ -70,7 +70,8 @@
     <Compile Include="LoadCases\IGlassLoadCase.cs" />
     <Compile Include="LoadCases\LoadCase.cs" />
     <Compile Include="LoadCases\LoadCasePrEn.cs" />
-    <Compile Include="Model.cs" />
+    <Compile Include="Models\Model.cs" />
+    <Compile Include="Models\Prototype.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Wrappers\DoubleInsulatingGlassWrapper.cs" />
     <Compile Include="Wrappers\GlassPanelWrapper.cs" />

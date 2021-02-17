@@ -3,13 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Checker.Glasses.Glasses;
+
 
 namespace GPC.Checker.Glasses.Checkers
 {
-    public class AstmGlassChecker : GlassChecker
+    public class AstmChecker : Checker
     {
-        public AstmGlassChecker(Model model, CheckParameters checkParameters) : base(model, checkParameters)
+        public AstmChecker(GlassSurface glassSurface)
+            : base(glassSurface)
         {
+            if (_glassSurface.Prototype.GetStandard() != Models.Prototype.Standard.ASTME1300)
+                throw new ArgumentException($"Standard not supported for {Models.Prototype.Standard.ASTME1300.ToString()} {GetCheckerName()} Checker");
 
         }
 
