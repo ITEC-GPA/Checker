@@ -70,7 +70,6 @@ namespace GPC.Checker.Glasses.Models
         protected List<Restrain> _restrains;
         #endregion
 
-
         #region Property
         
         public Glass Glass => _glass;

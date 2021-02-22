@@ -138,8 +138,8 @@ namespace GPC.Checker.Glasses.Wrappers
             Mesh.GenerateMeshOptions.Algorithm = Mesh.GenerateMeshOptions.MeshAlgorithm.PackingOfParallelograms;
             Mesh.GenerateMeshOptions.Recombine = true;
             Mesh.GenerateMeshOptions.RecombinationAlgorithm = Mesh.GenerateMeshOptions.RecombinationMeshAlgorithm.BlossomFullQuad;
-            Mesh.GenerateMeshOptions.Size = 50;
-            Mesh.GenerateMeshOptions.UseGlobalProgressID = true;
+            Mesh.GenerateMeshOptions.Size = 600;
+            Mesh.GenerateMeshOptions.UseGlobalProgressID = false;
 
 
             List<Mesh> geometryMeshes = Mesh.Generate(new List<Shape>() { _glassSurface.Shape }, embeddedGeometries, out _embeddedGeometriesMapVertex);

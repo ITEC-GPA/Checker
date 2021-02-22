@@ -1,76 +1,79 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Remoting.Channels.Tcp;
-using System.Runtime.Remoting.Channels;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Reflection;
-using St7ApiWrapper;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Remoting.Channels.Tcp;
+using System.Text;
+using System.Threading.Tasks;
 
+using GPC.Checker.Glasses.Checkers;
+using GPC.Checker.Glasses.LoadCases;
+using GPC.Checker.Glasses.Wrappers;
+using GPC.Checker.Glasses.Models ;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Elements;
-using GPC.Model.FEM.Attributes;
 using GPC.Model.Elements.Glasses;
+using GPC.Model.FEM.Attributes;
 using GPC.Model.Loads;
-using GPC.Checker.Glasses.Checkers;
-using GPC.Checker.Glasses.Wrappers;
-using GPC.Checker.Glasses.LoadCases;
+using GPC.Model.FEM;
+using GPC.Model.FEM.FiniteElements;
+using St7ApiWrapper;
+
 
 namespace GPC.Checker.Glasses.FemModel
 {
     public class FemModelWrapper
     {
-        #region Variables
+        private List<Node> _nodes;
 
-        /// <summary>
-        /// List of mesh for each glass. Each glass can be can be made by one or more meshes
-        /// </summary>        
-        private List<List<FemMesh>> _singleGlassMeshes;
+        private List<Plate> _plates;
 
+        private List<Line3d> _links;
+        
         private Dictionary<LoadCase, int> _loadCases;
 
+        /// <summary>
+        /// List of property used by this fem model. with the property number associated.
+        /// </summary>
         private Dictionary<IGlassProperty, int> _femGlassProperties;
-
-        private string _st7ServerIp;
 
         private string _name;
 
-        private GlassChecker.CheckParameters.AnalysisType _analysisType;
+        private string _st7ServerIp;
 
-        #endregion
+        private Prototype.AnalysisType _analysisType;
 
         public string Name => _name;
 
-        #region Public constructors
 
-        internal FemModelWrapper(string name)
+        public FemModelWrapper(string name, Prototype.AnalysisType analysisType)
         {
+            _nodes = new List<Node>();
+            _plates = new List<Plate>();
+            _loadCases = new Dictionary<LoadCase, int>();
+            _femGlassProperties = new Dictionary<IGlassProperty, int>();
+            _links = new List<Line3d>();
+
+            _analysisType = analysisType;
             _st7ServerIp = "localhost";
             _name = name;
-            _singleGlassMeshes = new List<List<FemMesh>>();
-            _femGlassProperties = new Dictionary<IGlassProperty, int>();
-            _loadCases = new Dictionary<LoadCase, int>();
-
-            SetGlobalConnectivity();
         }
 
-        #endregion
-
-
-        #region Public methods
-
-        private FemMesh GenerateFemMesh(int surfaceId, Mesh geometryMesh, IGlassProperty glassProperty, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, 
-                                    List<IGeometryRestrain> restrains, List<Load> uniformPressureLoads, List<Load> nonUniformPressureLoads)
+        private void GetElementAttributes(Mesh geometryMesh, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, 
+                                          List<IGeometryRestrain> restrains, List<Load> uniformPressureLoads, List<Load> nonUniformPressureLoads,
+                                          out Dictionary<int, Restrain> pointRestrainVertexIndex, out Dictionary<INodeLoadCaseAttribute, int[]> nodeAttributeVertexIndex, 
+                                          out Dictionary<IPlateLoadCaseAttribute, int[]> plateAttributeFaceIndex)
         {
-            var pointRestrainVertexIndex = new Dictionary<int, Restrain>();
-            Dictionary<INodeFemAttribute, int[]> nodeAttributeVertexIndex = new Dictionary<INodeFemAttribute, int[]>();
-            Dictionary<IPlateFemAttribute, int[]> plateAttributeFaceIndex = new Dictionary<IPlateFemAttribute, int[]>();
-            List<IGlassProperty> plateProperties = new List<IGlassProperty>();
-
+            pointRestrainVertexIndex = new Dictionary<int, Restrain>();
+            nodeAttributeVertexIndex = new Dictionary<INodeLoadCaseAttribute, int[]>();
+            plateAttributeFaceIndex = new Dictionary<IPlateLoadCaseAttribute, int[]>();
 
             // Uniform loads
+            // Crea dizionario di platePropertyAttribute per quanto riguarda i carichi uniformi
             foreach (var load in uniformPressureLoads)
             {
                 if (load is NormalAreaLoad nal)
@@ -79,6 +82,7 @@ namespace GPC.Checker.Glasses.FemModel
                 }
                 else if (load is GlobalAreaLoad gal)
                 {
+
                     PlateGlobalPressureAttribute pgpa = new PlateGlobalPressureAttribute(gal.LoadCase, gal.Px, gal.Py, gal.Pz);
                     plateAttributeFaceIndex[pgpa] = geometryMesh.Faces.Select(I => I.Id).ToArray();
                 }
@@ -91,18 +95,8 @@ namespace GPC.Checker.Glasses.FemModel
                 }
             }
 
-            // proprietà
-            foreach (var face in geometryMesh.Faces)
-            {
-                plateProperties.Add(glassProperty);
-            }
-
-            if (!_femGlassProperties.ContainsKey(glassProperty))
-            {
-                _femGlassProperties[glassProperty] = _femGlassProperties.Values.DefaultIfEmpty().Max() + 1; ;
-            }
-
-            // geometria embedded
+            // Geometria embedded
+            // Va a vedere se nella embedded geometry ci sono carichi o restrain e compila i relativi dizionari
             foreach (var kvp in embeddedGeometriesMapVertex)
             {
                 GeometryBase geometry = kvp.Key;
@@ -138,8 +132,6 @@ namespace GPC.Checker.Glasses.FemModel
 
                     var loads = nonUniformPressureLoads.Where(i => i.GetGeometry().GetType() == typeof(Point3d)).Where(i => (Point3d)i.GetGeometry() == point);
 
-                    //var loads = _glassSurface.Loads.Where(i => i.GetGeometry().GetType() == typeof(Point3d)).Where(i => (Point3d)i.GetGeometry() == point);
-
                     foreach (var load in loads)
                     {
                         if (load is PointLoad gpl)
@@ -164,133 +156,208 @@ namespace GPC.Checker.Glasses.FemModel
                 }
             }
 
-            var femMesh = new FemMesh(surfaceId, geometryMesh.Vertices, geometryMesh.Faces, plateProperties, pointRestrainVertexIndex, nodeAttributeVertexIndex, plateAttributeFaceIndex, null);
-
-
-            return femMesh;
         }
 
 
-        /// <summary>
-        /// Set up a single monolithic glass
-        /// </summary>
-        /// <param name="geometryMesh">geometry mesh composing a single monolithic glass</param>
-        public void SetUpMonolithic(int surfaceId, Mesh geometryMesh, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains,
-                                    MonolithicGlass monolithicGlass, List<Load> uniformPressureLoads, List<Load> notUniformPressureLoads)
+        private void SetUpFemElements(Mesh geometryMesh, IGlassProperty glassProperty, Dictionary<int, Restrain> pointRestrainVertexIndex, Dictionary<INodeFemAttribute, int[]> nodeAttributeIndex, 
+                                        Dictionary<IPlateFemAttribute, int[]> plateAttributeIndex)
         {
-            MonolithicGlassProperty monolithicGlassProperty = new MonolithicGlassProperty(monolithicGlass);
+            List<IGlassProperty> plateProperties = new List<IGlassProperty>();
 
-
-            FemMesh meshes = GenerateFemMesh(surfaceId, geometryMesh, monolithicGlassProperty, embeddedGeometriesMapVertex, restrains, uniformPressureLoads, notUniformPressureLoads);
-
-            _singleGlassMeshes.Add(new List<FemMesh>() { meshes });
-
-            SetGlobalConnectivity();
-        }
-
-
-        public void SetUpLaminated(int surfaceId, Mesh geometryMesh, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains,
-                                    LaminatedGlassWrapper laminatedGlassWrapper, List<Load> uniformPressureLoads, List<Load> notUniformPressureLoads, 
-                                    GlassChecker.CheckParameters.LaminatedAnalysisType laminatedAnalysisType)
-        {
-            switch (laminatedAnalysisType)
+            // proprietà
+            foreach (var face in geometryMesh.Faces)
             {
-                case GlassChecker.CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer:
-
-                    var normal = laminatedGlassWrapper.GetNormalVector();
-                    var glassDistances = laminatedGlassWrapper.GetMonolithicBarycenterDistances();
-                    var interlayerDistances = laminatedGlassWrapper.GetInterlayerBarycenterDistances();
-
-                    List<FemMesh> femMeshes = new List<FemMesh>();
-
-                    // Vetri
-                    for (int i = 0; i < glassDistances.Length; i++)
-                    {
-                        Mesh movedMesh = (geometryMesh.Clone() as Mesh);
-                        movedMesh.Pan(normal * glassDistances[i]);
-
-                        var monolithicGlassProperty = new MonolithicGlassProperty(laminatedGlassWrapper.Glass.MonolithicGlasses[i]);
-
-                        femMeshes.Add(GenerateFemMesh(surfaceId, movedMesh, monolithicGlassProperty, embeddedGeometriesMapVertex, restrains, uniformPressureLoads, notUniformPressureLoads));
-                    }
-
-                    // Interlayer
-                    for (int i = 0; i < interlayerDistances.Length; i++)
-                    {
-                        Mesh movedMesh = (geometryMesh.Clone() as Mesh);
-                        movedMesh.Pan(normal * interlayerDistances[i]);
-
-                        InterlayerProperty interlayerProperty;
-                        if (notUniformPressureLoads != null && uniformPressureLoads != null && notUniformPressureLoads.Count > 0 && uniformPressureLoads.Count > 0)
-                        {
-                            var lc = (LoadCase)notUniformPressureLoads.First().LoadCase;
-
-                            interlayerProperty = new InterlayerProperty(laminatedGlassWrapper.Glass.Interlayers[i], lc.LoadDuration, lc.Temperature);
-                        }
-                        else
-                        {
-                            var interlayer = laminatedGlassWrapper.Glass.Interlayers[i];
-                            interlayerProperty = new InterlayerProperty(interlayer, interlayer.Material.GetLoadDurations()[0], interlayer.Material.GetTemperatures()[0]);
-                        }
-
-                        femMeshes.Add(GenerateFemMesh(surfaceId, movedMesh, interlayerProperty, embeddedGeometriesMapVertex, restrains, uniformPressureLoads, notUniformPressureLoads));
-                    }
-
-                    _singleGlassMeshes.Add(femMeshes);
-                    SetGlobalConnectivity();
-                    break;
-
-                default:
-                    throw new NotSupportedException($"LaminatedAnalysisType: {laminatedAnalysisType} not implemented");
-
+                plateProperties.Add(glassProperty);
             }
-        }
 
-
-        public void SetAnalysisType(GlassChecker.CheckParameters.AnalysisType analysisType)
-        {
-            _analysisType = analysisType;
-        }
-
-        #endregion
-
-
-        #region Private methods
-
-
-        private void SetGlobalConnectivity()
-        {
-            int nodeId = 1;
-            int faceId = 1;
-
-            foreach(var sgm in _singleGlassMeshes)
+            if (!_femGlassProperties.ContainsKey(glassProperty))
             {
-                Dictionary<Point3d, int> nodeGlobalId = new Dictionary<Point3d, int>();
-                foreach(FemMesh femMesh in sgm)
-                {
-                    femMesh.SetGlobalIds(ref nodeId, ref faceId);
+                _femGlassProperties[glassProperty] = _femGlassProperties.Values.DefaultIfEmpty().Max() + 1; ;
+            }
 
-                    foreach (var node in femMesh.Nodes)
-                    {
-                        if (nodeGlobalId.ContainsKey(node.Position))
-                        {
-                            node.GlobalId = nodeGlobalId[node.Position];
-                        }
-                        else
-                        {
-                            nodeGlobalId[node.Position] = node.GlobalId;
-                        }
-                    }
+            // Creo i nodi da vertici
+            foreach (var vertex in geometryMesh.Vertices)
+            {
+                if (pointRestrainVertexIndex.ContainsKey(vertex.Id))
+                {
+                    this._nodes.Add(new Node(vertex.Point, vertex.Id, pointRestrainVertexIndex[vertex.Id]));
+                }
+                else
+                {
+                    this._nodes.Add(new Node(vertex.Point, vertex.Id, null));
+                }
+            }
+
+            // Creazione plate
+            for (int i = 0; i < geometryMesh.Faces.Count; i++)
+            {
+                if (geometryMesh.Faces[i].IsQuad)
+                    this._plates.Add(new Plate(plateProperties[i], geometryMesh.Faces[i].Id, _nodes.Where(j => j.NodeIndex == geometryMesh.Faces[i].A).First(), _nodes.Where(j => j.NodeIndex == geometryMesh.Faces[i].B).First(),
+                                                     _nodes.Where(j => j.NodeIndex == geometryMesh.Faces[i].C).First(), _nodes.Where(j => j.NodeIndex == geometryMesh.Faces[i].D).First()));
+                else
+                    this._plates.Add(new Plate(plateProperties[i], geometryMesh.Faces[i].Id, _nodes.Where(j => j.NodeIndex == geometryMesh.Faces[i].A).First(), _nodes.Where(j => j.NodeIndex == geometryMesh.Faces[i].B).First(),
+                                                     _nodes.Where(j => j.NodeIndex == geometryMesh.Faces[i].C).First()));
+            }
+
+            // Aggiunta attributi
+            foreach (IPlateFemAttribute att in plateAttributeIndex.Keys)
+            {
+                foreach (int id in plateAttributeIndex[att])
+                {
+                    this._plates.Where(i => i.Index == id).FirstOrDefault().AddAttribute(att);
+                }
+            }
+
+            foreach (INodeFemAttribute att in nodeAttributeIndex.Keys)
+            {
+                foreach (int id in nodeAttributeIndex[att])
+                {
+                    this._nodes.Where(i => i.NodeIndex == id).FirstOrDefault().AddAttribute(att);
                 }
             }
         }
 
-        #endregion
+
+        public void SetUpMonolithic(Mesh geometryMesh, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains,
+                                    MonolithicGlass monolithicGlass, List<Load> uniformPressureLoads, List<Load> nonUniformPressureLoads)
+        {
+            MonolithicGlassProperty monolithicGlassProperty = new MonolithicGlassProperty(monolithicGlass);
+
+            GetElementAttributes(geometryMesh, embeddedGeometriesMapVertex, restrains, uniformPressureLoads, nonUniformPressureLoads, out Dictionary<int, Restrain> pointRestrainIndex,
+                                   out Dictionary<INodeFemAttribute, int[]> nodeAttributesIndex, out Dictionary<IPlateFemAttribute, int[]> plateAttributeIndex);
 
 
+            SetUpFemElements(geometryMesh, monolithicGlassProperty, pointRestrainIndex, nodeAttributesIndex, plateAttributeIndex);
+        }
+
+        public void SetUpLaminated(Mesh geometryMesh, Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex, List<IGeometryRestrain> restrains,
+                                    LaminatedGlassWrapper laminatedGlassWrapper, List<Load> uniformPressureLoads, List<Load> nonUniformPressureLoads,
+                                    Checkers.Checker.CheckParameters.LaminatedAnalysisType laminatedAnalysisType)
+        {
+
+            switch (laminatedAnalysisType)
+            {
+                case Checkers.Checker.CheckParameters.LaminatedAnalysisType.MultiElementBrickIntelayer:
+
+
+                    break;
+
+                    //    case GlassChecker.CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer:
+                    //        var normal = laminatedGlassWrapper.GetNormalVector();
+                    //        var glassDistances = laminatedGlassWrapper.GetMonolithicBarycenterDistances();
+                    //        var interlayerDistances = laminatedGlassWrapper.GetInterlayerBarycenterDistances();
+
+                    //        List<double> distances = new List<double>();
+                    //        distances.AddRange(glassDistances);
+                    //        distances.AddRange(interlayerDistances);
+                    //        distances.Sort();
+
+                    //        List<Mesh> glassMovedMesh = new List<Mesh>();
+                    //        List<Mesh> interlayerMovedMesh = new List<Mesh>();
+                    //        List<Line3d> line3d = new List<Line3d>();
+
+                    //        // Clona e sposta la mesh
+                    //        Mesh movedMesh = geometryMesh;
+                    //        for (int i = 0; i < distances.Count; i++)
+                    //        {                        
+                    //            if (i == 0)
+                    //                movedMesh.Pan(normal * distances[i]);
+                    //            else
+                    //            {
+                    //                movedMesh = (Mesh)movedMesh.Clone(true);
+                    //                movedMesh.Pan(normal * (distances[i] - distances[i - 1]));
+                    //            }
+
+                    //            if (glassDistances.Contains(distances[i]))
+                    //            {
+                    //                glassMovedMesh.Add(movedMesh);
+                    //            }
+                    //            else
+                    //            {
+                    //                interlayerMovedMesh.Add(movedMesh);
+                    //            }
+                    //        }
+
+                    //        // Vetri
+                    //        for (int i = 0; i < glassDistances.Length; i++)
+                    //        {
+                    //            movedMesh = glassMovedMesh[i];
+
+                    //            var monolithicGlassProperty = new MonolithicGlassProperty(laminatedGlassWrapper.Glass.MonolithicGlasses[i]);
+
+                    //            GetElementAttributes(movedMesh, embeddedGeometriesMapVertex, restrains, uniformPressureLoads, nonUniformPressureLoads, out Dictionary<int, Restrain> pointRestrainIndex,
+                    //                                   out Dictionary<INodeFemAttribute, int[]> nodeAttributesIndex, out Dictionary<IPlateFemAttribute, int[]> plateAttributeIndex);
+
+                    //            SetUpFemElements(movedMesh, monolithicGlassProperty, pointRestrainIndex, nodeAttributesIndex, plateAttributeIndex);
+
+                    //        }
+
+                    //        // Interlayer
+                    //        for (int i = 0; i < interlayerDistances.Length; i++)
+                    //        {
+                    //            movedMesh = interlayerMovedMesh[i];
+
+                    //            InterlayerProperty interlayerProperty;
+                    //            if (nonUniformPressureLoads != null && uniformPressureLoads != null && nonUniformPressureLoads.Count > 0 && uniformPressureLoads.Count > 0)
+                    //            {
+                    //                var lc = (LoadCase)nonUniformPressureLoads.First().LoadCase;
+
+                    //                interlayerProperty = new InterlayerProperty(laminatedGlassWrapper.Glass.Interlayers[i], lc.LoadDuration, lc.Temperature);
+                    //            }
+                    //            else
+                    //            {
+                    //                var interlayer = laminatedGlassWrapper.Glass.Interlayers[i];
+                    //                interlayerProperty = new InterlayerProperty(interlayer, interlayer.Material.GetLoadDurations()[0], interlayer.Material.GetTemperatures()[0]);
+                    //            }
+
+                    //            GetElementAttributes(movedMesh, embeddedGeometriesMapVertex, restrains, uniformPressureLoads, nonUniformPressureLoads, out Dictionary<int, Restrain> pointRestrainIndex,
+                    //                                   out Dictionary<INodeFemAttribute, int[]> nodeAttributesIndex, out Dictionary<IPlateFemAttribute, int[]> plateAttributeIndex);
+
+                    //            SetUpFemElements(movedMesh, interlayerProperty, pointRestrainIndex, nodeAttributesIndex, plateAttributeIndex);
+                    //        }
+
+                    //        // Crea links
+                    //        // la mesh di interlayer e la copia di quella del vetro quindi ho assocazione punto punto con l'indice
+
+                    //        for (int i = 0; i < interlayerMovedMesh.Count; i++)
+                    //        {
+                    //            interlayerMovedMesh[i]
+                    //        }
+
+
+                    //        for (int i = 0; i < glassMovedMesh.Count; i++)
+                    //        {
+                    //            foreach(var vertex in glassMovedMesh[i].Vertices)
+                    //            {
+                    //                if (i == 0) // fra glass 0 e interlayer 0
+                    //                {
+                    //                    Line3d link = new Line3d(vertex.Point, interlayerMovedMesh[0].Vertices[i].Point);
+                    //                }
+                    //                else // fra glass i e interlayer i-1 e fra glass i e interlayer i
+                    //                {
+                    //                    Line3d link1 = new Line3d(vertex.Point, interlayerMovedMesh[i-1].Vertices[i].Point); // link fra glass 1 e interlayer 0
+
+                    //                    if (interlayerMovedMesh.Count > i)  // link fra glass 1 e interlayer 1
+                    //                    {
+                    //                        Line3d link2 = new Line3d(vertex.Point, interlayerMovedMesh[i + 1].Vertices[i].Point); 
+                    //                    }
+                    //                }
+
+                    //            }                        
+                    //        }
+
+                    //        break;
+
+                    //    default:
+                    //        throw new NotSupportedException($"LaminatedAnalysisType: {laminatedAnalysisType} not implemented");
+
+                    //}
+            }
+
+        }
         #region STRAUS7
 
-        internal void SaveToSt7(string filePath)
+        public void SaveToSt7(string filePath)
         {
             if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
             {
@@ -301,7 +368,7 @@ namespace GPC.Checker.Glasses.FemModel
 
                 switch (_analysisType)
                 {
-                    case GlassChecker.CheckParameters.AnalysisType.LinearStaticAnalisys:
+                    case Prototype.AnalysisType.LinearStaticAnalisys:
 
                         if (status)
                             St7NonLinearSolverSetupForLinearAnalysis(aw, mid);
@@ -311,7 +378,7 @@ namespace GPC.Checker.Glasses.FemModel
 
                         break;
 
-                    case GlassChecker.CheckParameters.AnalysisType.NonLinearStaticAnalysis:
+                    case Prototype.AnalysisType.NonLinearStaticAnalysis:
                         throw new NotImplementedException();
 
                     default:
@@ -321,7 +388,7 @@ namespace GPC.Checker.Glasses.FemModel
                 if (status)
                     status = aw.CloseFile(mid);
 
-                if(!status)
+                if (!status)
                     throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
             }
             else
@@ -333,7 +400,7 @@ namespace GPC.Checker.Glasses.FemModel
                 ChannelServices.UnregisterChannel(channel);
         }
 
-        internal void RunSt7Solver(string filePath)
+        public void RunSt7Solver(string filePath)
         {
             if (!File.Exists(filePath))
             {
@@ -346,10 +413,10 @@ namespace GPC.Checker.Glasses.FemModel
                 bool isOpened = aw.OpenFile(filePath, Path.GetTempPath(), ref mid);
 
                 if (isOpened)
-                {                    
+                {
                     switch (_analysisType)
                     {
-                        case GlassChecker.CheckParameters.AnalysisType.LinearStaticAnalisys:
+                        case Checkers.Checker.CheckParameters.AnalysisType.LinearStaticAnalisys:
 
                             //if (status)
                             //    status = St7LinearSolverSetup(aw, mid);
@@ -360,7 +427,7 @@ namespace GPC.Checker.Glasses.FemModel
 
                             break;
 
-                        case GlassChecker.CheckParameters.AnalysisType.NonLinearStaticAnalysis:
+                        case Checkers.Checker.CheckParameters.AnalysisType.NonLinearStaticAnalysis:
                             throw new NotImplementedException();
 
                         default:
@@ -379,7 +446,7 @@ namespace GPC.Checker.Glasses.FemModel
                 ChannelServices.UnregisterChannel(channel);
 
 
-            
+
         }
 
         private static bool ConnectService(string ip, out ISt7ApiService ro, out TcpChannel channel)
@@ -436,80 +503,75 @@ namespace GPC.Checker.Glasses.FemModel
             St7SetLoadCase(aw, mId);
 
             // Nodes
-            foreach (var sgm in _singleGlassMeshes)
+            foreach (var node in _nodes)
             {
-                foreach (var femMesh in sgm)
+                int st7NodeIndex = node.NodeIndex; //St7GetElementIndex(node.NodeIndex);
+                
+                aw.SetNodeXYZ(mId, st7NodeIndex, node.Position.X, node.Position.Y, node.Position.Z);
+
+                if (node.GetRestrain() != null)
+                    St7SetNodeRestrain(aw, mId, st7NodeIndex, 1, 1, node.GetRestrain());
+
+                foreach (var attribute in node.Attributes)
                 {
-                    foreach (var node in femMesh.Nodes)
+                    if (attribute is NodeGlobalForceAttribute pgfa)
                     {
-                        aw.SetNodeXYZ(mId, node.GlobalId, node.Position.X, node.Position.Y, node.Position.Z);
-
-                        if (node.GetRestrain() != null)
-                            St7SetNodeRestrain(aw, mId, node.GlobalId, 1, 1, node.GetRestrain());
-                        
-
-                        foreach (var attribute in node.Attributes)
-                        {
-                            if (attribute is NodeGlobalForceAttribute pgfa)
-                            {
-                                int lcNum = _loadCases[(LoadCase)pgfa.LoadCase];
-                                St7SetNodeGlobalLoad(aw, mId, node.GlobalId, lcNum, pgfa);
-                            }
-                            else
-                                throw new NotSupportedException("Point attribute not supported");
-                        }
+                        int lcNum = _loadCases[(LoadCase)pgfa.LoadCase];
+                        St7SetNodeGlobalLoad(aw, mId, st7NodeIndex, lcNum, pgfa);
                     }
+                    else
+                        throw new NotSupportedException("Point attribute not supported");
                 }
             }
-
+            
             St7SetPlateProperties(aw, mId);
 
             // Plate
-            foreach (var sgm in _singleGlassMeshes)
+            int glassGroupId = 0;
+            aw.NewChildGroup(mId, 1, "Glass " + "1", ref glassGroupId);
+            foreach (var face in _plates)
             {
-                foreach (var femMesh in sgm)
+                int faceIndex = face.Index; //St7GetElementIndex(face.Index);
+                
+                var buffer = face.GetConnection();
+
+                int[] st7ConnectivityArray;
+
+                if (face.IsQuad)
                 {
-                    int glassGroupId = 0;
-                    aw.NewChildGroup(mId, 1, "Glass " + femMesh.SurfaceId, ref glassGroupId);
-                    foreach (var face in femMesh.Plates)
+                    var st7FaceConnection = face.GetConnection().Select(i => i).ToArray();
+                    st7ConnectivityArray = new int[5];
+                    st7ConnectivityArray[0] = 4;
+                    st7ConnectivityArray[1] = st7FaceConnection[0];
+                    st7ConnectivityArray[2] = st7FaceConnection[1];
+                    st7ConnectivityArray[3] = st7FaceConnection[2];
+                    st7ConnectivityArray[4] = st7FaceConnection[3];
+                }
+                else
+                {
+                    var st7FaceConnection = face.GetConnection().Select(i => i).ToArray();
+                    st7ConnectivityArray = new int[4];
+                    st7ConnectivityArray[0] = 3;
+                    st7ConnectivityArray[1] = st7FaceConnection[0];
+                    st7ConnectivityArray[2] = st7FaceConnection[1];
+                    st7ConnectivityArray[3] = st7FaceConnection[2];
+                }
+
+                int propNum = _femGlassProperties[(IGlassProperty)face.Property];
+
+                aw.SetElementConnection(mId, St7ApiConst.tyPLATE, faceIndex, propNum, st7ConnectivityArray);
+                aw.SetEntityGroup(mId, St7ApiConst.tyPLATE, faceIndex, glassGroupId);
+
+                foreach (var attribute in face.Attributes)
+                {
+                    if (attribute is PlateGlobalPressureAttribute pgpa)
                     {
-                        int[] globalConnectivity;
-                        
-                        if (face.IsQuad)
-                        {
-                            globalConnectivity = new int[5];
-                            globalConnectivity[0] = 4;
-                            globalConnectivity[1] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[0]).FirstOrDefault().GlobalId;
-                            globalConnectivity[2] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[1]).FirstOrDefault().GlobalId;
-                            globalConnectivity[3] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[2]).FirstOrDefault().GlobalId;
-                            globalConnectivity[4] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[3]).FirstOrDefault().GlobalId;
-                        }
-                        else
-                        {
-                            globalConnectivity = new int[4];
-                            globalConnectivity[0] = 3;
-                            globalConnectivity[1] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[0]).FirstOrDefault().GlobalId;
-                            globalConnectivity[2] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[1]).FirstOrDefault().GlobalId;
-                            globalConnectivity[3] = femMesh.Nodes.Where(i => i.NodeIndex == face.GetConnection()[2]).FirstOrDefault().GlobalId;
-                        }
-
-                        int propNum = _femGlassProperties[(IGlassProperty)face.Property];
-
-                        aw.SetElementConnection(mId, St7ApiConst.tyPLATE, face.GlobalId, propNum, globalConnectivity);
-                        aw.SetEntityGroup(mId, St7ApiConst.tyPLATE, face.GlobalId, glassGroupId);
-
-                        foreach (var attribute in face.Attributes)
-                        {
-                            if (attribute is PlateGlobalPressureAttribute pgpa)
-                            {
-                                int lcNum = _loadCases[(LoadCase)pgpa.LoadCase];
-                                St7SetPlateGlobalPressure(aw, mId, face.GlobalId, lcNum, pgpa);
-                            }                           
-                            
-                            else
-                                throw new NotSupportedException("Point attribute not supported");
-                        }
+                        int lcNum = _loadCases[(LoadCase)pgpa.LoadCase];
+                        St7SetPlateGlobalPressure(aw, mId, faceIndex, lcNum, pgpa);
                     }
+
+                    else
+                        throw new NotSupportedException("Point attribute not supported");
                 }
             }
 
@@ -565,6 +627,9 @@ namespace GPC.Checker.Glasses.FemModel
 
         private void St7SetLoadCase(ISt7ApiService aw, int mid)
         {
+            if (!(_loadCases.Count > 0))
+                return;
+
             if (_loadCases.Values.Min() != 1)
                 throw new NotSupportedException("Minimum load case id different than 1");
 
@@ -643,7 +708,7 @@ namespace GPC.Checker.Glasses.FemModel
         }
 
         private bool St7SetNodeGlobalLoad(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, NodeGlobalForceAttribute pgfa)
-        {            
+        {
             return aw.SetNodeForce(mid, nodeNumber, caseNumber, pgfa.Fx, pgfa.Fy, pgfa.Fz) && aw.SetNodeMoment(mid, nodeNumber, caseNumber, pgfa.Mx, pgfa.My, pgfa.Mz);
         }
 
@@ -659,7 +724,7 @@ namespace GPC.Checker.Glasses.FemModel
 
         private bool St7LinearSolverSetup(ISt7ApiService aw, int mid)
         {
-            foreach(var lc in _loadCases)
+            foreach (var lc in _loadCases)
             {
                 aw.EnableLSALoadCase(mid, lc.Value, 1);
             }
@@ -674,12 +739,12 @@ namespace GPC.Checker.Glasses.FemModel
             aw.SetNLAStagedAnalysis(mid, true);
 
 
-            foreach(var lcKvp in _loadCases)
+            foreach (var lcKvp in _loadCases)
             {
                 aw.AddNLAIncrement(mid, lcKvp.Value, lcKvp.Key.Name);
                 aw.SetNLALoadIncrementFactor(mid, lcKvp.Value, 1, lcKvp.Value, 1);
             }
-            
+
         }
 
         private bool St7RunLinearSolver(ISt7ApiService aw, int mid, string filePath)
@@ -702,7 +767,7 @@ namespace GPC.Checker.Glasses.FemModel
             else
             {
                 Process p = Process.Start(pInfo);
-                
+
                 p.WaitForExit(); // Wait for the process to end.
 
                 if (p.ExitCode == 0) // Analysis terminated with success
@@ -776,7 +841,7 @@ namespace GPC.Checker.Glasses.FemModel
                     throw e;
                 }
 
-                
+
             }
         }
 
@@ -803,42 +868,24 @@ namespace GPC.Checker.Glasses.FemModel
 
         #endregion
 
-        #region FeM
-
-        internal void ToFeM()
+        
+        private class StageAnalysis
         {
-            throw new NotSupportedException();
+            /// <summary>
+            /// ElementID - glassproperty association
+            /// </summary>
+            private Dictionary<int, IGlassProperty> _elementPropertiesAssociation;
+
+
+            public void AddPlateProperty(IGlassProperty property, List<Plate> plates)
+            {
+                foreach (var plate in plates)
+                {
+                    _elementPropertiesAssociation[plate.GlobalId] = property;
+                }
+            }
         }
 
-        #endregion
-
-
-
-
-        //#region Nested class
-
-        //private sealed class InterlayerStageProperty : IFemGlassProperty
-        //{
-        //    private Interlayer _baseInterlayerProperty;
-
-        //    private List<double> _loadDurations = new List<double>();
-        //    private List<double> _loadTemperatures = new List<double>();
-
-        //    public InterlayerStageProperty(Interlayer baseInterlayerProperty)
-        //    {
-        //        _baseInterlayerProperty = baseInterlayerProperty ?? throw new ArgumentNullException();
-        //    }
-
-        //    public void AddLoadDurationTemperature(double duration, double temperature)
-        //    {
-        //        _loadDurations.Add(duration);
-        //        _loadTemperatures.Add(temperature);
-        //    }
-
-        //}
-
-
-        //#endregion
 
     }
 }
