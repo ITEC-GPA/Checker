@@ -7,11 +7,15 @@ using System.Threading.Tasks;
 
 using GPC.Geometry;
 using GPC.Model.Loads;
+using GPC.Checker.Glasses.Loads;
 using GPC.Checker.Glasses.Models;
 
 
 namespace GPC.Checker.Glasses.Glasses
 {
+    /// <summary>
+    /// Overwrite of Model.Elements.Glasses.GlassSurface in order to add prototype and loads
+    /// </summary>
     public sealed class GlassSurface : Model.Elements.Glasses.GlassSurface, IEquatable<GlassSurface>
     {
 
@@ -19,15 +23,19 @@ namespace GPC.Checker.Glasses.Glasses
 
         private List<Load> _loads;
 
+        private List<ParametricLoad> _parametricLoads;
+
 
         public Prototype Prototype => _prototype;
         public List<Load> Load => _loads;
+        public List<ParametricLoad> ParametricLoads => _parametricLoads;
 
 
         public GlassSurface(Prototype prototype, Shape shape) 
             : base(shape, Guid.NewGuid())
         {
             this._prototype = prototype;
+            this._loads = new List<Load>();
         }
 
 

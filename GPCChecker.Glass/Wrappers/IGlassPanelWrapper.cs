@@ -7,23 +7,23 @@ namespace GPC.Checker.Glasses.Wrappers
     internal interface IGlassPanelWrapper
     {
         #region Properties
-        double GetTotalThickness();
+        //double GetTotalThickness();
 
-        double GetDeformationThickness(double loadDuration);
+        //double GetDeformationThickness(double loadDuration);
 
-        double GetStressThickness(double loadDuration); 
+        //double GetStressThickness(double loadDuration); 
 
-        #endregion
+        //#endregion
 
-        #region Material
+        //#region Material
 
-        double GetElasticModulus();
+        //double GetElasticModulus();
 
-        double GetPoissonRatios();
+        //double GetPoissonRatios();
 
-        double GetSelfWeightPerUnitArea();
+        //double GetSelfWeightPerUnitArea();
 
-        double GetSelfWeightTotal(); 
+        //double GetSelfWeightTotal(); 
 
         #endregion
 

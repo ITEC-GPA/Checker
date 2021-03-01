@@ -16,6 +16,7 @@ namespace GPC.Checker.Glasses.Models
 
         protected string _outputFolder;
 
+
         #endregion
 
         #region Properties

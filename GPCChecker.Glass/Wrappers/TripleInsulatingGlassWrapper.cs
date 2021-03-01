@@ -1,30 +1,30 @@
-﻿using GPC.Model.Elements.Glasses;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using GPC.Geometry.Meshes;
+using GPC.Geometry;
+using GPC.Checker.Glasses.Glasses;
+using GPC.Model.Glasses;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
     internal class TripleInsulatingGlassWrapper : InsulatedGlassWrapper
     {
-        protected new TripleInsulatingGlass Glass => (TripleInsulatingGlass)_glassSurface.Glass;
+        protected new TripleInsulatingGlass Glass => (TripleInsulatingGlass)_glass;
 
         protected readonly GlassPanelWrapper _glassPanelWrapperOuter;
         protected readonly GlassPanelWrapper _glassPanelWrapperCenter;
         protected readonly GlassPanelWrapper _glassPanelWrapperInner;
-        internal TripleInsulatingGlassWrapper(GlassSurface glassSurface, GlassPanelWrapper[] glassPanelWrappers) : base(glassSurface, glassPanelWrappers)
+        internal TripleInsulatingGlassWrapper(GlassSurface glassSurface, TripleInsulatingGlass glass) 
+            : base(glassSurface, glass)
         {
-            if (!(glassSurface.Glass is TripleInsulatingGlass))
-                throw new ArgumentException("Glass property should be a Triple insulating glass property");
 
         }
 
-        internal TripleInsulatingGlassWrapper(GlassSurface glassSurface, GlassPanelWrapper glassPanelWrapperOuter, GlassPanelWrapper glassPanelWrapperCenter, GlassPanelWrapper glassPanelWrapperInner)
-            : this(glassSurface, new GlassPanelWrapper[3] { glassPanelWrapperOuter, glassPanelWrapperCenter, glassPanelWrapperInner })
+        protected override List<GlassPanelWrapper> GetWrappers()
         {
-
+            throw new NotImplementedException();
         }
     }
 }
