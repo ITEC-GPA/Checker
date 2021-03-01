@@ -36,8 +36,8 @@
       <HintPath>..\packages\GPCGeometry.1.0.4.10\lib\net472\GPCGeometry.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GPCModel, Version=0.0.9.1, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.0.9.1\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.0.9.2, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.0.9.2\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCUtilities, Version=1.0.12.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCUtilities.1.0.12\lib\net472\GPCUtilities.dll</HintPath>
@@ -60,8 +60,9 @@
     <Compile Include="Checkers\Checker.cs" />
     <Compile Include="Checkers\En16612Checker.cs" />
     <Compile Include="FemModel\FemMesh.cs" />
-    <Compile Include="FemModel\FemModelWrapper_old.cs" />
     <Compile Include="FemModel\FemModelWrapper.cs" />
+    <Compile Include="FemModel\FemModelWrapper_old.cs" />
+    <Compile Include="FemModel\FemModelWrapper2.cs" />
     <Compile Include="FemModel\Node.cs" />
     <Compile Include="FemModel\Plate.cs" />
     <Compile Include="Glasses\GlassSurface.cs" />
