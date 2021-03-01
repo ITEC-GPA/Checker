@@ -34,8 +34,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GPCUtilities">
-      <HintPath>..\..\GPCUtilities\GPCUtilities\bin\Debug\GPCUtilities.dll</HintPath>
+    <Reference Include="GPCUtilities, Version=1.0.12.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCUtilities.1.0.12\lib\net472\GPCUtilities.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
