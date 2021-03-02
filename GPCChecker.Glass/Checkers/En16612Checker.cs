@@ -14,8 +14,8 @@ namespace GPC.Checker.Glasses.Checkers
         public En16612Checker(GlassSurface glassSurface) 
             : base(glassSurface)
         {
-            if (_glassSurface.Prototype.GetStandard() != Models.Prototype.Standard.EN16612)
-                throw new ArgumentException($"Standard not supported for {Models.Prototype.Standard.EN16612.ToString()} {GetCheckerName()} Checker");
+            if (_glassSurface.Prototype.GetStandard() != Models.Prototype.Standards.EN16612)
+                throw new ArgumentException($"Standard not supported for {Models.Prototype.Standards.EN16612.ToString()} {GetCheckerName()} Checker");
 
 
 

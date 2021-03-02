@@ -10,13 +10,13 @@ namespace GPC.Checker.Glasses.Models
     {
         #region PUBLIC ENUMS
 
-        public enum AnalysisType
+        public enum AnalysisTypes
         {
             LinearStaticAnalisys,
             NonLinearStaticAnalysis,
         }
 
-        public enum CheckMethod
+        public enum CheckMethods
         {
             /// <summary> Ref prEn16612 annex A </summary>
             DominantLoad = 0,
@@ -31,7 +31,7 @@ namespace GPC.Checker.Glasses.Models
             ASTME1300 = 3
         }
 
-        public enum LaminatedEqThicknessMethod
+        public enum LaminatedEqThicknessMethods
         {
             /// <summary> Ref CNR DT 210-13 </summary>
             EET = 0,
@@ -46,7 +46,7 @@ namespace GPC.Checker.Glasses.Models
             NEN = 3,
         }
 
-        public enum Standard
+        public enum Standards
         {
             /// <summary>EN 16612 - 2019</summary>
             EN16612 = 0,
@@ -60,11 +60,11 @@ namespace GPC.Checker.Glasses.Models
         #region Variables
 
         // Parametri
-        private AnalysisType _analysisType;
+        private AnalysisTypes _analysisType;
 
-        private CheckMethod _checkMethod;
-        private LaminatedEqThicknessMethod _laminatedEqThicknessMethod;
-        private Standard _standard;
+        private CheckMethods _checkMethod;
+        private LaminatedEqThicknessMethods _laminatedEqThicknessMethod;
+        private Standards _standard;
 
         // Proprietà vetro
         protected Glass _glass;
@@ -83,9 +83,17 @@ namespace GPC.Checker.Glasses.Models
 
         public double MeshSize => _meshSize;
 
+        public AnalysisTypes AnalysisType => _analysisType;
+        
+        public CheckMethods CheckMethod => _checkMethod;
+
+        public LaminatedEqThicknessMethods LaminatedEqThicknessMethod => _laminatedEqThicknessMethod;
+
+        public Standards Standard => _standard;
+
         #endregion
 
-        public Prototype(string name, Glass glass, List<GeometryRestrain> restrains, Standard standard, AnalysisType analysisType, CheckMethod checkMethod, LaminatedEqThicknessMethod laminatedEqThicknessMethod)
+        public Prototype(string name, Glass glass, List<GeometryRestrain> restrains, Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, LaminatedEqThicknessMethods laminatedEqThicknessMethod)
             : base(Guid.NewGuid(), name)
         {
             this._standard = standard;
@@ -104,24 +112,6 @@ namespace GPC.Checker.Glasses.Models
             throw new NotSupportedException();
         }
 
-        public AnalysisType GetAnalysisType()
-        {
-            return _analysisType;
-        }
 
-        public CheckMethod GetCheckMethod()
-        {
-            return _checkMethod;
-        }
-
-        public Standard GetStandard()
-        {
-            return _standard;
-        }
-
-        public LaminatedEqThicknessMethod GetLaminatedEqThicknessMethod()
-        {
-            return _laminatedEqThicknessMethod;
-        }
     }
 }
