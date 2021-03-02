@@ -1,25 +1,58 @@
-﻿using GPC.Model.LoadCases;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Geometry;
+using GPC.Model.LoadCases;
+
 
 namespace GPC.Checker.Glasses.Loads
 {
-    public class ParametricLineLoad : ParametricLoad
+    /// <summary>
+    /// ParametricLineLoad is a load defined with parametric coordinates 
+    /// </summary>
+    public class ParametricLineLoad : GPC.Model.Loads.LineLoad, IParametricLoad
     {
-
-
-        public ParametricLineLoad(LoadCase loadCase) 
-            : base(loadCase)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="f1"></param>
+        /// <param name="f2"></param>
+        /// <param name="f3"></param>
+        /// <param name="m1"></param>
+        /// <param name="m2"></param>
+        /// <param name="m3"></param>
+        /// <param name="line">Line defined with parametric coordinates</param>
+        /// <param name="loadCase"></param>
+        /// <param name="name"></param>
+        public ParametricLineLoad(double f1, double f2, double f3, double m1, double m2, double m3, Line3d line, LoadCase loadCase, string name = "") 
+            : base(f1, f2, f3, m1, m2, m3, line, loadCase, name)
         {
-            throw new NotImplementedException();
+
         }
 
-        public ParametricLineLoad(LoadCase loadCase, Guid guid) 
-            : base(loadCase, guid)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="f1"></param>
+        /// <param name="f2"></param>
+        /// <param name="f3"></param>
+        /// <param name="m1"></param>
+        /// <param name="m2"></param>
+        /// <param name="m3"></param>
+        /// <param name="line">Line defined with parametric coordinates</param>
+        /// <param name="loadCase"></param>
+        /// <param name="name"></param>
+        public ParametricLineLoad(double f1, double f2, double f3, double m1, double m2, double m3, Line3d line, LoadCase loadCase, CoordinateSystem coordinateSystem, string name = "") 
+            : base(f1, f2, f3, m1, m2, m3, line, loadCase, coordinateSystem, name)
+        {
+
+        }
+
+        public ParametricLineLoad(Vector3d force, Vector3d moment, Line3d line, LoadCase loadCase, CoordinateSystem cSys)
+            : base(force, moment, line, loadCase, cSys)
         {
 
         }
@@ -27,7 +60,7 @@ namespace GPC.Checker.Glasses.Loads
         public ParametricLineLoad(SerializationInfo info, StreamingContext context) 
             : base(info, context)
         {
-
+            
         }
     }
 }
