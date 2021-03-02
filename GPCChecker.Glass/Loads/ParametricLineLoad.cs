@@ -11,7 +11,7 @@ using GPC.Model.LoadCases;
 namespace GPC.Checker.Glasses.Loads
 {
     /// <summary>
-    /// ParametricLineLoad is a load defined with parametric coordinates 
+    /// ParametricPointRestrain is a point defined with parametric coordinates 
     /// </summary>
     public class ParametricLineLoad : GPC.Model.Loads.LineLoad, IParametricLoad
     {
