@@ -232,17 +232,17 @@ namespace GPC.Checker.Glasses.FemModel
                     aw.SetElementConnection(mId, St7ApiConst.tyPLATE, faceIndex, propNum, st7ConnectivityArray);
                     aw.SetEntityGroup(mId, St7ApiConst.tyPLATE, faceIndex, glassGroupId);
 
-                    //foreach (var attribute in element)
-                    //{
-                    //    if (attribute is PlatePressureAttribute pgpa)
-                    //    {
-                    //        int lcNum = _loadCases[(LoadCase)pgpa.LoadCase];
-                    //        St7SetPlateGlobalPressure(aw, mId, faceIndex, lcNum, pgpa);
-                    //    }
+                    foreach (var attribute in plate.AttributesLoadCase)
+                    {
+                        if (attribute is PlatePressureAttribute pgpa)
+                        {
+                            int lcNum = _loadCases[(LoadCase)pgpa.LoadCase];
+                            St7SetPlateGlobalPressure(aw, mId, faceIndex, lcNum, pgpa);
+                        }
 
-                    //    else
-                    //        throw new NotSupportedException("Point attribute not supported");
-                    //}
+                        else
+                            throw new NotSupportedException("Point attribute not supported");
+                    }
                 }
             }
                        
