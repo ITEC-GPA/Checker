@@ -15,16 +15,39 @@ namespace GPC.Checker.Glasses.Wrappers
 
         #region Public methods - geometry
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="loadDuration"></param>
+        /// <returns>Glass thickness for deformation analysis</returns>
+        public double GetDeformationThickness()
+        {
+            return Glass.Thickness;
+        }
+
+        /// <inheritdoc/>
         public override double GetDeformationThickness(double loadDuration)
         {
             return Glass.Thickness;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="loadDuration"></param>
+        /// <returns>Glass thickness for stress analysis</returns>
+        public double GetStressThickness()
+        {
+            return Glass.Thickness;
+        }
+
+        /// <inheritdoc/>
         public override double GetStressThickness(double loadDuration)
         {
             return Glass.Thickness;
         }
 
+        /// <inheritdoc/>
         public override double GetTotalThickness()
         {
             return Glass.Thickness;

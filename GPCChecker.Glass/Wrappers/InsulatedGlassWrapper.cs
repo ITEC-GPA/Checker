@@ -21,20 +21,10 @@ namespace GPC.Checker.Glasses.Wrappers
 
         }
 
-        protected abstract List<GlassPanelWrapper> GetWrappers();
+        protected abstract void SetUpWrappers();
 
 
-        public override void GenerateMesh()
-        {
-            List<Mesh> meshes = new List<Mesh>();
-            foreach (var wrapper in GetWrappers())
-            {
-                wrapper.GenerateMesh();
-                meshes.Add(wrapper.Meshes.First());
-            }
-            this._meshes = meshes;
-
-        }
+        public abstract override void GenerateMesh();
 
     }
 }

@@ -4,6 +4,7 @@ using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Glasses;
 using GPC.Checker.Glasses.Glasses;
+using GPC.Model.Restrains;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
@@ -14,7 +15,48 @@ namespace GPC.Checker.Glasses.Wrappers
 
         protected List<Mesh> _meshes;
 
+        protected Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> _meshGeometryRestrainVertices;
+        //protected Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> _meshGeometryRestrainVertices;
+
         protected virtual Glass Glass => _glass;
+
+        /// <summary>
+        /// If meshes has not been generated yet, it will call <see cref="GlassWrapper.SetUpMeshOptions()"/> and then <see cref="GlassWrapper.GenerateMesh()"/> />
+        /// </summary>
+        public List<Mesh> Meshes
+        {
+            get
+            {
+                if (_meshes.Count == 0)
+                {
+                    SetUpMeshOptions();
+                    GenerateMesh();
+                    return _meshes;
+                }
+                else
+                {
+                    return _meshes;
+                }
+            }
+        }
+
+        public Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> MeshGeometryRestrainVertices
+        {
+            get
+            {
+                if (_meshes.Count == 0)
+                {
+                    SetUpMeshOptions();
+                    GenerateMesh();
+                    return _meshGeometryRestrainVertices;
+                }
+                else
+                {
+                    return _meshGeometryRestrainVertices;
+                }
+            }
+        }
+
 
         protected GlassWrapper(GlassSurface glassSurface, Glass glass)
         {

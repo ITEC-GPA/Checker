@@ -105,6 +105,7 @@ namespace GlassTests
 
             LaminatedGlassWrapper lgw = new LaminatedGlassWrapper(gs, lg1);
 
+            
             // Act
             //double[] DistancesGlass = lgw.GetMonolithicBarycenterDistances();
             //double[] DistancesInterlayer = lgw.GetInterlayerBarycenterDistances();

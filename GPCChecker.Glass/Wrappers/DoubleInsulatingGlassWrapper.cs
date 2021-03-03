@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Checker.Glasses.Glasses;
+using GPC.Geometry.Meshes;
 using GPC.Model.Glasses;
 
 namespace GPC.Checker.Glasses.Wrappers
@@ -13,28 +14,30 @@ namespace GPC.Checker.Glasses.Wrappers
     {
         protected new DoubleInsulatingGlass Glass => (DoubleInsulatingGlass)_glass;
 
+        protected GlassPanelWrapper _innerGlassPanelWrapper;
+        protected GlassPanelWrapper _outerGlassPanelWrapper;
+
+
         internal DoubleInsulatingGlassWrapper(GlassSurface glassSurface, DoubleInsulatingGlass glass) 
             : base(glassSurface, glass)
 
         {
+            SetUpWrappers();
 
-            
+
         }
 
-        protected override List<GlassPanelWrapper> GetWrappers()
+        protected override void SetUpWrappers()
         {
-            List<GlassPanelWrapper> gpw = new List<GlassPanelWrapper>();
-
-            GlassPanelWrapper gpwInner, gpwOuter;
 
             if (Glass.GlassPanelInner is MonolithicGlass)
             {
-                gpwInner = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)Glass.GlassPanelInner);
+                _innerGlassPanelWrapper = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)Glass.GlassPanelInner);
 
             }
             else if (Glass.GlassPanelInner is LaminatedGlass)
             {
-                gpwInner = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)Glass.GlassPanelInner);
+                _innerGlassPanelWrapper = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)Glass.GlassPanelInner);
             }
             else
             {
@@ -43,22 +46,37 @@ namespace GPC.Checker.Glasses.Wrappers
 
             if (Glass.GlassPanelOuter is MonolithicGlass)
             {
-                gpwOuter = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)Glass.GlassPanelInner);
+                _outerGlassPanelWrapper = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)Glass.GlassPanelInner);
 
             }
             else if (Glass.GlassPanelOuter is LaminatedGlass)
             {
-                gpwOuter = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)Glass.GlassPanelInner);
+                _outerGlassPanelWrapper = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)Glass.GlassPanelInner);
             }
             else
             {
                 throw new NotSupportedException();
             }
-
-            return gpw;
         }
 
 
+        public override void GenerateMesh()
+        {
+            List<Mesh> meshes = new List<Mesh>();
 
+            _innerGlassPanelWrapper.GenerateMesh();
+            _outerGlassPanelWrapper.GenerateMesh();
+
+            if (_innerGlassPanelWrapper.Meshes.Select(i => i == null).Any())
+                throw new ArgumentException();
+
+            if (_outerGlassPanelWrapper.Meshes.Select(i => i == null).Any())
+                throw new ArgumentException();
+
+            meshes.AddRange(_innerGlassPanelWrapper.Meshes);
+            meshes.AddRange(_outerGlassPanelWrapper.Meshes);
+
+            this._meshes = meshes;
+        }
     }
 }

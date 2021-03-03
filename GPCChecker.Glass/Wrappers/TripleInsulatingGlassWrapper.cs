@@ -13,18 +13,47 @@ namespace GPC.Checker.Glasses.Wrappers
     {
         protected new TripleInsulatingGlass Glass => (TripleInsulatingGlass)_glass;
 
-        protected readonly GlassPanelWrapper _glassPanelWrapperOuter;
-        protected readonly GlassPanelWrapper _glassPanelWrapperCenter;
-        protected readonly GlassPanelWrapper _glassPanelWrapperInner;
+        protected GlassPanelWrapper _outerGlassPanelWrapper;
+        protected GlassPanelWrapper _centerGlassPanelWrapper;
+        protected GlassPanelWrapper _innerGlassPanelWrapper;
+
+
+
         internal TripleInsulatingGlassWrapper(GlassSurface glassSurface, TripleInsulatingGlass glass) 
             : base(glassSurface, glass)
         {
 
         }
 
-        protected override List<GlassPanelWrapper> GetWrappers()
+        protected override void SetUpWrappers()
         {
             throw new NotImplementedException();
+        }
+
+
+
+        public override void GenerateMesh()
+        {
+            List<Mesh> meshes = new List<Mesh>();
+
+            _innerGlassPanelWrapper.GenerateMesh();
+            _centerGlassPanelWrapper.GenerateMesh();
+            _outerGlassPanelWrapper.GenerateMesh();
+
+            if (_innerGlassPanelWrapper.Meshes.Select(i => i == null).Any())
+                throw new ArgumentException();
+
+            if (_centerGlassPanelWrapper.Meshes.Select(i => i == null).Any())
+                throw new ArgumentException();
+
+            if (_outerGlassPanelWrapper.Meshes.Select(i => i == null).Any())
+                throw new ArgumentException();
+
+            meshes.AddRange(_innerGlassPanelWrapper.Meshes);
+            meshes.AddRange(_centerGlassPanelWrapper.Meshes);
+            meshes.AddRange(_outerGlassPanelWrapper.Meshes);
+
+            this._meshes = meshes;
         }
     }
 }
