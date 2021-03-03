@@ -5,6 +5,7 @@ using GPC.Geometry.Meshes;
 using GPC.Model.Glasses;
 using GPC.Checker.Glasses.Glasses;
 using GPC.Model.Restrains;
+using GPC.Model.Loads;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
@@ -16,7 +17,8 @@ namespace GPC.Checker.Glasses.Wrappers
         protected List<Mesh> _meshes;
 
         protected Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> _meshGeometryRestrainVertices;
-        //protected Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> _meshGeometryRestrainVertices;
+        protected Dictionary<Mesh, Dictionary<Load, int[]>> _meshLoadsVertexIndexes;
+        protected Dictionary<Mesh, Dictionary<Load, int[]>> _meshLoadsFaceIndexes;
 
         protected virtual Glass Glass => _glass;
 
@@ -56,12 +58,46 @@ namespace GPC.Checker.Glasses.Wrappers
                 }
             }
         }
+        
+        public Dictionary<Mesh, Dictionary<Load, int[]>> MeshLoadsVertexIndexes
+        {
+            get
+            {
+                if (_meshes.Count == 0)
+                {
+                    SetUpMeshOptions();
+                    GenerateMesh();
+                    return _meshLoadsVertexIndexes;
+                }
+                else
+                {
+                    return _meshLoadsVertexIndexes;
+                }
+            }
+        }
+
+        public Dictionary<Mesh, Dictionary<Load, int[]>> MeshLoadsFaceIndexes
+        {
+            get
+            {
+                if (_meshes.Count == 0)
+                {
+                    SetUpMeshOptions();
+                    GenerateMesh();
+                    return _meshLoadsFaceIndexes;
+                }
+                else
+                {
+                    return _meshLoadsFaceIndexes;
+                }
+            }
+        }
 
 
         protected GlassWrapper(GlassSurface glassSurface, Glass glass)
         {
-            this._glassSurface = glassSurface;
-            this._glass = glass;
+            this._glassSurface = glassSurface ?? throw new ArgumentNullException(nameof(glassSurface));
+            this._glass = glass ?? throw new ArgumentNullException(nameof(glass));
 
             this._meshes = new List<Mesh>();
         }

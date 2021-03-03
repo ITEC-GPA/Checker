@@ -105,21 +105,30 @@ namespace GPC.Checker.Glasses.Checkers
                 if (glass is MonolithicGlass mg)
                 {
                     MonolithicGlassWrapper wrapper = new MonolithicGlassWrapper(_glassSurface, mg);
+                    wrapper.AddLoads(_glassSurface.GetLoads());
 
+                    // Recupero la mesh - wrapper la genera
                     List<Mesh> meshes = wrapper.Meshes;
-                    Dictionary<Mesh, Dictionary<GeometryRestrain, int[]> > meshGeometryRestrainVertices =  wrapper.MeshGeometryRestrainVertices;
 
                     if (meshes.Count > 1)
                         throw new NotSupportedException();
 
+
+                    // Creo modello
                     FemModelWrapper femModelWrapper = new FemModelWrapper($"FemName_{_glassSurface.Id}");
 
                     MonolithicGlassProperty pp = new MonolithicGlassProperty(mg);
 
+                    GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.ContainsKey(meshes.First()) ? wrapper.MeshLoadsVertexIndexes[meshes.First()] : null,
+                                                  wrapper.MeshLoadsFaceIndexes.ContainsKey(meshes.First()) ? wrapper.MeshLoadsFaceIndexes[meshes.First()] : null,
+                                                  out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap, out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap, 
+                                                  out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMap);
 
-                    femModelWrapper.AddMesh(meshes.First(), pp, null, null, null, null, meshGeometryRestrainVertices.Values.FirstOrDefault());
+                    femModelWrapper.AddMesh(meshes.First(), pp, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, wrapper.MeshGeometryRestrainVertices.Values.FirstOrDefault());
 
                     femModelWrapper.SaveToSt7(folderPath);
+
+
                 }
                 else if (glass is LaminatedGlass lg)
                 {
@@ -150,7 +159,74 @@ namespace GPC.Checker.Glasses.Checkers
 
         }
 
+
         #endregion
+
+
+        private void GetLoadTypeVerticesDictionary(Dictionary<Load, int[]> vertexLoadEntityMap, Dictionary<Load, int[]> areaLoadEntityMap, 
+                                                   out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap, out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap, 
+                                                   out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMap)
+        {
+
+            vertexLoadMeshEntityMap = new Dictionary<IPointLoad, int[]>();
+            vertexLineLoadMeshEntityMap = new Dictionary<ILineLoad, int[]>();
+            faceAreaLoadMeshEntityMap = new Dictionary<IAreaLoad, int[]>();
+
+            
+            if (vertexLoadEntityMap != null)
+            {
+                foreach (var kvp in vertexLoadEntityMap)
+                {
+                    Load load = kvp.Key;
+                    int[] indexes = kvp.Value;
+
+                    if (load is IPointLoad ipl)
+                    {
+                        if (vertexLoadMeshEntityMap.ContainsKey(ipl))
+                        {
+                            var buffer = vertexLoadMeshEntityMap[ipl].ToList();
+                            buffer.AddRange(indexes.ToList());
+
+                            vertexLoadMeshEntityMap[ipl] = buffer.Distinct().ToArray();
+                        }
+                        vertexLoadMeshEntityMap.Add(ipl, indexes);
+                    }
+                    else if (load is ILineLoad ill)
+                    {
+                        if (vertexLineLoadMeshEntityMap.ContainsKey(ill))
+                        {
+                            var buffer = vertexLineLoadMeshEntityMap[ill].ToList();
+                            buffer.AddRange(indexes.ToList());
+
+                            vertexLineLoadMeshEntityMap[ill] = buffer.Distinct().ToArray();
+                        }
+                        vertexLineLoadMeshEntityMap.Add(ill, indexes);
+                    }
+                } 
+            }
+
+            if (areaLoadEntityMap != null)
+            {
+                foreach (var kvp in areaLoadEntityMap)
+                {
+                    Load load = kvp.Key;
+                    int[] indexes = kvp.Value;
+
+                    if (load is IAreaLoad ial)
+                    {
+                        if (faceAreaLoadMeshEntityMap.ContainsKey(ial))
+                        {
+                            var buffer = faceAreaLoadMeshEntityMap[ial].ToList();
+                            buffer.AddRange(indexes.ToList());
+
+                            faceAreaLoadMeshEntityMap[ial] = buffer.Distinct().ToArray();
+                        }
+                        faceAreaLoadMeshEntityMap.Add(ial, indexes);
+                    }
+
+                } 
+            }
+        }
 
     }
 }

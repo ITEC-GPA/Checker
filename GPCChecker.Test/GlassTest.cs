@@ -49,6 +49,7 @@ namespace GlassTests
             if (Directory.Exists(TestContext.TestDir))
                 Directory.Delete(TestContext.TestDir, true);
         }
+
         #endregion
 
         #region Private methods
@@ -130,7 +131,7 @@ namespace GlassTests
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(100, 200, 300, s1, lc1);
             AreaLoad s1GalLc2 = new AreaLoad(101, 201, 301, s1, lc2);
-            PointLoad s1gpl = new PointLoad(1, 2, 3, 4, 5, 6, new Point3d(100, 200, 50), lc2);
+            PointLoad s1gpl = new PointLoad(1, 2, 3, 4, 5, 6, new Point3d(100, 0, 50), lc2);
 
 
             gs1.AddLoad(s1GalLc1);

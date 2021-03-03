@@ -232,7 +232,7 @@ namespace GPC.Checker.Glasses.FemModel
                     aw.SetElementConnection(mId, St7ApiConst.tyPLATE, faceIndex, propNum, st7ConnectivityArray);
                     aw.SetEntityGroup(mId, St7ApiConst.tyPLATE, faceIndex, glassGroupId);
 
-                    //foreach (var attribute in .Attributes)
+                    //foreach (var attribute in element)
                     //{
                     //    if (attribute is PlatePressureAttribute pgpa)
                     //    {
