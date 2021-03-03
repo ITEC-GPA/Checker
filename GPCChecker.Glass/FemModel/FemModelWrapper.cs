@@ -68,12 +68,19 @@ namespace GPC.Checker.Glasses.FemModel
             }
         }
 
-
-        public void SaveToSt7(string filePath)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="saveFolderPath">Folder path where to save the results</param>
+        public void SaveToSt7(string saveFolderPath)
         {
+
+            Directory.CreateDirectory(saveFolderPath);
+
+
             if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
             {
-                bool status = CreateSt7Model(aw, filePath, out int mid, out List<string> warnings, out List<string> errors);
+                bool status = CreateSt7Model(aw, saveFolderPath, out int mid, out List<string> warnings, out List<string> errors);
 
                 if (status)
                     status = aw.SaveFile(mid);
@@ -112,13 +119,23 @@ namespace GPC.Checker.Glasses.FemModel
                 ChannelServices.UnregisterChannel(channel);
         }
 
-        private bool CreateSt7Model(ISt7ApiService aw, string filePath, out int mId, out List<string> warnings, out List<string> errors)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aw"></param>
+        /// <param name="saveFolderPath">Folder where to save the St7 model</param>
+        /// <param name="mId"></param>
+        /// <param name="warnings"></param>
+        /// <param name="errors"></param>
+        /// <returns></returns>
+        private bool CreateSt7Model(ISt7ApiService aw, string saveFolderPath, out int mId, out List<string> warnings, out List<string> errors)
         {
             warnings = new List<string>();
             errors = new List<string>();
             mId = 0;
 
             string scratchPath = Path.GetTempPath();
+            string filePath = Path.ChangeExtension(Path.Combine(saveFolderPath, Name), "St7");
 
             // Create a new model
             if (!aw.NewFile(filePath, scratchPath, ref mId))

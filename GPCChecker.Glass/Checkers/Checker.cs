@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using GPC.Checker.Glasses.FemModel;
 using GPC.Checker.Glasses.Wrappers;
 using GPC.Checker.Glasses.Glasses;
+using GPC.Model.Glasses;
+using GPC.Geometry.Meshes;
 
 namespace GPC.Checker.Glasses.Checkers
 {
@@ -19,62 +21,47 @@ namespace GPC.Checker.Glasses.Checkers
             this._femModels = new List<FemModelWrapper>();
         }
 
-        protected List<GlassWrapper> GetWrappers()
+        protected GlassWrapper GetWrapper()
         {
-            List<GlassWrapper> wrappers = new List<GlassWrapper>();
+            var glass = _glassSurface.Prototype.Glass;
 
-
-            if (_glassSurface.Prototype.Glass is Model.Elements.Glasses.MonolithicGlass mg)
+            if (glass is MonolithicGlass mg)
             {
-                MonolithicGlassWrapper mgw = new MonolithicGlassWrapper(_glassSurface);
-                wrappers.Add(mgw);
-
+                return new MonolithicGlassWrapper(_glassSurface, mg);
             }
-            else if (_glassSurface.Prototype.Glass is Model.Elements.Glasses.LaminatedGlass lg)
+            else if (glass is LaminatedGlass lg)
             {
-                LaminatedGlassWrapper lgw = new LaminatedGlassWrapper(_glassSurface);
-                wrappers.Add(lgw);
+                return new LaminatedGlassWrapper(_glassSurface, lg);
             }
-            else if (_glassSurface.Prototype.Glass is Model.Elements.Glasses.DoubleInsulatingGlass dgu)
+            else if (glass is DoubleInsulatingGlass dgu)
             {
-                throw new NotImplementedException();
+                return new DoubleInsulatingGlassWrapper(_glassSurface, dgu);
             }
-            else if (_glassSurface.Prototype.Glass is Model.Elements.Glasses.TripleInsulatingGlass tgu)
+            else if (glass is TripleInsulatingGlass tgu)
             {
-                throw new NotImplementedException();
+                return new TripleInsulatingGlassWrapper(_glassSurface, tgu);
             }
             else
             {
-                throw new NotSupportedException(_glassSurface.Prototype.Glass.GetType().ToString());
+                throw new NotSupportedException();
             }
-
-            return wrappers;
         }
 
 
-        #region abstract methods
+        public abstract void PerformCheck(string folderPath);
         
         protected abstract override string GetCheckerName();
 
         public abstract void SetUpFemModels();
 
-        public void ExportToSt7()
-        {
-            foreach(FemModelWrapper femModel in _femModels)
-            {
-                femModel.SaveToSt7(Path.Combine(_model.OutputFolder, Path.ChangeExtension(femModel.Name, "st7")));
-            }
-        }
-
         public void RunSt7Solver()
         {
-            foreach (FemModelWrapper femModel in _femModels)
-            {
-                femModel.RunSt7Solver(Path.Combine(_model.OutputFolder, Path.ChangeExtension(femModel.Name, "st7")));
-            }
+            //foreach (FemModelWrapper femModel in _femModels)
+            //{
+            //    femModel.RunSt7Solver(Path.Combine(_model.OutputFolder, Path.ChangeExtension(femModel.Name, "st7")));
+            //}
         }
 
-        #endregion
 
     }
 }

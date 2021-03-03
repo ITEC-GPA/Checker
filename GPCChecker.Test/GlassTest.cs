@@ -1,20 +1,23 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using GPC.Checker.Glasses;
-using GPC.Model.Elements.Glasses;
 using GPC.Geometry;
 using GPC.Model.Materials;
 using GPC.Model.Loads;
 using GPC.Checker.Glasses.LoadCases;
+using GPC.Model.FreedomCases;
 using GPC.Model.Combinations;
 using GPC.Checker.Glasses.Checkers;
+using GPC.Model.FEM;
 using GPC.Model.Elements;
-using System.Collections.Generic;
 using GPC.Model.Restrains;
+using GPC.Checker.Glasses.Restrain;
 using GPC.Checker.Glasses.Models;
 using GPC.Model.Glasses;
+using GPC.Checker.Glasses.Glasses;
 
 namespace GlassTests
 {
@@ -26,6 +29,7 @@ namespace GlassTests
         private static string _outputFolder;
 
         #region Test public methods
+
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
@@ -57,7 +61,7 @@ namespace GlassTests
 
         private InterlayerMaterial GetInterlayerMaterial()
         {
-            var it = new InterlayerMaterial("", 1, 0, InterlayerMaterial.InterlayerType.NormalPVB) ;
+            var it = new InterlayerMaterial("", 1, 0, InterlayerMaterial.InterlayerType.NormalPVB);
             it.AddShearModule(3, new double[] { 10, 20, 50 }, new double[] { 0.1, 0.2, 0.30 });
             it.AddShearModule(100, new double[] { 10, 20, 50 }, new double[] { 0.15, 0.25, 0.35 });
             return it;
@@ -68,7 +72,7 @@ namespace GlassTests
             Polygon3d poly = new Polygon3d()
             {
                 new Point3d(p.X, p.Y, p.Z),
-                new Point3d(p.X + vector.X, p.Y + vector.Y, p.Z), 
+                new Point3d(p.X + vector.X, p.Y + vector.Y, p.Z),
                 new Point3d(p.X + vector.X, p.Y + vector.Y, p.Z + vector.Z),
                 new Point3d(p.X, p.Y, p.Z + vector.Z)
             };
@@ -82,12 +86,42 @@ namespace GlassTests
         [TestMethod]
         public void MonolithicGlass1()
         {
-            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 400, 100));
-            //var restrains = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
+            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
+            Directory.CreateDirectory(outputFolder);
+
+            Model model = new Model(outputFolder);
+
+            // Shape
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 0, 500));
+            Shape s2 = GetRectangularShape(new Point3d(500, 0, 0), new Vector3d(200, 0, 500));
+
+
+            List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
+
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+
+            List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();            
+            List<GeometryRestrain> geometryRestrains2 = new List<GeometryRestrain>();
+            geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
+            geometryRestrains2.AddRange(s2.Fill.Explode().Select(i => LineRestrain.GetAllFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
+
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 10, GetGlassMaterialPrEn());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, parametricRestrains, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalisys, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300);
+
 
             // Surface
-            MonolithicGlass mg = new MonolithicGlass("Mg1", 10, GetGlassMaterialPrEn());
-            GlassSurface gs1 = new GlassSurface(s1);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            gs1.AddRestrains(geometryRestrains1);
+
+            GlassSurface gs2 = new GlassSurface(p1, s2);
+            gs2.AddRestrains(geometryRestrains2);
+
+
+            model.AddSurface(gs1);
+            model.AddSurface(gs2);
 
             // LoadCases
             LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
@@ -98,9 +132,11 @@ namespace GlassTests
             AreaLoad s1GalLc2 = new AreaLoad(101, 201, 301, s1, lc2);
             PointLoad s1gpl = new PointLoad(1, 2, 3, 4, 5, 6, new Point3d(100, 200, 50), lc2);
 
-            //gs1.AddLoad(s1GalLc1);
-            //gs1.AddLoad(s1GalLc2);
-            //gs1.AddLoad(s1gpl);
+
+            gs1.AddLoad(s1GalLc1);
+            gs1.AddLoad(s1GalLc2);
+            gs1.AddLoad(s1gpl);
+
 
             // Combination 
             Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural, Guid.NewGuid());
@@ -112,22 +148,18 @@ namespace GlassTests
             cmb2[lc1] = 3;
             cmb2[lc2] = 5;
 
-            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
-            Directory.CreateDirectory(outputFolder);
-
-            Model model = new Model(outputFolder);
-            model.AddSurface(gs1);
-
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
 
-            //En16612Checker check = new En16612Checker(gs1) ;
+            model.PerformChecks();
+
+
             //check.SetUpFemModels();
             //check.ExportToSt7();
         }
-        
 
+#if _false
         [TestMethod]
         public void MonolithicGlass2()
         {
@@ -299,6 +331,8 @@ namespace GlassTests
         }
 
 
+
+
         [TestMethod]
         public void MonoAndLaminatedGlass()
         {
@@ -404,5 +438,7 @@ namespace GlassTests
 
             //check.RunSt7Solver();
         }
+    
+#endif
     }
 }

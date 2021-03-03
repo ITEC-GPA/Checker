@@ -1,5 +1,5 @@
 ﻿using GPC.Model.Glasses;
-using GPC.Model.Restrains;
+using GPC.Checker.Glasses.Restrain;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
@@ -73,7 +73,7 @@ namespace GPC.Checker.Glasses.Models
         protected double _meshSize;
 
         // Restrain
-        protected List<GeometryRestrain> _restrains;
+        protected List<IParametricRestrain> _restrains;
 
         #endregion
 
@@ -91,9 +91,11 @@ namespace GPC.Checker.Glasses.Models
 
         public Standards Standard => _standard;
 
+        public List<IParametricRestrain> Restrains => _restrains;
+
         #endregion
 
-        public Prototype(string name, Glass glass, List<GeometryRestrain> restrains, Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, LaminatedEqThicknessMethods laminatedEqThicknessMethod)
+        public Prototype(string name, Glass glass, List<IParametricRestrain> restrains, Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, LaminatedEqThicknessMethods laminatedEqThicknessMethod)
             : base(Guid.NewGuid(), name)
         {
             this._standard = standard;
@@ -102,8 +104,8 @@ namespace GPC.Checker.Glasses.Models
             this._laminatedEqThicknessMethod = laminatedEqThicknessMethod;
 
             this._glass = glass ?? throw new ArgumentNullException("Glass cannot be null");
-            this._meshSize = 50;
-            this._restrains = restrains == null ? new List<GeometryRestrain>() : restrains;
+            this._meshSize = 20;
+            this._restrains = restrains == null ? new List<IParametricRestrain>() : restrains;
         }
 
         public Prototype(SerializationInfo info, StreamingContext context)

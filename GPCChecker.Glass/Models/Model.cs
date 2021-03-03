@@ -1,7 +1,8 @@
-﻿using GPC.Model.Elements.Glasses;
-using GPC.Model.Combinations;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using GPC.Model.Combinations;
+using GPC.Checker.Glasses.Glasses;
+using GPC.Checker.Glasses.Checkers;
 
 namespace GPC.Checker.Glasses.Models
 {
@@ -69,6 +70,28 @@ namespace GPC.Checker.Glasses.Models
         {
             _combinations.Add(combination);
         } 
+
+        public void PerformChecks()
+        {
+            foreach (var surface in _glassSurfaces)
+            {
+                if (surface.Prototype.Standard == Prototype.Standards.EN16612)
+                {
+                    En16612Checker checker = new En16612Checker(surface);
+                    checker.PerformCheck(_outputFolder);
+                }
+                else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
+                {
+                    throw new NotImplementedException();
+                    //AstmChecker checker = new AstmChecker(surface);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+            }
+        }
 
         #endregion
     }
