@@ -24,6 +24,8 @@ namespace GPC.Checker.Glasses.FemModel
     {
 
         private string _st7ServerIp;
+        private string _saveFolderPath;
+        private string _st7FilePath;
 
 
         public FemModelWrapper() : this (string.Empty)
@@ -68,41 +70,26 @@ namespace GPC.Checker.Glasses.FemModel
             }
         }
 
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="saveFolderPath">Folder path where to save the results</param>
         public void SaveToSt7(string saveFolderPath)
         {
+            if (string.IsNullOrEmpty(saveFolderPath) || string.IsNullOrWhiteSpace(saveFolderPath))
+                throw new DirectoryNotFoundException();
 
-            Directory.CreateDirectory(saveFolderPath);
+            DirectoryInfo d = Directory.CreateDirectory(saveFolderPath);
 
+            _saveFolderPath = d.FullName;
 
             if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
             {
-                bool status = CreateSt7Model(aw, saveFolderPath, out int mid, out List<string> warnings, out List<string> errors);
+                bool status = CreateSt7Model(aw, _saveFolderPath, out int mid, out List<string> warnings, out List<string> errors);
 
                 if (status)
                     status = aw.SaveFile(mid);
-
-                //switch (_analysisType)
-                //{
-                //    case Prototype.AnalysisType.LinearStaticAnalisys:
-
-                //        if (status)
-                //            St7NonLinearSolverSetupForLinearAnalysis(aw, mid);
-
-                //        if (status)
-                //            status = aw.SaveFile(mid);
-
-                //        break;
-
-                //    case Prototype.AnalysisType.NonLinearStaticAnalysis:
-                //        throw new NotImplementedException();
-
-                //    default:
-                //        throw new NotSupportedException($"Analysis type {_analysisType} not supported");
-                //}
 
                 if (status)
                     status = aw.CloseFile(mid);
@@ -117,6 +104,52 @@ namespace GPC.Checker.Glasses.FemModel
 
             if (channel != null)
                 ChannelServices.UnregisterChannel(channel);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="saveFolderPath">Folder path where to save the results</param>
+        public void RunSt7Solver(Prototype.AnalysisTypes analysisTypes)
+        {
+
+            if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
+            {
+                int mid = 0;
+
+                bool isOpened = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
+
+                if (isOpened)
+                {
+                    switch (analysisTypes)
+                    {
+                        case Prototype.AnalysisTypes.LinearStaticAnalisys:
+
+                            bool status = St7LinearSolverSetup(aw, mid);
+                            if (status)
+                                aw.SaveFile(mid);
+                            status = St7RunLinearSolver(aw, _st7FilePath);
+                            break;
+
+                        case Prototype.AnalysisTypes.NonLinearStaticAnalysis:
+                            throw new NotImplementedException();
+
+                        default:
+                            throw new NotSupportedException($"Analysis type {analysisTypes} not supported");
+                    }
+
+                    aw.CloseFile(mid);
+                }
+            }
+            else
+            {
+                throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
+            }
+
+            if (channel != null)
+                ChannelServices.UnregisterChannel(channel);
+
         }
 
         /// <summary>
@@ -135,10 +168,10 @@ namespace GPC.Checker.Glasses.FemModel
             mId = 0;
 
             string scratchPath = Path.GetTempPath();
-            string filePath = Path.ChangeExtension(Path.Combine(saveFolderPath, Name), "St7");
+            _st7FilePath = Path.ChangeExtension(Path.Combine(saveFolderPath, Name), "St7");
 
             // Create a new model
-            if (!aw.NewFile(filePath, scratchPath, ref mId))
+            if (!aw.NewFile(_st7FilePath, scratchPath, ref mId))
                 throw new Exception("Failed to create new model");
 
             // Units
@@ -245,9 +278,7 @@ namespace GPC.Checker.Glasses.FemModel
                     }
                 }
             }
-                       
             
-
             return true;
         }
 
@@ -454,7 +485,7 @@ namespace GPC.Checker.Glasses.FemModel
 
         }
 
-        private bool St7RunLinearSolver(ISt7ApiService aw, int mid, string filePath)
+        private bool St7RunLinearSolver(ISt7ApiService aw, string filePath)
         {
             //var c = Assembly.GetExecutingAssembly().GetName().Name;
             //var b = AppDomain.CurrentDomain.GetAssemblies();

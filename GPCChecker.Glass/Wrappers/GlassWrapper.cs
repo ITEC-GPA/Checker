@@ -36,9 +36,7 @@ namespace GPC.Checker.Glasses.Wrappers
                     return _meshes;
                 }
                 else
-                {
                     return _meshes;
-                }
             }
         }
 
@@ -53,9 +51,7 @@ namespace GPC.Checker.Glasses.Wrappers
                     return _meshGeometryRestrainVertices;
                 }
                 else
-                {
                     return _meshGeometryRestrainVertices;
-                }
             }
         }
         
@@ -70,9 +66,7 @@ namespace GPC.Checker.Glasses.Wrappers
                     return _meshLoadsVertexIndexes;
                 }
                 else
-                {
                     return _meshLoadsVertexIndexes;
-                }
             }
         }
 
@@ -87,9 +81,7 @@ namespace GPC.Checker.Glasses.Wrappers
                     return _meshLoadsFaceIndexes;
                 }
                 else
-                {
                     return _meshLoadsFaceIndexes;
-                }
             }
         }
 

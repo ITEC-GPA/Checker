@@ -128,8 +128,9 @@ namespace GPC.Checker.Glasses.Checkers
 
                     femModelWrapper.SaveToSt7(folderPath);
 
-
+                    femModelWrapper.RunSt7Solver(Models.Prototype.AnalysisTypes.LinearStaticAnalisys);
                 }
+
                 else if (glass is LaminatedGlass lg)
                 {
                     glassWrapper = new LaminatedGlassWrapper(_glassSurface, lg);
@@ -146,7 +147,6 @@ namespace GPC.Checker.Glasses.Checkers
                 {
                     throw new NotSupportedException();
                 }
-
 
 
             }
