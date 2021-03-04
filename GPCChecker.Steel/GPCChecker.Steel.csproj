@@ -43,6 +43,9 @@
     <Reference Include="GPCUtilities, Version=1.0.12.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCUtilities.1.0.12\lib\net472\GPCUtilities.dll</HintPath>
     </Reference>
+    <Reference Include="St7ApiWrapper, Version=1.0.21.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\St7ApiWrapper.1.0.21\lib\net472\St7ApiWrapper.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
