@@ -11,19 +11,19 @@ using GPC.Checker.Glasses.Glasses;
 using GPC.Model.Glasses;
 using GPC.Geometry.Meshes;
 using GPC.Model.Restrains;
+using GPC.Checker.Glasses.Results;
 
 namespace GPC.Checker.Glasses.Checkers
 {
     public class En16612Checker : Checker
     {
 
+
         public En16612Checker(GlassSurface glassSurface)
             : base(glassSurface)
         {
             if (_glassSurface.Prototype.Standard != Models.Prototype.Standards.EN16612)
                 throw new ArgumentException($"Standard not supported for {Models.Prototype.Standards.EN16612.ToString()} {GetCheckerName()} Checker");
-
-
 
         }
 
@@ -91,8 +91,10 @@ namespace GPC.Checker.Glasses.Checkers
         /// 
         /// </summary>
         /// <param name="folderPath">Folder where to save the results</param>
-        public override void PerformCheck(string folderPath)
+        public override GlassResult PerformCheck(string folderPath)
         {
+
+            GlassResult worstGlassResult = null;
 
             Directory.CreateDirectory(folderPath);
 
@@ -129,6 +131,11 @@ namespace GPC.Checker.Glasses.Checkers
                     femModelWrapper.SaveToSt7(folderPath);
 
                     femModelWrapper.RunSt7Solver(Models.Prototype.AnalysisTypes.LinearStaticAnalisys);
+
+                    femModelWrapper.ReadSt7LinearResults();
+
+                    worstGlassResult = femModelWrapper.GetMaxWorkingRatio();
+
                 }
 
                 else if (glass is LaminatedGlass lg)
@@ -152,11 +159,12 @@ namespace GPC.Checker.Glasses.Checkers
             }
             else if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.NonLinearStaticAnalysis)
             {
-
+                throw new NotImplementedException();
             }
             else
                 throw new NotSupportedException();
 
+            return worstGlassResult;
         }
 
 

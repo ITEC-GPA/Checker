@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Checker.Glasses.Glasses;
-
+using GPC.Checker.Glasses.Results;
 
 namespace GPC.Checker.Glasses.Checkers
 {
@@ -28,7 +28,7 @@ namespace GPC.Checker.Glasses.Checkers
             return "ASTM E1300 - 16";
         }
 
-        public override void PerformCheck(string folderPath)
+        public override GlassResult PerformCheck(string folderPath)
         {
             throw new NotImplementedException();
         }

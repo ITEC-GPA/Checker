@@ -1,5 +1,4 @@
 ﻿
-using St7ApiWrapper;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,12 +10,18 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using St7ApiWrapper;
+using GPC.Geometry;
 using GPC.Checker.Glasses.LoadCases;
 using GPC.Checker.Glasses.Models;
 using GPC.Model.FEM.Attributes;
 using GPC.Model.FEM.FiniteElements;
 using GPC.Model.FEM.Properties;
 using GPC.Model.Restrains;
+using GPC.Model.Results;
+using GPC.Model.Materials;
+using GPC.Model.Combinations;
+using GPC.Checker.Glasses.Results;
 
 namespace GPC.Checker.Glasses.FemModel
 {
@@ -26,6 +31,7 @@ namespace GPC.Checker.Glasses.FemModel
         private string _st7ServerIp;
         private string _saveFolderPath;
         private string _st7FilePath;
+        private string _st7LinearResultFilePath;
 
 
         public FemModelWrapper() : this (string.Empty)
@@ -47,29 +53,8 @@ namespace GPC.Checker.Glasses.FemModel
 
         #region STRAUS7
 
-        private static bool ConnectService(string ip, out ISt7ApiService ro, out TcpChannel channel)
-        {
-            ro = null;
-            channel = null;
-            try
-            {
-                channel = new TcpChannel();
-                ChannelServices.RegisterChannel(channel, false);
 
-                System.Threading.Thread.Sleep(1000);
-                ro = (ISt7ApiService)Activator.GetObject(typeof(ISt7ApiService), string.Format("tcp://{0}:8085/St7ApiService", ip));
-                return true;
-            }
-            catch (System.Net.Sockets.SocketException)
-            {
-                return false;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
+        #region STRAUS7 - PUBLIC METHODS
 
         /// <summary>
         /// 
@@ -106,11 +91,6 @@ namespace GPC.Checker.Glasses.FemModel
                 ChannelServices.UnregisterChannel(channel);
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="saveFolderPath">Folder path where to save the results</param>
         public void RunSt7Solver(Prototype.AnalysisTypes analysisTypes)
         {
 
@@ -130,6 +110,8 @@ namespace GPC.Checker.Glasses.FemModel
                             if (status)
                                 aw.SaveFile(mid);
                             status = St7RunLinearSolver(aw, _st7FilePath);
+
+                            _st7LinearResultFilePath = Path.ChangeExtension(_st7FilePath, "LSA");
                             break;
 
                         case Prototype.AnalysisTypes.NonLinearStaticAnalysis:
@@ -150,6 +132,156 @@ namespace GPC.Checker.Glasses.FemModel
             if (channel != null)
                 ChannelServices.UnregisterChannel(channel);
 
+        }
+        
+        public void ReadSt7LinearResults()
+        {
+            if (File.Exists(_st7LinearResultFilePath))
+            {
+                if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
+                {
+                    int mid = 0;
+
+                    int numPrimary = 0;
+                    int numSecondary = 0;
+
+                    bool status = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
+
+                    if (status)
+                        status = aw.OpenResultFile(mid, _st7LinearResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
+
+                    if (status)
+                    {
+                        foreach (var element in _elements)
+                        {
+                            if (element is Plate plate)
+                            {
+                                foreach (var kvp in _loadCases)
+                                {
+                                    int loadCaseId = kvp.Value;
+
+                                    int numPoints = 0; // punti in cui straus da i risultati
+                                    int numColumns = 0; // numero di risultati per punto
+
+                                    // Straus ritorna un array: [0..NumPoints*NumColumns-1] - An array containing the plate results at each sample location.
+                                    // The results are returned in blocks of length NumColumns, with the start of the ith block for the ith location at PlateResult[(i - 1) * NumColumns].
+
+                                    double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
+                                    double[] angles = new double[9];
+                                    aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, plate.Id,
+                                                           loadCaseId, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
+
+                                    //double[] angles = new double[1];
+                                    //aw.GetPlateXAngle(mid, plate.Id, ref angles);
+
+                                    aw.GetPlateAxisSystem(mid, plate.Id, St7ApiConst.btTrue, ref angles);
+
+
+                                    for (int np = 0; np < numPoints; np++)
+                                    {
+                                        for (int nc = 0; nc < numColumns; nc++)
+                                        {
+                                            _resultPlateStress.Add(
+                                                new ResultPlateStress(plate, _loadCases.Where(i => i.Value == loadCaseId).Select(i => i.Key).FirstOrDefault(),
+                                                new ResultStressPoint(np),
+                                                new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
+                                                plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]));
+
+                                            _resultPlateStress.Last().GetPrincipalStress(out _, out _); // uso metodo approssimato
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        aw.CloseResultFile(mid);
+                    }
+                    else
+                        aw.CloseFile(mid);
+
+
+                    if (!status)
+                        throw new Straus7Exception(aw.GetLastErrorString());
+                }
+                else
+                {
+                    throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
+                }
+
+                if (channel != null)
+                    ChannelServices.UnregisterChannel(channel);
+            }
+            else
+                throw new FileNotFoundException(_st7LinearResultFilePath);
+
+        }
+        
+        public GlassResult GetMaxWorkingRatio()
+        {
+            double ratio = 0;
+            double stressResistance = 0;
+            double worstStress = 0;
+            foreach (var resultPlateStress in ResultPlateStresses)
+            {
+                double loadDuration = 0;
+
+                if (resultPlateStress.Case is LoadCase lc)
+                    loadDuration = lc.LoadDuration;
+                else if (resultPlateStress.Case is Combination cmb)
+                    throw new NotImplementedException();
+                else
+                    throw new NotImplementedException();
+
+                if (resultPlateStress.Element is Plate plate)
+                {
+                    if (plate.Property is MonolithicGlassProperty mgp)
+                    {
+                        if (mgp.Material is GlassMaterial gm)
+                        {
+                            double res = gm.GetGlassResistance(false, loadDuration);
+
+                            double r = Math.Abs(resultPlateStress.S11) / res;
+
+                            if (r > ratio)
+                            {
+                                ratio = r;
+                                stressResistance = res;
+                                worstStress = resultPlateStress.S11;
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            return new GlassResult(worstStress, stressResistance); ;
+        }
+
+        #endregion
+
+        #region STRAUS7 - PRIVATE METHODS
+
+        private static bool ConnectService(string ip, out ISt7ApiService ro, out TcpChannel channel)
+        {
+            ro = null;
+            channel = null;
+            try
+            {
+                channel = new TcpChannel();
+                ChannelServices.RegisterChannel(channel, false);
+
+                System.Threading.Thread.Sleep(1000);
+                ro = (ISt7ApiService)Activator.GetObject(typeof(ISt7ApiService), string.Format("tcp://{0}:8085/St7ApiService", ip));
+                return true;
+            }
+            catch (System.Net.Sockets.SocketException)
+            {
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -231,7 +363,7 @@ namespace GPC.Checker.Glasses.FemModel
             int glassGroupId = 0;
             aw.NewChildGroup(mId, 1, "Glass " + "1", ref glassGroupId);
 
-            foreach(var element in _elements)
+            foreach (var element in _elements)
             {
                 if (element is Plate plate)
                 {
@@ -259,7 +391,7 @@ namespace GPC.Checker.Glasses.FemModel
                         st7ConnectivityArray[3] = st7FaceConnection[2];
                     }
 
-                    
+
                     int propNum = _plateProperties[plate.Property];
 
                     aw.SetElementConnection(mId, St7ApiConst.tyPLATE, faceIndex, propNum, st7ConnectivityArray);
@@ -278,7 +410,7 @@ namespace GPC.Checker.Glasses.FemModel
                     }
                 }
             }
-            
+
             return true;
         }
 
@@ -439,7 +571,7 @@ namespace GPC.Checker.Glasses.FemModel
                     imposedDisplacement[5] = restrain.ImposedDisplacement;
                 }
                 else
-                    throw new NotSupportedException(); 
+                    throw new NotSupportedException();
             }
 
             return aw.SetNodeRestraint(mid, nodeNumber, caseNumber, ucsId, status, imposedDisplacement);
@@ -583,9 +715,8 @@ namespace GPC.Checker.Glasses.FemModel
             }
         }
 
-
         #endregion
-
+        #endregion
 
 
     }

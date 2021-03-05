@@ -6,6 +6,7 @@ using GPC.Checker.Glasses.Wrappers;
 using GPC.Checker.Glasses.Glasses;
 using GPC.Model.Glasses;
 using GPC.Geometry.Meshes;
+using GPC.Checker.Glasses.Results;
 
 namespace GPC.Checker.Glasses.Checkers
 {
@@ -48,7 +49,7 @@ namespace GPC.Checker.Glasses.Checkers
         }
 
 
-        public abstract void PerformCheck(string folderPath);
+        public abstract GlassResult PerformCheck(string folderPath);
         
         protected abstract override string GetCheckerName();
 

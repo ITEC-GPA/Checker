@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using GPC.Model.Combinations;
 using GPC.Checker.Glasses.Glasses;
 using GPC.Checker.Glasses.Checkers;
+using GPC.Checker.Glasses.Results;
 
 namespace GPC.Checker.Glasses.Models
 {
@@ -71,14 +72,16 @@ namespace GPC.Checker.Glasses.Models
             _combinations.Add(combination);
         } 
 
-        public void PerformChecks()
+        public GlassResult PerformChecks()
         {
+            GlassResult glassResult = null;
+
             foreach (var surface in _glassSurfaces)
             {
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
                     En16612Checker checker = new En16612Checker(surface);
-                    checker.PerformCheck(_outputFolder);
+                    glassResult = checker.PerformCheck(_outputFolder);
                 }
                 else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
                 {
@@ -91,6 +94,8 @@ namespace GPC.Checker.Glasses.Models
                 }
 
             }
+
+            return glassResult;
         }
 
         #endregion

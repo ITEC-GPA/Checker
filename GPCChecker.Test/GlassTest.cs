@@ -93,7 +93,7 @@ namespace GlassTests
             Model model = new Model(outputFolder);
 
             // Shape
-            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 0, 500));
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 0, 2000));
             Shape s2 = GetRectangularShape(new Point3d(500, 0, 0), new Vector3d(200, 0, 500));
 
 
@@ -159,6 +159,7 @@ namespace GlassTests
             //check.SetUpFemModels();
             //check.ExportToSt7();
         }
+
 
 #if _false
         [TestMethod]

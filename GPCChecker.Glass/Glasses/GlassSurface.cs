@@ -41,7 +41,8 @@ namespace GPC.Checker.Glasses.Glasses
             this._parametricLoads = new List<IParametricLoad>();
             this._restrains = new List<GeometryRestrain>();
 
-            Id = _maxId++;
+            // TODO: implementare id surface
+            //Id = _maxId++;
         }
 
 
