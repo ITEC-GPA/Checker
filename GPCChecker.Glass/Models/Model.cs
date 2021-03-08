@@ -85,8 +85,8 @@ namespace GPC.Checker.Glasses.Models
                 }
                 else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
                 {
-                    throw new NotImplementedException();
-                    //AstmChecker checker = new AstmChecker(surface);
+                    AstmChecker checker = new AstmChecker(surface);
+                    glassResult = checker.PerformCheck(_outputFolder);
                 }
                 else
                 {

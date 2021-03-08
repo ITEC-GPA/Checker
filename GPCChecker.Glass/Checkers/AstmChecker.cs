@@ -28,9 +28,5 @@ namespace GPC.Checker.Glasses.Checkers
             return "ASTM E1300 - 16";
         }
 
-        public override GlassResult PerformCheck(string folderPath)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

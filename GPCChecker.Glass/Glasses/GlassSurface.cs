@@ -42,7 +42,7 @@ namespace GPC.Checker.Glasses.Glasses
             this._restrains = new List<GeometryRestrain>();
 
             // TODO: implementare id surface
-            //Id = _maxId++;
+            base.SetId(_maxId++);
         }
 
 
