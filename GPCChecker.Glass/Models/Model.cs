@@ -1,9 +1,11 @@
-﻿using GPC.Model.Elements.Glasses;
-using GPC.Model.Combinations;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using GPC.Model.Combinations;
+using GPC.Checker.Glasses.Glasses;
+using GPC.Checker.Glasses.Checkers;
+using GPC.Checker.Glasses.Results;
 
-namespace GPC.Checker.Glasses
+namespace GPC.Checker.Glasses.Models
 {
     public class Model 
     {
@@ -13,7 +15,9 @@ namespace GPC.Checker.Glasses
 
         protected List<Combination> _combinations;
 
+
         protected string _outputFolder;
+
 
         #endregion
 
@@ -58,7 +62,6 @@ namespace GPC.Checker.Glasses
 
         #region Public methods
 
-
         public void AddSurface(GlassSurface glassSurface)
         {
             _glassSurfaces.Add(glassSurface);
@@ -68,6 +71,32 @@ namespace GPC.Checker.Glasses
         {
             _combinations.Add(combination);
         } 
+
+        public List<GlassResult> PerformChecks()
+        {
+            List<GlassResult> glassResult = new List<GlassResult>(); ;
+
+            foreach (var surface in _glassSurfaces)
+            {
+                if (surface.Prototype.Standard == Prototype.Standards.EN16612)
+                {
+                    En16612Checker checker = new En16612Checker(surface);
+                    glassResult.Add(checker.PerformCheck(_outputFolder));
+                }
+                else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
+                {
+                    AstmChecker checker = new AstmChecker(surface);
+                    glassResult.Add(checker.PerformCheck(_outputFolder));
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+            }
+
+            return glassResult;
+        }
 
         #endregion
     }

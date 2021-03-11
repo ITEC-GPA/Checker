@@ -1,43 +1,53 @@
-﻿using GPC.Geometry;
-using GPC.Model.Elements;
-using GPC.Model.Elements.Glasses;
-using GPC.Model.Loads;
-using GPC.Model.FEM.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GPC.Checker.Glasses.FemModel;
-using GPC.Checker.Glasses.LoadCases;
-using GPC.Geometry.Meshes;
-
+﻿using GPC.Checker.Glasses.Glasses;
+using GPC.Model.Glasses;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
     public class MonolithicGlassWrapper : GlassPanelWrapper
     {
-        internal new MonolithicGlass Glass => (MonolithicGlass)_glassSurface.Glass;
+        public new MonolithicGlass Glass => (MonolithicGlass)_glass;
 
-        internal MonolithicGlassWrapper(GlassSurface glassSurface) 
-            : base(glassSurface)
+        internal MonolithicGlassWrapper(GlassSurface glassSurface, MonolithicGlass glass)
+            : base(glassSurface, glass)
         {
-            if (!(glassSurface.Glass is MonolithicGlass))
-                throw new ArgumentException("Glass property should be a Monolithic Glass Property");
+
         }
 
         #region Public methods - geometry
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="loadDuration"></param>
+        /// <returns>Glass thickness for deformation analysis</returns>
+        public double GetDeformationThickness()
+        {
+            return Glass.Thickness;
+        }
+
+        /// <inheritdoc/>
         public override double GetDeformationThickness(double loadDuration)
         {
             return Glass.Thickness;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="loadDuration"></param>
+        /// <returns>Glass thickness for stress analysis</returns>
+        public double GetStressThickness()
+        {
+            return Glass.Thickness;
+        }
+
+        /// <inheritdoc/>
         public override double GetStressThickness(double loadDuration)
         {
             return Glass.Thickness;
         }
 
+        /// <inheritdoc/>
         public override double GetTotalThickness()
         {
             return Glass.Thickness;
@@ -96,13 +106,11 @@ namespace GPC.Checker.Glasses.Wrappers
         //    Mesh.GenerateMeshOptions.Size = 50;
         //    Mesh.GenerateMeshOptions.UseGlobalProgressID = true;
 
-
         //    List<Mesh> meshes = Mesh.Generate(shapes, embeddedGeometries, out embeddedGeometriesMapVertex);
-
 
         //    // Set up fem mesh
         //    List<FemMesh> femMeshes = new List<FemMesh>();
-            
+
         //    foreach(var mesh in meshes)
         //    {
         //        var pointRestrainVertexIndex = new Dictionary<int, Restrain>();
@@ -161,7 +169,7 @@ namespace GPC.Checker.Glasses.Wrappers
         //                    point = new Point3d((Point2d)geometry);
 
         //                var restrain = _glassSurface.PointRestrain.Where(i => i.Point == point).Select(i => i.Restrain).FirstOrDefault();
-                        
+
         //                if (restrain != null)
         //                    foreach (int v in vertexIndexes)
         //                        pointRestrainVertexIndex[v] = restrain;
@@ -185,17 +193,15 @@ namespace GPC.Checker.Glasses.Wrappers
         //                throw new NotSupportedException($"Geometry of type {geometry.GetType()} is not supported.");
         //            }
         //        }
-                
+
         //        var femMesh = new FemMesh(mesh.Vertices, mesh.Faces, plateProperties, pointRestrainVertexIndex, nodeAttributeVertexIndex, plateAttributeFaceIndex);
-               
+
         //        femMeshes.Add(femMesh);
         //    }
-
 
         //    return femMeshes;
         //}
 
         #endregion
-
     }
 }
