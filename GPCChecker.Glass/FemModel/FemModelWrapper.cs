@@ -655,7 +655,7 @@ namespace GPC.Checker.Glasses.FemModel
                         err = aw.GetAPIErrorString(p.ExitCode);
                     else
                         err = aw.GetSolverErrorString(p.ExitCode);
-                    throw new Exception($"St7 solver error {err}");
+                    throw new Straus7Exception($"St7 solver error {err}");
                 }
             }
         }

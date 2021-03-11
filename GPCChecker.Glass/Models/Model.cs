@@ -72,21 +72,21 @@ namespace GPC.Checker.Glasses.Models
             _combinations.Add(combination);
         } 
 
-        public GlassResult PerformChecks()
+        public List<GlassResult> PerformChecks()
         {
-            GlassResult glassResult = null;
+            List<GlassResult> glassResult = new List<GlassResult>(); ;
 
             foreach (var surface in _glassSurfaces)
             {
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
                     En16612Checker checker = new En16612Checker(surface);
-                    glassResult = checker.PerformCheck(_outputFolder);
+                    glassResult.Add(checker.PerformCheck(_outputFolder));
                 }
                 else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
                 {
                     AstmChecker checker = new AstmChecker(surface);
-                    glassResult = checker.PerformCheck(_outputFolder);
+                    glassResult.Add(checker.PerformCheck(_outputFolder));
                 }
                 else
                 {

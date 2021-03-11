@@ -115,12 +115,12 @@ namespace GlassTests
             geometryRestrains2.AddRange(s2.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
 
 
-            MonolithicGlass mg = new MonolithicGlass("Mg1", 4, GetGlassMaterialAstm());
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalisys, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300);
 
-
+            
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddRestrains(geometryRestrains1);
@@ -128,21 +128,19 @@ namespace GlassTests
             GlassSurface gs2 = new GlassSurface(p1, s2);
             gs2.AddRestrains(geometryRestrains2);
 
-
             model.AddSurface(gs1);
-            model.AddSurface(gs2);
 
             // LoadCases
             LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseType.LiveLoad);
             LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseType.Wind);
 
             // Loads
-            AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
-            AreaLoad s1GalLc2 = new AreaLoad(0, 0, 0.002, s1, lc2);
-            LineLoad s1ll = new LineLoad(0, 1, 0, 0, 0, 0, new Line3d(new Point3d(0, 500, 0), new Point3d(800, 500, 0)), new GPC.Model.LoadCases.LoadCase("LC1", GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad));
+            AreaLoad s1GalLc1 = new AreaLoad(0, 0.001, 0, s1, lc1);
+            AreaLoad s1GalLc2 = new AreaLoad(0, 0.001, 0, s1, lc2);
+            LineLoad s1ll = new LineLoad(0, 1, 0, 0, 0, 0, new Line3d(new Point3d(0, 0, 500), new Point3d(800, 0, 500)), lc2);
 
-            //gs1.AddLoad(s1GalLc1);
-            //gs1.AddLoad(s1GalLc2);
+            gs1.AddLoad(s1GalLc1);
+            gs1.AddLoad(s1GalLc2);
             //gs1.AddLoad(s1ll);
 
 
@@ -160,8 +158,9 @@ namespace GlassTests
             model.AddCombination(cmb2);
 
 
-            GlassResult gr = model.PerformChecks();
-            
+            var glassResults = model.PerformChecks();
+
+            Assert.AreEqual(6.03, glassResults[0].Stress, 0.1);
 
 
         }

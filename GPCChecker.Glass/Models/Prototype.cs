@@ -104,7 +104,7 @@ namespace GPC.Checker.Glasses.Models
             this._laminatedEqThicknessMethod = laminatedEqThicknessMethod;
 
             this._glass = glass ?? throw new ArgumentNullException("Glass cannot be null");
-            this._meshSize = 20;
+            this._meshSize = 50;
             this._restrains = restrains == null ? new List<IParametricRestrain>() : restrains;
         }
 
