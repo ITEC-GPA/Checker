@@ -33,6 +33,22 @@ namespace GPC.Checker.Glasses.FemModel
         private string _st7FilePath;
         private string _st7LinearResultFilePath;
 
+        /// <summary>
+        /// Map between St7LoadCombination ID and <see cref="Model.FEM.FemModel._combinations"/> id;
+        /// </summary>
+        private Dictionary<int, int> _st7LSACombinationMap;
+
+        /// <summary>
+        /// Map between St7LoadCAse ID and <see cref="Model.FEM.FemModel._loadCases"/> id;
+        /// </summary>
+        private Dictionary<int, int> _st7LoadCaseMap;
+
+        /// <summary>
+        /// Map between St7FreedomCase ID and <see cref="Model.FEM.FemModel._freedomCases"/> id;
+        /// </summary>
+        private Dictionary<int, int> _st7FreedomCaseMap;
+
+
 
         public FemModelWrapper() : this (string.Empty)
         {
@@ -43,6 +59,9 @@ namespace GPC.Checker.Glasses.FemModel
             : base(name)
         {
             _st7ServerIp = "localhost";
+            _st7LSACombinationMap = new Dictionary<int, int>();
+            _st7LoadCaseMap = new Dictionary<int, int>();
+            _st7FreedomCaseMap = new Dictionary<int, int>();
         }
 
         public FemModelWrapper(SerializationInfo info, StreamingContext context) 
@@ -171,11 +190,7 @@ namespace GPC.Checker.Glasses.FemModel
                                     aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, plate.Id,
                                                            loadCaseId, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
 
-                                    //double[] angles = new double[1];
-                                    //aw.GetPlateXAngle(mid, plate.Id, ref angles);
-
                                     aw.GetPlateAxisSystem(mid, plate.Id, St7ApiConst.btTrue, ref angles);
-
 
                                     for (int np = 0; np < numPoints; np++)
                                     {
@@ -257,6 +272,13 @@ namespace GPC.Checker.Glasses.FemModel
             return new GlassResult(worstStress, stressResistance); ;
         }
 
+        public void GetMaxDisplacement()
+        {
+            throw new NotImplementedException();
+        }
+
+
+
         #endregion
 
         #region STRAUS7 - PRIVATE METHODS
@@ -324,6 +346,8 @@ namespace GPC.Checker.Glasses.FemModel
             // Setup loadcases
             St7SetLoadCase(aw, mId);
 
+            St7SetLinearLoadCaseCombination(aw, mId);
+            
             // Nodes
             foreach (var node in _nodes)
             {
@@ -466,64 +490,72 @@ namespace GPC.Checker.Glasses.FemModel
             if (!(_loadCases.Count > 0))
                 return;
 
-            if (_loadCases.Values.Min() != 1)
-                throw new NotSupportedException("Minimum load case id different than 1");
+            int st7LcId = 0;
 
-            int _bufferId = 0;
             foreach (var lckvp in _loadCases.OrderBy(k => k.Value))
             {
                 var loadCase = lckvp.Key;
                 int lcNum = lckvp.Value;
 
-                if ((lcNum - _bufferId) != 1)
-                    throw new NotSupportedException("Load case not in order");
-
-                _bufferId = lcNum;
-
-                if (lcNum == 1)
+                st7LcId++;
+                if (st7LcId != 1)
                 {
-                    aw.SetLoadCaseName(mid, lcNum, loadCase.Name);
-
+                    if (!aw.NewLoadCase(mid, loadCase.Name))
+                        throw new Straus7Exception($"Unable lo add loadCase {loadCase.Name}");
+                }
+                
+                if(aw.SetLoadCaseName(mid, st7LcId, loadCase.Name))
+                {
                     if (loadCase.GetLoadCaseType() == LoadCase.LoadCaseType.SelfWeight)
                     {
-                        aw.SetLoadCaseType(mid, lcNum, St7ApiConst.kGravity);
-                        aw.SetLoadCaseGravityDir(mid, lcNum, 3);
+                        aw.SetLoadCaseType(mid, st7LcId, St7ApiConst.kGravity);
+                        aw.SetLoadCaseGravityDir(mid, st7LcId, 3);
                         var doubles = new double[13];
                         doubles[4] = 0;
                         doubles[5] = 0;
                         doubles[6] = -9806.65; //mm/s2
-                        aw.SetLoadCaseDefaults(mid, lcNum, doubles);
+                        aw.SetLoadCaseDefaults(mid, st7LcId, doubles);
                     }
                     else
-                        aw.SetLoadCaseType(mid, lcNum, St7ApiConst.kNoInertia);
+                        aw.SetLoadCaseType(mid, st7LcId, St7ApiConst.kNoInertia);
 
-                    _loadCases[loadCase] = lcNum;
+                    _st7LoadCaseMap[st7LcId] = lcNum;
                 }
-                else if (lcNum > 1)
+            }
+        }
+
+        private void St7SetLinearLoadCaseCombination(ISt7ApiService aw, int mid)
+        {
+            int st7CId = 0;
+
+            foreach (var kvp in _combinations)
+            {
+                List<double> coefficients = kvp.Key.GetLoadCaseCoefficients(out List<GPC.Model.LoadCases.LoadCase> loadCasesBuffer);
+
+                var loadCases = loadCasesBuffer.Cast<LoadCase>().ToList();
+                                
+                if (aw.AddLSACombination(mid, kvp.Key.Name))
                 {
-                    if (aw.NewLoadCase(mid, loadCase.Name))
+                    st7CId++;
+
+                    bool added = false;
+                    foreach (var loadCase in loadCases)
                     {
-                        if (loadCase.GetLoadCaseType() == LoadCase.LoadCaseType.SelfWeight)
+                        if (_loadCases.ContainsKey(loadCase))
                         {
-                            aw.SetLoadCaseType(mid, lcNum, St7ApiConst.kGravity);
-                            aw.SetLoadCaseGravityDir(mid, lcNum, 3);
-                            var doubles = new double[13];
-                            doubles[4] = 0;
-                            doubles[5] = 0;
-                            doubles[6] = -9806.65; //mm/s2
-                            aw.SetLoadCaseDefaults(mid, lcNum, doubles);
+                            if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _loadCases[loadCase], 1, kvp.Key[loadCase]))
+                                added = true;
                         }
-                        else
-                            aw.SetLoadCaseType(mid, lcNum, St7ApiConst.kNoInertia);
+                    }
 
-                        _loadCases[loadCase] = lcNum;
+                    if (added)
+                    {
+                        _st7LSACombinationMap.Add(st7CId, _combinations[kvp.Key]);
                     }
                     else
-                        throw new Exception($"Unable lo add loadCase {loadCase.Name}");
-                }
-                else
-                {
-                    throw new ArgumentException("Loadcase index lower than 1");
+                    {
+                        aw.DeleteLSACombination(mid, _combinations[kvp.Key]);
+                    }
                 }
             }
         }
