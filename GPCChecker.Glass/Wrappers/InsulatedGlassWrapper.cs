@@ -24,7 +24,7 @@ namespace GPC.Checker.Glasses.Wrappers
         protected abstract void SetUpWrappers();
 
 
-        public abstract override void GenerateMesh();
+        public abstract override bool GenerateMesh();
 
     }
 }

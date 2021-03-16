@@ -32,28 +32,29 @@ namespace GPC.Checker.Glasses.Wrappers
 
 
 
-        public override void GenerateMesh()
+        public override bool GenerateMesh()
         {
-            List<Mesh> meshes = new List<Mesh>();
+            //List<Mesh> meshes = new List<Mesh>();
 
-            _innerGlassPanelWrapper.GenerateMesh();
-            _centerGlassPanelWrapper.GenerateMesh();
-            _outerGlassPanelWrapper.GenerateMesh();
+            //_innerGlassPanelWrapper.GenerateMesh();
+            //_centerGlassPanelWrapper.GenerateMesh();
+            //_outerGlassPanelWrapper.GenerateMesh();
 
-            if (_innerGlassPanelWrapper.Meshes.Select(i => i == null).Any())
-                throw new ArgumentException();
+            //if (_innerGlassPanelWrapper.Meshes.Select(i => i == null).Any())
+            //    throw new ArgumentException();
 
-            if (_centerGlassPanelWrapper.Meshes.Select(i => i == null).Any())
-                throw new ArgumentException();
+            //if (_centerGlassPanelWrapper.Meshes.Select(i => i == null).Any())
+            //    throw new ArgumentException();
 
-            if (_outerGlassPanelWrapper.Meshes.Select(i => i == null).Any())
-                throw new ArgumentException();
+            //if (_outerGlassPanelWrapper.Meshes.Select(i => i == null).Any())
+            //    throw new ArgumentException();
 
-            meshes.AddRange(_innerGlassPanelWrapper.Meshes);
-            meshes.AddRange(_centerGlassPanelWrapper.Meshes);
-            meshes.AddRange(_outerGlassPanelWrapper.Meshes);
+            //meshes.AddRange(_innerGlassPanelWrapper.Meshes);
+            //meshes.AddRange(_centerGlassPanelWrapper.Meshes);
+            //meshes.AddRange(_outerGlassPanelWrapper.Meshes);
 
-            this._meshes = meshes;
+            //this._meshes = meshes;
+            return false;
         }
     }
 }

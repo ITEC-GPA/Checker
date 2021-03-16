@@ -12,6 +12,8 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,14 +34,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GPCGeometry, Version=1.0.5.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCGeometry.1.0.5\lib\net472\GPCGeometry.dll</HintPath>
+    <Reference Include="GMsh.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GMsh.Net.1.0.0.1\lib\net472\GMsh.Net.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.0.10.2, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.0.10.2\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=1.0.6.1, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCGeometry.1.0.6.1\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCUtilities, Version=1.0.15.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCUtilities.1.0.15\lib\net472\GPCUtilities.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.0.11.4, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.0.11.4\lib\net472\GPCModel.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCUtilities, Version=1.0.17.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCUtilities.1.0.17\lib\net472\GPCUtilities.dll</HintPath>
     </Reference>
     <Reference Include="St7ApiWrapper, Version=1.0.22.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\St7ApiWrapper.1.0.22\lib\net472\St7ApiWrapper.dll</HintPath>
@@ -107,4 +112,11 @@ If "$(ConfigurationName)"=="Release" (
      Copy "..\..\..\..\..\Libs\St7Solver\bin\Release\St7Solver.exe" "$(TargetDir)"
 )</PostBuildEvent>
   </PropertyGroup>
+  <Import Project="..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets'))" />
+  </Target>
 </Project>

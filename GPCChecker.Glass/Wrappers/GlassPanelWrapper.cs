@@ -97,12 +97,12 @@ namespace GPC.Checker.Glasses.Wrappers
 
         public void GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads)
         {
-            uniformPressureLoads = _loads.Where(i => i.GetGeometry() == _glassSurface.Shape).ToList();
+            uniformPressureLoads = _loads.Where(i => i.GetGeometryBase() == _glassSurface.Shape).ToList();
 
             notUniformPressureLoads = _loads.Except(uniformPressureLoads).ToList();
         }
 
-        public override void GenerateMesh()
+        public override bool GenerateMesh()
         {
             var shapes = new List<Shape>();
             shapes.Add(_glassSurface.Shape);
@@ -136,15 +136,14 @@ namespace GPC.Checker.Glasses.Wrappers
 
             List<GeometryBase> nonUniformLoadsGeometry = new List<GeometryBase>();
 
-            List<Load> nonUniformLoads = _loads.Where(i => i.GetGeometry() != _glassSurface.Shape).ToList();
+            List<Load> nonUniformLoads = _loads.Where(i => i.GetGeometryBase() != _glassSurface.Shape).ToList();
 
-            nonUniformLoadsGeometry.AddRange(nonUniformLoads.Select(i => i.GetGeometry()).ToList());
+            nonUniformLoadsGeometry.AddRange(nonUniformLoads.Select(i => i.GetGeometryBase()).ToList());
 
-            List<Load> uniformPressureLoads = _loads.Where(i => i.GetGeometry() == _glassSurface.Shape).ToList();
+            List<Load> uniformPressureLoads = _loads.Where(i => i.GetGeometryBase() == _glassSurface.Shape).ToList();
 
 
             // MESH
-            Dictionary<Mesh, Dictionary<GeometryBase, int[]>> embeddedGeometriesMapVertex = new Dictionary<Mesh, Dictionary<GeometryBase, int[]>>();
             Dictionary<Shape, GeometryBase[]> embeddedGeometries = new Dictionary<Shape, GeometryBase[]>();
             
             if (embeddedGeometryRestrains.Count > 0)
@@ -163,75 +162,89 @@ namespace GPC.Checker.Glasses.Wrappers
                     embeddedGeometries[_glassSurface.Shape] = nonUniformLoadsGeometry.ToArray();
             }
 
+
             SetUpMeshOptions();
-            List<Mesh> meshes = Mesh.Generate(shapes, embeddedGeometries, out embeddedGeometriesMapVertex);
 
-
-            // VERTEX RECOVER - RESTRAIN
-            _meshGeometryRestrainVertices = new Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>>();
-            _meshLoadsVertexIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>();
-            _meshLoadsFaceIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>();
-
-            // Recupero vertici embedded
-            foreach (var geom in embeddedGeometriesMapVertex)
+            if (Mesh.Generate(shapes, embeddedGeometries, null, null, out List<Mesh> meshes, out Mesh.GenerateMeshStatus generateMeshStatus))
             {
-                Mesh mesh = geom.Key;
-                Dictionary<GeometryBase, int[]> embeddedGeometriesIndexes = geom.Value;
+                // VERTEX RECOVER - RESTRAIN
+                _meshGeometryRestrainVertices = new Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>>();
+                _meshLoadsVertexIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>();
+                _meshLoadsFaceIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>();
 
-                foreach(var geometry in embeddedGeometriesIndexes.Keys)
+                // Recupero vertici embedded
+                foreach (var geom in generateMeshStatus.EmbeddedGeometriesVertexMap)
                 {
-                    var matchingRestrains = restrains.Where(i => i.GetGeometry() == geometry);
-                    var matchingNonUniformLoadsGeometry = nonUniformLoads.Where(i => i.GetGeometry() == geometry);
+                    Mesh mesh = geom.Key;
+                    Dictionary<GeometryBase, int[]> embeddedGeometriesIndexes = geom.Value;
 
-                    if (matchingRestrains.Count() > 0)
+                    foreach (var geometry in embeddedGeometriesIndexes.Keys)
                     {
-                        foreach (var geomRestrain in matchingRestrains)
-                        {
-                            if (!_meshGeometryRestrainVertices.ContainsKey(mesh))
-                                _meshGeometryRestrainVertices.Add(mesh, new Dictionary<GeometryRestrain, int[]>());
+                        var matchingRestrains = restrains.Where(i => i.GetGeometry() == geometry);
+                        var matchingNonUniformLoadsGeometry = nonUniformLoads.Where(i => i.GetGeometryBase() == geometry);
 
-                            _meshGeometryRestrainVertices[mesh].Add(geomRestrain, embeddedGeometriesIndexes[geometry]);
+                        if (matchingRestrains.Count() > 0)
+                        {
+                            foreach (var geomRestrain in matchingRestrains)
+                            {
+                                if (!_meshGeometryRestrainVertices.ContainsKey(mesh))
+                                    _meshGeometryRestrainVertices.Add(mesh, new Dictionary<GeometryRestrain, int[]>());
+
+                                _meshGeometryRestrainVertices[mesh].Add(geomRestrain, embeddedGeometriesIndexes[geometry]);
+                            }
+                        }
+
+                        if (matchingNonUniformLoadsGeometry.Count() > 0)
+                        {
+                            foreach (var load in matchingNonUniformLoadsGeometry)
+                            {
+                                if (load is IPointLoad || load is ILineLoad)
+                                {
+                                    if (!_meshLoadsVertexIndexes.ContainsKey(mesh))
+                                        _meshLoadsVertexIndexes.Add(mesh, new Dictionary<Load, int[]>());
+
+                                    _meshLoadsVertexIndexes[mesh].Add(load, embeddedGeometriesIndexes[geometry]);
+                                }
+                                else if (load is IAreaLoad)
+                                {
+                                    if (!_meshLoadsFaceIndexes.ContainsKey(mesh))
+                                        _meshLoadsFaceIndexes.Add(mesh, new Dictionary<Load, int[]>());
+
+                                    _meshLoadsFaceIndexes[mesh].Add(load, embeddedGeometriesIndexes[geometry]);
+                                }
+                                else
+                                    throw new NotSupportedException();
+                            }
                         }
                     }
 
-                    if (matchingNonUniformLoadsGeometry.Count() > 0)
+                    if (uniformPressureLoads.Count > 0)
                     {
-                        foreach (var load in matchingNonUniformLoadsGeometry)
+                        var indexes = mesh.Faces.Select(i => i.Id).ToArray();
+                        foreach (var load in uniformPressureLoads)
                         {
-                            if (load is IPointLoad || load is ILineLoad)
-                            {
-                                if (!_meshLoadsVertexIndexes.ContainsKey(mesh))
-                                    _meshLoadsVertexIndexes.Add(mesh, new Dictionary<Load, int[]>());
+                            if (!_meshLoadsFaceIndexes.ContainsKey(mesh))
+                                _meshLoadsFaceIndexes.Add(mesh, new Dictionary<Load, int[]>());
 
-                                _meshLoadsVertexIndexes[mesh].Add(load, embeddedGeometriesIndexes[geometry]);
-                            }
-                            else if (load is IAreaLoad)
-                            {
-                                if (!_meshLoadsFaceIndexes.ContainsKey(mesh))
-                                    _meshLoadsFaceIndexes.Add(mesh, new Dictionary<Load, int[]>());
-
-                                _meshLoadsFaceIndexes[mesh].Add(load, embeddedGeometriesIndexes[geometry]);
-                            }
-                            else
-                                throw new NotSupportedException();
+                            _meshLoadsFaceIndexes[mesh].Add(load, indexes);
                         }
-                    }    
-                }
-
-                if (uniformPressureLoads.Count > 0)
-                {
-                    var indexes = mesh.Faces.Select(i => i.Id).ToArray();
-                    foreach (var load in uniformPressureLoads)
-                    {
-                        if (!_meshLoadsFaceIndexes.ContainsKey(mesh))
-                            _meshLoadsFaceIndexes.Add(mesh, new Dictionary<Load, int[]>());
-
-                        _meshLoadsFaceIndexes[mesh].Add(load, indexes);
                     }
                 }
+
+                _meshes = meshes;
+                return true;
             }
+            else
+            {
+                _meshes = null;
 
-            _meshes = meshes;
+                if (generateMeshStatus.GetLastException() != null)
+                    throw generateMeshStatus.GetLastException();
+
+                return false;
+            }
+            
+
         }
 
         //public Mesh GenerateGeometryMesh(out Dictionary<GeometryBase, int[]> embeddedGeometriesMapVertex)

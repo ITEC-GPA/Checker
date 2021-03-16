@@ -96,20 +96,16 @@ namespace GPC.Checker.Glasses.Wrappers
 
         protected void SetUpMeshOptions()
         {
-            Mesh.GenerateMeshOptions.Algorithm = Mesh.GenerateMeshOptions.MeshAlgorithm.Delaunay;
-            Mesh.GenerateMeshOptions.Recombine = false;
-            Mesh.GenerateMeshOptions.RecombinationAlgorithm = Mesh.GenerateMeshOptions.RecombinationMeshAlgorithm.BlossomFullQuad;
-            Mesh.GenerateMeshOptions.Size = _glassSurface.Prototype.MeshSize;
+            Mesh.GenerateMeshOptions.Algorithm = Mesh.GenerateMeshOptions.MeshAlgorithm.FrontalDelaunayForQuads;
+            Mesh.GenerateMeshOptions.Recombine = true;
+            Mesh.GenerateMeshOptions.RecombinationAlgorithm = Mesh.GenerateMeshOptions.RecombinationMeshAlgorithm.Blossom;
+            Mesh.GenerateMeshOptions.MeshSize = _glassSurface.Prototype.MeshSize;
             Mesh.GenerateMeshOptions.UseGlobalProgressID = true;
             Mesh.GenerateMeshOptions.Transfinite = true;
 
-            Mesh.GenerateMeshOptions.HealShapes = true;
-            Mesh.GenerateMeshOptions.OptimizeIteration = 1;
-            Mesh.GenerateMeshOptions.Optimize = true;
-            Mesh.GenerateMeshOptions.Smoothing = 3;
         }
 
-        public abstract void GenerateMesh();
+        public abstract bool GenerateMesh();
 
 
         /// <summary>

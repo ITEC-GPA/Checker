@@ -72,7 +72,7 @@ namespace GlassTests
             GlassMaterial gm = new GlassMaterialAstm("", 1, 0.2, 3, 4, 5, 6, 0.008, 0.008, 9);
             MonolithicGlassProperty pp = new MonolithicGlassProperty(1,2, gm);
 
-            Mesh.GenerateMeshOptions.Size = 10;
+            Mesh.GenerateMeshOptions.MeshSize = 10;
 
             PointLoad p1 = new PointLoad(1, 2, 3, 4, 5, 6, new Point3d(35, 35, 0), new LoadCase("LC1", 2, 10, GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad));
             LineLoad l1 = new LineLoad(1, 2, 3, 4, 5, 6, new Line3d(new Point3d(35, 150, 0), new Point3d(75, 100, 0)), new LoadCase("LC2", 2, 10, GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad));
