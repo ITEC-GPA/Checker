@@ -7,7 +7,7 @@ using GPC.Model.Sections;
 using GPCChecker.Steel.EuroCode;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace ECPlateTest
+namespace SteelTests
 {
     [TestClass]
     public class ECPlateTest
