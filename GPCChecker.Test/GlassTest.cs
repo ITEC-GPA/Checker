@@ -263,10 +263,6 @@ namespace GlassTests
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
             geometryRestrains2.AddRange(s2.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
 
-            geometryRestrains1.RemoveAt(1);
-            geometryRestrains1.RemoveAt(2);
-            geometryRestrains2.RemoveAt(1);
-            geometryRestrains2.RemoveAt(2);
 
             MonolithicGlass mg = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
 
@@ -289,20 +285,18 @@ namespace GlassTests
 
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
-            AreaLoad s1GalLc2 = new AreaLoad(0, 0, 0.001, s1, lc2);
-            LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 500, 0), new Point3d(800, 500, 0)), lc2);
+            LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 600, 0), new Point3d(800, 600, 0)), lc2);
 
             gs1.AddLoad(s1GalLc1);
-            gs1.AddLoad(s1GalLc2);
             gs1.AddLoad(s1ll);
 
 
             // Combination 
-            Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural, Guid.NewGuid());
-            cmb1[lc1] = 2;
-            cmb1[lc2] = 3;
+            Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural);
+            cmb1[lc1] = 1.5;
+            cmb1[lc2] = 2.5;
 
-            Combination cmb2 = new CombinationEn("CMB2", CombinationEn.CombinationType.ServiceabilityCharacteristic, Guid.NewGuid());
+            Combination cmb2 = new CombinationEn("CMB2", CombinationEn.CombinationType.ServiceabilityCharacteristic);
             cmb2[lc1] = 4;
             cmb2[lc1] = 3;
             cmb2[lc2] = 5;
@@ -310,10 +304,33 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
+            var plateResults = model.GetPlateCombinationsResult();
+            var nodeResults = model.GetNodeDisplacementCombinationsResult();
 
-            var glassResults = model.PerformChecks();
+            Assert.IsTrue(plateResults.Count == 1);
 
-            Assert.AreEqual(59.5, glassResults[0].Stress, 1);
+            double maxS11 = 0;
+            foreach(var r in plateResults.First())
+            {
+                r.GetPrincipalStress(out double s11, out double s22);
+                maxS11 = Math.Max(s11, maxS11);
+            }
+
+
+            foreach (var r in nodeResults.First())
+            {
+                if (r.CoordinateSystem == CoordinateSystem.Global)
+                {
+                    r.GetResultingDisplacement();
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+
+
+            Assert.AreEqual(59.5, maxS11, 1);
             //Assert.AreEqual(53.07, glassResults[0].Stress, 0.1); // SPOSTAMENTI
 
 

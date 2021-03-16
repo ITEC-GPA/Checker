@@ -11,6 +11,7 @@ using GPC.Model.FEM.Properties;
 using GPC.Model.Loads;
 using System.Linq;
 using GPC.Model.Combinations;
+using GPC.Model.Results;
 
 namespace GPC.Checker.Glasses.Checkers
 {
@@ -18,14 +19,18 @@ namespace GPC.Checker.Glasses.Checkers
     {
         protected GlassSurface _glassSurface;
 
-        protected List<FemModelWrapper> _femModels;
+        protected FemModelWrapper _femModel;
 
+
+        /// <summary>
+        /// List of global and specific combinations
+        /// </summary>
         protected List<Combination> _combinations;
 
         public Checker(GlassSurface glassSurface, List<Combination> globalCombinations)
         {
             this._glassSurface = glassSurface ?? throw new ArgumentNullException(nameof(glassSurface));
-            this._femModels = new List<FemModelWrapper>();
+            //this._femModel = new List<FemModelWrapper>();
 
             // Creo lista combinazioni sommando la lista delle globali a quelli del prototipo
             this._combinations = globalCombinations == null ? new List<Combination>() : globalCombinations;
@@ -64,10 +69,8 @@ namespace GPC.Checker.Glasses.Checkers
         /// 
         /// </summary>
         /// <param name="folderPath">Folder where to save the results</param>
-        public GlassResult PerformCheck(string folderPath)
+        public void PerformCheck(string folderPath)
         {
-
-            GlassResult worstGlassResult = null;
 
             Directory.CreateDirectory(folderPath);
 
@@ -88,9 +91,8 @@ namespace GPC.Checker.Glasses.Checkers
                     if (meshes.Count > 1)
                         throw new NotSupportedException();
 
-
                     // Creo modello
-                    FemModelWrapper femModelWrapper = new FemModelWrapper($"FemName_{_glassSurface.Id}");
+                    _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
 
                     MonolithicGlassProperty pp = new MonolithicGlassProperty(mg);
 
@@ -99,20 +101,17 @@ namespace GPC.Checker.Glasses.Checkers
                                                   out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap, out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap,
                                                   out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMap);
 
-                    femModelWrapper.AddMesh(meshes.First(), pp, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, wrapper.MeshGeometryRestrainVertices.Values.FirstOrDefault());
-
-                    femModelWrapper.AddCombinations(_combinations);
-
-                    femModelWrapper.SaveToSt7(folderPath);
-
-                    femModelWrapper.RunSt7Solver(Models.Prototype.AnalysisTypes.LinearStaticAnalisys);
-
-                    femModelWrapper.ReadSt7LinearResults();
-
-                    worstGlassResult = femModelWrapper.GetMaxWorkingRatio();
+                    _femModel.AddMesh(meshes.First(), pp, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, wrapper.MeshGeometryRestrainVertices.Values.FirstOrDefault());
+                    
+                    _femModel.AddCombinations(_combinations);
+                    
+                    _femModel.SaveToSt7(folderPath);
+                    
+                    _femModel.RunSt7Solver(Models.Prototype.AnalysisTypes.LinearStaticAnalisys);
+                    
+                    _femModel.ReadSt7LinearCombinationResults();
 
                 }
-
                 else if (glass is LaminatedGlass lg)
                 {
                     glassWrapper = new LaminatedGlassWrapper(_glassSurface, lg);
@@ -139,7 +138,6 @@ namespace GPC.Checker.Glasses.Checkers
             else
                 throw new NotSupportedException();
 
-            return worstGlassResult;
         }
 
 
@@ -211,7 +209,7 @@ namespace GPC.Checker.Glasses.Checkers
 
         protected abstract override string GetCheckerName();
 
-        public abstract void SetUpFemModels();
+        //public abstract void SetUpFemModels();
 
         public void RunSt7Solver()
         {
@@ -221,6 +219,20 @@ namespace GPC.Checker.Glasses.Checkers
             //}
         }
 
+        public List<ResultPlateStress> GetPlateCombinationsResults()
+        {
+            return _femModel.ResultPlateStresses;
+        }
+
+        public List<ResultNodeDisplacement> GetNodeDisplacementCombinationResults()
+        {
+            return _femModel.ResultNodeDisplacement;
+        }
+
+        public void GetWorkinRatio()
+        {
+            throw new NotImplementedException();
+        }
 
     }
 }

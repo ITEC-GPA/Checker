@@ -4,6 +4,7 @@ using GPC.Model.Combinations;
 using GPC.Checker.Glasses.Glasses;
 using GPC.Checker.Glasses.Checkers;
 using GPC.Checker.Glasses.Results;
+using GPC.Model.Results;
 
 namespace GPC.Checker.Glasses.Models
 {
@@ -11,13 +12,18 @@ namespace GPC.Checker.Glasses.Models
     {
         #region Variables
 
-        protected List<GlassSurface> _glassSurfaces;
-
-        protected List<Combination> _combinations;
-
-
         protected string _outputFolder;
 
+        protected List<GlassSurface> _glassSurfaces;
+
+        /// <summary>
+        /// List of Global combinations
+        /// </summary>
+        protected List<Combination> _combinations;
+
+        protected List<ResultPlateStress> _combinationResults;
+
+        protected List<Checkers.Checker> _checkers;
 
         #endregion
 
@@ -80,23 +86,60 @@ namespace GPC.Checker.Glasses.Models
             {
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
-                    En16612Checker checker = new En16612Checker(surface, _combinations);
-                    glassResult.Add(checker.PerformCheck(_outputFolder));
+                    _checkers.Add(new En16612Checker(surface, _combinations));
                 }
                 else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
                 {
-                    AstmChecker checker = new AstmChecker(surface, _combinations);
-                    glassResult.Add(checker.PerformCheck(_outputFolder));
+                    _checkers.Add(new AstmChecker(surface, _combinations));
                 }
                 else
                 {
                     throw new NotImplementedException();
                 }
+            }
 
+            foreach(var checker in _checkers)
+            {
+                checker.PerformCheck(_outputFolder) ;
             }
 
             return glassResult;
         }
+
+
+        public List<List<ResultPlateStress>> GetPlateCombinationsResult()
+        {
+            List<List<ResultPlateStress>> results = new List<List<ResultPlateStress>>();
+
+            foreach (var checker in _checkers)
+            {
+                results.Add(checker.GetPlateCombinationsResults());
+            }
+
+            return results;
+        }
+
+        public List<List<ResultNodeDisplacement>> GetNodeDisplacementCombinationsResult()
+        {
+            List<List<ResultNodeDisplacement>> results = new List<List<ResultNodeDisplacement>>();
+
+            foreach (var checker in _checkers)
+            {
+                results.Add(checker.GetNodeDisplacementCombinationResults());
+            }
+
+            return results;
+        }
+
+
+        public void GetWorkingRatio()
+        {
+            foreach (var checker in _checkers)
+            {
+                checker.GetWorkinRatio();
+            }
+        }
+
 
         #endregion
     }

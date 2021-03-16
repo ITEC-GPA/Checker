@@ -28,63 +28,59 @@ namespace GPC.Checker.Glasses.Checkers
 
         }
 
-        
-
-
-
         #region Override public methods
 
-        /// <summary>
-        /// Metodo responsabile della verifica
-        /// 1 - Genera la mesh
-        /// 2 - Orchestra il modello fem
-        /// 3 - Prende i risultati 
-        /// 4 - Fa la verifica
-        /// </summary>
-        /// 
-        public override void SetUpFemModels()
-        {
+        ///// <summary>
+        ///// Metodo responsabile della verifica
+        ///// 1 - Genera la mesh
+        ///// 2 - Orchestra il modello fem
+        ///// 3 - Prende i risultati 
+        ///// 4 - Fa la verifica
+        ///// </summary>
+        ///// 
+        //public override void SetUpFemModels()
+        //{
 
-            //femWrapper.SetAnalysisType(_checkParameters.GetAnalysisType());
+        //    //femWrapper.SetAnalysisType(_checkParameters.GetAnalysisType());
 
             
-            //foreach (var wrapper in wrappers)
-            //{
-            //    //FemModelWrapper femWrapper = new FemModelWrapper("fem" + wrappers.IndexOf(wrapper), _checkParameters.GetAnalysisType());
-            //    //if (wrapper is MonolithicGlassWrapper mgw)
-            //    //{
-            //    //    var geometryMesh = mgw.Mesh;
-            //    //    var embeddedGeometriesMapVertex = mgw.EmbeddedGeometriesMapVertex;
+        //    //foreach (var wrapper in wrappers)
+        //    //{
+        //    //    //FemModelWrapper femWrapper = new FemModelWrapper("fem" + wrappers.IndexOf(wrapper), _checkParameters.GetAnalysisType());
+        //    //    //if (wrapper is MonolithicGlassWrapper mgw)
+        //    //    //{
+        //    //    //    var geometryMesh = mgw.Mesh;
+        //    //    //    var embeddedGeometriesMapVertex = mgw.EmbeddedGeometriesMapVertex;
 
-            //    //    var restrains = mgw.GetRestrains();
+        //    //    //    var restrains = mgw.GetRestrains();
 
-            //    //    mgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
+        //    //    //    mgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
 
-            //    //    var monolithicGlassProperty = new MonolithicGlassProperty(mgw.Glass);
+        //    //    //    var monolithicGlassProperty = new MonolithicGlassProperty(mgw.Glass);
 
-            //    //    femWrapper.SetUpMonolithic(geometryMesh, embeddedGeometriesMapVertex, restrains, mgw.Glass, uniformPressureLoads, notUniformPressureLoads);
-            //    //}
-            //    //else if (wrapper is LaminatedGlassWrapper lgw)
-            //    //{
-            //    //    var geometryMesh = lgw.Mesh;
-            //    //    var embeddedGeometriesMapVertex = lgw.EmbeddedGeometriesMapVertex;
+        //    //    //    femWrapper.SetUpMonolithic(geometryMesh, embeddedGeometriesMapVertex, restrains, mgw.Glass, uniformPressureLoads, notUniformPressureLoads);
+        //    //    //}
+        //    //    //else if (wrapper is LaminatedGlassWrapper lgw)
+        //    //    //{
+        //    //    //    var geometryMesh = lgw.Mesh;
+        //    //    //    var embeddedGeometriesMapVertex = lgw.EmbeddedGeometriesMapVertex;
 
-            //    //    var restrains = lgw.GetRestrains();
+        //    //    //    var restrains = lgw.GetRestrains();
 
-            //    //    lgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
+        //    //    //    lgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
 
-            //    //    femWrapper.SetUpLaminated(geometryMesh, embeddedGeometriesMapVertex, restrains, lgw, uniformPressureLoads, notUniformPressureLoads, CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
-            //    //}
-            //    //else if (wrapper is InsulatedGlassWrapper igw)
-            //    //{
-            //    //    throw new NotImplementedException();
-            //    //}
-            //    //else
-            //    //    throw new NotSupportedException("Glass wrapper not supported");
+        //    //    //    femWrapper.SetUpLaminated(geometryMesh, embeddedGeometriesMapVertex, restrains, lgw, uniformPressureLoads, notUniformPressureLoads, CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
+        //    //    //}
+        //    //    //else if (wrapper is InsulatedGlassWrapper igw)
+        //    //    //{
+        //    //    //    throw new NotImplementedException();
+        //    //    //}
+        //    //    //else
+        //    //    //    throw new NotSupportedException("Glass wrapper not supported");
 
-            //    //_femModels.Add(femWrapper);
-            //}
-        }
+        //    //    //_femModels.Add(femWrapper);
+        //    //}
+        //}
 
         protected override string GetCheckerName() => "EN 16612 - 2019";
 

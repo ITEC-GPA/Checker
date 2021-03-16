@@ -19,10 +19,10 @@ namespace GPC.Checker.Glasses.Checkers
 
         }
 
-        public override void SetUpFemModels()
-        {
-            throw new NotImplementedException();
-        }
+        //public override void SetUpFemModels()
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         protected override string GetCheckerName()
         {

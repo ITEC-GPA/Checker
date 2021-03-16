@@ -34,7 +34,7 @@ namespace GPC.Checker.Glasses.FemModel
         private string _st7LinearResultFilePath;
 
         /// <summary>
-        /// Map between St7LoadCombination ID and <see cref="Model.FEM.FemModel._combinations"/> id;
+        /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and St7ComboId  ;
         /// </summary>
         private Dictionary<int, int> _st7LSACombinationMap;
 
@@ -153,7 +153,7 @@ namespace GPC.Checker.Glasses.FemModel
 
         }
         
-        public void ReadSt7LinearResults()
+        public void ReadSt7LinearCombinationResults()
         {
             if (File.Exists(_st7LinearResultFilePath))
             {
@@ -161,8 +161,8 @@ namespace GPC.Checker.Glasses.FemModel
                 {
                     int mid = 0;
 
-                    int numPrimary = 0;
-                    int numSecondary = 0;
+                    int numPrimary = 0;     // LoadCase
+                    int numSecondary = 0;   // Combinazioni
 
                     bool status = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
 
@@ -175,37 +175,38 @@ namespace GPC.Checker.Glasses.FemModel
                         {
                             if (element is Plate plate)
                             {
-                                foreach (var kvp in _loadCases)
+                                foreach (var kvp in _combinations)
                                 {
-                                    int loadCaseId = kvp.Value;
-
-                                    int numPoints = 0; // punti in cui straus da i risultati
-                                    int numColumns = 0; // numero di risultati per punto
-
-                                    // Straus ritorna un array: [0..NumPoints*NumColumns-1] - An array containing the plate results at each sample location.
-                                    // The results are returned in blocks of length NumColumns, with the start of the ith block for the ith location at PlateResult[(i - 1) * NumColumns].
-
-                                    double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
-                                    double[] angles = new double[9];
-                                    aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, plate.Id,
-                                                           loadCaseId, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
-
-                                    aw.GetPlateAxisSystem(mid, plate.Id, St7ApiConst.btTrue, ref angles);
-
-                                    for (int np = 0; np < numPoints; np++)
+                                    if (_st7LSACombinationMap.ContainsKey(kvp.Value))
                                     {
-                                        for (int nc = 0; nc < numColumns; nc++)
-                                        {
-                                            _resultPlateStress.Add(
-                                                new ResultPlateStress(plate, _loadCases.Where(i => i.Value == loadCaseId).Select(i => i.Key).FirstOrDefault(),
-                                                new ResultStressPoint(np),
-                                                new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
-                                                plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]));
+                                        int comboId = kvp.Value;
 
-                                            _resultPlateStress.Last().GetPrincipalStress(out _, out _); // uso metodo approssimato
+                                        int numPoints = 0; // punti in cui straus da i risultati
+                                        int numColumns = 0; // numero di risultati per punto
+
+                                        double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
+                                        double[] angles = new double[9];
+                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, plate.Id,
+                                                               _st7LSACombinationMap[comboId] + numPrimary, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
+
+                                        aw.GetPlateAxisSystem(mid, plate.Id, St7ApiConst.btTrue, ref angles);
+
+                                        for (int np = 0; np < numPoints; np++)
+                                        {
+                                            for (int nc = 0; nc < numColumns; nc++)
+                                            {
+                                                _resultPlateStress.Add(
+                                                    new ResultPlateStress(plate, kvp.Key,
+                                                    new ResultStressPoint(np),
+                                                    new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
+                                                    plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]));
+
+                                                _resultPlateStress.Last().GetPrincipalStress(out _, out _); // uso metodo approssimato
+                                            }
                                         }
                                     }
                                 }
+
                             }
                         }
 
@@ -243,7 +244,11 @@ namespace GPC.Checker.Glasses.FemModel
                 if (resultPlateStress.Case is LoadCase lc)
                     loadDuration = lc.LoadDuration;
                 else if (resultPlateStress.Case is Combination cmb)
-                    throw new NotImplementedException();
+                {
+                    var _ = cmb.GetLoadCaseCoefficients(out List<Model.LoadCases.LoadCase> loadCases);
+                    var lcCasted = loadCases.Cast<LoadCase>().ToList();
+                    loadDuration = lcCasted.Select(i => i.LoadDuration).Min();
+                }
                 else
                     throw new NotImplementedException();
 
@@ -550,11 +555,12 @@ namespace GPC.Checker.Glasses.FemModel
 
                     if (added)
                     {
-                        _st7LSACombinationMap.Add(st7CId, _combinations[kvp.Key]);
+                        _st7LSACombinationMap.Add(_combinations[kvp.Key], st7CId);
                     }
                     else
                     {
-                        aw.DeleteLSACombination(mid, _combinations[kvp.Key]);
+                        aw.DeleteLSACombination(mid, st7CId);
+                        st7CId--;
                     }
                 }
             }
