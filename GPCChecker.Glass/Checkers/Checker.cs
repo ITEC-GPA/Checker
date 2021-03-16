@@ -10,6 +10,7 @@ using GPC.Checker.Glasses.Results;
 using GPC.Model.FEM.Properties;
 using GPC.Model.Loads;
 using System.Linq;
+using GPC.Model.Combinations;
 
 namespace GPC.Checker.Glasses.Checkers
 {
@@ -19,10 +20,17 @@ namespace GPC.Checker.Glasses.Checkers
 
         protected List<FemModelWrapper> _femModels;
 
-        public Checker(GlassSurface glassSurface)
+        protected List<Combination> _combinations;
+
+        public Checker(GlassSurface glassSurface, List<Combination> globalCombinations)
         {
             this._glassSurface = glassSurface ?? throw new ArgumentNullException(nameof(glassSurface));
             this._femModels = new List<FemModelWrapper>();
+
+            // Creo lista combinazioni sommando la lista delle globali a quelli del prototipo
+            this._combinations = globalCombinations == null ? new List<Combination>() : globalCombinations;
+            this._combinations.AddRange(glassSurface.Prototype.Combinations);
+
         }
 
         protected GlassWrapper GetWrapper()
@@ -92,6 +100,8 @@ namespace GPC.Checker.Glasses.Checkers
                                                   out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMap);
 
                     femModelWrapper.AddMesh(meshes.First(), pp, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, wrapper.MeshGeometryRestrainVertices.Values.FirstOrDefault());
+
+                    femModelWrapper.AddCombinations(_combinations);
 
                     femModelWrapper.SaveToSt7(folderPath);
 

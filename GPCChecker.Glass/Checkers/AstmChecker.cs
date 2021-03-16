@@ -5,13 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Checker.Glasses.Glasses;
 using GPC.Checker.Glasses.Results;
+using GPC.Model.Combinations;
 
 namespace GPC.Checker.Glasses.Checkers
 {
     public class AstmChecker : Checker
     {
-        public AstmChecker(GlassSurface glassSurface)
-            : base(glassSurface)
+        public AstmChecker(GlassSurface glassSurface, List<Combination> globalCombinations)
+            : base(glassSurface, globalCombinations)
         {
             if (_glassSurface.Prototype.Standard != Models.Prototype.Standards.ASTME1300)
                 throw new ArgumentException($"Standard not supported for {Models.Prototype.Standards.ASTME1300.ToString()} {GetCheckerName()} Checker");

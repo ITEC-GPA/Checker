@@ -70,7 +70,7 @@ namespace GPC.Checker.Glasses.Models
         public void AddCombination(Combination combination)
         {
             _combinations.Add(combination);
-        } 
+        }
 
         public List<GlassResult> PerformChecks()
         {
@@ -80,12 +80,12 @@ namespace GPC.Checker.Glasses.Models
             {
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
-                    En16612Checker checker = new En16612Checker(surface);
+                    En16612Checker checker = new En16612Checker(surface, _combinations);
                     glassResult.Add(checker.PerformCheck(_outputFolder));
                 }
                 else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
                 {
-                    AstmChecker checker = new AstmChecker(surface);
+                    AstmChecker checker = new AstmChecker(surface, _combinations);
                     glassResult.Add(checker.PerformCheck(_outputFolder));
                 }
                 else

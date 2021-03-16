@@ -3,6 +3,7 @@ using GPC.Checker.Glasses.Restrain;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using GPC.Model.Combinations;
 
 namespace GPC.Checker.Glasses.Models
 {
@@ -75,6 +76,8 @@ namespace GPC.Checker.Glasses.Models
         // Restrain
         protected List<IParametricRestrain> _restrains;
 
+        protected List<Combination> _combinations;
+
         #endregion
 
         #region Property
@@ -93,6 +96,8 @@ namespace GPC.Checker.Glasses.Models
 
         public List<IParametricRestrain> Restrains => _restrains;
 
+        public List<Combination> Combinations => _combinations;
+
         #endregion
 
         public Prototype(string name, Glass glass, List<IParametricRestrain> restrains, Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, LaminatedEqThicknessMethods laminatedEqThicknessMethod)
@@ -106,6 +111,7 @@ namespace GPC.Checker.Glasses.Models
             this._glass = glass ?? throw new ArgumentNullException("Glass cannot be null");
             this._meshSize = 50;
             this._restrains = restrains == null ? new List<IParametricRestrain>() : restrains;
+            this._combinations = new List<Combination>();
         }
 
         public Prototype(SerializationInfo info, StreamingContext context)
