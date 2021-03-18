@@ -72,7 +72,8 @@ namespace GlassTests
             GlassMaterial gm = new GlassMaterialAstm("", 1, 0.2, 3, 4, 5, 6, 0.008, 0.008, 9);
             MonolithicGlassProperty pp = new MonolithicGlassProperty(1,2, gm);
 
-            Mesh.GenerateMeshOptions.MeshSize = 10;
+            var meshOptions = new Mesh.GenerateOptions();
+            meshOptions.MeshSize = 10;
 
             PointLoad p1 = new PointLoad(1, 2, 3, 4, 5, 6, new Point3d(35, 35, 0), new LoadCase("LC1", 2, 10, GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad));
             LineLoad l1 = new LineLoad(1, 2, 3, 4, 5, 6, new Line3d(new Point3d(35, 150, 0), new Point3d(75, 100, 0)), new LoadCase("LC2", 2, 10, GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad));
@@ -80,7 +81,7 @@ namespace GlassTests
             PointRestrain pr = new PointRestrain(new Point3d(70, 70, 0), new FreedomCase("fc1"), new List<DofRestrain>{ new DofRestrain(LinearSolver.DOF.DX, true), new DofRestrain(LinearSolver.DOF.RZ, true) });
 
             LineRestrain lr = new LineRestrain(borders[0], new FreedomCase("fc1"), new List<DofRestrain> { new DofRestrain(LinearSolver.DOF.DY, true), new DofRestrain(LinearSolver.DOF.RZ, true) });
-            fmw.AddShape(s1, pp, new List<Load>() { p1, l1 }, new List<GeometryRestrain>() { pr, lr });
+            fmw.AddShape(s1, pp, meshOptions, new List<Load>() { p1, l1 }, new List<GeometryRestrain>() { pr, lr });
 
             fmw.SaveToSt7(Path.Combine(_outputFolder, $"Export.st7"));
         }

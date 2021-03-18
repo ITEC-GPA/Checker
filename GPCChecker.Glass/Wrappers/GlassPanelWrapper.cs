@@ -163,9 +163,7 @@ namespace GPC.Checker.Glasses.Wrappers
             }
 
 
-            SetUpMeshOptions();
-
-            if (Mesh.Generate(shapes, embeddedGeometries, null, null, out List<Mesh> meshes, out Mesh.GenerateMeshStatus generateMeshStatus))
+            if (Mesh.Generate(shapes, embeddedGeometries, _glassSurface.MeshOptions, out List<Mesh> meshes, out Mesh.GenerateMeshStatus generateMeshStatus))
             {
                 // VERTEX RECOVER - RESTRAIN
                 _meshGeometryRestrainVertices = new Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>>();

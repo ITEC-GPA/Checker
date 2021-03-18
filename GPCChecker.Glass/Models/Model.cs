@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using GPC.Model.Combinations;
 using GPC.Checker.Glasses.Glasses;
@@ -8,7 +9,7 @@ using GPC.Model.Results;
 
 namespace GPC.Checker.Glasses.Models
 {
-    public class Model 
+    public class Model
     {
         #region Variables
 
@@ -54,6 +55,7 @@ namespace GPC.Checker.Glasses.Models
         {
             this._glassSurfaces = glassSurfaces ?? new List<GlassSurface>();
             this._combinations = combinations ?? new List<Combination>();
+            this._checkers = new List<Checkers.Checker>();
 
             if (!string.IsNullOrEmpty(outputFolder) && !string.IsNullOrWhiteSpace(outputFolder))
                 if (!System.IO.Directory.Exists(outputFolder))
@@ -78,10 +80,8 @@ namespace GPC.Checker.Glasses.Models
             _combinations.Add(combination);
         }
 
-        public List<GlassResult> PerformChecks()
+        public void FemModelSetup()
         {
-            List<GlassResult> glassResult = new List<GlassResult>(); ;
-
             foreach (var surface in _glassSurfaces)
             {
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
@@ -96,14 +96,26 @@ namespace GPC.Checker.Glasses.Models
                 {
                     throw new NotImplementedException();
                 }
+
+                _checkers.Last().FemModelSetup(_outputFolder);
             }
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks> <see cref="FemModelSetup"/> Must be called before calling this method</remarks>
+        
+        // TODO: glass, cambiare facendo in modo che se il checker non è stato creato lo crei lui, cosi da farlo andare avanti in qualsiasi caso.
+        public void PerformChecks()
+        {
 
             foreach(var checker in _checkers)
             {
-                checker.PerformCheck(_outputFolder) ;
+                checker.PerformCheck();
             }
 
-            return glassResult;
         }
 
 
@@ -118,6 +130,8 @@ namespace GPC.Checker.Glasses.Models
 
             return results;
         }
+
+
 
         public List<List<ResultNodeDisplacement>> GetNodeDisplacementCombinationsResult()
         {

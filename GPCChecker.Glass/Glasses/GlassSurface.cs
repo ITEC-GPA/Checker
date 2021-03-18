@@ -10,6 +10,7 @@ using GPC.Model.Loads;
 using GPC.Checker.Glasses.Loads;
 using GPC.Checker.Glasses.Models;
 using GPC.Model.Restrains;
+using GPC.Geometry.Meshes;
 
 namespace GPC.Checker.Glasses.Glasses
 {
@@ -28,20 +29,22 @@ namespace GPC.Checker.Glasses.Glasses
 
         private List<IParametricLoad> _parametricLoads;
 
+        private Mesh.GenerateOptions _meshOptions;
 
 
         public Prototype Prototype => _prototype;
 
+        public Mesh.GenerateOptions MeshOptions => _meshOptions;
 
-        public GlassSurface(Prototype prototype, Shape shape) 
+
+        public GlassSurface(Prototype prototype, Shape shape, Mesh.GenerateOptions options) 
             : base(shape, Guid.NewGuid())
         {
             this._prototype = prototype;
             this._loads = new List<Load>();
             this._parametricLoads = new List<IParametricLoad>();
             this._restrains = new List<GeometryRestrain>();
-
-            // TODO: implementare id surface
+            this._meshOptions = options;
             base.SetId(_maxId++);
         }
 

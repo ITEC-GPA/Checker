@@ -171,6 +171,55 @@ namespace GPC.Checker.Glasses.FemModel
 
                     if (status)
                     {
+
+                        foreach (var kvp in _combinations)
+                        {
+                            int comboId = kvp.Value;
+
+                            if (_st7LSACombinationMap.ContainsKey(kvp.Value))
+                            {
+                                foreach(var element in _elements)
+                                {
+                                    if (element is Plate plate)
+                                    {
+
+                                        // LETTURA STRESS PLATE
+                                        int numPoints = 0; // punti in cui straus da i risultati
+                                        int numColumns = 0; // numero di risultati per punto
+
+                                        double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
+                                        double[] angles = new double[9];
+                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, plate.Id,
+                                                               _st7LSACombinationMap[comboId] + numPrimary, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
+
+                                        aw.GetPlateAxisSystem(mid, plate.Id, St7ApiConst.btTrue, ref angles);
+
+                                        for (int np = 0; np < numPoints; np++)
+                                        {
+                                            for (int nc = 0; nc < numColumns; nc++)
+                                            {
+                                                _resultPlateStress.Add(
+                                                    new ResultPlateStress(plate, kvp.Key,
+                                                    new ResultStressPoint(np),
+                                                    new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
+                                                    plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]));
+
+                                                _resultPlateStress.Last().GetPrincipalStress(out _, out _); // uso metodo approssimato
+                                            }
+                                        }
+                                    }
+                                }
+
+                                foreach(var node in _nodes)
+                                {
+                                    double[] nodeResult = new double[6];
+                                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, node.Id, _st7LSACombinationMap[comboId] + numPrimary, ref nodeResult);
+                                    _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, kvp.Key, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
+                                }
+                            }
+                        }
+
+
                         foreach (var element in _elements)
                         {
                             if (element is Plate plate)
@@ -181,6 +230,7 @@ namespace GPC.Checker.Glasses.FemModel
                                     {
                                         int comboId = kvp.Value;
 
+                                        // LETTURA STRESS PLATE
                                         int numPoints = 0; // punti in cui straus da i risultati
                                         int numColumns = 0; // numero di risultati per punto
 
@@ -496,7 +546,6 @@ namespace GPC.Checker.Glasses.FemModel
                 return;
 
             int st7LcId = 0;
-
             foreach (var lckvp in _loadCases.OrderBy(k => k.Value))
             {
                 var loadCase = lckvp.Key;
@@ -508,24 +557,25 @@ namespace GPC.Checker.Glasses.FemModel
                     if (!aw.NewLoadCase(mid, loadCase.Name))
                         throw new Straus7Exception($"Unable lo add loadCase {loadCase.Name}");
                 }
-                
-                if(aw.SetLoadCaseName(mid, st7LcId, loadCase.Name))
+                else
                 {
-                    if (loadCase.GetLoadCaseType() == LoadCase.LoadCaseType.SelfWeight)
-                    {
-                        aw.SetLoadCaseType(mid, st7LcId, St7ApiConst.kGravity);
-                        aw.SetLoadCaseGravityDir(mid, st7LcId, 3);
-                        var doubles = new double[13];
-                        doubles[4] = 0;
-                        doubles[5] = 0;
-                        doubles[6] = -9806.65; //mm/s2
-                        aw.SetLoadCaseDefaults(mid, st7LcId, doubles);
-                    }
-                    else
-                        aw.SetLoadCaseType(mid, st7LcId, St7ApiConst.kNoInertia);
-
-                    _st7LoadCaseMap[st7LcId] = lcNum;
+                    aw.SetLoadCaseName(mid, st7LcId, loadCase.Name);
                 }
+
+                if (loadCase.GetLoadCaseType() == LoadCase.LoadCaseType.SelfWeight)
+                {
+                    aw.SetLoadCaseType(mid, st7LcId, St7ApiConst.kGravity);
+                    aw.SetLoadCaseGravityDir(mid, st7LcId, 3);
+                    var doubles = new double[13];
+                    doubles[4] = 0;
+                    doubles[5] = 0;
+                    doubles[6] = -9806.65; //mm/s2
+                    aw.SetLoadCaseDefaults(mid, st7LcId, doubles);
+                }
+                else
+                    aw.SetLoadCaseType(mid, st7LcId, St7ApiConst.kNoInertia);
+
+                _st7LoadCaseMap[st7LcId] = lcNum;
             }
         }
 
@@ -754,6 +804,8 @@ namespace GPC.Checker.Glasses.FemModel
         }
 
         #endregion
+        
+        
         #endregion
 
 

@@ -31,7 +31,6 @@ namespace GPC.Checker.Glasses.Wrappers
             {
                 if (_meshes.Count == 0)
                 {
-                    SetUpMeshOptions();
                     GenerateMesh();
                     return _meshes;
                 }
@@ -46,7 +45,6 @@ namespace GPC.Checker.Glasses.Wrappers
             {
                 if (_meshes.Count == 0)
                 {
-                    SetUpMeshOptions();
                     GenerateMesh();
                     return _meshGeometryRestrainVertices;
                 }
@@ -61,7 +59,6 @@ namespace GPC.Checker.Glasses.Wrappers
             {
                 if (_meshes.Count == 0)
                 {
-                    SetUpMeshOptions();
                     GenerateMesh();
                     return _meshLoadsVertexIndexes;
                 }
@@ -76,7 +73,6 @@ namespace GPC.Checker.Glasses.Wrappers
             {
                 if (_meshes.Count == 0)
                 {
-                    SetUpMeshOptions();
                     GenerateMesh();
                     return _meshLoadsFaceIndexes;
                 }
@@ -94,16 +90,6 @@ namespace GPC.Checker.Glasses.Wrappers
             this._meshes = new List<Mesh>();
         }
 
-        protected void SetUpMeshOptions()
-        {
-            Mesh.GenerateMeshOptions.Algorithm = Mesh.GenerateMeshOptions.MeshAlgorithm.FrontalDelaunayForQuads;
-            Mesh.GenerateMeshOptions.Recombine = true;
-            Mesh.GenerateMeshOptions.RecombinationAlgorithm = Mesh.GenerateMeshOptions.RecombinationMeshAlgorithm.Blossom;
-            Mesh.GenerateMeshOptions.MeshSize = _glassSurface.Prototype.MeshSize;
-            Mesh.GenerateMeshOptions.UseGlobalProgressID = true;
-            Mesh.GenerateMeshOptions.Transfinite = true;
-
-        }
 
         public abstract bool GenerateMesh();
 
