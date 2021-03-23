@@ -12,7 +12,6 @@ namespace GPC.Checker.Glasses.Wrappers
 {
     internal class DoubleInsulatingGlassWrapper : InsulatedGlassWrapper
     {
-        protected new DoubleInsulatingGlass Glass => (DoubleInsulatingGlass)_glass;
 
         protected GlassPanelWrapper _innerGlassPanelWrapper;
         protected GlassPanelWrapper _outerGlassPanelWrapper;
@@ -29,29 +28,33 @@ namespace GPC.Checker.Glasses.Wrappers
 
         protected override void SetUpWrappers()
         {
+            DoubleInsulatingGlass igu = Glass as DoubleInsulatingGlass;
 
-            if (Glass.GlassPanelInner is MonolithicGlass)
+            if (igu is null)
+                throw new ArgumentException();
+
+            if (igu.GlassPanelInner is MonolithicGlass)
             {
-                _innerGlassPanelWrapper = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)Glass.GlassPanelInner);
+                _innerGlassPanelWrapper = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)igu.GlassPanelInner);
 
             }
-            else if (Glass.GlassPanelInner is LaminatedGlass)
+            else if (igu.GlassPanelInner is LaminatedGlass)
             {
-                _innerGlassPanelWrapper = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)Glass.GlassPanelInner);
+                _innerGlassPanelWrapper = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)igu.GlassPanelInner);
             }
             else
             {
                 throw new NotSupportedException();
             }
 
-            if (Glass.GlassPanelOuter is MonolithicGlass)
+            if (igu.GlassPanelOuter is MonolithicGlass)
             {
-                _outerGlassPanelWrapper = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)Glass.GlassPanelInner);
+                _outerGlassPanelWrapper = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)igu.GlassPanelInner);
 
             }
-            else if (Glass.GlassPanelOuter is LaminatedGlass)
+            else if (igu.GlassPanelOuter is LaminatedGlass)
             {
-                _outerGlassPanelWrapper = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)Glass.GlassPanelInner);
+                _outerGlassPanelWrapper = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)igu.GlassPanelInner);
             }
             else
             {

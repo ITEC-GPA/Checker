@@ -725,7 +725,7 @@ namespace GPC.Checker.Glasses.FemModel
             else
             {
                 Process p = Process.Start(pInfo);
-
+                
                 p.WaitForExit(); // Wait for the process to end.
 
                 if (p.ExitCode == 0) // Analysis terminated with success

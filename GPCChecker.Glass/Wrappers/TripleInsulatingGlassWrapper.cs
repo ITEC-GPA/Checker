@@ -11,8 +11,6 @@ namespace GPC.Checker.Glasses.Wrappers
 {
     internal class TripleInsulatingGlassWrapper : InsulatedGlassWrapper
     {
-        protected new TripleInsulatingGlass Glass => (TripleInsulatingGlass)_glass;
-
         protected GlassPanelWrapper _outerGlassPanelWrapper;
         protected GlassPanelWrapper _centerGlassPanelWrapper;
         protected GlassPanelWrapper _innerGlassPanelWrapper;

@@ -25,8 +25,6 @@ namespace GPC.Checker.Glasses.Wrappers
 
         #endregion
 
-        internal new LaminatedGlass Glass => (LaminatedGlass)_glass;
-
 
         #region Public constructors
 
@@ -102,7 +100,7 @@ namespace GPC.Checker.Glasses.Wrappers
 
         public override double GetTotalThickness()
         { 
-            return Glass.MonolithicGlasses.Select(i => i.Thickness).Sum() + Glass.Interlayers.Select(i => i.Thickness).Sum(); ;
+            return (Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Thickness).Sum() + (Glass as LaminatedGlass).Interlayers.Select(i => i.Thickness).Sum(); ;
         }
 
         /// <summary>
@@ -110,17 +108,17 @@ namespace GPC.Checker.Glasses.Wrappers
         /// </summary>
         public double[] GetMonolithicBarycenterDistances()
         {
-            double[] distances = new double[Glass.MonolithicGlasses.Length];
+            double[] distances = new double[(Glass as LaminatedGlass).MonolithicGlasses.Length];
 
-            for (int i = 0; i < Glass.MonolithicGlasses.Length; i++)
+            for (int i = 0; i < (Glass as LaminatedGlass).MonolithicGlasses.Length; i++)
             {
-                distances[i] = Glass.MonolithicGlasses[i].Thickness / 2.0;
+                distances[i] = (Glass as LaminatedGlass).MonolithicGlasses[i].Thickness / 2.0;
 
                 if (i != 0)
                 {
-                    distances[i] += Glass.MonolithicGlasses[i - 1].Thickness / 2.0;
+                    distances[i] += (Glass as LaminatedGlass).MonolithicGlasses[i - 1].Thickness / 2.0;
                     distances[i] += distances[i - 1];
-                    distances[i] += Glass.Interlayers[i - 1].Thickness;
+                    distances[i] += (Glass as LaminatedGlass).Interlayers[i - 1].Thickness;
                 }
             }
             return distances;
@@ -131,17 +129,17 @@ namespace GPC.Checker.Glasses.Wrappers
         /// </summary>
         public double[] GetInterlayerBarycenterDistances()
         {
-            double[] distances = new double[Glass.Interlayers.Length];
+            double[] distances = new double[(Glass as LaminatedGlass).Interlayers.Length];
 
-            for (int i = 0; i < Glass.Interlayers.Length; i++)
+            for (int i = 0; i < (Glass as LaminatedGlass).Interlayers.Length; i++)
             {
-                distances[i] = Glass.MonolithicGlasses[i].Thickness;
-                distances[i] += Glass.Interlayers[i].Thickness / 2.0;
+                distances[i] = (Glass as LaminatedGlass).MonolithicGlasses[i].Thickness;
+                distances[i] += (Glass as LaminatedGlass).Interlayers[i].Thickness / 2.0;
 
                 if (i != 0)
                 {
                     distances[i] += distances[i - 1];
-                    distances[i] += Glass.Interlayers[i - 1].Thickness / 2.0;
+                    distances[i] += (Glass as LaminatedGlass).Interlayers[i - 1].Thickness / 2.0;
                 }
             }
             return distances;
@@ -149,31 +147,26 @@ namespace GPC.Checker.Glasses.Wrappers
 
         public override double GetElasticModulus()
         {
-            return Glass.MonolithicGlasses.Select(i => i.Material.E).Min();
+            return (Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Material.E).Min();
         }
 
         public override double GetPoissonRatios()
         {
-            return Glass.MonolithicGlasses.Select(i => i.Material.Ni).Min();
+            return (Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Material.Ni).Min();
         }
 
         public override double GetSelfWeightPerUnitArea()
         {
-            return Glass.MonolithicGlasses.Select(i => i.Thickness * i.Material.Density).Sum() + Glass.Interlayers.Select(i => i.Thickness * i.Material.Density).Sum();
+            return (Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Thickness * i.Material.Density).Sum() + (Glass as LaminatedGlass).Interlayers.Select(i => i.Thickness * i.Material.Density).Sum();
         }
 
         public override double GetSelfWeightTotal()
         {
-            return _glassSurface.Shape.GetArea() * (Glass.MonolithicGlasses.Select(i => i.Thickness * i.Material.Density).Sum() + Glass.Interlayers.Select(i => i.Thickness * i.Material.Density).Sum());
+            return _glassSurface.Shape.GetArea() * ((Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Thickness * i.Material.Density).Sum() + (Glass as LaminatedGlass).Interlayers.Select(i => i.Thickness * i.Material.Density).Sum());
         }
 
         #endregion
 
 
-        #region Public methods - Analysis
-
-
-
-        #endregion
     }
 }

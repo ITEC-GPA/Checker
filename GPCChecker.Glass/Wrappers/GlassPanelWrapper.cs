@@ -31,7 +31,7 @@ namespace GPC.Checker.Glasses.Wrappers
 
         internal List<GeometryRestrain> GeometryRestrains => _geometryRestrain;
 
-        protected new IGlassPanel Glass => (IGlassPanel)_glass;
+        protected override Glass Glass => _glass;
                 
         #endregion
 

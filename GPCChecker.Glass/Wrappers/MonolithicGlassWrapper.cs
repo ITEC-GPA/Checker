@@ -5,8 +5,6 @@ namespace GPC.Checker.Glasses.Wrappers
 {
     public class MonolithicGlassWrapper : GlassPanelWrapper
     {
-        public new MonolithicGlass Glass => (MonolithicGlass)_glass;
-
         internal MonolithicGlassWrapper(GlassSurface glassSurface, MonolithicGlass glass)
             : base(glassSurface, glass)
         {
@@ -22,13 +20,13 @@ namespace GPC.Checker.Glasses.Wrappers
         /// <returns>Glass thickness for deformation analysis</returns>
         public double GetDeformationThickness()
         {
-            return Glass.Thickness;
+            return (Glass as MonolithicGlass).Thickness;
         }
 
         /// <inheritdoc/>
         public override double GetDeformationThickness(double loadDuration)
         {
-            return Glass.Thickness;
+            return (Glass as MonolithicGlass).Thickness;
         }
 
         /// <summary>
@@ -38,41 +36,41 @@ namespace GPC.Checker.Glasses.Wrappers
         /// <returns>Glass thickness for stress analysis</returns>
         public double GetStressThickness()
         {
-            return Glass.Thickness;
+            return (Glass as MonolithicGlass).Thickness;
         }
 
         /// <inheritdoc/>
         public override double GetStressThickness(double loadDuration)
         {
-            return Glass.Thickness;
+            return (Glass as MonolithicGlass).Thickness;
         }
 
         /// <inheritdoc/>
         public override double GetTotalThickness()
         {
-            return Glass.Thickness;
+            return (Glass as MonolithicGlass).Thickness;
         }
 
         public override double GetElasticModulus()
         {
-            return Glass.Material.E;
+            return (Glass as MonolithicGlass).Material.E;
         }
 
         public override double GetPoissonRatios()
         {
-            return Glass.Material.Ni;
+            return (Glass as MonolithicGlass).Material.Ni;
         }
 
         public override double GetSelfWeightPerUnitArea()
         {
             // mm * T/mm3 => T / mm2
-            return Glass.Thickness * Glass.Material.Density;
+            return (Glass as MonolithicGlass).Thickness * (Glass as MonolithicGlass).Material.Density;
         }
 
         public override double GetSelfWeightTotal()
         {
             // mm2 * mm * T/mm3 => T
-            return _glassSurface.Shape.GetArea() * Glass.Thickness * Glass.Material.Density;
+            return _glassSurface.Shape.GetArea() * (Glass as MonolithicGlass).Thickness * (Glass as MonolithicGlass).Material.Density;
         }
 
         #endregion

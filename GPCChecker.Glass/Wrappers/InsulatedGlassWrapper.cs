@@ -12,7 +12,6 @@ namespace GPC.Checker.Glasses.Wrappers
 {
     internal abstract class InsulatedGlassWrapper : GlassWrapper
     {
-        protected new IInsulatingGlass Glass => (IInsulatingGlass)_glass;
 
 
         internal InsulatedGlassWrapper(GlassSurface glassSurface, IInsulatingGlass glass) 
