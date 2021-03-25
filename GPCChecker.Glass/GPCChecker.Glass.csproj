@@ -64,8 +64,6 @@
     <Compile Include="Checkers\Checker.cs" />
     <Compile Include="Checkers\En16612Checker.cs" />
     <Compile Include="FemModel\FemModelWrapper.cs" />
-    <Compile Include="FemModel\FemModelWrapper_old.cs" />
-    <Compile Include="FemModel\FemModelWrapper2.cs" />
     <Compile Include="Glasses\GlassSurface.cs" />
     <Compile Include="LoadCases\ClimateHLoadCase.cs" />
     <Compile Include="LoadCases\ClimatePLoadCase.cs" />
