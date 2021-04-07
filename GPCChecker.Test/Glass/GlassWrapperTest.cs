@@ -21,10 +21,8 @@ using GPC.TestUtilities;
 namespace GlassTests
 {
     [TestClass]
-    public class GlassWrapperTest : UnitTestBase
+    public class GlassWrapperTest : GlassTestBase
     {
-
-        private static string _outputFolder;
 
         #region Private methods
 

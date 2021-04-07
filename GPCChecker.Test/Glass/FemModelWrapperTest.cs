@@ -17,21 +17,8 @@ using GPC.TestUtilities;
 namespace GlassTests
 {
     [TestClass]
-    public class FemModelWrapperTest : UnitTestBase
+    public class FemModelWrapperTest : GlassTestBase
     {
-
-        private Shape CreateSimpleShape(double width, double height)
-        {
-            Polygon3d p = new Polygon3d()
-            {
-                new Point3d(0,0,0),
-                new Point3d(width, 0, 0),
-                new Point3d(width, height, 0),
-                new Point3d(0, height, 0)
-            };
-
-            return new Shape(p);
-        }
 
 
         [TestMethod]
@@ -39,12 +26,12 @@ namespace GlassTests
         {
             FemModelWrapper fmw = new FemModelWrapper();
 
-            Shape s1 = CreateSimpleShape(100, 200);
+            Shape s1 = GetRectangularShape(100, 200);
             var borders = s1.Fill.Explode();
 
 
             GlassMaterial gm = new GlassMaterialAstm("", 1, 0.2, 3, 4, 5, 6, 0.008, 0.008, 9);
-            MonolithicGlassProperty pp = new MonolithicGlassProperty(1,2, gm);
+            MonolithicGlassProperty pp = new MonolithicGlassProperty(1,2, gm, "mgp");
 
             var meshOptions = new Mesh.GenerateOptions();
             meshOptions.MeshSize = 10;
@@ -57,7 +44,7 @@ namespace GlassTests
             LineRestrain lr = new LineRestrain(borders[0], new FreedomCase("fc1"), new List<DofRestrain> { new DofRestrain(LinearSolver.DOF.DY, true), new DofRestrain(LinearSolver.DOF.RZ, true) });
             fmw.AddShape(s1, pp, meshOptions, new List<Load>() { p1, l1 }, new List<GeometryRestrain>() { pr, lr });
 
-            fmw.SaveToSt7(Path.Combine(_outputFolder, $"Export.st7"));
+            fmw.SaveToSt7(base.GetOutputFolder());
         }
     }
 }
