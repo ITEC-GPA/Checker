@@ -17,6 +17,7 @@ using GPC.Checker.Glasses.Models;
 using GPC.Model.FEM.Attributes;
 using GPC.Model.FEM.FiniteElements;
 using GPC.Model.FEM.Properties;
+using GPC.Model.FreedomCases;
 using GPC.Model.Restrains;
 using GPC.Model.Results;
 using GPC.Model.Materials;
@@ -36,18 +37,37 @@ namespace GPC.Checker.Glasses.FemModel
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and St7ComboId  ;
         /// </summary>
-        private Dictionary<int, int> _st7LSACombinationMap;
+        private Dictionary<Combination, int> _st7LSACombinationMap;
 
         /// <summary>
-        /// Map between St7LoadCAse ID and <see cref="Model.FEM.FemModel._loadCases"/> id;
+        /// Map between <see cref="Model.FEM.FemModel._loadCases"/> St7 loadcase id;
         /// </summary>
-        private Dictionary<int, int> _st7LoadCaseMap;
+        private Dictionary<LoadCase, int> _st7LoadCaseMap;
 
         /// <summary>
-        /// Map between St7FreedomCase ID and <see cref="Model.FEM.FemModel._freedomCases"/> id;
+        /// Map between <see cref="Model.FEM.FemModel._freedomCases"/> St7 fredomcase id;
         /// </summary>
-        private Dictionary<int, int> _st7FreedomCaseMap;
+        private Dictionary<FreedomCase, int> _st7FreedomCaseMap;
 
+        /// <summary>
+        /// Map between <see cref="Model.FEM.FemModel._plateProperties"/> St7 platepropertyID;
+        /// </summary>
+        private Dictionary<PlateProperty, int> _st7PlatePropertyMap;
+
+        /// <summary>
+        /// Map between <see cref="Model.FEM.Node"/> id and straus7 node ID
+        /// </summary>
+        private Dictionary<int, int> _st7NodeMap;
+
+        /// <summary>
+        /// Map between <see cref="Model.FEM.FiniteElements.Plate"/> id and straus7 node ID
+        /// </summary>
+        private Dictionary<int, int> _st7PlateMap;
+
+        /// <summary>
+        /// Map between <see cref="Model.FEM.FiniteElements.Brick"/> id and straus7 node ID
+        /// </summary>
+        private Dictionary<int, int> _st7BrickMap;
 
 
         public FemModelWrapper() : this (string.Empty)
@@ -59,9 +79,14 @@ namespace GPC.Checker.Glasses.FemModel
             : base(name)
         {
             _st7ServerIp = "localhost";
-            _st7LSACombinationMap = new Dictionary<int, int>();
-            _st7LoadCaseMap = new Dictionary<int, int>();
-            _st7FreedomCaseMap = new Dictionary<int, int>();
+            _st7LSACombinationMap = new Dictionary<Combination, int>(new ModelObjectNameEqualityComparer());
+            _st7LoadCaseMap = new Dictionary<LoadCase, int>(new ModelObjectNameEqualityComparer());
+            _st7FreedomCaseMap = new Dictionary<FreedomCase, int>(new ModelObjectNameEqualityComparer());
+            _st7PlatePropertyMap = new Dictionary<PlateProperty, int>(new ModelObjectNameEqualityComparer());
+
+            _st7NodeMap = new Dictionary<int, int>();
+            _st7PlateMap = new Dictionary<int, int>();
+            _st7BrickMap = new Dictionary<int, int>();
         }
 
         public FemModelWrapper(SerializationInfo info, StreamingContext context) 
@@ -69,6 +94,63 @@ namespace GPC.Checker.Glasses.FemModel
         {
             throw new NotImplementedException();
         }
+
+
+        #region RESULTS - public methods
+
+
+        public GlassResult GetMaxWorkingRatio()
+        {
+            double ratio = 0;
+            double stressResistance = 0;
+            double worstStress = 0;
+            foreach (var resultPlateStress in ResultPlateStresses)
+            {
+                double loadDuration = 0;
+
+                if (resultPlateStress.Case is LoadCase lc)
+                    loadDuration = lc.LoadDuration;
+                else if (resultPlateStress.Case is Combination cmb)
+                {
+                    var _ = cmb.GetLoadCaseCoefficients(out List<Model.LoadCases.LoadCase> loadCases);
+                    var lcCasted = loadCases.Cast<LoadCase>().ToList();
+                    loadDuration = lcCasted.Select(i => i.LoadDuration).Min();
+                }
+                else
+                    throw new NotImplementedException();
+
+                if (resultPlateStress.Element is Plate plate)
+                {
+                    if (plate.Property is MonolithicGlassProperty mgp)
+                    {
+                        if (mgp.Material is GlassMaterial gm)
+                        {
+                            double res = gm.GetGlassResistance(false, loadDuration);
+
+                            double r = Math.Abs(resultPlateStress.S11) / res;
+
+                            if (r > ratio)
+                            {
+                                ratio = r;
+                                stressResistance = res;
+                                worstStress = resultPlateStress.S11;
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            return new GlassResult(worstStress, stressResistance); ;
+        }
+
+        public void GetMaxDisplacement()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        #endregion
 
         #region STRAUS7
 
@@ -172,13 +254,13 @@ namespace GPC.Checker.Glasses.FemModel
                     if (status)
                     {
 
-                        foreach (var kvp in _combinations)
+                        foreach (var combination in _combinations)
                         {
-                            int comboId = kvp.Value;
-
-                            if (_st7LSACombinationMap.ContainsKey(kvp.Value))
+                            if (_st7LSACombinationMap.ContainsKey(combination))
                             {
-                                foreach(var element in _elements)
+                                int comboId = _st7LSACombinationMap[combination];
+
+                                foreach (var element in _elements)
                                 {
                                     if (element is Plate plate)
                                     {
@@ -190,7 +272,7 @@ namespace GPC.Checker.Glasses.FemModel
                                         double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
                                         double[] angles = new double[9];
                                         aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, plate.Id,
-                                                               _st7LSACombinationMap[comboId] + numPrimary, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
+                                                               comboId + numPrimary, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
 
                                         aw.GetPlateAxisSystem(mid, plate.Id, St7ApiConst.btTrue, ref angles);
 
@@ -199,7 +281,7 @@ namespace GPC.Checker.Glasses.FemModel
                                             for (int nc = 0; nc < numColumns; nc++)
                                             {
                                                 _resultPlateStress.Add(
-                                                    new ResultPlateStress(plate, kvp.Key,
+                                                    new ResultPlateStress(plate, combination,
                                                     new ResultStressPoint(np),
                                                     new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
                                                     plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]));
@@ -210,54 +292,16 @@ namespace GPC.Checker.Glasses.FemModel
                                     }
                                 }
 
-                                foreach(var node in _nodes)
+                                foreach (var node in _nodes)
                                 {
                                     double[] nodeResult = new double[6];
-                                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, node.Id, _st7LSACombinationMap[comboId] + numPrimary, ref nodeResult);
-                                    _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, kvp.Key, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
-                                }
-                            }
-                        }
-
-
-                        foreach (var element in _elements)
-                        {
-                            if (element is Plate plate)
-                            {
-                                foreach (var kvp in _combinations)
-                                {
-                                    if (_st7LSACombinationMap.ContainsKey(kvp.Value))
-                                    {
-                                        int comboId = kvp.Value;
-
-                                        // LETTURA STRESS PLATE
-                                        int numPoints = 0; // punti in cui straus da i risultati
-                                        int numColumns = 0; // numero di risultati per punto
-
-                                        double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
-                                        double[] angles = new double[9];
-                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, plate.Id,
-                                                               _st7LSACombinationMap[comboId] + numPrimary, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
-
-                                        aw.GetPlateAxisSystem(mid, plate.Id, St7ApiConst.btTrue, ref angles);
-
-                                        for (int np = 0; np < numPoints; np++)
-                                        {
-                                            for (int nc = 0; nc < numColumns; nc++)
-                                            {
-                                                _resultPlateStress.Add(
-                                                    new ResultPlateStress(plate, kvp.Key,
-                                                    new ResultStressPoint(np),
-                                                    new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
-                                                    plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]));
-
-                                                _resultPlateStress.Last().GetPrincipalStress(out _, out _); // uso metodo approssimato
-                                            }
-                                        }
-                                    }
+                                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, node.Id, comboId + numPrimary, ref nodeResult);
+                                    _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
                                 }
 
+
                             }
+
                         }
 
                         aw.CloseResultFile(mid);
@@ -282,57 +326,6 @@ namespace GPC.Checker.Glasses.FemModel
 
         }
         
-        public GlassResult GetMaxWorkingRatio()
-        {
-            double ratio = 0;
-            double stressResistance = 0;
-            double worstStress = 0;
-            foreach (var resultPlateStress in ResultPlateStresses)
-            {
-                double loadDuration = 0;
-
-                if (resultPlateStress.Case is LoadCase lc)
-                    loadDuration = lc.LoadDuration;
-                else if (resultPlateStress.Case is Combination cmb)
-                {
-                    var _ = cmb.GetLoadCaseCoefficients(out List<Model.LoadCases.LoadCase> loadCases);
-                    var lcCasted = loadCases.Cast<LoadCase>().ToList();
-                    loadDuration = lcCasted.Select(i => i.LoadDuration).Min();
-                }
-                else
-                    throw new NotImplementedException();
-
-                if (resultPlateStress.Element is Plate plate)
-                {
-                    if (plate.Property is MonolithicGlassProperty mgp)
-                    {
-                        if (mgp.Material is GlassMaterial gm)
-                        {
-                            double res = gm.GetGlassResistance(false, loadDuration);
-
-                            double r = Math.Abs(resultPlateStress.S11) / res;
-
-                            if (r > ratio)
-                            {
-                                ratio = r;
-                                stressResistance = res;
-                                worstStress = resultPlateStress.S11;
-                            }
-                        }
-
-                    }
-                }
-            }
-
-            return new GlassResult(worstStress, stressResistance); ;
-        }
-
-        public void GetMaxDisplacement()
-        {
-            throw new NotImplementedException();
-        }
-
-
 
         #endregion
 
@@ -402,11 +395,13 @@ namespace GPC.Checker.Glasses.FemModel
             St7SetLoadCase(aw, mId);
 
             St7SetLinearLoadCaseCombination(aw, mId);
-            
+
             // Nodes
+            int st7NodeIndex = 0;
             foreach (var node in _nodes)
             {
-                int st7NodeIndex = node.Id; //St7GetElementIndex(node.NodeIndex);
+                st7NodeIndex++;
+                _st7NodeMap.Add(node.Id, st7NodeIndex);
 
                 aw.SetNodeXYZ(mId, st7NodeIndex, node.Position.X, node.Position.Y, node.Position.Z);
 
@@ -415,11 +410,11 @@ namespace GPC.Checker.Glasses.FemModel
                 {
                     if (attribute is NodeRestrainAttribute nra)
                     {
-                        St7SetNodeRestrain(aw, mId, node.Id, 1, 1, nra.Restrains);
+                        St7SetNodeRestrain(aw, mId, st7NodeIndex, 1, 1, nra.Restrains);
                     }
                     else if (attribute is NodeStiffnessAttribute nsa)
                     {
-                        St7SetNodeRestrain(aw, mId, node.Id, 1, 1, nsa.Stiffnesses);
+                        St7SetNodeRestrain(aw, mId, st7NodeIndex, 1, 1, nsa.Stiffnesses);
                     }
                 }
 
@@ -428,8 +423,9 @@ namespace GPC.Checker.Glasses.FemModel
                 {
                     if (attribute is NodeForceAttribute pgfa)
                     {
-                        int lcNum = _loadCases[(LoadCase)pgfa.LoadCase];
-                        St7SetNodeGlobalLoad(aw, mId, st7NodeIndex, lcNum, pgfa);
+                        var lc = _loadCases.GetElementByName(pgfa.LoadCase.Name);
+
+                        St7SetNodeGlobalLoad(aw, mId, st7NodeIndex, _st7LoadCaseMap[(LoadCase)pgfa.LoadCase], pgfa);
                     }
                     else
                         throw new NotSupportedException("Point attribute not supported");
@@ -442,46 +438,47 @@ namespace GPC.Checker.Glasses.FemModel
             int glassGroupId = 0;
             aw.NewChildGroup(mId, 1, "Glass " + "1", ref glassGroupId);
 
+            int st7PlateIndex = 0;
             foreach (var element in _elements)
             {
                 if (element is Plate plate)
                 {
-                    int faceIndex = plate.Id; //St7GetElementIndex(face.Index);
+                    st7PlateIndex++;
+                    _st7PlateMap.Add(plate.Id, st7PlateIndex);
 
                     int[] st7ConnectivityArray;
-
                     if (plate.IsQuad)
                     {
                         var st7FaceConnection = plate.GetNodesID();
                         st7ConnectivityArray = new int[5];
                         st7ConnectivityArray[0] = 4;
-                        st7ConnectivityArray[1] = st7FaceConnection[0];
-                        st7ConnectivityArray[2] = st7FaceConnection[1];
-                        st7ConnectivityArray[3] = st7FaceConnection[2];
-                        st7ConnectivityArray[4] = st7FaceConnection[3];
+                        st7ConnectivityArray[1] = _st7NodeMap[st7FaceConnection[0]];
+                        st7ConnectivityArray[2] = _st7NodeMap[st7FaceConnection[1]];
+                        st7ConnectivityArray[3] = _st7NodeMap[st7FaceConnection[2]];
+                        st7ConnectivityArray[4] = _st7NodeMap[st7FaceConnection[3]];
                     }
                     else
                     {
                         var st7FaceConnection = plate.GetNodesID();
                         st7ConnectivityArray = new int[4];
                         st7ConnectivityArray[0] = 3;
-                        st7ConnectivityArray[1] = st7FaceConnection[0];
-                        st7ConnectivityArray[2] = st7FaceConnection[1];
-                        st7ConnectivityArray[3] = st7FaceConnection[2];
+                        st7ConnectivityArray[1] = _st7NodeMap[st7FaceConnection[0]];
+                        st7ConnectivityArray[2] = _st7NodeMap[st7FaceConnection[1]];
+                        st7ConnectivityArray[3] = _st7NodeMap[st7FaceConnection[2]];
                     }
 
+                    var property = _plateProperties.GetElementByName(plate.Property.Name);
 
-                    int propNum = _plateProperties[plate.Property];
+                    int propNum = _st7PlatePropertyMap[property];
 
-                    aw.SetElementConnection(mId, St7ApiConst.tyPLATE, faceIndex, propNum, st7ConnectivityArray);
-                    aw.SetEntityGroup(mId, St7ApiConst.tyPLATE, faceIndex, glassGroupId);
+                    aw.SetElementConnection(mId, St7ApiConst.tyPLATE, st7PlateIndex, propNum, st7ConnectivityArray);
+                    aw.SetEntityGroup(mId, St7ApiConst.tyPLATE, st7PlateIndex, glassGroupId);
 
                     foreach (var attribute in plate.AttributesLoadCase)
                     {
                         if (attribute is PlatePressureAttribute pgpa)
                         {
-                            int lcNum = _loadCases[(LoadCase)pgpa.LoadCase];
-                            St7SetPlateGlobalPressure(aw, mId, faceIndex, lcNum, pgpa);
+                            St7SetPlateGlobalPressure(aw, mId, st7PlateIndex, _st7LoadCaseMap[(LoadCase)pgpa.LoadCase], pgpa);
                         }
 
                         else
@@ -493,51 +490,54 @@ namespace GPC.Checker.Glasses.FemModel
             return true;
         }
 
+
         private void St7SetStages(ISt7ApiService aw, int mid)
         {
-            // Creo stage per ogni loadcase
+            //// Creo stage per ogni loadcase
 
-            foreach (var lc in base._loadCases.OrderBy(x => x.Value))
-            {
-                aw.AddStage(mid, lc.Key.Name, new int[] { St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
-            }
+            //foreach (var lc in base._loadCases.OrderBy(x => x.Value))
+            //{
+            //    aw.AddStage(mid, lc.Key.Name, new int[] { St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
+            //}
         }
 
         private void St7SetPlateProperties(ISt7ApiService aw, int mid)
         {
-            if (_plateProperties.Values.Min() != 1)
-                throw new NotSupportedException("Minimum plate properties id different than 1");
 
             int _bufferId = 0;
-            foreach (var gpkvp in _plateProperties.OrderBy(k => k.Value))
+            int st7PropId = 0;
+            foreach (var property in _plateProperties)
             {
-                var property = gpkvp.Key;
-                int propNum = gpkvp.Value;
-                if ((propNum - _bufferId) != 1)
+                st7PropId++;
+
+                if ((st7PropId - _bufferId) != 1)
                     throw new NotSupportedException("Plate properties not in order");
-                _bufferId = propNum;
+                _bufferId = st7PropId;
 
                 if (property is MonolithicGlassProperty mgp)
                 {
-                    aw.NewPlateProperty(mid, propNum, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, $"MonolithicGlass{propNum}");
+                    aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, $"MonolithicGlass{st7PropId}");
 
-                    aw.SetPlateThickness(mid, propNum, new double[] { mgp.MembraneThickness, mgp.BendingThickness });
+                    aw.SetPlateThickness(mid, st7PropId, new double[] { mgp.MembraneThickness, mgp.BendingThickness });
 
-                    aw.SetPlateIsotropicMaterial(mid, propNum, mgp.GetE(), mgp.GetNi(), mgp.GetDensity(), 0, 0, 0, 0, 0);
+                    aw.SetPlateIsotropicMaterial(mid, st7PropId, mgp.GetE(), mgp.GetNi(), mgp.GetDensity(), 0, 0, 0, 0, 0);
                 }
                 else if (property is InterlayerProperty inp)
                 {
-                    aw.NewPlateProperty(mid, propNum, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, $"Interlayer{propNum}");
+                    aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, $"Interlayer{st7PropId}");
 
-                    aw.SetPlateThickness(mid, propNum, new double[] { inp.MembraneThickness, inp.BendingThickness });
+                    aw.SetPlateThickness(mid, st7PropId, new double[] { inp.MembraneThickness, inp.BendingThickness });
 
-                    aw.SetPlateIsotropicMaterial(mid, propNum, inp.GetE(), inp.GetNi(), inp.GetDensity(), 0, 0, 0, 0, 0);
+                    aw.SetPlateIsotropicMaterial(mid, st7PropId, inp.GetE(), inp.GetNi(), inp.GetDensity(), 0, 0, 0, 0, 0);
                 }
                 else
                 {
                     throw new NotSupportedException("Glass property not supported");
                 }
+
+                _st7PlatePropertyMap.Add(property, st7PropId);
             }
+
         }
 
         private void St7SetLoadCase(ISt7ApiService aw, int mid)
@@ -546,11 +546,8 @@ namespace GPC.Checker.Glasses.FemModel
                 return;
 
             int st7LcId = 0;
-            foreach (var lckvp in _loadCases.OrderBy(k => k.Value))
+            foreach(var loadCase in _loadCases)
             {
-                var loadCase = lckvp.Key;
-                int lcNum = lckvp.Value;
-
                 st7LcId++;
                 if (st7LcId != 1)
                 {
@@ -561,6 +558,7 @@ namespace GPC.Checker.Glasses.FemModel
                 {
                     aw.SetLoadCaseName(mid, st7LcId, loadCase.Name);
                 }
+
 
                 if (loadCase.GetLoadCaseType() == LoadCase.LoadCaseType.SelfWeight)
                 {
@@ -575,37 +573,40 @@ namespace GPC.Checker.Glasses.FemModel
                 else
                     aw.SetLoadCaseType(mid, st7LcId, St7ApiConst.kNoInertia);
 
-                _st7LoadCaseMap[st7LcId] = lcNum;
+                _st7LoadCaseMap.Add((LoadCase)loadCase, st7LcId);
             }
+
         }
 
         private void St7SetLinearLoadCaseCombination(ISt7ApiService aw, int mid)
         {
             int st7CId = 0;
 
-            foreach (var kvp in _combinations)
+            foreach (var combo in _combinations)
             {
-                List<double> coefficients = kvp.Key.GetLoadCaseCoefficients(out List<GPC.Model.LoadCases.LoadCase> loadCasesBuffer);
+                List<double> coefficients = combo.GetLoadCaseCoefficients(out List<GPC.Model.LoadCases.LoadCase> loadCasesBuffer);
 
                 var loadCases = loadCasesBuffer.Cast<LoadCase>().ToList();
                                 
-                if (aw.AddLSACombination(mid, kvp.Key.Name))
+                if (aw.AddLSACombination(mid, combo.Name))
                 {
                     st7CId++;
 
                     bool added = false;
                     foreach (var loadCase in loadCases)
                     {
-                        if (_loadCases.ContainsKey(loadCase))
+                        if (_loadCases.Contains(loadCase))
                         {
-                            if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _loadCases[loadCase], 1, kvp.Key[loadCase]))
+                            if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _st7LoadCaseMap[loadCase], 1, combo[loadCase]))
+                            {
                                 added = true;
+                            }
                         }
                     }
 
                     if (added)
                     {
-                        _st7LSACombinationMap.Add(_combinations[kvp.Key], st7CId);
+                        _st7LSACombinationMap.Add(combo, st7CId);
                     }
                     else
                     {
@@ -684,7 +685,7 @@ namespace GPC.Checker.Glasses.FemModel
         {
             foreach (var lc in _loadCases)
             {
-                aw.EnableLSALoadCase(mid, lc.Value, 1);
+                aw.EnableLSALoadCase(mid, _st7LoadCaseMap[(LoadCase)lc], 1);
             }
             return true;
         }
@@ -697,10 +698,10 @@ namespace GPC.Checker.Glasses.FemModel
             aw.SetNLAStagedAnalysis(mid, true);
 
 
-            foreach (var lcKvp in _loadCases)
+            foreach (var lc in _loadCases)
             {
-                aw.AddNLAIncrement(mid, lcKvp.Value, lcKvp.Key.Name);
-                aw.SetNLALoadIncrementFactor(mid, lcKvp.Value, 1, lcKvp.Value, 1);
+                aw.AddNLAIncrement(mid, _st7LoadCaseMap[(LoadCase)lc], lc.Name);
+                aw.SetNLALoadIncrementFactor(mid, _st7LoadCaseMap[(LoadCase)lc], 1, 1, 1);
             }
 
         }

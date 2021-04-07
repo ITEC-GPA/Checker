@@ -40,19 +40,6 @@ namespace GlassTests
             return it;
         }
 
-        private Shape GetRectangularShape(Point3d p, Vector3d vector)
-        {
-            Polygon3d poly = new Polygon3d()
-            {
-                new Point3d(p.X, p.Y, p.Z),
-                new Point3d(p.X + vector.X, p.Y + vector.Y, p.Z),
-                new Point3d(p.X + vector.X, p.Y + vector.Y, p.Z + vector.Z),
-                new Point3d(p.X, p.Y, p.Z + vector.Z)
-            };
-
-            return new Shape(poly, null, null);
-        }
-
         #endregion
 
         [TestMethod]
