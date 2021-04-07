@@ -34,15 +34,15 @@ namespace SteelTests
             double D = 1219;
             double t = 25;
 
-            SectionCHS sec = new SectionCHS(D, t, new SteelMaterial("S235", 210000, 0.3, 235, 510, 7850));
+            SectionCHS sec = new SectionCHS(D, t, new SteelMaterial("S235", 210000, 0.3, 235, 510, 7850), string.Empty);
             EuroCodeBeamChecker classification = new EuroCodeBeamChecker(sec, -1, 0, 0, 0, 0, 0, new Annex());
             Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 86
 
-            sec = new SectionCHS(D, t, new SteelMaterial("S275", 210000, 0.3, 275, 510, 7850));
+            sec = new SectionCHS(D, t, new SteelMaterial("S275", 210000, 0.3, 275, 510, 7850), string.Empty);
             classification = new EuroCodeBeamChecker(sec, -1, 0, 0, 0, 0, 0, new Annex());
             Assert.AreEqual(classification.ClassificationSection, 2); //Cordova cap. 2 pag. 86
 
-            sec = new SectionCHS(D, t, new SteelMaterial("S355", 210000, 0.3, 355, 510, 7850));
+            sec = new SectionCHS(D, t, new SteelMaterial("S355", 210000, 0.3, 355, 510, 7850), string.Empty);
             classification = new EuroCodeBeamChecker(sec, -1, 0, 0, 0, 0, 0, new Annex());
             Assert.AreEqual(classification.ClassificationSection, 3); //Cordova cap. 2 pag. 86
 
@@ -60,7 +60,7 @@ namespace SteelTests
             double b = 300;
             double t = 12.5;
 
-            SectionRHS sec = new SectionRHS(h, b, t, t, t, t, false, new SteelMaterial("S355", 210000, 0.3, 355, 510, 7850));
+            SectionRHS sec = new SectionRHS(h, b, t, t, t, t, false, new SteelMaterial("S355", 210000, 0.3, 355, 510, 7850), string.Empty);
             EuroCodeBeamChecker classification = new EuroCodeBeamChecker(sec, -2026e3 * 0.95, 0, 0, 0, 0, 0, new Annex());
             Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 75
 
@@ -92,7 +92,7 @@ namespace SteelTests
 
             Annex annex = new Annex();
 
-            SectionRHS sec = new SectionRHS(h, b, t, t, t, t, false, new SteelMaterial("S355", 210000, 0.3, 355, 510, 7850));
+            SectionRHS sec = new SectionRHS(h, b, t, t, t, t, false, new SteelMaterial("S355", 210000, 0.3, 355, 510, 7850), string.Empty);
             EuroCodeBeamChecker classification = new EuroCodeBeamChecker(sec, -1597e3 * 0.95, 0, 0, 0, 0, 0, annex);
             Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 75
 
@@ -118,7 +118,7 @@ namespace SteelTests
             double t = 28;
             double tw = 15;
 
-            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S235", 200000, 0.3, 235, 510, 7850));
+            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S235", 200000, 0.3, 235, 510, 7850), string.Empty);
 
             EuroCodeBeamChecker classification = new EuroCodeBeamChecker(sec, -1211e3 * 0.85, 0, 0, 0, 0, 0, new Annex());
             Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 61
@@ -149,7 +149,7 @@ namespace SteelTests
             double t = 27;
             double tw = 14.5;
 
-            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S235", 200000, 0.3, 235, 510, 7850));
+            SectionH sec = new SectionH(h, tw, b, t, b, t, true, new SteelMaterial("S235", 200000, 0.3, 235, 510, 7850), string.Empty);
 
             EuroCodeBeamChecker classification = new EuroCodeBeamChecker(sec, -1332e3 * 0.85, 0, 0, 0, 0, 0, new Annex());
             Assert.AreEqual(classification.ClassificationSection, 1); //Cordova cap. 2 pag. 61

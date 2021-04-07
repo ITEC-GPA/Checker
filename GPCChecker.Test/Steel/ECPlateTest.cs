@@ -68,7 +68,7 @@ namespace SteelTests
             double h = 1400 + 2 * tf;
             double b = 400;
 
-            SectionH sec = new SectionH(h, tw, b, tf, b, tf, false, new SteelMaterial("steel", 200000, 0.3, 355, 510, 7850));
+            SectionH sec = new SectionH(h, tw, b, tf, b, tf, false, new SteelMaterial("steel", 200000, 0.3, 355, 510, 7850), string.Empty);
 
             double A = sec.Area;
             double Iy = sec.J22;

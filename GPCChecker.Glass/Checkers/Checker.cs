@@ -95,7 +95,7 @@ namespace GPC.Checker.Glasses.Checkers
                 // Creo modello
                 _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
 
-                MonolithicGlassProperty pp = new MonolithicGlassProperty(mg);
+                MonolithicGlassProperty pp = new MonolithicGlassProperty(mg, "mg");
 
                 GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.ContainsKey(meshes.First()) ? wrapper.MeshLoadsVertexIndexes[meshes.First()] : null,
                                               wrapper.MeshLoadsFaceIndexes.ContainsKey(meshes.First()) ? wrapper.MeshLoadsFaceIndexes[meshes.First()] : null,

@@ -45,7 +45,7 @@ namespace GPC.Checker.Glasses.Glasses
             this._parametricLoads = new List<IParametricLoad>();
             this._restrains = new List<GeometryRestrain>();
             this._meshOptions = options;
-            base.SetId(_maxId++);
+            base.Id = _maxId++;
         }
 
 
