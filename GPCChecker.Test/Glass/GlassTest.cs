@@ -23,39 +23,15 @@ using GPC.Checker.Glasses.Glasses;
 using GPC.Checker.Glasses.Results;
 using GPC.Model.FEM.Properties;
 using GPC.Geometry.Meshes;
+using GPC.TestUtilities;
 
 namespace GlassTests
 {
     [TestClass]
-    public class GlassTest
+    public class GlassTest : UnitTestBase
     {
-        public TestContext TestContext { get; set; }
 
         private static string _outputFolder;
-
-        #region Test public methods
-
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext context)
-        {
-            // Nothing
-        }
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            _outputFolder = Path.Combine(Directory.GetParent(TestContext.TestDir).ToString(), "GlassTest");
-            Directory.CreateDirectory(_outputFolder);
-        }
-
-        [TestCleanup]
-        public void CleanUp()
-        {
-            if (Directory.Exists(TestContext.TestDir))
-                Directory.Delete(TestContext.TestDir, true);
-        }
-
-        #endregion
 
         #region Private methods
 

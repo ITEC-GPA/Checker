@@ -12,39 +12,13 @@ using GPC.Model.Loads;
 using GPC.Checker.Glasses.LoadCases;
 using GPC.Model.FreedomCases;
 using GPC.Model.Restrains;
+using GPC.TestUtilities;
 
 namespace GlassTests
 {
     [TestClass]
-    public class FemModelWrapperTest
+    public class FemModelWrapperTest : UnitTestBase
     {
-        public TestContext TestContext { get; set; }
-
-        private static string _outputFolder;
-        private string _testName;
-
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext context)
-        {
-
-        }
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            _outputFolder = Path.Combine(Directory.GetParent(TestContext.TestDir).ToString(), TestContext.FullyQualifiedTestClassName.Split(new char[] { '.' })[1]);
-            Directory.CreateDirectory(_outputFolder);
-            _testName = TestContext.TestName;
-        }
-
-        [TestCleanup]
-        public void CleanUp()
-        {
-            if (Directory.Exists(TestContext.TestDir))
-                Directory.Delete(TestContext.TestDir, true);
-        }
-
-
 
         private Shape CreateSimpleShape(double width, double height)
         {
