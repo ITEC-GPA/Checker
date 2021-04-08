@@ -70,16 +70,27 @@ namespace GPC.Checker.Glasses.Models
 
         #region Public methods
 
+        /// <summary>
+        /// Add a surface to the model
+        /// </summary>
         public void AddSurface(GlassSurface glassSurface)
         {
             _glassSurfaces.Add(glassSurface);
         }
 
+
+        /// <summary>
+        /// Add a combination to the model
+        /// </summary>
         public void AddCombination(Combination combination)
         {
             _combinations.Add(combination);
         }
 
+        
+        /// <summary>
+        /// SetUp the FemModel of each surface
+        /// </summary>
         public void FemModelSetup()
         {
             foreach (var surface in _glassSurfaces)

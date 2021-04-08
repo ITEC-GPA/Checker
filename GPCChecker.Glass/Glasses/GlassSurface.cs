@@ -11,6 +11,7 @@ using GPC.Checker.Glasses.Loads;
 using GPC.Checker.Glasses.Models;
 using GPC.Model.Restrains;
 using GPC.Geometry.Meshes;
+using GPC.Utilities.Extensions;
 
 namespace GPC.Checker.Glasses.Glasses
 {
@@ -45,6 +46,7 @@ namespace GPC.Checker.Glasses.Glasses
             this._parametricLoads = new List<IParametricLoad>();
             this._restrains = new List<GeometryRestrain>();
             this._meshOptions = options;
+
             base.Id = _maxId++;
         }
 
@@ -65,6 +67,9 @@ namespace GPC.Checker.Glasses.Glasses
 
         #region Setters
 
+        /// <summary>
+        /// Add a load to the surface
+        /// </summary>
         public void AddLoad(Load load)
         {
             if (load is IParametricLoad)
@@ -74,28 +79,30 @@ namespace GPC.Checker.Glasses.Glasses
         }
 
 
+        /// <summary>
+        /// Add a parametric load to the surface
+        /// </summary>
         public void AddParametricLoad(IParametricLoad load)
         {
             _parametricLoads.Add(load);
         } 
 
+
         /// <summary>
-        /// Add a specific restrain for this surface
+        /// Add a specific restrain to this surface
         /// </summary>
-        /// <param name="geometryRestrain"></param>
         public void AddRestrain(GeometryRestrain geometryRestrain)
         {
             _restrains.Add(geometryRestrain);
         }
 
-        /// <summary>
-        /// Add specific restrains for this surface
-        /// </summary>
-        /// <param name="geometryRestrains"></param>
+
+        /// <inheritdoc cref="AddRestrain(GeometryRestrain)"/>
         public void AddRestrains(List<GeometryRestrain> geometryRestrains)
         {
             _restrains.AddRange(geometryRestrains);
         }
+
 
         #endregion
 
@@ -123,7 +130,7 @@ namespace GPC.Checker.Glasses.Glasses
 
         #endregion
 
-        #region Equals - HashCode
+        #region Equals - HashCode - Operators
 
         public override bool Equals(object obj)
         {
@@ -135,7 +142,11 @@ namespace GPC.Checker.Glasses.Glasses
             if (ReferenceEquals(this, other))
                 return true;
 
-            return !(other is null) && other._prototype.Equals(_prototype) && other._loads.Equals(_loads) && base.Equals(other);
+            return !(other is null) && other._prototype.Equals(_prototype) 
+                                    && other._loads.ScrambledEquals(_loads)
+                                    && other._restrains.ScrambledEquals(_restrains)
+                                    && other._parametricLoads.ScrambledEquals(_parametricLoads)
+                                    && base.Equals(other);
         }
 
         public override int GetHashCode()
@@ -143,8 +154,39 @@ namespace GPC.Checker.Glasses.Glasses
             int hashCode = 23;
             hashCode = hashCode * -17 + base.GetHashCode();
             hashCode = hashCode * -17 + EqualityComparer<Prototype>.Default.GetHashCode(_prototype);
-            hashCode = hashCode * -17 + EqualityComparer<List<Load>>.Default.GetHashCode(_loads);
+
+            foreach (var el in _loads)
+            {
+                hashCode = hashCode + 17 * EqualityComparer<Load>.Default.GetHashCode(el);
+            }
+
+            foreach (var el in _restrains)
+            {
+                hashCode = hashCode + 17 * EqualityComparer<GeometryRestrain>.Default.GetHashCode(el);
+            }
+
+            foreach (var el in _parametricLoads)
+            {
+                hashCode = hashCode + 17 * EqualityComparer<IParametricLoad>.Default.GetHashCode(el);
+            }
+
             return hashCode;
+        }
+
+        public static bool operator ==(GlassSurface obj1, GlassSurface obj2)
+        {
+            if (ReferenceEquals(obj1, obj2))
+                return true;
+
+            if (obj1 is null || obj2 is null)
+                return false;
+
+            return obj1.Equals(obj2);
+        }
+
+        public static bool operator !=(GlassSurface obj1, GlassSurface obj2)
+        {
+            return !(obj1 == obj2);
         }
 
         #endregion
