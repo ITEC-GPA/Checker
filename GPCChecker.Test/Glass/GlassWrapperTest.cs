@@ -64,7 +64,8 @@ namespace GlassTests
 
             LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2, mg3, mg4 }, new Interlayer[] { intr1, intr2, intr3 });
 
-            Prototype p = new Prototype("", lg1, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalisys, Prototype.CheckMethods.ASTME1300, Prototype.LaminatedEqThicknessMethods.ASTME1300);
+            Prototype p = new Prototype("", lg1, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalisys, 
+                                Prototype.CheckMethods.ASTME1300, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7);
 
             var meshOptions = new Mesh.GenerateOptions();
             meshOptions.MeshSize = 20;
@@ -113,7 +114,7 @@ namespace GlassTests
 
             LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2, mg3, }, new Interlayer[] { intr1, intr2, });
 
-            Prototype p = new Prototype("", lg1, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalisys, Prototype.CheckMethods.ASTME1300, Prototype.LaminatedEqThicknessMethods.ASTME1300);
+            Prototype p = new Prototype("", lg1, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalisys, Prototype.CheckMethods.ASTME1300, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7);
 
             var meshOptions = new Mesh.GenerateOptions();
             meshOptions.MeshSize = 20;
@@ -160,7 +161,8 @@ namespace GlassTests
 
                 LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2, }, new Interlayer[] { intr1, });
 
-                Prototype p = new Prototype("", lg1, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalisys, Prototype.CheckMethods.ASTME1300, Prototype.LaminatedEqThicknessMethods.ASTME1300);
+                Prototype p = new Prototype("", lg1, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalisys, Prototype.CheckMethods.ASTME1300, 
+                                                                 Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7 );
                 
                 var meshOptions = new Mesh.GenerateOptions();
                 meshOptions.MeshSize = 20;
