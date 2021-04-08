@@ -253,7 +253,6 @@ namespace GPC.Checker.Glasses.FemModel
 
                     if (status)
                     {
-
                         foreach (var combination in _combinations)
                         {
                             if (_st7LSACombinationMap.ContainsKey(combination))
@@ -271,10 +270,10 @@ namespace GPC.Checker.Glasses.FemModel
 
                                         double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
                                         double[] angles = new double[9];
-                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, plate.Id,
+                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
                                                                comboId + numPrimary, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
 
-                                        aw.GetPlateAxisSystem(mid, plate.Id, St7ApiConst.btTrue, ref angles);
+                                        aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
 
                                         for (int np = 0; np < numPoints; np++)
                                         {
@@ -295,7 +294,7 @@ namespace GPC.Checker.Glasses.FemModel
                                 foreach (var node in _nodes)
                                 {
                                     double[] nodeResult = new double[6];
-                                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, node.Id, comboId + numPrimary, ref nodeResult);
+                                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], comboId + numPrimary, ref nodeResult);
                                     _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
                                 }
 
@@ -305,6 +304,7 @@ namespace GPC.Checker.Glasses.FemModel
                         }
 
                         aw.CloseResultFile(mid);
+                        aw.CloseFile(mid);
                     }
                     else
                         aw.CloseFile(mid);
