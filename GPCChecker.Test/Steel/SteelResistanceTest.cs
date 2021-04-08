@@ -120,7 +120,7 @@ namespace SteelTests
             double fu = 510;
 
             SteelMaterial steel = new SteelMaterial("S355", 210000, 0.3, fy, fu, 7850);
-            Section circularSect = new SectionCHS(400, 10, steel);
+            Section circularSect = new SectionCHS(400, 10, steel, string.Empty);
 
             double N = 100 * 1000;
             double V1 = 50 * 1000;
@@ -260,7 +260,7 @@ namespace SteelTests
             double fu = 510;
 
             SteelMaterial steel = new SteelMaterial("S355", 210000, 0.3, fy, fu, 7850);
-            Section sect = new SectionRHS(400, 200, 8, 8, 15, 15, false, steel);
+            Section sect = new SectionRHS(400, 200, 8, 8, 15, 15, false, steel, string.Empty);
 
             double N = 100 * 1000;
             double V1 = 50 * 1000;
@@ -402,7 +402,7 @@ namespace SteelTests
             double fu = 510;
 
             SteelMaterial steel = new SteelMaterial("S355", 210000, 0.3, fy, fu, 7850);
-            Section sect = new SectionH(400, 12, 250, 15, 250, 15, true, steel);
+            Section sect = new SectionH(400, 12, 250, 15, 250, 15, true, steel, string.Empty);
 
             double N = 100 * 1000;
             double V1 = 50 * 1000;
@@ -543,7 +543,7 @@ namespace SteelTests
             double fu = 510;
 
             SteelMaterial steel = new SteelMaterial("S355", 210000, 0.3, fy, fu, 7850);
-            Section sect = new SectionH(400, 12, 200, 10, 300, 25, true, steel);
+            Section sect = new SectionH(400, 12, 200, 10, 300, 25, true, steel, string.Empty);
 
             double N = 100 * 1000;
             double V1 = 50 * 1000;
@@ -684,7 +684,7 @@ namespace SteelTests
             double fu = 510;
 
             SteelMaterial steel = new SteelMaterial("S355", 210000, 0.3, fy, fu, 7850);
-            Section sect = new SectionH(300, 25, 300, 25, 150, 25, true, steel);
+            Section sect = new SectionH(300, 25, 300, 25, 150, 25, true, steel, string.Empty);
 
             double N = 100 * 1000;
             double V1 = 50 * 1000;
@@ -822,7 +822,7 @@ namespace SteelTests
             double fu = 510;
 
             SteelMaterial steel = new SteelMaterial("S355", 210000, 0.3, fy, fu, 7850);
-            SectionC sect = new SectionC(400, 15, 200, 25, 200, 25, steel);
+            SectionC sect = new SectionC(400, 15, 200, 25, 200, 25, steel, string.Empty);
 
             double N = 100 * 1000;
             double V1 = 50 * 1000;
@@ -962,7 +962,7 @@ namespace SteelTests
             double fu = 510;
 
             SteelMaterial steel = new SteelMaterial("S355", 210000, 0.3, fy, fu, 7850);
-            SectionT sect = new SectionT(400, 200, 40, 50, steel);
+            SectionT sect = new SectionT(400, 200, 40, 50, steel, string.Empty);
 
             double N = 100 * 1000;
             double V1 = 50 * 1000;
@@ -1107,7 +1107,7 @@ namespace SteelTests
             double fu = 510;
 
             SteelMaterial steel = new SteelMaterial("S355", 210000, 0.3, fy, fu, 7850);
-            SectionL sect = new SectionL(350, 80, 350, 40, steel);
+            SectionL sect = new SectionL(350, 80, 350, 40, steel, string.Empty);
 
             double N = 100 * 1000;
             double V1 = 50 * 1000;

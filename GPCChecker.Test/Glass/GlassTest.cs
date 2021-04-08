@@ -23,39 +23,13 @@ using GPC.Checker.Glasses.Glasses;
 using GPC.Checker.Glasses.Results;
 using GPC.Model.FEM.Properties;
 using GPC.Geometry.Meshes;
+using GPC.TestUtilities;
 
 namespace GlassTests
 {
     [TestClass]
-    public class GlassTest
+    public class GlassTest : GlassTestBase
     {
-        public TestContext TestContext { get; set; }
-
-        private static string _outputFolder;
-
-        #region Test public methods
-
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext context)
-        {
-            // Nothing
-        }
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            _outputFolder = Path.Combine(Directory.GetParent(TestContext.TestDir).ToString(), "GlassTest");
-            Directory.CreateDirectory(_outputFolder);
-        }
-
-        [TestCleanup]
-        public void CleanUp()
-        {
-            if (Directory.Exists(TestContext.TestDir))
-                Directory.Delete(TestContext.TestDir, true);
-        }
-
-        #endregion
 
         #region Private methods
 
@@ -78,34 +52,12 @@ namespace GlassTests
             return it;
         }
 
-        private Shape GetRectangularShape(Point3d p, Vector3d vector)
-        {
-            Polygon3d poly = new Polygon3d()
-            {
-                new Point3d(p.X, p.Y, p.Z),
-                new Point3d(p.X + vector.X, p.Y, p.Z),
-                new Point3d(p.X + vector.X, p.Y + vector.Y, p.Z + vector.Z),
-                new Point3d(p.X, p.Y + vector.Y,  p.Z + vector.Z)
-            };
-
-            return new Shape(poly, null, null);
-        }
-
-        private void ExportMesh(Mesh mesh)
-        {
-            MeshExport.ExportToMshFormatv2(Path.Combine(_outputFolder, $"{TestContext.TestName}Mesh.msh"), new List<Mesh>() { mesh });
-        }
-
         #endregion
 
         [TestMethod]
         public void MonolithicGlass0()
-        {
-
-            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
-            Directory.CreateDirectory(outputFolder);
-
-            Model model = new Model(outputFolder);
+        {  
+            Model model = new Model(base.GetOutputFolder());
 
             // Shape
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
@@ -212,10 +164,7 @@ namespace GlassTests
         public void MonolithicGlass1()
         {
 
-            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
-            Directory.CreateDirectory(outputFolder);
-
-            Model model = new Model(outputFolder);
+            Model model = new Model(base.GetOutputFolder());
 
             // Shape
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
