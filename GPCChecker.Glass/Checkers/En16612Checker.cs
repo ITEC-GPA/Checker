@@ -24,70 +24,19 @@ namespace GPC.Checker.Glasses.Checkers
             : base(glassSurface, globalCombinations)
         {
             if (_glassSurface.Prototype.Standard != Models.Prototype.Standards.EN16612)
-                throw new ArgumentException($"Standard not supported for {Models.Prototype.Standards.EN16612.ToString()} {GetCheckerName()} Checker");
+                throw new ArgumentException($"Standard not supported for {Models.Prototype.Standards.EN16612} {GetCheckerName()} Checker");
+
+        }
+        
+
+        public En16612Checker(GlassSurface glassSurface)
+            : this(glassSurface, null)
+        {
 
         }
 
-        #region Override public methods
-
-        ///// <summary>
-        ///// Metodo responsabile della verifica
-        ///// 1 - Genera la mesh
-        ///// 2 - Orchestra il modello fem
-        ///// 3 - Prende i risultati 
-        ///// 4 - Fa la verifica
-        ///// </summary>
-        ///// 
-        //public override void SetUpFemModels()
-        //{
-
-        //    //femWrapper.SetAnalysisType(_checkParameters.GetAnalysisType());
-
-            
-        //    //foreach (var wrapper in wrappers)
-        //    //{
-        //    //    //FemModelWrapper femWrapper = new FemModelWrapper("fem" + wrappers.IndexOf(wrapper), _checkParameters.GetAnalysisType());
-        //    //    //if (wrapper is MonolithicGlassWrapper mgw)
-        //    //    //{
-        //    //    //    var geometryMesh = mgw.Mesh;
-        //    //    //    var embeddedGeometriesMapVertex = mgw.EmbeddedGeometriesMapVertex;
-
-        //    //    //    var restrains = mgw.GetRestrains();
-
-        //    //    //    mgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
-
-        //    //    //    var monolithicGlassProperty = new MonolithicGlassProperty(mgw.Glass);
-
-        //    //    //    femWrapper.SetUpMonolithic(geometryMesh, embeddedGeometriesMapVertex, restrains, mgw.Glass, uniformPressureLoads, notUniformPressureLoads);
-        //    //    //}
-        //    //    //else if (wrapper is LaminatedGlassWrapper lgw)
-        //    //    //{
-        //    //    //    var geometryMesh = lgw.Mesh;
-        //    //    //    var embeddedGeometriesMapVertex = lgw.EmbeddedGeometriesMapVertex;
-
-        //    //    //    var restrains = lgw.GetRestrains();
-
-        //    //    //    lgw.GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads);
-
-        //    //    //    femWrapper.SetUpLaminated(geometryMesh, embeddedGeometriesMapVertex, restrains, lgw, uniformPressureLoads, notUniformPressureLoads, CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
-        //    //    //}
-        //    //    //else if (wrapper is InsulatedGlassWrapper igw)
-        //    //    //{
-        //    //    //    throw new NotImplementedException();
-        //    //    //}
-        //    //    //else
-        //    //    //    throw new NotSupportedException("Glass wrapper not supported");
-
-        //    //    //_femModels.Add(femWrapper);
-        //    //}
-        //}
 
         protected override string GetCheckerName() => "EN 16612 - 2019";
-
-
-
-        #endregion
-
 
     }
 }
