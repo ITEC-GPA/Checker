@@ -1,4 +1,4 @@
-
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +6,8 @@ using GPC.Geometry.Meshes;
 using GPC.Geometry;
 using GPC.Checker.Glasses.Glasses;
 using GPC.Model.Glasses;
+using GPC.Model.Restrains;
+using GPC.Model.Loads;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
@@ -166,6 +168,34 @@ namespace GPC.Checker.Glasses.Wrappers
         public override double GetSelfWeightTotal()
         {
             return _glassSurface.Shape.GetArea() * ((Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Thickness * i.Material.Density).Sum() + (Glass as LaminatedGlass).Interlayers.Select(i => i.Thickness * i.Material.Density).Sum());
+        }
+
+
+        /// <inheritdoc cref="GlassWrapper.GenerateMesh()"/>
+        public override bool GenerateMesh()
+        {
+            bool status = GenerateSinglePanelMesh(out Mesh mesh, out Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> meshGeometryRestrainVertices,
+                                                                   out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsVertexIndexes,
+                                                                   out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsFaceIndexes);
+
+            if (!status)
+                return false;
+
+
+            // copia della mesh e generazione brick
+
+            foreach (var distance in GetMonolithicBarycenterDistances())
+            {
+                Mesh cloned = (Mesh)mesh.Clone(true);
+
+            }
+
+
+            var interlayerDistances = GetInterlayerBarycenterDistances();
+
+
+
+            return true;
         }
 
         #endregion

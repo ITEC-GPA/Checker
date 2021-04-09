@@ -90,7 +90,9 @@ namespace GPC.Checker.Glasses.Wrappers
             this._meshes = new List<Mesh>();
         }
 
-
+        /// <summary>
+        /// Generate the mesh of the glass
+        /// </summary>
         public abstract bool GenerateMesh();
 
 

@@ -1,5 +1,10 @@
 ﻿using GPC.Checker.Glasses.Glasses;
 using GPC.Model.Glasses;
+using GPC.Model.Restrains;
+using GPC.Model.LoadCases;
+using GPC.Model.Loads;
+using GPC.Geometry.Meshes;
+using System.Collections.Generic;
 
 namespace GPC.Checker.Glasses.Wrappers
 {
@@ -71,6 +76,24 @@ namespace GPC.Checker.Glasses.Wrappers
         {
             // mm2 * mm * T/mm3 => T
             return _glassSurface.Shape.GetArea() * (Glass as MonolithicGlass).Thickness * (Glass as MonolithicGlass).Material.Density;
+        }
+
+        /// <inheritdoc cref="GlassWrapper.GenerateMesh()"/>
+        public override bool GenerateMesh()
+        {
+            bool status = GenerateSinglePanelMesh(out Mesh meshes, out Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> meshGeometryRestrainVertices,
+                                                                         out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsVertexIndexes,
+                                                                         out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsFaceIndexes);
+
+            if (!status)
+                return false;
+
+            _meshes = new List<Mesh>() { meshes };
+            _meshGeometryRestrainVertices = meshGeometryRestrainVertices;
+            _meshLoadsFaceIndexes = meshLoadsFaceIndexes;
+            _meshLoadsVertexIndexes = meshLoadsVertexIndexes;
+
+            return true;
         }
 
         #endregion
