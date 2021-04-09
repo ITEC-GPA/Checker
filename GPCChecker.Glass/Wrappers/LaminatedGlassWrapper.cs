@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -103,43 +103,46 @@ namespace GPC.Checker.Glasses.Wrappers
             return (Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Thickness).Sum() + (Glass as LaminatedGlass).Interlayers.Select(i => i.Thickness).Sum(); ;
         }
 
-        /// <summary>
-        /// Get distances of monolithic glass barycenter starting from first slab.
-        /// </summary>
+        /// <returns>The incremental distances of the glass layers center of mass starting from the first one</returns>
         public double[] GetMonolithicBarycenterDistances()
         {
             double[] distances = new double[(Glass as LaminatedGlass).MonolithicGlasses.Length];
 
             for (int i = 0; i < (Glass as LaminatedGlass).MonolithicGlasses.Length; i++)
             {
-                distances[i] = (Glass as LaminatedGlass).MonolithicGlasses[i].Thickness / 2.0;
-
                 if (i != 0)
                 {
-                    distances[i] += (Glass as LaminatedGlass).MonolithicGlasses[i - 1].Thickness / 2.0;
                     distances[i] += distances[i - 1];
+                    distances[i] += (Glass as LaminatedGlass).MonolithicGlasses[i - 1].Thickness / 2.0;
                     distances[i] += (Glass as LaminatedGlass).Interlayers[i - 1].Thickness;
+                    distances[i] += (Glass as LaminatedGlass).MonolithicGlasses[i].Thickness / 2.0;
+                }
+                else
+                {
+                    distances[i] = 0;
                 }
             }
             return distances;
         }
 
-        /// <summary>
-        /// Get distances of interlayer barycenter starting from lower side of first glass slab.
-        /// </summary>
+        /// <returns>The incremental distances of the interlayer center of mass starting from the center of mass of the first glass layer</returns>
         public double[] GetInterlayerBarycenterDistances()
         {
             double[] distances = new double[(Glass as LaminatedGlass).Interlayers.Length];
 
             for (int i = 0; i < (Glass as LaminatedGlass).Interlayers.Length; i++)
             {
-                distances[i] = (Glass as LaminatedGlass).MonolithicGlasses[i].Thickness;
-                distances[i] += (Glass as LaminatedGlass).Interlayers[i].Thickness / 2.0;
-
                 if (i != 0)
                 {
                     distances[i] += distances[i - 1];
                     distances[i] += (Glass as LaminatedGlass).Interlayers[i - 1].Thickness / 2.0;
+                    distances[i] += (Glass as LaminatedGlass).MonolithicGlasses[i].Thickness;
+                    distances[i] += (Glass as LaminatedGlass).Interlayers[i].Thickness / 2.0;
+                }
+                else
+                {
+                    distances[i] = (Glass as LaminatedGlass).MonolithicGlasses[0].Thickness / 2.0;
+                    distances[i] += (Glass as LaminatedGlass).Interlayers[0].Thickness / 2.0;
                 }
             }
             return distances;
