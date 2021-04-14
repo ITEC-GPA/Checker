@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using GPC.Model.Combinations;
 using GPC.Utilities.Extensions;
+using System.ComponentModel;
 
 namespace GPC.Checker.Glasses.Models
 {
@@ -14,19 +15,24 @@ namespace GPC.Checker.Glasses.Models
 
         public enum AnalysisTypes
         {
+            [Description("Linear static analysis")]
             LinearStaticAnalisys,
+            [Description("Nonlinear static analysis")]
             NonLinearStaticAnalysis,
         }
 
         public enum CheckMethods
         {
             /// <summary> Ref prEn16612 annex A </summary>
+            [Description("Dominant load")]
             DominantLoad = 0,
 
             /// <summary> Ref prEn16612 annex A </summary>
+            [Description("Shorter load")]
             ShorterLoad = 1,
 
             /// <summary> Ref CNR-DT 210/2013 pag 224  </summary>
+            [Description("Palmgren miner")]
             PalmgrenMiner = 2,
 
             /// <summary> Ref. ASTM E1300-16 §X5 </summary>
@@ -59,7 +65,8 @@ namespace GPC.Checker.Glasses.Models
 
         public enum SolverTypes
         {
-            GPCSolver, 
+            [Description("GPC solver")]
+            GPCSolver,
             Straus7
         }
 
@@ -90,7 +97,7 @@ namespace GPC.Checker.Glasses.Models
         public Glass Glass => _glass;
 
         public AnalysisTypes AnalysisType => _analysisType;
-        
+
         public CheckMethods CheckMethod => _checkMethod;
 
         public LaminatedEqThicknessMethods LaminatedEqThicknessMethod => _laminatedEqThicknessMethod;
