@@ -181,19 +181,34 @@ namespace GPC.Checker.Glasses.Wrappers
             if (!status)
                 return false;
 
+            Mesh[] meshes = new Mesh[(Glass as LaminatedGlass).MonolithicGlasses.Count() + (Glass as LaminatedGlass).Interlayers.Count()];
+
+            var interlayerDistances = GetInterlayerBarycenterDistances();
+            var glassDistances = GetMonolithicBarycenterDistances();
+
+
+            Vector3d normal = _glassSurface.Shape.GetNormalVector();
 
             // copia della mesh e generazione brick
-
-            foreach (var distance in GetMonolithicBarycenterDistances())
+            for (int i = 0; i < glassDistances.Length; i++)
             {
                 Mesh cloned = (Mesh)mesh.Clone(true);
 
+                cloned.Pan(normal * glassDistances[i]);
+                
+                meshes[i * 2] = cloned;
             }
 
 
-            var interlayerDistances = GetInterlayerBarycenterDistances();
-
-
+            for(int i = 0; i < interlayerDistances.Length; i++)
+            {
+                Mesh cloned = (Mesh)mesh.Clone(true);
+                var volumeMesh = cloned.ExtrudeFaces(normal * (Glass as LaminatedGlass).Interlayers[i].Thickness);
+                volumeMesh.Pan(normal * (interlayerDistances[i] - (Glass as LaminatedGlass).Interlayers[i].Thickness/2.0));
+                meshes[i * 2 + 1] = volumeMesh;
+            }
+            
+            _meshes = meshes.ToList();
 
             return true;
         }

@@ -297,287 +297,76 @@ namespace GlassTests
         }
 
 
-
-#if _false
-        [TestMethod]
-        public void MonolithicGlass2()
-        {
-            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 400, 100));
-            Shape s2 = GetRectangularShape(new Point3d(100, 100, 100), new Vector3d(300, 500, 200));
-
-            //var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
-            //var restrains2 = s2.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s2.GetCoordinateSystem()))).ToList();
-
-            MonolithicGlass mg1 = new MonolithicGlass("mg1", 10, GetGlassMaterialPrEn());
-            MonolithicGlass mg2 = new MonolithicGlass("mg2", 20, GetGlassMaterialPrEn());
-
-            GlassSurface gs1 = new GlassSurface(s1);
-            GlassSurface gs2 = new GlassSurface(s2);
-
-            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
-            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
-
-            AreaLoad s1GalLc1 = new AreaLoad(100, 200, 300, s1, lc1);
-            AreaLoad s1GalLc2 = new AreaLoad(101, 201, 301, s1, lc2);
-
-            AreaLoad s2GalLc1 = new AreaLoad(150, 250, 350, s2, lc1);
-            AreaLoad s2GalLc2 = new AreaLoad(151, 251, 351, s2, lc2);
-
-            //gs1.AddLoad(s1GalLc1);
-            //gs1.AddLoad(s1GalLc2);
-
-            //gs2.AddLoad(s2GalLc1);
-            //gs2.AddLoad(s2GalLc2);
-
-            Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural, Guid.NewGuid());
-            cmb1[lc1] = 2;
-            cmb1[lc2] = 3;
-
-            Combination cmb2 = new CombinationEn("CMB2", CombinationEn.CombinationType.ServiceabilityCharacteristic, Guid.NewGuid());
-            cmb2[lc1] = 4;
-            cmb2[lc1] = 3;
-            cmb2[lc2] = 5;
-
-            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
-            Directory.CreateDirectory(outputFolder);
-
-            Model model = new Model(outputFolder);
-            model.AddSurface(gs1);
-            model.AddSurface(gs2);
-
-            model.AddCombination(cmb1);
-            model.AddCombination(cmb2);
-
-            //En16612Checker check = new En16612Checker(model, new Checker.CheckParameters());
-            //check.SetUpFemModels();
-            //check.ExportToSt7();
-        }
-
-
-        [TestMethod]
-        public void MonolithicGlass3()
-        {
-            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 400, 100));
-            Shape s2 = GetRectangularShape(new Point3d(000, 100, 400), new Vector3d(300, 500, 200));
-            Shape s3 = GetRectangularShape(new Point3d(000, 300, 800), new Vector3d(300, 500, 200));
-
-            //var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
-            //var restrains2 = s2.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s2.GetCoordinateSystem()))).ToList();
-            //var restrains3 = s3.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s3.GetCoordinateSystem()))).ToList();
-            //restrains3.RemoveAt(0);
-
-            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 10, GetGlassMaterialPrEn());
-            MonolithicGlass mg2 = new MonolithicGlass("Mg2", 20, GetGlassMaterialPrEn());
-            MonolithicGlass mg3 = new MonolithicGlass("Mg3", 30, GetGlassMaterialPrEn());
-
-            GlassSurface gs1 = new GlassSurface(s1);
-            GlassSurface gs2 = new GlassSurface(s2);
-            GlassSurface gs3 = new GlassSurface(s3);
-
-            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
-            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
-            LoadCase lc3 = new LoadCase("LC3", 10000, 20, LoadCase.LoadCaseType.SelfWeight, Guid.NewGuid());
-
-            AreaLoad s1GalLc1 = new AreaLoad(100, 0, 0, s1, lc1);
-            AreaLoad s2GalLc2 = new AreaLoad(160, 0, 0, s2, lc2);
-            AreaLoad s3GalLc3 = new AreaLoad(170, 0, 0, s3, lc3);
-
-            PointLoad s1gpl = new PointLoad(1, 2, 3, 4, 5, 6, new Point3d(100, 200, 50), lc2);
-
-            //gs1.AddLoad(s1GalLc1);
-            //gs1.AddLoad(s1gpl);
-
-            //gs2.AddLoad(s2GalLc2);
-
-            //gs3.AddLoad(s3GalLc3);
-
-            Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural, Guid.NewGuid());
-            cmb1[lc1] = 2;
-            cmb1[lc2] = 3;
-
-            Combination cmb2 = new CombinationEn("CMB2", CombinationEn.CombinationType.ServiceabilityCharacteristic, Guid.NewGuid());
-            cmb2[lc1] = 4;
-            cmb2[lc1] = 3;
-            cmb2[lc2] = 5;
-
-            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
-            Directory.CreateDirectory(outputFolder);
-
-            Model model = new Model(outputFolder);
-            model.AddSurface(gs1);
-            model.AddSurface(gs2);
-            model.AddSurface(gs3);
-
-            model.AddCombination(cmb1);
-            model.AddCombination(cmb2);
-
-            //Checker.CheckParameters checkParameters = new Checker.CheckParameters();
-            //checkParameters.SetAnalysisType(Checker.CheckParameters.AnalysisType.LinearStaticAnalisys);
-            //checkParameters.SetLaminatedAnalysisType(Checker.CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
-
-            //En16612Checker check = new En16612GlassChecker(model, new Checker.CheckParameters()) ;
-            //check.SetUpFemModels();
-            //check.ExportToSt7();
-        }
-
-        /// <summary>
-        /// Test di creazione di 2 vetri monolitici di grandezza 1500x2000 mm, spessore 8mm, sul piano XZ.
-        /// Carico uniformemente distribuito lungo y di 1.2KPa.
-        /// Il vetro 1 è incastrato lungo il bordo, il vetro 2 è appoggiato. il caso 2 è risolto a pagina 232 della CNR.
-        /// I risultati attesi per il vetro 2 sono: u = 12.88mm e sigma principale = 17.52 MPa per il calcolo lineare
-        /// </summary>
-        [TestMethod]
-        public void MonolithicGlass4()
-        {
-            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1500, 0, 2000));
-            Shape s2 = GetRectangularShape(new Point3d(2000, 0, 0), new Vector3d(1500, 0, 2000));
-
-            //var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
-            //var restrains2 = s2.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetRotationReleased(s2.GetCoordinateSystem()))).ToList();
-
-            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 8, GetGlassMaterialPrEn());
-
-            MonolithicGlass mg2 = new MonolithicGlass("Mg2", 8, GetGlassMaterialPrEn());
-
-
-            LoadCase lc1 = new LoadCase("LC1", 3, 20, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
-            AreaLoad NormalAreaLoad1 = new AreaLoad(0, 0.0012, 0, s1, lc1);
-            AreaLoad NormalAreaLoad2 = new AreaLoad(0, 0.0012, 0, s2, lc1);
-
-
-            //GlassSurface gs1 = new GlassSurface(mg1, s1, null, restrains1, null, 0, Guid.NewGuid());
-            //gs1.AddLoad(NormalAreaLoad1);
-            //GlassSurface gs2 = new GlassSurface(mg2, s2, null, restrains2, null, 0, Guid.NewGuid());
-            //gs2.AddLoad(NormalAreaLoad2);
-
-
-            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
-            Directory.CreateDirectory(outputFolder);
-
-            //Model model = new Model(outputFolder);
-            //model.AddSurface(gs1);
-            //model.AddSurface(gs2);
-
-            //var cp = new Checker.CheckParameters();
-            //cp.SetLaminatedAnalysisType(Checker.CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
-
-            //En16612Checker check = new En16612GlassChecker(model, new Checker.CheckParameters());
-            //check.SetUpFemModels();
-
-            //check.ExportToSt7();
-
-            //check.RunSt7Solver();
-        }
-
-
-
-
-        [TestMethod]
-        public void MonoAndLaminatedGlass()
-        {
-            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 0, 500));
-            Shape s2 = GetRectangularShape(new Point3d(300, 0, 0), new Vector3d(200, 0, 400));
-            Shape s3 = GetRectangularShape(new Point3d(700, 0, 0), new Vector3d(200, 0, 400));
-
-            //var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
-            //var restrains2 = s2.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s2.GetCoordinateSystem()))).ToList();
-            //var restrains3 = s3.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s3.GetCoordinateSystem()))).ToList();
-            //restrains3.RemoveAt(0);
-
-            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 10, GetGlassMaterialPrEn());
-
-            MonolithicGlass mg21 = new MonolithicGlass("Mg21", 5, GetGlassMaterialPrEn());
-            MonolithicGlass mg22 = new MonolithicGlass("Mg22", 20, GetGlassMaterialPrEn());
-            MonolithicGlass mg31 = new MonolithicGlass("Mg32", 15, GetGlassMaterialPrEn());
-
-
-            Interlayer intr = new Interlayer("Int", 0.76, GetInterlayerMaterial(), Guid.NewGuid());
-
-
-            LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[]{ mg21, mg22 }, new Interlayer[] { intr });
-            LaminatedGlass lg2 = new LaminatedGlass("Lg1", new MonolithicGlass[]{ mg31, mg22 }, new Interlayer[] { intr });
-
-            LoadCase lc1 = new LoadCase("LC1", 50, 20, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
-            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
-
-            PointLoad s1gpl1 = new PointLoad(0, 2, 0, 0, 0, 0, new Point3d(80, 0, 400), lc1);
-            PointLoad s1gpl2 = new PointLoad(0, 2, 0, 0, 0, 0, new Point3d(80, 0, 450), lc2);
-            PointLoad s2gpl1 = new PointLoad(0, 10, 0, 0, 0, 0, new Point3d(380, 0, 300), lc1);
-            PointLoad s2gpl2 = new PointLoad(0, 10, 0, 0, 0, 0, new Point3d(380, 0, 350), lc2);
-
-            //GlassSurface gs1 = new GlassSurface(mg1, s1, new List<Load> { s1gpl1 }, restrains1, null, 0, Guid.NewGuid());
-            //gs1.AddLoad(s1gpl2);
-            //GlassSurface gs2 = new GlassSurface(lg1, s2, new List<Load> { s2gpl1 }, restrains2, null, 0, Guid.NewGuid());
-            //gs2.AddLoad(s2gpl2);
-            //GlassSurface gs3 = new GlassSurface(lg2, s3, null, restrains3, null, 0, Guid.NewGuid());
-
-
-            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
-            Directory.CreateDirectory(outputFolder);
-
-            //Model model = new Model(outputFolder);
-            //model.AddSurface(gs1);
-            //model.AddSurface(gs2);
-            //model.AddSurface(gs3);
-
-            //var cp = new Checker.CheckParameters();
-            //cp.SetLaminatedAnalysisType(Checker.CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
-
-            //En16612Checker check = new En16612GlassChecker(model, new Checker.CheckParameters());
-            //check.SetUpFemModels();
-            
-            //check.ExportToSt7();
-
-            //check.RunSt7Solver();
-
-        }
-
-
         [TestMethod]
         public void LaminatedGlass()
         {
+
+            Model model = new Model(base.GetOutputFolder());
+
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 0, 500));
 
-            //var restrains1 = s1.Fill.Explode().Select(i => new LineRestrain(i, Restrain.GetAllFixed(s1.GetCoordinateSystem()))).ToList();
-            //restrains1.RemoveAt(0);
 
-            MonolithicGlass mg21 = new MonolithicGlass("Mg21", 5, GetGlassMaterialPrEn());
-            MonolithicGlass mg22 = new MonolithicGlass("Mg22", 20, GetGlassMaterialPrEn());
+            MonolithicGlass mg1 = new MonolithicGlass("Mg12", 8, GetGlassMaterialAstm());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg12", 8, GetGlassMaterialAstm());
 
             Interlayer intr = new Interlayer("Int", 0.76, GetInterlayerMaterial(), Guid.NewGuid());
 
-            LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg21, mg22 }, new Interlayer[] { intr });
+            LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2 }, new Interlayer[] { intr });
 
-            LoadCase lc1 = new LoadCase("LC1", 50, 20, LoadCase.LoadCaseType.LiveLoad, Guid.NewGuid());
-            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseType.Wind, Guid.NewGuid());
+            // Prototype
+            Prototype p1 = new Prototype("p1", lg1, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalisys, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7);
 
-            PointLoad s1gpl1 = new PointLoad(0, 2, 0, 0, 0, 0, new Point3d(80, 0, 400), lc1);
-            PointLoad s1gpl2 = new PointLoad(0, 2, 0, 0, 0, 0, new Point3d(80, 0, 450), lc2);
-            PointLoad s2gpl1 = new PointLoad(0, 10, 0, 0, 0, 0, new Point3d(380, 0, 300), lc1);
-            PointLoad s2gpl2 = new PointLoad(0, 10, 0, 0, 0, 0, new Point3d(380, 0, 350), lc2);
-            
+            var meshOptions = new Mesh.GenerateOptions();
+            meshOptions.MeshSize = 40;
 
-            //GlassSurface gs2 = new GlassSurface(lg1, s1, null, restrains1, null, 0, Guid.NewGuid());
-            //gs2.AddLoad(s1gpl1);
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
 
+            model.AddSurface(gs1);
 
-            string outputFolder = Path.Combine(_outputFolder, TestContext.TestName);
-            Directory.CreateDirectory(outputFolder);
+            model.FemModelSetup();
+            model.PerformChecks();
 
-            Model model = new Model(outputFolder);
-            //model.AddSurface(gs2);
-
-            //var cp = new Checker.CheckParameters();
-            //cp.SetLaminatedAnalysisType(Checker.CheckParameters.LaminatedAnalysisType.MultiElementPlateInterlayer);
-
-            //En16612Checker check = new En16612GlassChecker(model, new Checker.CheckParameters());
-            //check.SetUpFemModels();
-
-            //check.ExportToSt7();
-
-            //check.RunSt7Solver();
         }
-    
-#endif
+
+
+        [TestMethod]
+        public void LaminatedGlass2()
+        {
+
+            Model model = new Model(base.GetOutputFolder());
+
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 0, 500));
+
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg2", 20, GetGlassMaterialAstm());
+            MonolithicGlass mg3 = new MonolithicGlass("Mg3", 15, GetGlassMaterialAstm());
+            MonolithicGlass mg4 = new MonolithicGlass("Mg4", 4, GetGlassMaterialAstm());
+            MonolithicGlass mg5 = new MonolithicGlass("Mg5", 10, GetGlassMaterialAstm());
+
+            Interlayer intr1 = new Interlayer("Int1", 0.76, GetInterlayerMaterial());
+            Interlayer intr2 = new Interlayer("Int2", 0.76, GetInterlayerMaterial());
+            Interlayer intr3 = new Interlayer("Int3", 0.76, GetInterlayerMaterial());
+            Interlayer intr4 = new Interlayer("Int4", 0.76, GetInterlayerMaterial());
+
+            LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2, mg3, mg4, mg5 }, new Interlayer[] { intr1, intr2, intr3, intr4 });
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", lg1, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalisys, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7);
+
+            var meshOptions = new Mesh.GenerateOptions();
+            meshOptions.MeshSize = 20;
+            meshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+
+            model.AddSurface(gs1);
+
+            model.FemModelSetup();
+            model.PerformChecks();
+
+        }
     }
 }

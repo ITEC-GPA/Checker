@@ -55,6 +55,11 @@ namespace GPC.Checker.Glasses.FemModel
         private Dictionary<PlateProperty, int> _st7PlatePropertyMap;
 
         /// <summary>
+        /// Map between <see cref="Model.FEM.FemModel._brickProperties"/> St7 brickpropertyID;
+        /// </summary>
+        private Dictionary<BrickProperty, int> _st7BrickPropertyMap;
+
+        /// <summary>
         /// Map between <see cref="Model.FEM.Node"/> id and straus7 node ID
         /// </summary>
         private Dictionary<int, int> _st7NodeMap;
@@ -83,6 +88,7 @@ namespace GPC.Checker.Glasses.FemModel
             _st7LoadCaseMap = new Dictionary<LoadCase, int>(new ModelObjectNameEqualityComparer());
             _st7FreedomCaseMap = new Dictionary<FreedomCase, int>(new ModelObjectNameEqualityComparer());
             _st7PlatePropertyMap = new Dictionary<PlateProperty, int>(new ModelObjectNameEqualityComparer());
+            _st7BrickPropertyMap = new Dictionary<BrickProperty, int>(new ModelObjectNameEqualityComparer());
 
             _st7NodeMap = new Dictionary<int, int>();
             _st7PlateMap = new Dictionary<int, int>();
@@ -172,16 +178,29 @@ namespace GPC.Checker.Glasses.FemModel
 
             if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
             {
-                bool status = CreateSt7Model(aw, _saveFolderPath, out int mid, out List<string> warnings, out List<string> errors);
+                int mid = 0;
+                bool closed = false;
+                try
+                {
+                    bool status = CreateSt7Model(aw, _saveFolderPath, out mid, out List<string> warnings, out List<string> errors);
 
-                if (status)
-                    status = aw.SaveFile(mid);
+                    if (status)
+                        status = aw.SaveFile(mid);
 
-                if (status)
-                    status = aw.CloseFile(mid);
-
-                if (!status)
-                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+                    if (status)
+                    {
+                        status = aw.CloseFile(mid);
+                        closed = true;
+                    }
+                    
+                    if (!status)
+                        throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+                }
+                finally
+                {
+                    if (!closed)
+                        aw.CloseFile(mid);
+                }
             }
             else
             {
@@ -355,13 +374,9 @@ namespace GPC.Checker.Glasses.FemModel
         }
 
         /// <summary>
-        /// 
+        /// Export this FemModel to a new St7 File
         /// </summary>
-        /// <param name="aw"></param>
         /// <param name="saveFolderPath">Folder where to save the St7 model</param>
-        /// <param name="mId"></param>
-        /// <param name="warnings"></param>
-        /// <param name="errors"></param>
         /// <returns></returns>
         private bool CreateSt7Model(ISt7ApiService aw, string saveFolderPath, out int mId, out List<string> warnings, out List<string> errors)
         {
@@ -433,12 +448,14 @@ namespace GPC.Checker.Glasses.FemModel
             }
 
             St7SetPlateProperties(aw, mId);
+            St7SetBrickProperties(aw, mId);
 
             // Plate
             int glassGroupId = 0;
             aw.NewChildGroup(mId, 1, "Glass " + "1", ref glassGroupId);
 
             int st7PlateIndex = 0;
+            int st7BrickIndex = 0;
             foreach (var element in _elements)
             {
                 if (element is Plate plate)
@@ -485,6 +502,49 @@ namespace GPC.Checker.Glasses.FemModel
                             throw new NotSupportedException("Point attribute not supported");
                     }
                 }
+                else if (element is Brick brick)
+                {
+
+                    st7BrickIndex++;
+                    _st7BrickMap.Add(brick.Id, st7BrickIndex);
+
+                    int[] st7ConnectivityArray;
+                    if (brick.IsQuadrangular)
+                    {
+                        var st7FaceConnection = brick.GetNodesID();
+                        st7ConnectivityArray = new int[9];
+                        st7ConnectivityArray[0] = 8;
+                        st7ConnectivityArray[1] = _st7NodeMap[st7FaceConnection[0]];
+                        st7ConnectivityArray[2] = _st7NodeMap[st7FaceConnection[1]];
+                        st7ConnectivityArray[3] = _st7NodeMap[st7FaceConnection[2]];
+                        st7ConnectivityArray[4] = _st7NodeMap[st7FaceConnection[3]];
+                        st7ConnectivityArray[5] = _st7NodeMap[st7FaceConnection[4]];
+                        st7ConnectivityArray[6] = _st7NodeMap[st7FaceConnection[5]];
+                        st7ConnectivityArray[7] = _st7NodeMap[st7FaceConnection[6]];
+                        st7ConnectivityArray[8] = _st7NodeMap[st7FaceConnection[7]];
+                    }
+                    else
+                    {
+                        var st7FaceConnection = brick.GetNodesID();
+                        st7ConnectivityArray = new int[7];
+                        st7ConnectivityArray[0] = 6;
+                        st7ConnectivityArray[1] = _st7NodeMap[st7FaceConnection[0]];
+                        st7ConnectivityArray[2] = _st7NodeMap[st7FaceConnection[1]];
+                        st7ConnectivityArray[3] = _st7NodeMap[st7FaceConnection[2]];
+                        st7ConnectivityArray[4] = _st7NodeMap[st7FaceConnection[3]];
+                        st7ConnectivityArray[5] = _st7NodeMap[st7FaceConnection[4]];
+                        st7ConnectivityArray[6] = _st7NodeMap[st7FaceConnection[5]];
+                    }
+
+                    var property = _brickProperties.GetElementByName(brick.Property.Name);
+
+                    int propNum = _st7BrickPropertyMap[property];
+
+                    aw.SetElementConnection(mId, St7ApiConst.tyBRICK, st7BrickIndex, propNum, st7ConnectivityArray);
+                    aw.SetEntityGroup(mId, St7ApiConst.tyBRICK, st7BrickIndex, glassGroupId);
+
+                }
+
             }
 
             return true;
@@ -522,7 +582,7 @@ namespace GPC.Checker.Glasses.FemModel
 
                     aw.SetPlateIsotropicMaterial(mid, st7PropId, mgp.GetE(), mgp.GetNi(), mgp.GetDensity(), 0, 0, 0, 0, 0);
                 }
-                else if (property is InterlayerProperty inp)
+                else if (property is InterlayerPlateProperty inp)
                 {
                     aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, $"Interlayer{st7PropId}");
 
@@ -532,10 +592,49 @@ namespace GPC.Checker.Glasses.FemModel
                 }
                 else
                 {
-                    throw new NotSupportedException("Glass property not supported");
+                    throw new NotSupportedException($"Property type: {property} not supported");
                 }
 
                 _st7PlatePropertyMap.Add(property, st7PropId);
+            }
+
+        }
+
+
+        private void St7SetBrickProperties(ISt7ApiService aw, int mid)
+        {
+
+            int _bufferId = 0;
+            int st7PropId = 0;
+            foreach (var property in _brickProperties)
+            {
+                st7PropId++;
+
+                if ((st7PropId - _bufferId) != 1)
+                    throw new NotSupportedException("Brick properties not in order");
+                _bufferId = st7PropId;
+                
+                if (property is InterlayerBrickProperty inp)
+                {
+                    aw.NewBrickProperty(mid, st7PropId, St7ApiConst.kMaterialTypeIsotropic, $"Interlayer{st7PropId}");
+
+                    double[] doubles = new double[8];
+                    doubles[0] = inp.GetE();
+                    doubles[1] = inp.GetNi();
+                    doubles[2] = inp.GetDensity();
+                    doubles[3] = inp.GetAlphaThermalExpansion();
+                    doubles[4] = 0;
+                    doubles[5] = 0;
+                    doubles[6] = 0;
+                    doubles[7] = 0;
+                    aw.SetBrickIsotropicMaterial(mid, st7PropId, doubles);
+                }
+                else
+                {
+                    throw new NotSupportedException($"Property type: {property} not supported");
+                }
+
+                _st7BrickPropertyMap.Add(property, st7PropId);
             }
 
         }

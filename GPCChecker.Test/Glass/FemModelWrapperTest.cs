@@ -42,7 +42,8 @@ namespace GlassTests
             PointRestrain pr = new PointRestrain(new Point3d(70, 70, 0), new FreedomCase("fc1"), new List<DofRestrain>{ new DofRestrain(LinearSolver.DOF.DX, true), new DofRestrain(LinearSolver.DOF.RZ, true) });
 
             LineRestrain lr = new LineRestrain(borders[0], new FreedomCase("fc1"), new List<DofRestrain> { new DofRestrain(LinearSolver.DOF.DY, true), new DofRestrain(LinearSolver.DOF.RZ, true) });
-            fmw.AddShape(s1, pp, meshOptions, new List<Load>() { p1, l1 }, new List<GeometryRestrain>() { pr, lr });
+            fmw.AddProperty(pp);
+            fmw.AddShape(s1, pp.Name, meshOptions, new List<Load>() { p1, l1 }, new List<GeometryRestrain>() { pr, lr });
 
             fmw.SaveToSt7(base.GetOutputFolder());
         }
