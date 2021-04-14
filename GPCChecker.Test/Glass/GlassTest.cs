@@ -6,23 +6,23 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using GPC.Checker.Glasses;
 using GPC.Geometry;
-using GPC.Model.Materials;
-using GPC.Model.Loads;
+using GPC.Geometry.Meshes;
 using GPC.Checker.Glasses.LoadCases;
+using GPC.Checker.Glasses.Restrain;
+using GPC.Checker.Glasses.Models;
+using GPC.Checker.Glasses.Glasses;
+using GPC.Checker.Glasses.Results;
+using GPC.Checker.Glasses.Checkers;
 using GPC.Model.FreedomCases;
 using GPC.Model.Combinations;
-using GPC.Checker.Glasses.Checkers;
 using GPC.Model.FEM;
 using GPC.Model.Elements;
 using GPC.Model.Restrains;
-using GPC.Checker.Glasses.Restrain;
-using GPC.Checker.Glasses.Models;
+using GPC.Model.Materials;
+using GPC.Model.Loads;
 using GPC.Model.Glasses;
 using GPC.Model.Results;
-using GPC.Checker.Glasses.Glasses;
-using GPC.Checker.Glasses.Results;
 using GPC.Model.FEM.Properties;
-using GPC.Geometry.Meshes;
 using GPC.TestUtilities;
 
 namespace GlassTests
@@ -98,11 +98,11 @@ namespace GlassTests
 
 
             // Combination 
-            Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural, Guid.NewGuid());
+            Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural);
             cmb1[lc1] = 1.5;
             cmb1[lc2] = 2.5;
 
-            Combination cmb2 = new CombinationEn("CMB2", CombinationEn.CombinationType.ServiceabilityCharacteristic, Guid.NewGuid());
+            Combination cmb2 = new CombinationEn("CMB2", CombinationEn.CombinationType.ServiceabilityCharacteristic);
             cmb2[lc1] = 1.2;
             cmb2[lc2] = 1.5;
             cmb2[lc2] = 0.5;
@@ -214,11 +214,11 @@ namespace GlassTests
             gs2.AddLoad(s2GalLc1);
 
             // Combination 
-            Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural, Guid.NewGuid());
+            Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural);
             cmb1[lc1] = 1.5;
             cmb1[lc2] = 2.5;
 
-            Combination cmb2 = new CombinationEn("CMB2", CombinationEn.CombinationType.ServiceabilityCharacteristic, Guid.NewGuid());
+            Combination cmb2 = new CombinationEn("CMB2", CombinationEn.CombinationType.ServiceabilityCharacteristic);
             cmb2[lc1] = 1.2;
             cmb2[lc2] = 1.5;
             cmb2[lc2] = 0.5;
@@ -337,7 +337,7 @@ namespace GlassTests
             Model model = new Model(base.GetOutputFolder());
 
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 0, 500));
-
+            s1.Fill[0].Pan(new Vector3d(50, 0, 0));
 
             MonolithicGlass mg1 = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
             MonolithicGlass mg2 = new MonolithicGlass("Mg2", 20, GetGlassMaterialAstm());
@@ -359,10 +359,50 @@ namespace GlassTests
             meshOptions.MeshSize = 20;
             meshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
+            // Load
+            LoadCase lc0 = new LoadCase("Sw", 50* 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseType.SelfWeight);
+            LoadCase lc1 = new LoadCase("Climate", 12 * 60 * 60, 10, GPC.Model.LoadCases.LoadCase.LoadCaseType.ClimateSummer);
+            LoadCase lc2 = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseType.Wind);
+            LoadCase lc3 = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad);
+
+            NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lc1);
+            NormalAreaLoad nal2 = new NormalAreaLoad(1, s1, lc2);
+            NormalAreaLoad nal3 = new NormalAreaLoad(1, s1, lc3);
+            LineLoad lll = new LineLoad(0, 1, 0, 0, 0, 0, new Line3d(new Point3d(40, 0, 50), new Point3d(150, 0, 200)), lc3, CoordinateSystem.Global);
+
+            CombinationEn combo1 = new CombinationEn("Cmb1", CombinationEn.CombinationType.UltimateStructural);
+            combo1.AddLoadCaseCoefficient(lc0, 1);
+            combo1.AddLoadCaseCoefficient(lc3, 1);
+
+            CombinationEn combo2 = new CombinationEn("Cmb2", CombinationEn.CombinationType.UltimateStructural);
+            combo2.AddLoadCaseCoefficient(lc0, 1);
+            combo2.AddLoadCaseCoefficient(lc2, 0.6);
+
+            CombinationEn combo3 = new CombinationEn("Cmb3", CombinationEn.CombinationType.UltimateStructural);
+            combo3.AddLoadCaseCoefficient(lc0, 1);
+            combo3.AddLoadCaseCoefficient(lc3, 0.75);
+            combo3.AddLoadCaseCoefficient(lc2, 0.4);
+
+            CombinationEn combo4 = new CombinationEn("Cmb4", CombinationEn.CombinationType.UltimateStructural);
+            combo4.AddLoadCaseCoefficient(lc0, 1);
+            combo4.AddLoadCaseCoefficient(lc1, 0.75);
+            combo4.AddLoadCaseCoefficient(lc3, 0.75);
+            combo4.AddLoadCaseCoefficient(lc2, 0.4);
+
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            gs1.AddLoad(nal1);
+            gs1.AddLoad(nal2);
+            gs1.AddLoad(nal3);
+            gs1.AddLoad(lll);
 
+            // Model
             model.AddSurface(gs1);
+
+            model.AddCombination(combo1);
+            model.AddCombination(combo2);
+            model.AddCombination(combo3);
+            model.AddCombination(combo4);
 
             model.FemModelSetup();
             model.PerformChecks();

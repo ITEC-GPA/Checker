@@ -14,80 +14,14 @@ namespace GPC.Checker.Glasses.Wrappers
         protected GlassSurface _glassSurface;
         protected Glass _glass;
 
-        protected List<Mesh> _meshes;
-
-        protected Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> _meshGeometryRestrainVertices;
-        protected Dictionary<Mesh, Dictionary<Load, int[]>> _meshLoadsVertexIndexes;
-        protected Dictionary<Mesh, Dictionary<Load, int[]>> _meshLoadsFaceIndexes;
-
         protected virtual Glass Glass => _glass;
 
-        /// <summary>
-        /// If meshes has not been generated yet, it will call <see cref="GlassWrapper.SetUpMeshOptions()"/> and then <see cref="GlassWrapper.GenerateMesh()"/> />
-        /// </summary>
-        public List<Mesh> Meshes
-        {
-            get
-            {
-                if (_meshes.Count == 0)
-                {
-                    GenerateMesh();
-                    return _meshes;
-                }
-                else
-                    return _meshes;
-            }
-        }
-
-        public Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> MeshGeometryRestrainVertices
-        {
-            get
-            {
-                if (_meshes.Count == 0)
-                {
-                    GenerateMesh();
-                    return _meshGeometryRestrainVertices;
-                }
-                else
-                    return _meshGeometryRestrainVertices;
-            }
-        }
-        
-        public Dictionary<Mesh, Dictionary<Load, int[]>> MeshLoadsVertexIndexes
-        {
-            get
-            {
-                if (_meshes.Count == 0)
-                {
-                    GenerateMesh();
-                    return _meshLoadsVertexIndexes;
-                }
-                else
-                    return _meshLoadsVertexIndexes;
-            }
-        }
-
-        public Dictionary<Mesh, Dictionary<Load, int[]>> MeshLoadsFaceIndexes
-        {
-            get
-            {
-                if (_meshes.Count == 0)
-                {
-                    GenerateMesh();
-                    return _meshLoadsFaceIndexes;
-                }
-                else
-                    return _meshLoadsFaceIndexes;
-            }
-        }
 
 
         protected GlassWrapper(GlassSurface glassSurface, Glass glass)
         {
             this._glassSurface = glassSurface ?? throw new ArgumentNullException(nameof(glassSurface));
             this._glass = glass ?? throw new ArgumentNullException(nameof(glass));
-
-            this._meshes = new List<Mesh>();
         }
 
         /// <summary>

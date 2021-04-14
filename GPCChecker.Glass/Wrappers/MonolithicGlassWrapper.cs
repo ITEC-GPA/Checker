@@ -82,8 +82,8 @@ namespace GPC.Checker.Glasses.Wrappers
         public override bool GenerateMesh()
         {
             bool status = GenerateSinglePanelMesh(out Mesh meshes, out Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> meshGeometryRestrainVertices,
-                                                                         out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsVertexIndexes,
-                                                                         out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsFaceIndexes);
+                                                                   out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsVertexIndexes,
+                                                                   out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsFaceIndexes);
 
             if (!status)
                 return false;

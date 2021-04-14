@@ -14,34 +14,99 @@ namespace GPC.Checker.Glasses.Wrappers
 {
     public abstract class GlassPanelWrapper : GlassWrapper, IGlassPanelWrapper
     {
-        #region Variables
 
-        protected List<Load> _loads;
+        protected List<Mesh> _meshes;
+
+        protected List<Load> _externalFaceLoads;
+        protected List<Load> _internalFaceLoads;
 
         protected List<GeometryRestrain> _geometryRestrain;
-
-        #endregion
+             
+        protected Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> _meshGeometryRestrainVertices;
+        protected Dictionary<Mesh, Dictionary<Load, int[]>> _meshLoadsVertexIndexes;
+        protected Dictionary<Mesh, Dictionary<Load, int[]>> _meshLoadsFaceIndexes;
 
         #region Properties
 
         /// <summary>
         /// The loads applied on the GlassPanelWrapper 
         /// </summary>
-        internal List<Load> Loads => _loads;
+        internal List<Load> Loads => _externalFaceLoads;
 
         internal List<GeometryRestrain> GeometryRestrains => _geometryRestrain;
 
-        protected override Glass Glass => _glass;
-                
+        /// <summary>
+        /// If meshes has not been generated yet, it will call <see cref="GlassWrapper.SetUpMeshOptions()"/> and then <see cref="GlassWrapper.GenerateMesh()"/> />
+        /// </summary>
+        public List<Mesh> Meshes
+        {
+            get
+            {
+                if (_meshes.Count == 0)
+                {
+                    GenerateMesh();
+                    return _meshes;
+                }
+                else
+                    return _meshes;
+            }
+        }
+
+        public Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> MeshGeometryRestrainVertices
+        {
+            get
+            {
+                if (_meshes.Count == 0)
+                {
+                    GenerateMesh();
+                    return _meshGeometryRestrainVertices;
+                }
+                else
+                    return _meshGeometryRestrainVertices;
+            }
+        }
+
+        public Dictionary<Mesh, Dictionary<Load, int[]>> MeshLoadsVertexIndexes
+        {
+            get
+            {
+                if (_meshes.Count == 0)
+                {
+                    GenerateMesh();
+                    return _meshLoadsVertexIndexes;
+                }
+                else
+                    return _meshLoadsVertexIndexes;
+            }
+        }
+
+        public Dictionary<Mesh, Dictionary<Load, int[]>> MeshLoadsFaceIndexes
+        {
+            get
+            {
+                if (_meshes.Count == 0)
+                {
+                    GenerateMesh();
+                    return _meshLoadsFaceIndexes;
+                }
+                else
+                    return _meshLoadsFaceIndexes;
+            }
+        }
+
         #endregion
 
 
         protected GlassPanelWrapper(GlassSurface glassSurface, IGlassPanel glass) 
             : base(glassSurface, (Glass)glass)
         {
-            _loads = new List<Load>();
-            
+            this._externalFaceLoads = new List<Load>();
+            this._internalFaceLoads = new List<Load>();
 
+            this._meshes = new List<Mesh>();
+            this._meshGeometryRestrainVertices = new Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>>();
+            this._meshLoadsVertexIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>();
+            this._meshLoadsFaceIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>();
         }
 
         #region Public methods - geometry
@@ -76,16 +141,27 @@ namespace GPC.Checker.Glasses.Wrappers
 
         #endregion
 
+
         #region Public methods - analysis
 
-        public void AddLoad(Load load)
+        public void AddExternalFaceLoad(Load load)
         {
-            _loads.Add(load);
+            _externalFaceLoads.Add(load);
         }
 
-        public void AddLoads(List<Load> loads)
+        public void AddExternalFaceLoads(List<Load> loads)
         {
-            _loads.AddRange(loads);
+            _externalFaceLoads.AddRange(loads);
+        }
+
+        public void AddInternalFaceLoad(Load load)
+        {
+            _internalFaceLoads.Add(load);
+        }
+
+        public void AddInternalFaceLoads(List<Load> loads)
+        {
+            _internalFaceLoads.AddRange(loads);
         }
 
         //public List<GeometryRestrain> GetRestrains()
@@ -97,19 +173,34 @@ namespace GPC.Checker.Glasses.Wrappers
 
         public void GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads)
         {
-            uniformPressureLoads = _loads.Where(i => i.GetGeometryBase() == _glassSurface.Shape).ToList();
+            uniformPressureLoads = _externalFaceLoads.Where(i => i.GetGeometryBase() == _glassSurface.Shape).ToList();
+            uniformPressureLoads.AddRange(_internalFaceLoads.Where(i => i.GetGeometryBase() == _glassSurface.Shape).ToList());
 
-            notUniformPressureLoads = _loads.Except(uniformPressureLoads).ToList();
+            notUniformPressureLoads = _externalFaceLoads.Except(uniformPressureLoads).ToList();
+            uniformPressureLoads.AddRange(_internalFaceLoads.Except(uniformPressureLoads).ToList());
         }
 
+        public Mesh GetInternalGlassMesh()
+        {
+            if (_meshes == null)
+                throw new ArgumentNullException();
+            return _meshes.Last();
+        }
+
+        public Mesh GetExternalGlassMesh()
+        {
+            if (_meshes == null)
+                throw new ArgumentNullException();
+            return _meshes.First();
+        }
 
 
         /// <summary>
         /// Generate the mesh of a single glass layer
         /// </summary>
-        protected bool GenerateSinglePanelMesh(out Mesh meshes, out Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> meshGeometryRestrainVertices, 
-                                                                out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsVertexIndexes, 
-                                                                out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsFaceIndexes)
+        protected bool GenerateSinglePanelMesh(out Mesh mesh, out Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> meshGeometryRestrainVertices, 
+                                                              out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsVertexIndexes, 
+                                                              out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsFaceIndexes)
         {
 
             var shapes = new List<Shape>();
@@ -144,11 +235,13 @@ namespace GPC.Checker.Glasses.Wrappers
 
             List<GeometryBase> nonUniformLoadsGeometry = new List<GeometryBase>();
 
-            List<Load> nonUniformLoads = _loads.Where(i => i.GetGeometryBase() != _glassSurface.Shape).ToList();
+            List<Load> nonUniformLoads = _internalFaceLoads.Where(i => i.GetGeometryBase() != _glassSurface.Shape).ToList();
+            nonUniformLoads.AddRange(_externalFaceLoads.Where(i => i.GetGeometryBase() != _glassSurface.Shape).ToList());
 
             nonUniformLoadsGeometry.AddRange(nonUniformLoads.Select(i => i.GetGeometryBase()).ToList());
 
-            List<Load> uniformPressureLoads = _loads.Where(i => i.GetGeometryBase() == _glassSurface.Shape).ToList();
+            List<Load> uniformPressureLoads = _internalFaceLoads.Where(i => i.GetGeometryBase() == _glassSurface.Shape).ToList();
+            uniformPressureLoads.AddRange(_externalFaceLoads.Where(i => i.GetGeometryBase() != _glassSurface.Shape).ToList());
 
 
             // MESH
@@ -174,15 +267,15 @@ namespace GPC.Checker.Glasses.Wrappers
             meshGeometryRestrainVertices = new Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>>();
             meshLoadsVertexIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>();
             meshLoadsFaceIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>();
-            meshes = null;
+            mesh = null;
             if (Mesh.Generate(shapes, embeddedGeometries, _glassSurface.MeshOptions, out List<Mesh> meshesBuffer, out Mesh.GenerateMeshStatus generateMeshStatus))
             {
-                meshes = meshesBuffer.First();
+                mesh = meshesBuffer.First();
 
                 // Recupero vertici embedded
                 foreach (var geom in generateMeshStatus.EmbeddedGeometriesVertexMap)
                 {
-                    Mesh mesh = geom.Key;
+                    Mesh meshKey = geom.Key;
                     Dictionary<GeometryBase, int[]> embeddedGeometriesIndexes = geom.Value;
 
                     foreach (var geometry in embeddedGeometriesIndexes.Keys)
@@ -194,10 +287,10 @@ namespace GPC.Checker.Glasses.Wrappers
                         {
                             foreach (var geomRestrain in matchingRestrains)
                             {
-                                if (!meshGeometryRestrainVertices.ContainsKey(mesh))
-                                    meshGeometryRestrainVertices.Add(mesh, new Dictionary<GeometryRestrain, int[]>());
+                                if (!meshGeometryRestrainVertices.ContainsKey(meshKey))
+                                    meshGeometryRestrainVertices.Add(meshKey, new Dictionary<GeometryRestrain, int[]>());
 
-                                meshGeometryRestrainVertices[mesh].Add(geomRestrain, embeddedGeometriesIndexes[geometry]);
+                                meshGeometryRestrainVertices[meshKey].Add(geomRestrain, embeddedGeometriesIndexes[geometry]);
                             }
                         }
 
@@ -207,17 +300,17 @@ namespace GPC.Checker.Glasses.Wrappers
                             {
                                 if (load is IPointLoad || load is ILineLoad)
                                 {
-                                    if (!meshLoadsVertexIndexes.ContainsKey(mesh))
-                                        meshLoadsVertexIndexes.Add(mesh, new Dictionary<Load, int[]>());
+                                    if (!meshLoadsVertexIndexes.ContainsKey(meshKey))
+                                        meshLoadsVertexIndexes.Add(meshKey, new Dictionary<Load, int[]>());
 
-                                    meshLoadsVertexIndexes[mesh].Add(load, embeddedGeometriesIndexes[geometry]);
+                                    meshLoadsVertexIndexes[meshKey].Add(load, embeddedGeometriesIndexes[geometry]);
                                 }
                                 else if (load is IAreaLoad)
                                 {
-                                    if (!meshLoadsFaceIndexes.ContainsKey(mesh))
-                                        meshLoadsFaceIndexes.Add(mesh, new Dictionary<Load, int[]>());
+                                    if (!meshLoadsFaceIndexes.ContainsKey(meshKey))
+                                        meshLoadsFaceIndexes.Add(meshKey, new Dictionary<Load, int[]>());
 
-                                    meshLoadsFaceIndexes[mesh].Add(load, embeddedGeometriesIndexes[geometry]);
+                                    meshLoadsFaceIndexes[meshKey].Add(load, embeddedGeometriesIndexes[geometry]);
                                 }
                                 else
                                     throw new NotSupportedException();
@@ -225,16 +318,17 @@ namespace GPC.Checker.Glasses.Wrappers
                         }
                     }
 
-                    if (uniformPressureLoads.Count > 0)
-                    {
-                        var indexes = mesh.Faces.Select(i => i.Id).ToArray();
-                        foreach (var load in uniformPressureLoads)
-                        {
-                            if (!meshLoadsFaceIndexes.ContainsKey(mesh))
-                                meshLoadsFaceIndexes.Add(mesh, new Dictionary<Load, int[]>());
+                }
 
-                            meshLoadsFaceIndexes[mesh].Add(load, indexes);
-                        }
+                if (uniformPressureLoads.Count > 0)
+                {
+                    var indexes = mesh.Faces.Select(i => i.Id).ToArray();
+                    foreach (var load in uniformPressureLoads)
+                    {
+                        if (!meshLoadsFaceIndexes.ContainsKey(mesh))
+                            meshLoadsFaceIndexes.Add(mesh, new Dictionary<Load, int[]>());
+
+                        meshLoadsFaceIndexes[mesh].Add(load, indexes);
                     }
                 }
 

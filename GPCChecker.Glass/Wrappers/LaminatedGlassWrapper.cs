@@ -13,7 +13,8 @@ namespace GPC.Checker.Glasses.Wrappers
 {
     public class LaminatedGlassWrapper : GlassPanelWrapper
     {
-        #region Variables
+
+        protected const int INTERLAYER_DISCRETIZATION = 1;
 
         /// <summary>
         /// Thickness associates to displacement. Key = load duration; Value = thickness
@@ -25,7 +26,6 @@ namespace GPC.Checker.Glasses.Wrappers
         /// </summary>
         protected Dictionary<double, double> _thicknessesStress;
 
-        #endregion
 
 
         #region Public constructors
@@ -175,8 +175,8 @@ namespace GPC.Checker.Glasses.Wrappers
         public override bool GenerateMesh()
         {
             bool status = GenerateSinglePanelMesh(out Mesh mesh, out Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> meshGeometryRestrainVertices,
-                                                                   out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsVertexIndexes,
-                                                                   out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsFaceIndexes);
+                                                                 out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsVertexIndexes,
+                                                                 out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsFaceIndexes);
 
             if (!status)
                 return false;
@@ -186,10 +186,9 @@ namespace GPC.Checker.Glasses.Wrappers
             var interlayerDistances = GetInterlayerBarycenterDistances();
             var glassDistances = GetMonolithicBarycenterDistances();
 
-
             Vector3d normal = _glassSurface.Shape.GetNormalVector();
 
-            // copia della mesh e generazione brick
+            // Copia mesh
             for (int i = 0; i < glassDistances.Length; i++)
             {
                 Mesh cloned = (Mesh)mesh.Clone(true);
@@ -199,16 +198,77 @@ namespace GPC.Checker.Glasses.Wrappers
                 meshes[i * 2] = cloned;
             }
 
-
+            // Copia mesh e Generazione brick
             for(int i = 0; i < interlayerDistances.Length; i++)
             {
-                Mesh cloned = (Mesh)mesh.Clone(true);
-                var volumeMesh = cloned.ExtrudeFaces(normal * (Glass as LaminatedGlass).Interlayers[i].Thickness);
-                volumeMesh.Pan(normal * (interlayerDistances[i] - (Glass as LaminatedGlass).Interlayers[i].Thickness/2.0));
-                meshes[i * 2 + 1] = volumeMesh;
+
+                for (int j = 0; j < INTERLAYER_DISCRETIZATION; j++)
+                {
+                    Mesh cloned = (Mesh)mesh.Clone(true);
+
+                    double thickness = (Glass as LaminatedGlass).Interlayers[i].Thickness;
+                    double increment = thickness / INTERLAYER_DISCRETIZATION * j;
+
+                    cloned.Pan(normal * (interlayerDistances[i] - thickness / 2.0 + increment));
+
+                    var volumeMesh = cloned.ExtrudeFaces(normal * thickness / INTERLAYER_DISCRETIZATION);
+
+                    if (meshes[i * 2 + 1] == null)
+                        meshes[i * 2 + 1] = volumeMesh;
+                    else
+                    {
+                        meshes[i * 2 + 1].JoinMesh(volumeMesh);
+                    }
+                }
+
+
+                //var volumeMesh = cloned.ExtrudeFaces(normal * (Glass as LaminatedGlass).Interlayers[i].Thickness);
+                //volumeMesh.Pan(normal * (interlayerDistances[i] - (Glass as LaminatedGlass).Interlayers[i].Thickness / 2.0));
+                //meshes[i * 2 + 1] = volumeMesh;
             }
             
             _meshes = meshes.ToList();
+
+
+            // Setup associazione carichi - elementi mesh
+
+            _meshGeometryRestrainVertices = meshGeometryRestrainVertices;
+
+            _meshLoadsFaceIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>();
+            foreach(var load in _externalFaceLoads)
+            {
+                Mesh meshBuffer = GetExternalGlassMesh();
+                var b = meshLoadsFaceIndexes.Values.Select(j => j.Where(i => i.Key.Guid.Equals(load.Guid)).Select(i => i.Value).FirstOrDefault()).FirstOrDefault();
+
+                if (b != null)
+                {
+                    if (!_meshLoadsFaceIndexes.ContainsKey(meshBuffer))
+                    {
+                        _meshLoadsFaceIndexes.Add(meshBuffer, new Dictionary<Load, int[]>());
+                    }
+
+                    _meshLoadsFaceIndexes[meshBuffer].Add(load, b);
+                }
+            }
+
+
+            _meshLoadsVertexIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>(); 
+            foreach (var load in _externalFaceLoads)
+            {
+                Mesh meshBuffer = GetExternalGlassMesh();
+                var b = meshLoadsVertexIndexes.Values.Select(j => j.Where(i => i.Key.Guid.Equals(load.Guid)).Select(i => i.Value).FirstOrDefault()).FirstOrDefault();
+
+                if (b != null)
+                {
+                    if (!_meshLoadsVertexIndexes.ContainsKey(meshBuffer))
+                    {
+                        _meshLoadsVertexIndexes.Add(meshBuffer, new Dictionary<Load, int[]>());
+                    }
+
+                    _meshLoadsVertexIndexes[meshBuffer].Add(load, b);
+                }
+            }
+
 
             return true;
         }

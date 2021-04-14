@@ -69,7 +69,7 @@ namespace GPC.Checker.Glasses.Checkers
             if (_glassSurface.Prototype.Glass is MonolithicGlass mg)
             {
                 MonolithicGlassWrapper wrapper = new MonolithicGlassWrapper(_glassSurface, mg);
-                wrapper.AddLoads(_glassSurface.GetLoads());
+                wrapper.AddExternalFaceLoads(_glassSurface.GetLoads());
 
                 // Recupero la mesh - wrapper la genera
                 List<Mesh> meshes = wrapper.Meshes;
@@ -87,7 +87,8 @@ namespace GPC.Checker.Glasses.Checkers
                                               out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap, out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap,
                                               out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMap);
 
-                _femModel.AddMesh(meshes.First(), pp, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, wrapper.MeshGeometryRestrainVertices.Values.FirstOrDefault());
+                _femModel.AddProperty(pp);
+                _femModel.AddMesh(meshes.First(), pp.Name, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, wrapper.MeshGeometryRestrainVertices.Values.FirstOrDefault());
 
                 _femModel.AddCombinations(_combinations);
 
@@ -96,13 +97,45 @@ namespace GPC.Checker.Glasses.Checkers
             {
                 LaminatedGlassWrapper wrapper = new LaminatedGlassWrapper(_glassSurface, lg);
 
-                wrapper.AddLoads(_glassSurface.GetLoads());
+                wrapper.AddExternalFaceLoads(_glassSurface.GetLoads());
 
                 // Recupero la mesh - wrapper la genera
                 List<Mesh> meshes = wrapper.Meshes;
 
+                // sdoppiare per cercare tutte e due le mesh
+                GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.ContainsKey(wrapper.GetExternalGlassMesh()) ? wrapper.MeshLoadsVertexIndexes[wrapper.GetExternalGlassMesh()] : null,
+                                              wrapper.MeshLoadsFaceIndexes.ContainsKey(wrapper.GetExternalGlassMesh()) ? wrapper.MeshLoadsFaceIndexes[wrapper.GetExternalGlassMesh()] : null,
+                                              out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap, out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap,
+                                              out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMap);
 
+                var package = lg.GetGlassPackage();
 
+                _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
+
+                //_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalisys
+
+                for (int i = 0; i < package.Length; i++)
+                {
+                    IGlassPackage layer = package[i];
+                    if (layer is MonolithicGlass)
+                    {
+                        string propertyName = $"Mg {i}";
+                        _femModel.AddProperty(new MonolithicGlassProperty((MonolithicGlass)layer, propertyName));
+
+                        _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, null);
+                    }
+                    else if (layer is Interlayer)
+                    {
+                        string propertyName = $"Interlayer {i}";
+                        _femModel.AddProperty(new InterlayerBrickProperty((Interlayer)layer, 10, 20, propertyName));
+
+                        _femModel.AddMesh(meshes[i], null, propertyName, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, null);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException();
+                    }
+                }
 
             }
             else if (_glassSurface.Prototype.Glass is DoubleInsulatingGlass dgu)
@@ -149,7 +182,8 @@ namespace GPC.Checker.Glasses.Checkers
                     }
                     else if (glass is LaminatedGlass lg)
                     {
-                        glassWrapper = new LaminatedGlassWrapper(_glassSurface, lg);
+                        _femModel.SaveToSt7(_folderPath);
+
                     }
                     else if (glass is DoubleInsulatingGlass dgu)
                     {
