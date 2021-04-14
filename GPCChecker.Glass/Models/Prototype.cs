@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using GPC.Model.Combinations;
+using GPC.Utilities.Extensions;
 using System.ComponentModel;
 
 namespace GPC.Checker.Glasses.Models
@@ -65,7 +66,7 @@ namespace GPC.Checker.Glasses.Models
         public enum SolverTypes
         {
             [Description("GPC solver")]
-            GPCSolver, 
+            GPCSolver,
             Straus7
         }
 
@@ -96,7 +97,7 @@ namespace GPC.Checker.Glasses.Models
         public Glass Glass => _glass;
 
         public AnalysisTypes AnalysisType => _analysisType;
-        
+
         public CheckMethods CheckMethod => _checkMethod;
 
         public LaminatedEqThicknessMethods LaminatedEqThicknessMethod => _laminatedEqThicknessMethod;
