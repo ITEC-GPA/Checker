@@ -17,10 +17,6 @@ namespace GPC.Checker.Glasses.Wrappers
 
         #region Public methods - geometry
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="loadDuration"></param>
         /// <returns>Glass thickness for deformation analysis</returns>
         public double GetDeformationThickness()
         {
@@ -33,10 +29,6 @@ namespace GPC.Checker.Glasses.Wrappers
             return (Glass as MonolithicGlass).Thickness;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="loadDuration"></param>
         /// <returns>Glass thickness for stress analysis</returns>
         public double GetStressThickness()
         {

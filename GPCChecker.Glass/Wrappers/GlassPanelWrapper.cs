@@ -20,7 +20,6 @@ namespace GPC.Checker.Glasses.Wrappers
         protected List<Load> _externalFaceLoads;
         protected List<Load> _internalFaceLoads;
 
-        protected List<GeometryRestrain> _geometryRestrain;
 
         protected List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>> _meshGeometryRestrainVertices;
         protected List<KeyValuePair<Mesh, Dictionary<Load, int[]>>> _meshLoadsVertexIndexes;
@@ -33,10 +32,10 @@ namespace GPC.Checker.Glasses.Wrappers
         /// </summary>
         internal List<Load> Loads => _externalFaceLoads;
 
-        internal List<GeometryRestrain> GeometryRestrains => _geometryRestrain;
+        internal List<GeometryRestrain> GeometryRestrains => _glassSurface.GetRestrains();
 
         /// <summary>
-        /// If meshes has not been generated yet, it will call <see cref="GlassWrapper.SetUpMeshOptions()"/> and then <see cref="GlassWrapper.GenerateMesh()"/> />
+        /// If meshes has not been generated yet, it will call <see cref="GlassWrapper.GenerateMesh()"/> 
         /// </summary>
         public List<Mesh> Meshes
         {
@@ -165,21 +164,21 @@ namespace GPC.Checker.Glasses.Wrappers
             _internalFaceLoads.AddRange(loads);
         }
 
-        //public List<GeometryRestrain> GetRestrains()
-        //{
-        //    var list = new List<GeometryRestrain>();
 
-        //    return list;
-        //}
-
-        public void GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads)
+        /// <param name="uniformPressureLoads">List of load acting as uniform pressure</param>
+        /// <param name="notUniformPressureLoads">List of load acting as not uniform pressure</param>
+        /// <param name="nonUniformLoadsGeometry">List of geometries associated to the not uniform loads</param>
+        public void GetLoads(out List<Load> uniformPressureLoads, out List<Load> notUniformPressureLoads, out List<GeometryBase> nonUniformLoadsGeometry)
         {
             uniformPressureLoads = _externalFaceLoads.Where(i => i.GetGeometryBase() == _glassSurface.Shape).ToList();
             uniformPressureLoads.AddRange(_internalFaceLoads.Where(i => i.GetGeometryBase() == _glassSurface.Shape).ToList());
 
             notUniformPressureLoads = _externalFaceLoads.Except(uniformPressureLoads).ToList();
-            uniformPressureLoads.AddRange(_internalFaceLoads.Except(uniformPressureLoads).ToList());
+            notUniformPressureLoads.AddRange(_internalFaceLoads.Except(uniformPressureLoads).ToList());
+
+            nonUniformLoadsGeometry = notUniformPressureLoads.Select(i => i.GetGeometryBase()).ToList();
         }
+
 
         public Mesh GetInternalGlassMesh()
         {
@@ -211,7 +210,7 @@ namespace GPC.Checker.Glasses.Wrappers
             List<GeometryBase> embeddedGeometryRestrains = new List<GeometryBase>();
 
             // Creo geometria embedded relativa ai vincoli
-            List<GeometryRestrain> restrains = _glassSurface.GetRestrains();
+            List<GeometryRestrain> restrains = this.GeometryRestrains;
             if (restrains != null)
             {
                 foreach (var restrain in restrains)
@@ -231,19 +230,8 @@ namespace GPC.Checker.Glasses.Wrappers
                 }
             }
 
-            // CARICHI
-            // Creo geometria embedded relativa ai carichi - se è diversa dalla superficie di partenza.
-
-            List<GeometryBase> nonUniformLoadsGeometry = new List<GeometryBase>();
-
-            List<Load> nonUniformLoads = _internalFaceLoads.Where(i => i.GetGeometryBase() != _glassSurface.Shape).ToList();
-            nonUniformLoads.AddRange(_externalFaceLoads.Where(i => i.GetGeometryBase() != _glassSurface.Shape).ToList());
-
-            nonUniformLoadsGeometry.AddRange(nonUniformLoads.Select(i => i.GetGeometryBase()).ToList());
-
-            List<Load> uniformPressureLoads = _internalFaceLoads.Where(i => i.GetGeometryBase() == _glassSurface.Shape).ToList();
-            uniformPressureLoads.AddRange(_externalFaceLoads.Where(i => i.GetGeometryBase() == _glassSurface.Shape).ToList());
-
+            // CARICHI - Sia su faccia interna che esterna
+            GetLoads(out List<Load> uniformPressureLoads, out List<Load> nonUniformLoads, out List<GeometryBase> nonUniformLoadsGeometry);
 
             // MESH
             Dictionary<Shape, GeometryBase[]> embeddedGeometries = new Dictionary<Shape, GeometryBase[]>();
@@ -289,12 +277,6 @@ namespace GPC.Checker.Glasses.Wrappers
                             foreach (var geomRestrain in matchingRestrains)
                             {
                                 meshGeometryRestrainVertices.Add(geomRestrain, embeddedGeometriesIndexes[geometry]);
-
-                                //if (meshGeometryRestrainVertices.Select(i => i.Key.CompareGuid(meshKey.Guid)).Count() == 0)
-                                //{
-                                //    meshGeometryRestrainVertices.Add(new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(meshKey, new Dictionary<GeometryRestrain, int[]>()));
-                                //}
-                                //meshGeometryRestrainVertices.Where(i => i.Key.CompareGuid(meshKey.Guid)).FirstOrDefault().Value.Add(geomRestrain, embeddedGeometriesIndexes[geometry]);
                             }
                         }
 
@@ -305,22 +287,10 @@ namespace GPC.Checker.Glasses.Wrappers
                                 if (load is IPointLoad || load is ILineLoad)
                                 {
                                     meshLoadsVertexIndexes.Add(load, embeddedGeometriesIndexes[geometry]);
-                                    //if (meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(meshKey.Guid)).Count() == 0)
-                                    //{
-                                    //    meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(meshKey, new Dictionary<Load, int[]>()));
-                                    //}
-
-                                    //meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshKey.Guid)).FirstOrDefault().Value.Add(load, embeddedGeometriesIndexes[geometry]);
                                 }
                                 else if (load is IAreaLoad)
                                 {
                                     meshLoadsFaceIndexes.Add(load, embeddedGeometriesIndexes[geometry]);
-                                    //if (meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(meshKey.Guid)).Count() == 0)
-                                    //{
-                                    //    meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(meshKey, new Dictionary<Load, int[]>()));
-                                    //}
-
-                                    //meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshKey.Guid)).FirstOrDefault().Value.Add(load, embeddedGeometriesIndexes[geometry]);
                                 }
                                 else
                                     throw new NotSupportedException();
@@ -337,12 +307,6 @@ namespace GPC.Checker.Glasses.Wrappers
                     foreach (var load in uniformPressureLoads)
                     {
                         meshLoadsFaceIndexes.Add(load, indexes);
-                        //if (meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(meshesBuffer.First().Guid)).Count() == 0)
-                        //{
-                        //    meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(meshesBuffer.First(), new Dictionary<Load, int[]>()));
-                        //}
-
-                        //meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshesBuffer.First().Guid)).FirstOrDefault().Value.Add(load, indexes);
                     }
                 }
 

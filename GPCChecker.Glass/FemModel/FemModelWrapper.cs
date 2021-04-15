@@ -376,7 +376,11 @@ namespace GPC.Checker.Glasses.FemModel
         /// <summary>
         /// Export this FemModel to a new St7 File
         /// </summary>
+        /// <param name="aw"></param>
         /// <param name="saveFolderPath">Folder where to save the St7 model</param>
+        /// <param name="mId"></param>
+        /// <param name="warnings"></param>
+        /// <param name="errors"></param>
         /// <returns></returns>
         private bool CreateSt7Model(ISt7ApiService aw, string saveFolderPath, out int mId, out List<string> warnings, out List<string> errors)
         {

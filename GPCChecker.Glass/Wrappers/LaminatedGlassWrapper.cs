@@ -187,13 +187,14 @@ namespace GPC.Checker.Glasses.Wrappers
             var glassDistances = GetMonolithicBarycenterDistances();
 
             Vector3d normal = _glassSurface.Shape.GetNormalVector();
+            
 
             // Copia mesh
             for (int i = 0; i < glassDistances.Length; i++)
             {
-                Mesh cloned = (Mesh)mesh.Clone(true);
+                Mesh cloned = (Mesh)mesh.Clone(false);
 
-                cloned.Pan(normal * glassDistances[i]);
+                cloned.Move(normal * glassDistances[i]);
                 
                 meshes[i * 2] = cloned;
             }
@@ -209,7 +210,7 @@ namespace GPC.Checker.Glasses.Wrappers
                     double thickness = (Glass as LaminatedGlass).Interlayers[i].Thickness;
                     double increment = thickness / INTERLAYER_DISCRETIZATION * j;
 
-                    cloned.Pan(normal * (interlayerDistances[i] - thickness / 2.0 + increment));
+                    cloned.Move(normal * (interlayerDistances[i] - thickness / 2.0 + increment));
 
                     var volumeMesh = cloned.ExtrudeFaces(normal * thickness / INTERLAYER_DISCRETIZATION);
 
@@ -227,12 +228,16 @@ namespace GPC.Checker.Glasses.Wrappers
                 //meshes[i * 2 + 1] = volumeMesh;
             }
             
+
+            // Assegno mesh a wrapper
             _meshes = meshes.ToList();
 
+            // Creo e assegno mappa - meshcarichi,id al wrapper
 
             Mesh externalMesh = GetExternalGlassMesh();
+            Mesh internalMesh = GetInternalGlassMesh();
 
-            // Setup associazione carichi - elementi mesh
+
             _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(externalMesh, meshGeometryRestrainVertices) }; ;
 
             _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
@@ -249,6 +254,17 @@ namespace GPC.Checker.Glasses.Wrappers
                     _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
                 }
             }
+            foreach (var load in _internalFaceLoads)
+            {
+                if (meshLoadsFaceIndexes.ContainsKey(load))
+                {
+                    if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(internalMesh.Guid)).Count() == 0)
+                    {
+                        _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(internalMesh, new Dictionary<Load, int[]>()));
+                    }
+                    _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(internalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
+                }
+            }
 
             foreach (var load in _externalFaceLoads)
             {
@@ -259,6 +275,17 @@ namespace GPC.Checker.Glasses.Wrappers
                         _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(externalMesh, new Dictionary<Load, int[]>()));
                     }
                     _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
+                }
+            }
+            foreach (var load in _externalFaceLoads)
+            {
+                if (meshLoadsVertexIndexes.ContainsKey(load))
+                {
+                    if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(internalMesh.Guid)).Count() == 0)
+                    {
+                        _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(internalMesh, new Dictionary<Load, int[]>()));
+                    }
+                    _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(internalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
                 }
             }
 
