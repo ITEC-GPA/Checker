@@ -230,13 +230,14 @@ namespace GPC.Checker.Glasses.Wrappers
             _meshes = meshes.ToList();
 
 
+            Mesh externalMesh = GetExternalGlassMesh();
+
             // Setup associazione carichi - elementi mesh
-            _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) }; ;
+            _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(externalMesh, meshGeometryRestrainVertices) }; ;
 
             _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
             _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
 
-            Mesh externalMesh = GetExternalGlassMesh();
             foreach (var load in _externalFaceLoads)
             {
                 if (meshLoadsFaceIndexes.ContainsKey(load))
@@ -260,8 +261,6 @@ namespace GPC.Checker.Glasses.Wrappers
                     _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
                 }
             }
-
-
 
             return true;
         }

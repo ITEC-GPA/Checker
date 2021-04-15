@@ -396,6 +396,9 @@ namespace GlassTests
             gs1.AddLoad(nal3);
             gs1.AddLoad(lll);
 
+            gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+
+
             // Model
             model.AddSurface(gs1);
 

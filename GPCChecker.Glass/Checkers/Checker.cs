@@ -122,7 +122,7 @@ namespace GPC.Checker.Glasses.Checkers
                 _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
 
                 //_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalisys
-
+                
                 for (int i = 0; i < package.Length; i++)
                 {
                     IGlassPackage layer = package[i];
@@ -131,14 +131,16 @@ namespace GPC.Checker.Glasses.Checkers
                         string propertyName = $"Mg {i}";
                         _femModel.AddProperty(new MonolithicGlassProperty((MonolithicGlass)layer, propertyName));
 
-                        _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, null);
+                        _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, 
+                                          wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
                     }
                     else if (layer is Interlayer)
                     {
                         string propertyName = $"Interlayer {i}";
                         _femModel.AddProperty(new InterlayerBrickProperty((Interlayer)layer, 10, 20, propertyName));
 
-                        _femModel.AddMesh(meshes[i], null, propertyName, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, null);
+                        _femModel.AddMesh(meshes[i], null, propertyName, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, 
+                                          wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
                     }
                     else
                     {
