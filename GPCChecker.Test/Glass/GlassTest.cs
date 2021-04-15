@@ -74,7 +74,7 @@ namespace GlassTests
             MonolithicGlass mg = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
 
             // Prototype
-            Prototype p1 = new Prototype("p1", mg, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7 );
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7 );
 
             var meshOptions = new Mesh.GenerateOptions();
             meshOptions.MeshSize = 40;
@@ -184,7 +184,7 @@ namespace GlassTests
             MonolithicGlass mg = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
 
             // Prototype
-            Prototype p1 = new Prototype("p1", mg, null ,null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7);
+            Prototype p1 = new Prototype("p1", mg, null ,null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7);
 
             var meshOptions = new Mesh.GenerateOptions();
             meshOptions.MeshSize = 40;
@@ -314,7 +314,7 @@ namespace GlassTests
             LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2 }, new Interlayer[] { intr });
 
             // Prototype
-            Prototype p1 = new Prototype("p1", lg1, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7);
+            Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7);
 
             var meshOptions = new Mesh.GenerateOptions();
             meshOptions.MeshSize = 40;
@@ -353,7 +353,7 @@ namespace GlassTests
             LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2, mg3, mg4, mg5 }, new Interlayer[] { intr1, intr2, intr3, intr4 });
 
             // Prototype
-            Prototype p1 = new Prototype("p1", lg1, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7);
+            Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7);
 
             var meshOptions = new Mesh.GenerateOptions();
             meshOptions.MeshSize = 20;
