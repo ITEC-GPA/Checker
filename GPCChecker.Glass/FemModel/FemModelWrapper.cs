@@ -224,7 +224,7 @@ namespace GPC.Checker.Glasses.FemModel
                 {
                     switch (analysisTypes)
                     {
-                        case Prototype.AnalysisTypes.LinearStaticAnalisys:
+                        case Prototype.AnalysisTypes.LinearStaticAnalysis:
 
                             bool status = St7LinearSolverSetup(aw, mid);
                             if (status)
