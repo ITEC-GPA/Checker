@@ -1,6 +1,7 @@
 ﻿using GPC.Geometry;
 using GPC.Model.FreedomCases;
 using GPC.Model.Restrains;
+using GPC.Utilities.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace GPC.Checker.Glasses.Restrain
     /// <summary>
     /// ParametricLineLoad is a load defined with parametric coordinates 
     /// </summary>
+    [UI(Description = "Line restrain", Group = "Parametric restraints", Kind = "Parametric restrain")]
     public class ParametricLineRestrain : GPC.Model.Restrains.LineRestrain, IParametricRestrain
     {
 

@@ -177,7 +177,7 @@ namespace GPC.Checker.Glasses.Checkers
 
             if (_glassSurface.Prototype.SolverType == Models.Prototype.SolverTypes.Straus7)
             {
-                if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalisys)
+                if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
                 {
                     var glass = _glassSurface.Prototype.Glass;
 
@@ -186,7 +186,7 @@ namespace GPC.Checker.Glasses.Checkers
                     {
                         _femModel.SaveToSt7(_folderPath);
 
-                        _femModel.RunSt7Solver(Models.Prototype.AnalysisTypes.LinearStaticAnalisys);
+                        _femModel.RunSt7Solver(Models.Prototype.AnalysisTypes.LinearStaticAnalysis);
 
                         _femModel.ReadSt7LinearCombinationResults();
 
