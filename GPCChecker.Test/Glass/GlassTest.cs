@@ -337,7 +337,7 @@ namespace GlassTests
             Model model = new Model(base.GetOutputFolder());
 
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 0, 500));
-            s1.Fill[0].Pan(new Vector3d(50, 0, 0));
+            s1.Fill[0].Move(new Vector3d(50, 0, 0));
 
             MonolithicGlass mg1 = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
             MonolithicGlass mg2 = new MonolithicGlass("Mg2", 20, GetGlassMaterialAstm());
@@ -356,7 +356,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7);
 
             var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 20;
+            meshOptions.MeshSize = 1000;
             meshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
