@@ -102,20 +102,25 @@ namespace GPC.Checker.Glasses.Checkers
             {
                 LaminatedGlassWrapper wrapper = new LaminatedGlassWrapper(_glassSurface, lg);
 
-                wrapper.AddExternalFaceLoads(_glassSurface.GetLoads());
+                wrapper.AddInternalFaceLoads(_glassSurface.GetLoads());
 
                 // Recupero la mesh - wrapper la genera
                 List<Mesh> meshes = wrapper.Meshes;
 
                 Mesh meshExternal = wrapper.GetExternalGlassMesh();
-                Mesh meshInternal = wrapper.GetExternalGlassMesh();
+                Mesh meshInternal = wrapper.GetInternalGlassMesh();
 
-                // sdoppiare per cercare tutte e due le mesh
                 GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
                                               wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
-                                              out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap,
-                                              out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap,
-                                              out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMap);
+                                              out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMapExternal,
+                                              out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMapExternal,
+                                              out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapExternal);
+
+                GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value,
+                                              wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value,
+                                              out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMapInternal,
+                                              out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMapInternal,
+                                              out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapInternal);
 
                 var package = lg.GetGlassPackage();
 
@@ -131,16 +136,27 @@ namespace GPC.Checker.Glasses.Checkers
                         string propertyName = $"Mg {i}";
                         _femModel.AddProperty(new MonolithicGlassProperty((MonolithicGlass)layer, propertyName));
 
-                        _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, 
-                                          wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
+                        if (meshes[i].CompareGuid(meshExternal.Guid))
+                        {
+                            _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal,
+                                                wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
+                        }
+                        else if (meshes[i].CompareGuid(meshInternal.Guid))
+                        {
+                            _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapInternal, vertexLineLoadMeshEntityMapInternal, faceAreaLoadMeshEntityMapInternal,
+                                                wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value);
+                        }
+                        else
+                        {
+                            _femModel.AddMesh(meshes[i], propertyName, null, null, null, null, null);
+                        }
                     }
                     else if (layer is Interlayer)
                     {
                         string propertyName = $"Interlayer {i}";
                         _femModel.AddProperty(new InterlayerBrickProperty((Interlayer)layer, 10, 20, propertyName));
 
-                        _femModel.AddMesh(meshes[i], null, propertyName, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, 
-                                          wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
+                        _femModel.AddMesh(meshes[i], null, propertyName, null, null, null, null);
                     }
                     else
                     {

@@ -277,7 +277,7 @@ namespace GPC.Checker.Glasses.Wrappers
                     _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
                 }
             }
-            foreach (var load in _externalFaceLoads)
+            foreach (var load in _internalFaceLoads)
             {
                 if (meshLoadsVertexIndexes.ContainsKey(load))
                 {
