@@ -497,7 +497,10 @@ namespace GPC.Checker.Glasses.FemModel
                         {
                             St7SetPlateGlobalPressure(aw, mId, st7PlateIndex, _st7LoadCaseMap[(LoadCase)pgpa.LoadCase], pgpa);
                         }
-
+                        else if (attribute is PlateNormalPressureAttribute pnpa)
+                        {
+                            St7SetPlateNormalPressure(aw, mId, st7PlateIndex, _st7LoadCaseMap[(LoadCase)pnpa.LoadCase], pnpa);
+                        }
                         else
                             throw new NotSupportedException("Point attribute not supported");
                     }
@@ -779,6 +782,12 @@ namespace GPC.Checker.Glasses.FemModel
         {
             return aw.SetPlateGlobalPressure(mid, plateNumber, St7ApiConst.btFalse, caseNumber, gpl.P1, gpl.P2, gpl.P3);
         }
+
+        private bool St7SetPlateNormalPressure(ISt7ApiService aw, int mid, int plateNumber, int caseNumber, PlateNormalPressureAttribute pnp)
+        {
+            return aw.SetPlateNormalPressure(mid, plateNumber, caseNumber, pnp.Pressure);
+        }
+
 
         private bool St7LinearSolverSetup(ISt7ApiService aw, int mid)
         {
