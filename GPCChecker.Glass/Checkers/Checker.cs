@@ -82,13 +82,18 @@ namespace GPC.Checker.Glasses.Checkers
 
                 MonolithicGlassProperty pp = new MonolithicGlassProperty(mg, "mg");
 
-                GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.ContainsKey(meshes.First()) ? wrapper.MeshLoadsVertexIndexes[meshes.First()] : null,
-                                              wrapper.MeshLoadsFaceIndexes.ContainsKey(meshes.First()) ? wrapper.MeshLoadsFaceIndexes[meshes.First()] : null,
-                                              out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap, out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap,
+                Mesh meshExternal = wrapper.GetExternalGlassMesh(); 
+                Mesh meshInternal = wrapper.GetExternalGlassMesh();
+
+                GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
+                                              wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
+                                              out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap, 
+                                              out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap,
                                               out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMap);
 
                 _femModel.AddProperty(pp);
-                _femModel.AddMesh(meshes.First(), pp.Name, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, wrapper.MeshGeometryRestrainVertices.Values.FirstOrDefault());
+                _femModel.AddMesh(meshes.First(), pp.Name, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, 
+                                  wrapper.MeshGeometryRestrainVertices.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
 
                 _femModel.AddCombinations(_combinations);
 
@@ -102,10 +107,14 @@ namespace GPC.Checker.Glasses.Checkers
                 // Recupero la mesh - wrapper la genera
                 List<Mesh> meshes = wrapper.Meshes;
 
+                Mesh meshExternal = wrapper.GetExternalGlassMesh();
+                Mesh meshInternal = wrapper.GetExternalGlassMesh();
+
                 // sdoppiare per cercare tutte e due le mesh
-                GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.ContainsKey(wrapper.GetExternalGlassMesh()) ? wrapper.MeshLoadsVertexIndexes[wrapper.GetExternalGlassMesh()] : null,
-                                              wrapper.MeshLoadsFaceIndexes.ContainsKey(wrapper.GetExternalGlassMesh()) ? wrapper.MeshLoadsFaceIndexes[wrapper.GetExternalGlassMesh()] : null,
-                                              out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap, out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap,
+                GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
+                                              wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
+                                              out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap,
+                                              out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap,
                                               out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMap);
 
                 var package = lg.GetGlassPackage();

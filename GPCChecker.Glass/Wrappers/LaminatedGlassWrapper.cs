@@ -174,9 +174,9 @@ namespace GPC.Checker.Glasses.Wrappers
         /// <inheritdoc cref="GlassWrapper.GenerateMesh()"/>
         public override bool GenerateMesh()
         {
-            bool status = GenerateSinglePanelMesh(out Mesh mesh, out Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> meshGeometryRestrainVertices,
-                                                                 out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsVertexIndexes,
-                                                                 out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsFaceIndexes);
+            bool status = GenerateSingleLayerMesh(out Mesh mesh, out Dictionary<GeometryRestrain, int[]> meshGeometryRestrainVertices,
+                                                                 out Dictionary<Load, int[]> meshLoadsVertexIndexes,
+                                                                 out Dictionary<Load, int[]> meshLoadsFaceIndexes);
 
             if (!status)
                 return false;
@@ -231,43 +231,36 @@ namespace GPC.Checker.Glasses.Wrappers
 
 
             // Setup associazione carichi - elementi mesh
+            _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) }; ;
 
-            _meshGeometryRestrainVertices = meshGeometryRestrainVertices;
+            _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
+            _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
 
-            _meshLoadsFaceIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>();
-            foreach(var load in _externalFaceLoads)
-            {
-                Mesh meshBuffer = GetExternalGlassMesh();
-                var b = meshLoadsFaceIndexes.Values.Select(j => j.Where(i => i.Key.Guid.Equals(load.Guid)).Select(i => i.Value).FirstOrDefault()).FirstOrDefault();
-
-                if (b != null)
-                {
-                    if (!_meshLoadsFaceIndexes.ContainsKey(meshBuffer))
-                    {
-                        _meshLoadsFaceIndexes.Add(meshBuffer, new Dictionary<Load, int[]>());
-                    }
-
-                    _meshLoadsFaceIndexes[meshBuffer].Add(load, b);
-                }
-            }
-
-
-            _meshLoadsVertexIndexes = new Dictionary<Mesh, Dictionary<Load, int[]>>(); 
+            Mesh externalMesh = GetExternalGlassMesh();
             foreach (var load in _externalFaceLoads)
             {
-                Mesh meshBuffer = GetExternalGlassMesh();
-                var b = meshLoadsVertexIndexes.Values.Select(j => j.Where(i => i.Key.Guid.Equals(load.Guid)).Select(i => i.Value).FirstOrDefault()).FirstOrDefault();
-
-                if (b != null)
+                if (meshLoadsFaceIndexes.ContainsKey(load))
                 {
-                    if (!_meshLoadsVertexIndexes.ContainsKey(meshBuffer))
+                    if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(externalMesh.Guid)).Count() == 0)
                     {
-                        _meshLoadsVertexIndexes.Add(meshBuffer, new Dictionary<Load, int[]>());
+                        _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(externalMesh, new Dictionary<Load, int[]>()));
                     }
-
-                    _meshLoadsVertexIndexes[meshBuffer].Add(load, b);
+                    _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
                 }
             }
+
+            foreach (var load in _externalFaceLoads)
+            {
+                if (meshLoadsVertexIndexes.ContainsKey(load))
+                {
+                    if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(externalMesh.Guid)).Count() == 0)
+                    {
+                        _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(externalMesh, new Dictionary<Load, int[]>()));
+                    }
+                    _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
+                }
+            }
+
 
 
             return true;

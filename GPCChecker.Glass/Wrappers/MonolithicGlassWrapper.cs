@@ -1,4 +1,6 @@
-﻿using GPC.Checker.Glasses.Glasses;
+﻿using System.Linq;
+using System.Collections.Generic;
+using GPC.Checker.Glasses.Glasses;
 using GPC.Model.Glasses;
 using GPC.Model.Restrains;
 using GPC.Model.LoadCases;
@@ -81,17 +83,17 @@ namespace GPC.Checker.Glasses.Wrappers
         /// <inheritdoc cref="GlassWrapper.GenerateMesh()"/>
         public override bool GenerateMesh()
         {
-            bool status = GenerateSinglePanelMesh(out Mesh meshes, out Dictionary<Mesh, Dictionary<GeometryRestrain, int[]>> meshGeometryRestrainVertices,
-                                                                   out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsVertexIndexes,
-                                                                   out Dictionary<Mesh, Dictionary<Load, int[]>> meshLoadsFaceIndexes);
+            bool status = GenerateSingleLayerMesh(out Mesh mesh, out Dictionary<GeometryRestrain, int[]> meshGeometryRestrainVertices,
+                                                                   out Dictionary<Load, int[]> meshLoadsVertexIndexes,
+                                                                   out Dictionary<Load, int[]> meshLoadsFaceIndexes);
 
             if (!status)
                 return false;
 
-            _meshes = new List<Mesh>() { meshes };
-            _meshGeometryRestrainVertices = meshGeometryRestrainVertices;
-            _meshLoadsFaceIndexes = meshLoadsFaceIndexes;
-            _meshLoadsVertexIndexes = meshLoadsVertexIndexes;
+            _meshes = new List<Mesh>() { mesh };
+            _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) };
+            _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>() { new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, meshLoadsVertexIndexes) }; ;
+            _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>() { new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, meshLoadsFaceIndexes) }; ;
 
             return true;
         }

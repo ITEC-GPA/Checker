@@ -366,8 +366,8 @@ namespace GlassTests
             LoadCase lc3 = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad);
 
             NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lc1);
-            NormalAreaLoad nal2 = new NormalAreaLoad(1, s1, lc2);
-            NormalAreaLoad nal3 = new NormalAreaLoad(1, s1, lc3);
+            NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lc2);
+            NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lc3);
             LineLoad lll = new LineLoad(0, 1, 0, 0, 0, 0, new Line3d(new Point3d(40, 0, 50), new Point3d(150, 0, 200)), lc3, CoordinateSystem.Global);
 
             CombinationEn combo1 = new CombinationEn("Cmb1", CombinationEn.CombinationType.UltimateStructural);
