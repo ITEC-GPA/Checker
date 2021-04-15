@@ -1,14 +1,16 @@
-﻿using GPC.Model.Glasses;
-using GPC.Checker.Glasses.Restrain;
+﻿using GPC.Checker.Glasses.Restrain;
+using GPC.Geometry;
+using GPC.Model.Combinations;
+using GPC.Model.Glasses;
+using GPC.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
-using GPC.Model.Combinations;
-using GPC.Utilities.Extensions;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 
 namespace GPC.Checker.Glasses.Models
 {
+    [Serializable]
     public sealed class Prototype : GPC.Model.ModelObject, IEquatable<Prototype>
     {
         #region PUBLIC ENUMS
@@ -36,6 +38,7 @@ namespace GPC.Checker.Glasses.Models
             PalmgrenMiner = 2,
 
             /// <summary> Ref. ASTM E1300-16 §X5 </summary>
+            [Description("ASTM E1300-16")]
             ASTME1300 = 3
         }
 
@@ -65,7 +68,7 @@ namespace GPC.Checker.Glasses.Models
 
         public enum SolverTypes
         {
-            [Description("GPC solver")]
+            [Description("GPC")]
             GPCSolver,
             Straus7
         }
@@ -75,20 +78,20 @@ namespace GPC.Checker.Glasses.Models
         #region Variables
 
         // Parametri
-        private AnalysisTypes _analysisType;
-
-        private CheckMethods _checkMethod;
-        private LaminatedEqThicknessMethods _laminatedEqThicknessMethod;
-        private Standards _standard;
-        private SolverTypes _solverType;
+        private readonly AnalysisTypes _analysisType;
+        private readonly CheckMethods _checkMethod;
+        private readonly LaminatedEqThicknessMethods _laminatedEqThicknessMethod;
+        private readonly Standards _standard;
+        private readonly SolverTypes _solverType;
 
         // Proprietà vetro
-        private Glass _glass;
+        private readonly Glass _glass;
 
         // Restrain
-        private List<IParametricRestrain> _restrains;
+        private Polygon3d _polygon;
+        private readonly List<IParametricRestrain> _restrains;
 
-        private List<Combination> _combinations;
+        private readonly List<Combination> _combinations;
 
         #endregion
 
@@ -106,46 +109,72 @@ namespace GPC.Checker.Glasses.Models
 
         public SolverTypes SolverType => _solverType;
 
-        public List<IParametricRestrain> Restrains => _restrains;
+        public Polygon3d Polygon
+        {
+            get => _polygon;
+            set => _polygon = value;
+        }
 
-        public List<Combination> Combinations => _combinations;
+        public IEnumerable<IParametricRestrain> Restrains => _restrains;
+
+        public IEnumerable<Combination> Combinations => _combinations;
 
         #endregion
 
-        public Prototype(string name, Glass glass, List<IParametricRestrain> restrains, List<Combination> combinations,
-                         Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, LaminatedEqThicknessMethods laminatedEqThicknessMethod, SolverTypes solverType)
-                        : base(name)
+        public Prototype(string name, Glass glass, Polygon3d polygon, List<IParametricRestrain> restrains, List<Combination> combinations, Standards standard, 
+            AnalysisTypes analysisType, CheckMethods checkMethod, LaminatedEqThicknessMethods laminatedEqThicknessMethod, SolverTypes solverType)
+            : base(name)
         {
-            this._standard = standard;
-            this._analysisType = analysisType;
-            this._checkMethod = checkMethod;
-            this._laminatedEqThicknessMethod = laminatedEqThicknessMethod;
-            this._solverType = solverType;
+            _standard = standard;
+            _analysisType = analysisType;
+            _checkMethod = checkMethod;
+            _laminatedEqThicknessMethod = laminatedEqThicknessMethod;
+            _solverType = solverType;
 
-            this._glass = glass ?? throw new ArgumentNullException("Glass cannot be null");
+            _glass = glass ?? throw new ArgumentNullException("Glass cannot be null");
 
-            this._restrains = restrains == null ? new List<IParametricRestrain>() : restrains;
-            this._combinations = combinations == null ? new List<Combination>() : combinations;
+            if (restrains != null && polygon == null)
+                throw new ArgumentException("If there are restraints provided the polygon cannot be null");
+            _polygon = polygon;
+            _restrains = restrains == null ? new List<IParametricRestrain>() : restrains;
+            _combinations = combinations == null ? new List<Combination>() : combinations;
         }
 
 
-        public Prototype(string name, Glass glass,
-                         Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, LaminatedEqThicknessMethods laminatedEqThicknessMethod, SolverTypes solverType)
-                        : this(name, glass, null, null, standard, analysisType, checkMethod, laminatedEqThicknessMethod, solverType)
+        public Prototype(string name, Glass glass, Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, 
+            LaminatedEqThicknessMethods laminatedEqThicknessMethod, SolverTypes solverType)
+            : this(name, glass, null, null, null, standard, analysisType, checkMethod, laminatedEqThicknessMethod, solverType)
         {
-
         }
 
 
         public Prototype(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            throw new NotSupportedException();
+            _analysisType = (AnalysisTypes)info.GetValue("AnalysisType", typeof(AnalysisTypes));
+            _checkMethod = (CheckMethods)info.GetValue("CheckMethod", typeof(CheckMethods));
+            _laminatedEqThicknessMethod = (LaminatedEqThicknessMethods)info.GetValue("LaminatedEqThicknessMethod", typeof(LaminatedEqThicknessMethods)); ;
+            _standard = (Standards)info.GetValue("Standard", typeof(Standards)); ;            
+            _solverType = (SolverTypes)info.GetValue("SolverType", typeof(SolverTypes)); ;
+            _glass = (Glass)info.GetValue("Glass", typeof(Glass));
+            _polygon = (Polygon3d)info.GetValue("Polygon", typeof(Polygon3d));
+            _restrains = (List<IParametricRestrain>)info.GetValue("Restraints", typeof(List<IParametricRestrain>));
+            _combinations = (List<Combination>)info.GetValue("Combinations", typeof(List<Combination>));
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            throw new NotSupportedException();
+            base.GetObjectData(info, context);
+
+            info.AddValue("AnalysisType", _analysisType, typeof(AnalysisTypes));
+            info.AddValue("CheckMethod", _checkMethod, typeof(CheckMethods));
+            info.AddValue("LaminatedEqThicknessMethod", _laminatedEqThicknessMethod, typeof(LaminatedEqThicknessMethods));
+            info.AddValue("Standard", _standard, typeof(Standards));
+            info.AddValue("SolverType", _solverType, typeof(SolverTypes));
+            info.AddValue("Glass", _glass, typeof(Glass));
+            info.AddValue("Polygon", _polygon, typeof(Polygon3d));
+            info.AddValue("Restraints", _restrains, typeof(List<IParametricRestrain>));
+            info.AddValue("Combinations", _combinations, typeof(List<Combination>));
         }
 
 
@@ -159,18 +188,38 @@ namespace GPC.Checker.Glasses.Models
             _combinations.Add(combination);
         }
 
+        public void DeleteCombination(Combination combination)
+        {
+            _combinations.Remove(combination);
+        }
+
+        public void DeleteCombinationAt(int index)
+        {
+            _combinations.RemoveAt(index);
+        }
+
         /// <summary>
         /// Add a parametric restrain to this prototype
         /// </summary>
         public void AddParametricRestrain(IParametricRestrain restrain)
         {
+            // TODO: validare qui il restraint sulla base di polygon
+            if (_polygon == null)
+                throw new InvalidOperationException("Can't add restraint if the Polygon property is null");
             _restrains.Add(restrain);
         }
 
+        public void DeleteParametricRestrain(IParametricRestrain restrain)
+        {
+            _restrains.Remove(restrain);
+        }
+
+        public void DeleteParametricRestrainAt(int index)
+        {
+            _restrains.RemoveAt(index);
+        }
 
         #endregion
-
-
 
         #region Equals, hashcode, operators
 
@@ -190,6 +239,7 @@ namespace GPC.Checker.Glasses.Models
                                     && other._standard.Equals(_standard)
                                     && other._solverType.Equals(_solverType)
                                     && other._glass.Equals(_glass)
+                                    && other._polygon.Equals(_polygon)
                                     && other._restrains.ScrambledEquals(_restrains)
                                     && other._combinations.ScrambledEquals(_combinations)
                                     && base.Equals(other);
@@ -204,18 +254,14 @@ namespace GPC.Checker.Glasses.Models
             hashCode = hashCode * -17 + EqualityComparer<LaminatedEqThicknessMethods>.Default.GetHashCode(_laminatedEqThicknessMethod);
             hashCode = hashCode * -17 + EqualityComparer<Standards>.Default.GetHashCode(_standard);
             hashCode = hashCode * -17 + EqualityComparer<SolverTypes>.Default.GetHashCode(_solverType);
-
             hashCode = hashCode * -17 + EqualityComparer<Glass>.Default.GetHashCode(_glass);
+            hashCode = hashCode * -17 + EqualityComparer<Polygon3d>.Default.GetHashCode(_polygon);
 
             foreach (var el in _restrains)
-            {
                 hashCode = hashCode + 17 * EqualityComparer<IParametricRestrain>.Default.GetHashCode(el);
-            }
 
             foreach (var el in _combinations)
-            {
                 hashCode = hashCode + 17 * EqualityComparer<Combination>.Default.GetHashCode(el);
-            }
 
             return hashCode;
         }
