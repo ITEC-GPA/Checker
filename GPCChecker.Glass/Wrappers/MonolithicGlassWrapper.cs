@@ -1,11 +1,8 @@
-﻿using System.Linq;
-using System.Collections.Generic;
-using GPC.Checker.Glasses.Glasses;
-using GPC.Model.Glasses;
-using GPC.Model.Restrains;
-using GPC.Model.LoadCases;
-using GPC.Model.Loads;
+﻿using GPC.Checker.Glasses.Glasses;
 using GPC.Geometry.Meshes;
+using GPC.Model.Glasses;
+using GPC.Model.Loads;
+using GPC.Model.Restrains;
 using System.Collections.Generic;
 
 namespace GPC.Checker.Glasses.Wrappers
