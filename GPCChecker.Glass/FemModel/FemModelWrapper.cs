@@ -167,7 +167,7 @@ namespace GPC.Checker.Glasses.FemModel
         /// 
         /// </summary>
         /// <param name="saveFolderPath">Folder path where to save the results</param>
-        public void SaveToSt7(string saveFolderPath)
+        public void SaveFemModelToSt7(string saveFolderPath)
         {
             if (string.IsNullOrEmpty(saveFolderPath) || string.IsNullOrWhiteSpace(saveFolderPath))
                 throw new DirectoryNotFoundException();
@@ -211,7 +211,8 @@ namespace GPC.Checker.Glasses.FemModel
                 ChannelServices.UnregisterChannel(channel);
         }
 
-        public void RunSt7Solver(Prototype.AnalysisTypes analysisTypes)
+        /// <remarks><see cref="SaveFemModelToSt7(string)"/> must be called before calling this method</remarks>
+        public void RunSt7Solver()
         {
 
             if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
@@ -222,23 +223,26 @@ namespace GPC.Checker.Glasses.FemModel
 
                 if (isOpened)
                 {
-                    switch (analysisTypes)
+                    switch (AnalysisType)
                     {
-                        case Prototype.AnalysisTypes.LinearStaticAnalysis:
+                        case AnalysisTypes.Linear:
 
                             bool status = St7LinearSolverSetup(aw, mid);
                             if (status)
                                 aw.SaveFile(mid);
+
+                            St7SetLinearLoadCaseCombination(aw, mid);
+
                             status = St7RunLinearSolver(aw, _st7FilePath);
 
                             _st7LinearResultFilePath = Path.ChangeExtension(_st7FilePath, "LSA");
                             break;
 
-                        case Prototype.AnalysisTypes.NonLinearStaticAnalysis:
+                        case AnalysisTypes.NonLinear:
                             throw new NotImplementedException();
 
                         default:
-                            throw new NotSupportedException($"Analysis type {analysisTypes} not supported");
+                            throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
                     }
 
                     aw.CloseFile(mid);
@@ -406,15 +410,17 @@ namespace GPC.Checker.Glasses.FemModel
 
             if (!aw.SetUnits(mId, st7Units))
                 throw new Exception("Failed to set the units");
-
+            
             // Setup Stages
-            St7SetStages(aw, mId);
+            if (_stages.Count > 0)
+                St7SetStages(aw, mId);
 
             // Setup loadcases
             St7SetLoadCase(aw, mId);
 
-            St7SetLinearLoadCaseCombination(aw, mId);
 
+            
+            #region Geometry
             // Nodes
             int st7NodeIndex = 0;
             foreach (var node in _nodes)
@@ -454,10 +460,11 @@ namespace GPC.Checker.Glasses.FemModel
             St7SetPlateProperties(aw, mId);
             St7SetBrickProperties(aw, mId);
 
-            // Plate
             int glassGroupId = 0;
             aw.NewChildGroup(mId, 1, "Glass " + "1", ref glassGroupId);
 
+            // Plate
+            // Brick
             int st7PlateIndex = 0;
             int st7BrickIndex = 0;
             foreach (var element in _elements)
@@ -554,18 +561,19 @@ namespace GPC.Checker.Glasses.FemModel
 
             }
 
+            #endregion
+
+
             return true;
         }
 
 
         private void St7SetStages(ISt7ApiService aw, int mid)
         {
-            //// Creo stage per ogni loadcase
-
-            //foreach (var lc in base._loadCases.OrderBy(x => x.Value))
-            //{
-            //    aw.AddStage(mid, lc.Key.Name, new int[] { St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
-            //}
+            foreach(var stage in _stages)
+            {
+                aw.AddStage(mid, stage.Name, new int[] { stage.Morph ? St7ApiConst.btTrue : St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
+            }
         }
 
         private void St7SetPlateProperties(ISt7ApiService aw, int mid)

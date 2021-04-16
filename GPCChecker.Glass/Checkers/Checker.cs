@@ -12,6 +12,7 @@ using GPC.Model.Loads;
 using System.Linq;
 using GPC.Model.Combinations;
 using GPC.Model.Results;
+using GPC.Model.FEM;
 
 namespace GPC.Checker.Glasses.Checkers
 {
@@ -71,7 +72,7 @@ namespace GPC.Checker.Glasses.Checkers
                 MonolithicGlassWrapper wrapper = new MonolithicGlassWrapper(_glassSurface, mg);
                 wrapper.AddExternalFaceLoads(_glassSurface.GetLoads());
 
-                // Recupero la mesh - wrapper la genera
+                // GEOMETRIA
                 List<Mesh> meshes = wrapper.Meshes;
 
                 if (meshes.Count > 1)
@@ -82,33 +83,7 @@ namespace GPC.Checker.Glasses.Checkers
 
                 MonolithicGlassProperty pp = new MonolithicGlassProperty(mg, "mg");
 
-                Mesh meshExternal = wrapper.GetExternalGlassMesh(); 
-                Mesh meshInternal = wrapper.GetExternalGlassMesh();
-
-                GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
-                                              wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
-                                              out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap, 
-                                              out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap,
-                                              out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMap);
-
-                _femModel.AddProperty(pp);
-                _femModel.AddMesh(meshes.First(), pp.Name, null, vertexLoadMeshEntityMap, vertexLineLoadMeshEntityMap, faceAreaLoadMeshEntityMap, 
-                                  wrapper.MeshGeometryRestrainVertices.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
-
-                _femModel.AddCombinations(_combinations);
-
-            }
-            else if (_glassSurface.Prototype.Glass is LaminatedGlass lg)
-            {
-                LaminatedGlassWrapper wrapper = new LaminatedGlassWrapper(_glassSurface, lg);
-
-                wrapper.AddInternalFaceLoads(_glassSurface.GetLoads());
-
-                // Recupero la mesh - wrapper la genera
-                List<Mesh> meshes = wrapper.Meshes;
-
                 Mesh meshExternal = wrapper.GetExternalGlassMesh();
-                Mesh meshInternal = wrapper.GetInternalGlassMesh();
 
                 GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
                                               wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
@@ -116,53 +91,144 @@ namespace GPC.Checker.Glasses.Checkers
                                               out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMapExternal,
                                               out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapExternal);
 
-                GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value,
-                                              wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value,
-                                              out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMapInternal,
-                                              out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMapInternal,
-                                              out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapInternal);
+                _femModel.AddProperty(pp);
+                _femModel.AddMesh(meshes.First(), pp.Name, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal, 
+                                  wrapper.MeshGeometryRestrainVertices.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
 
-                var package = lg.GetGlassPackage();
+                // TIPO DI ANALISI
 
-                _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
-
-                //_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalisys
-                
-                for (int i = 0; i < package.Length; i++)
+                if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
                 {
-                    IGlassPackage layer = package[i];
-                    if (layer is MonolithicGlass)
-                    {
-                        string propertyName = $"Mg {i}";
-                        _femModel.AddProperty(new MonolithicGlassProperty((MonolithicGlass)layer, propertyName));
+                    // COMBINAZIONI LINEARI - NO STAGE
+                    // STRAUS: LINEAR LOAD COMBINATION TABLE
+                    _femModel.AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear;
+                    _femModel.AddCombinations(_combinations);
+                }
+                else if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.NonLinearStaticAnalysis)
+                {
+                    // COMBINAZIONI NON LINEARI - NO STAGE
+                    // STRAUS: MONOSTAGE, INCREMENTI COME COMBINAZIONI NON LINEARI
 
-                        if (meshes[i].CompareGuid(meshExternal.Guid))
+                    _femModel.AnalysisType = Model.FEM.FemModel.AnalysisTypes.NonLinear;
+
+                    _femModel.AddCombinations(_combinations);
+
+                    Stage stage = _femModel.AddStageAsCopyOfModel("Stage1", Model.FEM.FemModel.AnalysisTypes.Linear);
+                    
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+            }
+            else if (_glassSurface.Prototype.Glass is LaminatedGlass lg)
+            {
+                if (_glassSurface.Prototype.LaminatedAnalysisType == Models.Prototype.LaminatedAnalysisTypes.MultiElement)
+                {
+                    LaminatedGlassWrapper wrapper = new LaminatedGlassWrapper(_glassSurface, lg);
+
+                    wrapper.AddInternalFaceLoads(_glassSurface.GetLoads());
+
+                    // GEOMETRIA
+
+                    #region geometria
+
+                    List<Mesh> meshes = wrapper.Meshes;
+
+                    Mesh meshExternal = wrapper.GetExternalGlassMesh();
+                    Mesh meshInternal = wrapper.GetInternalGlassMesh();
+
+                    GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
+                                                  wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
+                                                  out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMapExternal,
+                                                  out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMapExternal,
+                                                  out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapExternal);
+
+                    GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value,
+                                                  wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value,
+                                                  out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMapInternal,
+                                                  out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMapInternal,
+                                                  out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapInternal);
+
+
+                    _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
+
+                    var glassPackage = lg.GetGlassPackage();
+                    for (int i = 0; i < glassPackage.Length; i++)
+                    {
+                        IGlassPackage layer = glassPackage[i];
+                        if (layer is MonolithicGlass)
                         {
-                            _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal,
-                                                wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
+                            string propertyName = $"Mg {i}";
+                            _femModel.AddProperty(new MonolithicGlassProperty((MonolithicGlass)layer, propertyName));
+
+                            if (meshes[i].CompareGuid(meshExternal.Guid))
+                            {
+                                _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal,
+                                                    wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
+                            }
+                            else if (meshes[i].CompareGuid(meshInternal.Guid))
+                            {
+                                _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapInternal, vertexLineLoadMeshEntityMapInternal, faceAreaLoadMeshEntityMapInternal,
+                                                    wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value);
+                            }
+                            else
+                            {
+                                _femModel.AddMesh(meshes[i], propertyName, null, null, null, null, null);
+                            }
                         }
-                        else if (meshes[i].CompareGuid(meshInternal.Guid))
+                        else if (layer is Interlayer)
                         {
-                            _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapInternal, vertexLineLoadMeshEntityMapInternal, faceAreaLoadMeshEntityMapInternal,
-                                                wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value);
+                            string propertyName = $"Interlayer {i}";
+                            _femModel.AddProperty(new InterlayerBrickProperty((Interlayer)layer, 10, 20, propertyName));
+
+                            _femModel.AddMesh(meshes[i], null, propertyName, null, null, null, null);
                         }
                         else
                         {
-                            _femModel.AddMesh(meshes[i], propertyName, null, null, null, null, null);
+                            throw new NotSupportedException();
                         }
-                    }
-                    else if (layer is Interlayer)
-                    {
-                        string propertyName = $"Interlayer {i}";
-                        _femModel.AddProperty(new InterlayerBrickProperty((Interlayer)layer, 10, 20, propertyName));
+                    } 
+                    #endregion
 
-                        _femModel.AddMesh(meshes[i], null, propertyName, null, null, null, null);
+                    // TIPO DI ANALISI
+
+
+
+                    if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
+                    {
+                        _femModel.AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear;
+                    }
+                    else if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.NonLinearStaticAnalysis)
+                    {
+                        _femModel.AnalysisType = Model.FEM.FemModel.AnalysisTypes.NonLinear;
                     }
                     else
                     {
-                        throw new NotSupportedException();
+                        throw new NotImplementedException();
                     }
+
+                    // COMBINAZIONI
+                    _femModel.AddCombinations(_combinations);
+
+
+
+                    //if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
+                    //{
+                    //    _femModel.AddCombinations(_combinations);
+                    //}
+                    //else if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.NonLinearStaticAnalysis)
+                    //{
+
+                    //}
+                    //else
+                    //{
+                    //    throw new NotSupportedException();
+                    //}
                 }
+                else
+                    throw new NotImplementedException(_glassSurface.Prototype.LaminatedAnalysisType.ToString());
 
             }
             else if (_glassSurface.Prototype.Glass is DoubleInsulatingGlass dgu)
@@ -191,43 +257,49 @@ namespace GPC.Checker.Glasses.Checkers
             if (_femModel == null)
                 throw new ApplicationException($"FemModel is null. {nameof(FemModelSetup)} should be called before calling this method");
 
+
             if (_glassSurface.Prototype.SolverType == Models.Prototype.SolverTypes.Straus7)
             {
+                // STRAUS7
+
+                GlassWrapper glassWrapper;
+                if (_glassSurface.Prototype.Glass is MonolithicGlass mg)
+                {
+                    _femModel.SaveFemModelToSt7(_folderPath);
+
+                    _femModel.RunSt7Solver();
+
+                    _femModel.ReadSt7LinearCombinationResults();
+
+                }
+                else if (_glassSurface.Prototype.Glass is LaminatedGlass lg)
+                {
+                    _femModel.SaveFemModelToSt7(_folderPath);
+
+                }
+                else if (_glassSurface.Prototype.Glass is DoubleInsulatingGlass dgu)
+                {
+                    glassWrapper = new DoubleInsulatingGlassWrapper(_glassSurface, dgu);
+                }
+                else if (_glassSurface.Prototype.Glass is TripleInsulatingGlass tgu)
+                {
+                    glassWrapper = new TripleInsulatingGlassWrapper(_glassSurface, tgu);
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+
+
                 if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
                 {
-                    var glass = _glassSurface.Prototype.Glass;
 
-                    GlassWrapper glassWrapper;
-                    if (glass is MonolithicGlass mg)
-                    {
-                        _femModel.SaveToSt7(_folderPath);
-
-                        _femModel.RunSt7Solver(Models.Prototype.AnalysisTypes.LinearStaticAnalysis);
-
-                        _femModel.ReadSt7LinearCombinationResults();
-
-                    }
-                    else if (glass is LaminatedGlass lg)
-                    {
-                        _femModel.SaveToSt7(_folderPath);
-
-                    }
-                    else if (glass is DoubleInsulatingGlass dgu)
-                    {
-                        glassWrapper = new DoubleInsulatingGlassWrapper(_glassSurface, dgu);
-                    }
-                    else if (glass is TripleInsulatingGlass tgu)
-                    {
-                        glassWrapper = new TripleInsulatingGlassWrapper(_glassSurface, tgu);
-                    }
-                    else
-                    {
-                        throw new NotSupportedException();
-                    }
+                    // LINEARE
 
                 }
                 else if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.NonLinearStaticAnalysis)
                 {
+                    // NON LINEARE
                     throw new NotImplementedException(_glassSurface.Prototype.AnalysisType.ToString());
                 }
                 else
@@ -309,7 +381,8 @@ namespace GPC.Checker.Glasses.Checkers
 
         /// <returns>The Load-Vertex/Face Index map differentiated for load type</returns>
         private void GetLoadTypeVerticesDictionary(Dictionary<Load, int[]> vertexLoadEntityMap, Dictionary<Load, int[]> areaLoadEntityMap,
-                                                   out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap, out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap,
+                                                   out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMap, 
+                                                   out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMap,
                                                    out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMap)
         {
 

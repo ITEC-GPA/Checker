@@ -45,7 +45,7 @@ namespace GlassTests
             fmw.AddProperty(pp);
             fmw.AddShape(s1, pp.Name, meshOptions, new List<Load>() { p1, l1 }, new List<GeometryRestrain>() { pr, lr });
 
-            fmw.SaveToSt7(base.GetOutputFolder());
+            fmw.SaveFemModelToSt7(base.GetOutputFolder());
         }
     }
 }
