@@ -300,6 +300,113 @@ namespace GlassTests
 
 
         [TestMethod]
+        public void MonolithicGlass2()
+        {
+            Model model = new Model(base.GetOutputFolder());
+
+            // Shape
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
+
+
+            List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+
+
+            List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
+            geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
+
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
+                                                                    Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            var meshOptions = new Mesh.GenerateOptions();
+            meshOptions.MeshSize = 40;
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            gs1.AddRestrains(geometryRestrains1);
+
+            model.AddSurface(gs1);
+
+            // LoadCases
+            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseType.LiveLoad);
+            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseType.Wind);
+
+            // Loads
+            AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
+            LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 600, 0), new Point3d(800, 600, 0)), lc2);
+
+            gs1.AddLoad(s1ll);
+            gs1.AddLoad(s1GalLc1);
+
+
+            // Combination 
+            Combination cmb1 = new CombinationEn("CMB1", CombinationEn.CombinationType.UltimateStructural);
+            cmb1[lc1] = 1.5;
+            cmb1[lc2] = 2.5;
+
+            Combination cmb2 = new CombinationEn("CMB2", CombinationEn.CombinationType.ServiceabilityCharacteristic);
+            cmb2[lc1] = 1.2;
+            cmb2[lc2] = 1.5;
+            cmb2[lc2] = 0.5;
+
+            model.AddCombination(cmb1);
+            model.AddCombination(cmb2);
+
+            Console.WriteLine($"{cmb1.Name}: {cmb1}");
+            Console.WriteLine($"{cmb2.Name}: {cmb2}");
+
+            model.FemModelSetup();
+            model.PerformChecks();
+
+            var stressResults = model.GetPlateCombinationsResult();
+            var deflectionResults = model.GetNodeDisplacementCombinationsResult();
+
+
+            Assert.AreEqual(1, stressResults.Count, 0);
+            Assert.AreEqual(1, deflectionResults.Count, 0);
+            Assert.IsTrue(stressResults[0].Count > 0);
+            Assert.IsTrue(deflectionResults[0].Count > 0);
+
+
+            ResultPlateStress worstPlateResult = null;
+            foreach (var comboResult in stressResults.First())
+            {
+                comboResult.GetPrincipalStress(out double s11, out double s22);
+
+                if (worstPlateResult is null)
+                    worstPlateResult = comboResult;
+                else if (s11 > worstPlateResult.S11)
+                    worstPlateResult = comboResult;
+            }
+
+            ResultNodeDisplacement worstNodeDisplacement = null;
+            foreach (var comboResult in deflectionResults.First())
+            {
+                double disp = comboResult.GetResultingDisplacement();
+
+                if (worstNodeDisplacement is null)
+                    worstNodeDisplacement = comboResult;
+                else if (Math.Abs(disp) > Math.Abs(worstNodeDisplacement.GetResultingDisplacement()))
+                    worstNodeDisplacement = comboResult;
+            }
+
+            Console.WriteLine($"STRESS");
+            Console.WriteLine($"\t Stress11: {worstPlateResult.S11}, stress22: {worstPlateResult.S22}, stress33: {worstPlateResult.S33}");
+            Console.WriteLine($"\t Id: {worstPlateResult.Element.Id} Point: {(worstPlateResult.ResultPoint as ResultStressPoint).Location} Node0 Id: {worstPlateResult.Element.Nodes[0].Position}");
+
+            Console.WriteLine($"DEFLECTION");
+            Console.WriteLine($"\t WorstDeflection: {worstNodeDisplacement.GetResultingDisplacement()}");
+            Console.WriteLine($"\t Id: {worstNodeDisplacement.Element.Id} Point: {worstNodeDisplacement.Element.Position} D1: {worstNodeDisplacement.D1} D2: {worstNodeDisplacement.D2} D3: {worstNodeDisplacement.D3} ");
+
+            Assert.AreEqual(26.04, worstPlateResult.S11, 1);
+            Assert.AreEqual(4.16, worstNodeDisplacement.D3, 0.2);
+        }
+
+        [TestMethod]
         public void LaminatedGlass()
         {
 

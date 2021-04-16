@@ -194,8 +194,6 @@ namespace GPC.Checker.Glasses.Checkers
 
                     // TIPO DI ANALISI
 
-
-
                     if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
                     {
                         _femModel.AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear;
@@ -213,19 +211,6 @@ namespace GPC.Checker.Glasses.Checkers
                     _femModel.AddCombinations(_combinations);
 
 
-
-                    //if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
-                    //{
-                    //    _femModel.AddCombinations(_combinations);
-                    //}
-                    //else if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.NonLinearStaticAnalysis)
-                    //{
-
-                    //}
-                    //else
-                    //{
-                    //    throw new NotSupportedException();
-                    //}
                 }
                 else
                     throw new NotImplementedException(_glassSurface.Prototype.LaminatedAnalysisType.ToString());
@@ -269,7 +254,9 @@ namespace GPC.Checker.Glasses.Checkers
 
                     _femModel.RunSt7Solver();
 
-                    _femModel.ReadSt7LinearCombinationResults();
+                    _femModel.ReadSt7Result();
+
+                    //_femModel.ReadSt7LinearCombinationResults();
 
                 }
                 else if (_glassSurface.Prototype.Glass is LaminatedGlass lg)
@@ -290,20 +277,6 @@ namespace GPC.Checker.Glasses.Checkers
                     throw new NotSupportedException();
                 }
 
-
-                if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
-                {
-
-                    // LINEARE
-
-                }
-                else if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.NonLinearStaticAnalysis)
-                {
-                    // NON LINEARE
-                    throw new NotImplementedException(_glassSurface.Prototype.AnalysisType.ToString());
-                }
-                else
-                    throw new NotSupportedException(_glassSurface.Prototype.AnalysisType.ToString());
             }
             else
             {

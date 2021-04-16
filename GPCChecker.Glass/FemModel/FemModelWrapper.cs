@@ -32,12 +32,17 @@ namespace GPC.Checker.Glasses.FemModel
         private string _st7ServerIp;
         private string _saveFolderPath;
         private string _st7FilePath;
-        private string _st7LinearResultFilePath;
+        private string _st7ResultFilePath;
 
         /// <summary>
-        /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and St7ComboId  ;
+        /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and St7ComboId in the Linear loadcase combination table  ;
         /// </summary>
         private Dictionary<Combination, int> _st7LSACombinationMap;
+
+        /// <summary>
+        /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and stageIncrement  ;
+        /// </summary>
+        private Dictionary<Combination, int> _st7NLACombinationMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._loadCases"/> St7 loadcase id;
@@ -65,14 +70,19 @@ namespace GPC.Checker.Glasses.FemModel
         private Dictionary<int, int> _st7NodeMap;
 
         /// <summary>
-        /// Map between <see cref="Model.FEM.FiniteElements.Plate"/> id and straus7 node ID
+        /// Map between <see cref="Model.FEM.FiniteElements.Plate"/> id and straus7 plate ID
         /// </summary>
         private Dictionary<int, int> _st7PlateMap;
 
         /// <summary>
-        /// Map between <see cref="Model.FEM.FiniteElements.Brick"/> id and straus7 node ID
+        /// Map between <see cref="Model.FEM.FiniteElements.Brick"/> id and straus7 brick ID
         /// </summary>
         private Dictionary<int, int> _st7BrickMap;
+
+        /// <summary>
+        /// Map between <see cref="Model.FEM.Stage"/> id and straus7 stage ID
+        /// </summary>
+        private Dictionary<int, int> _st7StageMap;
 
 
         public FemModelWrapper() : this (string.Empty)
@@ -85,6 +95,7 @@ namespace GPC.Checker.Glasses.FemModel
         {
             _st7ServerIp = "localhost";
             _st7LSACombinationMap = new Dictionary<Combination, int>(new ModelObjectNameEqualityComparer());
+            _st7NLACombinationMap = new Dictionary<Combination, int>(new ModelObjectNameEqualityComparer());
             _st7LoadCaseMap = new Dictionary<LoadCase, int>(new ModelObjectNameEqualityComparer());
             _st7FreedomCaseMap = new Dictionary<FreedomCase, int>(new ModelObjectNameEqualityComparer());
             _st7PlatePropertyMap = new Dictionary<PlateProperty, int>(new ModelObjectNameEqualityComparer());
@@ -93,6 +104,7 @@ namespace GPC.Checker.Glasses.FemModel
             _st7NodeMap = new Dictionary<int, int>();
             _st7PlateMap = new Dictionary<int, int>();
             _st7BrickMap = new Dictionary<int, int>();
+            _st7StageMap = new Dictionary<int, int>();
         }
 
         public FemModelWrapper(SerializationInfo info, StreamingContext context) 
@@ -231,15 +243,34 @@ namespace GPC.Checker.Glasses.FemModel
                             if (status)
                                 aw.SaveFile(mid);
 
-                            St7SetLinearLoadCaseCombination(aw, mid);
-
                             status = St7RunLinearSolver(aw, _st7FilePath);
 
-                            _st7LinearResultFilePath = Path.ChangeExtension(_st7FilePath, "LSA");
+                            if (!status)
+                                throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+
+                            _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "LSA");
+
                             break;
 
                         case AnalysisTypes.NonLinear:
-                            throw new NotImplementedException();
+
+                            status = St7NonLinearSolverSetup(aw, mid);
+
+                            if (status)
+                                status = St7SetStageIncrement(aw, mid);
+
+                            if (status)
+                            {
+                                aw.SaveFile(mid);
+                                status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
+                            }
+
+                            if (!status)
+                                throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+
+                            _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "NLA");
+
+                            break;
 
                         default:
                             throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
@@ -258,9 +289,106 @@ namespace GPC.Checker.Glasses.FemModel
 
         }
         
+        public void ReadSt7Result()
+        {
+            if (File.Exists(_st7ResultFilePath))
+            {
+                if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
+                {
+                    int mid = 0;
+
+                    int numPrimary = 0;     // LoadCase o StageIncrement
+                    int numSecondary = 0;   // Combinazioni
+
+                    bool status = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
+
+                    if (status)
+                        status = aw.OpenResultFile(mid, _st7ResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
+
+                    if (status)
+                    {
+                        foreach (var combination in _combinations)
+                        {
+                            int comboId = -1;
+
+                            if (AnalysisType == AnalysisTypes.Linear)
+                            {
+                                comboId = _st7LSACombinationMap[combination] + numPrimary;
+                            }
+                            else if (AnalysisType == AnalysisTypes.NonLinear)
+                            {
+                                comboId = _st7NLACombinationMap[combination];
+                            }
+                            else
+                                throw new NotImplementedException();
+
+
+                            foreach (var element in _elements)
+                            {
+                                if (element is Plate plate)
+                                {
+                                    // LETTURA STRESS PLATE
+                                    int numPoints = 0; // punti in cui straus da i risultati
+                                    int numColumns = 0; // numero di risultati per punto
+
+                                    double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
+                                    double[] angles = new double[9];
+                                    aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
+                                                           comboId, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
+
+                                    aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
+
+                                    for (int np = 0; np < numPoints; np++)
+                                    {
+                                        for (int nc = 0; nc < numColumns; nc++)
+                                        {
+                                            _resultPlateStress.Add(
+                                                new ResultPlateStress(plate, combination,
+                                                new ResultStressPoint(np),
+                                                new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
+                                                plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]));
+
+                                            _resultPlateStress.Last().GetPrincipalStress(out _, out _); // uso metodo approssimato
+                                        }
+                                    }
+                                }
+                            }
+
+                            foreach (var node in _nodes)
+                            {
+                                double[] nodeResult = new double[6];
+                                aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], comboId, ref nodeResult);
+                                _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
+                            }
+
+                        }
+
+                        aw.CloseResultFile(mid);
+                        aw.CloseFile(mid);
+                    }
+                    else
+                        aw.CloseFile(mid);
+
+
+                    if (!status)
+                        throw new Straus7Exception(aw.GetLastErrorString());
+                }
+                else
+                {
+                    throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
+                }
+
+                if (channel != null)
+                    ChannelServices.UnregisterChannel(channel);
+            }
+            else
+                throw new FileNotFoundException(_st7ResultFilePath);
+        }
+
+
         public void ReadSt7LinearCombinationResults()
         {
-            if (File.Exists(_st7LinearResultFilePath))
+            if (File.Exists(_st7ResultFilePath))
             {
                 if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
                 {
@@ -272,7 +400,7 @@ namespace GPC.Checker.Glasses.FemModel
                     bool status = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
 
                     if (status)
-                        status = aw.OpenResultFile(mid, _st7LinearResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
+                        status = aw.OpenResultFile(mid, _st7ResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
 
                     if (status)
                     {
@@ -345,7 +473,7 @@ namespace GPC.Checker.Glasses.FemModel
                     ChannelServices.UnregisterChannel(channel);
             }
             else
-                throw new FileNotFoundException(_st7LinearResultFilePath);
+                throw new FileNotFoundException(_st7ResultFilePath);
 
         }
         
@@ -353,6 +481,7 @@ namespace GPC.Checker.Glasses.FemModel
         #endregion
 
         #region STRAUS7 - PRIVATE METHODS
+
 
         private static bool ConnectService(string ip, out ISt7ApiService ro, out TcpChannel channel)
         {
@@ -410,14 +539,9 @@ namespace GPC.Checker.Glasses.FemModel
 
             if (!aw.SetUnits(mId, st7Units))
                 throw new Exception("Failed to set the units");
-            
-            // Setup Stages
-            if (_stages.Count > 0)
-                St7SetStages(aw, mId);
 
             // Setup loadcases
             St7SetLoadCase(aw, mId);
-
 
             
             #region Geometry
@@ -563,6 +687,22 @@ namespace GPC.Checker.Glasses.FemModel
 
             #endregion
 
+            
+            // Setup Stages
+            if (_stages.Count > 0)
+            {
+                //if (AnalysisType == AnalysisTypes.Linear)
+                //    St7SetLinearLoadCaseCombination(aw, mId);
+                St7SetStages(aw, mId);
+            }
+            else
+            {
+                if (AnalysisType == AnalysisTypes.Linear)
+                    St7SetLinearLoadCaseCombination(aw, mId);
+                else
+                    throw new NotSupportedException();
+            }
+
 
             return true;
         }
@@ -570,9 +710,13 @@ namespace GPC.Checker.Glasses.FemModel
 
         private void St7SetStages(ISt7ApiService aw, int mid)
         {
-            foreach(var stage in _stages)
+            int st7StageId = _st7StageMap.Values.DefaultIfEmpty(0).Max();
+
+            foreach(GPC.Model.FEM.Stage stage in _stages)
             {
                 aw.AddStage(mid, stage.Name, new int[] { stage.Morph ? St7ApiConst.btTrue : St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
+
+                _st7StageMap.Add(stage.Id, ++st7StageId);
             }
         }
 
@@ -692,6 +836,10 @@ namespace GPC.Checker.Glasses.FemModel
 
         }
 
+
+        /// <summary>
+        /// Set up the linear load case combination table
+        /// </summary>
         private void St7SetLinearLoadCaseCombination(ISt7ApiService aw, int mid)
         {
             int st7CId = 0;
@@ -803,12 +951,19 @@ namespace GPC.Checker.Glasses.FemModel
 
         private bool St7LinearSolverSetup(ISt7ApiService aw, int mid)
         {
+            
             foreach (var lc in _loadCases)
             {
                 aw.EnableLSALoadCase(mid, _st7LoadCaseMap[(LoadCase)lc], 1);
             }
             return true;
         }
+
+        private bool St7NonLinearSolverSetup(ISt7ApiService aw, int mid)
+        {
+            return aw.SetSolverNonlinearMaterial(mid, false) && aw.SetSolverNonlinearGeometry(mid, true) && aw.SetNLAStagedAnalysis(mid, true);
+        }
+
 
         private void St7NonLinearSolverSetupForLinearAnalysis(ISt7ApiService aw, int mid)
         {
@@ -922,6 +1077,32 @@ namespace GPC.Checker.Glasses.FemModel
 
 
             }
+        }
+
+        private bool St7SetStageIncrement(ISt7ApiService aw, int mid)
+        {
+
+            int stageId = _st7StageMap.First().Value;
+
+            int stageIncrement = 1;
+            foreach (var combo in _combinations)
+            {
+                if (aw.AddNLAIncrement(mid, stageId, combo.Name))
+                {
+                    _st7NLACombinationMap[combo] = stageIncrement;
+                    foreach (var lc in combo.GetLoadCases())
+                    {
+                        aw.SetNLALoadIncrementFactor(mid, stageId, stageIncrement, _st7LoadCaseMap[(LoadCase)lc], combo.GetLoadCaseCoefficient(lc));
+                    }
+                    stageIncrement++;
+                }
+                else
+                {
+                    throw new Straus7Exception($"St7 Error: {aw.GetLastErrorString()}");
+                }
+            }
+
+            return true;
         }
 
         #endregion
