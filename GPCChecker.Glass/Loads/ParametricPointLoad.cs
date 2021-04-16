@@ -20,15 +20,15 @@ namespace GPC.Checker.Glasses.Loads
 
         }
 
-        public ParametricPointLoad(double f1, double f2, double f3, double m1, double m2, double m3, Point3d point, LoadCase loadCase, string name = "") 
-            : base(f1, f2, f3, m1, m2, m3, point, loadCase, name)
+        public ParametricPointLoad(double f1, double f2, double f3, double m1, double m2, double m3, Point3d point, LoadCase loadCase) 
+            : base(f1, f2, f3, m1, m2, m3, point, loadCase)
         {
 
         }
 
 
-        public ParametricPointLoad(double f1, double f2, double f3, double m1, double m2, double m3, Point3d point, LoadCase loadCase, CoordinateSystem coordinateSystem, string name = "") 
-            : base(f1, f2, f3, m1, m2, m3, point, loadCase, coordinateSystem, name)
+        public ParametricPointLoad(double f1, double f2, double f3, double m1, double m2, double m3, Point3d point, LoadCase loadCase, CoordinateSystem coordinateSystem) 
+            : base(f1, f2, f3, m1, m2, m3, point, loadCase, coordinateSystem)
         {
 
         }

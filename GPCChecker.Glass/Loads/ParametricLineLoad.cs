@@ -26,9 +26,8 @@ namespace GPC.Checker.Glasses.Loads
         /// <param name="m3"></param>
         /// <param name="line">Line defined with parametric coordinates</param>
         /// <param name="loadCase"></param>
-        /// <param name="name"></param>
-        public ParametricLineLoad(double f1, double f2, double f3, double m1, double m2, double m3, Line3d line, LoadCase loadCase, string name = "") 
-            : base(f1, f2, f3, m1, m2, m3, line, loadCase, name)
+        public ParametricLineLoad(double f1, double f2, double f3, double m1, double m2, double m3, Line3d line, LoadCase loadCase) 
+            : base(f1, f2, f3, m1, m2, m3, line, loadCase)
         {
 
         }
@@ -45,9 +44,8 @@ namespace GPC.Checker.Glasses.Loads
         /// <param name="line">Line defined with parametric coordinates</param>
         /// <param name="loadCase"></param>
         /// <param name="coordinateSystem"></param>
-        /// <param name="name"></param>
-        public ParametricLineLoad(double f1, double f2, double f3, double m1, double m2, double m3, Line3d line, LoadCase loadCase, CoordinateSystem coordinateSystem, string name = "") 
-            : base(f1, f2, f3, m1, m2, m3, line, loadCase, coordinateSystem, name)
+        public ParametricLineLoad(double f1, double f2, double f3, double m1, double m2, double m3, Line3d line, LoadCase loadCase, CoordinateSystem coordinateSystem) 
+            : base(f1, f2, f3, m1, m2, m3, line, loadCase, coordinateSystem)
         {
 
         }
