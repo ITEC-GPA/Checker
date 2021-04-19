@@ -2,6 +2,7 @@
 using GPC.Geometry;
 using GPC.Model.Combinations;
 using GPC.Model.Glasses;
+using GPC.Utilities.Converters;
 using GPC.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace GPC.Checker.Glasses.Models
     {
         #region PUBLIC ENUMS
 
+        [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum AnalysisTypes
         {
             [Description("Linear static analysis")]
@@ -23,6 +25,7 @@ namespace GPC.Checker.Glasses.Models
             NonLinearStaticAnalysis,
         }
 
+        [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum CheckMethods
         {
             /// <summary> Ref prEn16612 annex A </summary>
@@ -42,6 +45,7 @@ namespace GPC.Checker.Glasses.Models
             ASTME1300 = 3
         }
 
+        [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum LaminatedEqThicknessMethods
         {
             /// <summary> Ref CNR DT 210-13 </summary>
@@ -51,21 +55,26 @@ namespace GPC.Checker.Glasses.Models
             Omega = 1,
 
             /// <summary> Ref ASTM E1300-16 §X9 </summary>
+            [Description("ASTM E1300-16")]
             ASTME1300 = 2,
 
             /// <summary> Ref NEN 2608:2014 §F </summary>
             NEN = 3,
         }
 
+        [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum Standards
         {
             /// <summary>EN 16612 - 2019</summary>
+            [Description("EN 16612")]
             EN16612 = 0,
 
             /// <summary>ASTM E1300 - 16 </summary>
+            [Description("ASTM E1300-16")]
             ASTME1300 = 2
         }
 
+        [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum SolverTypes
         {
             [Description("GPC")]
@@ -73,6 +82,7 @@ namespace GPC.Checker.Glasses.Models
             Straus7
         }
 
+        [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum LaminatedAnalysisTypes
         {
             [Description("Multi element")]
