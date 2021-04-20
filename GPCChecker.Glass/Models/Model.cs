@@ -95,20 +95,28 @@ namespace GPC.Checker.Glasses.Models
         {
             foreach (var surface in _glassSurfaces)
             {
+                Checkers.Checker checker = null;
+                
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
-                    _checkers.Add(new En16612Checker(surface, _combinations));
+                    checker = new En16612Checker(surface, _combinations);
                 }
                 else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
                 {
-                    _checkers.Add(new AstmChecker(surface, _combinations));
+                    checker = new AstmChecker(surface, _combinations);
                 }
                 else
                 {
                     throw new NotImplementedException();
                 }
 
-                _checkers.Last().FemModelSetup(_outputFolder);
+
+                if (checker.FemModelSetup(_outputFolder))
+                    _checkers.Add(checker);
+                else
+                {
+                    throw new ArgumentException("Unable to create checker");
+                }
             }
         }
 
