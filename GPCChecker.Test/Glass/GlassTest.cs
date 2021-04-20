@@ -522,5 +522,19 @@ namespace GlassTests
             model.PerformChecks();
 
         }
+
+        [TestMethod]
+        public void PolygonEquals()
+        {
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, new Polygon3d(), null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
+                Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            Prototype p2 = new Prototype("p1", mg, new Polygon3d(), null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
+                Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+            Assert.IsTrue(p1 == p2);
+        }
     }
 }

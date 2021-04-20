@@ -266,7 +266,7 @@ namespace GPC.Checker.Glasses.Models
                                     && other._standard.Equals(_standard)
                                     && other._solverType.Equals(_solverType)
                                     && other._glass.Equals(_glass)
-                                    && other._polygon.Equals(_polygon)
+                                    && other._polygon == _polygon
                                     && other._restrains.ScrambledEquals(_restrains)
                                     && other._combinations.ScrambledEquals(_combinations)
                                     && other._laminatedAnalysisType.Equals(_laminatedAnalysisType)
