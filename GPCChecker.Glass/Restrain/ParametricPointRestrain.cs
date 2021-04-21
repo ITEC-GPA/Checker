@@ -15,31 +15,33 @@ namespace GPC.Checker.Glasses.Restrain
     /// ParametricPointRestrain is a point defined with parametric coordinates 
     /// </summary>
     [UI(Description = "Point restrain", Group = "Parametric restraints", Kind = "Parametric restrain")]
-    public class ParametricPointRestrain : GPC.Model.Restrains.PointRestrain, IParametricRestrain
+    public class ParametricPointRestrain : PointRestrain, IParametricRestrain
     {
 
 
         public ParametricPointRestrain(Point3d point, FreedomCase freedomCase, List<DofRestrain> restrains) 
             : base(point, freedomCase, restrains)
         {
-
         }
 
         public ParametricPointRestrain(Point3d point, FreedomCase freedomCase, CoordinateSystem coordinateSystem, List<DofRestrain> restrains) 
             : base(point, freedomCase, coordinateSystem, restrains)
         {
+        }
 
+        public ParametricPointRestrain(Point3d point, FreedomCase freedomCase, List<DofRestrain> restrains, string name)
+            : base(point, freedomCase, CoordinateSystem.Global, restrains, Guid.NewGuid(), name)
+        {
         }
 
         public ParametricPointRestrain(Point3d point, FreedomCase freedomCase, CoordinateSystem coordinateSystem, List<DofRestrain> restrains, Guid guid, string name) 
             : base(point, freedomCase, coordinateSystem, restrains, guid, name)
         {
-
         }
+
         public ParametricPointRestrain(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-
         }
     }
 }
