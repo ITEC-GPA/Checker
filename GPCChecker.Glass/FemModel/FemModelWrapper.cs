@@ -257,7 +257,7 @@ namespace GPC.Checker.Glasses.FemModel
                             status = St7NonLinearSolverSetup(aw, mid);
 
                             if (status)
-                                status = St7SetStageIncrement(aw, mid);
+                                status = St7SetStageIncrement(aw, mid); // TODO NO
 
                             if (status)
                             {
@@ -540,11 +540,15 @@ namespace GPC.Checker.Glasses.FemModel
             if (!aw.SetUnits(mid, st7Units))
                 throw new Exception("Failed to set the units");
 
+
+            _loadCases.Add(new LoadCase("Sw", 1000, 20, Model.LoadCases.LoadCase.LoadCaseType.SelfWeight)); // TODO RImuovere
+
             // Setup loadcases
             St7SetLoadCase(aw, mid);
 
             
             #region Geometry
+
             // Nodes
             int st7NodeIndex = 0;
             foreach (var node in _nodes)
@@ -702,7 +706,11 @@ namespace GPC.Checker.Glasses.FemModel
                 {
                     // Solutore non lineare con non linearità 
                     St7NonLinearSolverSetup(aw, mid);
-                    throw new NotImplementedException(); 
+
+                    int mId = mid;
+                    _stages.ForEach(i => St7SetStageCombinations(aw, mId, i.Id));
+
+
                 }
             }
             else
@@ -813,6 +821,10 @@ namespace GPC.Checker.Glasses.FemModel
 
         }
 
+
+        /// <summary>
+        /// This method creates the loadCases from the LoadCase list
+        /// </summary>
         private void St7SetLoadCase(ISt7ApiService aw, int mid)
         {
             if (!(_loadCases.Count > 0))
@@ -984,7 +996,7 @@ namespace GPC.Checker.Glasses.FemModel
         {
             foreach (var stageId in _st7StageMap)
             {
-                aw.EnableNLAStage(mid, stageId.Key);
+                aw.EnableNLAStage(mid, stageId.Value);
             }
 
             return aw.SetSolverNonlinearMaterial(mid, false) && aw.SetSolverNonlinearGeometry(mid, true) && aw.SetNLAStagedAnalysis(mid, true);
@@ -1139,6 +1151,31 @@ namespace GPC.Checker.Glasses.FemModel
             }
 
             return true;
+        }
+
+        private bool St7SetStageCombinations(ISt7ApiService aw, int mid, int stageId)
+        {
+
+            int stageIncrement = 1;
+            foreach (var combo in GetStageCombinations(stageId))
+            {
+                if (aw.AddNLAIncrement(mid, _st7StageMap[stageId], combo.Name))
+                {
+                    _st7NLACombinationMap[combo] = stageIncrement;
+                    foreach (var lc in combo.GetLoadCases())
+                    {
+                        aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stageId], stageIncrement, _st7LoadCaseMap[(LoadCase)lc], combo.GetLoadCaseCoefficient(lc));
+                    }
+                    stageIncrement++;
+                }
+                else
+                {
+                    throw new Straus7Exception($"St7 Error: {aw.GetLastErrorString()}");
+                }
+            }
+
+            return true;
+
         }
 
         #endregion
