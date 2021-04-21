@@ -511,21 +511,21 @@ namespace GPC.Checker.Glasses.FemModel
         /// </summary>
         /// <param name="aw"></param>
         /// <param name="saveFolderPath">Folder where to save the St7 model</param>
-        /// <param name="mId"></param>
+        /// <param name="mid"></param>
         /// <param name="warnings"></param>
         /// <param name="errors"></param>
         /// <returns></returns>
-        private bool CreateSt7Model(ISt7ApiService aw, string saveFolderPath, out int mId, out List<string> warnings, out List<string> errors)
+        private bool CreateSt7Model(ISt7ApiService aw, string saveFolderPath, out int mid, out List<string> warnings, out List<string> errors)
         {
             warnings = new List<string>();
             errors = new List<string>();
-            mId = 0;
+            mid = 0;
 
             string scratchPath = Path.GetTempPath();
             _st7FilePath = Path.ChangeExtension(Path.Combine(saveFolderPath, Name), "St7");
 
             // Create a new model
-            if (!aw.NewFile(_st7FilePath, scratchPath, ref mId))
+            if (!aw.NewFile(_st7FilePath, scratchPath, ref mid))
                 throw new Exception("Failed to create new model");
 
             // Units
@@ -537,11 +537,11 @@ namespace GPC.Checker.Glasses.FemModel
             st7Units[St7ApiConst.ipTEMPERU] = St7ApiConst.tuCELSIUS;
             st7Units[St7ApiConst.ipENERGYU] = St7ApiConst.euJOULE;
 
-            if (!aw.SetUnits(mId, st7Units))
+            if (!aw.SetUnits(mid, st7Units))
                 throw new Exception("Failed to set the units");
 
             // Setup loadcases
-            St7SetLoadCase(aw, mId);
+            St7SetLoadCase(aw, mid);
 
             
             #region Geometry
@@ -552,18 +552,18 @@ namespace GPC.Checker.Glasses.FemModel
                 st7NodeIndex++;
                 _st7NodeMap.Add(node.Id, st7NodeIndex);
 
-                aw.SetNodeXYZ(mId, st7NodeIndex, node.Position.X, node.Position.Y, node.Position.Z);
+                aw.SetNodeXYZ(mid, st7NodeIndex, node.Position.X, node.Position.Y, node.Position.Z);
 
 
                 foreach (var attribute in node.AttributesFreedomCase)
                 {
                     if (attribute is NodeRestrainAttribute nra)
                     {
-                        St7SetNodeRestrain(aw, mId, st7NodeIndex, 1, 1, nra.Restrains);
+                        St7SetNodeRestrain(aw, mid, st7NodeIndex, 1, 1, nra.Restrains);
                     }
                     else if (attribute is NodeStiffnessAttribute nsa)
                     {
-                        St7SetNodeRestrain(aw, mId, st7NodeIndex, 1, 1, nsa.Stiffnesses);
+                        St7SetNodeRestrain(aw, mid, st7NodeIndex, 1, 1, nsa.Stiffnesses);
                     }
                 }
 
@@ -574,18 +574,18 @@ namespace GPC.Checker.Glasses.FemModel
                     {
                         var lc = _loadCases.GetElementByName(pgfa.LoadCase.Name);
 
-                        St7SetNodeGlobalLoad(aw, mId, st7NodeIndex, _st7LoadCaseMap[(LoadCase)pgfa.LoadCase], pgfa);
+                        St7SetNodeGlobalLoad(aw, mid, st7NodeIndex, _st7LoadCaseMap[(LoadCase)pgfa.LoadCase], pgfa);
                     }
                     else
                         throw new NotSupportedException("Point attribute not supported");
                 }
             }
 
-            St7SetPlateProperties(aw, mId);
-            St7SetBrickProperties(aw, mId);
+            St7SetPlateProperties(aw, mid);
+            St7SetBrickProperties(aw, mid);
 
             int glassGroupId = 0;
-            aw.NewChildGroup(mId, 1, "Glass " + "1", ref glassGroupId);
+            aw.NewChildGroup(mid, 1, "Glass " + "1", ref glassGroupId);
 
             // Plate
             // Brick
@@ -623,18 +623,18 @@ namespace GPC.Checker.Glasses.FemModel
 
                     int propNum = _st7PlatePropertyMap[property];
 
-                    aw.SetElementConnection(mId, St7ApiConst.tyPLATE, st7PlateIndex, propNum, st7ConnectivityArray);
-                    aw.SetEntityGroup(mId, St7ApiConst.tyPLATE, st7PlateIndex, glassGroupId);
+                    aw.SetElementConnection(mid, St7ApiConst.tyPLATE, st7PlateIndex, propNum, st7ConnectivityArray);
+                    aw.SetEntityGroup(mid, St7ApiConst.tyPLATE, st7PlateIndex, glassGroupId);
 
                     foreach (var attribute in plate.AttributesLoadCase)
                     {
                         if (attribute is PlatePressureAttribute pgpa)
                         {
-                            St7SetPlateGlobalPressure(aw, mId, st7PlateIndex, _st7LoadCaseMap[(LoadCase)pgpa.LoadCase], pgpa);
+                            St7SetPlateGlobalPressure(aw, mid, st7PlateIndex, _st7LoadCaseMap[(LoadCase)pgpa.LoadCase], pgpa);
                         }
                         else if (attribute is PlateNormalPressureAttribute pnpa)
                         {
-                            St7SetPlateNormalPressure(aw, mId, st7PlateIndex, _st7LoadCaseMap[(LoadCase)pnpa.LoadCase], pnpa);
+                            St7SetPlateNormalPressure(aw, mid, st7PlateIndex, _st7LoadCaseMap[(LoadCase)pnpa.LoadCase], pnpa);
                         }
                         else
                             throw new NotSupportedException("Point attribute not supported");
@@ -678,8 +678,8 @@ namespace GPC.Checker.Glasses.FemModel
 
                     int propNum = _st7BrickPropertyMap[property];
 
-                    aw.SetElementConnection(mId, St7ApiConst.tyBRICK, st7BrickIndex, propNum, st7ConnectivityArray);
-                    aw.SetEntityGroup(mId, St7ApiConst.tyBRICK, st7BrickIndex, glassGroupId);
+                    aw.SetElementConnection(mid, St7ApiConst.tyBRICK, st7BrickIndex, propNum, st7ConnectivityArray);
+                    aw.SetEntityGroup(mid, St7ApiConst.tyBRICK, st7BrickIndex, glassGroupId);
 
                 }
 
@@ -691,16 +691,26 @@ namespace GPC.Checker.Glasses.FemModel
             // Setup Stages
             if (_stages.Count > 0)
             {
-                //if (AnalysisType == AnalysisTypes.Linear)
-                //    St7SetLinearLoadCaseCombination(aw, mId);
-                St7SetStages(aw, mId);
+                St7SetStages(aw, mid);
+
+                if (AnalysisType == AnalysisTypes.Linear)
+                {
+                    // uso il solutore non lineare, senza non linearità per avere l'analisi a stage.
+                    St7NonLinearSolverSetupForLinearAnalysis(aw, mid);
+                }
+                else
+                {
+                    // Solutore non lineare con non linearità 
+                    St7NonLinearSolverSetup(aw, mid);
+                    throw new NotImplementedException(); 
+                }
             }
             else
             {
                 if (AnalysisType == AnalysisTypes.Linear)
-                    St7SetLinearLoadCaseCombination(aw, mId);
+                    St7SetLinearLoadCaseCombination(aw, mid);
                 else
-                    throw new NotSupportedException();
+                    throw new NotSupportedException(); // Non è possibile avere analisi non lineare senza stages.
             }
 
 
@@ -715,9 +725,15 @@ namespace GPC.Checker.Glasses.FemModel
             foreach(GPC.Model.FEM.Stage stage in _stages)
             {
                 aw.AddStage(mid, stage.Name, new int[] { stage.Morph ? St7ApiConst.btTrue : St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
-
                 _st7StageMap.Add(stage.Id, ++st7StageId);
             }
+        }
+
+        private void St7StageAnalysisSetup(ISt7ApiService aw, int mid, int stageIndex, bool morph, bool moveFixedNodes, bool rotateCluster)
+        {
+            aw.SetStageData(mid, stageIndex, new[] { morph ? St7ApiConst.btTrue : St7ApiConst.btFalse, 
+                                                     moveFixedNodes ? St7ApiConst.btTrue : St7ApiConst.btFalse, 
+                                                     rotateCluster ? St7ApiConst.btTrue : St7ApiConst.btFalse });
         }
 
         private void St7SetPlateProperties(ISt7ApiService aw, int mid)
@@ -735,20 +751,20 @@ namespace GPC.Checker.Glasses.FemModel
 
                 if (property is MonolithicGlassProperty mgp)
                 {
-                    aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, $"MonolithicGlass{st7PropId}");
+                    aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, mgp.Name);
 
                     aw.SetPlateThickness(mid, st7PropId, new double[] { mgp.MembraneThickness, mgp.BendingThickness });
 
                     aw.SetPlateIsotropicMaterial(mid, st7PropId, mgp.GetE(), mgp.GetNi(), mgp.GetDensity(), 0, 0, 0, 0, 0);
                 }
-                else if (property is InterlayerPlateProperty inp)
-                {
-                    aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, $"Interlayer{st7PropId}");
+                //else if (property is InterlayerPlateProperty inp)
+                //{
+                //    aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, inp.Name);
 
-                    aw.SetPlateThickness(mid, st7PropId, new double[] { inp.MembraneThickness, inp.BendingThickness });
+                //    aw.SetPlateThickness(mid, st7PropId, new double[] { inp.MembraneThickness, inp.BendingThickness });
 
-                    aw.SetPlateIsotropicMaterial(mid, st7PropId, inp.GetE(), inp.GetNi(), inp.GetDensity(), 0, 0, 0, 0, 0);
-                }
+                //    aw.SetPlateIsotropicMaterial(mid, st7PropId, inp.GetE(), inp.GetNi(), inp.GetDensity(), 0, 0, 0, 0, 0);
+                //}
                 else
                 {
                     throw new NotSupportedException($"Property type: {property} not supported");
@@ -758,7 +774,6 @@ namespace GPC.Checker.Glasses.FemModel
             }
 
         }
-
 
         private void St7SetBrickProperties(ISt7ApiService aw, int mid)
         {
@@ -775,7 +790,7 @@ namespace GPC.Checker.Glasses.FemModel
                 
                 if (property is InterlayerBrickProperty inp)
                 {
-                    aw.NewBrickProperty(mid, st7PropId, St7ApiConst.kMaterialTypeIsotropic, $"Interlayer{st7PropId}");
+                    aw.NewBrickProperty(mid, st7PropId, St7ApiConst.kMaterialTypeIsotropic, inp.Name);
 
                     double[] doubles = new double[8];
                     doubles[0] = inp.GetE();
@@ -959,12 +974,29 @@ namespace GPC.Checker.Glasses.FemModel
             return true;
         }
 
+        /// <summary>
+        /// Enable each stage in the <see cref="_st7StageMap"/>, activate non linear geometry.
+        /// </summary>
+        /// <param name="aw"></param>
+        /// <param name="mid"></param>
+        /// <returns></returns>
         private bool St7NonLinearSolverSetup(ISt7ApiService aw, int mid)
         {
+            foreach (var stageId in _st7StageMap)
+            {
+                aw.EnableNLAStage(mid, stageId.Key);
+            }
+
             return aw.SetSolverNonlinearMaterial(mid, false) && aw.SetSolverNonlinearGeometry(mid, true) && aw.SetNLAStagedAnalysis(mid, true);
         }
 
-
+        /// <summary>
+        /// This method set the non linear solver, turning off the nonlinearity and activating one loadcase for each stage.
+        /// </summary>
+        /// <param name="aw"></param>
+        /// <param name="mid"></param>
+        /// <remarks>Lenght of <see cref="_st7StageMap"/> must be the same of <see cref="_st7LoadCaseMap"/> lenght </remarks>
+        /// <exception cref="ArgumentException">If lenght of <see cref="_st7StageMap"/> is different than <see cref="_st7LoadCaseMap"/></exception>
         private void St7NonLinearSolverSetupForLinearAnalysis(ISt7ApiService aw, int mid)
         {
             aw.SetSolverNonlinearMaterial(mid, false);
@@ -972,13 +1004,17 @@ namespace GPC.Checker.Glasses.FemModel
 
             aw.SetNLAStagedAnalysis(mid, true);
 
+            if (_st7StageMap.Keys.Count != _st7LoadCaseMap.Keys.Count)
+                throw new ArgumentException();
 
-            foreach (var lc in _loadCases)
+            var femStageIds = _st7StageMap.Keys.ToArray();
+            var loadCases = _st7LoadCaseMap.Keys.ToArray();
+
+            for (int i = 0; i < _st7LoadCaseMap.Count; i++)
             {
-                aw.AddNLAIncrement(mid, _st7LoadCaseMap[(LoadCase)lc], lc.Name);
-                aw.SetNLALoadIncrementFactor(mid, _st7LoadCaseMap[(LoadCase)lc], 1, 1, 1);
+                aw.AddNLAIncrement(mid, _st7StageMap[femStageIds[i]], loadCases[i].Name);
+                aw.SetNLALoadIncrementFactor(mid, _st7StageMap[femStageIds[i]], 1, _st7LoadCaseMap[loadCases[i]], 1);
             }
-
         }
 
         private bool St7RunLinearSolver(ISt7ApiService aw, string filePath)

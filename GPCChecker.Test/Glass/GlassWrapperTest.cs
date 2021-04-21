@@ -13,24 +13,7 @@ namespace GlassTests
     [TestClass]
     public class GlassWrapperTest : GlassTestBase
     {
-        #region Private methods
 
-        private GlassMaterialEn16612 GetGlassMaterialPrEn()
-        {
-            return new GlassMaterialEn16612("Glass", 70000, 0.23, 25, 
-                                        GlassMaterialEn16612.GlassTypes.DrawnSheetGlass, GlassMaterialEn16612.SurfaceTreatments.AsProduced,
-                                        GlassMaterialEn16612.PrestressTypes.HeatStrengthened, GlassMaterialEn16612.ManufactoringProcesses.HorizontalToughening, 2700 * 10E-12, 0);
-        }
-
-        private InterlayerMaterial GetInterlayerMaterial()
-        {
-            var it = new InterlayerMaterial("", 1, 0, InterlayerMaterial.InterlayerType.NormalPVB);
-            it.AddShearModule(3, new double[] { 10, 20, 50 }, new double[] { 0.1, 0.2, 0.30 });
-            it.AddShearModule(100, new double[] { 10, 20, 50 }, new double[] { 0.15, 0.25, 0.35 });
-            return it;
-        }
-
-        #endregion 
 
         [TestMethod]
         public void LaminatedGetDistance()
@@ -42,10 +25,10 @@ namespace GlassTests
 
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 0, 1000));
 
-            MonolithicGlass mg1 = new MonolithicGlass("Mg2", 10, GetGlassMaterialPrEn());
-            MonolithicGlass mg2 = new MonolithicGlass("Mg2", 20, GetGlassMaterialPrEn());
-            MonolithicGlass mg3 = new MonolithicGlass("Mg3", 30, GetGlassMaterialPrEn());
-            MonolithicGlass mg4 = new MonolithicGlass("Mg4", 10, GetGlassMaterialPrEn());
+            MonolithicGlass mg1 = new MonolithicGlass("Mg2", 10, GetGlassMaterialEn16612());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg2", 20, GetGlassMaterialEn16612());
+            MonolithicGlass mg3 = new MonolithicGlass("Mg3", 30, GetGlassMaterialEn16612());
+            MonolithicGlass mg4 = new MonolithicGlass("Mg4", 10, GetGlassMaterialEn16612());
 
             Interlayer intr1 = new Interlayer("Int1", 1, GetInterlayerMaterial(), Guid.NewGuid());
             Interlayer intr2 = new Interlayer("Int2", 0.6, GetInterlayerMaterial(), Guid.NewGuid());

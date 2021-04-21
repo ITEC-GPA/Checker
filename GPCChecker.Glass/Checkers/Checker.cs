@@ -10,9 +10,12 @@ using GPC.Checker.Glasses.Results;
 using GPC.Model.FEM.Properties;
 using GPC.Model.Loads;
 using System.Linq;
-using GPC.Model.Combinations;
 using GPC.Model.Results;
 using GPC.Model.FEM;
+using GPC.Checker.Glasses.LoadCases;
+using GPC.Model.Materials;
+using GPC.Model.Combinations;
+using GPC.Checker.Glasses.Extensions;
 
 namespace GPC.Checker.Glasses.Checkers
 {
@@ -52,7 +55,7 @@ namespace GPC.Checker.Glasses.Checkers
         /// Set up the FemModel class.
         /// </summary>
         /// <param name="folderPath"></param>
-        public void FemModelSetup(string folderPath)
+        public bool FemModelSetup(string folderPath)
         {
             try
             {
@@ -121,6 +124,7 @@ namespace GPC.Checker.Glasses.Checkers
                     throw new NotImplementedException();
                 }
 
+                return true;
             }
             else if (_glassSurface.Prototype.Glass is LaminatedGlass lg)
             {
@@ -128,7 +132,11 @@ namespace GPC.Checker.Glasses.Checkers
                 {
                     LaminatedGlassWrapper wrapper = new LaminatedGlassWrapper(_glassSurface, lg);
 
-                    wrapper.AddInternalFaceLoads(_glassSurface.GetLoads());
+                    // LOADS
+                    List<Load> loads = _glassSurface.GetLoads();
+                    if (loads.Count == 0)
+                        return false ;
+                    wrapper.AddInternalFaceLoads(loads);
 
                     // GEOMETRIA
 
@@ -154,7 +162,18 @@ namespace GPC.Checker.Glasses.Checkers
 
                     _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
 
+                    
+                    List<LoadCase> loadCasesUnique = loads.Select(i => i.LoadCase as LoadCase).Where(i => i != null).Distinct().ToList();
+
+
                     var glassPackage = lg.GetGlassPackage();
+
+                    
+                    int[][] elementIndexes = new int[glassPackage.Count()][]; // Associazione fra l'indice del layer e l'indice degli elementi
+
+                    Dictionary<int, string> glassLayerPropertyNameMap = new Dictionary<int, string>();
+                    Dictionary<int, Dictionary<LoadCase, string>> interlayerLoadCasePropertyNameMap = new Dictionary<int, Dictionary<LoadCase, string>>();
+
                     for (int i = 0; i < glassPackage.Length; i++)
                     {
                         IGlassPackage layer = glassPackage[i];
@@ -163,44 +182,100 @@ namespace GPC.Checker.Glasses.Checkers
                             string propertyName = $"Mg {i}";
                             _femModel.AddProperty(new MonolithicGlassProperty((MonolithicGlass)layer, propertyName));
 
+                            glassLayerPropertyNameMap[i] = propertyName;
+
                             if (meshes[i].CompareGuid(meshExternal.Guid))
                             {
-                                _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal,
+                                var indexes = _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal,
                                                     wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
+                                elementIndexes[i] = indexes;
                             }
                             else if (meshes[i].CompareGuid(meshInternal.Guid))
                             {
-                                _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapInternal, vertexLineLoadMeshEntityMapInternal, faceAreaLoadMeshEntityMapInternal,
+                                var indexes = _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapInternal, vertexLineLoadMeshEntityMapInternal, faceAreaLoadMeshEntityMapInternal,
                                                     wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value);
+                                elementIndexes[i] = indexes;
                             }
                             else
                             {
-                                _femModel.AddMesh(meshes[i], propertyName, null, null, null, null, null);
+                                var indexes = _femModel.AddMesh(meshes[i], propertyName, null, null, null, null, null);
+                                elementIndexes[i] = indexes;
                             }
                         }
-                        else if (layer is Interlayer)
+                        else if (layer is Interlayer il)
                         {
-                            string propertyName = $"Interlayer {i}";
-                            _femModel.AddProperty(new InterlayerBrickProperty((Interlayer)layer, 10, 20, propertyName));
+                            var properties = GetInterlayerBrickProperties(loadCasesUnique, il.Material, _femModel.GetBrickPropertyNames());
 
-                            _femModel.AddMesh(meshes[i], null, propertyName, null, null, null, null);
+                            if (loadCasesUnique.Count() != properties.Count())
+                                throw new ArgumentException();
+
+                            interlayerLoadCasePropertyNameMap[i] = new Dictionary<LoadCase, string>();
+                            for (var j = 0; j < properties.Count; j++)
+                            {
+                                if (_femModel.AddProperty(properties[j])) // Per ogni layer creo le proprietà dentro al fem
+                                {
+                                    interlayerLoadCasePropertyNameMap[i][loadCasesUnique[j]] = properties[j].Name;
+                                }
+                                else
+                                    throw new ArgumentException(); // In teoria non è possibile che vada in eccezione perchè i nomi delle proprietà sono uniche e quindi vengono sempre aggiunti
+                            }
+
+
+                            var minProperty = properties.OrderBy(j => j.GetShearModule()).FirstOrDefault(); // Prendo la proprietà con i G minimo per ogni layer e la uso come proprietà iniziale
+
+                            var indexes = _femModel.AddMesh(meshes[i], null, minProperty.Name, null, null, null, null);
+                            elementIndexes[i] = indexes;
                         }
                         else
                         {
                             throw new NotSupportedException();
                         }
-                    } 
+                    }
+
+
                     #endregion
 
                     // TIPO DI ANALISI
 
                     if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
                     {
+                        // LINEARE
+                        // Stage lineari per cambiare proprietà all'interlayer
+                        // va creato uno stage per ogni loadcase
                         _femModel.AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear;
+
+                        // O(nlc * n^2)
+                        foreach (var loadCase in loads.Select(i => i.LoadCase as GPC.Checker.Glasses.LoadCases.LoadCase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
+                        {   
+                            Stage stagelc = _femModel.AddStage(loadCase.Name, Model.FEM.FemModel.AnalysisTypes.Linear);
+
+                            for (int i = 0; i < glassPackage.Length; i++)
+                            {
+                                if (glassPackage[i] is Interlayer)
+                                    stagelc.AddFiniteElements(elementIndexes[i], interlayerLoadCasePropertyNameMap[i][loadCase]);
+
+                                else
+                                    stagelc.AddFiniteElements(elementIndexes[i], glassLayerPropertyNameMap[i]);
+                            }
+                        }
+                        // TODO: fare combo fittizzie
                     }
                     else if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.NonLinearStaticAnalysis)
                     {
+                        // NON LINEARE
+                        // Stage lineari per cambiare proprietà all'interlayer
+                        // va creato uno stage per ogni loadcase
+
                         _femModel.AnalysisType = Model.FEM.FemModel.AnalysisTypes.NonLinear;
+                        
+                        foreach(var combo in _combinations)
+                        {
+
+                            List<LoadCase> longTermLoadCases = combo.GetLongTermLoadCases((glassPackage[1] as Interlayer).Material, 100);
+                            
+
+                        }
+
                     }
                     else
                     {
@@ -215,20 +290,22 @@ namespace GPC.Checker.Glasses.Checkers
                 else
                     throw new NotImplementedException(_glassSurface.Prototype.LaminatedAnalysisType.ToString());
 
+                return true;
             }
             else if (_glassSurface.Prototype.Glass is DoubleInsulatingGlass dgu)
             {
                 glassWrapper = new DoubleInsulatingGlassWrapper(_glassSurface, dgu);
+                return false;
             }
             else if (_glassSurface.Prototype.Glass is TripleInsulatingGlass tgu)
             {
                 glassWrapper = new TripleInsulatingGlassWrapper(_glassSurface, tgu);
+                return false;
             }
             else
             {
                 throw new NotSupportedException();
             }
-
 
         }
 
@@ -297,6 +374,35 @@ namespace GPC.Checker.Glasses.Checkers
             return _femModel.GetMesh();
         }
 
+
+        #endregion
+
+
+        #region Private Methods
+
+        /// <param name="loadCases"></param>
+        /// <param name="material"></param>
+        /// <param name="femModelPropertiesNames">A list of property names already inside the femModel</param>
+        /// <returns>A list of <see cref="InterlayerBrickProperty"/> with a name that indentifies uniquely the property </returns>
+        /// <remarks>This method generate a <see cref="InterlayerBrickProperty"/> for each loadcase in <paramref name="loadCases"/></remarks>
+        private List<InterlayerBrickProperty> GetInterlayerBrickProperties(IEnumerable<LoadCase> loadCases, InterlayerMaterial material, List<string> femModelPropertiesNames)
+        {
+            int index = 0;
+            int previousPropertyCount = femModelPropertiesNames.Count;
+
+            List<InterlayerBrickProperty> properties = new List<InterlayerBrickProperty>();
+
+            foreach (var loadCase in loadCases)
+            {
+                // Il nome è la chiave della collection. Do un nome che indentifica univocamente la proprietà
+                properties.Add( new InterlayerBrickProperty(material, loadCase.Temperature, loadCase.LoadDuration, 
+                                $"Interlayer_{previousPropertyCount + index} - Material: {material.Name}_{index++} G: {material.GetShearModule(loadCase.LoadDuration, loadCase.Temperature).ToString("F3")} MPa"));
+                                
+
+            }
+
+            return properties;
+        }
 
         #endregion
 

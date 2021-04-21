@@ -1,13 +1,25 @@
 ﻿using GPC.Geometry;
 using GPC.Geometry.Meshes;
+using GPC.Model.Materials;
 using GPC.TestUtilities;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System;
+using System.IO;
 
 namespace GlassTests
 {
     public abstract class GlassTestBase : UnitTestBase
     {
-        public Shape GetRectangularShape(double width, double height)
+        protected GlassTestBase()
+        {
+
+        }
+
+
+        #region Shape
+
+        protected Shape GetRectangularShape(double width, double height)
         {
             Polygon3d p = new Polygon3d()
             {
@@ -20,7 +32,7 @@ namespace GlassTests
             return new Shape(p);
         }
 
-        public Shape GetRectangularShape(Point3d p, Vector3d vector)
+        protected Shape GetRectangularShape(Point3d p, Vector3d vector)
         {
             Polygon3d poly = new Polygon3d()
             {
@@ -32,14 +44,123 @@ namespace GlassTests
 
             return new Shape(poly, null, null);
         }
+        #endregion
 
 
-        private void ExportMesh(Mesh mesh)
+        #region Material
+
+        protected GlassMaterialEn16612 GetGlassMaterialEn16612(double fgk = 45)
+        {
+            return new GlassMaterialEn16612("Glass", 70000, 0.23, fgk, GlassMaterialEn16612.GlassTypes.FloatGlass, GlassMaterialEn16612.SurfaceTreatments.AsProduced,
+                                        GlassMaterialEn16612.PrestressTypes.HeatStrengthened, GlassMaterialEn16612.ManufactoringProcesses.HorizontalToughening, 2700 * 10E-12, 0);
+        }
+
+        protected GlassMaterialEn16612 GetGlassMaterialEn16612(double fgk, GlassMaterialEn16612.GlassTypes glassType, GlassMaterialEn16612.SurfaceTreatments surfaceTreatments, 
+                                                             GlassMaterialEn16612.PrestressTypes prestress, GlassMaterialEn16612.ManufactoringProcesses manufactoring )
+        {
+            return new GlassMaterialEn16612("Glass", 70000, 0.23, fgk, glassType, surfaceTreatments,
+                                        prestress, manufactoring, 2700 * 10E-12, 0);
+        }
+
+        protected GlassMaterialAstm GetGlassMaterialAstm(double psiSurface = 1, double nCoeff = 16, double surfaceBaseStress = 23.3, double surfaceBaseEdgeStress = 18.3, double probabiltyOfBreakage = 0.001)
+        {
+            return new GlassMaterialAstm("Glass", 70000, 0.23, psiSurface, nCoeff, surfaceBaseStress, surfaceBaseEdgeStress, probabiltyOfBreakage, 2500, 0.1);
+        }
+
+
+        protected InterlayerMaterial GetInterlayerMaterial()
+        {
+            var it = new InterlayerMaterial("", 1, 0, InterlayerMaterial.InterlayerType.NormalPVB);
+            it.AddShearModule(3, new double[] { 10, 20, 50 }, new double[] { 0.1, 0.2, 0.30 });
+            it.AddShearModule(100, new double[] { 10, 20, 50 }, new double[] { 0.15, 0.25, 0.35 });
+
+            it.AddShearModule(100, new double[] { 10, 20, 50 }, new double[] { 0.15, 0.25, 0.35 });
+            return it;
+        }
+
+        /// <summary>
+        /// Set the InterlayerMaterial with the Shear modulus of SentryGlas
+        /// </summary>
+        protected InterlayerMaterial GetInterlayerMaterialSentryGlas()
+        {
+            var it = new InterlayerMaterial("SG", 1, 0, InterlayerMaterial.InterlayerType.SentryGlass);
+            it.AddShearModule(3,        new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 236, 211, 141, 63, 26.4, 8.2, 2.9, 1.3 });
+            it.AddShearModule(30,       new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 228, 206, 119, 36.6, 13.5, 4.3, 2.1, 1.0 });
+            it.AddShearModule(60,       new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 225, 195, 110, 30.7, 11.3, 3.7, 1.9, 0.8 });
+            it.AddShearModule(5 * 60,   new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 220, 188, 82.8, 19.4, 7.3, 2.6, 1.4, 0.6 });
+            it.AddShearModule(30 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 217, 175, 66.1, 11.4, 4.9, 1.9, 1.0, 0.4 });
+            it.AddShearModule(60 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 206, 169, 60.0, 9.3, 4.2, 1.7, 0.8, 0.3 });
+            it.AddShearModule(1 * 24 * 60 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 190, 146, 49.7, 4.5, 2.8, 1.3, 0.6, 0.3 });
+            it.AddShearModule(5 * 24 * 60 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 178, 130, 24.7, 3.6, 2.4, 1.2, 0.6, 0.2 });
+            it.AddShearModule(21 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 172, 115, 12.9, 3.3, 2.2, 1.2, 0.5, 0.2 });
+            it.AddShearModule(30 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 171, 112, 11.6, 3.3, 2.2, 1.1, 0.5, 0.2 });
+            it.AddShearModule(365 * 24 * 60 * 60,new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 161, 96.5, 6.8, 3.1, 2.1, 1.0, 0.5, 0.2 });
+
+            it.AddShearModule(50 * 365 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 0, 0, 0, 0, 0, 0, 0, 0 });
+
+            return it;
+        }
+
+
+        /// <summary>
+        /// Set the InterlayerMaterial with the Shear modulus of ES Stiff PVB
+        /// </summary>
+        protected InterlayerMaterial GetInterlayerMaterialPVBStiff()
+        {
+            var it = new InterlayerMaterial("ES Stiff PVB", 1, 0, InterlayerMaterial.InterlayerType.NormalPVB);
+            it.AddShearModule(3,                new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 699, 342, 58, 3.4, 1.7, 1.6, 0, 0 });
+            //it.AddShearModule(30,               new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 228, 206, 119, 36.6, 13.5, 4.3, 2.1, 1.0 });
+            it.AddShearModule(60,               new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 573, 196, 9.2, 1.8, 1.6, 1.5, 1.9, 0.8 });
+            //it.AddShearModule(5 * 60,           new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 220, 188, 82.8, 19.4, 7.3, 2.6, 1.4, 0.6 });
+            //it.AddShearModule(30 * 60,          new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 217, 175, 66.1, 11.4, 4.9, 1.9, 1.0, 0.4 });
+            it.AddShearModule(60 * 60,          new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 388, 37, 2, 1.6, 0, 0, 0, 0 });
+            //it.AddShearModule(1 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 190, 146, 49.7, 4.5, 2.8, 1.3, 0.6, 0.3 });
+            //it.AddShearModule(5 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 178, 130, 24.7, 3.6, 2.4, 1.2, 0.6, 0.2 });
+            //it.AddShearModule(21 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 172, 115, 12.9, 3.3, 2.2, 1.2, 0.5, 0.2 });
+            it.AddShearModule(30 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 80, 1.9, 1.5, 1.5, 0, 0, 0, 0 });
+            it.AddShearModule(365 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 19, 1.6, 1.5, 0, 0, 0, 0, 0 });
+
+            it.AddShearModule(50 * 365 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 0, 0, 0, 0, 0, 0, 0, 0 });
+
+            return it;
+        }
+
+        #endregion
+
+
+
+        protected void ExportMesh(Mesh mesh)
         {
             MeshExport.ExportToMshFormatv2(base.GetFilePathInOutputFolder("Mesh", "msh"), new List<Mesh>() { mesh });
         }
 
 
+        protected void RunApiServer()
+        {
+
+            if (Process.GetProcessesByName("St7ApiServer").Length == 0)
+            {
+                string filePath = System.AppContext.BaseDirectory;
+                Console.WriteLine(filePath);
+
+                filePath = Path.GetFullPath(Path.Combine(filePath, @"..\..\..\..\"));
+                Console.WriteLine(filePath);
+
+                filePath = Path.GetFullPath(Path.Combine(filePath, @"StrausApi64\St7ApiServer\bin\Debug\St7ApiServer.exe"));
+
+                if (File.Exists(filePath))
+                {
+                    Process process = new Process();
+                    process.StartInfo.FileName = filePath;
+                    process.Start();
+                }
+                else
+                {
+                    throw new ApplicationException($"Api server not found at this location {filePath}. Start the ApiServer manually");
+                }
+
+            }
+        }
 
     }
 }
