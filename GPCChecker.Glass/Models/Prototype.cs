@@ -28,15 +28,15 @@ namespace GPC.Checker.Glasses.Models
         [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum CheckMethods
         {
-            /// <summary> Ref prEn16612 annex A </summary>
+            /// <summary> Ref EN 16612-2019 annex A </summary>
             [Description("Dominant load")]
             DominantLoad = 0,
 
-            /// <summary> Ref prEn16612 annex A </summary>
+            /// <summary> Ref EN 16612-2019 annex A </summary>
             [Description("Shorter load")]
             ShorterLoad = 1,
 
-            /// <summary> Ref CNR-DT 210/2013 pag 224  </summary>
+            /// <summary> Ref CNR-DT 210/2013 pag 224 </summary>
             [Description("Palmgren miner")]
             PalmgrenMiner = 2,
 
@@ -51,7 +51,7 @@ namespace GPC.Checker.Glasses.Models
             /// <summary> Ref CNR DT 210-13 </summary>
             EET = 0,
 
-            /// <summary> Ref prEn16612 </summary>
+            /// <summary> Ref EN 16612-2019 </summary>
             Omega = 1,
 
             /// <summary> Ref ASTM E1300-16 §X9 </summary>
@@ -65,7 +65,7 @@ namespace GPC.Checker.Glasses.Models
         [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum Standards
         {
-            /// <summary>EN 16612 - 2019</summary>
+            /// <summary>EN 16612-2019</summary>
             [Description("EN 16612")]
             EN16612 = 0,
 
