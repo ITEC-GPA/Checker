@@ -271,7 +271,7 @@ namespace GPC.Checker.Glasses.Checkers
                         foreach(var combo in _combinations)
                         {
 
-                            var longTermLoadCases = combo.GetLongTermLoadCases((glassPackage[1] as Interlayer).Material, 100);
+                            List<LoadCase> longTermLoadCases = combo.GetLongTermLoadCases((glassPackage[1] as Interlayer).Material, 100);
                             
 
                         }
