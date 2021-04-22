@@ -95,8 +95,8 @@ namespace GlassTests
 
             // Load
             LoadCase lc0 = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseType.SelfWeight);
-            LoadCase lc1 = new LoadCase("Climate", 12 * 60 * 60, 10, GPC.Model.LoadCases.LoadCase.LoadCaseType.ClimateSummer);
-            LoadCase lc2 = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseType.Wind);
+            LoadCase lc1 = new LoadCase("Climate", 12 * 60 * 60, 10, GPC.Model.LoadCases.LoadCase.LoadCaseType.ClimateSummerDeltaH);
+            LoadCase lc2 = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseType.WindPressure);
             LoadCase lc3 = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad);
 
             NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lc1);
@@ -104,20 +104,20 @@ namespace GlassTests
             NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lc3);
             LineLoad lll = new LineLoad(0, 1, 0, 0, 0, 0, new Line3d(new Point3d(40, 0, 50), new Point3d(150, 0, 200)), lc3, CoordinateSystem.Global);
 
-            CombinationEn combo1 = new CombinationEn("Cmb1", CombinationEn.CombinationType.UltimateStructural);
+            CombinationEn combo1 = new CombinationEn("Cmb1", StandardEN1990.LimitState.UltimateStructural);
             combo1.AddLoadCaseCoefficient(lc0, 1);
             combo1.AddLoadCaseCoefficient(lc3, 1);
 
-            CombinationEn combo2 = new CombinationEn("Cmb2", CombinationEn.CombinationType.UltimateStructural);
+            CombinationEn combo2 = new CombinationEn("Cmb2", StandardEN1990.LimitState.UltimateStructural);
             combo2.AddLoadCaseCoefficient(lc0, 1);
             combo2.AddLoadCaseCoefficient(lc2, 0.6);
 
-            CombinationEn combo3 = new CombinationEn("Cmb3", CombinationEn.CombinationType.UltimateStructural);
+            CombinationEn combo3 = new CombinationEn("Cmb3", StandardEN1990.LimitState.UltimateStructural);
             combo3.AddLoadCaseCoefficient(lc0, 1);
             combo3.AddLoadCaseCoefficient(lc3, 0.75);
             combo3.AddLoadCaseCoefficient(lc2, 0.4);
 
-            CombinationEn combo4 = new CombinationEn("Cmb4", CombinationEn.CombinationType.UltimateStructural);
+            CombinationEn combo4 = new CombinationEn("Cmb4", StandardEN1990.LimitState.UltimateStructural);
             combo4.AddLoadCaseCoefficient(lc0, 1);
             combo4.AddLoadCaseCoefficient(lc1, 0.75);
             combo4.AddLoadCaseCoefficient(lc3, 0.75);
@@ -182,8 +182,8 @@ namespace GlassTests
 
             // Load
             LoadCase lc0 = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseType.SelfWeight);
-            LoadCase lc1 = new LoadCase("Climate", 12 * 60 * 60, 10, GPC.Model.LoadCases.LoadCase.LoadCaseType.ClimateSummer);
-            LoadCase lc2 = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseType.Wind);
+            LoadCase lc1 = new LoadCase("Climate", 12 * 60 * 60, 10, GPC.Model.LoadCases.LoadCase.LoadCaseType.ClimateSummerDeltaT);
+            LoadCase lc2 = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseType.WindPressure);
             LoadCase lc3 = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad);
 
             NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lc1);
@@ -191,24 +191,24 @@ namespace GlassTests
             NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lc3);
             LineLoad lll = new LineLoad(0, 1, 0, 0, 0, 0, new Line3d(new Point3d(40, 0, 50), new Point3d(150, 0, 200)), lc3, CoordinateSystem.Global);
 
-            CombinationEn combo1 = new CombinationEn("Cmb1", CombinationEn.CombinationType.UltimateStructural);
+            CombinationEn combo1 = new CombinationEn("Cmb1", StandardEN1990.LimitState.UltimateStructural);
             combo1.AddLoadCaseCoefficient(lc0, 1);
             combo1.AddLoadCaseCoefficient(lc3, 1);
 
-            CombinationEn combo5 = new CombinationEn("Cmb3", CombinationEn.CombinationType.UltimateStructural);
+            CombinationEn combo5 = new CombinationEn("Cmb3", StandardEN1990.LimitState.UltimateStructural);
             combo5.AddLoadCaseCoefficient(lc0, 1.5);
             combo5.AddLoadCaseCoefficient(lc2, 0.6);
 
-            CombinationEn combo2 = new CombinationEn("Cmb2", CombinationEn.CombinationType.UltimateStructural);
+            CombinationEn combo2 = new CombinationEn("Cmb2", StandardEN1990.LimitState.UltimateStructural);
             combo2.AddLoadCaseCoefficient(lc0, 1);
             combo2.AddLoadCaseCoefficient(lc2, 0.6);
 
-            CombinationEn combo3 = new CombinationEn("Cmb3", CombinationEn.CombinationType.UltimateStructural);
+            CombinationEn combo3 = new CombinationEn("Cmb3", StandardEN1990.LimitState.UltimateStructural);
             combo3.AddLoadCaseCoefficient(lc0, 1);
             combo3.AddLoadCaseCoefficient(lc3, 0.75);
             combo3.AddLoadCaseCoefficient(lc2, 0.4);
 
-            CombinationEn combo4 = new CombinationEn("Cmb4", CombinationEn.CombinationType.UltimateStructural);
+            CombinationEn combo4 = new CombinationEn("Cmb4", StandardEN1990.LimitState.UltimateStructural);
             combo4.AddLoadCaseCoefficient(lc0, 1);
             combo4.AddLoadCaseCoefficient(lc1, 0.75);
             combo4.AddLoadCaseCoefficient(lc3, 0.75);
