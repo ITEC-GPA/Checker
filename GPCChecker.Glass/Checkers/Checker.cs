@@ -179,7 +179,7 @@ namespace GPC.Checker.Glasses.Checkers
                         IGlassPackage layer = glassPackage[i];
                         if (layer is MonolithicGlass)
                         {
-                            string propertyName = $"Mg {i}";
+                            string propertyName = $"Mg {i} t={((MonolithicGlass)layer).Thickness}";
                             _femModel.AddProperty(new MonolithicGlassProperty((MonolithicGlass)layer, propertyName));
 
                             glassLayerPropertyNameMap[i] = propertyName;

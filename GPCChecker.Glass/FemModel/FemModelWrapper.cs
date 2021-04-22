@@ -830,35 +830,36 @@ namespace GPC.Checker.Glasses.FemModel
             if (!(_loadCases.Count > 0))
                 return;
 
-            int st7LcId = 0;
+            int st7LoadCaseId = 0;
             foreach(var loadCase in _loadCases)
             {
-                st7LcId++;
-                if (st7LcId != 1)
+                st7LoadCaseId++;
+                if (st7LoadCaseId != 1)
                 {
                     if (!aw.NewLoadCase(mid, loadCase.Name))
                         throw new Straus7Exception($"Unable lo add loadCase {loadCase.Name}");
                 }
                 else
                 {
-                    aw.SetLoadCaseName(mid, st7LcId, loadCase.Name);
+                    aw.SetLoadCaseName(mid, st7LoadCaseId, loadCase.Name);
                 }
 
 
                 if (loadCase.GetLoadCaseType() == LoadCase.LoadCaseType.SelfWeight)
                 {
-                    aw.SetLoadCaseType(mid, st7LcId, St7ApiConst.kGravity);
-                    aw.SetLoadCaseGravityDir(mid, st7LcId, 3);
+                    aw.SetLoadCaseType(mid, st7LoadCaseId, St7ApiConst.kGravity);
+                    aw.SetLoadCaseGravityDir(mid, st7LoadCaseId, 3);
                     var doubles = new double[13];
                     doubles[4] = 0;
                     doubles[5] = 0;
                     doubles[6] = -9806.65; //mm/s2
-                    aw.SetLoadCaseDefaults(mid, st7LcId, doubles);
+                    aw.SetLoadCaseDefaults(mid, st7LoadCaseId, doubles);
+                    aw.SetLoadCaseMassOption(mid, st7LoadCaseId, true, false);
                 }
                 else
-                    aw.SetLoadCaseType(mid, st7LcId, St7ApiConst.kNoInertia);
+                    aw.SetLoadCaseType(mid, st7LoadCaseId, St7ApiConst.kNoInertia);
 
-                _st7LoadCaseMap.Add((LoadCase)loadCase, st7LcId);
+                _st7LoadCaseMap.Add((LoadCase)loadCase, st7LoadCaseId);
             }
 
         }
