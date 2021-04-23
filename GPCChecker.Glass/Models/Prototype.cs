@@ -1,4 +1,4 @@
-﻿using GPC.Checker.Glasses.Restrain;
+using GPC.Checker.Glasses.Restrain;
 using GPC.Geometry;
 using GPC.Model.Combinations;
 using GPC.Model.Glasses;
@@ -220,9 +220,9 @@ namespace GPC.Checker.Glasses.Models
             _combinations.Remove(combination);
         }
 
-        public void DeleteCombinationAt(int index)
+        public void DeleteCombinationByName(string name)
         {
-            _combinations.RemoveAt(index);
+            _combinations.Remove(name);
         }
 
         /// <summary>
