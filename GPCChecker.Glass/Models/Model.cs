@@ -192,6 +192,14 @@ namespace GPC.Checker.Glasses.Models
 
         #region Private methods
 
+        /// <summary>
+        /// This method merge the two list of combinations.
+        /// <para>A <see cref="Combination"/> from <paramref name="specificCombinations"/> will be added only if it does not have the same coefficients/loadcase of a <paramref name="globalCombinations"/></para>
+        /// </summary>
+        /// <param name="globalCombinations"></param>
+        /// <param name="specificCombinations"></param>
+        /// <returns></returns>
+        /// <remarks>The <see cref="Combination"/> will be cloned </remarks>
         private List<Combination> MergeCombinations(IEnumerable<Combination> globalCombinations, IEnumerable<Combination> specificCombinations)
         {
             var merge = new UniqueNameCollection<Combination>();
@@ -214,7 +222,7 @@ namespace GPC.Checker.Glasses.Models
                 }
             }
 
-            return merge;
+            return merge.ToList();
         }
 
         #endregion
