@@ -1,5 +1,6 @@
-using GPC.Checker.Glasses.Restrain;
+﻿using GPC.Checker.Glasses.Restrain;
 using GPC.Geometry;
+using GPC.Model;
 using GPC.Model.Combinations;
 using GPC.Model.Glasses;
 using GPC.Utilities.Converters;
@@ -113,7 +114,7 @@ namespace GPC.Checker.Glasses.Models
         private Polygon3d _polygon;
         private readonly List<IParametricRestrain> _restrains;
 
-        private readonly List<Combination> _combinations;
+        private readonly UniqueNameCollection<Combination> _combinations;
 
         #endregion
 
@@ -141,11 +142,11 @@ namespace GPC.Checker.Glasses.Models
 
         public IEnumerable<IParametricRestrain> Restrains => _restrains;
 
-        public IEnumerable<Combination> Combinations => _combinations;
+        public UniqueNameCollection<Combination> Combinations => _combinations;
 
         #endregion
 
-        public Prototype(string name, Glass glass, Polygon3d polygon, List<IParametricRestrain> restrains, List<Combination> combinations, Standards standard, 
+        public Prototype(string name, Glass glass, Polygon3d polygon, List<IParametricRestrain> restrains, IEnumerable<Combination> combinations, Standards standard, 
             AnalysisTypes analysisType, CheckMethods checkMethod, LaminatedEqThicknessMethods laminatedEqThicknessMethod, SolverTypes solverType, LaminatedAnalysisTypes laminatedAnalysisType)
             : base(name)
         {
@@ -162,7 +163,9 @@ namespace GPC.Checker.Glasses.Models
                 throw new ArgumentException("If there are restraints provided the polygon cannot be null");
             _polygon = polygon;
             _restrains = restrains == null ? new List<IParametricRestrain>() : restrains;
-            _combinations = combinations == null ? new List<Combination>() : combinations;
+
+            _combinations = new UniqueNameCollection<Combination>();
+            _combinations.AddRange(combinations);
         }
 
 
@@ -185,7 +188,7 @@ namespace GPC.Checker.Glasses.Models
             _glass = (Glass)info.GetValue("Glass", typeof(Glass));
             _polygon = (Polygon3d)info.GetValue("Polygon", typeof(Polygon3d));
             _restrains = (List<IParametricRestrain>)info.GetValue("Restraints", typeof(List<IParametricRestrain>));
-            _combinations = (List<Combination>)info.GetValue("Combinations", typeof(List<Combination>));
+            _combinations = (UniqueNameCollection<Combination>)info.GetValue("Combinations", typeof(UniqueNameCollection<Combination>));
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
@@ -200,7 +203,7 @@ namespace GPC.Checker.Glasses.Models
             info.AddValue("Glass", _glass, typeof(Glass));
             info.AddValue("Polygon", _polygon, typeof(Polygon3d));
             info.AddValue("Restraints", _restrains, typeof(List<IParametricRestrain>));
-            info.AddValue("Combinations", _combinations, typeof(List<Combination>));
+            info.AddValue("Combinations", _combinations, typeof(UniqueNameCollection<Combination>));
             info.AddValue("LaminatedAnalysisType", _laminatedAnalysisType, typeof(LaminatedAnalysisTypes));
         }
 

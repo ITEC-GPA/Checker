@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
 using GPC.Model.Combinations;
@@ -6,6 +6,7 @@ using GPC.Checker.Glasses.Glasses;
 using GPC.Checker.Glasses.Checkers;
 using GPC.Checker.Glasses.Results;
 using GPC.Model.Results;
+using GPC.Model;
 
 namespace GPC.Checker.Glasses.Models
 {
@@ -18,9 +19,9 @@ namespace GPC.Checker.Glasses.Models
         protected List<GlassSurface> _glassSurfaces;
 
         /// <summary>
-        /// List of Global combinations
+        /// List of Global combinations with unique name
         /// </summary>
-        protected List<Combination> _combinations;
+        protected UniqueNameCollection<Combination> _combinations;
 
         protected List<ResultPlateStress> _combinationResults;
 
@@ -55,11 +56,13 @@ namespace GPC.Checker.Glasses.Models
 
         }
 
-        public Model(List<GlassSurface> glassSurfaces, List<Combination> combinations, string outputFolder)
+        public Model(List<GlassSurface> glassSurfaces, IEnumerable<Combination> combinations, string outputFolder)
         {
             this._glassSurfaces = glassSurfaces ?? new List<GlassSurface>();
-            this._combinations = combinations ?? new List<Combination>();
             this._checkers = new List<Checkers.Checker>();
+
+            this._combinations = new UniqueNameCollection<Combination>();
+            _combinations.AddRange(combinations);
 
             if (!string.IsNullOrEmpty(outputFolder) && !string.IsNullOrWhiteSpace(outputFolder))
                 if (!System.IO.Directory.Exists(outputFolder))
@@ -90,6 +93,7 @@ namespace GPC.Checker.Glasses.Models
         /// </summary>
         public void AddCombination(Combination combination)
         {
+            // Validazione combo
             _combinations.Add(combination);
         }
 
@@ -99,17 +103,24 @@ namespace GPC.Checker.Glasses.Models
         /// </summary>
         public void FemModelSetup()
         {
+
+            List<Combination> totalCombinations = new List<Combination>();
+            totalCombinations.AddRange(_combinations);
+
             foreach (var surface in _glassSurfaces)
             {
+                totalCombinations.AddRange(surface.Prototype.Combinations);
+
+
                 Checkers.Checker checker = null;
                 
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
-                    checker = new En16612Checker(surface, _combinations);
+                    checker = new En16612Checker(surface, totalCombinations, _options);
                 }
                 else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
                 {
-                    checker = new AstmChecker(surface, _combinations);
+                    checker = new AstmChecker(surface, totalCombinations, _options);
                 }
                 else
                 {

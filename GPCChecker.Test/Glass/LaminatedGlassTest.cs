@@ -227,6 +227,7 @@ namespace GlassTests
             // Model
             model.AddSurface(gs1);
 
+            p1.AddCombination(combo1);
             model.AddCombination(combo1);
             model.AddCombination(combo5);
             model.AddCombination(combo2);
