@@ -128,12 +128,16 @@ namespace GlassTests
         #endregion
 
 
+        #region Export
 
         protected void ExportMesh(Mesh mesh)
         {
             MeshExport.ExportToMshFormatv2(base.GetFilePathInOutputFolder("Mesh", "msh"), new List<Mesh>() { mesh });
         }
 
+        #endregion
+
+        #region Straus7
 
         protected void RunApiServer()
         {
@@ -161,6 +165,27 @@ namespace GlassTests
 
             }
         }
+
+
+        #endregion
+
+
+        #region Standard
+
+        protected class EN16612LoadDurations
+        {
+            public const double WIND            = 3;
+            public const double LIVE            = 30;
+            public const double LIVECROWD       = 5*60;
+            public const double MAINTENANCE     = 30*60;
+            public const double CLIMATEWINTER   = 6*60*60;
+            public const double CLIMATESUMMER   = 12 * 60 * 60;
+            public const double SNOW            = 5 * 24 * 60 * 60;
+            public const double SELFWEIGHT      = 50*365 * 24 * 60 * 60;
+
+        }
+
+        #endregion
 
     }
 }

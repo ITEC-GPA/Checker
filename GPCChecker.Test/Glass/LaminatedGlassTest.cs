@@ -195,6 +195,10 @@ namespace GlassTests
             combo1.AddLoadCaseCoefficient(lc0, 1);
             combo1.AddLoadCaseCoefficient(lc3, 1);
 
+            CombinationEn combo5 = new CombinationEn("Cmb3", CombinationEn.CombinationType.UltimateStructural);
+            combo5.AddLoadCaseCoefficient(lc0, 1.5);
+            combo5.AddLoadCaseCoefficient(lc2, 0.6);
+
             CombinationEn combo2 = new CombinationEn("Cmb2", CombinationEn.CombinationType.UltimateStructural);
             combo2.AddLoadCaseCoefficient(lc0, 1);
             combo2.AddLoadCaseCoefficient(lc2, 0.6);
@@ -224,6 +228,7 @@ namespace GlassTests
             model.AddSurface(gs1);
 
             model.AddCombination(combo1);
+            model.AddCombination(combo5);
             model.AddCombination(combo2);
             model.AddCombination(combo3);
             model.AddCombination(combo4);

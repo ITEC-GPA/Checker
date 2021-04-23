@@ -267,13 +267,41 @@ namespace GPC.Checker.Glasses.Checkers
                         // va creato uno stage per ogni loadcase
 
                         _femModel.AnalysisType = Model.FEM.FemModel.AnalysisTypes.NonLinear;
-                        
-                        foreach(var combo in _combinations)
-                        {
 
-                            List<LoadCase> longTermLoadCases = combo.GetLongTermLoadCases((glassPackage[1] as Interlayer).Material, 100);
+
+                        List<Combination> combinationsToProcess = _combinations.ToList();
+
+                        int index = 0;
+                        while (combinationsToProcess.Count > 0)
+                        {
+                            var firstCombo = combinationsToProcess.First();
+
+                            List<LoadCase> longTermLoadCases = firstCombo.GetLongTermLoadCases((glassPackage[1] as Interlayer).Material, 1);
+                            var longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCases);
+
+                            
+                            List<Combination> matchedCombinations = combinationsToProcess.Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo
                             
 
+                            Stage stage1 = _femModel.AddStage($"Stage {index++}", Model.FEM.FemModel.AnalysisTypes.Linear);
+                            Stage stage2 = _femModel.AddStage($"Stage {index++}", Model.FEM.FemModel.AnalysisTypes.Linear, true);
+
+                            var ltCombination = (Combination)firstCombo.CloneEmpty();
+                            ltCombination.AddLoadCaseCoefficients(longTermLoadCaseCoefficients);
+
+                            var stCombinations = new List<Combination>();
+                            foreach(var combo in matchedCombinations)
+                            {
+                                var c = (Combination)combo.Clone();
+                                c.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
+                                stCombinations.Add(c);
+                            }
+
+                            stage1.AddCombination(ltCombination);
+                            stage2.AddCombinations(stCombinations);
+
+                            
+                            combinationsToProcess = combinationsToProcess.Except(matchedCombinations).ToList();
                         }
 
                     }
