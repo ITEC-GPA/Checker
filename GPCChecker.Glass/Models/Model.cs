@@ -15,9 +15,16 @@ namespace GPC.Checker.Glasses.Models
         #region Variables
 
         protected string _outputFolder;
+
         protected List<GlassSurface> _glassSurfaces;
+
+        /// <summary>
+        /// List of Global combinations with unique name
+        /// </summary>
         protected UniqueNameCollection<Combination> _combinations;
+
         protected List<ResultPlateStress> _combinationResults;
+
         protected List<Checkers.Checker> _checkers;
 
         protected ModelOptions _options;
@@ -26,15 +33,13 @@ namespace GPC.Checker.Glasses.Models
 
         #region Properties
 
+        public List<GlassSurface> GlassSurfaces => _glassSurfaces;
+
         public string OutputFolder => _outputFolder;
 
-        public IEnumerable<GlassSurface> GlassSurfaces => _glassSurfaces;
+        public ModelOptions Options => _options;
 
-        /// <summary>
-        /// List of Global combinations
-        /// </summary>
         public IEnumerable<Combination> Combinations => _combinations;
-
 
         #endregion
 
@@ -42,24 +47,27 @@ namespace GPC.Checker.Glasses.Models
         #region Public constructors
 
         public Model(string outputFolder)
-            : this(new List<GlassSurface>(), new UniqueNameCollection<Combination>(), outputFolder)
+            : this(new List<GlassSurface>(), new List<Combination>(), outputFolder)
         {
             
         }
 
         public Model(List<GlassSurface> glassSurfaces, string outputFolder)
-            : this(glassSurfaces, new UniqueNameCollection<Combination>(), outputFolder)
+            : this(glassSurfaces, new List<Combination>(), outputFolder)
         {
 
         }
 
         public Model(List<GlassSurface> glassSurfaces, IEnumerable<Combination> combinations, string outputFolder)
         {
-            this._glassSurfaces = glassSurfaces ?? new List<GlassSurface>();
-            this._checkers = new List<Checkers.Checker>();
+            _glassSurfaces = glassSurfaces ?? new List<GlassSurface>();
+            _checkers = new List<Checkers.Checker>();
 
-            this._combinations = new UniqueNameCollection<Combination>();
-            _combinations.AddRange(combinations);
+            _combinations = new UniqueNameCollection<Combination>();
+            
+            if (!_combinations.AddRange(combinations))
+                throw new ArgumentException("Duplicate names in combinations collection");
+
 
             if (!string.IsNullOrEmpty(outputFolder) && !string.IsNullOrWhiteSpace(outputFolder))
                 if (!System.IO.Directory.Exists(outputFolder))
@@ -79,32 +87,19 @@ namespace GPC.Checker.Glasses.Models
         /// <summary>
         /// Add a surface to the model
         /// </summary>
-        public bool AddSurface(GlassSurface glassSurface)
+        public void AddSurface(GlassSurface glassSurface)
         {
             _glassSurfaces.Add(glassSurface);
-            return true;
-        }
-
-        public bool RemoveSurface(GlassSurface glassSurface)
-        {
-            return _glassSurfaces.Remove(glassSurface);
         }
 
 
         /// <summary>
         /// Add a combination to the model
         /// </summary>
-        public bool AddCombination(Combination combination)
+        public void AddCombination(Combination combination)
         {
-            try
-            {
-                _combinations.Add(combination);
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+            // Validazione combo
+            _combinations.Add(combination);
         }
 
         
