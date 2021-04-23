@@ -39,6 +39,8 @@ namespace GPC.Checker.Glasses.Models
 
         public ModelOptions Options => _options;
 
+        public IEnumerable<Combination> Combinations => _combinations;
+
         #endregion
 
 
@@ -47,7 +49,7 @@ namespace GPC.Checker.Glasses.Models
         public Model(string outputFolder)
             : this(new List<GlassSurface>(), new List<Combination>(), outputFolder)
         {
-
+            
         }
 
         public Model(List<GlassSurface> glassSurfaces, string outputFolder)
@@ -104,23 +106,18 @@ namespace GPC.Checker.Glasses.Models
         public void FemModelSetup()
         {
 
-            List<Combination> totalCombinations = new List<Combination>();
-            totalCombinations.AddRange(_combinations);
 
             foreach (var surface in _glassSurfaces)
             {
-                totalCombinations.AddRange(surface.Prototype.Combinations);
-
-
                 Checkers.Checker checker = null;
                 
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
-                    checker = new En16612Checker(surface, totalCombinations, _options);
+                    checker = new En16612Checker(surface, MergeCombinations(_combinations, surface.Prototype.Combinations), _options);
                 }
                 else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
                 {
-                    checker = new AstmChecker(surface, totalCombinations, _options);
+                    checker = new AstmChecker(surface, MergeCombinations(_combinations, surface.Prototype.Combinations), _options);
                 }
                 else
                 {
@@ -189,6 +186,36 @@ namespace GPC.Checker.Glasses.Models
             }
         }
 
+
+        #endregion
+
+
+        #region Private methods
+
+        private List<Combination> MergeCombinations(IEnumerable<Combination> globalCombinations, IEnumerable<Combination> specificCombinations)
+        {
+            var merge = new UniqueNameCollection<Combination>();
+
+            merge.AddRange(globalCombinations.Select(i => (Combination)i.Clone()));
+
+            foreach(var combo in specificCombinations)
+            {
+                var tuples = combo.GetLoadCaseCoefficientsTuple();
+
+                if (globalCombinations.Where(i => i.ContainsLoadCaseCoefficients(tuples)).Count() > 0)
+                {
+                    // Se vero esiste una combinazione in globalCombinations con stessi coefficienti e loadcase di combo
+                    // Non aggiungo a merge
+                    continue;
+                }
+                else
+                {
+                    merge.Add(combo.Duplicate($"P{combo.Name}"));
+                }
+            }
+
+            return merge;
+        }
 
         #endregion
     }

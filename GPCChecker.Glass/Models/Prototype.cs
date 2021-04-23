@@ -173,6 +173,7 @@ namespace GPC.Checker.Glasses.Models
             LaminatedEqThicknessMethods laminatedEqThicknessMethod, SolverTypes solverType, LaminatedAnalysisTypes laminatedAnalysisType)
             : this(name, glass, null, null, null, standard, analysisType, checkMethod, laminatedEqThicknessMethod, solverType, laminatedAnalysisType)
         {
+
         }
 
 
