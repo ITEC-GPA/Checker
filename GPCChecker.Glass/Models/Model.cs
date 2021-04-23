@@ -14,25 +14,24 @@ namespace GPC.Checker.Glasses.Models
         #region Variables
 
         protected string _outputFolder;
-
         protected List<GlassSurface> _glassSurfaces;
-
-        /// <summary>
-        /// List of Global combinations
-        /// </summary>
         protected List<Combination> _combinations;
-
         protected List<ResultPlateStress> _combinationResults;
-
         protected List<Checkers.Checker> _checkers;
 
         #endregion
 
         #region Properties
 
-        public List<GlassSurface> GlassSurfaces => _glassSurfaces;
-
         public string OutputFolder => _outputFolder;
+
+        public IEnumerable<GlassSurface> GlassSurfaces => _glassSurfaces;
+
+        /// <summary>
+        /// List of Global combinations
+        /// </summary>
+        public IEnumerable<Combination> Combinations => _combinations;
+
 
         #endregion
 
@@ -53,9 +52,9 @@ namespace GPC.Checker.Glasses.Models
 
         public Model(List<GlassSurface> glassSurfaces, List<Combination> combinations, string outputFolder)
         {
-            this._glassSurfaces = glassSurfaces ?? new List<GlassSurface>();
-            this._combinations = combinations ?? new List<Combination>();
-            this._checkers = new List<Checkers.Checker>();
+            _glassSurfaces = glassSurfaces ?? new List<GlassSurface>();
+            _combinations = combinations ?? new List<Combination>();
+            _checkers = new List<Checkers.Checker>();
 
             if (!string.IsNullOrEmpty(outputFolder) && !string.IsNullOrWhiteSpace(outputFolder))
                 if (!System.IO.Directory.Exists(outputFolder))
@@ -73,18 +72,32 @@ namespace GPC.Checker.Glasses.Models
         /// <summary>
         /// Add a surface to the model
         /// </summary>
-        public void AddSurface(GlassSurface glassSurface)
+        public bool AddSurface(GlassSurface glassSurface)
         {
             _glassSurfaces.Add(glassSurface);
+            return true;
+        }
+
+        public bool RemoveSurface(GlassSurface glassSurface)
+        {
+            return _glassSurfaces.Remove(glassSurface);
         }
 
 
         /// <summary>
         /// Add a combination to the model
         /// </summary>
-        public void AddCombination(Combination combination)
+        public bool AddCombination(Combination combination)
         {
-            _combinations.Add(combination);
+            try
+            {
+                _combinations.Add(combination);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         
