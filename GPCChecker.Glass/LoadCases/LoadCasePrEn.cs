@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace GPC.Checker.Glasses.LoadCases
 {
-    public class LoadCasePrEn : GPC.Model.LoadCases.LoadCasePrEn, IGlassLoadCase
+    public class LoadCasePrEn : GPC.Model.LoadCases.LoadCaseEn16612, IGlassLoadCase
     {
         private double _loadDuration;
 
@@ -13,7 +13,7 @@ namespace GPC.Checker.Glasses.LoadCases
 
         public double Temperature => _temperature;
 
-        public LoadCasePrEn(string name, double loadDuration, double temperature, LoadCaseType loadCaseType, LoadCasePrEnType loadCasePrEnType, Guid guid) 
+        public LoadCasePrEn(string name, double loadDuration, double temperature, LoadCaseTypes loadCaseType, LoadCaseEn16612Types loadCasePrEnType, Guid guid) 
             : base(name, loadCaseType, loadCasePrEnType, guid)
         {
             this._temperature = temperature;

@@ -54,8 +54,8 @@ namespace GlassTests
             model.AddSurface(gs1);
 
             // LoadCases
-            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseType.LiveLoad);
-            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseType.WindPressure);
+            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseTypes.LiveLoad);
+            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseTypes.WindPressure);
 
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
@@ -161,8 +161,8 @@ namespace GlassTests
             model.AddSurface(gs2);
 
             // LoadCases
-            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseType.LiveLoad);
-            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseType.WindPressure);
+            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseTypes.LiveLoad);
+            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseTypes.WindPressure);
 
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
@@ -289,8 +289,8 @@ namespace GlassTests
             model.AddSurface(gs1);
 
             // LoadCases
-            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseType.LiveLoad);
-            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseType.WindPressure);
+            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseTypes.LiveLoad);
+            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseTypes.WindPressure);
 
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);

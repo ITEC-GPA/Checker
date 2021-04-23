@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -541,7 +541,7 @@ namespace GPC.Checker.Glasses.FemModel
                 throw new Exception("Failed to set the units");
 
 
-            _loadCases.Add(new LoadCase("Sw", 1000, 20, Model.LoadCases.LoadCase.LoadCaseType.SelfWeight)); // TODO RImuovere
+            _loadCases.Add(new LoadCase("Sw", 1000, 20, Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight)); // TODO RImuovere
 
             // Setup loadcases
             St7SetLoadCase(aw, mid);
@@ -576,9 +576,9 @@ namespace GPC.Checker.Glasses.FemModel
                 {
                     if (attribute is NodeForceAttribute pgfa)
                     {
-                        var lc = _loadCases.GetElementByName(pgfa.LoadCase.Name);
+                        var lc = _loadCases.GetElementByName(pgfa.LoadCaseName);
 
-                        St7SetNodeGlobalLoad(aw, mid, st7NodeIndex, _st7LoadCaseMap[(LoadCase)pgfa.LoadCase], pgfa);
+                        St7SetNodeGlobalLoad(aw, mid, st7NodeIndex, _st7LoadCaseMap[(LoadCase)pgfa.LoadCaseName], pgfa);
                     }
                     else
                         throw new NotSupportedException("Point attribute not supported");
@@ -590,7 +590,7 @@ namespace GPC.Checker.Glasses.FemModel
 
             int glassGroupId = 0;
             aw.NewChildGroup(mid, 1, "Glass " + "1", ref glassGroupId);
-
+            
             // Plate
             // Brick
             int st7PlateIndex = 0;
@@ -845,7 +845,7 @@ namespace GPC.Checker.Glasses.FemModel
                 }
 
 
-                if (loadCase.GetLoadCaseType() == LoadCase.LoadCaseType.SelfWeight)
+                if (loadCase.LoadCaseType == LoadCase.LoadCaseTypes.SelfWeight)
                 {
                     aw.SetLoadCaseType(mid, st7LoadCaseId, St7ApiConst.kGravity);
                     aw.SetLoadCaseGravityDir(mid, st7LoadCaseId, 3);

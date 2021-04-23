@@ -94,10 +94,10 @@ namespace GlassTests
             meshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
-            LoadCase lc0 = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseType.SelfWeight);
-            LoadCase lc1 = new LoadCase("Climate", 12 * 60 * 60, 10, GPC.Model.LoadCases.LoadCase.LoadCaseType.ClimateSummerDeltaH);
-            LoadCase lc2 = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseType.WindPressure);
-            LoadCase lc3 = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad);
+            LoadCase lc0 = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
+            LoadCase lc1 = new LoadCase("Climate", 12 * 60 * 60, 10, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.ClimateSummerDeltaH);
+            LoadCase lc2 = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+            LoadCase lc3 = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
 
             NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lc1);
             NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lc2);
@@ -181,10 +181,10 @@ namespace GlassTests
             meshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
-            LoadCase lc0 = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseType.SelfWeight);
-            LoadCase lc1 = new LoadCase("Climate", 12 * 60 * 60, 10, GPC.Model.LoadCases.LoadCase.LoadCaseType.ClimateSummerDeltaT);
-            LoadCase lc2 = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseType.WindPressure);
-            LoadCase lc3 = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad);
+            LoadCase lc0 = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
+            LoadCase lc1 = new LoadCase("Climate", 12 * 60 * 60, 10, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.ClimateSummerDeltaT);
+            LoadCase lc2 = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+            LoadCase lc3 = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
 
             NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lc1);
             NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lc2);
