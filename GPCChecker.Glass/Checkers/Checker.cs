@@ -24,6 +24,9 @@ namespace GPC.Checker.Glasses.Checkers
     {
         protected GlassSurface _glassSurface;
 
+        /// <summary>
+        /// This rapresent the reference femModel
+        /// </summary>
         protected FemModelWrapper _femModel;
 
         protected string _folderPath;
