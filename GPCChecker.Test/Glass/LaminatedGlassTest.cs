@@ -156,7 +156,7 @@ namespace GlassTests
 
             Model model = new Model(base.GetOutputFolder());
 
-            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 0, 500));
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 500, 0 ));
             s1.Fill[0].Move(new Vector3d(50, 0, 0));
 
             MonolithicGlass mg1 = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
@@ -189,7 +189,7 @@ namespace GlassTests
             NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lc1);
             NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lc2);
             NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lc3);
-            LineLoad lll = new LineLoad(0, 1, 0, 0, 0, 0, new Line3d(new Point3d(40, 0, 50), new Point3d(150, 0, 200)), lc3, CoordinateSystem.Global);
+            LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(40, 0, 50), new Point3d(150, 0, 200)), lc3, CoordinateSystem.Global);
 
             CombinationEn combo1 = new CombinationEn("Cmb1", StandardEN1990.LimitState.UltimateStructural);
             combo1.AddLoadCaseCoefficient(lc0, 1);

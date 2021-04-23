@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using GPC.Model.Combinations;
@@ -36,7 +36,7 @@ namespace GPC.Checker.Glasses.Models
 
         public string OutputFolder => _outputFolder;
 
-        public ModelOptions Options;
+        public ModelOptions Options => _options;
 
         #endregion
 
