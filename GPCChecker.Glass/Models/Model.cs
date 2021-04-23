@@ -26,6 +26,8 @@ namespace GPC.Checker.Glasses.Models
 
         protected List<Checkers.Checker> _checkers;
 
+        protected ModelOptions _options;
+
         #endregion
 
         #region Properties
@@ -33,6 +35,8 @@ namespace GPC.Checker.Glasses.Models
         public List<GlassSurface> GlassSurfaces => _glassSurfaces;
 
         public string OutputFolder => _outputFolder;
+
+        public ModelOptions Options;
 
         #endregion
 
@@ -64,6 +68,8 @@ namespace GPC.Checker.Glasses.Models
                     _outputFolder = outputFolder;
             else
                 throw new ArgumentNullException("Output folder cannot be null or empty");
+
+            _options = new ModelOptions();
         }
 
         #endregion
