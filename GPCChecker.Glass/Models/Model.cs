@@ -6,6 +6,7 @@ using GPC.Checker.Glasses.Glasses;
 using GPC.Checker.Glasses.Checkers;
 using GPC.Checker.Glasses.Results;
 using GPC.Model.Results;
+using GPC.Model;
 
 namespace GPC.Checker.Glasses.Models
 {
@@ -15,7 +16,7 @@ namespace GPC.Checker.Glasses.Models
 
         protected string _outputFolder;
         protected List<GlassSurface> _glassSurfaces;
-        protected List<Combination> _combinations;
+        protected UniqueNameCollection<Combination> _combinations;
         protected List<ResultPlateStress> _combinationResults;
         protected List<Checkers.Checker> _checkers;
 
@@ -39,21 +40,21 @@ namespace GPC.Checker.Glasses.Models
         #region Public constructors
 
         public Model(string outputFolder)
-            : this(new List<GlassSurface>(), new List<Combination>(), outputFolder)
+            : this(new List<GlassSurface>(), new UniqueNameCollection<Combination>(), outputFolder)
         {
 
         }
 
         public Model(List<GlassSurface> glassSurfaces, string outputFolder)
-            : this(glassSurfaces, new List<Combination>(), outputFolder)
+            : this(glassSurfaces, new UniqueNameCollection<Combination>(), outputFolder)
         {
 
         }
 
-        public Model(List<GlassSurface> glassSurfaces, List<Combination> combinations, string outputFolder)
+        public Model(List<GlassSurface> glassSurfaces, UniqueNameCollection<Combination> combinations, string outputFolder)
         {
             _glassSurfaces = glassSurfaces ?? new List<GlassSurface>();
-            _combinations = combinations ?? new List<Combination>();
+            _combinations = combinations ?? new UniqueNameCollection<Combination>();
             _checkers = new List<Checkers.Checker>();
 
             if (!string.IsNullOrEmpty(outputFolder) && !string.IsNullOrWhiteSpace(outputFolder))
@@ -112,11 +113,11 @@ namespace GPC.Checker.Glasses.Models
                 
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
-                    checker = new En16612Checker(surface, _combinations);
+                    checker = new En16612Checker(surface, _combinations.ToList());
                 }
                 else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
                 {
-                    checker = new AstmChecker(surface, _combinations);
+                    checker = new AstmChecker(surface, _combinations.ToList());
                 }
                 else
                 {
