@@ -16,6 +16,7 @@ using GPC.Checker.Glasses.LoadCases;
 using GPC.Model.Materials;
 using GPC.Model.Combinations;
 using GPC.Checker.Glasses.Extensions;
+using GPC.Checker.Glasses.Models;
 
 namespace GPC.Checker.Glasses.Checkers
 {
@@ -27,19 +28,22 @@ namespace GPC.Checker.Glasses.Checkers
 
         protected string _folderPath;
 
+        protected ModelOptions _options;
+
         /// <summary>
         /// List of global and specific combinations
         /// </summary>
         protected List<Combination> _combinations;
 
-        public Checker(GlassSurface glassSurface, List<Combination> globalCombinations)
+        public Checker(GlassSurface glassSurface, List<Combination> combinations, ModelOptions modelOptions)
         {
             this._glassSurface = glassSurface ?? throw new ArgumentNullException(nameof(glassSurface));
 
             // Creo lista combinazioni sommando la lista delle globali a quelli del prototipo
-            this._combinations = globalCombinations == null ? new List<Combination>() : globalCombinations;
+            this._combinations = combinations == null ? new List<Combination>() : combinations;
             this._combinations.AddRange(glassSurface.Prototype.Combinations);
 
+            this._options = modelOptions;
         }
 
 
@@ -84,6 +88,13 @@ namespace GPC.Checker.Glasses.Checkers
                 // Creo modello
                 _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
 
+                if (wrapper.ConsiderSelfWeight)
+                {
+                    _femModel.AddLoadCase(new LoadCase("Sw", 1000, 10, Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight));
+                    ModelGravitySetUp(_femModel, wrapper, "Sw");
+                }
+
+
                 MonolithicGlassProperty pp = new MonolithicGlassProperty(mg, "mg");
 
                 Mesh meshExternal = wrapper.GetExternalGlassMesh();
@@ -97,6 +108,7 @@ namespace GPC.Checker.Glasses.Checkers
                 _femModel.AddProperty(pp);
                 _femModel.AddMesh(meshes.First(), pp.Name, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal, 
                                   wrapper.MeshGeometryRestrainVertices.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
+
 
                 // TIPO DI ANALISI
 
@@ -159,10 +171,14 @@ namespace GPC.Checker.Glasses.Checkers
                                                   out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMapInternal,
                                                   out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapInternal);
 
-
-                    _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
-
                     
+                    _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
+                    if (wrapper.ConsiderSelfWeight)
+                    {
+                        _femModel.AddLoadCase(new LoadCase("Sw", 1000, 10, Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight));
+                        ModelGravitySetUp(_femModel, wrapper, "Sw");
+                    }
+
                     List<LoadCase> loadCasesUnique = loads.Select(i => i.LoadCase as LoadCase).Where(i => i != null).Distinct().ToList();
 
 
@@ -179,7 +195,7 @@ namespace GPC.Checker.Glasses.Checkers
                         IGlassPackage layer = glassPackage[i];
                         if (layer is MonolithicGlass)
                         {
-                            string propertyName = $"Mg {i}";
+                            string propertyName = $"Mg {i} t={((MonolithicGlass)layer).Thickness}";
                             _femModel.AddProperty(new MonolithicGlassProperty((MonolithicGlass)layer, propertyName));
 
                             glassLayerPropertyNameMap[i] = propertyName;
@@ -430,6 +446,29 @@ namespace GPC.Checker.Glasses.Checkers
             }
 
             return properties;
+        }
+
+        private void ModelGravitySetUp(FemModelWrapper femModel, GlassPanelWrapper wrapper, string loadCaseName)
+        {
+            var accelerationModel = femModel.AddModelAcceleration(loadCaseName);
+            accelerationModel.CoordinateSystem = GPC.Geometry.CoordinateSystem.Global;
+
+            int gravityDirection = _options.GravityPositiveAxis ? 1 : -1;
+
+            switch (_options.GravityAxis)
+            {
+                case ModelOptions.GravityAxes.X:
+                    accelerationModel.A1 = gravityDirection * GPC.Model.FEM.Attributes.ModelAccelerationAttribute.GRAVITYACCELERATION;
+                    break;
+                case ModelOptions.GravityAxes.Y:
+                    accelerationModel.A2 = gravityDirection * GPC.Model.FEM.Attributes.ModelAccelerationAttribute.GRAVITYACCELERATION;
+                    break;
+                case ModelOptions.GravityAxes.Z:
+                    accelerationModel.A3 = gravityDirection * GPC.Model.FEM.Attributes.ModelAccelerationAttribute.GRAVITYACCELERATION;
+                    break;
+                default:
+                    throw new ArgumentException();
+            }
         }
 
         #endregion

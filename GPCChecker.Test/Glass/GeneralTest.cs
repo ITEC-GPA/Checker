@@ -44,12 +44,12 @@ namespace GlassTests
             double GLIMIT = interlayerMaterial.GetShearModule(EN16612LoadDurations.LIVECROWD, 30);
 
 
-            CombinationEn combination = new CombinationEn("cmb1", CombinationEn.CombinationType.UltimateStructural);
+            CombinationEn combination = new CombinationEn("cmb1", StandardEN1990.LimitState.UltimateStructural);
 
-            var lcSw    = new LoadCase("SW", EN16612LoadDurations.SELFWEIGHT, 50, GPC.Model.LoadCases.LoadCase.LoadCaseType.SelfWeight);
-            var lcLive  = new LoadCase("LIVE", EN16612LoadDurations.LIVECROWD, 30, GPC.Model.LoadCases.LoadCase.LoadCaseType.LiveLoad);
-            var lcWind  = new LoadCase("WIND", EN16612LoadDurations.WIND, 35, GPC.Model.LoadCases.LoadCase.LoadCaseType.Wind);
-            var lcClimate = new LoadCase("CLIMATE", EN16612LoadDurations.CLIMATEWINTER, 40, GPC.Model.LoadCases.LoadCase.LoadCaseType.ClimateSummer);
+            var lcSw    = new LoadCase("SW", EN16612LoadDurations.SELFWEIGHT, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
+            var lcLive  = new LoadCase("LIVE", EN16612LoadDurations.LIVECROWD, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
+            var lcWind  = new LoadCase("WIND", EN16612LoadDurations.WIND, 35, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+            var lcClimate = new LoadCase("CLIMATE", EN16612LoadDurations.CLIMATEWINTER, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.ClimateSummerDeltaH);
 
 
             combination.AddLoadCaseCoefficient(lcSw, 1);

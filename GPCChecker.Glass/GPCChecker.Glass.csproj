@@ -43,8 +43,8 @@
     <Reference Include="GPCGeometry, Version=1.0.7.7, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCGeometry.1.0.7.7\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.0.12.10, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.0.12.10\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.0.13.1, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.0.13.1\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCUtilities, Version=1.0.22.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCUtilities.1.0.22\lib\net472\GPCUtilities.dll</HintPath>
@@ -79,6 +79,7 @@
     <Compile Include="Loads\ParametricLineLoad.cs" />
     <Compile Include="Loads\ParametricPointLoad.cs" />
     <Compile Include="Models\Model.cs" />
+    <Compile Include="Models\ModelOptions.cs" />
     <Compile Include="Models\Prototype.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Restrain\IParametricRestrain.cs" />

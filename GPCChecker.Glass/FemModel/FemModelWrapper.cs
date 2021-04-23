@@ -47,12 +47,12 @@ namespace GPC.Checker.Glasses.FemModel
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._loadCases"/> St7 loadcase id;
         /// </summary>
-        private Dictionary<LoadCase, int> _st7LoadCaseMap;
+        private Dictionary<string, int> _st7LoadCaseMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._freedomCases"/> St7 fredomcase id;
         /// </summary>
-        private Dictionary<FreedomCase, int> _st7FreedomCaseMap;
+        private Dictionary<string, int> _st7FreedomCaseMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._plateProperties"/> St7 platepropertyID;
@@ -96,8 +96,8 @@ namespace GPC.Checker.Glasses.FemModel
             _st7ServerIp = "localhost";
             _st7LSACombinationMap = new Dictionary<Combination, int>(new ModelObjectNameEqualityComparer());
             _st7NLACombinationMap = new Dictionary<Combination, int>(new ModelObjectNameEqualityComparer());
-            _st7LoadCaseMap = new Dictionary<LoadCase, int>(new ModelObjectNameEqualityComparer());
-            _st7FreedomCaseMap = new Dictionary<FreedomCase, int>(new ModelObjectNameEqualityComparer());
+            _st7LoadCaseMap = new Dictionary<string, int>();
+            _st7FreedomCaseMap = new Dictionary<string, int>();
             _st7PlatePropertyMap = new Dictionary<PlateProperty, int>(new ModelObjectNameEqualityComparer());
             _st7BrickPropertyMap = new Dictionary<BrickProperty, int>(new ModelObjectNameEqualityComparer());
 
@@ -541,7 +541,7 @@ namespace GPC.Checker.Glasses.FemModel
                 throw new Exception("Failed to set the units");
 
 
-            _loadCases.Add(new LoadCase("Sw", 1000, 20, Model.LoadCases.LoadCase.LoadCaseType.SelfWeight)); // TODO RImuovere
+            _loadCases.Add(new LoadCase("Sw", 1000, 20, Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight)); // TODO RImuovere
 
             // Setup loadcases
             St7SetLoadCase(aw, mid);
@@ -576,9 +576,9 @@ namespace GPC.Checker.Glasses.FemModel
                 {
                     if (attribute is NodeForceAttribute pgfa)
                     {
-                        var lc = _loadCases.GetElementByName(pgfa.LoadCase.Name);
+                        var lc = _loadCases.GetElementByName(pgfa.LoadCaseName);
 
-                        St7SetNodeGlobalLoad(aw, mid, st7NodeIndex, _st7LoadCaseMap[(LoadCase)pgfa.LoadCase], pgfa);
+                        St7SetNodeGlobalLoad(aw, mid, st7NodeIndex, _st7LoadCaseMap[pgfa.LoadCaseName], pgfa);
                     }
                     else
                         throw new NotSupportedException("Point attribute not supported");
@@ -590,7 +590,7 @@ namespace GPC.Checker.Glasses.FemModel
 
             int glassGroupId = 0;
             aw.NewChildGroup(mid, 1, "Glass " + "1", ref glassGroupId);
-
+            
             // Plate
             // Brick
             int st7PlateIndex = 0;
@@ -634,11 +634,11 @@ namespace GPC.Checker.Glasses.FemModel
                     {
                         if (attribute is PlatePressureAttribute pgpa)
                         {
-                            St7SetPlateGlobalPressure(aw, mid, st7PlateIndex, _st7LoadCaseMap[(LoadCase)pgpa.LoadCase], pgpa);
+                            St7SetPlateGlobalPressure(aw, mid, st7PlateIndex, _st7LoadCaseMap[pgpa.LoadCaseName], pgpa);
                         }
                         else if (attribute is PlateNormalPressureAttribute pnpa)
                         {
-                            St7SetPlateNormalPressure(aw, mid, st7PlateIndex, _st7LoadCaseMap[(LoadCase)pnpa.LoadCase], pnpa);
+                            St7SetPlateNormalPressure(aw, mid, st7PlateIndex, _st7LoadCaseMap[pnpa.LoadCaseName], pnpa);
                         }
                         else
                             throw new NotSupportedException("Point attribute not supported");
@@ -830,35 +830,36 @@ namespace GPC.Checker.Glasses.FemModel
             if (!(_loadCases.Count > 0))
                 return;
 
-            int st7LcId = 0;
+            int st7LoadCaseId = 0;
             foreach(var loadCase in _loadCases)
             {
-                st7LcId++;
-                if (st7LcId != 1)
+                st7LoadCaseId++;
+                if (st7LoadCaseId != 1)
                 {
                     if (!aw.NewLoadCase(mid, loadCase.Name))
                         throw new Straus7Exception($"Unable lo add loadCase {loadCase.Name}");
                 }
                 else
                 {
-                    aw.SetLoadCaseName(mid, st7LcId, loadCase.Name);
+                    aw.SetLoadCaseName(mid, st7LoadCaseId, loadCase.Name);
                 }
 
 
-                if (loadCase.GetLoadCaseType() == LoadCase.LoadCaseType.SelfWeight)
+                if (loadCase.LoadCaseType == LoadCase.LoadCaseTypes.SelfWeight)
                 {
-                    aw.SetLoadCaseType(mid, st7LcId, St7ApiConst.kGravity);
-                    aw.SetLoadCaseGravityDir(mid, st7LcId, 3);
+                    aw.SetLoadCaseType(mid, st7LoadCaseId, St7ApiConst.kGravity);
+                    aw.SetLoadCaseGravityDir(mid, st7LoadCaseId, 3);
                     var doubles = new double[13];
                     doubles[4] = 0;
                     doubles[5] = 0;
                     doubles[6] = -9806.65; //mm/s2
-                    aw.SetLoadCaseDefaults(mid, st7LcId, doubles);
+                    aw.SetLoadCaseDefaults(mid, st7LoadCaseId, doubles);
+                    aw.SetLoadCaseMassOption(mid, st7LoadCaseId, true, false);
                 }
                 else
-                    aw.SetLoadCaseType(mid, st7LcId, St7ApiConst.kNoInertia);
+                    aw.SetLoadCaseType(mid, st7LoadCaseId, St7ApiConst.kNoInertia);
 
-                _st7LoadCaseMap.Add((LoadCase)loadCase, st7LcId);
+                _st7LoadCaseMap.Add(loadCase.Name, st7LoadCaseId);
             }
 
         }
@@ -873,20 +874,18 @@ namespace GPC.Checker.Glasses.FemModel
 
             foreach (var combo in _combinations)
             {
-                List<double> coefficients = combo.GetLoadCaseCoefficients(out List<GPC.Model.LoadCases.LoadCase> loadCasesBuffer);
+                var lcTuples = combo.GetLoadCaseCoefficientsTuple();
 
-                var loadCases = loadCasesBuffer.Cast<LoadCase>().ToList();
-                                
                 if (aw.AddLSACombination(mid, combo.Name))
                 {
                     st7CId++;
-
                     bool added = false;
-                    foreach (var loadCase in loadCases)
+
+                    foreach (var lcTuple in lcTuples)
                     {
-                        if (_loadCases.Contains(loadCase))
+                        if (_loadCases.Contains(lcTuple.loadcase.Name))
                         {
-                            if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _st7LoadCaseMap[loadCase], 1, combo[loadCase]))
+                            if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _st7LoadCaseMap[lcTuple.loadcase.Name], 1, combo[lcTuple.loadcase]))
                             {
                                 added = true;
                             }
@@ -903,6 +902,7 @@ namespace GPC.Checker.Glasses.FemModel
                         st7CId--;
                     }
                 }
+
             }
         }
 
@@ -977,12 +977,12 @@ namespace GPC.Checker.Glasses.FemModel
 
 
         private bool St7LinearSolverSetup(ISt7ApiService aw, int mid)
-        {
-            
-            foreach (var lc in _loadCases)
+        {   
+            foreach (var lcName in _loadCases.GetNames())
             {
-                aw.EnableLSALoadCase(mid, _st7LoadCaseMap[(LoadCase)lc], 1);
+                aw.EnableLSALoadCase(mid, _st7LoadCaseMap[lcName], 1);
             }
+
             return true;
         }
 
@@ -1024,7 +1024,7 @@ namespace GPC.Checker.Glasses.FemModel
 
             for (int i = 0; i < _st7LoadCaseMap.Count; i++)
             {
-                aw.AddNLAIncrement(mid, _st7StageMap[femStageIds[i]], loadCases[i].Name);
+                aw.AddNLAIncrement(mid, _st7StageMap[femStageIds[i]], loadCases[i]);
                 aw.SetNLALoadIncrementFactor(mid, _st7StageMap[femStageIds[i]], 1, _st7LoadCaseMap[loadCases[i]], 1);
             }
         }
@@ -1138,9 +1138,9 @@ namespace GPC.Checker.Glasses.FemModel
                 if (aw.AddNLAIncrement(mid, stageId, combo.Name))
                 {
                     _st7NLACombinationMap[combo] = stageIncrement;
-                    foreach (var lc in combo.GetLoadCases())
+                    foreach (var lcTuple in combo.GetLoadCaseCoefficientsTuple())
                     {
-                        aw.SetNLALoadIncrementFactor(mid, stageId, stageIncrement, _st7LoadCaseMap[(LoadCase)lc], combo.GetLoadCaseCoefficient(lc));
+                        aw.SetNLALoadIncrementFactor(mid, stageId, stageIncrement, _st7LoadCaseMap[lcTuple.loadcase.Name], lcTuple.coefficient);
                     }
                     stageIncrement++;
                 }
@@ -1162,9 +1162,10 @@ namespace GPC.Checker.Glasses.FemModel
                 if (aw.AddNLAIncrement(mid, _st7StageMap[stageId], combo.Name))
                 {
                     _st7NLACombinationMap[combo] = stageIncrement;
-                    foreach (var lc in combo.GetLoadCases())
+
+                    foreach (var lcTuple in combo.GetLoadCaseCoefficientsTuple())
                     {
-                        aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stageId], stageIncrement, _st7LoadCaseMap[(LoadCase)lc], combo.GetLoadCaseCoefficient(lc));
+                        aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stageId], stageIncrement, _st7LoadCaseMap[lcTuple.loadcase.Name], lcTuple.coefficient);
                     }
                     stageIncrement++;
                 }

@@ -13,7 +13,7 @@ namespace GPC.Checker.Glasses.LoadCases
 
         public double Temperature => _temperature;
 
-        public ClimateTLoadCase(string name, double loadDuration, double temperature, double manufactoringHeight, double installationHeight, LoadCaseType loadCaseType, Guid guid) 
+        public ClimateTLoadCase(string name, double loadDuration, double temperature, double manufactoringHeight, double installationHeight, LoadCaseTypes loadCaseType, Guid guid) 
             : base(name, manufactoringHeight, installationHeight, loadCaseType, guid)
         {
             this._loadDuration = loadDuration;

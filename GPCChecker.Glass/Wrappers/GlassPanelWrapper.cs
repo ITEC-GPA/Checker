@@ -20,6 +20,7 @@ namespace GPC.Checker.Glasses.Wrappers
         protected List<Load> _externalFaceLoads;
         protected List<Load> _internalFaceLoads;
 
+        protected bool _considerSelfWeight;
 
         protected List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>> _meshGeometryRestrainVertices;
         protected List<KeyValuePair<Mesh, Dictionary<Load, int[]>>> _meshLoadsVertexIndexes;
@@ -27,10 +28,7 @@ namespace GPC.Checker.Glasses.Wrappers
 
         #region Properties
 
-        /// <summary>
-        /// The loads applied on the GlassPanelWrapper 
-        /// </summary>
-        internal List<Load> Loads => _externalFaceLoads;
+        public bool ConsiderSelfWeight => _considerSelfWeight;
 
         internal List<GeometryRestrain> GeometryRestrains => _glassSurface.GetRestrains();
 
@@ -96,7 +94,7 @@ namespace GPC.Checker.Glasses.Wrappers
         #endregion
 
 
-        protected GlassPanelWrapper(GlassSurface glassSurface, IGlassPanel glass) 
+        protected GlassPanelWrapper(GlassSurface glassSurface, IGlassPanel glass, bool considerSelfWeight = true) 
             : base(glassSurface, (Glass)glass)
         {
             this._externalFaceLoads = new List<Load>();
@@ -107,27 +105,22 @@ namespace GPC.Checker.Glasses.Wrappers
             this._meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>();
             this._meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
             this._meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
+
+            this._considerSelfWeight = considerSelfWeight;
         }
 
         #region Public methods - geometry
 
-        /// <summary>
-        /// 
-        /// </summary>
+
         /// <param name="loadDuration"></param>
         /// <returns>Glass thickness for deformation analysis</returns>
         public abstract double GetDeformationThickness(double loadDuration);
 
-        /// <summary>
-        ///
-        /// </summary>
         /// <param name="loadDuration"></param>
         /// <returns>Glass thickness for stress analysis</returns>
         public abstract double GetStressThickness(double loadDuration);
 
-        /// <summary>
-        /// 
-        /// </summary>
+
         /// <returns>Total thickness of the glass package included interlayer</returns>
         public abstract double GetTotalThickness();
 
@@ -164,7 +157,7 @@ namespace GPC.Checker.Glasses.Wrappers
             _internalFaceLoads.AddRange(loads);
         }
 
-
+        /// <summary>Split the InteralFaceLoads and ExternalFaceLoads in three list based on their geometry and type </summary>
         /// <param name="uniformPressureLoads">List of load acting as uniform pressure</param>
         /// <param name="notUniformPressureLoads">List of load acting as not uniform pressure</param>
         /// <param name="nonUniformLoadsGeometry">List of geometries associated to the not uniform loads</param>
