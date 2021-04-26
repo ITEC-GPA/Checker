@@ -15,27 +15,23 @@ namespace GPC.Checker.Glasses.Models
         #region Variables
 
         protected string _outputFolder;
-
         protected List<GlassSurface> _glassSurfaces;
-
-        /// <summary>
-        /// List of Global combinations with unique name
-        /// </summary>
         protected UniqueNameCollection<Combination> _combinations;
-
         protected List<ResultPlateStress> _combinationResults;
-
-        protected List<Checkers.Checker> _checkers;
-
         protected ModelOptions _options;
 
         #endregion
 
         #region Properties
 
-        public List<GlassSurface> GlassSurfaces => _glassSurfaces;
-
         public string OutputFolder => _outputFolder;
+
+        public IEnumerable<GlassSurface> GlassSurfaces => _glassSurfaces;
+
+        /// <summary>
+        /// List of Global combinations with unique name
+        /// </summary>
+        protected IEnumerable<Combination> Combinazions => _combinations;
 
         public ModelOptions Options => _options;
 
@@ -49,22 +45,19 @@ namespace GPC.Checker.Glasses.Models
         public Model(string outputFolder)
             : this(new List<GlassSurface>(), new List<Combination>(), outputFolder)
         {
-            
         }
 
         public Model(List<GlassSurface> glassSurfaces, string outputFolder)
             : this(glassSurfaces, new List<Combination>(), outputFolder)
         {
-
         }
 
         public Model(List<GlassSurface> glassSurfaces, IEnumerable<Combination> combinations, string outputFolder)
         {
             _glassSurfaces = glassSurfaces ?? new List<GlassSurface>();
-            _checkers = new List<Checkers.Checker>();
 
             _combinations = new UniqueNameCollection<Combination>();
-            
+
             if (!_combinations.AddRange(combinations))
                 throw new ArgumentException("Duplicate names in combinations collection");
 
@@ -87,33 +80,65 @@ namespace GPC.Checker.Glasses.Models
         /// <summary>
         /// Add a surface to the model
         /// </summary>
-        public void AddSurface(GlassSurface glassSurface)
+        public bool AddSurface(GlassSurface glassSurface)
         {
+            Checkers.Checker checker;
+            if (glassSurface.Prototype.Standard == Prototype.Standards.EN16612)
+            {
+                checker = new En16612Checker(glassSurface, MergeCombinations(_combinations, glassSurface.Prototype.Combinations), _options);
+            }
+            else if (glassSurface.Prototype.Standard == Prototype.Standards.ASTME1300)
+            {
+                checker = new AstmChecker(glassSurface, MergeCombinations(_combinations, glassSurface.Prototype.Combinations), _options);
+            }
+            else
+            {
+                return false;
+            }
+
+            if (checker.FemModelSetup(_outputFolder))
+                glassSurface.Checker = checker;
+            else
+                return false;
+
             _glassSurfaces.Add(glassSurface);
+
+            return true;
+        }
+
+        public bool RemoveSurface(GlassSurface glassSurface)
+        {
+            return _glassSurfaces.Remove(glassSurface);
         }
 
 
         /// <summary>
         /// Add a combination to the model
         /// </summary>
-        public void AddCombination(Combination combination)
+        public bool AddCombination(Combination combination)
         {
-            // Validazione combo
-            _combinations.Add(combination);
+            try
+            {
+                // Validazione combo
+                _combinations.Add(combination);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
-        
+
         /// <summary>
         /// SetUp the FemModel of each surface, 
         /// </summary>
-        public void FemModelSetup()
+        public void FemModelSetup() 
         {
-
-
             foreach (var surface in _glassSurfaces)
             {
                 Checkers.Checker checker = null;
-                
+
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
                     checker = new En16612Checker(surface, MergeCombinations(_combinations, surface.Prototype.Combinations), _options);
@@ -127,9 +152,10 @@ namespace GPC.Checker.Glasses.Models
                     throw new NotImplementedException();
                 }
 
-
                 if (checker.FemModelSetup(_outputFolder))
-                    _checkers.Add(checker);
+                {
+                    surface.Checker = checker;
+                }
                 else
                 {
                     throw new ArgumentException("Unable to create checker");
@@ -145,12 +171,10 @@ namespace GPC.Checker.Glasses.Models
         // TODO: glass, cambiare facendo in modo che se il checker non è stato creato lo crei lui, cosi da farlo andare avanti in qualsiasi caso.
         public void PerformChecks()
         {
-
-            foreach(var checker in _checkers)
-            {
-                checker.PerformCheck();
-            }
-
+            //foreach(var checker in _checkers)
+            //    checker.PerformCheck();
+            foreach (var surface in _glassSurfaces)
+                surface.Checker.PerformCheck();
         }
 
 
@@ -158,10 +182,10 @@ namespace GPC.Checker.Glasses.Models
         {
             List<List<ResultPlateStress>> results = new List<List<ResultPlateStress>>();
 
-            foreach (var checker in _checkers)
-            {
-                results.Add(checker.GetPlateCombinationsResults());
-            }
+            //foreach (var checker in _checkers)
+            //    results.Add(checker.GetPlateCombinationsResults());
+            foreach (var surface in _glassSurfaces)
+                results.Add(surface.Checker.GetPlateCombinationsResults());
 
             return results;
         }
@@ -172,10 +196,10 @@ namespace GPC.Checker.Glasses.Models
         {
             List<List<ResultNodeDisplacement>> results = new List<List<ResultNodeDisplacement>>();
 
-            foreach (var checker in _checkers)
-            {
-                results.Add(checker.GetNodeDisplacementCombinationResults());
-            }
+            //foreach (var checker in _checkers)
+            //    results.Add(checker.GetNodeDisplacementCombinationResults());
+            foreach (var surface in _glassSurfaces)
+                results.Add(surface.Checker.GetNodeDisplacementCombinationResults());
 
             return results;
         }
@@ -183,10 +207,10 @@ namespace GPC.Checker.Glasses.Models
 
         public void GetWorkingRatio()
         {
-            foreach (var checker in _checkers)
-            {
-                checker.GetWorkinRatio();
-            }
+            //foreach (var checker in _checkers)
+            //    checker.GetWorkinRatio();
+            foreach (var surface in _glassSurfaces)
+                surface.Checker.GetWorkinRatio();
         }
 
 
@@ -209,7 +233,7 @@ namespace GPC.Checker.Glasses.Models
 
             merge.AddRange(globalCombinations.Select(i => (Combination)i.Clone()));
 
-            foreach(var combo in specificCombinations)
+            foreach (var combo in specificCombinations)
             {
                 var tuples = combo.GetLoadCaseCoefficientsTuple();
 
