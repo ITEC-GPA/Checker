@@ -19,8 +19,7 @@ namespace GPC.Checker.Glasses.Wrappers
 
         protected List<Load> _externalFaceLoads;
         protected List<Load> _internalFaceLoads;
-
-        protected bool _considerSelfWeight;
+        protected SelfWeightLoad _selfWeightLoad;
 
         protected List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>> _meshGeometryRestrainVertices;
         protected List<KeyValuePair<Mesh, Dictionary<Load, int[]>>> _meshLoadsVertexIndexes;
@@ -28,7 +27,7 @@ namespace GPC.Checker.Glasses.Wrappers
 
         #region Properties
 
-        public bool ConsiderSelfWeight => _considerSelfWeight;
+        public bool ConsiderSelfWeight => _selfWeightLoad != null;
 
         internal List<GeometryRestrain> GeometryRestrains => _glassSurface.GetRestrains();
 
@@ -91,6 +90,8 @@ namespace GPC.Checker.Glasses.Wrappers
             }
         }
 
+        public SelfWeightLoad SelfWeightLoad => _selfWeightLoad;
+
         #endregion
 
 
@@ -106,7 +107,6 @@ namespace GPC.Checker.Glasses.Wrappers
             this._meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
             this._meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
 
-            this._considerSelfWeight = considerSelfWeight;
         }
 
         #region Public methods - geometry
@@ -137,25 +137,41 @@ namespace GPC.Checker.Glasses.Wrappers
 
         #region Public methods - analysis
 
+        /// <remarks>The load will be added only if it is different from <see cref="SelfWeightLoad"/></remarks>
         public void AddExternalFaceLoad(Load load)
         {
-            _externalFaceLoads.Add(load);
+            if (load is SelfWeightLoad)
+                return;
+            else
+                _externalFaceLoads.Add(load);
         }
 
+        /// <remarks>The load will be added only if it is different from <see cref="SelfWeightLoad"/></remarks>
         public void AddExternalFaceLoads(List<Load> loads)
         {
-            _externalFaceLoads.AddRange(loads);
+            _externalFaceLoads.AddRange(loads.Where(i => !(i is SelfWeightLoad)).ToList());
         }
 
+        /// <remarks>The load will be added only if it is different from <see cref="SelfWeightLoad"/></remarks>
         public void AddInternalFaceLoad(Load load)
         {
-            _internalFaceLoads.Add(load);
+            if (load is SelfWeightLoad)
+                return;
+            else
+                _internalFaceLoads.Add(load);
         }
 
+        /// <remarks>The load will be added only if it is different from <see cref="SelfWeightLoad"/></remarks>
         public void AddInternalFaceLoads(List<Load> loads)
         {
-            _internalFaceLoads.AddRange(loads);
+            _internalFaceLoads.AddRange(loads.Where(i => !(i is SelfWeightLoad)).ToList());
         }
+
+        public void AddSelfWeightLoad(SelfWeightLoad load)
+        {
+            _selfWeightLoad = load;
+        }
+
 
         /// <summary>Split the InteralFaceLoads and ExternalFaceLoads in three list based on their geometry and type </summary>
         /// <param name="uniformPressureLoads">List of load acting as uniform pressure</param>

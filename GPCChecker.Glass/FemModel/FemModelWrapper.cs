@@ -257,9 +257,6 @@ namespace GPC.Checker.Glasses.FemModel
                             status = St7NonLinearSolverSetup(aw, mid);
 
                             if (status)
-                                status = St7SetStageIncrement(aw, mid); // TODO NO
-
-                            if (status)
                             {
                                 aw.SaveFile(mid);
                                 status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
@@ -541,8 +538,6 @@ namespace GPC.Checker.Glasses.FemModel
                 throw new Exception("Failed to set the units");
 
 
-            _loadCases.Add(new LoadCase("Sw", 1000, 20, Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight)); // TODO RImuovere
-
             // Setup loadcases
             St7SetLoadCase(aw, mid);
 
@@ -715,7 +710,7 @@ namespace GPC.Checker.Glasses.FemModel
             }
             else
             {
-                if (AnalysisType == AnalysisTypes.Linear)
+                if (AnalysisType == AnalysisTypes.Linear) // No stage e analisi lineare
                     St7SetLinearLoadCaseCombination(aw, mid);
                 else
                     throw new NotSupportedException(); // Non è possibile avere analisi non lineare senza stages.

@@ -44,7 +44,7 @@ namespace GlassTests
             double GLIMIT = interlayerMaterial.GetShearModule(EN16612LoadDurations.LIVECROWD, 30);
 
 
-            CombinationEn combination = new CombinationEn("cmb1", StandardEN1990.LimitState.UltimateStructural);
+            CombinationEn combination = new CombinationEn("cmb1", StandardEN1990.LimitStates.UltimateStructural);
 
             var lcSw    = new LoadCase("SW", EN16612LoadDurations.SELFWEIGHT, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
             var lcLive  = new LoadCase("LIVE", EN16612LoadDurations.LIVECROWD, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
