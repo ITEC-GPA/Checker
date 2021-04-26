@@ -65,11 +65,11 @@ namespace GlassTests
             gs1.AddLoad(s1GalLc1);
 
             // Combination
-            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitState.UltimateStructural);
+            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitStates.UltimateStructural);
             cmb1[lc1] = 1.5;
             cmb1[lc2] = 2.5;
 
-            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitState.ServiceabilityCharacteristic);
+            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitStates.ServiceabilityCharacteristic);
             cmb2[lc1] = 1.2;
             cmb2[lc2] = 1.5;
             cmb2[lc2] = 0.5;
@@ -176,11 +176,11 @@ namespace GlassTests
             gs2.AddLoad(s2GalLc1);
 
             // Combination
-            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitState.UltimateStructural);
+            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitStates.UltimateStructural);
             cmb1[lc1] = 1.5;
             cmb1[lc2] = 2.5;
 
-            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitState.ServiceabilityCharacteristic);
+            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitStates.ServiceabilityCharacteristic);
             cmb2[lc1] = 1.2;
             cmb2[lc2] = 1.5;
             cmb2[lc2] = 0.5;
@@ -300,11 +300,11 @@ namespace GlassTests
             gs1.AddLoad(s1GalLc1);
 
             // Combination
-            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitState.UltimateStructural);
+            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitStates.UltimateStructural);
             cmb1[lc1] = 1.5;
             cmb1[lc2] = 2.5;
 
-            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitState.ServiceabilityCharacteristic);
+            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitStates.ServiceabilityCharacteristic);
             cmb2[lc1] = 1.2;
             cmb2[lc2] = 1.5;
             cmb2[lc2] = 0.5;
@@ -359,5 +359,145 @@ namespace GlassTests
             Assert.AreEqual(26.04, worstPlateResult.S11, 1);
             Assert.AreEqual(4.16, worstNodeDisplacement.D3, 0.2);
         }
+
+
+        [TestMethod]
+        [TestCategory("Linear")]
+        [TestCategory("MissingAssert")]
+        public void MonolithicGlass3()
+        {
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            // Shape
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
+
+            List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+
+            List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
+            geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
+                                                                    Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            var meshOptions = new Mesh.GenerateOptions();
+            meshOptions.MeshSize = 40;
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            gs1.AddRestrains(geometryRestrains1);
+
+            model.AddSurface(gs1);
+
+            // LoadCases
+            LoadCase lc0 = new LoadCase("SW", 100, 20, LoadCase.LoadCaseTypes.SelfWeight);
+            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseTypes.LiveLoad);
+            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseTypes.WindPressure);
+
+            // Loads
+            AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
+            LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 600, 0), new Point3d(800, 600, 0)), lc2);
+            SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravityVector(), GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+
+            gs1.AddLoad(s1ll);
+            gs1.AddLoad(s1GalLc1);
+            gs1.AddLoad(swl);
+
+            // Combination
+            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitStates.UltimateStructural);
+            cmb1[lc0] = 1.5;
+            cmb1[lc1] = 1.5;
+            cmb1[lc2] = 2.5;
+
+            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitStates.ServiceabilityCharacteristic);
+            cmb2[lc0] = 1.2;
+            cmb2[lc1] = 1.2;
+            cmb2[lc2] = 1.5;
+            cmb2[lc2] = 0.5;
+
+            model.AddCombination(cmb1);
+            model.AddCombination(cmb2);
+
+            model.FemModelSetup();
+            model.PerformChecks();
+
+
+        }
+
+
+        [TestMethod]
+        [TestCategory("NonLinear")]
+        [TestCategory("MissingAssert")]
+        public void MonolithicGlass4()
+        {
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            // Shape
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
+
+            List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+
+            List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
+            geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
+                                                                    Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            var meshOptions = new Mesh.GenerateOptions();
+            meshOptions.MeshSize = 40;
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            gs1.AddRestrains(geometryRestrains1);
+
+            model.AddSurface(gs1);
+
+            // LoadCases
+            LoadCase lc0 = new LoadCase("SW", 100, 20, LoadCase.LoadCaseTypes.SelfWeight);
+            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseTypes.LiveLoad);
+            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseTypes.WindPressure);
+
+            // Loads
+            AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
+            LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 600, 0), new Point3d(800, 600, 0)), lc2);
+            SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravityVector(), GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+
+            gs1.AddLoad(s1ll);
+            gs1.AddLoad(s1GalLc1);
+            gs1.AddLoad(swl);
+
+            // Combination
+            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitStates.UltimateStructural);
+            cmb1[lc0] = 1.5;
+            cmb1[lc1] = 1.5;
+            cmb1[lc2] = 2.5;
+
+            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitStates.ServiceabilityCharacteristic);
+            cmb2[lc0] = 1.2;
+            cmb2[lc1] = 1.2;
+            cmb2[lc2] = 1.5;
+            cmb2[lc2] = 0.5;
+
+            model.AddCombination(cmb1);
+            model.AddCombination(cmb2);
+
+            model.FemModelSetup();
+            model.PerformChecks();
+
+
+        }
+
     }
+
 }
