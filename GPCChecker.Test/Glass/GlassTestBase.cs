@@ -52,19 +52,21 @@ namespace GlassTests
         protected GlassMaterialEn16612 GetGlassMaterialEn16612(double fgk = 45)
         {
             return new GlassMaterialEn16612("Glass", 70000, 0.23, fgk, GlassMaterialEn16612.GlassTypes.FloatGlass, GlassMaterialEn16612.SurfaceTreatments.AsProduced,
-                                        GlassMaterialEn16612.PrestressTypes.HeatStrengthened, GlassMaterialEn16612.ManufactoringProcesses.HorizontalToughening, 2700 * 10E-12, 0);
+                                        GlassMaterialEn16612.PrestressTypes.HeatStrengthened, GlassMaterialEn16612.ManufactoringProcesses.HorizontalToughening, 
+                                        GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0);
         }
 
         protected GlassMaterialEn16612 GetGlassMaterialEn16612(double fgk, GlassMaterialEn16612.GlassTypes glassType, GlassMaterialEn16612.SurfaceTreatments surfaceTreatments, 
                                                              GlassMaterialEn16612.PrestressTypes prestress, GlassMaterialEn16612.ManufactoringProcesses manufactoring )
         {
             return new GlassMaterialEn16612("Glass", 70000, 0.23, fgk, glassType, surfaceTreatments,
-                                        prestress, manufactoring, 2700 * 10E-12, 0);
+                                        prestress, manufactoring, GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0);
         }
 
         protected GlassMaterialAstm GetGlassMaterialAstm(double psiSurface = 1, double nCoeff = 16, double surfaceBaseStress = 23.3, double surfaceBaseEdgeStress = 18.3, double probabiltyOfBreakage = 0.001)
         {
-            return new GlassMaterialAstm("Glass", 70000, 0.23, psiSurface, nCoeff, surfaceBaseStress, surfaceBaseEdgeStress, probabiltyOfBreakage, 2500, 0.1);
+            return new GlassMaterialAstm("Glass", 70000, 0.23, psiSurface, nCoeff, surfaceBaseStress, surfaceBaseEdgeStress, probabiltyOfBreakage, 
+                                            GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0.1);
         }
 
 
@@ -154,6 +156,15 @@ namespace GlassTests
 
                 if (File.Exists(filePath))
                 {
+                    var version = FileVersionInfo.GetVersionInfo(filePath);
+
+                    Version minimumVersion = new Version(1, 0, 23, 0);
+
+                    if (minimumVersion.CompareTo(new Version(version.FileVersion)) >= 0)
+                    {
+                        throw new ApplicationException($"St7ApiServer version too lower, user {minimumVersion.ToString()} or higher");
+                    }
+
                     Process process = new Process();
                     process.StartInfo.FileName = filePath;
                     process.Start();
