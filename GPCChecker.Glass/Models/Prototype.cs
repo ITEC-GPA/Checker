@@ -21,9 +21,9 @@ namespace GPC.Checker.Glasses.Models
         public enum AnalysisTypes
         {
             [Description("Linear static analysis")]
-            LinearStaticAnalysis,
+            LinearStaticAnalysis = GPC.Model.FEM.FemModel.AnalysisTypes.Linear,
             [Description("Nonlinear static analysis")]
-            NonLinearStaticAnalysis,
+            NonLinearStaticAnalysis = GPC.Model.FEM.FemModel.AnalysisTypes.NonLinear
         }
 
         [TypeConverter(typeof(EnumDescriptionTypeConverter))]
