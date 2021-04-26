@@ -133,7 +133,7 @@ namespace GPC.Checker.Glasses.Models
         /// <summary>
         /// SetUp the FemModel of each surface, 
         /// </summary>
-        public void FemModelSetup() 
+        public void RebuildAllCheckers() 
         {
             foreach (var surface in _glassSurfaces)
             {
@@ -163,11 +163,10 @@ namespace GPC.Checker.Glasses.Models
             }
         }
 
-
         /// <summary>
         /// 
         /// </summary>
-        /// <remarks> <see cref="FemModelSetup"/> Must be called before calling this method</remarks>
+        /// <remarks> <see cref="RebuildAllCheckers"/> Must be called before calling this method</remarks>
         // TODO: glass, cambiare facendo in modo che se il checker non è stato creato lo crei lui, cosi da farlo andare avanti in qualsiasi caso.
         public void PerformChecks()
         {
