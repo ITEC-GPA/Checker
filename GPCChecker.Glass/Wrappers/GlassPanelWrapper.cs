@@ -98,15 +98,16 @@ namespace GPC.Checker.Glasses.Wrappers
         protected GlassPanelWrapper(GlassSurface glassSurface, IGlassPanel glass, bool considerSelfWeight = true) 
             : base(glassSurface, (Glass)glass)
         {
-            this._externalFaceLoads = new List<Load>();
-            this._internalFaceLoads = new List<Load>();
+            _externalFaceLoads = new List<Load>();
+            _internalFaceLoads = new List<Load>();
 
-            this._meshes = new List<Mesh>();
+            _meshes = new List<Mesh>();
 
-            this._meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>();
-            this._meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
-            this._meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
+            _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>();
+            _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
+            _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
 
+            _considerSelfWeight = considerSelfWeight;
         }
 
         #region Public methods - geometry

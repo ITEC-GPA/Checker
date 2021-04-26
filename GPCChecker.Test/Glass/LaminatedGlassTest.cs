@@ -55,7 +55,7 @@ namespace GlassTests
 
             model.AddSurface(gs1);
 
-            model.FemModelSetup();
+            model.RebuildAllCheckers();
             model.PerformChecks();
 
         }
@@ -145,7 +145,7 @@ namespace GlassTests
             model.AddCombination(combo3);
             model.AddCombination(combo4);
 
-            model.FemModelSetup();
+            model.RebuildAllCheckers();
             model.PerformChecks();
 
         }
@@ -241,7 +241,7 @@ namespace GlassTests
             model.AddCombination(combo3);
             model.AddCombination(combo4);
 
-            model.FemModelSetup();
+            model.RebuildAllCheckers();
             model.PerformChecks();
 
         }

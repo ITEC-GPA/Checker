@@ -77,7 +77,7 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.FemModelSetup();
+            model.RebuildAllCheckers();
             model.PerformChecks();
 
             var stressResults = model.GetPlateCombinationsResult();
@@ -188,7 +188,7 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.FemModelSetup();
+            model.RebuildAllCheckers();
             model.PerformChecks();
 
             var stressResults = model.GetPlateCombinationsResult();
@@ -315,7 +315,7 @@ namespace GlassTests
             Console.WriteLine($"{cmb1.Name}: {cmb1}");
             Console.WriteLine($"{cmb2.Name}: {cmb2}");
 
-            model.FemModelSetup();
+            model.RebuildAllCheckers();
             model.PerformChecks();
 
             var stressResults = model.GetPlateCombinationsResult();
