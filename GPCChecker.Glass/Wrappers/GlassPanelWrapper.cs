@@ -95,7 +95,7 @@ namespace GPC.Checker.Glasses.Wrappers
         #endregion
 
 
-        protected GlassPanelWrapper(GlassSurface glassSurface, IGlassPanel glass, bool considerSelfWeight = true) 
+        protected GlassPanelWrapper(GlassSurface glassSurface, IGlassPanel glass) 
             : base(glassSurface, (Glass)glass)
         {
             _externalFaceLoads = new List<Load>();
@@ -107,7 +107,6 @@ namespace GPC.Checker.Glasses.Wrappers
             _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
             _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
 
-            _considerSelfWeight = considerSelfWeight;
         }
 
         #region Public methods - geometry

@@ -423,7 +423,7 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.FemModelSetup();
+            model.RebuildAllCheckers();
             model.PerformChecks();
 
 
@@ -492,7 +492,7 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.FemModelSetup();
+            model.RebuildAllCheckers();
             model.PerformChecks();
 
 
