@@ -21,33 +21,39 @@ namespace GPC.Checker.Glasses.Glasses
     public sealed class GlassSurface : Model.Elements.Glasses.GlassSurface, IEquatable<GlassSurface>
     {
         private static int _maxId;
-
         private Prototype _prototype;
-
         private List<GeometryRestrain> _restrains;
-
         private List<Load> _loads;
-
         private List<IParametricLoad> _parametricLoads;
-
         private Mesh.GenerateOptions _meshOptions;
+        private Checkers.Checker _checker;
 
+        #region Properties
 
         public Prototype Prototype => _prototype;
 
         public Mesh.GenerateOptions MeshOptions => _meshOptions;
 
+        public Checkers.Checker Checker
+        {
+            get => _checker;
+            set => _checker = value;
+        }
+
+        #endregion
+
+        #region Constructors
 
         public GlassSurface(Prototype prototype, Shape shape, Mesh.GenerateOptions options) 
             : base(shape, Guid.NewGuid())
         {
-            this._prototype = prototype;
-            this._loads = new List<Load>();
-            this._parametricLoads = new List<IParametricLoad>();
-            this._restrains = new List<GeometryRestrain>();
-            this._meshOptions = options;
+            _prototype = prototype;
+            _loads = new List<Load>();
+            _parametricLoads = new List<IParametricLoad>();
+            _restrains = new List<GeometryRestrain>();
+            _meshOptions = options;
 
-            base.Id = _maxId++;
+            Id = _maxId++;
         }
 
 
@@ -57,15 +63,15 @@ namespace GPC.Checker.Glasses.Glasses
             throw new NotImplementedException();
         }
 
+        #endregion
+
+        #region Public functions
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
             throw new NotSupportedException();
         }
-
-
-        #region Setters
 
         /// <summary>
         /// Add a load to the surface
@@ -102,11 +108,6 @@ namespace GPC.Checker.Glasses.Glasses
         {
             _restrains.AddRange(geometryRestrains);
         }
-
-
-        #endregion
-
-        #region Getter
 
         /// <summary>
         /// 
