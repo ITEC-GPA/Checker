@@ -20,14 +20,11 @@ using GPC.Checker.Glasses.Models;
 
 namespace GPC.Checker.Glasses.Checkers
 {
-    public abstract class Checker : GPC.Checker.Common.Checker
+    public abstract class Checker : Common.Checker
     {
         protected GlassSurface _glassSurface;
-
         protected FemModelWrapper _femModel;
-
         protected string _folderPath;
-
         protected ModelOptions _options;
 
         /// <summary>
@@ -35,15 +32,18 @@ namespace GPC.Checker.Glasses.Checkers
         /// </summary>
         protected List<Combination> _combinations;
 
+        public Model.FEM.FemModel FemModel => _femModel;
+
+
         public Checker(GlassSurface glassSurface, List<Combination> combinations, ModelOptions modelOptions)
         {
-            this._glassSurface = glassSurface ?? throw new ArgumentNullException(nameof(glassSurface));
+            _glassSurface = glassSurface ?? throw new ArgumentNullException(nameof(glassSurface));
 
             // Creo lista combinazioni sommando la lista delle globali a quelli del prototipo
-            this._combinations = combinations == null ? new List<Combination>() : combinations;
-            this._combinations.AddRange(glassSurface.Prototype.Combinations);
+            _combinations = combinations == null ? new List<Combination>() : combinations;
+            _combinations.AddRange(glassSurface.Prototype.Combinations);
 
-            this._options = modelOptions;
+            _options = modelOptions;
         }
 
 
