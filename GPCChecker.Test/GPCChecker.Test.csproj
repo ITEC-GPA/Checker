@@ -69,8 +69,8 @@
       <HintPath>..\packages\MSTest.TestFramework.2.2.3\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="PresentationFramework" />
-    <Reference Include="St7ApiWrapper, Version=1.0.23.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\St7ApiWrapper.1.0.23.2\lib\net472\St7ApiWrapper.dll</HintPath>
+    <Reference Include="St7ApiWrapper, Version=1.0.23.3, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\St7ApiWrapper.1.0.23.3\lib\net472\St7ApiWrapper.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

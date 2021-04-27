@@ -158,11 +158,11 @@ namespace GlassTests
                 {
                     var version = FileVersionInfo.GetVersionInfo(filePath);
 
-                    Version minimumVersion = new Version(1, 0, 23, 0);
+                    Version minimumVersion = new Version(1, 0, 23, 3);
 
-                    if (minimumVersion.CompareTo(new Version(version.FileVersion)) >= 0)
+                    if (minimumVersion.CompareTo(new Version(version.FileVersion)) < 0)
                     {
-                        throw new ApplicationException($"St7ApiServer version too lower, user {minimumVersion.ToString()} or higher");
+                        throw new ApplicationException($"St7ApiServer version {version.FileVersion} is too lower, you need version: {minimumVersion.ToString()} or higher");
                     }
 
                     Process process = new Process();
