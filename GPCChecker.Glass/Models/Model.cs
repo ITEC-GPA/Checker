@@ -39,7 +39,6 @@ namespace GPC.Checkers.Glasses.Models
 
         #endregion
 
-
         #region Public constructors
 
         public Model(string outputFolder)
@@ -215,7 +214,6 @@ namespace GPC.Checkers.Glasses.Models
 
 
         #endregion
-
 
         #region Private methods
 
