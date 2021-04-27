@@ -163,6 +163,7 @@ namespace GPC.Checkers.Glasses.Models
             }
         }
 
+
         /// <summary>
         /// 
         /// </summary>

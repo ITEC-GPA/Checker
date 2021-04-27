@@ -24,6 +24,8 @@ namespace GlassTests
         [TestMethod]
         public void Test1()
         {
+            RunApiServer();
+
             FemModelWrapper fmw = new FemModelWrapper();
 
             Shape s1 = GetRectangularShape(100, 200);

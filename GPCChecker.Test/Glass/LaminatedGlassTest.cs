@@ -106,6 +106,7 @@ namespace GlassTests
 
             LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(40, 50, 0), new Point3d(150, 200, 0)), lc3, CoordinateSystem.Global);
 
+            // Combinazioni
             CombinationEn combo1 = new CombinationEn("Cmb1", StandardEN1990.LimitStates.UltimateStructural);
             combo1.AddLoadCaseCoefficient(lc0, 1);
             combo1.AddLoadCaseCoefficient(lc3, 1);
@@ -144,7 +145,6 @@ namespace GlassTests
             model.AddCombination(combo3);
             model.AddCombination(combo4);
 
-            model.RebuildAllCheckers();
             model.PerformChecks();
 
         }
@@ -195,7 +195,8 @@ namespace GlassTests
             SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravityVector(), GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
             LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(40, 450, 0), new Point3d(150, 200, 0)), lc3, CoordinateSystem.Global);
-            
+
+            // Combinazioni
             CombinationEn combo1 = new CombinationEn("Cmb1", StandardEN1990.LimitStates.UltimateStructural);
             combo1.AddLoadCaseCoefficient(lc0, 1);
             combo1.AddLoadCaseCoefficient(lc3, 1);
@@ -230,9 +231,6 @@ namespace GlassTests
             gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
 
 
-            // Model
-            model.AddSurface(gs1);
-
             p1.AddCombination(combo1);
             model.AddCombination(combo1);
             model.AddCombination(combo5);
@@ -240,7 +238,10 @@ namespace GlassTests
             model.AddCombination(combo3);
             model.AddCombination(combo4);
 
-            model.RebuildAllCheckers();
+            // Model
+            model.AddSurface(gs1);
+
+
             model.PerformChecks();
 
         }

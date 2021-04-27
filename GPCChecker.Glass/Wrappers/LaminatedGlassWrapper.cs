@@ -222,10 +222,6 @@ namespace GPC.Checkers.Glasses.Wrappers
                     }
                 }
 
-
-                //var volumeMesh = cloned.ExtrudeFaces(normal * (Glass as LaminatedGlass).Interlayers[i].Thickness);
-                //volumeMesh.Pan(normal * (interlayerDistances[i] - (Glass as LaminatedGlass).Interlayers[i].Thickness / 2.0));
-                //meshes[i * 2 + 1] = volumeMesh;
             }
             
 
