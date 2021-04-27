@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPC.Checker.Glasses.Loads
+namespace GPC.Checkers.Glasses.Loads
 {
     public interface IParametricLoad
     {

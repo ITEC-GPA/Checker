@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using GPC.Geometry.Meshes;
 using GPC.Geometry;
 using GPC.Model.Glasses;
-using GPC.Checker.Glasses.Glasses;
+using GPC.Checkers.Glasses.Glasses;
 
-namespace GPC.Checker.Glasses.Wrappers
+namespace GPC.Checkers.Glasses.Wrappers
 {
     internal abstract class InsulatedGlassWrapper : GlassWrapper
     {

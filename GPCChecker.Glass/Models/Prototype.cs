@@ -1,4 +1,4 @@
-﻿using GPC.Checker.Glasses.Restrain;
+﻿using GPC.Checkers.Glasses.Restrain;
 using GPC.Geometry;
 using GPC.Model;
 using GPC.Model.Combinations;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
 
-namespace GPC.Checker.Glasses.Models
+namespace GPC.Checkers.Glasses.Models
 {
     [Serializable]
     public sealed class Prototype : GPC.Model.ModelObject, IEquatable<Prototype>

@@ -1,12 +1,12 @@
-﻿using GPC.Checker.Glasses.Glasses;
-using GPC.Checker.Glasses.LoadCases;
-using GPC.Checker.Glasses.Models;
+﻿using GPC.Checkers.Glasses.Glasses;
+using GPC.Checkers.Glasses.LoadCases;
+using GPC.Checkers.Glasses.Models;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Combinations;
 using GPC.Model.Glasses;
 using GPC.Model.Loads;
-using GPC.Checker.Glasses.Loads;
+using GPC.Checkers.Glasses.Loads;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
@@ -55,7 +55,6 @@ namespace GlassTests
 
             model.AddSurface(gs1);
 
-            model.RebuildAllCheckers();
             model.PerformChecks();
 
         }

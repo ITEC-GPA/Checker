@@ -2,13 +2,13 @@
 using System.Linq;
 using System.Collections.Generic;
 using GPC.Model.Combinations;
-using GPC.Checker.Glasses.Glasses;
-using GPC.Checker.Glasses.Checkers;
-using GPC.Checker.Glasses.Results;
+using GPC.Checkers.Glasses.Glasses;
+using GPC.Checkers.Glasses.Checkers;
+using GPC.Checkers.Glasses.Results;
 using GPC.Model.Results;
 using GPC.Model;
 
-namespace GPC.Checker.Glasses.Models
+namespace GPC.Checkers.Glasses.Models
 {
     public class Model
     {
@@ -78,7 +78,7 @@ namespace GPC.Checker.Glasses.Models
         #region Public methods
 
         /// <summary>
-        /// Add a surface to the model
+        /// Add a surface to the model. Create the <see cref="Checker"/> and call <see cref="Checker.FemModelSetup(string)"/>
         /// </summary>
         public bool AddSurface(GlassSurface glassSurface)
         {

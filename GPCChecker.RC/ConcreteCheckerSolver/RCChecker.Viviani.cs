@@ -3106,9 +3106,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPC.Checker.ReinforcedConcrete
+namespace GPC.Checkers.ReinforcedConcrete
 {
-    public partial class RCChecker : GPC.Checker.Common.Checker
+    public partial class RCChecker : GPC.Checkers.Common.Checker
     {
 
         #region Elastic

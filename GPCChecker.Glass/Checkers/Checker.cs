@@ -1,24 +1,24 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using GPC.Checker.Glasses.FemModel;
-using GPC.Checker.Glasses.Wrappers;
-using GPC.Checker.Glasses.Glasses;
+using GPC.Checkers.Glasses.FemModel;
+using GPC.Checkers.Glasses.Wrappers;
+using GPC.Checkers.Glasses.Glasses;
 using GPC.Model.Glasses;
 using GPC.Geometry.Meshes;
-using GPC.Checker.Glasses.Results;
+using GPC.Checkers.Glasses.Results;
 using GPC.Model.FEM.Properties;
 using GPC.Model.Loads;
 using System.Linq;
 using GPC.Model.Results;
 using GPC.Model.FEM;
-using GPC.Checker.Glasses.LoadCases;
+using GPC.Checkers.Glasses.LoadCases;
 using GPC.Model.Materials;
 using GPC.Model.Combinations;
-using GPC.Checker.Glasses.Extensions;
-using GPC.Checker.Glasses.Models;
+using GPC.Checkers.Glasses.Extensions;
+using GPC.Checkers.Glasses.Models;
 
-namespace GPC.Checker.Glasses.Checkers
+namespace GPC.Checkers.Glasses.Checkers
 {
     public abstract class Checker : Common.Checker
     {
@@ -271,7 +271,7 @@ namespace GPC.Checker.Glasses.Checkers
 
                         // O(nlc * n^2)
                         Dictionary<Combination, List<int>> comboStageIdMap = new Dictionary<Combination, List<int>>();
-                        foreach (var loadCase in _combinations.SelectMany(i => i.GetLoadCases()).Select(i => i as GPC.Checker.Glasses.LoadCases.LoadCase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
+                        foreach (var loadCase in _combinations.SelectMany(i => i.GetLoadCases()).Select(i => i as GPC.Checkers.Glasses.LoadCases.LoadCase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
                         {   
                             Stage stagelc = _femModel.AddStage(loadCase.Name, (Model.FEM.FemModel.AnalysisTypes)_glassSurface.Prototype.AnalysisType);
 

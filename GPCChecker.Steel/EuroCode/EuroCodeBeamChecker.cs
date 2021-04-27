@@ -9,7 +9,7 @@ using GPC.Geometry;
 using Word = Microsoft.Office.Interop.Word;
 using GPCChecker.Steel.EuroCode;
 
-namespace GPC.Checker.Steel.EuroCode
+namespace GPC.Checkers.Steel.EuroCode
 {
     public enum LoadCondition
     {

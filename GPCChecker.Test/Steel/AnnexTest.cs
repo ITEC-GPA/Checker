@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using GPC.Checker.Steel.EuroCode;
+using GPC.Checkers.Steel.EuroCode;
 
 
 namespace SteelTests

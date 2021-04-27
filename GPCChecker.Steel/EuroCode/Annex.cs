@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPC.Checker.Steel.EuroCode
+namespace GPC.Checkers.Steel.EuroCode
 {
     public class Annex
     {

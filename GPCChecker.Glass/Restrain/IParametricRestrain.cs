@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPC.Checker.Glasses.Restrain
+namespace GPC.Checkers.Glasses.Restrain
 {
     public interface IParametricRestrain
     {

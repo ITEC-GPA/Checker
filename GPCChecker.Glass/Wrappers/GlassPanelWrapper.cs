@@ -8,9 +8,9 @@ using GPC.Model.Elements;
 using GPC.Model.Restrains;
 using GPC.Model.Glasses;
 using GPC.Model.Loads;
-using GPC.Checker.Glasses.Glasses;
+using GPC.Checkers.Glasses.Glasses;
 
-namespace GPC.Checker.Glasses.Wrappers
+namespace GPC.Checkers.Glasses.Wrappers
 {
     public abstract class GlassPanelWrapper : GlassWrapper, IGlassPanelWrapper
     {

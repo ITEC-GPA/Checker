@@ -1,5 +1,5 @@
 ﻿
-namespace GPC.Checker.Common
+namespace GPC.Checkers.Common
 {
     public abstract class Checker
     {

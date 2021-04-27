@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GPC.Checker.Common;
+using GPC.Checkers.Common;
 using GPC.Utilities;
 using GPC.Model;
 using GPC.Geometry;
 
 
-namespace GPC.Checker.ReinforcedConcrete
+namespace GPC.Checkers.ReinforcedConcrete
 {
     //public class RCCheckingSection : CheckingSection
     //{

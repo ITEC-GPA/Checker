@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GPC.Checker.Glasses.Glasses;
-using GPC.Checker.Glasses.Models;
-using GPC.Checker.Glasses.Results;
+using GPC.Checkers.Glasses.Glasses;
+using GPC.Checkers.Glasses.Models;
+using GPC.Checkers.Glasses.Results;
 using GPC.Model.Combinations;
 
-namespace GPC.Checker.Glasses.Checkers
+namespace GPC.Checkers.Glasses.Checkers
 {
     public class AstmChecker : Checker
     {

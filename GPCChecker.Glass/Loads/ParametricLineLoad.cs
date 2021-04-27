@@ -8,7 +8,7 @@ using GPC.Geometry;
 using GPC.Model.LoadCases;
 
 
-namespace GPC.Checker.Glasses.Loads
+namespace GPC.Checkers.Glasses.Loads
 {
     /// <summary>
     /// ParametricPointRestrain is a point defined with parametric coordinates 

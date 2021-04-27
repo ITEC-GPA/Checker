@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPC.Checker.Glasses.Results
+namespace GPC.Checkers.Glasses.Results
 {
     public class GlassResult
     {

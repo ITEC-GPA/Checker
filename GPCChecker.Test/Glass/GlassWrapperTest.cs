@@ -1,6 +1,6 @@
-﻿using GPC.Checker.Glasses.Glasses;
-using GPC.Checker.Glasses.Models;
-using GPC.Checker.Glasses.Wrappers;
+﻿using GPC.Checkers.Glasses.Glasses;
+using GPC.Checkers.Glasses.Models;
+using GPC.Checkers.Glasses.Wrappers;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Glasses;

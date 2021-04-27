@@ -2,20 +2,20 @@
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using GPC.Checker.Glasses.Wrappers;
-using GPC.Checker.Glasses.FemModel;
+using GPC.Checkers.Glasses.Wrappers;
+using GPC.Checkers.Glasses.FemModel;
 using GPC.Model.Loads;
 using GPC.Model.Elements;
 using GPC.Model.FEM.Properties;
-using GPC.Checker.Glasses.Glasses;
+using GPC.Checkers.Glasses.Glasses;
 using GPC.Model.Glasses;
 using GPC.Geometry.Meshes;
 using GPC.Model.Restrains;
-using GPC.Checker.Glasses.Results;
+using GPC.Checkers.Glasses.Results;
 using GPC.Model.Combinations;
-using GPC.Checker.Glasses.Models;
+using GPC.Checkers.Glasses.Models;
 
-namespace GPC.Checker.Glasses.Checkers
+namespace GPC.Checkers.Glasses.Checkers
 {
     public class En16612Checker : Checker
     {

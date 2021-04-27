@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GPC.Checker.Common;
+using GPC.Checkers.Common;
 using GPC.Utilities;
 using GPC.Utilities.Maths;
 using GPC.Model.Elements;
@@ -12,9 +12,9 @@ using GPC.Model.Sections;
 using GPC.Model.Materials;
 
 
-namespace GPC.Checker.ReinforcedConcrete
+namespace GPC.Checkers.ReinforcedConcrete
 {
-    public partial class RCChecker : GPC.Checker.Common.Checker
+    public partial class RCChecker : GPC.Checkers.Common.Checker
     {
         public RCChecker() : base()
         {

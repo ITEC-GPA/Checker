@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 using GPC.Geometry;
 using GPC.Model.Loads;
-using GPC.Checker.Glasses.Loads;
-using GPC.Checker.Glasses.Models;
+using GPC.Checkers.Glasses.Loads;
+using GPC.Checkers.Glasses.Models;
 using GPC.Model.Restrains;
 using GPC.Geometry.Meshes;
 using GPC.Utilities.Extensions;
 
-namespace GPC.Checker.Glasses.Glasses
+namespace GPC.Checkers.Glasses.Glasses
 {
     /// <summary>
     /// Overwrite of Model.Elements.Glasses.GlassSurface in order to add prototype and loads

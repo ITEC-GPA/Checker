@@ -1,5 +1,5 @@
 ﻿
-namespace GPC.Checker.Glasses.LoadCases
+namespace GPC.Checkers.Glasses.LoadCases
 {
     internal interface IGlassLoadCase
     {

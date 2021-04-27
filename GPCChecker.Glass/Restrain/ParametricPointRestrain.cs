@@ -9,7 +9,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPC.Checker.Glasses.Restrain
+namespace GPC.Checkers.Glasses.Restrain
 {
     /// <summary>
     /// ParametricPointRestrain is a point defined with parametric coordinates 

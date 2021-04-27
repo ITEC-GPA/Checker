@@ -1,11 +1,11 @@
-﻿using GPC.Checker.Glasses.Glasses;
+﻿using GPC.Checkers.Glasses.Glasses;
 using GPC.Geometry.Meshes;
 using GPC.Model.Glasses;
 using GPC.Model.Loads;
 using GPC.Model.Restrains;
 using System.Collections.Generic;
 
-namespace GPC.Checker.Glasses.Wrappers
+namespace GPC.Checkers.Glasses.Wrappers
 {
     public class MonolithicGlassWrapper : GlassPanelWrapper
     {

@@ -2,7 +2,7 @@
 using GPC.Geometry;
 using System.Collections.Generic;
 
-namespace GPC.Checker.Glasses.Wrappers
+namespace GPC.Checkers.Glasses.Wrappers
 {
     internal interface IGlassPanelWrapper
     {

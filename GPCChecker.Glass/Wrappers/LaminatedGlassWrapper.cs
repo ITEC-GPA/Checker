@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using GPC.Geometry.Meshes;
 using GPC.Geometry;
-using GPC.Checker.Glasses.Glasses;
+using GPC.Checkers.Glasses.Glasses;
 using GPC.Model.Glasses;
 using GPC.Model.Restrains;
 using GPC.Model.Loads;
 
-namespace GPC.Checker.Glasses.Wrappers
+namespace GPC.Checkers.Glasses.Wrappers
 {
     public class LaminatedGlassWrapper : GlassPanelWrapper
     {

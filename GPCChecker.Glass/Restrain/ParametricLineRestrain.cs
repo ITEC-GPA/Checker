@@ -9,7 +9,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPC.Checker.Glasses.Restrain
+namespace GPC.Checkers.Glasses.Restrain
 {
     /// <summary>
     /// ParametricLineLoad is a load defined with parametric coordinates 

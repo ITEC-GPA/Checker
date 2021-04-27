@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using GPC.Geometry;
 using GPC.Model.LoadCases;
 
-namespace GPC.Checker.Glasses.Loads
+namespace GPC.Checkers.Glasses.Loads
 {
     /// <summary>
     /// ParametricPointLoad is a load defined with parametric coordinates 

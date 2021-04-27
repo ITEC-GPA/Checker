@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using GPC.Checker.Glasses.LoadCases;
+using GPC.Checkers.Glasses.LoadCases;
 using GPC.Model.Materials;
 
-namespace GPC.Checker.Glasses.Extensions
+namespace GPC.Checkers.Glasses.Extensions
 {
     public static class Extensions
     {

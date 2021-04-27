@@ -1,7 +1,7 @@
-﻿using GPC.Checker.Glasses.Glasses;
-using GPC.Checker.Glasses.LoadCases;
-using GPC.Checker.Glasses.Models;
-using GPC.Checker.Glasses.Restrain;
+﻿using GPC.Checkers.Glasses.Glasses;
+using GPC.Checkers.Glasses.LoadCases;
+using GPC.Checkers.Glasses.Models;
+using GPC.Checkers.Glasses.Restrain;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Combinations;

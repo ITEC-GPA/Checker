@@ -12,8 +12,8 @@ using System.Text;
 using System.Threading.Tasks;
 using St7ApiWrapper;
 using GPC.Geometry;
-using GPC.Checker.Glasses.LoadCases;
-using GPC.Checker.Glasses.Models;
+using GPC.Checkers.Glasses.LoadCases;
+using GPC.Checkers.Glasses.Models;
 using GPC.Model.FEM.Attributes;
 using GPC.Model.FEM.FiniteElements;
 using GPC.Model.FEM.Properties;
@@ -22,9 +22,9 @@ using GPC.Model.Restrains;
 using GPC.Model.Results;
 using GPC.Model.Materials;
 using GPC.Model.Combinations;
-using GPC.Checker.Glasses.Results;
+using GPC.Checkers.Glasses.Results;
 
-namespace GPC.Checker.Glasses.FemModel
+namespace GPC.Checkers.Glasses.FemModel
 {
     public class FemModelWrapper : Model.FEM.FemModel
     {

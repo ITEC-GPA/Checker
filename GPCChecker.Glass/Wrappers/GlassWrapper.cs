@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Glasses;
-using GPC.Checker.Glasses.Glasses;
+using GPC.Checkers.Glasses.Glasses;
 using GPC.Model.Restrains;
 using GPC.Model.Loads;
 
-namespace GPC.Checker.Glasses.Wrappers
+namespace GPC.Checkers.Glasses.Wrappers
 {
     public abstract class GlassWrapper
     {

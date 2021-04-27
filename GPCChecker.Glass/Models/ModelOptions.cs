@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Geometry;
-namespace GPC.Checker.Glasses.Models
+namespace GPC.Checkers.Glasses.Models
 {
     public class ModelOptions
     {

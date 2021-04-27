@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using GPC.Model.Sections;
 using GPC.Model.Materials;
-using GPC.Checker.Steel.EuroCode;
+using GPC.Checkers.Steel.EuroCode;
 using System.Windows;
 
 namespace SteelTests
