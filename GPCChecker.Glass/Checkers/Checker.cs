@@ -262,16 +262,16 @@ namespace GPC.Checkers.Glasses.Checkers
 
                     // TIPO DI ANALISI
 
-                    if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
+                    if (_glassSurface.Prototype.AnalysisType == Prototype.AnalysisTypes.LinearStaticAnalysis)
                     {
                         // LINEARE
                         // Stage lineari per cambiare proprietà all'interlayer
                         // va creato uno stage per ogni loadcase
-                        _femModel.AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear;
+                        _femModel.AnalysisType = (Model.FEM.FemModel.AnalysisTypes)_glassSurface.Prototype.AnalysisType;
 
                         // O(nlc * n^2)
                         Dictionary<Combination, List<int>> comboStageIdMap = new Dictionary<Combination, List<int>>();
-                        foreach (var loadCase in _combinations.SelectMany(i => i.GetLoadCases()).Select(i => i as GPC.Checkers.Glasses.LoadCases.LoadCase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
+                        foreach (var loadCase in _combinations.SelectMany(i => i.GetLoadCases()).Select(i => i as LoadCase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
                         {   
                             Stage stagelc = _femModel.AddStage(loadCase.Name, (Model.FEM.FemModel.AnalysisTypes)_glassSurface.Prototype.AnalysisType);
 
