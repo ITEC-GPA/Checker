@@ -86,17 +86,17 @@ namespace GlassTests
         protected InterlayerMaterial GetInterlayerMaterialSentryGlas()
         {
             var it = new InterlayerMaterial("SG", 1, 0, InterlayerMaterial.InterlayerType.SentryGlass);
-            it.AddShearModule(3,        new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 236, 211, 141, 63, 26.4, 8.2, 2.9, 1.3 });
-            it.AddShearModule(30,       new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 228, 206, 119, 36.6, 13.5, 4.3, 2.1, 1.0 });
-            it.AddShearModule(60,       new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 225, 195, 110, 30.7, 11.3, 3.7, 1.9, 0.8 });
-            it.AddShearModule(5 * 60,   new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 220, 188, 82.8, 19.4, 7.3, 2.6, 1.4, 0.6 });
-            it.AddShearModule(30 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 217, 175, 66.1, 11.4, 4.9, 1.9, 1.0, 0.4 });
-            it.AddShearModule(60 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 206, 169, 60.0, 9.3, 4.2, 1.7, 0.8, 0.3 });
-            it.AddShearModule(1 * 24 * 60 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 190, 146, 49.7, 4.5, 2.8, 1.3, 0.6, 0.3 });
-            it.AddShearModule(5 * 24 * 60 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 178, 130, 24.7, 3.6, 2.4, 1.2, 0.6, 0.2 });
-            it.AddShearModule(21 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 172, 115, 12.9, 3.3, 2.2, 1.2, 0.5, 0.2 });
-            it.AddShearModule(30 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 171, 112, 11.6, 3.3, 2.2, 1.1, 0.5, 0.2 });
-            it.AddShearModule(365 * 24 * 60 * 60,new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 161, 96.5, 6.8, 3.1, 2.1, 1.0, 0.5, 0.2 });
+            it.AddShearModule(3,                 new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 236, 211, 141,  63,   26.4, 8.2, 2.9, 1.3 });
+            it.AddShearModule(30,                new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 228, 206, 119,  36.6, 13.5, 4.3, 2.1, 1.0 });
+            it.AddShearModule(60,                new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 225, 195, 110,  30.7, 11.3, 3.7, 1.9, 0.8 });
+            it.AddShearModule(5 * 60,            new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 220, 188, 82.8, 19.4, 7.3,  2.6, 1.4, 0.6 });
+            it.AddShearModule(30 * 60,           new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 217, 175, 66.1, 11.4, 4.9,  1.9, 1.0, 0.4 });
+            it.AddShearModule(60 * 60,           new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 206, 169, 60.0, 9.3,  4.2,  1.7, 0.8, 0.3 });
+            it.AddShearModule(1 * 24 * 60 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 190, 146, 49.7, 4.5,  2.8,  1.3, 0.6, 0.3 });
+            it.AddShearModule(5 * 24 * 60 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 178, 130, 24.7, 3.6,  2.4,  1.2, 0.6, 0.2 });
+            it.AddShearModule(21 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 172, 115, 12.9, 3.3,  2.2,  1.2, 0.5, 0.2 });
+            it.AddShearModule(30 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 171, 112, 11.6, 3.3,  2.2,  1.1, 0.5, 0.2 });
+            it.AddShearModule(365 * 24 * 60 * 60,new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 161, 96.5, 6.8, 3.1,  2.1,  1.0, 0.5, 0.2 });
 
             it.AddShearModule(50 * 365 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 0, 0, 0, 0, 0, 0, 0, 0 });
 
