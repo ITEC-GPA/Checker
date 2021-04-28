@@ -38,7 +38,7 @@ namespace GPC.Checkers.Glasses.Extensions
         /// <param name="loadCases"></param>
         /// <param name="material"></param>
         /// <returns>The loadCase that has the lower Gvalue</returns>
-        public static LoadCase GetLowerGvalueLoadCase(this List<LoadCase> loadCases, InterlayerMaterial material)
+        public static LoadCase GetLowerGvalueLoadCase(this IEnumerable<LoadCase> loadCases, InterlayerMaterial material)
         {
             return loadCases.Aggregate((i,g) => (material.GetShearModule(i.LoadDuration, i.Temperature) < material.GetShearModule(g.LoadDuration, g.Temperature)) ? i : g);
         }
@@ -49,7 +49,7 @@ namespace GPC.Checkers.Glasses.Extensions
         /// <param name="loadCases"></param>
         /// <param name="material"></param>
         /// <returns>The loadCase that has the higher Gvalue</returns>
-        public static LoadCase GetHigherGvalueLoadCase(this List<LoadCase> loadCases, InterlayerMaterial material)
+        public static LoadCase GetHigherGvalueLoadCase(this IEnumerable<LoadCase> loadCases, InterlayerMaterial material)
         {
             return loadCases.Aggregate((i, g) => (material.GetShearModule(i.LoadDuration, i.Temperature) > material.GetShearModule(g.LoadDuration, g.Temperature)) ? i : g);
         }
