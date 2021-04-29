@@ -239,11 +239,11 @@ namespace GPC.Checkers.Glasses.FemModel
                     {
                         case AnalysisTypes.Linear:
 
-                            bool status = St7LinearSolverSetup(aw, mid);
-                            if (status)
-                                aw.SaveFile(mid);
+                            //bool status = St7LinearSolverSetup(aw, mid);
+                            //if (status)
+                            //    aw.SaveFile(mid);
 
-                            status = St7RunLinearSolver(aw, _st7FilePath);
+                            bool status = St7RunLinearSolver(aw, _st7FilePath);
 
                             if (!status)
                                 throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
@@ -254,13 +254,14 @@ namespace GPC.Checkers.Glasses.FemModel
 
                         case AnalysisTypes.NonLinear:
 
-                            status = St7NonLinearSolverSetup(aw, mid);
+                            //status = St7NonLinearSolverSetup(aw, mid);
 
-                            if (status)
-                            {
-                                aw.SaveFile(mid);
-                                status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
-                            }
+                            //if (status)
+                            //{
+                            //    aw.SaveFile(mid);
+                            //    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
+                            //}
+                            status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
 
                             if (!status)
                                 throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
@@ -690,21 +691,23 @@ namespace GPC.Checkers.Glasses.FemModel
             // Setup Stages
             if (_stages.Count > 0)
             {
-                St7SetStages(aw, mid);
+                St7SetStages(aw, mid); // crea gli stages, senza combo
+
+                St7SetStagesCombination(aw, mid);
 
                 if (AnalysisType == AnalysisTypes.Linear)
                 {
-                    // uso il solutore non lineare, senza non linearità per avere l'analisi a stage.
-                    St7NonLinearSolverSetupForLinearAnalysis(aw, mid);
+                    // uso il solutore non lineare
+                    // non linearità disattivata
+
+                    St7NonLinearSolverSetup(aw, mid, false, false, true);
                 }
                 else
                 {
-                    // Solutore non lineare con non linearità 
-                    St7NonLinearSolverSetup(aw, mid);
+                    // uso il solutore non lineare
+                    // non linearità attivata
 
-                    int mId = mid;
-                    _stages.ForEach(i => St7SetStageCombinations(aw, mId, i.Id));
-
+                    St7NonLinearSolverSetup(aw, mid, false, true, true);
 
                 }
             }
@@ -721,16 +724,44 @@ namespace GPC.Checkers.Glasses.FemModel
         }
 
 
+        /// <summary>
+        /// Add each stage in <see cref="Model.FEM.FemModel._stages"/> to st7 and update <see cref="_st7StageMap"/>
+        /// </summary>
+        /// <param name="aw"></param>
+        /// <param name="mid"></param>
         private void St7SetStages(ISt7ApiService aw, int mid)
         {
             int st7StageId = _st7StageMap.Values.DefaultIfEmpty(0).Max();
 
-            foreach(GPC.Model.FEM.Stage stage in _stages)
+            foreach(Model.FEM.Stage stage in _stages)
             {
                 aw.AddStage(mid, stage.Name, new int[] { stage.Morph ? St7ApiConst.btTrue : St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
                 _st7StageMap.Add(stage.Id, ++st7StageId);
             }
         }
+
+        private void St7SetStagesCombination(ISt7ApiService aw, int mid)
+        {
+
+            foreach (Model.FEM.Stage stage in _stages)
+            {
+                if (_st7StageMap.ContainsKey(stage.Id))
+                {
+                    int comboIndex = 1;
+                    foreach(var combo in stage.Combinations)
+                    {
+                        aw.AddNLAIncrement(mid, _st7StageMap[stage.Id], combo.Name);
+
+                        foreach(var tuple in combo.GetLoadCaseCoefficientsTuple())
+                        {
+                            aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stage.Id], comboIndex++, _st7LoadCaseMap[tuple.loadcase.Name], tuple.coefficient);
+                        }
+                    }
+                }
+            }
+
+        }
+
 
         private void St7StageAnalysisSetup(ISt7ApiService aw, int mid, int stageIndex, bool morph, bool moveFixedNodes, bool rotateCluster)
         {
@@ -982,19 +1013,25 @@ namespace GPC.Checkers.Glasses.FemModel
         }
 
         /// <summary>
-        /// Enable each stage in the <see cref="_st7StageMap"/>, activate non linear geometry.
+        /// Set the non linear options and if, <paramref name="stagedAnalysis"/> is <see langword="True"/>, enable each stage in the <see cref="_st7StageMap"/>.
         /// </summary>
         /// <param name="aw"></param>
         /// <param name="mid"></param>
+        /// <param name="nonLinearMaterial"></param>
+        /// <param name="nonLinearGeometry"></param>
+        /// <param name="stagedAnalysis"></param>
         /// <returns></returns>
-        private bool St7NonLinearSolverSetup(ISt7ApiService aw, int mid)
+        private bool St7NonLinearSolverSetup(ISt7ApiService aw, int mid, bool nonLinearMaterial, bool nonLinearGeometry, bool stagedAnalysis)
         {
-            foreach (var stageId in _st7StageMap)
+            if (stagedAnalysis)
             {
-                aw.EnableNLAStage(mid, stageId.Value);
+                foreach (var stageId in _st7StageMap)
+                {
+                    aw.EnableNLAStage(mid, stageId.Value);
+                }
             }
 
-            return aw.SetSolverNonlinearMaterial(mid, false) && aw.SetSolverNonlinearGeometry(mid, true) && aw.SetNLAStagedAnalysis(mid, true);
+            return aw.SetSolverNonlinearMaterial(mid, nonLinearMaterial) && aw.SetSolverNonlinearGeometry(mid, nonLinearGeometry) && aw.SetNLAStagedAnalysis(mid, stagedAnalysis);
         }
 
         /// <summary>
