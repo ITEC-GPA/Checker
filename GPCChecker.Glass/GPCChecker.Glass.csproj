@@ -71,12 +71,9 @@
     <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="FemModel\FemModelWrapper.cs" />
     <Compile Include="Glasses\GlassSurface.cs" />
-    <Compile Include="LoadCases\ClimateHLoadCase.cs" />
-    <Compile Include="LoadCases\ClimatePLoadCase.cs" />
-    <Compile Include="LoadCases\ClimateTLoadCase.cs" />
     <Compile Include="LoadCases\IGlassLoadCase.cs" />
     <Compile Include="LoadCases\LoadCase.cs" />
-    <Compile Include="LoadCases\LoadCasePrEn.cs" />
+    <Compile Include="LoadCases\LoadCaseEn16612.cs" />
     <Compile Include="Loads\IParametricLoad.cs" />
     <Compile Include="Loads\ParametricLineLoad.cs" />
     <Compile Include="Loads\ParametricPointLoad.cs" />
