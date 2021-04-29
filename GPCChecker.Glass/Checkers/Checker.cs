@@ -374,7 +374,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                     var c = (Combination)combo.Clone();
                                     c.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
 
-                                    if (c.GetLoadCases().Count() > 0)
+                                    if (c.GetLoadCases().Count() > 0) // TODO: cambiare in LoadCaseCount
                                     {
                                         stCombinations.Add(c);
                                     }
