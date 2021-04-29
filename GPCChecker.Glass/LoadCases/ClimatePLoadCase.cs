@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Glasses.LoadCases
 {
-    public class ClimatePLoadCase : GPC.Model.LoadCases.ClimateHLoadCase, IGlassLoadCase
+    public class ClimatePLoadCase : GPC.Model.LoadCases.ClimatePLoadCase, IGlassLoadCase
     {
         private double _temperature;
 
