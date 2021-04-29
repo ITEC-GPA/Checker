@@ -70,12 +70,12 @@ namespace GPC.Checkers.Glasses.FemModel
         private Dictionary<int, int> _st7NodeMap;
 
         /// <summary>
-        /// Map between <see cref="Model.FEM.FiniteElements.Plate"/> id and straus7 plate ID
+        /// Map between <see cref="Plate"/> id and straus7 plate ID
         /// </summary>
         private Dictionary<int, int> _st7PlateMap;
 
         /// <summary>
-        /// Map between <see cref="Model.FEM.FiniteElements.Brick"/> id and straus7 brick ID
+        /// Map between <see cref="Brick"/> id and straus7 brick ID
         /// </summary>
         private Dictionary<int, int> _st7BrickMap;
 
@@ -383,7 +383,6 @@ namespace GPC.Checkers.Glasses.FemModel
                 throw new FileNotFoundException(_st7ResultFilePath);
         }
 
-
         public void ReadSt7LinearCombinationResults()
         {
             if (File.Exists(_st7ResultFilePath))
@@ -542,7 +541,8 @@ namespace GPC.Checkers.Glasses.FemModel
             // Setup loadcases
             St7SetLoadCase(aw, mid);
 
-            
+
+
             #region Geometry
 
             // Nodes
@@ -687,11 +687,11 @@ namespace GPC.Checkers.Glasses.FemModel
 
             #endregion
 
-            
+
             // Setup Stages
             if (_stages.Count > 0)
             {
-                St7SetStages(aw, mid); // crea gli stages, senza combo
+                St7SetStages(aw, mid); // crea gli stages, senza combo. Non spegne elementi
 
                 St7SetStagesCombination(aw, mid);
 
@@ -729,6 +729,7 @@ namespace GPC.Checkers.Glasses.FemModel
         /// </summary>
         /// <param name="aw"></param>
         /// <param name="mid"></param>
+        /// <remarks>This method does not turn off elements (groups for straus) at certain stage</remarks>
         private void St7SetStages(ISt7ApiService aw, int mid)
         {
             int st7StageId = _st7StageMap.Values.DefaultIfEmpty(0).Max();
@@ -737,7 +738,40 @@ namespace GPC.Checkers.Glasses.FemModel
             {
                 aw.AddStage(mid, stage.Name, new int[] { stage.Morph ? St7ApiConst.btTrue : St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
                 _st7StageMap.Add(stage.Id, ++st7StageId);
-            }
+
+                using (var stagePropertyEnum = GetStagePropertyEnumerator(stage.Id))
+                {
+                    while (stagePropertyEnum.MoveNext())
+                    {
+                        var current = stagePropertyEnum.Current;
+
+                        if (current.Key is Brick brick)
+                        {
+                            BrickProperty propertyOverload = GetBrickProperty(current.Value.PropertyName);
+                            
+                            if (brick.Property.Name != propertyOverload.Name)
+                            {
+                                aw.St7SetElementPropertySwitch(mid, St7ApiConst.tyBRICK, _st7BrickMap[current.Key.Id], _st7BrickPropertyMap[propertyOverload], _st7StageMap[stage.Id]);
+                            }
+                        }
+                        else if (current.Key is Plate plate)
+                        {
+                            PlateProperty propertyOverload = GetPlateProperty(current.Value.PropertyName);
+
+                            if (plate.Property.Name != propertyOverload.Name)
+                            {
+                                aw.St7SetElementPropertySwitch(mid, St7ApiConst.tyPLATE, _st7PlateMap[current.Key.Id], _st7PlatePropertyMap[propertyOverload], _st7StageMap[stage.Id]);
+                            }
+                        }
+                        else
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+
+            } 
+            
         }
 
         private void St7SetStagesCombination(ISt7ApiService aw, int mid)
@@ -748,14 +782,15 @@ namespace GPC.Checkers.Glasses.FemModel
                 if (_st7StageMap.ContainsKey(stage.Id))
                 {
                     int comboIndex = 1;
-                    foreach(var combo in stage.Combinations)
+                    foreach(var combo in GetStageCombinations(stage.Id))
                     {
                         aw.AddNLAIncrement(mid, _st7StageMap[stage.Id], combo.Name);
 
                         foreach(var tuple in combo.GetLoadCaseCoefficientsTuple())
                         {
-                            aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stage.Id], comboIndex++, _st7LoadCaseMap[tuple.loadcase.Name], tuple.coefficient);
+                            aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stage.Id], comboIndex, _st7LoadCaseMap[tuple.loadcase.Name], tuple.coefficient);
                         }
+                        comboIndex++;
                     }
                 }
             }

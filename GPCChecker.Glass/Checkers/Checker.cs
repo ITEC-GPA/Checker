@@ -92,7 +92,7 @@ namespace GPC.Checkers.Glasses.Checkers
 
                 // Creo modello
                 _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
-
+                
                 MonolithicGlassProperty pp = new MonolithicGlassProperty(mg, "mg");
 
                 Mesh meshExternal = wrapper.GetExternalGlassMesh();
@@ -183,13 +183,13 @@ namespace GPC.Checkers.Glasses.Checkers
 
                     List<LoadCase> loadCasesUnique = loads.Select(i => i.LoadCase as LoadCase).Where(i => i != null).Distinct().ToList();
 
-
                     var glassPackage = lg.GetGlassPackage();
 
-                    
                     int[][] elementIndexes = new int[glassPackage.Count()][]; // Associazione fra l'indice del layer e l'indice degli elementi
 
                     Dictionary<int, string> glassLayerPropertyNameMap = new Dictionary<int, string>();
+                   
+                    // Map between interlayerIndex -> loadcase e nome della proprietà associata a quel loadcase
                     Dictionary<int, Dictionary<LoadCase, string>> interlayerLoadCasePropertyNameMap = new Dictionary<int, Dictionary<LoadCase, string>>();
 
                     for (int i = 0; i < glassPackage.Length; i++)
@@ -222,7 +222,7 @@ namespace GPC.Checkers.Glasses.Checkers
                         }
                         else if (layer is Interlayer il)
                         {
-                            var properties = GetInterlayerBrickProperties(loadCasesUnique, il.Material, _femModel.GetBrickPropertyNames());
+                            List<InterlayerBrickProperty> properties = GetInterlayerBrickProperties(loadCasesUnique, il.Material, _femModel.GetBrickPropertyNames());
 
                             if (loadCasesUnique.Count() != properties.Count())
                                 throw new ArgumentException();
@@ -278,13 +278,14 @@ namespace GPC.Checkers.Glasses.Checkers
                             for (int i = 0; i < glassPackage.Length; i++)
                             {
                                 if (glassPackage[i] is Interlayer)
+                                {
                                     stagelc.AddFiniteElements(elementIndexes[i], interlayerLoadCasePropertyNameMap[i][loadCase]);
-
+                                }
                                 else
                                     stagelc.AddFiniteElements(elementIndexes[i], glassLayerPropertyNameMap[i]);
                             }
 
-                            foreach(Combination combo in _combinations.Select(i => i).Where(i => i.GetLoadCaseCoefficient(loadCase) != 0).ToList())
+                            foreach (Combination combo in _combinations.Select(i => i).Where(i => i.GetLoadCaseCoefficient(loadCase) != 0).ToList())
                             {
                                 if (!comboStageIdMap.ContainsKey(combo))
                                     comboStageIdMap[combo] = new List<int>();
@@ -311,9 +312,8 @@ namespace GPC.Checkers.Glasses.Checkers
 
                         }
 
-                        // TODO: fare combo fittizzie
                     }
-                    else if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.NonLinearStaticAnalysis)
+                    else if (_glassSurface.Prototype.AnalysisType == Prototype.AnalysisTypes.NonLinearStaticAnalysis)
                     {
                         // NON LINEARE
                         // Stage lineari per cambiare proprietà all'interlayer
@@ -326,46 +326,99 @@ namespace GPC.Checkers.Glasses.Checkers
                         int index = 0;
                         while (combinationsToProcess.Count > 0)
                         {
+                            // algoritmo che crea stages LT e ST
+                            // 1) prendo la prima combo, divido i suoi loadcase in LT e ST
+                            // 1.a) per dividere la combo (1) devo avere un materiale di riferimento e un valore di G soglia
+                            // 1.b) il materiale di riferimento può essere diverso all'interno dello stesso pacchetto di vetro
+                            // 1.c) faccio un ciclo su tutti i materiali, per ognuno cerco i loadcase LT della prima combo e sommo il risultato.
+                            // 2) cerco le altre combo con stessi LT e stessi coefficienti
+                            // 3) creo uno stage LT e ci aggiungo una combo fatta solo dai loadcase LT e loro coefficienti
+                            // 4) creo uno stage ST con morph e ci aggiungo tutte le combo del punto (2) ma solo la parte ST
+                            // 5) imposto che la proprietà dell'interlayer vari tra gli stage LT e ST prendendo sempre quella con il G minimo all'interno del gruppo.
+
+
                             var firstCombo = combinationsToProcess.First();
 
-                            List<LoadCase> longTermLoadCases = firstCombo.GetLongTermLoadCases((glassPackage[1] as Interlayer).Material, 1);
+                            var intMat = (glassPackage[1] as Interlayer).Material;
+
+                            List<LoadCase> longTermLoadCases = new List<LoadCase>();
+                            foreach (var layer in glassPackage)
+                            {
+                                if (layer is Interlayer i)
+                                {
+                                    longTermLoadCases.AddRange(firstCombo.GetLongTermLoadCases(i.Material, 70));
+                                }
+                            }
+                            longTermLoadCases = longTermLoadCases.Distinct().ToList();
+
+                            //List<LoadCase> longTermLoadCases = firstCombo.GetLongTermLoadCases(intMat, 1);
 
                             var longTermLoadCasesFiltered = longTermLoadCases.Intersect(_femModel.loadCases); // filtro la lista dei loadcase LT togliendo i loadcase che non esistono nel modello
 
                             if (longTermLoadCasesFiltered.Count() > 0)
-                            {
-                                
+                            {                                
                                 var longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered);
 
                                 List<Combination> matchedCombinations = combinationsToProcess.Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo
 
-
-                                Stage stage1 = _femModel.AddStage($"Stage {index++}", Model.FEM.FemModel.AnalysisTypes.Linear);
-                                Stage stage2 = _femModel.AddStage($"Stage {index++}", Model.FEM.FemModel.AnalysisTypes.Linear, true);
+                                Stage stage1 = _femModel.AddStage($"Stage {index++} LT", Model.FEM.FemModel.AnalysisTypes.Linear);
 
                                 var ltCombination = (Combination)firstCombo.CloneEmpty();
                                 ltCombination.AddLoadCaseCoefficients(longTermLoadCaseCoefficients);
+
+                                stage1.AddCombination(ltCombination);
 
                                 var stCombinations = new List<Combination>();
                                 foreach (var combo in matchedCombinations)
                                 {
                                     var c = (Combination)combo.Clone();
                                     c.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
-                                    stCombinations.Add(c);
+
+                                    if (c.GetLoadCases().Count() > 0) // TODO: cambiare in LoadCaseCount
+                                    {
+                                        stCombinations.Add(c);
+                                    }
                                 }
 
-                                stage1.AddCombination(ltCombination);
-                                stage2.AddCombinations(stCombinations);
+                                if (stCombinations.Count > 0)
+                                {
+                                    // se combo ST è vuota, vuol dire che tutte i loadcase della combo in esame sono LT
+                                    // non creo stage 2.
+
+                                    Stage stage2 = _femModel.AddStage($"Stage {index++} ST", Model.FEM.FemModel.AnalysisTypes.Linear, true);
+                                    stage2.AddCombinations(stCombinations);
+
+                                    var lcLTLowerG = longTermLoadCases.GetLowerGvalueLoadCase(intMat);
+                                    var lcSTLowerG = stCombinations.SelectMany(i => i.GetLoadCases()).Distinct().Cast<LoadCase>().ToList().GetLowerGvalueLoadCase(intMat);
+
+                                    for (int i = 0; i < glassPackage.Length; i++)
+                                    {
+                                        if (glassPackage[i] is Interlayer)
+                                        {
+                                            stage1.AddFiniteElements(elementIndexes[i], interlayerLoadCasePropertyNameMap[i][lcLTLowerG]);
+                                            stage2.AddFiniteElements(elementIndexes[i], interlayerLoadCasePropertyNameMap[i][lcSTLowerG]);
+                                        }
+                                        else
+                                        {
+                                            stage1.AddFiniteElements(elementIndexes[i], glassLayerPropertyNameMap[i]);
+                                            stage2.AddFiniteElements(elementIndexes[i], glassLayerPropertyNameMap[i]);
+                                        }
+                                    }
+                                }
 
                                 combinationsToProcess = combinationsToProcess.Except(matchedCombinations).ToList();
                             }
                             else
                             {
+                                // In questo caso longTermLoadCasesFiltered è vuota
+                                // vuol dire che i load case LT non ci sono nel modello
+                                // si crea solo lo stage per i loadcase ST
+
                                 var longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCases);
 
                                 List<Combination> matchedCombinations = combinationsToProcess.Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo
 
-                                Stage stage2 = _femModel.AddStage($"Stage {index++}", Model.FEM.FemModel.AnalysisTypes.Linear, false);
+                                Stage stage2 = _femModel.AddStage($"Stage {index++} ST", Model.FEM.FemModel.AnalysisTypes.Linear, false);
 
                                 var stCombinations = new List<Combination>();
                                 foreach (var combo in matchedCombinations)
@@ -378,6 +431,20 @@ namespace GPC.Checkers.Glasses.Checkers
                                 stage2.AddCombinations(stCombinations);
 
                                 combinationsToProcess = combinationsToProcess.Except(matchedCombinations).ToList();
+
+                                var lcSTLowerG = stCombinations.SelectMany(i => i.GetLoadCases()).Distinct().Cast<LoadCase>().ToList().GetLowerGvalueLoadCase(intMat);
+
+                                for (int i = 0; i < glassPackage.Length; i++)
+                                {
+                                    if (glassPackage[i] is Interlayer)
+                                    {
+                                        stage2.AddFiniteElements(elementIndexes[i], interlayerLoadCasePropertyNameMap[i][lcSTLowerG]);
+                                    }
+                                    else
+                                    {
+                                        stage2.AddFiniteElements(elementIndexes[i], glassLayerPropertyNameMap[i]);
+                                    }
+                                }
                             }
 
                         }

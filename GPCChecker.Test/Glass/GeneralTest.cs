@@ -3,10 +3,12 @@ using GPC.Geometry;
 using GPC.Model.Glasses;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq;
 using GPC.Checkers.Glasses.LoadCases;
 using GPC.Model.Combinations;
 using GPC.Model.Materials;
 using GPC.Checkers.Glasses.Extensions;
+using System.Collections.Generic;
 
 namespace GlassTests
 {
@@ -73,6 +75,65 @@ namespace GlassTests
         }
 
 
+        [TestMethod]
+        public void GetLowerGvalueLoadCase()
+        {
+            var interlayerMaterial = GetInterlayerMaterialSentryGlas();
+
+            List<LoadCase> loadCases1 = new List<LoadCase>();
+            List<LoadCase> loadCases2 = new List<LoadCase>();
+
+            var lcSw = new LoadCase("SW", EN16612LoadDurations.SELFWEIGHT, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
+            var lcLive = new LoadCase("LIVE", EN16612LoadDurations.LIVECROWD, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
+            var lcWind = new LoadCase("WIND", EN16612LoadDurations.WIND, 35, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+            var lcClimate = new LoadCase("CLIMATE", EN16612LoadDurations.CLIMATEWINTER, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.ClimateSummerDeltaH);
+
+            loadCases1.Add(lcLive);
+            loadCases1.Add(lcSw);
+            loadCases1.Add(lcWind);
+            loadCases1.Add(lcClimate);
+
+            loadCases2.Add(lcLive);
+            loadCases2.Add(lcWind);
+            loadCases2.Add(lcClimate);
+
+            var lc1 = loadCases1.GetLowerGvalueLoadCase(interlayerMaterial);
+            var lc2 = loadCases2.GetLowerGvalueLoadCase(interlayerMaterial);
+
+            loadCases1.ForEach(i => Console.WriteLine( $"{i.Name}: \t {interlayerMaterial.GetShearModule(i.LoadDuration, i.Temperature)}" ));
+            loadCases2.ForEach(i => Console.WriteLine( $"{i.Name}: \t {interlayerMaterial.GetShearModule(i.LoadDuration, i.Temperature)}" ));
+
+
+            Assert.IsTrue(lc1.Equals(lcSw), $"{interlayerMaterial.GetShearModule(lcSw.LoadDuration, lcSw.Temperature)} {interlayerMaterial.GetShearModule(lc1.LoadDuration, lc1.Temperature)}" );
+            Assert.IsTrue(lc2.Equals(lcClimate), $"{interlayerMaterial.GetShearModule(lcSw.LoadDuration, lcSw.Temperature)} {interlayerMaterial.GetShearModule(lc2.LoadDuration, lc2.Temperature)}" );
+        }
+
+
+        [TestMethod]
+        public void GetHigherGvalueLoadCase()
+        {
+            var interlayerMaterial = GetInterlayerMaterialSentryGlas();
+
+            List<LoadCase> loadCases = new List<LoadCase>();
+
+            var lcSw = new LoadCase("SW", EN16612LoadDurations.SELFWEIGHT, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
+            var lcLive = new LoadCase("LIVE", EN16612LoadDurations.LIVECROWD, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
+            var lcWind = new LoadCase("WIND", EN16612LoadDurations.WIND, 35, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+            var lcClimate = new LoadCase("CLIMATE", EN16612LoadDurations.CLIMATEWINTER, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.ClimateSummerDeltaH);
+
+            loadCases.Add(lcLive);
+            loadCases.Add(lcSw);
+            loadCases.Add(lcWind);
+            loadCases.Add(lcClimate);
+
+            var lc = loadCases.GetHigherGvalueLoadCase(interlayerMaterial);
+
+            loadCases.ForEach(i => Console.WriteLine($"{i.Name}: \t {interlayerMaterial.GetShearModule(i.LoadDuration, i.Temperature)}"));
+
+
+
+            Assert.IsTrue(lc.Equals(lcWind), $"{interlayerMaterial.GetShearModule(lcSw.LoadDuration, lcSw.Temperature)} {interlayerMaterial.GetShearModule(lc.LoadDuration, lc.Temperature)}");
+        }
         #endregion
 
 
