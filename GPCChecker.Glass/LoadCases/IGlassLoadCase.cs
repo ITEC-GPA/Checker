@@ -1,11 +1,13 @@
 ﻿
 namespace GPC.Checkers.Glasses.LoadCases
 {
-    internal interface IGlassLoadCase
+    public interface IGlassLoadCase
     {
+        string Name { get; }
 
         double LoadDuration { get; }
 
         double Temperature { get; }
+
     }
 }
