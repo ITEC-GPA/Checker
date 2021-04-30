@@ -68,7 +68,7 @@
     <Compile Include="Checkers\AstmChecker.cs" />
     <Compile Include="Checkers\Checker.cs" />
     <Compile Include="Checkers\En16612Checker.cs" />
-    <Compile Include="Extensions\Extensions.cs" />
+    <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="FemModel\FemModelWrapper.cs" />
     <Compile Include="Glasses\GlassSurface.cs" />
     <Compile Include="LoadCases\ClimateLoadCase.cs" />

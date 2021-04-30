@@ -1,11 +1,12 @@
 ﻿using GPC.Checkers.Glasses.LoadCases;
+using GPC.Model.Combinations;
 using GPC.Model.Materials;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace GPC.Checkers.Glasses.Extensions
 {
-    public static class Extensions
+    public static class ListExtensions
     {
         /// <param name="loadCases"></param>
         /// <param name="material"></param>
@@ -41,5 +42,9 @@ namespace GPC.Checkers.Glasses.Extensions
         {
             return loadCases.Aggregate((i, g) => (material.GetShearModule(i.LoadDuration, i.Temperature) > material.GetShearModule(g.LoadDuration, g.Temperature)) ? i : g);
         }
+
     }
+
+
+    
 }
