@@ -3,7 +3,7 @@ using GPC.Model.Combinations;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GPC.Checker.Glasses.Extensions
+namespace GPC.Checkers.Glasses.Extensions
 {
     public static class CombinationExtension
     {

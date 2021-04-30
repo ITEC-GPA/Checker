@@ -162,7 +162,7 @@ namespace GlassTests
 
                     if (minimumVersion.CompareTo(new Version(version.FileVersion)) < 0)
                     {
-                        throw new ApplicationException($"St7ApiServer version {version.FileVersion} is too lower, you need version: {minimumVersion.ToString()} or higher");
+                        throw new ApplicationException($"St7ApiServer version {version.FileVersion} is too lower, you need version: {minimumVersion} or higher");
                     }
 
                     Process process = new Process();

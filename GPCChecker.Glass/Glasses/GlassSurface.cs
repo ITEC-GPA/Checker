@@ -21,11 +21,11 @@ namespace GPC.Checkers.Glasses.Glasses
     public sealed class GlassSurface : Model.Elements.Glasses.GlassSurface, IEquatable<GlassSurface>
     {
         private static int _maxId;
-        private Prototype _prototype;
-        private List<GeometryRestrain> _restrains;
-        private List<Load> _loads;
-        private List<IParametricLoad> _parametricLoads;
-        private Mesh.GenerateOptions _meshOptions;
+        private readonly Prototype _prototype;
+        private readonly List<GeometryRestrain> _restrains;
+        private readonly List<Load> _loads;
+        private readonly List<IParametricLoad> _parametricLoads;
+        private readonly Mesh.GenerateOptions _meshOptions;
         private Checkers.Checker _checker;
 
         #region Properties
@@ -158,17 +158,17 @@ namespace GPC.Checkers.Glasses.Glasses
 
             foreach (var el in _loads)
             {
-                hashCode = hashCode + 17 * EqualityComparer<Load>.Default.GetHashCode(el);
+                hashCode += 17 * EqualityComparer<Load>.Default.GetHashCode(el);
             }
 
             foreach (var el in _restrains)
             {
-                hashCode = hashCode + 17 * EqualityComparer<GeometryRestrain>.Default.GetHashCode(el);
+                hashCode += 17 * EqualityComparer<GeometryRestrain>.Default.GetHashCode(el);
             }
 
             foreach (var el in _parametricLoads)
             {
-                hashCode = hashCode + 17 * EqualityComparer<IParametricLoad>.Default.GetHashCode(el);
+                hashCode += + 17 * EqualityComparer<IParametricLoad>.Default.GetHashCode(el);
             }
 
             return hashCode;

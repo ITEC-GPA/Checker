@@ -17,6 +17,7 @@ using GPC.Model.Materials;
 using GPC.Model.Combinations;
 using GPC.Checkers.Glasses.Extensions;
 using GPC.Checkers.Glasses.Models;
+using MMLoadCaseBase = GPC.Model.LoadCases.LoadCaseBase;
 
 namespace GPC.Checkers.Glasses.Checkers
 {
@@ -40,7 +41,7 @@ namespace GPC.Checkers.Glasses.Checkers
             _glassSurface = glassSurface ?? throw new ArgumentNullException(nameof(glassSurface));
 
             // Creo lista combinazioni sommando la lista delle globali a quelli del prototipo
-            _combinations = combinations == null ? new List<Combination>() : combinations;
+            _combinations = combinations ?? new List<Combination>();
             _combinations.AddRange(glassSurface.Prototype.Combinations);
 
             _options = modelOptions;
@@ -190,15 +191,15 @@ namespace GPC.Checkers.Glasses.Checkers
                     Dictionary<int, string> glassLayerPropertyNameMap = new Dictionary<int, string>();
                    
                     // Map between interlayerIndex -> loadcase e nome della proprietà associata a quel loadcase
-                    Dictionary<int, Dictionary<LoadCase, string>> interlayerLoadCasePropertyNameMap = new Dictionary<int, Dictionary<LoadCase, string>>();
+                    Dictionary<int, Dictionary<IGlassLoadCase, string>> interlayerLoadCasePropertyNameMap = new Dictionary<int, Dictionary<IGlassLoadCase, string>>();
 
                     for (int i = 0; i < glassPackage.Length; i++)
                     {
                         IGlassPackage layer = glassPackage[i];
-                        if (layer is MonolithicGlass)
+                        if (layer is MonolithicGlass glass)
                         {
-                            string propertyName = $"Mg {i} t={((MonolithicGlass)layer).Thickness}";
-                            _femModel.AddProperty(new MonolithicGlassProperty((MonolithicGlass)layer, propertyName));
+                            string propertyName = $"Mg {i} t={glass.Thickness}";
+                            _femModel.AddProperty(new MonolithicGlassProperty(glass, propertyName));
 
                             glassLayerPropertyNameMap[i] = propertyName;
 
@@ -227,7 +228,7 @@ namespace GPC.Checkers.Glasses.Checkers
                             if (loadCasesUnique.Count() != properties.Count())
                                 throw new ArgumentException();
 
-                            interlayerLoadCasePropertyNameMap[i] = new Dictionary<LoadCase, string>();
+                            interlayerLoadCasePropertyNameMap[i] = new Dictionary<IGlassLoadCase, string>();
                             for (var j = 0; j < properties.Count; j++)
                             {
                                 if (_femModel.AddProperty(properties[j])) // Per ogni layer creo le proprietà dentro al fem
@@ -292,20 +293,8 @@ namespace GPC.Checkers.Glasses.Checkers
                                 comboStageIdMap[combo].Add(stagelc.Id);
 
                                 Combination comboFict;
-                                if (combo is CombinationEn)
-                                {
-                                    comboFict = new CombinationEn($"{loadCase.Name} {combo[loadCase]}");
-                                    comboFict.AddLoadCaseCoefficient(loadCase, combo[loadCase]);
-                                }
-                                else if (combo is CombinationAsce)
-                                {
-                                    comboFict = new CombinationAsce($"{loadCase.Name} {combo[loadCase]}");
-                                    comboFict.AddLoadCaseCoefficient(loadCase, combo[loadCase]);
-                                }
-                                else
-                                {
-                                    throw new NotImplementedException();
-                                }
+                                comboFict = new Combination($"{loadCase.Name} {combo[loadCase]}");
+                                comboFict.AddLoadCaseCoefficient(loadCase, combo[loadCase]);
 
                                 stagelc.AddCombination(comboFict);
                             }
@@ -337,28 +326,27 @@ namespace GPC.Checkers.Glasses.Checkers
                             // 5) imposto che la proprietà dell'interlayer vari tra gli stage LT e ST prendendo sempre quella con il G minimo all'interno del gruppo.
 
 
-                            var firstCombo = combinationsToProcess.First();
+                            Combination firstCombo = combinationsToProcess.First();
+                            
+                            InterlayerMaterial intMat = (glassPackage[1] as Interlayer).Material;
 
-                            var intMat = (glassPackage[1] as Interlayer).Material;
-
-                            List<LoadCase> longTermLoadCases = new List<LoadCase>();
+                            List<IGlassLoadCase> longTermLoadCases = new List<IGlassLoadCase>();
                             foreach (var layer in glassPackage)
                             {
                                 if (layer is Interlayer i)
                                 {
-                                    longTermLoadCases.AddRange(firstCombo.GetLongTermLoadCases(i.Material, 70));
+                                    longTermLoadCases.AddRange(firstCombo.GetIGlassLoadCase().GetLongTermLoadCases(i.Material, 70));
                                 }
                             }
                             longTermLoadCases = longTermLoadCases.Distinct().ToList();
 
-                            //List<LoadCase> longTermLoadCases = firstCombo.GetLongTermLoadCases(intMat, 1);
-
-                            var longTermLoadCasesFiltered = longTermLoadCases.Intersect(_femModel.loadCases); // filtro la lista dei loadcase LT togliendo i loadcase che non esistono nel modello
+                            IEnumerable<IGlassLoadCase> longTermLoadCasesFiltered = longTermLoadCases.Intersect(_femModel.loadCases.Cast<IGlassLoadCase>().ToList()); // filtro la lista dei loadcase LT togliendo i loadcase che non esistono nel modello
 
                             if (longTermLoadCasesFiltered.Count() > 0)
-                            {                                
-                                var longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered);
-
+                            {
+                                //(IGlassLoadCase loadCase, double coefficient)[] longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered);
+                                var longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered).Cast<(MMLoadCaseBase loadCase, double coefficient)>().ToArray();
+                                 
                                 List<Combination> matchedCombinations = combinationsToProcess.Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo
 
                                 Stage stage1 = _femModel.AddStage($"Stage {index++} LT", Model.FEM.FemModel.AnalysisTypes.Linear);
@@ -388,6 +376,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                     Stage stage2 = _femModel.AddStage($"Stage {index++} ST", Model.FEM.FemModel.AnalysisTypes.Linear, true);
                                     stage2.AddCombinations(stCombinations);
 
+                                    
                                     var lcLTLowerG = longTermLoadCases.GetLowerGvalueLoadCase(intMat);
                                     var lcSTLowerG = stCombinations.SelectMany(i => i.GetLoadCases()).Distinct().Cast<LoadCase>().ToList().GetLowerGvalueLoadCase(intMat);
 
@@ -414,7 +403,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                 // vuol dire che i load case LT non ci sono nel modello
                                 // si crea solo lo stage per i loadcase ST
 
-                                var longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCases);
+                                var longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered).Cast<(MMLoadCaseBase loadCase, double coefficient)>().ToArray();
 
                                 List<Combination> matchedCombinations = combinationsToProcess.Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo
 
@@ -423,9 +412,12 @@ namespace GPC.Checkers.Glasses.Checkers
                                 var stCombinations = new List<Combination>();
                                 foreach (var combo in matchedCombinations)
                                 {
-                                    var c = (Combination)combo.Clone();
-                                    c.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
-                                    stCombinations.Add(c);
+                                    var clone = (Combination)combo.Clone();
+                                    clone.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
+                                    if (clone.GetLoadCases().Count() > 0) // TODO: cambiare in LoadCaseCount
+                                    {
+                                        stCombinations.Add(clone);
+                                    }
                                 }
 
                                 stage2.AddCombinations(stCombinations);
@@ -569,7 +561,7 @@ namespace GPC.Checkers.Glasses.Checkers
             {
                 // Il nome è la chiave della collection. Do un nome che indentifica univocamente la proprietà
                 properties.Add( new InterlayerBrickProperty(material, loadCase.Temperature, loadCase.LoadDuration, 
-                                $"Interlayer_{previousPropertyCount + index} - Material: {material.Name}_{index++} G: {material.GetShearModule(loadCase.LoadDuration, loadCase.Temperature).ToString("F3")} MPa"));
+                                $"Interlayer_{previousPropertyCount + index} - Material: {material.Name}_{index++} G: {material.GetShearModule(loadCase.LoadDuration, loadCase.Temperature):F3} MPa"));
                                 
 
             }

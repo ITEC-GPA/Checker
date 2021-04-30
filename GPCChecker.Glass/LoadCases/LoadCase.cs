@@ -17,6 +17,7 @@ namespace GPC.Checkers.Glasses.LoadCases
         public LoadCase(string name, double loadDuration, double temperature, LoadCaseTypes loadCaseType)
             : this(name, loadDuration, temperature, loadCaseType, Guid.NewGuid())
         {
+
         }
 
         public LoadCase(string name, double loadDuration, double temperature, LoadCaseTypes loadCaseType, Guid guid)

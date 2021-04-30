@@ -65,11 +65,11 @@ namespace GlassTests
             gs1.AddLoad(s1GalLc1);
 
             // Combination
-            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitStates.UltimateStructural);
+            Combination cmb1 = new Combination("CMB1");
             cmb1[lc1] = 1.5;
             cmb1[lc2] = 2.5;
 
-            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitStates.ServiceabilityCharacteristic);
+            Combination cmb2 = new Combination("CMB2");
             cmb2[lc1] = 1.2;
             cmb2[lc2] = 1.5;
             cmb2[lc2] = 0.5;
@@ -176,11 +176,11 @@ namespace GlassTests
             gs2.AddLoad(s2GalLc1);
 
             // Combination
-            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitStates.UltimateStructural);
+            Combination cmb1 = new Combination("CMB1");
             cmb1[lc1] = 1.5;
             cmb1[lc2] = 2.5;
 
-            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitStates.ServiceabilityCharacteristic);
+            Combination cmb2 = new Combination("CMB2");
             cmb2[lc1] = 1.2;
             cmb2[lc2] = 1.5;
             cmb2[lc2] = 0.5;
@@ -300,11 +300,11 @@ namespace GlassTests
             gs1.AddLoad(s1GalLc1);
 
             // Combination
-            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitStates.UltimateStructural);
+            Combination cmb1 = new Combination("CMB1");
             cmb1[lc1] = 1.5;
             cmb1[lc2] = 2.5;
 
-            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitStates.ServiceabilityCharacteristic);
+            Combination cmb2 = new Combination("CMB2");
             cmb2[lc1] = 1.2;
             cmb2[lc2] = 1.5;
             cmb2[lc2] = 0.5;
@@ -409,12 +409,12 @@ namespace GlassTests
             gs1.AddLoad(swl);
 
             // Combination
-            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitStates.UltimateStructural);
+            Combination cmb1 = new Combination("CMB1");
             cmb1[lc0] = 1.5;
             cmb1[lc1] = 1.5;
             cmb1[lc2] = 2.5;
 
-            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitStates.ServiceabilityCharacteristic);
+            Combination cmb2 = new Combination("CMB2");
             cmb2[lc0] = 1.2;
             cmb2[lc1] = 1.2;
             cmb2[lc2] = 1.5;
@@ -478,12 +478,12 @@ namespace GlassTests
             gs1.AddLoad(swl);
 
             // Combination
-            Combination cmb1 = new CombinationEn("CMB1", StandardEN1990.LimitStates.UltimateStructural);
+            Combination cmb1 = new Combination("CMB1");
             cmb1[lc0] = 1.5;
             cmb1[lc1] = 1.5;
             cmb1[lc2] = 2.5;
 
-            Combination cmb2 = new CombinationEn("CMB2", StandardEN1990.LimitStates.ServiceabilityCharacteristic);
+            Combination cmb2 = new Combination("CMB2");
             cmb2[lc0] = 1.2;
             cmb2[lc1] = 1.2;
             cmb2[lc2] = 1.5;
