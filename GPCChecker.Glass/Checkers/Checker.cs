@@ -341,7 +341,9 @@ namespace GPC.Checkers.Glasses.Checkers
                             }
                             longTermLoadCases = longTermLoadCases.Distinct().ToList();
 
-                            IEnumerable<IGlassLoadCase> longTermLoadCasesFiltered = longTermLoadCases.Intersect(_femModel.loadCases.Cast<IGlassLoadCase>().ToList()); // filtro la lista dei loadcase LT togliendo i loadcase che non esistono nel modello
+                            // filtro la lista dei loadcase LT togliendo i loadcase che non esistono nel modello
+                            IEnumerable<IGlassLoadCase> longTermLoadCasesFiltered = longTermLoadCases.Intersect(_femModel.loadCases.Cast<IGlassLoadCase>().ToList());
+                            IEnumerable<IGlassLoadCase> missingLoadCases = longTermLoadCases.Except(_femModel.loadCases.Cast<IGlassLoadCase>().ToList());
 
                             if (longTermLoadCasesFiltered.Count() > 0)
                             {
@@ -361,9 +363,10 @@ namespace GPC.Checkers.Glasses.Checkers
                                 foreach (var combo in matchedCombinations)
                                 {
                                     var c = (Combination)combo.Clone();
+                                    c.RemoveLoadCaseCoefficients(firstCombo.GetLoadCaseCoefficientsTuple(missingLoadCases).Select(i => ((MMLoadCaseBase loadCase, double coefficient))i).ToArray());
                                     c.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
 
-                                    if (c.GetLoadCases().Count() > 0) // TODO: cambiare in LoadCaseCount
+                                    if (c.LoadCaseCount > 0) // TODO: cambiare in LoadCaseCount
                                     {
                                         stCombinations.Add(c);
                                     }
@@ -377,7 +380,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                     Stage stage2 = _femModel.AddStage($"Stage {index++} ST", Model.FEM.FemModel.AnalysisTypes.Linear, true);
                                     stage2.AddCombinations(stCombinations);
 
-                                    var lcLTLowerG = longTermLoadCases.GetLowerGvalueLoadCase(intMat);
+                                    var lcLTLowerG = longTermLoadCasesFiltered.GetLowerGvalueLoadCase(intMat);
                                     var lcSTLowerG = stCombinations.SelectMany(i => i.GetIGlassLoadCase()).Distinct().GetLowerGvalueLoadCase(intMat);
 
                                     for (int i = 0; i < glassPackage.Length; i++)
