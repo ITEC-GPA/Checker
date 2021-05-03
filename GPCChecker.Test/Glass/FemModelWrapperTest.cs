@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq;
 using System.IO;
 using System.Collections.Generic;
 using GPC.Geometry;
@@ -22,7 +23,7 @@ namespace GlassTests
 
 
         [TestMethod]
-        public void Test1()
+        public void ExportTest1()
         {
             RunApiServer();
 
@@ -48,6 +49,35 @@ namespace GlassTests
             fmw.AddShape(s1, pp.Name, meshOptions, new List<Load>() { p1, l1 }, new List<GeometryRestrain>() { pr, lr });
 
             fmw.SaveFemModelToSt7(base.GetOutputFolder());
+        }
+
+
+        [TestMethod]
+        public void ExportTest2()
+        {
+            RunApiServer();
+
+            
+            Shape s1 = GetRectangularShape(100, 200);
+
+            Mesh.GenerateOptions op = new Mesh.GenerateOptions
+            {
+                MeshSize = 10
+            };
+
+            GPC.Geometry.Meshes.Mesh.Generate(new List<Shape> { s1 }, op, out List<Mesh> mesh, out _);
+
+            Mesh mesh2 = mesh.First().ExtrudeFaces(new Vector3d(0, 0, 50));
+            mesh.First().Move(0, 0, 50);
+            Mesh mesh3 = mesh.First().ExtrudeFaces(new Vector3d(0, 0, 50));
+
+            Mesh meshjoin = new Mesh();
+            meshjoin.JoinMesh(mesh2);
+            meshjoin.JoinMesh(mesh3);
+
+            MeshExport.ExportToMshFormatv2(GetFilePathInOutputFolder("Export", "Msh"), new List<Mesh> { meshjoin });
+
+
         }
     }
 }

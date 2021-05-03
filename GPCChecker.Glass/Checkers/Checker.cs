@@ -161,7 +161,7 @@ namespace GPC.Checkers.Glasses.Checkers
 
                     #region Geometria
 
-                    List<Mesh> meshes = wrapper.Meshes;
+                    List<Mesh> meshes = wrapper.Meshes; // varie mesh, plate e brick una per ogni layer
 
                     Mesh meshExternal = wrapper.GetExternalGlassMesh();
                     Mesh meshInternal = wrapper.GetInternalGlassMesh();
@@ -173,6 +173,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                                   out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMapExternal,
                                                   out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapExternal);
 
+
                     GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value,
                                                   wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value,
                                                   out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMapInternal,
@@ -182,14 +183,14 @@ namespace GPC.Checkers.Glasses.Checkers
                     
                     _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
 
-                    List<LoadCase> loadCasesUnique = loads.Select(i => i.LoadCase as LoadCase).Where(i => i != null).Distinct().ToList();
+                    List<IGlassLoadCase> loadCasesUnique = loads.Select(i => i.LoadCase as IGlassLoadCase).Where(i => i != null).Distinct().ToList();
 
                     var glassPackage = lg.GetGlassPackage();
 
                     int[][] elementIndexes = new int[glassPackage.Count()][]; // Associazione fra l'indice del layer e l'indice degli elementi
 
                     Dictionary<int, string> glassLayerPropertyNameMap = new Dictionary<int, string>();
-                   
+                    
                     // Map between interlayerIndex -> loadcase e nome della proprietà associata a quel loadcase
                     Dictionary<int, Dictionary<IGlassLoadCase, string>> interlayerLoadCasePropertyNameMap = new Dictionary<int, Dictionary<IGlassLoadCase, string>>();
 
@@ -272,7 +273,7 @@ namespace GPC.Checkers.Glasses.Checkers
 
                         // O(nlc * n^2)
                         Dictionary<Combination, List<int>> comboStageIdMap = new Dictionary<Combination, List<int>>();
-                        foreach (var loadCase in _combinations.SelectMany(i => i.GetLoadCases()).Select(i => i as LoadCase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
+                        foreach (var loadCase in _combinations.SelectMany(i => i.GetLoadCases()).Select(i => i as MMLoadCaseBase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
                         {   
                             Stage stagelc = _femModel.AddStage(loadCase.Name, (Model.FEM.FemModel.AnalysisTypes)_glassSurface.Prototype.AnalysisType);
 
@@ -280,7 +281,7 @@ namespace GPC.Checkers.Glasses.Checkers
                             {
                                 if (glassPackage[i] is Interlayer)
                                 {
-                                    stagelc.AddFiniteElements(elementIndexes[i], interlayerLoadCasePropertyNameMap[i][loadCase]);
+                                    stagelc.AddFiniteElements(elementIndexes[i], interlayerLoadCasePropertyNameMap[i][(IGlassLoadCase)loadCase]);
                                 }
                                 else
                                     stagelc.AddFiniteElements(elementIndexes[i], glassLayerPropertyNameMap[i]);
@@ -345,7 +346,7 @@ namespace GPC.Checkers.Glasses.Checkers
                             if (longTermLoadCasesFiltered.Count() > 0)
                             {
                                 //(IGlassLoadCase loadCase, double coefficient)[] longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered);
-                                var longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered).Cast<(MMLoadCaseBase loadCase, double coefficient)>().ToArray();
+                                var longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered).Select(i => ((MMLoadCaseBase loadCase, double coefficient))i).ToArray();
                                  
                                 List<Combination> matchedCombinations = combinationsToProcess.Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo
 
@@ -376,9 +377,8 @@ namespace GPC.Checkers.Glasses.Checkers
                                     Stage stage2 = _femModel.AddStage($"Stage {index++} ST", Model.FEM.FemModel.AnalysisTypes.Linear, true);
                                     stage2.AddCombinations(stCombinations);
 
-                                    
                                     var lcLTLowerG = longTermLoadCases.GetLowerGvalueLoadCase(intMat);
-                                    var lcSTLowerG = stCombinations.SelectMany(i => i.GetLoadCases()).Distinct().Cast<LoadCase>().ToList().GetLowerGvalueLoadCase(intMat);
+                                    var lcSTLowerG = stCombinations.SelectMany(i => i.GetIGlassLoadCase()).Distinct().GetLowerGvalueLoadCase(intMat);
 
                                     for (int i = 0; i < glassPackage.Length; i++)
                                     {
@@ -550,7 +550,7 @@ namespace GPC.Checkers.Glasses.Checkers
         /// <param name="femModelPropertiesNames">A list of property names already inside the femModel</param>
         /// <returns>A list of <see cref="InterlayerBrickProperty"/> with a name that indentifies uniquely the property </returns>
         /// <remarks>This method generate a <see cref="InterlayerBrickProperty"/> for each loadcase in <paramref name="loadCases"/></remarks>
-        private List<InterlayerBrickProperty> GetInterlayerBrickProperties(IEnumerable<LoadCase> loadCases, InterlayerMaterial material, List<string> femModelPropertiesNames)
+        private List<InterlayerBrickProperty> GetInterlayerBrickProperties(IEnumerable<IGlassLoadCase> loadCases, InterlayerMaterial material, List<string> femModelPropertiesNames)
         {
             int index = 0;
             int previousPropertyCount = femModelPropertiesNames.Count;
