@@ -74,8 +74,11 @@ namespace GPC.Checkers.Glasses.Checkers
                 Directory.CreateDirectory(_folderPath);
             }
 
+#if DEBUG
             string femModelName = $"{femModelSuffix}_Glass{_glassSurface.Id}_femModel";
-
+#else
+            string femModelName = $"Glass{_glassSurface.Id}_femModel";
+#endif
 
             GlassWrapper glassWrapper;
             if (_glassSurface.Prototype.Glass is MonolithicGlass mg)
@@ -524,7 +527,7 @@ namespace GPC.Checkers.Glasses.Checkers
             return _femModel.GetMesh();
         }
 
-        #endregion Public method
+        #endregion 
 
         #region Private Methods
 

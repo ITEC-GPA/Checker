@@ -51,7 +51,6 @@ namespace GlassTests
             GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
             gs1.AddRestrains(geometryRestrains1);
 
-            model.AddSurface(gs1);
 
             // LoadCases
             LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseTypes.LiveLoad);
@@ -77,7 +76,7 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.RebuildAllCheckers();
+            model.AddSurface(gs1, base.GetTestName());
             model.PerformChecks();
 
             var stressResults = model.GetPlateCombinationsResult();
@@ -157,12 +156,9 @@ namespace GlassTests
             gs1.AddRestrains(geometryRestrains1);
             gs2.AddRestrains(geometryRestrains2);
 
-            model.AddSurface(gs1);
-            model.AddSurface(gs2);
-
             // LoadCases
-            LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseTypes.LiveLoad);
-            LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseTypes.WindPressure);
+            LoadCase lc1 = new LoadCase("LL", 100, 20, LoadCase.LoadCaseTypes.LiveLoad);
+            LoadCase lc2 = new LoadCase("Wp", 5, 20, LoadCase.LoadCaseTypes.WindPressure);
 
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
@@ -188,7 +184,9 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.RebuildAllCheckers();
+            model.AddSurface(gs1, base.GetTestName());
+            model.AddSurface(gs2, base.GetTestName());
+
             model.PerformChecks();
 
             var stressResults = model.GetPlateCombinationsResult();
@@ -286,7 +284,6 @@ namespace GlassTests
             GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
             gs1.AddRestrains(geometryRestrains1);
 
-            model.AddSurface(gs1);
 
             // LoadCases
             LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseTypes.LiveLoad);
@@ -315,7 +312,7 @@ namespace GlassTests
             Console.WriteLine($"{cmb1.Name}: {cmb1}");
             Console.WriteLine($"{cmb2.Name}: {cmb2}");
 
-            model.RebuildAllCheckers();
+            model.AddSurface(gs1, base.GetTestName());
             model.PerformChecks();
 
             var stressResults = model.GetPlateCombinationsResult();
@@ -392,7 +389,6 @@ namespace GlassTests
             GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
             gs1.AddRestrains(geometryRestrains1);
 
-            model.AddSurface(gs1);
 
             // LoadCases
             LoadCase lc0 = new LoadCase("SW", 100, 20, LoadCase.LoadCaseTypes.SelfWeight);
@@ -423,7 +419,7 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.RebuildAllCheckers();
+            model.AddSurface(gs1, base.GetTestName());
             model.PerformChecks();
 
 
@@ -461,7 +457,6 @@ namespace GlassTests
             GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
             gs1.AddRestrains(geometryRestrains1);
 
-            model.AddSurface(gs1);
 
             // LoadCases
             LoadCase lc0 = new LoadCase("SW", 100, 20, LoadCase.LoadCaseTypes.SelfWeight);
@@ -492,7 +487,7 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.RebuildAllCheckers();
+            model.AddSurface(gs1, base.GetTestName());
             model.PerformChecks();
 
 
@@ -531,7 +526,6 @@ namespace GlassTests
             GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
             gs1.AddRestrains(geometryRestrains1);
 
-            model.AddSurface(gs1);
 
             // LoadCases
             LoadCase lc0 = new LoadCase("SW", 100, 20, LoadCase.LoadCaseTypes.SelfWeight);
@@ -562,7 +556,7 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.RebuildAllCheckers();
+            model.AddSurface(gs1, base.GetTestName());
             model.PerformChecks();
 
 

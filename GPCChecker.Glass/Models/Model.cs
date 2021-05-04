@@ -76,17 +76,11 @@ namespace GPC.Checkers.Glasses.Models
 
         #region Public methods
 
-#if DEBUG
+
         /// <summary>
-        /// Add a surface to the model. Create the <see cref="Checker"/> and call <see cref="Checker.FemModelSetup(string, string)"/>
+        /// Internal method to allow to use a custom <paramref name="femModelNameSuffix"/> in test enviroment
         /// </summary>
-        public bool AddSurface(GlassSurface glassSurface, string femModelNameSuffix = "")
-#else
-        /// <summary>
-        /// Add a surface to the model. Create the <see cref="Checker"/> and call <see cref="Checker.FemModelSetup(string)"/>
-        /// </summary>
-        public bool AddSurface(GlassSurface glassSurface)
-#endif
+        internal bool AddSurface(GlassSurface glassSurface, string femModelNameSuffix = "")
         {
 
             Checker checker;
@@ -105,11 +99,10 @@ namespace GPC.Checkers.Glasses.Models
 
 #if DEBUG
             if (checker.FemModelSetup(_outputFolder, femModelNameSuffix))
-                glassSurface.Checker = checker;
 #else
             if (checker.FemModelSetup(_outputFolder))
-                glassSurface.Checker = checker;
 #endif
+                glassSurface.Checker = checker;
             else
                 return false;
 
@@ -117,6 +110,17 @@ namespace GPC.Checkers.Glasses.Models
             _glassSurfaces.Add(glassSurface);
 
             return true;
+        }
+
+
+#if !DEBUG
+        /// <summary>
+        /// Add a surface to the model. Create the <see cref="Checker"/> and call <see cref="Checker.FemModelSetup(string)"/>
+        /// </summary>  
+#endif
+        public bool AddSurface(GlassSurface glassSurface)
+        {
+            return AddSurface(glassSurface, string.Empty);
         }
 
         public bool RemoveSurface(GlassSurface glassSurface)
