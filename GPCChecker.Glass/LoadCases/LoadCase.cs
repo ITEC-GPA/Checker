@@ -1,14 +1,16 @@
-﻿using System;
+﻿using GPC.Utilities.Attributes;
+using System;
 using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Glasses.LoadCases
 {
     [Serializable]
-    public class LoadCase : GPC.Model.LoadCases.LoadCase, IGlassLoadCase
+    [UI(Description = "Standard", Group = "Load cases", Kind = "Load case")]
+    public class LoadCase : Model.LoadCases.LoadCase, IGlassLoadCase
     {
-        private double _loadDuration;
+        private readonly double _loadDuration;
 
-        private double _temperature;
+        private readonly double _temperature;
 
         public double LoadDuration => _loadDuration;
 
@@ -20,11 +22,11 @@ namespace GPC.Checkers.Glasses.LoadCases
 
         }
 
-        public LoadCase(string name, double loadDuration, double temperature, LoadCaseTypes loadCaseType, Guid guid) 
+        public LoadCase(string name, double loadDuration, double temperature, LoadCaseTypes loadCaseType, Guid guid)
             : base(name, loadCaseType, guid)
         {
-            this._loadDuration = loadDuration;
-            this._temperature = temperature;
+            _loadDuration = loadDuration;
+            _temperature = temperature;
         }
 
         public LoadCase(SerializationInfo info, StreamingContext context)

@@ -29,7 +29,8 @@ namespace GPC.Checkers.Glasses.FemModel
     public class FemModelWrapper : Model.FEM.FemModel
     {
 
-        private string _st7ServerIp;
+        private readonly string _st7ServerIp;
+
         private string _saveFolderPath;
         private string _st7FilePath;
         private string _st7ResultFilePath;
@@ -105,6 +106,7 @@ namespace GPC.Checkers.Glasses.FemModel
             _st7PlateMap = new Dictionary<int, int>();
             _st7BrickMap = new Dictionary<int, int>();
             _st7StageMap = new Dictionary<int, int>();
+
         }
 
         public FemModelWrapper(SerializationInfo info, StreamingContext context) 
@@ -130,7 +132,7 @@ namespace GPC.Checkers.Glasses.FemModel
                     loadDuration = lc.LoadDuration;
                 else if (resultPlateStress.Case is Combination cmb)
                 {
-                    var _ = cmb.GetLoadCaseCoefficients(out List<Model.LoadCases.LoadCase> loadCases);
+                    var _ = cmb.GetLoadCaseCoefficients(out List<Model.LoadCases.LoadCaseBase> loadCases);
                     var lcCasted = loadCases.Cast<LoadCase>().ToList();
                     loadDuration = lcCasted.Select(i => i.LoadDuration).Min();
                 }
@@ -786,9 +788,9 @@ namespace GPC.Checkers.Glasses.FemModel
                     {
                         aw.AddNLAIncrement(mid, _st7StageMap[stage.Id], combo.Name);
 
-                        foreach(var tuple in combo.GetLoadCaseCoefficientsTuple())
+                        foreach(var (loadcase, coefficient) in combo.GetLoadCaseCoefficientsTuple())
                         {
-                            aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stage.Id], comboIndex, _st7LoadCaseMap[tuple.loadcase.Name], tuple.coefficient);
+                            aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stage.Id], comboIndex, _st7LoadCaseMap[loadcase.Name], coefficient);
                         }
                         comboIndex++;
                     }
@@ -906,7 +908,7 @@ namespace GPC.Checkers.Glasses.FemModel
                 }
 
 
-                if (loadCase.LoadCaseType == LoadCase.LoadCaseTypes.SelfWeight)
+                if ((loadCase is LoadCase) && (loadCase as LoadCase).LoadCaseType == LoadCase.LoadCaseTypes.SelfWeight)
                 {
                     aw.SetLoadCaseType(mid, st7LoadCaseId, St7ApiConst.kGravity);
                     aw.SetLoadCaseGravityDir(mid, st7LoadCaseId, 3);
@@ -942,11 +944,11 @@ namespace GPC.Checkers.Glasses.FemModel
                     st7CId++;
                     bool added = false;
 
-                    foreach (var lcTuple in lcTuples)
+                    foreach (var (loadcase, coefficient) in lcTuples)
                     {
-                        if (_loadCases.Contains(lcTuple.loadcase.Name))
+                        if (_loadCases.Contains(loadcase.Name))
                         {
-                            if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _st7LoadCaseMap[lcTuple.loadcase.Name], 1, combo[lcTuple.loadcase]))
+                            if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _st7LoadCaseMap[loadcase.Name], 1, combo[loadcase]))
                             {
                                 added = true;
                             }
@@ -1205,9 +1207,9 @@ namespace GPC.Checkers.Glasses.FemModel
                 if (aw.AddNLAIncrement(mid, stageId, combo.Name))
                 {
                     _st7NLACombinationMap[combo] = stageIncrement;
-                    foreach (var lcTuple in combo.GetLoadCaseCoefficientsTuple())
+                    foreach (var (loadcase, coefficient) in combo.GetLoadCaseCoefficientsTuple())
                     {
-                        aw.SetNLALoadIncrementFactor(mid, stageId, stageIncrement, _st7LoadCaseMap[lcTuple.loadcase.Name], lcTuple.coefficient);
+                        aw.SetNLALoadIncrementFactor(mid, stageId, stageIncrement, _st7LoadCaseMap[loadcase.Name], coefficient);
                     }
                     stageIncrement++;
                 }
@@ -1230,9 +1232,9 @@ namespace GPC.Checkers.Glasses.FemModel
                 {
                     _st7NLACombinationMap[combo] = stageIncrement;
 
-                    foreach (var lcTuple in combo.GetLoadCaseCoefficientsTuple())
+                    foreach (var (loadcase, coefficient) in combo.GetLoadCaseCoefficientsTuple())
                     {
-                        aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stageId], stageIncrement, _st7LoadCaseMap[lcTuple.loadcase.Name], lcTuple.coefficient);
+                        aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stageId], stageIncrement, _st7LoadCaseMap[loadcase.Name], coefficient);
                     }
                     stageIncrement++;
                 }

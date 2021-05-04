@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +14,7 @@ namespace GPC.Checkers.Glasses.Wrappers
     public class LaminatedGlassWrapper : GlassPanelWrapper
     {
 
-        protected const int INTERLAYER_DISCRETIZATION = 1;
+        protected const int INTERLAYER_DISCRETIZATION = 3;
 
         /// <summary>
         /// Thickness associates to displacement. Key = load duration; Value = thickness

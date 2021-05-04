@@ -7,7 +7,7 @@
     <ProjectGuid>{17392B09-9681-4820-B9C9-26D5D2362390}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GPC.Checker.RC</RootNamespace>
+    <RootNamespace>GPC.Checkers.RC</RootNamespace>
     <AssemblyName>GPCChecker.RC</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -38,11 +38,11 @@
     <Reference Include="GMsh.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GMsh.Net.1.0.0.1\lib\net472\GMsh.Net.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=1.0.7.10, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCGeometry.1.0.7.10\lib\net472\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=1.0.7.11, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCGeometry.1.0.7.11\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.0.13.7, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.0.13.7\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.0.13.10, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.0.13.10\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCUtilities, Version=1.0.23.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCUtilities.1.0.23\lib\net472\GPCUtilities.dll</HintPath>

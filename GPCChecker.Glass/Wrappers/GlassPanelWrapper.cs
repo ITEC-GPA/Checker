@@ -212,8 +212,10 @@ namespace GPC.Checkers.Glasses.Wrappers
                                                               out Dictionary<Load, int[]> meshLoadsFaceIndexes)
         {
 
-            var shapes = new List<Shape>();
-            shapes.Add(_glassSurface.Shape);
+            var shapes = new List<Shape>
+            {
+                _glassSurface.Shape
+            };
 
             // VINCOLI
             List<GeometryBase> embeddedGeometryRestrains = new List<GeometryBase>();
