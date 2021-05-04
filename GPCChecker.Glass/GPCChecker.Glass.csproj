@@ -7,7 +7,7 @@
     <ProjectGuid>{19977875-DC88-47E0-92C9-D9ACE7CE4F3D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GPC.Checker.Glasses</RootNamespace>
+    <RootNamespace>GPC.Checkers.Glasses</RootNamespace>
     <AssemblyName>GPCChecker.Glass</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -25,7 +25,7 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
     <DocumentationFile>bin\Debug\GPCChecker.Glass.xml</DocumentationFile>
-	<NoWarn>CS1591</NoWarn> 
+    <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,17 +36,17 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
     <DocumentationFile>bin\Release\GPCChecker.Glass.xml</DocumentationFile>
-	<NoWarn>CS1591</NoWarn> 
+    <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="GMsh.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GMsh.Net.1.0.0.1\lib\net472\GMsh.Net.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=1.0.7.10, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCGeometry.1.0.7.10\lib\net472\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=1.0.7.11, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCGeometry.1.0.7.11\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.0.13.7, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.0.13.7\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.0.13.10, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.0.13.10\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCUtilities, Version=1.0.23.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCUtilities.1.0.23\lib\net472\GPCUtilities.dll</HintPath>
@@ -71,9 +71,7 @@
     <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="FemModel\FemModelWrapper.cs" />
     <Compile Include="Glasses\GlassSurface.cs" />
-    <Compile Include="LoadCases\ClimateHLoadCase.cs" />
-    <Compile Include="LoadCases\ClimatePLoadCase.cs" />
-    <Compile Include="LoadCases\ClimateTLoadCase.cs" />
+    <Compile Include="LoadCases\ClimateLoadCase.cs" />
     <Compile Include="LoadCases\IGlassLoadCase.cs" />
     <Compile Include="LoadCases\LoadCase.cs" />
     <Compile Include="LoadCases\LoadCasePrEn.cs" />
