@@ -38,52 +38,52 @@ namespace GPC.Checkers.Glasses.FemModel
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and St7ComboId in the Linear loadcase combination table  ;
         /// </summary>
-        private Dictionary<Combination, int> _st7LSACombinationMap;
+        private readonly Dictionary<Combination, int> _st7LSACombinationMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and stageIncrement  ;
         /// </summary>
-        private Dictionary<Combination, int> _st7NLACombinationMap;
+        private readonly Dictionary<Combination, int> _st7NLACombinationMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._loadCases"/> St7 loadcase id;
         /// </summary>
-        private Dictionary<string, int> _st7LoadCaseMap;
+        private readonly Dictionary<string, int> _st7LoadCaseMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._freedomCases"/> St7 fredomcase id;
         /// </summary>
-        private Dictionary<string, int> _st7FreedomCaseMap;
+        private readonly Dictionary<string, int> _st7FreedomCaseMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._plateProperties"/> St7 platepropertyID;
         /// </summary>
-        private Dictionary<PlateProperty, int> _st7PlatePropertyMap;
+        private readonly Dictionary<PlateProperty, int> _st7PlatePropertyMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._brickProperties"/> St7 brickpropertyID;
         /// </summary>
-        private Dictionary<BrickProperty, int> _st7BrickPropertyMap;
+        private readonly Dictionary<BrickProperty, int> _st7BrickPropertyMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.Node"/> id and straus7 node ID
         /// </summary>
-        private Dictionary<int, int> _st7NodeMap;
+        private readonly Dictionary<int, int> _st7NodeMap;
 
         /// <summary>
         /// Map between <see cref="Plate"/> id and straus7 plate ID
         /// </summary>
-        private Dictionary<int, int> _st7PlateMap;
+        private readonly Dictionary<int, int> _st7PlateMap;
 
         /// <summary>
         /// Map between <see cref="Brick"/> id and straus7 brick ID
         /// </summary>
-        private Dictionary<int, int> _st7BrickMap;
+        private readonly Dictionary<int, int> _st7BrickMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.Stage"/> id and straus7 stage ID
         /// </summary>
-        private Dictionary<int, int> _st7StageMap;
+        private readonly Dictionary<int, int> _st7StageMap;
 
 
         public FemModelWrapper() : this (string.Empty)
@@ -241,10 +241,6 @@ namespace GPC.Checkers.Glasses.FemModel
                     {
                         case AnalysisTypes.Linear:
 
-                            //bool status = St7LinearSolverSetup(aw, mid);
-                            //if (status)
-                            //    aw.SaveFile(mid);
-
                             bool status = St7RunLinearSolver(aw, _st7FilePath);
 
                             if (!status)
@@ -256,13 +252,6 @@ namespace GPC.Checkers.Glasses.FemModel
 
                         case AnalysisTypes.NonLinear:
 
-                            //status = St7NonLinearSolverSetup(aw, mid);
-
-                            //if (status)
-                            //{
-                            //    aw.SaveFile(mid);
-                            //    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
-                            //}
                             status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
 
                             if (!status)
@@ -300,77 +289,83 @@ namespace GPC.Checkers.Glasses.FemModel
                     int numPrimary = 0;     // LoadCase o StageIncrement
                     int numSecondary = 0;   // Combinazioni
 
-                    bool status = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
+                    bool fileOpened = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
 
-                    if (status)
-                        status = aw.OpenResultFile(mid, _st7ResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
-
-                    if (status)
+                    bool resultFileOpened = false ;
+                    if (fileOpened)
+                        resultFileOpened = aw.OpenResultFile(mid, _st7ResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
+                    
+                    if (fileOpened && resultFileOpened)
                     {
-                        foreach (var combination in _combinations)
+                        try
                         {
-                            int comboId = -1;
-
-                            if (AnalysisType == AnalysisTypes.Linear)
+                            foreach (var combination in _combinations)
                             {
-                                comboId = _st7LSACombinationMap[combination] + numPrimary;
-                            }
-                            else if (AnalysisType == AnalysisTypes.NonLinear)
-                            {
-                                comboId = _st7NLACombinationMap[combination];
-                            }
-                            else
-                                throw new NotImplementedException();
+                                int comboId = -1;
 
-
-                            foreach (var element in _elements)
-                            {
-                                if (element is Plate plate)
+                                if (AnalysisType == AnalysisTypes.Linear)
                                 {
-                                    // LETTURA STRESS PLATE
-                                    int numPoints = 0; // punti in cui straus da i risultati
-                                    int numColumns = 0; // numero di risultati per punto
+                                    comboId = _st7LSACombinationMap[combination] + numPrimary;
+                                }
+                                else if (AnalysisType == AnalysisTypes.NonLinear)
+                                {
+                                    comboId = _st7NLACombinationMap[combination];
+                                }
+                                else
+                                    throw new NotImplementedException();
 
-                                    double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
-                                    double[] angles = new double[9];
-                                    aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
-                                                           comboId, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
 
-                                    aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
-
-                                    for (int np = 0; np < numPoints; np++)
+                                foreach (var element in _elements)
+                                {
+                                    if (element is Plate plate)
                                     {
-                                        for (int nc = 0; nc < numColumns; nc++)
-                                        {
-                                            _resultPlateStress.Add(
-                                                new ResultPlateStress(plate, combination,
-                                                new ResultStressPoint(np),
-                                                new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
-                                                plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]));
+                                        // LETTURA STRESS PLATE
+                                        int numPoints = 0; // punti in cui straus da i risultati
+                                        int numColumns = 0; // numero di risultati per punto
 
-                                            _resultPlateStress.Last().GetPrincipalStress(out _, out _); // uso metodo approssimato
+                                        double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
+                                        double[] angles = new double[9];
+                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
+                                                               comboId, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
+
+                                        aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
+
+                                        for (int np = 0; np < numPoints; np++)
+                                        {
+                                            for (int nc = 0; nc < numColumns; nc++)
+                                            {
+                                                _resultPlateStress.Add(
+                                                    new ResultPlateStress(plate, combination,
+                                                    new ResultStressPoint(np),
+                                                    new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
+                                                    plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]));
+
+                                                _resultPlateStress.Last().GetPrincipalStress(out _, out _); // uso metodo approssimato
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            foreach (var node in _nodes)
-                            {
-                                double[] nodeResult = new double[6];
-                                aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], comboId, ref nodeResult);
-                                _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
-                            }
+                                foreach (var node in _nodes)
+                                {
+                                    double[] nodeResult = new double[6];
+                                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], comboId, ref nodeResult);
+                                    _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
+                                }
 
+                            }
                         }
-
-                        aw.CloseResultFile(mid);
-                        aw.CloseFile(mid);
+                        finally
+                        {
+                            if (resultFileOpened)
+                                aw.CloseResultFile(mid);
+                            if (fileOpened)
+                                aw.CloseFile(mid);
+                        }
                     }
-                    else
-                        aw.CloseFile(mid);
 
 
-                    if (!status)
+                    if (!fileOpened || !resultFileOpened)
                         throw new Straus7Exception(aw.GetLastErrorString());
                 }
                 else
@@ -716,7 +711,16 @@ namespace GPC.Checkers.Glasses.FemModel
             else
             {
                 if (AnalysisType == AnalysisTypes.Linear) // No stage e analisi lineare
-                    St7SetLinearLoadCaseCombination(aw, mid);
+                {
+                    bool status = St7LinearSolverSetup(aw, mid);
+
+                    if (status)
+                        St7SetLinearLoadCaseCombination(aw, mid);
+
+                    if (status)
+                        aw.SaveFile(mid);
+                }
+
                 else
                     throw new NotSupportedException(); // Non è possibile avere analisi non lineare senza stages.
             }
@@ -787,8 +791,9 @@ namespace GPC.Checkers.Glasses.FemModel
                     foreach(var combo in GetStageCombinations(stage.Id))
                     {
                         aw.AddNLAIncrement(mid, _st7StageMap[stage.Id], combo.Name);
+                        _st7NLACombinationMap[combo] = _st7StageMap[stage.Id]; // TODO non gestisce il caso di combo splittate
 
-                        foreach(var (loadcase, coefficient) in combo.GetLoadCaseCoefficientsTuple())
+                        foreach (var (loadcase, coefficient) in combo.GetLoadCaseCoefficientsTuple())
                         {
                             aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stage.Id], comboIndex, _st7LoadCaseMap[loadcase.Name], coefficient);
                         }
@@ -1039,6 +1044,9 @@ namespace GPC.Checkers.Glasses.FemModel
         }
 
 
+        /// <summary>
+        /// Set up the linear solver, activating each loadcase in the <see cref="GPC.Model.FEM.FemModel._loadCases"/> list
+        /// </summary>
         private bool St7LinearSolverSetup(ISt7ApiService aw, int mid)
         {   
             foreach (var lcName in _loadCases.GetNames())
