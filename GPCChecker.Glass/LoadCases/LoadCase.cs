@@ -9,7 +9,6 @@ namespace GPC.Checkers.Glasses.LoadCases
     public class LoadCase : Model.LoadCases.LoadCase, IGlassLoadCase
     {
         private readonly double _loadDuration;
-
         private readonly double _temperature;
 
         public double LoadDuration => _loadDuration;
