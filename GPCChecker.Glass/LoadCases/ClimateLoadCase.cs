@@ -12,15 +12,15 @@ namespace GPC.Checkers.Glasses.LoadCases
     [UI(Description = "Climatic", Group = "Load cases", Kind = "Load case")]
     public class ClimateLoadCase : Model.LoadCases.ClimateLoadCase, IGlassLoadCase
     {
-        private double _temperature;
-        private double _loadDuration;
+        private readonly double _temperature;
+        private readonly double _loadDuration;
 
         public double LoadDuration => _loadDuration;
 
         public double Temperature => _temperature;
 
-        public ClimateLoadCase(string name, double loadDuration, double temperature, Seasons season, ClimateTypes climateType, 
-            double manufactoring, double installation)
+        public ClimateLoadCase(string name, Seasons season, ClimateTypes climateType, double manufactoring, double installation, 
+            double loadDuration, double temperature)
             : base(name, season, climateType, manufactoring, installation)
         {
             _loadDuration = loadDuration;
