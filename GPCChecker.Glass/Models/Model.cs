@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using GPC.Model.Combinations;
@@ -76,12 +76,20 @@ namespace GPC.Checkers.Glasses.Models
 
         #region Public methods
 
+#if DEBUG
+        /// <summary>
+        /// Add a surface to the model. Create the <see cref="Checker"/> and call <see cref="Checker.FemModelSetup(string, string)"/>
+        /// </summary>
+        public bool AddSurface(GlassSurface glassSurface, string femModelNameSuffix = "")
+#else
         /// <summary>
         /// Add a surface to the model. Create the <see cref="Checker"/> and call <see cref="Checker.FemModelSetup(string)"/>
         /// </summary>
         public bool AddSurface(GlassSurface glassSurface)
+#endif
         {
-            Checkers.Checker checker;
+
+            Checker checker;
             if (glassSurface.Prototype.Standard == Prototype.Standards.EN16612)
             {
                 checker = new En16612Checker(glassSurface, MergeCombinations(_combinations, glassSurface.Prototype.Combinations), _options);
@@ -95,10 +103,16 @@ namespace GPC.Checkers.Glasses.Models
                 return false;
             }
 
+#if DEBUG
+            if (checker.FemModelSetup(_outputFolder, femModelNameSuffix))
+                glassSurface.Checker = checker;
+#else
             if (checker.FemModelSetup(_outputFolder))
                 glassSurface.Checker = checker;
+#endif
             else
                 return false;
+
 
             _glassSurfaces.Add(glassSurface);
 
@@ -170,8 +184,6 @@ namespace GPC.Checkers.Glasses.Models
         // TODO: glass, cambiare facendo in modo che se il checker non è stato creato lo crei lui, cosi da farlo andare avanti in qualsiasi caso.
         public void PerformChecks()
         {
-            //foreach(var checker in _checkers)
-            //    checker.PerformCheck();
             foreach (var surface in _glassSurfaces)
                 surface.Checker.PerformCheck();
         }
@@ -213,9 +225,9 @@ namespace GPC.Checkers.Glasses.Models
         }
 
 
-        #endregion
+#endregion
 
-        #region Private methods
+#region Private methods
 
         /// <summary>
         /// This method merge the two list of combinations.
@@ -250,6 +262,6 @@ namespace GPC.Checkers.Glasses.Models
             return merge.ToList();
         }
 
-        #endregion
+#endregion
     }
 }
