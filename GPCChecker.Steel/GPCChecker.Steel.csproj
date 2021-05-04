@@ -7,7 +7,7 @@
     <ProjectGuid>{EA309DF3-9824-4C30-9301-5E97C097FCAC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GPCChecker.Steel</RootNamespace>
+    <RootNamespace>GPCCheckers.Steel</RootNamespace>
     <AssemblyName>GPCChecker.Steel</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

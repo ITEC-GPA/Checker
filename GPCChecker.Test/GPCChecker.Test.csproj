@@ -8,7 +8,7 @@
     <ProjectGuid>{9DAE8B1F-D63B-4620-8266-4E676705A275}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GPCChecker.Test</RootNamespace>
+    <RootNamespace>GPCCheckers.Test</RootNamespace>
     <AssemblyName>GPCChecker.Test</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

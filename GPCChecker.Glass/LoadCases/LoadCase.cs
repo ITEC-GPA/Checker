@@ -1,9 +1,11 @@
-﻿using System;
+﻿using GPC.Utilities.Attributes;
+using System;
 using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Glasses.LoadCases
 {
     [Serializable]
+    [UI(Description = "Standard", Group = "Load cases", Kind = "Load case")]
     public class LoadCase : Model.LoadCases.LoadCase, IGlassLoadCase
     {
         private readonly double _loadDuration;
