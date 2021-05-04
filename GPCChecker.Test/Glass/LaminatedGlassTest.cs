@@ -55,7 +55,7 @@ namespace GlassTests
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
 
-            model.AddSurface(gs1);
+            model.AddSurface(gs1, base.GetTestName());
 
             model.PerformChecks();
 
@@ -146,7 +146,7 @@ namespace GlassTests
             model.AddCombination(combo4);
 
             // Model
-            model.AddSurface(gs1);
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
 
             model.PerformChecks();
 
@@ -243,7 +243,7 @@ namespace GlassTests
             model.AddCombination(combo4);
 
             // Model
-            model.AddSurface(gs1);
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
 
 
             model.PerformChecks();
@@ -339,7 +339,7 @@ namespace GlassTests
             model.AddCombination(combo4);
 
             // Model
-            model.AddSurface(gs1);
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
 
 
             model.PerformChecks();
@@ -430,7 +430,7 @@ namespace GlassTests
             model.AddCombination(combo4);
 
             // Model
-            model.AddSurface(gs1);
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
 
             model.PerformChecks();
 
@@ -531,9 +531,9 @@ namespace GlassTests
             model.AddCombination(combo2);
             model.AddCombination(combo3);
             model.AddCombination(combo4);
-            
+
             // Model
-            model.AddSurface(gs1);
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
 
 
             model.PerformChecks();
