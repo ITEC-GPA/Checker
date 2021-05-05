@@ -227,7 +227,7 @@ namespace GPC.Checkers.Glasses.Models
 
 #endregion
 
-#region Private methods
+        #region Private methods
 
         /// <summary>
         /// This method merge the two list of combinations.
@@ -262,6 +262,6 @@ namespace GPC.Checkers.Glasses.Models
             return merge.ToList();
         }
 
-#endregion
+        #endregion
     }
 }
