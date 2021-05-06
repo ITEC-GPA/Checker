@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Glasses.Extensions;
+using GPC.Checkers.Glasses.Extensions;
 using GPC.Checkers.Glasses.FemModel;
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.LoadCases;
@@ -90,9 +90,9 @@ namespace GPC.Checkers.Glasses.Checkers
                     wrapper.AddSelfWeightLoad(_glassSurface.GetLoads().OfType<SelfWeightLoad>().SingleOrDefault());
 
                 // GEOMETRIA
-                List<Mesh> meshes = wrapper.Meshes;
+                Mesh[] meshes = wrapper.Meshes;
 
-                if (meshes.Count > 1)
+                if (meshes.Length > 1)
                     throw new NotSupportedException();
 
                 // Creo modello
@@ -163,11 +163,14 @@ namespace GPC.Checkers.Glasses.Checkers
 
                     #region Geometria
 
-                    List<Mesh> meshes = wrapper.Meshes; // varie mesh, plate e brick una per ogni layer
+                    // Prendo mesh
+                    Mesh[] meshes = wrapper.Meshes; // varie mesh, plate e brick una per ogni layer
 
                     Mesh meshExternal = wrapper.GetExternalGlassMesh();
                     Mesh meshInternal = wrapper.GetInternalGlassMesh();
 
+
+                    // Associo carichi a indici elementi
                     GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
                                                   wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
                                                   out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMapExternal,

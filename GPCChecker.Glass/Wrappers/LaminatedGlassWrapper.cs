@@ -187,7 +187,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             var glassDistances = GetMonolithicBarycenterDistances();
 
             Vector3d normal = _glassSurface.Shape.GetNormalVector();
-            
+
 
             // Copia mesh
             for (int i = 0; i < glassDistances.Length; i++)
@@ -226,7 +226,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             
 
             // Assegno mesh a wrapper
-            _meshes = meshes.ToList();
+            _meshes = meshes;
 
             // Creo e assegno mappa - meshcarichi,id al wrapper
 
@@ -285,6 +285,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                 }
             }
 
+            _meshComputed = true;
             return true;
         }
 

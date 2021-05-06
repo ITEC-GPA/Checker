@@ -15,7 +15,7 @@ namespace GPC.Checkers.Glasses.Wrappers
     public abstract class GlassPanelWrapper : GlassWrapper, IGlassPanelWrapper
     {
 
-        protected List<Mesh> _meshes;
+        protected Mesh[] _meshes;
 
         protected List<Load> _externalFaceLoads;
         protected List<Load> _internalFaceLoads;
@@ -24,6 +24,8 @@ namespace GPC.Checkers.Glasses.Wrappers
         protected List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>> _meshGeometryRestrainVertices;
         protected List<KeyValuePair<Mesh, Dictionary<Load, int[]>>> _meshLoadsVertexIndexes;
         protected List<KeyValuePair<Mesh, Dictionary<Load, int[]>>> _meshLoadsFaceIndexes;
+
+        protected bool _meshComputed = false;
 
         #region Properties
 
@@ -34,11 +36,11 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// <summary>
         /// If meshes has not been generated yet, it will call <see cref="GlassWrapper.GenerateMesh()"/> 
         /// </summary>
-        public List<Mesh> Meshes
+        public Mesh[] Meshes
         {
             get
             {
-                if (_meshes.Count == 0)
+                if (!_meshComputed)
                 {
                     GenerateMesh();
                     return _meshes;
@@ -52,7 +54,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         {
             get
             {
-                if (_meshes.Count == 0)
+                if (!_meshComputed)
                 {
                     GenerateMesh();
                     return _meshGeometryRestrainVertices;
@@ -66,7 +68,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         {
             get
             {
-                if (_meshes.Count == 0)
+                if (!_meshComputed)
                 {
                     GenerateMesh();
                     return _meshLoadsVertexIndexes;
@@ -80,7 +82,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         {
             get
             {
-                if (_meshes.Count == 0)
+                if (!_meshComputed)
                 {
                     GenerateMesh();
                     return _meshLoadsFaceIndexes;
@@ -101,7 +103,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             _externalFaceLoads = new List<Load>();
             _internalFaceLoads = new List<Load>();
 
-            _meshes = new List<Mesh>();
+            _meshes = new Mesh[glass.GetGlassPackage().Length];
 
             _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>();
             _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();

@@ -79,11 +79,12 @@ namespace GPC.Checkers.Glasses.Wrappers
             if (!status)
                 return false;
 
-            _meshes = new List<Mesh>() { mesh };
+            _meshes[0] = mesh;
             _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) };
             _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>() { new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, meshLoadsFaceIndexes) }; ;
             _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>() { new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, meshLoadsVertexIndexes) }; ;
 
+            _meshComputed = true;
             return true;
         }
 
