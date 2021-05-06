@@ -116,6 +116,44 @@ namespace GPC.Checkers.Glasses.FemModel
         }
 
 
+        #region Public methods 
+
+        public void GenerateRigidLinks(IEnumerable<int> node1Ids, IEnumerable<int> node2Ids)
+        {
+
+            if (node1Ids.Count() != node2Ids.Count())
+                throw new ArgumentException();
+
+            var nodeIdMap = _nodes.GetElementIdMap();
+
+
+            var nodes1 = new List<GPC.Model.FEM.Node>();
+            var nodes2 = new List<GPC.Model.FEM.Node>();
+
+
+            foreach (var id in node1Ids)
+            {
+                nodes1.Add(_nodes.GetElementByIndex(nodeIdMap[id]));
+            }
+
+            foreach (var id in node2Ids)
+            {
+                nodes2.Add(_nodes.GetElementByIndex(nodeIdMap[id]));
+            }
+
+
+            for (int i = 0; i < nodes1.Count; i++)
+            {
+                Model.FEM.Node node1 = nodes1[i];
+                Model.FEM.Node node2 = nodes2[i];
+
+                var a = AddCostrain(new Model.FEM.Costrains.RigidLink(node1, node2));
+            }
+
+        }
+
+        #endregion
+
         #region RESULTS - public methods
 
 
@@ -471,7 +509,6 @@ namespace GPC.Checkers.Glasses.FemModel
 
         }
         
-
         #endregion
 
         #region STRAUS7 - PRIVATE METHODS
@@ -681,6 +718,20 @@ namespace GPC.Checkers.Glasses.FemModel
                 }
 
             }
+
+            // Links
+            int st7LinkIndex = 0;
+            foreach (var link in _costrains)
+            {
+                if (link is Model.FEM.Costrains.RigidLink rl)
+                {
+                    st7LinkIndex++;
+                    aw.SetRigidLink(mid, st7LinkIndex, 1, St7ApiConst.rgPlaneXYZ, new int[] { 2, rl.StartNode.Id, rl.EndNode.Id });
+                }
+                else
+                    throw new NotImplementedException();
+            }
+
 
             #endregion
 
