@@ -278,17 +278,31 @@ namespace GPC.Checkers.Glasses.Checkers
                             throw new NotSupportedException();
                         }
 
-                        
-                        // Generazione links
-                        if (i == 1)
-                        {
-                            var upperLowerVerticesIdsGlass = wrapper.GetLayerUpperLowerVerticesIds(i - 1);
-                            var upperLowerVerticesIdsInterlayer = wrapper.GetLayerUpperLowerVerticesIds(i);
+                    }
 
-                            _femModel.GenerateRigidLinks(upperLowerVerticesIdsGlass.lowerVertices.Select(k => packageNodesNewIndexMap[i - 1][k])
-                                                        , upperLowerVerticesIdsInterlayer.lowerVertices.Select(k => packageNodesNewIndexMap[i][k]));
+                    for (int i = 0; i < glassPackage.Length; i++)
+                    {
+                        // Generazione links
+                        if (i == 0)
+                        {
+                            _femModel.GenerateRigidLinks(wrapper.GetLayerUpperLowerVerticesIds(i).lowerVertices.Select(k => packageNodesNewIndexMap[i][k]),
+                                                         wrapper.GetLayerUpperLowerVerticesIds(i + 1).lowerVertices.Select(k => packageNodesNewIndexMap[i + 1][k]));
+                        }
+                        else if (i % 2 == 0 && i < glassPackage.Length - 1)
+                        {
+                            _femModel.GenerateRigidLinks(wrapper.GetLayerUpperLowerVerticesIds(i - 1).upperVertices.Select(k => packageNodesNewIndexMap[i - 1][k]),
+                                                         wrapper.GetLayerUpperLowerVerticesIds(i).lowerVertices.Select(k => packageNodesNewIndexMap[i][k]));
+
+                            _femModel.GenerateRigidLinks(wrapper.GetLayerUpperLowerVerticesIds(i).upperVertices.Select(k => packageNodesNewIndexMap[i][k]),
+                                                         wrapper.GetLayerUpperLowerVerticesIds(i + 1).lowerVertices.Select(k => packageNodesNewIndexMap[i + 1][k]));
+                        }
+                        else if (i == glassPackage.Length - 1)
+                        {
+                            _femModel.GenerateRigidLinks(wrapper.GetLayerUpperLowerVerticesIds(i - 1).upperVertices.Select(k => packageNodesNewIndexMap[i - 1][k]),
+                                                         wrapper.GetLayerUpperLowerVerticesIds(i).lowerVertices.Select(k => packageNodesNewIndexMap[i][k]));
                         }
                     }
+
 
                     #endregion Geometria
 
@@ -506,7 +520,7 @@ namespace GPC.Checkers.Glasses.Checkers
         }
 
 
-#if (!DEBUG)
+#if !DEBUG
         /// <remarks> <see cref="FemModelSetup(string)"/> must be called before calling this method</remarks>
 #endif
         public void PerformCheck()
@@ -532,6 +546,8 @@ namespace GPC.Checkers.Glasses.Checkers
                 else if (_glassSurface.Prototype.Glass is LaminatedGlass lg)
                 {
                     _femModel.SaveFemModelToSt7(_folderPath);
+
+                    _femModel.RunSt7Solver();
                 }
                 else if (_glassSurface.Prototype.Glass is DoubleInsulatingGlass dgu)
                 {
