@@ -9,8 +9,15 @@ namespace GPC.Checkers.Glasses.Wrappers
 {
     public class MonolithicGlassWrapper : GlassPanelWrapper
     {
+
         internal MonolithicGlassWrapper(GlassSurface glassSurface, MonolithicGlass glass)
             : base(glassSurface, glass)
+        {
+
+        }
+
+        internal MonolithicGlassWrapper(GlassSurface glassSurface, MonolithicGlass glass, GlassPanelPositions position)
+            : base(glassSurface, glass, position)
         {
 
         }

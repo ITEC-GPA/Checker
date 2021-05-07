@@ -8,7 +8,7 @@ using GPC.Model.Combinations;
 using GPC.Model.FEM;
 using GPC.Model.FreedomCases;
 using GPC.Model.Glasses;
-using GPC.Model.Loads;
+using GPC.Checkers.Glasses.Loads;
 using GPC.Model.Restrains;
 using GPC.Model.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

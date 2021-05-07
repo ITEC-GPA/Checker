@@ -15,6 +15,14 @@ namespace GPC.Checkers.Glasses.Wrappers
     public abstract class GlassPanelWrapper : GlassWrapper, IGlassPanelWrapper
     {
 
+        public enum GlassPanelPositions
+        {
+            Internal,
+            Central,
+            External
+        }
+
+
         protected Mesh[] _meshes;
 
         protected List<Load> _externalFaceLoads;
@@ -26,6 +34,9 @@ namespace GPC.Checkers.Glasses.Wrappers
         protected List<KeyValuePair<Mesh, Dictionary<Load, int[]>>> _meshLoadsFaceIndexes;
 
         protected bool _meshComputed = false;
+
+        protected GlassPanelPositions _glassPanelPositions;
+
 
         #region Properties
 
@@ -98,6 +109,12 @@ namespace GPC.Checkers.Glasses.Wrappers
 
 
         protected GlassPanelWrapper(GlassSurface glassSurface, IGlassPanel glass) 
+            : this(glassSurface, glass, GlassPanelPositions.External)
+        {
+
+        }
+
+        protected GlassPanelWrapper(GlassSurface glassSurface, IGlassPanel glass, GlassPanelPositions glassPanelPosition)
             : base(glassSurface, (Glass)glass)
         {
             _externalFaceLoads = new List<Load>();
@@ -109,6 +126,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
             _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
 
+            _glassPanelPositions = glassPanelPosition;
         }
 
         #region Public methods - geometry

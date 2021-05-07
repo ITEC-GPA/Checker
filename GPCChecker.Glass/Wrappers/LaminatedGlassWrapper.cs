@@ -35,8 +35,14 @@ namespace GPC.Checkers.Glasses.Wrappers
         #region Public constructors
 
         internal LaminatedGlassWrapper(GlassSurface glassSurface, LaminatedGlass glass) 
-            : base(glassSurface, glass)
+            : this(glassSurface, glass, GlassPanelPositions.External)
         {                       
+
+        }
+
+        internal LaminatedGlassWrapper(GlassSurface glassSurface, LaminatedGlass glass, GlassPanelPositions position)
+            : base(glassSurface, glass, position)
+        {
             _thicknessesW = new Dictionary<double, double>();
             _thicknessesStress = new Dictionary<double, double>();
 

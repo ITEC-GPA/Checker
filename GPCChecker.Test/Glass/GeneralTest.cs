@@ -1,14 +1,14 @@
-﻿using GPC.Checkers.Glasses.Models;
+﻿using System;
+using System.Linq;
 using GPC.Geometry;
 using GPC.Model.Glasses;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Linq;
-using GPC.Checkers.Glasses.LoadCases;
 using GPC.Model.Combinations;
 using GPC.Model.Materials;
+using GPC.Checkers.Glasses.Models;
+using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Extensions;
 using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GlassTests
 {

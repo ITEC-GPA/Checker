@@ -72,7 +72,7 @@ namespace GlassTests
 
         protected InterlayerMaterial GetInterlayerMaterial()
         {
-            var it = new InterlayerMaterial("", 1, 0, InterlayerMaterial.InterlayerType.NormalPVB);
+            var it = new InterlayerMaterial("", GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0, InterlayerMaterial.InterlayerType.NormalPVB);
             it.AddShearModule(3, new double[] { 10, 20, 50 }, new double[] { 0.1, 0.2, 0.30 });
             it.AddShearModule(100, new double[] { 10, 20, 50 }, new double[] { 0.15, 0.25, 0.35 });
 
@@ -85,7 +85,7 @@ namespace GlassTests
         /// </summary>
         protected InterlayerMaterial GetInterlayerMaterialSentryGlas()
         {
-            var it = new InterlayerMaterial("SG", 1, 0, InterlayerMaterial.InterlayerType.SentryGlass);
+            var it = new InterlayerMaterial("SG", GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0, InterlayerMaterial.InterlayerType.SentryGlass);
             it.AddShearModule(3,                 new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 236, 211, 141,  63,   26.4, 8.2, 2.9, 1.3 });
             it.AddShearModule(30,                new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 228, 206, 119,  36.6, 13.5, 4.3, 2.1, 1.0 });
             it.AddShearModule(60,                new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 225, 195, 110,  30.7, 11.3, 3.7, 1.9, 0.8 });
@@ -109,7 +109,7 @@ namespace GlassTests
         /// </summary>
         protected InterlayerMaterial GetInterlayerMaterialPVBStiff()
         {
-            var it = new InterlayerMaterial("ES Stiff PVB", 1, 0, InterlayerMaterial.InterlayerType.NormalPVB);
+            var it = new InterlayerMaterial("ES Stiff PVB", GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0, InterlayerMaterial.InterlayerType.NormalPVB);
             it.AddShearModule(3,                new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 699, 342, 58, 3.4, 1.7, 1.6, 0, 0 });
             //it.AddShearModule(30,               new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 228, 206, 119, 36.6, 13.5, 4.3, 2.1, 1.0 });
             it.AddShearModule(60,               new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 573, 196, 9.2, 1.8, 1.6, 1.5, 1.9, 0.8 });

@@ -1,21 +1,20 @@
-﻿using GPC.Checkers.Glasses.Glasses;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using GlassTests;
+using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Models;
+using GPC.Checkers.Glasses.Loads;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Combinations;
 using GPC.Model.Glasses;
-using GPC.Model.Loads;
-using GPC.Checkers.Glasses.Loads;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Linq;
-using GPC.TestUtilities;
-using GlassTests;
 using GPC.Model.Materials;
 using GPC.Model.Restrains;
 using GPC.Model.FreedomCases;
-using System.Collections.Generic;
+using GPC.TestUtilities;
 
 namespace GlassTests
 {
