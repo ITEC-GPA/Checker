@@ -43,12 +43,10 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
                                                                     Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 40;
+            p1.MeshOptions.MeshSize = 40;
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddRestrains(geometryRestrains1);
 
             model.AddSurface(gs1);
@@ -147,13 +145,11 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                                                 Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 40;
+            p1.MeshOptions.MeshSize = 40;
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
-            GlassSurface gs2 = new GlassSurface(p1, s2, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            GlassSurface gs2 = new GlassSurface(p1, s2);
             gs1.AddRestrains(geometryRestrains1);
             gs2.AddRestrains(geometryRestrains2);
 
@@ -277,13 +273,11 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
-                                                                    Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 40;
+                Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+            p1.MeshOptions.MeshSize = 40;
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddRestrains(geometryRestrains1);
 
             model.AddSurface(gs1);
@@ -384,12 +378,10 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
                                                                     Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 40;
+            p1.MeshOptions.MeshSize = 40;
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddRestrains(geometryRestrains1);
 
             model.AddSurface(gs1);
@@ -453,12 +445,10 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
                                                                     Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 40;
+            p1.MeshOptions.MeshSize = 40;
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddRestrains(geometryRestrains1);
 
             model.AddSurface(gs1);
@@ -523,12 +513,10 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
                                                                     Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 40;
+            p1.MeshOptions.MeshSize = 40;
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddRestrains(geometryRestrains1);
 
             model.AddSurface(gs1);
