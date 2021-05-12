@@ -83,6 +83,7 @@
     <Compile Include="Glass\GlassTestBase.cs" />
     <Compile Include="Glass\LaminatedGlassTest.cs" />
     <Compile Include="Glass\GeneralTest.cs" />
+    <Compile Include="Glass\PerformanceTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Steel\SteelResistanceTest.cs" />
     <Compile Include="Steel\SteelInstabilityTest.cs" />
