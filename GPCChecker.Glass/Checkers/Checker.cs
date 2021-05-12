@@ -116,14 +116,14 @@ namespace GPC.Checkers.Glasses.Checkers
                 }
 
                 // TIPO DI ANALISI
-                if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
+                if (_glassSurface.Prototype.AnalysisType == Prototype.AnalysisTypes.LinearStaticAnalysis)
                 {
                     // COMBINAZIONI LINEARI - NO STAGE
                     // STRAUS: LINEAR LOAD COMBINATION TABLE
                     _femModel.AnalysisType = (Model.FEM.FemModel.AnalysisTypes)_glassSurface.Prototype.AnalysisType;
                     _femModel.AddCombinations(_combinations);
                 }
-                else if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.NonLinearStaticAnalysis)
+                else if (_glassSurface.Prototype.AnalysisType == Prototype.AnalysisTypes.NonLinearStaticAnalysis)
                 {
                     // COMBINAZIONI NON LINEARI - NO STAGE
                     // STRAUS: MONOSTAGE, INCREMENTI COME COMBINAZIONI NON LINEARI
@@ -143,7 +143,7 @@ namespace GPC.Checkers.Glasses.Checkers
             }
             else if (_glassSurface.Prototype.Glass is LaminatedGlass lg)
             {
-                if (_glassSurface.Prototype.LaminatedAnalysisType == Models.Prototype.LaminatedAnalysisTypes.MultiElement)
+                if (_glassSurface.Prototype.LaminatedAnalysisType == Prototype.LaminatedAnalysisTypes.MultiElement)
                 {
                     LaminatedGlassWrapper wrapper = new LaminatedGlassWrapper(_glassSurface, lg);
 
