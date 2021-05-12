@@ -91,13 +91,6 @@ namespace GlassTests
             List<int> glassIds = lgw.GetLayerUpperLowerVerticesIds(0).lowerVertices.ToList();
             List<int> interlayerIds = lgw.GetLayerUpperLowerVerticesIds(1).lowerVertices.ToList();
 
-            //var m = (Mesh)lgw.Meshes[0].Clone();
-            //m.JoinMesh(lgw.Meshes[1]);
-
-            //MeshExport.ExportToMshFormatv2(base.GetFilePathInOutputFolder("Export", "msh"), new List<Mesh>() { m });
-            //MeshExport.ExportToMshFormatv2(base.GetFilePathInOutputFolder("Export0", "msh"), new List<Mesh>() { lgw.Meshes[0] });
-            //MeshExport.ExportToMshFormatv2(base.GetFilePathInOutputFolder("Export1", "msh"), new List<Mesh>() { lgw.Meshes[1] });
-
             for (int i = 0; i < glassIds.Count(); i++)
             {
                 var vertex1 = lgw.Meshes[0].Vertices.GetElementById(glassIds[i]);

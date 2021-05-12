@@ -78,19 +78,12 @@
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Glass\MonolithicGlassTest.cs" />
-    <Compile Include="Glass\GlassWrapperTest.cs" />
-    <Compile Include="Glass\GlassTestBase.cs" />
-    <Compile Include="Glass\LaminatedGlassTest.cs" />
-    <Compile Include="Glass\GeneralTest.cs" />
-    <Compile Include="Glass\PerformanceTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Steel\SteelResistanceTest.cs" />
-    <Compile Include="Steel\SteelInstabilityTest.cs" />
-    <Compile Include="Steel\SteelClassificationTest.cs" />
-    <Compile Include="Steel\AnnexTest.cs" />
-    <Compile Include="Steel\ECPlateTest.cs" />
-    <Compile Include="Glass\FemModelWrapperTest.cs" />
+    <Compile Include="SteelResistanceTest.cs" />
+    <Compile Include="SteelInstabilityTest.cs" />
+    <Compile Include="SteelClassificationTest.cs" />
+    <Compile Include="AnnexTest.cs" />
+    <Compile Include="ECPlateTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -99,10 +92,6 @@
     <ProjectReference Include="..\GPCChecker.Common\GPCChecker.Common.csproj">
       <Project>{468983dc-5288-4a32-ba38-b06fb247a1b8}</Project>
       <Name>GPCChecker.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GPCChecker.Glass\GPCChecker.Glass.csproj">
-      <Project>{19977875-dc88-47e0-92c9-d9ace7ce4f3d}</Project>
-      <Name>GPCChecker.Glass</Name>
     </ProjectReference>
     <ProjectReference Include="..\GPCChecker.Steel\GPCChecker.Steel.csproj">
       <Project>{ea309df3-9824-4c30-9301-5e97c097fcac}</Project>
