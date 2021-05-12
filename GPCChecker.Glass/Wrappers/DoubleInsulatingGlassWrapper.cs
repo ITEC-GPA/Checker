@@ -35,12 +35,12 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             if (igu.GlassPanelInner is MonolithicGlass)
             {
-                _innerGlassPanelWrapper = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)igu.GlassPanelInner);
+                _innerGlassPanelWrapper = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)igu.GlassPanelInner, GlassPanelWrapper.GlassPanelPositions.Internal);
 
             }
             else if (igu.GlassPanelInner is LaminatedGlass)
             {
-                _innerGlassPanelWrapper = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)igu.GlassPanelInner);
+                _innerGlassPanelWrapper = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)igu.GlassPanelInner, GlassPanelWrapper.GlassPanelPositions.Internal);
             }
             else
             {
@@ -49,12 +49,12 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             if (igu.GlassPanelOuter is MonolithicGlass)
             {
-                _outerGlassPanelWrapper = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)igu.GlassPanelInner);
+                _outerGlassPanelWrapper = new MonolithicGlassWrapper(_glassSurface, (MonolithicGlass)igu.GlassPanelInner, GlassPanelWrapper.GlassPanelPositions.External);
 
             }
             else if (igu.GlassPanelOuter is LaminatedGlass)
             {
-                _outerGlassPanelWrapper = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)igu.GlassPanelInner);
+                _outerGlassPanelWrapper = new LaminatedGlassWrapper(_glassSurface, (LaminatedGlass)igu.GlassPanelInner, GlassPanelWrapper.GlassPanelPositions.External);
             }
             else
             {

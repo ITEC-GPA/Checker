@@ -34,7 +34,7 @@ namespace GlassTests
 
 
             GlassMaterial gm = new GlassMaterialAstm("", 1, 0.2, 3, 4, 5, 6, 0.008, 0.008, 9);
-            MonolithicGlassProperty pp = new MonolithicGlassProperty(1,2, gm, "mgp");
+            MonolithicGlassProperty pp = new MonolithicGlassProperty(1,2, gm.GetIsotropicFemMaterial(), "mgp");
 
             var meshOptions = new Mesh.GenerateOptions();
             meshOptions.MeshSize = 10;

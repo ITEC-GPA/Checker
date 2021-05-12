@@ -73,6 +73,12 @@ namespace GPC.Checkers.Glasses.Checkers
                 Directory.CreateDirectory(_folderPath);
             }
 
+#if DEBUG
+            string femModelName = $"{femModelSuffix}_Glass{_glassSurface.Id}_femModel";
+#else
+            string femModelName = $"Glass{_glassSurface.Id}_femModel";
+#endif
+
             GlassWrapper glassWrapper;
             if (_glassSurface.Prototype.Glass is MonolithicGlass mg)
             {
@@ -83,17 +89,13 @@ namespace GPC.Checkers.Glasses.Checkers
                     wrapper.AddSelfWeightLoad(_glassSurface.GetLoads().OfType<SelfWeightLoad>().SingleOrDefault());
 
                 // GEOMETRIA
-                List<Mesh> meshes = wrapper.Meshes;
+                Mesh[] meshes = wrapper.Meshes;
 
-                if (meshes.Count > 1)
+                if (meshes.Length > 1)
                     throw new NotSupportedException();
 
                 // Creo modello
-#if DEBUG
-                _femModel = new FemModelWrapper($"{femModelSuffix}_Glass{_glassSurface.Id}_femModel");
-#else
-                _femModel = new FemModelWrapper($"Glass{_glassSurface.Id}_femModel");
-#endif
+                _femModel = new FemModelWrapper(femModelName);
 
                 MonolithicGlassProperty pp = new MonolithicGlassProperty(mg, "mg");
 
@@ -160,11 +162,14 @@ namespace GPC.Checkers.Glasses.Checkers
 
                     #region Geometria
 
-                    List<Mesh> meshes = wrapper.Meshes; // varie mesh, plate e brick una per ogni layer
+                    // Prendo mesh
+                    Mesh[] meshes = wrapper.Meshes; // varie mesh, plate e brick una per ogni layer
 
                     Mesh meshExternal = wrapper.GetExternalGlassMesh();
                     Mesh meshInternal = wrapper.GetInternalGlassMesh();
 
+
+                    // Associo carichi a indici elementi
                     GetLoadTypeVerticesDictionary(wrapper.MeshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
                                                   wrapper.MeshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
                                                   out Dictionary<IPointLoad, int[]> vertexLoadMeshEntityMapExternal,
@@ -177,19 +182,25 @@ namespace GPC.Checkers.Glasses.Checkers
                                                   out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMapInternal,
                                                   out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapInternal);
 
-                    _femModel = new FemModelWrapper($"FemName_{_glassSurface.Id}");
+
+
+                    // Creo modello, aggiungendo elementi creando prop etch
+                    _femModel = new FemModelWrapper(femModelName);
 
                     List<IGlassLoadCase> loadCasesUnique = loads.Select(i => i.LoadCase as IGlassLoadCase).Where(i => i != null).Distinct().ToList();
 
                     var glassPackage = lg.GetGlassPackage();
 
-                    int[][] elementIndexes = new int[glassPackage.Count()][]; // Associazione fra l'indice del layer e l'indice degli elementi
+                    // Associazione fra l'indice del layer e l'indice degli elementi plate volumi e nodi
+                    (int[] nodesId, int[] platesId, int[] volumesId)[] elementIndexes = new (int[] nodesId, int[] platesId, int[] volumesId)[glassPackage.Count()]; 
 
                     Dictionary<int, string> glassLayerPropertyNameMap = new Dictionary<int, string>();
 
                     // Map between interlayerIndex -> loadcase e nome della proprietà associata a quel loadcase
                     Dictionary<int, Dictionary<IGlassLoadCase, string>> interlayerLoadCasePropertyNameMap = new Dictionary<int, Dictionary<IGlassLoadCase, string>>();
 
+
+                    Dictionary<int, int>[] packageNodesNewIndexMap = new Dictionary<int, int>[glassPackage.Count()];
                     for (int i = 0; i < glassPackage.Length; i++)
                     {
                         IGlassPackage layer = glassPackage[i];
@@ -202,20 +213,35 @@ namespace GPC.Checkers.Glasses.Checkers
 
                             if (meshes[i].CompareGuid(meshExternal.Guid))
                             {
-                                var indexes = _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal,
-                                                    wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value);
-                                elementIndexes[i] = indexes;
+                                _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal,
+                                                  wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
+                                                    out Dictionary<int, int> nodesNewIndexMap,
+                                                    out Dictionary<int, int> platesNewIndexMap,
+                                                    out Dictionary<int, int> brickNewIndexMap);
+
+                                packageNodesNewIndexMap[i] = nodesNewIndexMap;
+                                elementIndexes[i].platesId = platesNewIndexMap.Values.ToArray(); // TODO SISTEMARE
                             }
                             else if (meshes[i].CompareGuid(meshInternal.Guid))
                             {
-                                var indexes = _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapInternal, vertexLineLoadMeshEntityMapInternal, faceAreaLoadMeshEntityMapInternal,
-                                                    wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value);
-                                elementIndexes[i] = indexes;
+                                _femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapInternal, vertexLineLoadMeshEntityMapInternal, faceAreaLoadMeshEntityMapInternal,
+                                                                                            wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value,
+                                                                            out Dictionary<int, int> nodesNewIndexMap,
+                                                                            out Dictionary<int, int> platesNewIndexMap,
+                                                                            out Dictionary<int, int> brickNewIndexMap);
+
+                                packageNodesNewIndexMap[i] = nodesNewIndexMap;
+                                elementIndexes[i].platesId = platesNewIndexMap.Values.ToArray(); // TODO SISTEMARE
                             }
                             else
                             {
-                                var indexes = _femModel.AddMesh(meshes[i], propertyName, null, null, null, null, null);
-                                elementIndexes[i] = indexes;
+                                _femModel.AddMesh(meshes[i], propertyName, null, null, null, null, null,
+                                                                            out Dictionary<int, int> nodesNewIndexMap,
+                                                                            out Dictionary<int, int> platesNewIndexMap,
+                                                                            out Dictionary<int, int> brickNewIndexMap);
+
+                                packageNodesNewIndexMap[i] = nodesNewIndexMap;
+                                elementIndexes[i].platesId = platesNewIndexMap.Values.ToArray(); // TODO SISTEMARE
                             }
                         }
                         else if (layer is Interlayer il)
@@ -236,16 +262,46 @@ namespace GPC.Checkers.Glasses.Checkers
                                     throw new ArgumentException(); // In teoria non è possibile che vada in eccezione perchè i nomi delle proprietà sono uniche e quindi vengono sempre aggiunti
                             }
 
-                            var minProperty = properties.OrderBy(j => j.GetShearModule()).FirstOrDefault(); // Prendo la proprietà con i G minimo per ogni layer e la uso come proprietà iniziale
+                            var minProperty = properties.OrderBy(j => ((Model.FEM.Materials.OrthotropicFemMaterial)j.Material).G12).FirstOrDefault(); // Prendo la proprietà con i G minimo per ogni layer e la uso come proprietà iniziale
 
-                            var indexes = _femModel.AddMesh(meshes[i], null, minProperty.Name, null, null, null, null);
-                            elementIndexes[i] = indexes;
+                            var indexes = _femModel.AddMesh(meshes[i], null, minProperty.Name, null, null, null, null,
+                                                                            out Dictionary<int, int> nodesNewIndexMap,
+                                                                            out Dictionary<int, int> platesNewIndexMap,
+                                                                            out Dictionary<int, int> brickNewIndexMap);
+
+                            packageNodesNewIndexMap[i] = nodesNewIndexMap;
+                            elementIndexes[i].volumesId = brickNewIndexMap.Values.ToArray(); // TODO SISTEMARE
                         }
                         else
                         {
                             throw new NotSupportedException();
                         }
+
                     }
+
+                    for (int i = 0; i < glassPackage.Length; i++)
+                    {
+                        // Generazione links
+                        if (i == 0)
+                        {
+                            _femModel.GenerateRigidLinks(wrapper.GetLayerUpperLowerVerticesIds(i).lowerVertices.Select(k => packageNodesNewIndexMap[i][k]),
+                                                         wrapper.GetLayerUpperLowerVerticesIds(i + 1).lowerVertices.Select(k => packageNodesNewIndexMap[i + 1][k]));
+                        }
+                        else if (i % 2 == 0 && i < glassPackage.Length - 1)
+                        {
+                            _femModel.GenerateRigidLinks(wrapper.GetLayerUpperLowerVerticesIds(i - 1).upperVertices.Select(k => packageNodesNewIndexMap[i - 1][k]),
+                                                         wrapper.GetLayerUpperLowerVerticesIds(i).lowerVertices.Select(k => packageNodesNewIndexMap[i][k]));
+
+                            _femModel.GenerateRigidLinks(wrapper.GetLayerUpperLowerVerticesIds(i).upperVertices.Select(k => packageNodesNewIndexMap[i][k]),
+                                                         wrapper.GetLayerUpperLowerVerticesIds(i + 1).lowerVertices.Select(k => packageNodesNewIndexMap[i + 1][k]));
+                        }
+                        else if (i == glassPackage.Length - 1)
+                        {
+                            _femModel.GenerateRigidLinks(wrapper.GetLayerUpperLowerVerticesIds(i - 1).upperVertices.Select(k => packageNodesNewIndexMap[i - 1][k]),
+                                                         wrapper.GetLayerUpperLowerVerticesIds(i).lowerVertices.Select(k => packageNodesNewIndexMap[i][k]));
+                        }
+                    }
+
 
                     #endregion Geometria
 
@@ -274,10 +330,10 @@ namespace GPC.Checkers.Glasses.Checkers
                             {
                                 if (glassPackage[i] is Interlayer)
                                 {
-                                    stagelc.AddFiniteElements(elementIndexes[i], interlayerLoadCasePropertyNameMap[i][(IGlassLoadCase)loadCase]);
+                                    stagelc.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][(IGlassLoadCase)loadCase]);
                                 }
                                 else
-                                    stagelc.AddFiniteElements(elementIndexes[i], glassLayerPropertyNameMap[i]);
+                                    stagelc.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
                             }
 
                             foreach (Combination combo in _combinations.Select(i => i).Where(i => i.GetLoadCaseCoefficient(loadCase) != 0).ToList())
@@ -377,13 +433,13 @@ namespace GPC.Checkers.Glasses.Checkers
                                     {
                                         if (glassPackage[i] is Interlayer)
                                         {
-                                            stage1.AddFiniteElements(elementIndexes[i], interlayerLoadCasePropertyNameMap[i][lcLTLowerG]);
-                                            stage2.AddFiniteElements(elementIndexes[i], interlayerLoadCasePropertyNameMap[i][lcSTLowerG]);
+                                            stage1.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][lcLTLowerG]);
+                                            stage2.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][lcSTLowerG]);
                                         }
                                         else
                                         {
-                                            stage1.AddFiniteElements(elementIndexes[i], glassLayerPropertyNameMap[i]);
-                                            stage2.AddFiniteElements(elementIndexes[i], glassLayerPropertyNameMap[i]);
+                                            stage1.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
+                                            stage2.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
                                         }
                                     }
                                 }
@@ -423,11 +479,11 @@ namespace GPC.Checkers.Glasses.Checkers
                                 {
                                     if (glassPackage[i] is Interlayer)
                                     {
-                                        stage2.AddFiniteElements(elementIndexes[i], interlayerLoadCasePropertyNameMap[i][lcSTLowerG]);
+                                        stage2.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][lcSTLowerG]);
                                     }
                                     else
                                     {
-                                        stage2.AddFiniteElements(elementIndexes[i], glassLayerPropertyNameMap[i]);
+                                        stage2.AddFiniteElements(elementIndexes[i].volumesId, glassLayerPropertyNameMap[i]);
                                     }
                                 }
                             }
@@ -462,10 +518,10 @@ namespace GPC.Checkers.Glasses.Checkers
             }
         }
 
-#if (!DEBUG)
+
+#if !DEBUG
         /// <remarks> <see cref="FemModelSetup(string)"/> must be called before calling this method</remarks>
 #endif
-
         public void PerformCheck()
         {
             if (_femModel == null)
@@ -489,6 +545,8 @@ namespace GPC.Checkers.Glasses.Checkers
                 else if (_glassSurface.Prototype.Glass is LaminatedGlass lg)
                 {
                     _femModel.SaveFemModelToSt7(_folderPath);
+
+                    _femModel.RunSt7Solver();
                 }
                 else if (_glassSurface.Prototype.Glass is DoubleInsulatingGlass dgu)
                 {
@@ -509,13 +567,13 @@ namespace GPC.Checkers.Glasses.Checkers
             }
         }
 
+
 #if (!DEBUG)
         /// <summary>
         /// The mesh is generated by calling <see cref="FemModelSetup(string)"/>
         /// </summary>
         /// <returns>Null if FemModel is not available</returns>
 #endif
-
         public Mesh GetMesh()
         {
             if (_femModel is null)
@@ -524,7 +582,7 @@ namespace GPC.Checkers.Glasses.Checkers
             return _femModel.GetMesh();
         }
 
-        #endregion Public method
+        #endregion 
 
         #region Private Methods
 
@@ -543,26 +601,34 @@ namespace GPC.Checkers.Glasses.Checkers
             foreach (var loadCase in loadCases)
             {
                 // Il nome è la chiave della collection. Do un nome che indentifica univocamente la proprietà
-                properties.Add(new InterlayerBrickProperty(material, loadCase.Temperature, loadCase.LoadDuration,
-                                $"Interlayer_{previousPropertyCount + index} - Material: {material.Name}_{index++} G: {material.GetShearModule(loadCase.LoadDuration, loadCase.Temperature):F3} MPa"));
+                var mat = material.GetOrthotropicFemMaterial(loadCase.LoadDuration, loadCase.Temperature,
+                                                            FemOptions.Instance.InterlayerBrickElasticModulus,
+                                                            FemOptions.Instance.InterlayerBrickElasticModulus,
+                                                            FemOptions.Instance.InterlayerBrickElasticModulus,
+                                                            FemOptions.Instance.InterlayerPoissonValue,
+                                                            FemOptions.Instance.InterlayerPoissonValue,
+                                                            FemOptions.Instance.InterlayerPoissonValue);
+
+                properties.Add(new InterlayerBrickProperty(mat, loadCase.Temperature, loadCase.LoadDuration,
+                                $"Interlayer_{previousPropertyCount + index} - Material: {material.Name}_{index++}, G12: {mat.G12:F3} MPa, G23: {mat.G23:F3} MPa, G31: {mat.G31:F3} MPa"));
             }
 
             return properties;
         }
 
         /// <summary>
-        /// Add a <see cref="GPC.Model.FEM.Attributes.ModelAccelerationAttribute"/> for each loadcase of type <see cref="Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight"/> in the Combinations list
+        /// Add a <see cref="Model.FEM.Attributes.ModelAccelerationAttribute"/> for each loadcase of type <see cref="Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight"/> in the Combinations list
         /// </summary>
         /// <param name="femModel"></param>
         /// <param name="load"></param>
-        /// <inheritdoc cref="GPC.Model.FEM.FemModel.AddModelAcceleration(string)"/>
+        /// <inheritdoc cref="Model.FEM.FemModel.AddModelAcceleration(string)"/>
         private void ModelGravitySetUp(FemModelWrapper femModel, SelfWeightLoad load)
         {
             var accelerationModel = femModel.AddModelAcceleration(load.LoadCase.Name);
 
-            accelerationModel.CoordinateSystem = GPC.Geometry.CoordinateSystem.Global;
+            accelerationModel.CoordinateSystem = Geometry.CoordinateSystem.Global;
 
-            int gravityDirection = Math.Sign(load.GravityVector * GPC.Geometry.CoordinateSystem.Global.V1);
+            int gravityDirection = Math.Sign(load.GravityVector * Geometry.CoordinateSystem.Global.V1);
 
             switch (_options.GravityAxis)
             {

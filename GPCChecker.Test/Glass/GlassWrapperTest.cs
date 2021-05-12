@@ -7,6 +7,8 @@ using GPC.Model.Glasses;
 using GPC.Model.Materials;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace GlassTests
 {
@@ -57,6 +59,54 @@ namespace GlassTests
             {
                 Assert.IsTrue(Math.Abs(distancesExpectedInterlayer[i] - distancesInterlayer[i]) < _tolleranza, $"Interlayer => Indice: {i}, Calcolata: {distancesInterlayer[i]}, attesa: {distancesExpectedInterlayer[i]} ");
             }
+        }
+
+
+
+        [TestMethod]
+        public void LaminatedUpperLowerVerticesIds()
+        {
+            // Arrange
+
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(500, 500, 0));
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg2", 10, GetGlassMaterialEn16612());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg2", 20, GetGlassMaterialEn16612());
+
+            Interlayer intr1 = new Interlayer("Int1", 1, GetInterlayerMaterial());
+
+            LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2}, new Interlayer[] { intr1 });
+
+            Prototype p = new Prototype("", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                              Prototype.CheckMethods.ASTME1300, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            GlassSurface gs = new GlassSurface(p, s1, new Mesh.GenerateOptions() { MeshSize = 250 });
+
+            LaminatedGlassWrapper lgw = new LaminatedGlassWrapper(gs, lg1);
+
+            lgw.GenerateMesh();
+
+            List<int> glassIds = lgw.GetLayerUpperLowerVerticesIds(0).lowerVertices.ToList();
+            List<int> interlayerIds = lgw.GetLayerUpperLowerVerticesIds(1).lowerVertices.ToList();
+
+            //var m = (Mesh)lgw.Meshes[0].Clone();
+            //m.JoinMesh(lgw.Meshes[1]);
+
+            //MeshExport.ExportToMshFormatv2(base.GetFilePathInOutputFolder("Export", "msh"), new List<Mesh>() { m });
+            //MeshExport.ExportToMshFormatv2(base.GetFilePathInOutputFolder("Export0", "msh"), new List<Mesh>() { lgw.Meshes[0] });
+            //MeshExport.ExportToMshFormatv2(base.GetFilePathInOutputFolder("Export1", "msh"), new List<Mesh>() { lgw.Meshes[1] });
+
+            for (int i = 0; i < glassIds.Count(); i++)
+            {
+                var vertex1 = lgw.Meshes[0].Vertices.GetElementById(glassIds[i]);
+                var vertex2 = lgw.Meshes[1].Vertices.GetElementById(interlayerIds[i]);
+
+                var v1 = vertex1.Point.VectorTo(vertex2.Point);
+
+                Assert.IsTrue(v1 == new Vector3d(0, 0, 5), $"{v1} {vertex1.Point}  {vertex2.Point}") ;
+            }
+
+
         }
     }
 }

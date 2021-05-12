@@ -25,17 +25,28 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// Thickness associates to stress. Key = load duration; Value = thickness
         /// </summary>
         protected Dictionary<double, double> _thicknessesStress;
+        
+        /// <summary>
+        /// List of upper and lower vertices Id of each volume layer
+        /// </summary>
+        protected (IEnumerable<int> lowerVertices, IEnumerable<int> upperVertices)[] _volumeUpperLowerVerticesIds;
 
-
-
+        
         #region Public constructors
 
         internal LaminatedGlassWrapper(GlassSurface glassSurface, LaminatedGlass glass) 
-            : base(glassSurface, glass)
+            : this(glassSurface, glass, GlassPanelPositions.External)
         {                       
+
+        }
+
+        internal LaminatedGlassWrapper(GlassSurface glassSurface, LaminatedGlass glass, GlassPanelPositions position)
+            : base(glassSurface, glass, position)
+        {
             _thicknessesW = new Dictionary<double, double>();
             _thicknessesStress = new Dictionary<double, double>();
 
+            _volumeUpperLowerVerticesIds = new (IEnumerable<int> lowerVertices, IEnumerable<int> upperVertices)[(Glass as LaminatedGlass).MonolithicGlasses.Count() + (Glass as LaminatedGlass).Interlayers.Count()];
         }
 
         #endregion
@@ -171,6 +182,8 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
+        #endregion
+
         /// <inheritdoc cref="GlassWrapper.GenerateMesh()"/>
         public override bool GenerateMesh()
         {
@@ -187,7 +200,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             var glassDistances = GetMonolithicBarycenterDistances();
 
             Vector3d normal = _glassSurface.Shape.GetNormalVector();
-            
+
 
             // Copia mesh
             for (int i = 0; i < glassDistances.Length; i++)
@@ -197,36 +210,90 @@ namespace GPC.Checkers.Glasses.Wrappers
                 cloned.Move(normal * glassDistances[i]);
                 
                 meshes[i * 2] = cloned;
+
+                var ids = cloned.Faces.SelectMany(k => k.GetNodes()).Distinct().ToList() ;// faccio cosi cosi prendo gli id degli elementi nell'ordine degli elementi nella lista
+
+                //var ids = cloned.Vertices.GetElementIdMap().Keys.ToList(); // faccio cosi cosi prendo gli id degli elementi nell'ordine degli elementi nella lista
+
+                _volumeUpperLowerVerticesIds[i * 2] = (ids, ids);
             }
 
             // Copia mesh e Generazione brick
             for(int i = 0; i < interlayerDistances.Length; i++)
             {
+                IEnumerable<int> lowerVertices = null;
+                IEnumerable<int> upperVertices = null;
 
                 for (int j = 0; j < INTERLAYER_DISCRETIZATION; j++)
                 {
-                    Mesh cloned = (Mesh)mesh.Clone(true);
+                    Mesh cloned = (Mesh)mesh.Clone(false);
+                    Plane plane = _glassSurface.Shape.GetPlane(GeometryBase.GetDefaultTolerance());
 
                     double thickness = (Glass as LaminatedGlass).Interlayers[i].Thickness;
                     double increment = thickness / INTERLAYER_DISCRETIZATION * j;
 
                     cloned.Move(normal * (interlayerDistances[i] - thickness / 2.0 + increment));
+                    plane.Move(normal * (interlayerDistances[i] - thickness / 2.0 + increment));
 
-                    var volumeMesh = cloned.ExtrudeFaces(normal * thickness / INTERLAYER_DISCRETIZATION);
+                    Mesh volumeMesh = cloned.ExtrudeFaces(normal * thickness / INTERLAYER_DISCRETIZATION);
+
+                    Dictionary<int, int> vertexIdMap = null;
 
                     if (meshes[i * 2 + 1] == null)
                         meshes[i * 2 + 1] = volumeMesh;
                     else
                     {
-                        meshes[i * 2 + 1].JoinMesh(volumeMesh);
+                        // vertexIdMap: Map between MeshVertex.Id of meshToJoin and id of the same vertex in meshes[i * 2 + 1] (Map old, new)
+                        meshes[i * 2 + 1].JoinMesh(volumeMesh, out vertexIdMap, out _, out _);
+                    }
+
+
+                    if (j == 0)
+                    {
+                        // primo strato di brick
+                        if (vertexIdMap == null)
+                        {
+
+                            var a = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
+                                                            Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
+
+                            lowerVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
+                                                            Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
+                        }
+                        else
+                            throw new NotSupportedException();
+                    }
+
+                    if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
+                    {
+                        plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
+
+                        // primo strato di brick
+                        if (vertexIdMap != null)
+                        {
+                            // il join mesh ha presto volumeMesh e joinanto dentro meshes, cambiando gli iD, bisogna usare la mappa.
+                            upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
+                                           Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id).Select(x => vertexIdMap[x]);
+
+                        }
+                        else
+                        {
+                            // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
+
+                            upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
+                                                            Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
+                        }
                     }
                 }
+
+
+                _volumeUpperLowerVerticesIds[i * 2 + 1] = (lowerVertices, upperVertices);
 
             }
             
 
             // Assegno mesh a wrapper
-            _meshes = meshes.ToList();
+            _meshes = meshes;
 
             // Creo e assegno mappa - meshcarichi,id al wrapper
 
@@ -285,11 +352,17 @@ namespace GPC.Checkers.Glasses.Wrappers
                 }
             }
 
+            _meshComputed = true;
             return true;
         }
 
-        #endregion
 
+        /// <param name="layerIndex">The index of the interlayer in a interlayerList. Not in the glassPackage</param>
+        /// <returns>upper and lower vertices Id of the interlayer</returns>
+        public (IEnumerable<int> lowerVertices, IEnumerable<int> upperVertices) GetLayerUpperLowerVerticesIds(int layerIndex)
+        {
+            return _volumeUpperLowerVerticesIds[layerIndex];
+        }
 
     }
 }
