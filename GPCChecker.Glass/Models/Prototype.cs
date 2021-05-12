@@ -106,6 +106,7 @@ namespace GPC.Checkers.Glasses.Models
         private readonly Standards _standard;
         private readonly SolverTypes _solverType;
         private readonly LaminatedAnalysisTypes _laminatedAnalysisType;
+        private readonly Geometry.Meshes.Mesh.GenerateOptions _meshOptions;
 
         // Proprietà vetro
         private readonly Glass _glass;
@@ -144,6 +145,8 @@ namespace GPC.Checkers.Glasses.Models
 
         public UniqueNameCollection<Combination> Combinations => _combinations;
 
+        public Geometry.Meshes.Mesh.GenerateOptions MeshOptions => _meshOptions;
+
         #endregion
 
         public Prototype(string name, Glass glass, Polygon3d polygon, List<IParametricRestrain> restrains, IEnumerable<Combination> combinations, Standards standard, 
@@ -166,6 +169,7 @@ namespace GPC.Checkers.Glasses.Models
 
             _combinations = new UniqueNameCollection<Combination>();
             _combinations.AddRange(combinations);
+            _meshOptions = new Geometry.Meshes.Mesh.GenerateOptions();
         }
 
 

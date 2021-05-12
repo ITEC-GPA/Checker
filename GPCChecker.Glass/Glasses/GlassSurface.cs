@@ -44,14 +44,14 @@ namespace GPC.Checkers.Glasses.Glasses
 
         #region Constructors
 
-        public GlassSurface(Prototype prototype, Shape shape, Mesh.GenerateOptions options) 
+        public GlassSurface(Prototype prototype, Shape shape) 
             : base(shape, Guid.NewGuid())
         {
             _prototype = prototype;
             _loads = new List<Load>();
             _parametricLoads = new List<IParametricLoad>();
             _restrains = new List<GeometryRestrain>();
-            _meshOptions = options;
+            _meshOptions = (Mesh.GenerateOptions)prototype.MeshOptions.Clone();
 
             Id = _maxId++;
         }

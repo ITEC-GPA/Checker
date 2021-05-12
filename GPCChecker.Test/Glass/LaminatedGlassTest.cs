@@ -47,17 +47,14 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
                 Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 40;
+            p1.MeshOptions.MeshSize = 40;
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
 
             model.AddSurface(gs1, base.GetTestName());
 
             model.PerformChecks();
-
         }
 
 
@@ -90,10 +87,8 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
                 Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 20;
-            meshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+            p1.MeshOptions.MeshSize = 20;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
             LoadCase lcSw = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
@@ -129,7 +124,7 @@ namespace GlassTests
             combo4.AddLoadCaseCoefficient(lcWp, 0.4);
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddLoad(nal1);
             gs1.AddLoad(nal2);
             gs1.AddLoad(nal3);
@@ -181,10 +176,8 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis,
                 Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 20;
-            meshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+            p1.MeshOptions.MeshSize = 20;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
             LoadCase lcSw = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
@@ -224,7 +217,7 @@ namespace GlassTests
             combo5.AddLoadCaseCoefficient(lcWp, 0.6);
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddLoad(nal1);
             gs1.AddLoad(nal2);
             gs1.AddLoad(nal3);
@@ -279,10 +272,8 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis,
                 Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 20;
-            meshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+            p1.MeshOptions.MeshSize = 20;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
             LoadCase lcSw = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
@@ -321,7 +312,7 @@ namespace GlassTests
             combo5.AddLoadCaseCoefficient(lcWp, 0.6);
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddLoad(nal1);
             gs1.AddLoad(nal2);
             gs1.AddLoad(nal3);
@@ -370,10 +361,8 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
                 Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 20;
-            meshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+            p1.MeshOptions.MeshSize = 20;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
             LoadCase lcSw = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
@@ -413,7 +402,7 @@ namespace GlassTests
             combo5.AddLoadCaseCoefficient(lcWp, 0.6);
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddLoad(nal1);
             gs1.AddLoad(nal2);
             gs1.AddLoad(nal3);
@@ -462,10 +451,8 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis,
                 Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 20;
-            meshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+            p1.MeshOptions.MeshSize = 20;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
             LoadCase lcSw = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
@@ -480,7 +467,6 @@ namespace GlassTests
                 lcWp,
                 lcLl
             };
-
 
             NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lcCSD);
             NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lcWp);
@@ -514,7 +500,7 @@ namespace GlassTests
             combo5.AddLoadCaseCoefficient(lcWp, 0.6);
 
             // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1, meshOptions);
+            GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddLoad(nal1);
             gs1.AddLoad(nal2);
             gs1.AddLoad(nal3);

@@ -82,7 +82,6 @@ namespace GPC.Checkers.Glasses.Models
         /// </summary>
         internal bool AddSurface(GlassSurface glassSurface, string femModelNameSuffix = "")
         {
-
             Checker checker;
             if (glassSurface.Prototype.Standard == Prototype.Standards.EN16612)
             {
@@ -231,7 +230,7 @@ namespace GPC.Checkers.Glasses.Models
 
 #endregion
 
-#region Private methods
+        #region Private methods
 
         /// <summary>
         /// This method merge the two list of combinations.
@@ -266,6 +265,6 @@ namespace GPC.Checkers.Glasses.Models
             return merge.ToList();
         }
 
-#endregion
+        #endregion
     }
 }

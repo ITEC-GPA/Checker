@@ -41,7 +41,7 @@ namespace GlassTests
             Prototype p = new Prototype("", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
                               Prototype.CheckMethods.ASTME1300, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
 
-            GlassSurface gs = new GlassSurface(p, s1, new Mesh.GenerateOptions());
+            GlassSurface gs = new GlassSurface(p, s1);
 
             LaminatedGlassWrapper lgw = new LaminatedGlassWrapper(gs, lg1);
 

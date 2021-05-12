@@ -57,7 +57,6 @@ namespace GPC.Checkers.Glasses.Checkers
         /// Set up the FemModel class.
         /// </summary>
 #if DEBUG
-
         public bool FemModelSetup(string folderPath, string femModelSuffix = "")
 #else
         public bool FemModelSetup(string folderPath)
@@ -109,8 +108,8 @@ namespace GPC.Checkers.Glasses.Checkers
                                               out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapExternal);
 
                 _femModel.AddProperty(pp);
-                _femModel.AddMesh(meshes.First(), pp.Name, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal,
-                                  wrapper.MeshGeometryRestrainVertices.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value); // Aggiunge i loadcase alla lista dei loadcase
+                _femModel.AddMesh(meshes.First(), pp.Name, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, 
+                    faceAreaLoadMeshEntityMapExternal, wrapper.MeshGeometryRestrainVertices.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value); // Aggiunge i loadcase alla lista dei loadcase
 
                 if (wrapper.ConsiderSelfWeight)
                 {
@@ -119,14 +118,14 @@ namespace GPC.Checkers.Glasses.Checkers
                 }
 
                 // TIPO DI ANALISI
-                if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.LinearStaticAnalysis)
+                if (_glassSurface.Prototype.AnalysisType == Prototype.AnalysisTypes.LinearStaticAnalysis)
                 {
                     // COMBINAZIONI LINEARI - NO STAGE
                     // STRAUS: LINEAR LOAD COMBINATION TABLE
                     _femModel.AnalysisType = (Model.FEM.FemModel.AnalysisTypes)_glassSurface.Prototype.AnalysisType;
                     _femModel.AddCombinations(_combinations);
                 }
-                else if (_glassSurface.Prototype.AnalysisType == Models.Prototype.AnalysisTypes.NonLinearStaticAnalysis)
+                else if (_glassSurface.Prototype.AnalysisType == Prototype.AnalysisTypes.NonLinearStaticAnalysis)
                 {
                     // COMBINAZIONI NON LINEARI - NO STAGE
                     // STRAUS: MONOSTAGE, INCREMENTI COME COMBINAZIONI NON LINEARI
