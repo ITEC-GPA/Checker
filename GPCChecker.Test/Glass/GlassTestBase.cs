@@ -158,7 +158,7 @@ namespace GlassTests
                 {
                     var version = FileVersionInfo.GetVersionInfo(filePath);
 
-                    Version minimumVersion = new Version(1, 0, 23, 3);
+                    Version minimumVersion = new Version(1, 0, 24, 0);
 
                     if (minimumVersion.CompareTo(new Version(version.FileVersion)) < 0)
                     {

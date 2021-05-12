@@ -263,7 +263,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                     throw new ArgumentException(); // In teoria non è possibile che vada in eccezione perchè i nomi delle proprietà sono uniche e quindi vengono sempre aggiunti
                             }
 
-                            var minProperty = properties.OrderBy(j => j.GetShearModule()).FirstOrDefault(); // Prendo la proprietà con i G minimo per ogni layer e la uso come proprietà iniziale
+                            var minProperty = properties.OrderBy(j => ((Model.FEM.Materials.OrthotropicFemMaterial)j.Material).G12).FirstOrDefault(); // Prendo la proprietà con i G minimo per ogni layer e la uso come proprietà iniziale
 
                             var indexes = _femModel.AddMesh(meshes[i], null, minProperty.Name, null, null, null, null,
                                                                             out Dictionary<int, int> nodesNewIndexMap,
@@ -602,26 +602,34 @@ namespace GPC.Checkers.Glasses.Checkers
             foreach (var loadCase in loadCases)
             {
                 // Il nome è la chiave della collection. Do un nome che indentifica univocamente la proprietà
-                properties.Add(new InterlayerBrickProperty(material, loadCase.Temperature, loadCase.LoadDuration,
-                                $"Interlayer_{previousPropertyCount + index} - Material: {material.Name}_{index++} G: {material.GetShearModule(loadCase.LoadDuration, loadCase.Temperature):F3} MPa"));
+                var mat = material.GetOrthotropicFemMaterial(loadCase.LoadDuration, loadCase.Temperature,
+                                                            FemOptions.Instance.InterlayerBrickElasticModulus,
+                                                            FemOptions.Instance.InterlayerBrickElasticModulus,
+                                                            FemOptions.Instance.InterlayerBrickElasticModulus,
+                                                            FemOptions.Instance.InterlayerPoissonValue,
+                                                            FemOptions.Instance.InterlayerPoissonValue,
+                                                            FemOptions.Instance.InterlayerPoissonValue);
+
+                properties.Add(new InterlayerBrickProperty(mat, loadCase.Temperature, loadCase.LoadDuration,
+                                $"Interlayer_{previousPropertyCount + index} - Material: {material.Name}_{index++}, G12: {mat.G12:F3} MPa, G23: {mat.G23:F3} MPa, G31: {mat.G31:F3} MPa"));
             }
 
             return properties;
         }
 
         /// <summary>
-        /// Add a <see cref="GPC.Model.FEM.Attributes.ModelAccelerationAttribute"/> for each loadcase of type <see cref="Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight"/> in the Combinations list
+        /// Add a <see cref="Model.FEM.Attributes.ModelAccelerationAttribute"/> for each loadcase of type <see cref="Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight"/> in the Combinations list
         /// </summary>
         /// <param name="femModel"></param>
         /// <param name="load"></param>
-        /// <inheritdoc cref="GPC.Model.FEM.FemModel.AddModelAcceleration(string)"/>
+        /// <inheritdoc cref="Model.FEM.FemModel.AddModelAcceleration(string)"/>
         private void ModelGravitySetUp(FemModelWrapper femModel, SelfWeightLoad load)
         {
             var accelerationModel = femModel.AddModelAcceleration(load.LoadCase.Name);
 
-            accelerationModel.CoordinateSystem = GPC.Geometry.CoordinateSystem.Global;
+            accelerationModel.CoordinateSystem = Geometry.CoordinateSystem.Global;
 
-            int gravityDirection = Math.Sign(load.GravityVector * GPC.Geometry.CoordinateSystem.Global.V1);
+            int gravityDirection = Math.Sign(load.GravityVector * Geometry.CoordinateSystem.Global.V1);
 
             switch (_options.GravityAxis)
             {

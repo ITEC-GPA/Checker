@@ -181,19 +181,19 @@ namespace GPC.Checkers.Glasses.FemModel
                 {
                     if (plate.Property is MonolithicGlassProperty mgp)
                     {
-                        if (mgp.Material is GlassMaterial gm)
-                        {
-                            double res = gm.GetGlassResistance(false, loadDuration);
+                        //if (mgp.Material is GlassMaterial gm)
+                        //{
+                        //    double res = gm.GetGlassResistance(false, loadDuration);
 
-                            double r = Math.Abs(resultPlateStress.S11) / res;
+                        //    double r = Math.Abs(resultPlateStress.S11) / res;
 
-                            if (r > ratio)
-                            {
-                                ratio = r;
-                                stressResistance = res;
-                                worstStress = resultPlateStress.S11;
-                            }
-                        }
+                        //    if (r > ratio)
+                        //    {
+                        //        ratio = r;
+                        //        stressResistance = res;
+                        //        worstStress = resultPlateStress.S11;
+                        //    }
+                        //}
 
                     }
                 }
@@ -878,20 +878,21 @@ namespace GPC.Checkers.Glasses.FemModel
 
                 if (property is MonolithicGlassProperty mgp)
                 {
-                    aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, mgp.Name);
+                    if (mgp.Material is Model.FEM.Materials.IsotropicFemMaterial iso)
+                    {
+                        aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, mgp.Name);
+                        aw.SetPlateIsotropicMaterial(mid, st7PropId, iso.E, iso.Ni, iso.Density, 0, 0, 0, 0, 0);
+                    }
+                    else if (mgp.Material is Model.FEM.Materials.OrthotropicFemMaterial orto)
+                    {
+                        aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeOrthotropic, mgp.Name);
+                        aw.SetPlateOrthotropicMaterial(mid, st7PropId, new[] { orto.E1, orto.E2, orto.E3, orto.G12, orto.G23, orto.G31, orto.Ni12, orto.Ni23, orto.Ni31, orto.Density, orto.Alpha1, orto.Alpha2, orto.Alpha3 });
+                    }
+                    else
+                        throw new NotImplementedException();
 
                     aw.SetPlateThickness(mid, st7PropId, new double[] { mgp.MembraneThickness, mgp.BendingThickness });
-
-                    aw.SetPlateIsotropicMaterial(mid, st7PropId, mgp.GetE(), mgp.GetNi(), mgp.GetDensity(), 0, 0, 0, 0, 0);
                 }
-                //else if (property is InterlayerPlateProperty inp)
-                //{
-                //    aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, inp.Name);
-
-                //    aw.SetPlateThickness(mid, st7PropId, new double[] { inp.MembraneThickness, inp.BendingThickness });
-
-                //    aw.SetPlateIsotropicMaterial(mid, st7PropId, inp.GetE(), inp.GetNi(), inp.GetDensity(), 0, 0, 0, 0, 0);
-                //}
                 else
                 {
                     throw new NotSupportedException($"Property type: {property} not supported");
@@ -917,18 +918,32 @@ namespace GPC.Checkers.Glasses.FemModel
                 
                 if (property is InterlayerBrickProperty inp)
                 {
-                    aw.NewBrickProperty(mid, st7PropId, St7ApiConst.kMaterialTypeIsotropic, inp.Name);
 
-                    double[] doubles = new double[8];
-                    doubles[0] = inp.GetE();
-                    doubles[1] = inp.GetNi();
-                    doubles[2] = inp.GetDensity();
-                    doubles[3] = inp.GetAlphaThermalExpansion();
-                    doubles[4] = 0;
-                    doubles[5] = 0;
-                    doubles[6] = 0;
-                    doubles[7] = 0;
-                    aw.SetBrickIsotropicMaterial(mid, st7PropId, doubles);
+                    if (inp.Material is Model.FEM.Materials.IsotropicFemMaterial iso)
+                    {
+                        aw.NewBrickProperty(mid, st7PropId, St7ApiConst.kMaterialTypeIsotropic, inp.Name);
+                        double[] doubles = new double[8];
+                        doubles[0] = iso.E;
+                        doubles[1] = iso.Ni;
+                        doubles[2] = iso.Density;
+                        doubles[3] = iso.Alpha;
+                        doubles[4] = 0;
+                        doubles[5] = 0;
+                        doubles[6] = 0;
+                        doubles[7] = 0;
+                        aw.SetBrickIsotropicMaterial(mid, st7PropId, doubles);
+                    }
+                    else if (inp.Material is Model.FEM.Materials.OrthotropicFemMaterial orto)
+                    {
+                        aw.NewBrickProperty(mid, st7PropId, St7ApiConst.kMaterialTypeOrthotropic, inp.Name);
+
+                        aw.SetBrickOrthotropicMaterial(mid, st7PropId, new[] { orto.E1, orto.E2, orto.E3, orto.G12, orto.G23, orto.G31, orto.Ni12, orto.Ni23, orto.Ni31, 
+                                                                               orto.Density, orto.Alpha1, orto.Alpha2, orto.Alpha3, 0, 0, 0, 0, 0, 0 });
+                    }
+                    else
+                        throw new NotImplementedException();
+
+
                 }
                 else
                 {
