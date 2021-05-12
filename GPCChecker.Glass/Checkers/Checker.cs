@@ -57,7 +57,6 @@ namespace GPC.Checkers.Glasses.Checkers
         /// Set up the FemModel class.
         /// </summary>
 #if DEBUG
-
         public bool FemModelSetup(string folderPath, string femModelSuffix = "")
 #else
         public bool FemModelSetup(string folderPath)
@@ -107,8 +106,8 @@ namespace GPC.Checkers.Glasses.Checkers
                                               out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapExternal);
 
                 _femModel.AddProperty(pp);
-                _femModel.AddMesh(meshes.First(), pp.Name, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal,
-                                  wrapper.MeshGeometryRestrainVertices.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value); // Aggiunge i loadcase alla lista dei loadcase
+                _femModel.AddMesh(meshes.First(), pp.Name, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, 
+                    faceAreaLoadMeshEntityMapExternal, wrapper.MeshGeometryRestrainVertices.Where(i => i.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value); // Aggiunge i loadcase alla lista dei loadcase
 
                 if (wrapper.ConsiderSelfWeight)
                 {

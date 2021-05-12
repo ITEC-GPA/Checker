@@ -88,7 +88,6 @@ namespace GPC.Checkers.Glasses.Models
         public bool AddSurface(GlassSurface glassSurface)
 #endif
         {
-
             Checker checker;
             if (glassSurface.Prototype.Standard == Prototype.Standards.EN16612)
             {
@@ -105,11 +104,10 @@ namespace GPC.Checkers.Glasses.Models
 
 #if DEBUG
             if (checker.FemModelSetup(_outputFolder, femModelNameSuffix))
-                glassSurface.Checker = checker;
 #else
             if (checker.FemModelSetup(_outputFolder))
-                glassSurface.Checker = checker;
 #endif
+                glassSurface.Checker = checker;
             else
                 return false;
 
