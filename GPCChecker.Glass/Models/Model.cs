@@ -28,11 +28,6 @@ namespace GPC.Checkers.Glasses.Models
 
         public IEnumerable<GlassSurface> GlassSurfaces => _glassSurfaces;
 
-        /// <summary>
-        /// List of Global combinations with unique name
-        /// </summary>
-        protected IEnumerable<Combination> Combinazions => _combinations;
-
         public ModelOptions Options => _options;
 
         public IEnumerable<Combination> Combinations => _combinations;
