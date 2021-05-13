@@ -1,4 +1,4 @@
-
+﻿
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -275,34 +275,57 @@ namespace GPC.Checkers.Glasses.FemModel
 
                 if (isOpened)
                 {
-                    switch (AnalysisType)
+                    if (_stages.Count > 0)
                     {
-                        case AnalysisTypes.Linear:
+                        switch (AnalysisType)
+                        {
+                            case AnalysisTypes.Linear:
+                            case AnalysisTypes.NonLinear:
 
-                            bool status = St7RunLinearSolver(aw, _st7FilePath);
+                                bool status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
 
-                            if (!status)
-                                throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+                                if (!status)
+                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
 
-                            _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "LSA");
+                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "NLA");
 
-                            break;
+                                break;
 
-                        case AnalysisTypes.NonLinear:
-
-                            status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
-
-                            if (!status)
-                                throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
-
-                            _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "NLA");
-
-                            break;
-
-                        default:
-                            throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
+                            default:
+                                throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
+                        }
                     }
+                    else
+                    {
+                        switch (AnalysisType)
+                        {
+                            case AnalysisTypes.Linear:
 
+                                bool status = St7RunLinearSolver(aw, _st7FilePath);
+
+                                if (!status)
+                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+
+                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "LSA");
+
+                                break;
+
+                            case AnalysisTypes.NonLinear:
+
+                                status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
+                                
+                                if (!status)
+                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+
+                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "NLA");
+
+                                break;
+
+                            default:
+                                throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
+                        }
+                    }
+                    
                     aw.CloseFile(mid);
                 }
             }
@@ -714,7 +737,6 @@ namespace GPC.Checkers.Glasses.FemModel
 
                     aw.SetElementConnection(mid, St7ApiConst.tyBRICK, st7BrickIndex, propNum, st7ConnectivityArray);
                     aw.SetEntityGroup(mid, St7ApiConst.tyBRICK, st7BrickIndex, glassGroupId);
-
                 }
 
             }
