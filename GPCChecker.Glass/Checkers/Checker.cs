@@ -393,7 +393,6 @@ namespace GPC.Checkers.Glasses.Checkers
 
                             if (longTermLoadCasesFiltered.Count() > 0)
                             {
-                                //(IGlassLoadCase loadCase, double coefficient)[] longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered);
                                 var longTermLoadCaseCoefficients = firstCombo.GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered).Select(i => ((MMLoadCaseBase loadCase, double coefficient))i).ToArray();
 
                                 List<Combination> matchedCombinations = combinationsToProcess.Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo
@@ -463,7 +462,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                 {
                                     var clone = (Combination)combo.Clone();
                                     clone.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
-                                    if (clone.GetLoadCases().Count() > 0) // TODO: cambiare in LoadCaseCount
+                                    if (clone.LoadCaseCount) > 0)
                                     {
                                         stCombinations.Add(clone);
                                     }
