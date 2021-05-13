@@ -147,7 +147,7 @@ namespace GPC.Checkers.Glasses.FemModel
                 Model.FEM.Node node1 = nodes1[i];
                 Model.FEM.Node node2 = nodes2[i];
 
-                var a = AddCostrain(new Model.FEM.Costrains.RigidLink(node1, node2));
+                AddCostrain(new Model.FEM.Costrains.RigidLink(node1, node2));
             }
 
         }
@@ -1217,13 +1217,10 @@ namespace GPC.Checkers.Glasses.FemModel
 
         private bool St7RunNonLinearStagedSolver(ISt7ApiService aw, int mid, string filePath)
         {
-            //var c = Assembly.GetExecutingAssembly().GetName().Name;
-            //var b = AppDomain.CurrentDomain.GetAssemblies();
 
             Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.StartsWith(Assembly.GetExecutingAssembly().GetName().Name)).First();
             string directory = Path.GetDirectoryName(assembly.Location);
 
-            //string resultExtension = "nla";
             ProcessStartInfo pInfo = new ProcessStartInfo
             {
                 FileName = Path.Combine(directory, "St7Solver.exe"),
@@ -1237,16 +1234,12 @@ namespace GPC.Checkers.Glasses.FemModel
                 try
                 {
                     Process p = Process.Start(pInfo);
-
+                    
                     p.WaitForExit(); // Wait for the process to end.
-
+                    
                     if (p.ExitCode == 0) // Analysis terminated with success
                     {
-                        //string resultPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + "." + resultExtension);
-
                         return true;
-                        //bool status = St7ReadResults(aw, mid, resultPath);
-                        //return status;
                     }
                     else
                     {
@@ -1265,8 +1258,6 @@ namespace GPC.Checkers.Glasses.FemModel
                 {
                     throw e;
                 }
-
-
             }
         }
 
