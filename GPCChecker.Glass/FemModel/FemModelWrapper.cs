@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -931,7 +931,11 @@ namespace GPC.Checkers.Glasses.FemModel
                         doubles[5] = 0;
                         doubles[6] = 0;
                         doubles[7] = 0;
+
                         aw.SetBrickIsotropicMaterial(mid, st7PropId, doubles);
+
+                        if (!ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction)
+                            aw.SetBrickAddBubbleFunction(mid, st7PropId, false);
                     }
                     else if (inp.Material is Model.FEM.Materials.OrthotropicFemMaterial orto)
                     {
@@ -939,6 +943,9 @@ namespace GPC.Checkers.Glasses.FemModel
 
                         aw.SetBrickOrthotropicMaterial(mid, st7PropId, new[] { orto.E1, orto.E2, orto.E3, orto.G12, orto.G23, orto.G31, orto.Ni12, orto.Ni23, orto.Ni31, 
                                                                                orto.Density, orto.Alpha1, orto.Alpha2, orto.Alpha3, 0, 0, 0, 0, 0, 0 });
+
+                        if (!ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction)
+                            aw.SetBrickAddBubbleFunction(mid, st7PropId, false);
                     }
                     else
                         throw new NotImplementedException();

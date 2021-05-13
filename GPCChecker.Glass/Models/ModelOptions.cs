@@ -25,6 +25,8 @@ namespace GPC.Checkers.Glasses.Models
         /// </summary>
         public bool GravityPositiveAxis { get; set; }
 
+
+
         public ModelOptions()
         {
             GravityAxis = GravityAxes.Z;
