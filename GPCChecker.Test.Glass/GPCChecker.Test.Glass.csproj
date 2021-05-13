@@ -53,8 +53,8 @@
     <Reference Include="GPCTestUtilities, Version=1.0.0.6, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.6\lib\net472\GPCTestUtilities.dll</HintPath>
     </Reference>
-    <Reference Include="GPCUtilities, Version=1.0.26.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCUtilities.1.0.26\lib\net472\GPCUtilities.dll</HintPath>
+    <Reference Include="GPCUtilities, Version=1.0.26.1, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCUtilities.1.0.26.1\lib\net472\GPCUtilities.dll</HintPath>
     </Reference>
     <Reference Include="MathNet.Numerics, Version=4.15.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.4.15.0\lib\net461\MathNet.Numerics.dll</HintPath>
@@ -108,11 +108,11 @@
   <Import Project="..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets" Condition="Exists('..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets')" />
   <PropertyGroup>
     <PostBuildEvent>If "$(ConfigurationName)"=="Debug" (
-        Echo Copying Libraries debug version
+        Echo Copying St7Solver debug version
          Copy "..\..\..\..\..\Libs\St7Solver\bin\Debug\St7Solver.exe" "$(TargetDir)"
 )
 If "$(ConfigurationName)"=="Release" (
-      Echo Copying Libraries release version
+      Echo Copying St7Solver release version
        Copy "..\..\..\..\..\Libs\St7Solver\bin\Release\St7Solver.exe" "$(TargetDir)"
 )
 </PostBuildEvent>
