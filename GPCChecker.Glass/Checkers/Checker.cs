@@ -462,7 +462,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                 {
                                     var clone = (Combination)combo.Clone();
                                     clone.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
-                                    if (clone.LoadCaseCount) > 0)
+                                    if (clone.LoadCaseCount > 0)
                                     {
                                         stCombinations.Add(clone);
                                     }

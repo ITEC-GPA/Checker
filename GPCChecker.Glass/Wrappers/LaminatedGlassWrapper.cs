@@ -253,10 +253,6 @@ namespace GPC.Checkers.Glasses.Wrappers
                         // primo strato di brick
                         if (vertexIdMap == null)
                         {
-
-                            var a = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
-                                                            Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
-
                             lowerVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
                                                             Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
                         }
@@ -271,7 +267,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                         // primo strato di brick
                         if (vertexIdMap != null)
                         {
-                            // il join mesh ha presto volumeMesh e joinanto dentro meshes, cambiando gli iD, bisogna usare la mappa.
+                            // il join mesh ha preso volumeMesh e joinanto dentro meshes, cambiando gli iD, bisogna usare la mappa.
                             upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
                                            Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id).Select(x => vertexIdMap[x]);
 
