@@ -282,7 +282,13 @@ namespace GPC.Checkers.Glasses.FemModel
                             case AnalysisTypes.Linear:
                             case AnalysisTypes.NonLinear:
 
-                                bool status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
+                                bool status = aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
+
+                                if (status)
+                                    status = aw.SaveFile(mid);
+
+                                if (status)
+                                    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
 
                                 if (!status)
                                     throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
@@ -312,8 +318,15 @@ namespace GPC.Checkers.Glasses.FemModel
 
                             case AnalysisTypes.NonLinear:
 
-                                status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
-                                
+                                status = aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
+
+                                if (status)
+                                    status = aw.SaveFile(mid);
+
+                                if (status)
+                                    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
+
+
                                 if (!status)
                                     throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
 
