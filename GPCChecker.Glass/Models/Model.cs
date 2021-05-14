@@ -193,8 +193,8 @@ namespace GPC.Checkers.Glasses.Models
 
             //foreach (var checker in _checkers)
             //    results.Add(checker.GetPlateCombinationsResults());
-            foreach (var surface in _glassSurfaces)
-                results.Add(surface.Checker.GetPlateCombinationsResults());
+            //foreach (var surface in _glassSurfaces)
+            //    results.Add(surface.Checker.GetPlateCombinationsResults());
 
             return results;
         }
@@ -207,8 +207,8 @@ namespace GPC.Checkers.Glasses.Models
 
             //foreach (var checker in _checkers)
             //    results.Add(checker.GetNodeDisplacementCombinationResults());
-            foreach (var surface in _glassSurfaces)
-                results.Add(surface.Checker.GetNodeDisplacementCombinationResults());
+            //foreach (var surface in _glassSurfaces)
+            //    results.Add(surface.Checker.GetNodeDisplacementCombinationResults());
 
             return results;
         }

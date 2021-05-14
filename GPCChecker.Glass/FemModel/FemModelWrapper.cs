@@ -35,6 +35,8 @@ namespace GPC.Checkers.Glasses.FemModel
         private string _st7FilePath;
         private string _st7ResultFilePath;
 
+        private Prototype.SolverTypes _solverType;
+
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and St7ComboId in the Linear loadcase combination table  ;
         /// </summary>
@@ -107,6 +109,7 @@ namespace GPC.Checkers.Glasses.FemModel
             _st7BrickMap = new Dictionary<int, int>();
             _st7StageMap = new Dictionary<int, int>();
 
+            _solverType = Prototype.SolverTypes.GPCSolver;
         }
 
         public FemModelWrapper(SerializationInfo info, StreamingContext context) 
@@ -115,6 +118,19 @@ namespace GPC.Checkers.Glasses.FemModel
             throw new NotImplementedException();
         }
 
+        public override void Solve()
+        {
+            if (_solverType == Prototype.SolverTypes.Straus7)
+            {
+                var status = RunSt7Solver();
+
+                if (status)
+                    ReadSt7Result();
+            }
+            else
+                base.Solve();
+
+        }
 
         #region Public methods 
 
@@ -152,54 +168,53 @@ namespace GPC.Checkers.Glasses.FemModel
 
         }
 
-        #endregion
 
         #region RESULTS - public methods
 
 
         public GlassResult GetMaxWorkingRatio()
         {
-            double ratio = 0;
-            double stressResistance = 0;
-            double worstStress = 0;
-            foreach (var resultPlateStress in ResultPlateStresses)
-            {
-                double loadDuration = 0;
+            //double ratio = 0;
+            //double stressResistance = 0;
+            //double worstStress = 0;
+            //foreach (var resultPlateStress in ResultPlateStresses)
+            //{
+            //    double loadDuration = 0;
 
-                if (resultPlateStress.Case is LoadCase lc)
-                    loadDuration = lc.LoadDuration;
-                else if (resultPlateStress.Case is Combination cmb)
-                {
-                    var _ = cmb.GetLoadCaseCoefficients(out List<Model.LoadCases.LoadCaseBase> loadCases);
-                    var lcCasted = loadCases.Cast<LoadCase>().ToList();
-                    loadDuration = lcCasted.Select(i => i.LoadDuration).Min();
-                }
-                else
-                    throw new NotImplementedException();
+            //    if (resultPlateStress.Case is LoadCase lc)
+            //        loadDuration = lc.LoadDuration;
+            //    else if (resultPlateStress.Case is Combination cmb)
+            //    {
+            //        var _ = cmb.GetLoadCaseCoefficients(out List<Model.LoadCases.LoadCaseBase> loadCases);
+            //        var lcCasted = loadCases.Cast<LoadCase>().ToList();
+            //        loadDuration = lcCasted.Select(i => i.LoadDuration).Min();
+            //    }
+            //    else
+            //        throw new NotImplementedException();
 
-                if (resultPlateStress.Element is Plate plate)
-                {
-                    if (plate.Property is MonolithicGlassProperty mgp)
-                    {
-                        //if (mgp.Material is GlassMaterial gm)
-                        //{
-                        //    double res = gm.GetGlassResistance(false, loadDuration);
+            //    if (resultPlateStress.Element is Plate plate)
+            //    {
+            //        if (plate.Property is MonolithicGlassProperty mgp)
+            //        {
+            //            //if (mgp.Material is GlassMaterial gm)
+            //            //{
+            //            //    double res = gm.GetGlassResistance(false, loadDuration);
 
-                        //    double r = Math.Abs(resultPlateStress.S11) / res;
+            //            //    double r = Math.Abs(resultPlateStress.S11) / res;
 
-                        //    if (r > ratio)
-                        //    {
-                        //        ratio = r;
-                        //        stressResistance = res;
-                        //        worstStress = resultPlateStress.S11;
-                        //    }
-                        //}
+            //            //    if (r > ratio)
+            //            //    {
+            //            //        ratio = r;
+            //            //        stressResistance = res;
+            //            //        worstStress = resultPlateStress.S11;
+            //            //    }
+            //            //}
 
-                    }
-                }
-            }
+            //        }
+            //    }
+            //}
 
-            return new GlassResult(worstStress, stressResistance); ;
+            return new GlassResult(0, 0); ;
         }
 
         public void GetMaxDisplacement()
@@ -210,14 +225,19 @@ namespace GPC.Checkers.Glasses.FemModel
 
         #endregion
 
+
+
+        #endregion
+
+
+
+
         #region STRAUS7
 
 
         #region STRAUS7 - PUBLIC METHODS
 
-        /// <summary>
-        /// 
-        /// </summary>
+
         /// <param name="saveFolderPath">Folder path where to save the results</param>
         public void SaveFemModelToSt7(string saveFolderPath)
         {
@@ -230,6 +250,8 @@ namespace GPC.Checkers.Glasses.FemModel
 
             if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
             {
+                _solverType = Prototype.SolverTypes.Straus7; // setto il solutore in Straus7
+
                 int mid = 0;
                 bool closed = false;
                 try
@@ -263,289 +285,8 @@ namespace GPC.Checkers.Glasses.FemModel
                 ChannelServices.UnregisterChannel(channel);
         }
 
-        /// <remarks><see cref="SaveFemModelToSt7(string)"/> must be called before calling this method</remarks>
-        public void RunSt7Solver()
-        {
-
-            if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
-            {
-                int mid = 0;
-
-                bool isOpened = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
-
-                if (isOpened)
-                {
-                    if (_stages.Count > 0)
-                    {
-                        switch (AnalysisType)
-                        {
-                            case AnalysisTypes.Linear:
-                            case AnalysisTypes.NonLinear:
-
-                                bool status = aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
-
-                                if (status)
-                                    status = aw.SaveFile(mid);
-
-                                if (status)
-                                    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
-
-                                if (!status)
-                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
-
-                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "NLA");
-
-                                break;
-
-                            default:
-                                throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
-                        }
-                    }
-                    else
-                    {
-                        switch (AnalysisType)
-                        {
-                            case AnalysisTypes.Linear:
-
-                                bool status = St7RunLinearSolver(aw, _st7FilePath);
-
-                                if (!status)
-                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
-
-                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "LSA");
-
-                                break;
-
-                            case AnalysisTypes.NonLinear:
-
-                                status = aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
-
-                                if (status)
-                                    status = aw.SaveFile(mid);
-
-                                if (status)
-                                    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
-
-
-                                if (!status)
-                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
-
-                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "NLA");
-
-                                break;
-
-                            default:
-                                throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
-                        }
-                    }
-                    
-                    aw.CloseFile(mid);
-                }
-            }
-            else
-            {
-                throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
-            }
-
-            if (channel != null)
-                ChannelServices.UnregisterChannel(channel);
-
-        }
-        
-        public void ReadSt7Result()
-        {
-            if (File.Exists(_st7ResultFilePath))
-            {
-                if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
-                {
-                    int mid = 0;
-
-                    int numPrimary = 0;     // LoadCase o StageIncrement
-                    int numSecondary = 0;   // Combinazioni
-
-                    bool fileOpened = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
-
-                    bool resultFileOpened = false ;
-                    if (fileOpened)
-                        resultFileOpened = aw.OpenResultFile(mid, _st7ResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
-                    
-                    if (fileOpened && resultFileOpened)
-                    {
-                        try
-                        {
-                            foreach (var combination in _combinations)
-                            {
-                                int comboId = -1;
-
-                                if (AnalysisType == AnalysisTypes.Linear)
-                                {
-                                    comboId = _st7LSACombinationMap[combination] + numPrimary;
-                                }
-                                else if (AnalysisType == AnalysisTypes.NonLinear)
-                                {
-                                    comboId = _st7NLACombinationMap[combination];
-                                }
-                                else
-                                    throw new NotImplementedException();
-
-
-                                foreach (var element in _elements)
-                                {
-                                    if (element is Plate plate)
-                                    {
-                                        // LETTURA STRESS PLATE
-                                        int numPoints = 0; // punti in cui straus da i risultati
-                                        int numColumns = 0; // numero di risultati per punto
-
-                                        double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
-                                        double[] angles = new double[9];
-                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
-                                                               comboId, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
-
-                                        aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
-
-                                        for (int np = 0; np < numPoints; np++)
-                                        {
-                                            for (int nc = 0; nc < numColumns; nc++)
-                                            {
-                                                _resultPlateStress.Add(
-                                                    new ResultPlateStress(plate, combination,
-                                                    new ResultStressPoint(np),
-                                                    new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
-                                                    plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]));
-
-                                                _resultPlateStress.Last().GetPrincipalStress(out _, out _); // uso metodo approssimato
-                                            }
-                                        }
-                                    }
-                                }
-
-                                foreach (var node in _nodes)
-                                {
-                                    double[] nodeResult = new double[6];
-                                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], comboId, ref nodeResult);
-                                    _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
-                                }
-
-                            }
-                        }
-                        finally
-                        {
-                            if (resultFileOpened)
-                                aw.CloseResultFile(mid);
-                            if (fileOpened)
-                                aw.CloseFile(mid);
-                        }
-                    }
-
-
-                    if (!fileOpened || !resultFileOpened)
-                        throw new Straus7Exception(aw.GetLastErrorString());
-                }
-                else
-                {
-                    throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
-                }
-
-                if (channel != null)
-                    ChannelServices.UnregisterChannel(channel);
-            }
-            else
-                throw new FileNotFoundException(_st7ResultFilePath);
-        }
-
-        public void ReadSt7LinearCombinationResults()
-        {
-            if (File.Exists(_st7ResultFilePath))
-            {
-                if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
-                {
-                    int mid = 0;
-
-                    int numPrimary = 0;     // LoadCase
-                    int numSecondary = 0;   // Combinazioni
-
-                    bool status = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
-
-                    if (status)
-                        status = aw.OpenResultFile(mid, _st7ResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
-
-                    if (status)
-                    {
-                        foreach (var combination in _combinations)
-                        {
-                            if (_st7LSACombinationMap.ContainsKey(combination))
-                            {
-                                int comboId = _st7LSACombinationMap[combination];
-
-                                foreach (var element in _elements)
-                                {
-                                    if (element is Plate plate)
-                                    {
-
-                                        // LETTURA STRESS PLATE
-                                        int numPoints = 0; // punti in cui straus da i risultati
-                                        int numColumns = 0; // numero di risultati per punto
-
-                                        double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
-                                        double[] angles = new double[9];
-                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
-                                                               comboId + numPrimary, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
-
-                                        aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
-
-                                        for (int np = 0; np < numPoints; np++)
-                                        {
-                                            for (int nc = 0; nc < numColumns; nc++)
-                                            {
-                                                _resultPlateStress.Add(
-                                                    new ResultPlateStress(plate, combination,
-                                                    new ResultStressPoint(np),
-                                                    new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
-                                                    plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]));
-
-                                                _resultPlateStress.Last().GetPrincipalStress(out _, out _); // uso metodo approssimato
-                                            }
-                                        }
-                                    }
-                                }
-
-                                foreach (var node in _nodes)
-                                {
-                                    double[] nodeResult = new double[6];
-                                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], comboId + numPrimary, ref nodeResult);
-                                    _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
-                                }
-
-
-                            }
-
-                        }
-
-                        aw.CloseResultFile(mid);
-                        aw.CloseFile(mid);
-                    }
-                    else
-                        aw.CloseFile(mid);
-
-
-                    if (!status)
-                        throw new Straus7Exception(aw.GetLastErrorString());
-                }
-                else
-                {
-                    throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
-                }
-
-                if (channel != null)
-                    ChannelServices.UnregisterChannel(channel);
-            }
-            else
-                throw new FileNotFoundException(_st7ResultFilePath);
-
-        }
-        
         #endregion
+
 
         #region STRAUS7 - PRIVATE METHODS
 
@@ -813,6 +554,294 @@ namespace GPC.Checkers.Glasses.FemModel
 
 
             return true;
+        }
+
+
+        /// <remarks><see cref="SaveFemModelToSt7(string)"/> must be called before calling this method</remarks>
+        private bool RunSt7Solver()
+        {
+
+            if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
+            {
+                int mid = 0;
+
+                bool isOpened = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
+
+                if (isOpened)
+                {
+                    if (_stages.Count > 0)
+                    {
+                        switch (AnalysisType)
+                        {
+                            case AnalysisTypes.Linear:
+                            case AnalysisTypes.NonLinear:
+
+                                bool status = aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
+
+                                if (status)
+                                    status = aw.SaveFile(mid);
+
+                                if (status)
+                                    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
+
+                                if (!status)
+                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+
+                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "NLA");
+
+                                break;
+
+                            default:
+                                throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
+                        }
+                    }
+                    else
+                    {
+                        switch (AnalysisType)
+                        {
+                            case AnalysisTypes.Linear:
+
+                                bool status = St7RunLinearSolver(aw, _st7FilePath);
+
+                                if (!status)
+                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+
+                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "LSA");
+
+                                break;
+
+                            case AnalysisTypes.NonLinear:
+
+                                status = aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
+
+                                if (status)
+                                    status = aw.SaveFile(mid);
+
+                                if (status)
+                                    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
+
+
+                                if (!status)
+                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+
+                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "NLA");
+
+                                break;
+
+                            default:
+                                throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
+                        }
+                    }
+
+                    aw.CloseFile(mid);
+                }
+            }
+            else
+            {
+                throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
+            }
+
+            if (channel != null)
+            {
+                ChannelServices.UnregisterChannel(channel);
+                return true;
+            }
+
+            return false;
+        }
+
+        private void ReadSt7Result()
+        {
+            if (File.Exists(_st7ResultFilePath))
+            {
+                if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
+                {
+                    int mid = 0;
+
+                    int numPrimary = 0;     // LoadCase o StageIncrement
+                    int numSecondary = 0;   // Combinazioni
+
+                    bool fileOpened = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
+
+                    bool resultFileOpened = false;
+                    if (fileOpened)
+                        resultFileOpened = aw.OpenResultFile(mid, _st7ResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
+
+                    if (fileOpened && resultFileOpened)
+                    {
+                        try
+                        {
+                            foreach (var combination in _combinations)
+                            {
+                                int comboId = -1;
+
+                                if (AnalysisType == AnalysisTypes.Linear)
+                                {
+                                    comboId = _st7LSACombinationMap[combination] + numPrimary;
+                                }
+                                else if (AnalysisType == AnalysisTypes.NonLinear)
+                                {
+                                    comboId = _st7NLACombinationMap[combination];
+                                }
+                                else
+                                    throw new NotImplementedException();
+
+
+                                foreach (var element in _elements)
+                                {
+
+                                    // LETTURA STRESS PLATE
+                                    if (element is Plate plate)
+                                    {
+                                        int numPoints = 0; // punti in cui straus da i risultati
+                                        int numColumns = 0; // numero di risultati per punto
+
+                                        double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
+                                        double[] angles = new double[9];
+                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
+                                                               comboId, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
+
+                                        aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
+
+                                        for (int np = 0; np < numPoints; np++)
+                                        {
+                                            for (int nc = 0; nc < numColumns; nc++)
+                                            {
+                                                ResultPlateStress rps = new ResultPlateStress(plate, combination,
+                                                                        new ResultStressPoint(np),
+                                                                        new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
+                                                                        plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]);
+
+                                                rps.CalculatePrincipalStressSimplifiedMethod();
+                                                _resultPlateStress.Add(rps);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                foreach (var node in _nodes)
+                                {
+                                    double[] nodeResult = new double[6];
+                                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], comboId, ref nodeResult);
+                                    _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
+                                }
+
+                            }
+                        }
+                        finally
+                        {
+                            if (resultFileOpened)
+                                aw.CloseResultFile(mid);
+                            if (fileOpened)
+                                aw.CloseFile(mid);
+                        }
+                    }
+
+
+                    if (!fileOpened || !resultFileOpened)
+                        throw new Straus7Exception(aw.GetLastErrorString());
+                }
+                else
+                {
+                    throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
+                }
+
+                if (channel != null)
+                    ChannelServices.UnregisterChannel(channel);
+            }
+            else
+                throw new FileNotFoundException(_st7ResultFilePath);
+        }
+
+        private void ReadSt7LinearCombinationResults()
+        {
+            if (File.Exists(_st7ResultFilePath))
+            {
+                if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
+                {
+                    int mid = 0;
+
+                    int numPrimary = 0;     // LoadCase
+                    int numSecondary = 0;   // Combinazioni
+
+                    bool status = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
+
+                    if (status)
+                        status = aw.OpenResultFile(mid, _st7ResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
+
+                    if (status)
+                    {
+                        foreach (var combination in _combinations)
+                        {
+                            if (_st7LSACombinationMap.ContainsKey(combination))
+                            {
+                                int comboId = _st7LSACombinationMap[combination];
+
+                                foreach (var element in _elements)
+                                {
+                                    if (element is Plate plate)
+                                    {
+
+                                        // LETTURA STRESS PLATE
+                                        int numPoints = 0; // punti in cui straus da i risultati
+                                        int numColumns = 0; // numero di risultati per punto
+
+                                        double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
+                                        double[] angles = new double[9];
+                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
+                                                               comboId + numPrimary, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
+
+                                        aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
+
+                                        for (int np = 0; np < numPoints; np++)
+                                        {
+                                            for (int nc = 0; nc < numColumns; nc++)
+                                            {
+                                                ResultPlateStress rps = new ResultPlateStress(plate, combination,
+                                                                        new ResultStressPoint(np),
+                                                                        new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
+                                                                        plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]);
+
+                                                rps.CalculatePrincipalStressSimplifiedMethod();
+                                                _resultPlateStress.Add(rps);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                foreach (var node in _nodes)
+                                {
+                                    double[] nodeResult = new double[6];
+                                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], comboId + numPrimary, ref nodeResult);
+                                    _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
+                                }
+
+
+                            }
+
+                        }
+
+                        aw.CloseResultFile(mid);
+                        aw.CloseFile(mid);
+                    }
+                    else
+                        aw.CloseFile(mid);
+
+
+                    if (!status)
+                        throw new Straus7Exception(aw.GetLastErrorString());
+                }
+                else
+                {
+                    throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
+                }
+
+                if (channel != null)
+                    ChannelServices.UnregisterChannel(channel);
+            }
+            else
+                throw new FileNotFoundException(_st7ResultFilePath);
+
         }
 
 

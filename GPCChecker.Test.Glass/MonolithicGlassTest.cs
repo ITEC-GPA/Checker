@@ -86,13 +86,12 @@ namespace GlassTests
             Assert.IsTrue(deflectionResults[0].Count > 0);
 
             ResultPlateStress worstPlateResult = null;
-            foreach (var comboResult in stressResults.First())
+            foreach (ResultPlateStress comboResult in stressResults.First())
             {
-                comboResult.GetPrincipalStress(out double s11, out double s22);
 
                 if (worstPlateResult is null)
                     worstPlateResult = comboResult;
-                else if (s11 > worstPlateResult.S11)
+                else if (comboResult.S11 > worstPlateResult.S11)
                     worstPlateResult = comboResult;
             }
 
@@ -109,11 +108,11 @@ namespace GlassTests
 
             Console.WriteLine($"STRESS");
             Console.WriteLine($"\t Stress11: {worstPlateResult.S11}, stress22: {worstPlateResult.S22}, stress33: {worstPlateResult.S33}");
-            Console.WriteLine($"\t Id: {worstPlateResult.Element.Id} Point: {(worstPlateResult.ResultPoint as ResultStressPoint).Location} Node0 Id: {worstPlateResult.Element.Nodes[0].Position}");
+            Console.WriteLine($"\t Id: {worstPlateResult.Element.Id} Point: {(worstPlateResult.ResultPoint as ResultStressPoint).Location} Node0 Id: {worstPlateResult.GetPlate().Nodes[0].Position}");
 
             Console.WriteLine($"DEFLECTION");
             Console.WriteLine($"\t WorstDeflection: {worstNodeDisplacement.GetResultingDisplacement()}");
-            Console.WriteLine($"\t Id: {worstNodeDisplacement.Element.Id} Point: {worstNodeDisplacement.Element.Position} D1: {worstNodeDisplacement.D1} D2: {worstNodeDisplacement.D2} D3: {worstNodeDisplacement.D3} ");
+            Console.WriteLine($"\t Id: {worstNodeDisplacement.Element.Id} Point: {worstNodeDisplacement.GetNode().Position} D1: {worstNodeDisplacement.D1} D2: {worstNodeDisplacement.D2} D3: {worstNodeDisplacement.D3} ");
 
             Assert.AreEqual(28.71, worstPlateResult.S11, 1);
             Assert.AreEqual(5.78, worstNodeDisplacement.D3, 0.2);
@@ -197,20 +196,17 @@ namespace GlassTests
             ResultPlateStress worstPlateResult2 = null;
             foreach (var comboResult in stressResults.First())
             {
-                comboResult.GetPrincipalStress(out double s11, out double s22);
-
                 if (worstPlateResult1 is null)
                     worstPlateResult1 = comboResult;
-                else if (s11 > worstPlateResult1.S11)
+                else if (comboResult.S11 > worstPlateResult1.S11)
                     worstPlateResult1 = comboResult;
             }
             foreach (var comboResult in stressResults.First())
             {
-                comboResult.GetPrincipalStress(out double s11, out double s22);
 
                 if (worstPlateResult2 is null)
                     worstPlateResult2 = comboResult;
-                else if (s11 > worstPlateResult2.S11)
+                else if (comboResult.S11 > worstPlateResult2.S11)
                     worstPlateResult2 = comboResult;
             }
 
@@ -237,11 +233,11 @@ namespace GlassTests
 
             Console.WriteLine($"STRESS");
             Console.WriteLine($"\t Stress11: {worstPlateResult1.S11}, stress22: {worstPlateResult1.S22}, stress33: {worstPlateResult1.S33}");
-            Console.WriteLine($"\t Id: {worstPlateResult1.Element.Id} Point: {(worstPlateResult1.ResultPoint as ResultStressPoint).Location} Node0 Id: {worstPlateResult1.Element.Nodes[0].Position}");
+            Console.WriteLine($"\t Id: {worstPlateResult1.Element.Id} Point: {(worstPlateResult1.ResultPoint as ResultStressPoint).Location} Node0 Id: {worstPlateResult1.GetPlate().Nodes[0].Position}");
 
             Console.WriteLine($"DEFLECTION");
             Console.WriteLine($"\t WorstDeflection: {worstNodeDisplacement1.GetResultingDisplacement()}");
-            Console.WriteLine($"\t Id: {worstNodeDisplacement1.Element.Id} Point: {worstNodeDisplacement1.Element.Position} D1: {worstNodeDisplacement1.D1} D2: {worstNodeDisplacement1.D2} D3: {worstNodeDisplacement1.D3} ");
+            Console.WriteLine($"\t Id: {worstNodeDisplacement1.Element.Id} Point: {worstNodeDisplacement1.GetNode().Position} D1: {worstNodeDisplacement1.D1} D2: {worstNodeDisplacement1.D2} D3: {worstNodeDisplacement1.D3} ");
 
             Assert.AreEqual(28.71, worstPlateResult1.S11, 1);
             Assert.AreEqual(5.78, worstNodeDisplacement1.D3, 0.2);
@@ -320,11 +316,10 @@ namespace GlassTests
             ResultPlateStress worstPlateResult = null;
             foreach (var comboResult in stressResults.First())
             {
-                comboResult.GetPrincipalStress(out double s11, out double s22);
 
                 if (worstPlateResult is null)
                     worstPlateResult = comboResult;
-                else if (s11 > worstPlateResult.S11)
+                else if (comboResult.S11 > worstPlateResult.S11)
                     worstPlateResult = comboResult;
             }
 
@@ -341,11 +336,11 @@ namespace GlassTests
 
             Console.WriteLine($"STRESS");
             Console.WriteLine($"\t Stress11: {worstPlateResult.S11}, stress22: {worstPlateResult.S22}, stress33: {worstPlateResult.S33}");
-            Console.WriteLine($"\t Id: {worstPlateResult.Element.Id} Point: {(worstPlateResult.ResultPoint as ResultStressPoint).Location} Node0 Id: {worstPlateResult.Element.Nodes[0].Position}");
+            Console.WriteLine($"\t Id: {worstPlateResult.Element.Id} Point: {(worstPlateResult.ResultPoint as ResultStressPoint).Location} Node0 Id: {worstPlateResult.GetPlate().Nodes[0].Position}");
 
             Console.WriteLine($"DEFLECTION");
             Console.WriteLine($"\t WorstDeflection: {worstNodeDisplacement.GetResultingDisplacement()}");
-            Console.WriteLine($"\t Id: {worstNodeDisplacement.Element.Id} Point: {worstNodeDisplacement.Element.Position} D1: {worstNodeDisplacement.D1} D2: {worstNodeDisplacement.D2} D3: {worstNodeDisplacement.D3} ");
+            Console.WriteLine($"\t Id: {worstNodeDisplacement.Element.Id} Point: {worstNodeDisplacement.GetNode().Position} D1: {worstNodeDisplacement.D1} D2: {worstNodeDisplacement.D2} D3: {worstNodeDisplacement.D3} ");
 
             Assert.AreEqual(26.04, worstPlateResult.S11, 1);
             Assert.AreEqual(4.16, worstNodeDisplacement.D3, 0.2);
