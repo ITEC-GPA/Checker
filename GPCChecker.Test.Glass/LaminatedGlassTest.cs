@@ -341,7 +341,7 @@ namespace GlassTests
         [TestMethod]
         [TestCategory("Linear")]
         [TestCategory("MissingAssert")]
-        [TestCategory("Layer:2")]
+        [TestCategory("Layers: 2")]
         public void LaminatedGlass5()
         {
             RunApiServer();
