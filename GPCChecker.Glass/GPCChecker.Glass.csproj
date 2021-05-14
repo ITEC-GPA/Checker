@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -42,11 +42,11 @@
     <Reference Include="GMsh.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GMsh.Net.1.0.0.1\lib\net472\GMsh.Net.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=1.0.8.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCGeometry.1.0.8\lib\net472\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=1.0.8.2, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCGeometry.1.0.8.2\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.0.13.12, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.0.13.12\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.0.13.13, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.0.13.13\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCUtilities, Version=1.0.26.1, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCUtilities.1.0.26.1\lib\net472\GPCUtilities.dll</HintPath>
