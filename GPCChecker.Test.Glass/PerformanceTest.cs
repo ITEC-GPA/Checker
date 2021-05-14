@@ -3,6 +3,10 @@ using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Restrain;
 using GPC.Geometry;
+using GPC.Geometry.Meshes;
+using GPC.Model.Combinations;
+using GPC.Model.FEM;
+using GPC.Model.FreedomCases;
 using GPC.Model.Glasses;
 using GPC.Model.Loads;
 using GPC.Model.Materials;
@@ -17,7 +21,7 @@ using System.Linq;
 namespace GlassTests
 {
     [TestClass]
-    public class PerformanceTest
+    public class PerformanceTest : GlassTestBase
     {
         [TestMethod]
         public void Monolithic()
@@ -33,8 +37,8 @@ namespace GlassTests
                 new Point2d(-56.57, 56.57)
             };
             List<IParametricRestrain> restraints = new List<IParametricRestrain>();
-            Prototype prototype = new Prototype("Prototype M1", mg1, polygon, restraints, null, Prototype.Standards.ASTME1300, 
-                Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.ASTME1300, Prototype.LaminatedEqThicknessMethods.ASTME1300, 
+            Prototype prototype = new Prototype("Prototype M1", mg1, polygon, restraints, null, Prototype.Standards.ASTME1300,
+                Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.ASTME1300, Prototype.LaminatedEqThicknessMethods.ASTME1300,
                 Prototype.SolverTypes.GPCSolver, Prototype.LaminatedAnalysisTypes.EquivalentThickness);
             prototype.MeshOptions.MeshSize = 40;
             prototype.MeshOptions.Algorithm = GPC.Geometry.Meshes.Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -88,10 +92,75 @@ namespace GlassTests
             Assert.IsTrue(stopWatch.ElapsedMilliseconds < 1500, "Too slow");
         }
 
+
+        [TestMethod]
+        public void Monolithic2()
+        {
+            /// Tempo per ogni iterazione
+            /// 2021/05/13: 0.29 secondi
+            
+            Action action = new Action(() =>
+            {
+                Model model = new Model(base.GetOutputFolder());
+
+                // Shape
+                Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
+
+                List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
+                parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX, true) })));
+
+                List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
+                geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
+
+                MonolithicGlass mg = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
+
+                // Prototype
+                Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
+                                                                        Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.GPCSolver, Prototype.LaminatedAnalysisTypes.MultiElement);
+                p1.MeshOptions.MeshSize = 40;
+
+                // Surface
+                GlassSurface gs1 = new GlassSurface(p1, s1);
+                gs1.AddRestrains(geometryRestrains1);
+
+                // LoadCases
+                LoadCase lc1 = new LoadCase("LC1", 100, 20, LoadCase.LoadCaseTypes.LiveLoad);
+                LoadCase lc2 = new LoadCase("LC2", 5, 20, LoadCase.LoadCaseTypes.WindPressure);
+
+                // Loads
+                AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
+                LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 600, 0), new Point3d(800, 600, 0)), lc2);
+
+                gs1.AddLoad(s1ll);
+                gs1.AddLoad(s1GalLc1);
+
+                // Combination
+                Combination cmb1 = new Combination("CMB1");
+                cmb1[lc1] = 1.5;
+                cmb1[lc2] = 2.5;
+
+                Combination cmb2 = new Combination("CMB2");
+                cmb2[lc1] = 1.2;
+                cmb2[lc2] = 1.5;
+                cmb2[lc2] = 0.5;
+
+                model.AddCombination(cmb1);
+                model.AddCombination(cmb2);
+
+                model.AddSurface(gs1, base.GetTestName());
+            });
+
+            var timeSpan = TimeSpan.FromMilliseconds(GPC.Utilities.Time.MeasureTime.FunctionExecutionTime(2, action, true));
+
+            Console.WriteLine($"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
+            Assert.IsTrue(timeSpan.TotalSeconds < 1, $"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
+        }
+
+
         [TestMethod]
         public void Laminated()
         {
-            GlassMaterialAstm gm1 = new GlassMaterialAstm("Glass 1", 70000, 0.23, 1, 16, 23.3, 18.3, 0.001, 
+            GlassMaterialAstm gm1 = new GlassMaterialAstm("Glass 1", 70000, 0.23, 1, 16, 23.3, 18.3, 0.001,
                 GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0.1);
             MonolithicGlass mg1 = new MonolithicGlass("Monol 4", 4, gm1);
             var im1 = new InterlayerMaterial("ES Stiff PVB", 1, 0, InterlayerMaterial.InterlayerType.NormalPVB);
@@ -114,7 +183,6 @@ namespace GlassTests
                 GPC.Model.LoadCases.ClimateLoadCase.ClimateTypes.DeltaH, 10, 20, 12 * 60 * 60, 40);
             LoadCase lcWp = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
             LoadCase lcLl = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
-
 
             Model model = new Model(Path.GetTempPath());
 
@@ -156,6 +224,203 @@ namespace GlassTests
             stopWatch.Stop();
             Debug.WriteLine("Finish");
             Assert.IsTrue(stopWatch.ElapsedMilliseconds < 5000, "Too slow");
+        }
+        
+
+        [TestMethod]
+        [TestCategory("Layers: 5")]
+        public void Laminated2()
+        {
+            /// Tempo per ogni iterazione
+            /// 2021/05/13: > 15 min
+
+            Action action = new Action(() => 
+            {
+                Model model = new Model(base.GetOutputFolder());
+
+                Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1500, 2500, 0));
+
+
+                MonolithicGlass mg1 = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
+                MonolithicGlass mg2 = new MonolithicGlass("Mg2", 20, GetGlassMaterialAstm());
+                MonolithicGlass mg3 = new MonolithicGlass("Mg3", 15, GetGlassMaterialAstm());
+                MonolithicGlass mg4 = new MonolithicGlass("Mg4", 4, GetGlassMaterialAstm());
+                MonolithicGlass mg5 = new MonolithicGlass("Mg5", 10, GetGlassMaterialAstm());
+
+                Interlayer intr1 = new Interlayer("Int1", 0.76, GetInterlayerMaterialPVBStiff());
+                Interlayer intr2 = new Interlayer("Int2", 0.76, GetInterlayerMaterialSentryGlas());
+                Interlayer intr3 = new Interlayer("Int3", 0.76, GetInterlayerMaterialSentryGlas());
+                Interlayer intr4 = new Interlayer("Int4", 0.76, GetInterlayerMaterialSentryGlas());
+
+                LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2, mg3, mg4, mg5 }, new Interlayer[] { intr1, intr2, intr3, intr4 });
+
+                // Prototype
+                Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis,
+                    Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+                p1.MeshOptions.MeshSize = 50;
+                p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+
+                // Load
+                LoadCase lcSw = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
+                ClimateLoadCase lcCSD = new ClimateLoadCase("Climate", GPC.Model.LoadCases.ClimateLoadCase.Seasons.Summer, GPC.Model.LoadCases.ClimateLoadCase.ClimateTypes.DeltaH, 10, 20, EN16612LoadDurations.CLIMATESUMMER, 40);
+                LoadCase lcWp = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+                LoadCase lcLl = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
+
+                NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lcCSD);
+                NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lcWp);
+                NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lcLl);
+
+                //LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(40, 450, 0), new Point3d(150, 200, 0)), lcLl, CoordinateSystem.Global);
+
+                // Combinazioni
+                Combination combo1 = new Combination("Cmb1");
+                combo1.AddLoadCaseCoefficient(lcSw, 1);
+                combo1.AddLoadCaseCoefficient(lcLl, 1);
+
+                Combination combo2 = new Combination("Cmb2");
+                combo2.AddLoadCaseCoefficient(lcSw, 1);
+                combo2.AddLoadCaseCoefficient(lcWp, 0.6);
+
+                Combination combo3 = new Combination("Cmb3");
+                combo3.AddLoadCaseCoefficient(lcSw, 1);
+                combo3.AddLoadCaseCoefficient(lcLl, 0.75);
+                combo3.AddLoadCaseCoefficient(lcWp, 0.4);
+
+                Combination combo4 = new Combination("Cmb4");
+                combo4.AddLoadCaseCoefficient(lcSw, 1);
+                combo4.AddLoadCaseCoefficient(lcCSD, 0.75);
+                combo4.AddLoadCaseCoefficient(lcLl, 0.75);
+                combo4.AddLoadCaseCoefficient(lcWp, 0.4);
+
+                Combination combo5 = new Combination("Cmb5");
+                combo5.AddLoadCaseCoefficient(lcSw, 1.5);
+                combo5.AddLoadCaseCoefficient(lcWp, 0.6);
+
+                // Surface
+                GlassSurface gs1 = new GlassSurface(p1, s1);
+                gs1.AddLoad(nal1);
+                gs1.AddLoad(nal2);
+                gs1.AddLoad(nal3);
+                //gs1.AddLoad(lll);
+
+                gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+
+
+                p1.AddCombination(combo1);
+                model.AddCombination(combo1);
+                model.AddCombination(combo5);
+                model.AddCombination(combo2);
+                model.AddCombination(combo3);
+                model.AddCombination(combo4);
+
+                model.AddSurface(gs1, base.GetTestName());
+
+            });
+
+            var timeSpan = TimeSpan.FromMilliseconds(GPC.Utilities.Time.MeasureTime.FunctionExecutionTime(2, action, true));
+
+            Console.WriteLine($"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
+            Assert.IsTrue(timeSpan.TotalSeconds < 1, $"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
+
+        }
+
+
+        [TestMethod]
+        [TestCategory("Layers: 5")]
+        public void Laminated3()
+        {
+            /// Tempo per ogni iterazione
+            /// 2021/05/13: 15 secondi 
+
+
+            Action action = new Action(() =>
+            {
+                Model model = new Model(base.GetOutputFolder());
+
+                Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 500, 0));
+
+
+                MonolithicGlass mg1 = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
+                MonolithicGlass mg2 = new MonolithicGlass("Mg2", 20, GetGlassMaterialAstm());
+                MonolithicGlass mg3 = new MonolithicGlass("Mg3", 15, GetGlassMaterialAstm());
+                MonolithicGlass mg4 = new MonolithicGlass("Mg4", 4, GetGlassMaterialAstm());
+                MonolithicGlass mg5 = new MonolithicGlass("Mg5", 10, GetGlassMaterialAstm());
+
+                Interlayer intr1 = new Interlayer("Int1", 0.76, GetInterlayerMaterialPVBStiff());
+                Interlayer intr2 = new Interlayer("Int2", 0.76, GetInterlayerMaterialSentryGlas());
+                Interlayer intr3 = new Interlayer("Int3", 0.76, GetInterlayerMaterialSentryGlas());
+                Interlayer intr4 = new Interlayer("Int4", 0.76, GetInterlayerMaterialSentryGlas());
+
+                LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2, mg3, mg4, mg5 }, new Interlayer[] { intr1, intr2, intr3, intr4 });
+
+                // Prototype
+                Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis,
+                    Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+                p1.MeshOptions.MeshSize = 20;
+                p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+
+                // Load
+                LoadCase lcSw = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
+                ClimateLoadCase lcCSD = new ClimateLoadCase("Climate", GPC.Model.LoadCases.ClimateLoadCase.Seasons.Summer, GPC.Model.LoadCases.ClimateLoadCase.ClimateTypes.DeltaH, 10, 20, EN16612LoadDurations.CLIMATESUMMER, 40);
+                LoadCase lcWp = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+                LoadCase lcLl = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
+
+                NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lcCSD);
+                NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lcWp);
+                NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lcLl);
+
+                LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(40, 450, 0), new Point3d(150, 200, 0)), lcLl, CoordinateSystem.Global);
+
+                // Combinazioni
+                Combination combo1 = new Combination("Cmb1");
+                combo1.AddLoadCaseCoefficient(lcSw, 1);
+                combo1.AddLoadCaseCoefficient(lcLl, 1);
+
+                Combination combo2 = new Combination("Cmb2");
+                combo2.AddLoadCaseCoefficient(lcSw, 1);
+                combo2.AddLoadCaseCoefficient(lcWp, 0.6);
+
+                Combination combo3 = new Combination("Cmb3");
+                combo3.AddLoadCaseCoefficient(lcSw, 1);
+                combo3.AddLoadCaseCoefficient(lcLl, 0.75);
+                combo3.AddLoadCaseCoefficient(lcWp, 0.4);
+
+                Combination combo4 = new Combination("Cmb4");
+                combo4.AddLoadCaseCoefficient(lcSw, 1);
+                combo4.AddLoadCaseCoefficient(lcCSD, 0.75);
+                combo4.AddLoadCaseCoefficient(lcLl, 0.75);
+                combo4.AddLoadCaseCoefficient(lcWp, 0.4);
+
+                Combination combo5 = new Combination("Cmb5");
+                combo5.AddLoadCaseCoefficient(lcSw, 1.5);
+                combo5.AddLoadCaseCoefficient(lcWp, 0.6);
+
+                // Surface
+                GlassSurface gs1 = new GlassSurface(p1, s1);
+                gs1.AddLoad(nal1);
+                gs1.AddLoad(nal2);
+                gs1.AddLoad(nal3);
+                gs1.AddLoad(lll);
+
+                gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+
+
+                p1.AddCombination(combo1);
+                model.AddCombination(combo1);
+                model.AddCombination(combo5);
+                model.AddCombination(combo2);
+                model.AddCombination(combo3);
+                model.AddCombination(combo4);
+
+                model.AddSurface(gs1, base.GetTestName());
+
+            });
+
+            var timeSpan = TimeSpan.FromMilliseconds(GPC.Utilities.Time.MeasureTime.FunctionExecutionTime(2, action, true));
+
+            Console.WriteLine($"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
+            Assert.IsTrue(timeSpan.TotalSeconds < 1, $"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
+
         }
     }
 }

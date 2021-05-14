@@ -275,34 +275,70 @@ namespace GPC.Checkers.Glasses.FemModel
 
                 if (isOpened)
                 {
-                    switch (AnalysisType)
+                    if (_stages.Count > 0)
                     {
-                        case AnalysisTypes.Linear:
+                        switch (AnalysisType)
+                        {
+                            case AnalysisTypes.Linear:
+                            case AnalysisTypes.NonLinear:
 
-                            bool status = St7RunLinearSolver(aw, _st7FilePath);
+                                bool status = aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
 
-                            if (!status)
-                                throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+                                if (status)
+                                    status = aw.SaveFile(mid);
 
-                            _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "LSA");
+                                if (status)
+                                    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
 
-                            break;
+                                if (!status)
+                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
 
-                        case AnalysisTypes.NonLinear:
+                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "NLA");
 
-                            status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
+                                break;
 
-                            if (!status)
-                                throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
-
-                            _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "NLA");
-
-                            break;
-
-                        default:
-                            throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
+                            default:
+                                throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
+                        }
                     }
+                    else
+                    {
+                        switch (AnalysisType)
+                        {
+                            case AnalysisTypes.Linear:
 
+                                bool status = St7RunLinearSolver(aw, _st7FilePath);
+
+                                if (!status)
+                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+
+                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "LSA");
+
+                                break;
+
+                            case AnalysisTypes.NonLinear:
+
+                                status = aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
+
+                                if (status)
+                                    status = aw.SaveFile(mid);
+
+                                if (status)
+                                    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
+
+
+                                if (!status)
+                                    throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
+
+                                _st7ResultFilePath = Path.ChangeExtension(_st7FilePath, "NLA");
+
+                                break;
+
+                            default:
+                                throw new NotSupportedException($"Analysis type {AnalysisType} not supported");
+                        }
+                    }
+                    
                     aw.CloseFile(mid);
                 }
             }
@@ -714,7 +750,6 @@ namespace GPC.Checkers.Glasses.FemModel
 
                     aw.SetElementConnection(mid, St7ApiConst.tyBRICK, st7BrickIndex, propNum, st7ConnectivityArray);
                     aw.SetEntityGroup(mid, St7ApiConst.tyBRICK, st7BrickIndex, glassGroupId);
-
                 }
 
             }
@@ -931,7 +966,11 @@ namespace GPC.Checkers.Glasses.FemModel
                         doubles[5] = 0;
                         doubles[6] = 0;
                         doubles[7] = 0;
+
                         aw.SetBrickIsotropicMaterial(mid, st7PropId, doubles);
+
+                        if (!ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction)
+                            aw.SetBrickAddBubbleFunction(mid, st7PropId, false);
                     }
                     else if (inp.Material is Model.FEM.Materials.OrthotropicFemMaterial orto)
                     {
@@ -939,6 +978,9 @@ namespace GPC.Checkers.Glasses.FemModel
 
                         aw.SetBrickOrthotropicMaterial(mid, st7PropId, new[] { orto.E1, orto.E2, orto.E3, orto.G12, orto.G23, orto.G31, orto.Ni12, orto.Ni23, orto.Ni31, 
                                                                                orto.Density, orto.Alpha1, orto.Alpha2, orto.Alpha3, 0, 0, 0, 0, 0, 0 });
+
+                        if (!ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction)
+                            aw.SetBrickAddBubbleFunction(mid, st7PropId, false);
                     }
                     else
                         throw new NotImplementedException();
