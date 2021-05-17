@@ -657,7 +657,6 @@ namespace GPC.Checkers.Glasses.FemModel
                     {
                         try
                         {
-
                             double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
                             double[] nodeResult = new double[6];
 
