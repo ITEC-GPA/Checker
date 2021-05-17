@@ -657,10 +657,19 @@ namespace GPC.Checkers.Glasses.FemModel
                     {
                         try
                         {
+
+                            double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
+                            double[] nodeResult = new double[6];
+
+                            int numPoints = 0; // punti in cui straus da i risultati
+                            int numColumns = 0; // numero di risultati per punto
+
+                            double[] angles = new double[9];
+                            
+                            int comboId = -1;
+
                             foreach (var combination in _combinations)
                             {
-                                int comboId = -1;
-
                                 if (AnalysisType == AnalysisTypes.Linear)
                                 {
                                     comboId = _st7LSACombinationMap[combination] + numPrimary;
@@ -679,11 +688,7 @@ namespace GPC.Checkers.Glasses.FemModel
                                     // LETTURA STRESS PLATE di una certa combo in straus
                                     if (element is Plate plate)
                                     {
-                                        int numPoints = 0; // punti in cui straus da i risultati
-                                        int numColumns = 0; // numero di risultati per punto
 
-                                        double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
-                                        double[] angles = new double[9];
                                         aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
                                                                comboId, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
 
@@ -708,7 +713,6 @@ namespace GPC.Checkers.Glasses.FemModel
 
                                 foreach (var node in _nodes)
                                 {
-                                    double[] nodeResult = new double[6];
                                     aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], comboId, ref nodeResult);
                                     _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
                                 }
