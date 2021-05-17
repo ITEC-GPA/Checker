@@ -533,7 +533,7 @@ namespace GPC.Checkers.Glasses.Checkers
                 GlassWrapper glassWrapper;
                 if (_glassSurface.Prototype.Glass is MonolithicGlass mg)
                 {
-                    _femModel.SaveFemModelToSt7(_folderPath);
+                    _femModel.SaveFemModelToSt7(_folderPath); // Esporta modello in st7
                 }
                 else if (_glassSurface.Prototype.Glass is LaminatedGlass lg)
                 {
@@ -553,7 +553,7 @@ namespace GPC.Checkers.Glasses.Checkers
                 }
             }
 
-            _femModel.Solve();
+            _femModel.Solve(); // Lancia solver e legge risultati
         }
 
 

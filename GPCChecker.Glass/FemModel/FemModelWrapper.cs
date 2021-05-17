@@ -1,4 +1,15 @@
 ﻿
+using GPC.Checkers.Glasses.LoadCases;
+using GPC.Checkers.Glasses.Models;
+using GPC.Checkers.Glasses.Results;
+using GPC.Geometry;
+using GPC.Model.Combinations;
+using GPC.Model.FEM.Attributes;
+using GPC.Model.FEM.FiniteElements;
+using GPC.Model.FEM.Properties;
+using GPC.Model.Restrains;
+using GPC.Model.Results;
+using St7ApiWrapper;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,21 +19,6 @@ using System.Reflection;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using St7ApiWrapper;
-using GPC.Geometry;
-using GPC.Checkers.Glasses.LoadCases;
-using GPC.Checkers.Glasses.Models;
-using GPC.Model.FEM.Attributes;
-using GPC.Model.FEM.FiniteElements;
-using GPC.Model.FEM.Properties;
-using GPC.Model.FreedomCases;
-using GPC.Model.Restrains;
-using GPC.Model.Results;
-using GPC.Model.Materials;
-using GPC.Model.Combinations;
-using GPC.Checkers.Glasses.Results;
 
 namespace GPC.Checkers.Glasses.FemModel
 {
@@ -88,12 +84,12 @@ namespace GPC.Checkers.Glasses.FemModel
         private readonly Dictionary<int, int> _st7StageMap;
 
 
-        public FemModelWrapper() : this (string.Empty)
+        public FemModelWrapper() : this(string.Empty)
         {
 
         }
 
-        public FemModelWrapper(string name) 
+        public FemModelWrapper(string name)
             : base(name)
         {
             _st7ServerIp = "localhost";
@@ -112,11 +108,14 @@ namespace GPC.Checkers.Glasses.FemModel
             _solverType = Prototype.SolverTypes.GPCSolver;
         }
 
-        public FemModelWrapper(SerializationInfo info, StreamingContext context) 
+        public FemModelWrapper(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             throw new NotImplementedException();
         }
+
+
+        #region Public methods 
 
         public override void Solve()
         {
@@ -132,7 +131,6 @@ namespace GPC.Checkers.Glasses.FemModel
 
         }
 
-        #region Public methods 
 
         public void GenerateRigidLinks(IEnumerable<int> node1Ids, IEnumerable<int> node2Ids)
         {
@@ -230,8 +228,6 @@ namespace GPC.Checkers.Glasses.FemModel
         #endregion
 
 
-
-
         #region STRAUS7
 
 
@@ -266,7 +262,7 @@ namespace GPC.Checkers.Glasses.FemModel
                         status = aw.CloseFile(mid);
                         closed = true;
                     }
-                    
+
                     if (!status)
                         throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
                 }
@@ -353,7 +349,6 @@ namespace GPC.Checkers.Glasses.FemModel
             St7SetLoadCase(aw, mid);
 
 
-
             #region Geometry
 
             // Nodes
@@ -397,7 +392,7 @@ namespace GPC.Checkers.Glasses.FemModel
 
             int glassGroupId = 0;
             aw.NewChildGroup(mid, 1, "Glass " + "1", ref glassGroupId);
-            
+
             // Plate
             // Brick
             int st7PlateIndex = 0;
@@ -512,6 +507,11 @@ namespace GPC.Checkers.Glasses.FemModel
             #endregion
 
 
+            // Setup solver
+            aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
+
+            // TODO: gestire eccezioni e salvare file 
+
             // Setup Stages
             if (_stages.Count > 0)
             {
@@ -532,7 +532,6 @@ namespace GPC.Checkers.Glasses.FemModel
                     // non linearità attivata
 
                     St7NonLinearSolverSetup(aw, mid, false, true, true);
-
                 }
             }
             else
@@ -576,13 +575,7 @@ namespace GPC.Checkers.Glasses.FemModel
                             case AnalysisTypes.Linear:
                             case AnalysisTypes.NonLinear:
 
-                                bool status = aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
-
-                                if (status)
-                                    status = aw.SaveFile(mid);
-
-                                if (status)
-                                    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
+                                bool status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
 
                                 if (!status)
                                     throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
@@ -612,14 +605,7 @@ namespace GPC.Checkers.Glasses.FemModel
 
                             case AnalysisTypes.NonLinear:
 
-                                status = aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
-
-                                if (status)
-                                    status = aw.SaveFile(mid);
-
-                                if (status)
-                                    status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
-
+                                status = St7RunNonLinearStagedSolver(aw, mid, _st7FilePath);
 
                                 if (!status)
                                     throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
@@ -690,7 +676,7 @@ namespace GPC.Checkers.Glasses.FemModel
                                 foreach (var element in _elements)
                                 {
 
-                                    // LETTURA STRESS PLATE
+                                    // LETTURA STRESS PLATE di una certa combo in straus
                                     if (element is Plate plate)
                                     {
                                         int numPoints = 0; // punti in cui straus da i risultati
@@ -716,6 +702,7 @@ namespace GPC.Checkers.Glasses.FemModel
                                                 _resultPlateStress.Add(rps);
                                             }
                                         }
+
                                     }
                                 }
 
@@ -855,7 +842,7 @@ namespace GPC.Checkers.Glasses.FemModel
         {
             int st7StageId = _st7StageMap.Values.DefaultIfEmpty(0).Max();
 
-            foreach(Model.FEM.Stage stage in _stages)
+            foreach (Model.FEM.Stage stage in _stages)
             {
                 aw.AddStage(mid, stage.Name, new int[] { stage.Morph ? St7ApiConst.btTrue : St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
                 _st7StageMap.Add(stage.Id, ++st7StageId);
@@ -869,7 +856,7 @@ namespace GPC.Checkers.Glasses.FemModel
                         if (current.Key is Brick brick)
                         {
                             BrickProperty propertyOverload = GetBrickProperty(current.Value.PropertyName);
-                            
+
                             if (brick.Property.Name != propertyOverload.Name)
                             {
                                 aw.St7SetElementPropertySwitch(mid, St7ApiConst.tyBRICK, _st7BrickMap[current.Key.Id], _st7BrickPropertyMap[propertyOverload], _st7StageMap[stage.Id]);
@@ -891,8 +878,8 @@ namespace GPC.Checkers.Glasses.FemModel
                     }
                 }
 
-            } 
-            
+            }
+
         }
 
         private void St7SetStagesCombination(ISt7ApiService aw, int mid)
@@ -903,7 +890,7 @@ namespace GPC.Checkers.Glasses.FemModel
                 if (_st7StageMap.ContainsKey(stage.Id))
                 {
                     int comboIndex = 1;
-                    foreach(var combo in GetStageCombinations(stage.Id))
+                    foreach (var combo in GetStageCombinations(stage.Id))
                     {
                         aw.AddNLAIncrement(mid, _st7StageMap[stage.Id], combo.Name);
                         _st7NLACombinationMap[combo] = _st7StageMap[stage.Id]; // TODO non gestisce il caso di combo splittate
@@ -922,8 +909,8 @@ namespace GPC.Checkers.Glasses.FemModel
 
         private void St7StageAnalysisSetup(ISt7ApiService aw, int mid, int stageIndex, bool morph, bool moveFixedNodes, bool rotateCluster)
         {
-            aw.SetStageData(mid, stageIndex, new[] { morph ? St7ApiConst.btTrue : St7ApiConst.btFalse, 
-                                                     moveFixedNodes ? St7ApiConst.btTrue : St7ApiConst.btFalse, 
+            aw.SetStageData(mid, stageIndex, new[] { morph ? St7ApiConst.btTrue : St7ApiConst.btFalse,
+                                                     moveFixedNodes ? St7ApiConst.btTrue : St7ApiConst.btFalse,
                                                      rotateCluster ? St7ApiConst.btTrue : St7ApiConst.btFalse });
         }
 
@@ -979,7 +966,7 @@ namespace GPC.Checkers.Glasses.FemModel
                 if ((st7PropId - _bufferId) != 1)
                     throw new NotSupportedException("Brick properties not in order");
                 _bufferId = st7PropId;
-                
+
                 if (property is InterlayerBrickProperty inp)
                 {
 
@@ -1005,7 +992,7 @@ namespace GPC.Checkers.Glasses.FemModel
                     {
                         aw.NewBrickProperty(mid, st7PropId, St7ApiConst.kMaterialTypeOrthotropic, inp.Name);
 
-                        aw.SetBrickOrthotropicMaterial(mid, st7PropId, new[] { orto.E1, orto.E2, orto.E3, orto.G12, orto.G23, orto.G31, orto.Ni12, orto.Ni23, orto.Ni31, 
+                        aw.SetBrickOrthotropicMaterial(mid, st7PropId, new[] { orto.E1, orto.E2, orto.E3, orto.G12, orto.G23, orto.G31, orto.Ni12, orto.Ni23, orto.Ni31,
                                                                                orto.Density, orto.Alpha1, orto.Alpha2, orto.Alpha3, 0, 0, 0, 0, 0, 0 });
 
                         if (!ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction)
@@ -1036,7 +1023,7 @@ namespace GPC.Checkers.Glasses.FemModel
                 return;
 
             int st7LoadCaseId = 0;
-            foreach(var loadCase in _loadCases)
+            foreach (var loadCase in _loadCases)
             {
                 st7LoadCaseId++;
                 if (st7LoadCaseId != 1)
@@ -1185,7 +1172,7 @@ namespace GPC.Checkers.Glasses.FemModel
         /// Set up the linear solver, activating each loadcase in the <see cref="GPC.Model.FEM.FemModel._loadCases"/> list
         /// </summary>
         private bool St7LinearSolverSetup(ISt7ApiService aw, int mid)
-        {   
+        {
             foreach (var lcName in _loadCases.GetNames())
             {
                 aw.EnableLSALoadCase(mid, _st7LoadCaseMap[lcName], 1);
@@ -1263,7 +1250,7 @@ namespace GPC.Checkers.Glasses.FemModel
             else
             {
                 Process p = Process.Start(pInfo);
-                
+
                 p.WaitForExit(); // Wait for the process to end.
 
                 if (p.ExitCode == 0) // Analysis terminated with success
@@ -1305,9 +1292,9 @@ namespace GPC.Checkers.Glasses.FemModel
                 try
                 {
                     Process p = Process.Start(pInfo);
-                    
+
                     p.WaitForExit(); // Wait for the process to end.
-                    
+
                     if (p.ExitCode == 0) // Analysis terminated with success
                     {
                         return true;
@@ -1385,8 +1372,8 @@ namespace GPC.Checkers.Glasses.FemModel
         }
 
         #endregion
-        
-        
+
+
         #endregion
 
 
