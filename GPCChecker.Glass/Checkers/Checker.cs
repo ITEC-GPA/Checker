@@ -522,6 +522,9 @@ namespace GPC.Checkers.Glasses.Checkers
 #if !DEBUG
         /// <remarks> <see cref="FemModelSetup(string)"/> must be called before calling this method</remarks>
 #endif
+        /// <summary>
+        /// Run the femModel solver and fill the results arrays
+        /// </summary>
         public void PerformCheck()
         {
             if (_femModel == null)
@@ -642,15 +645,20 @@ namespace GPC.Checkers.Glasses.Checkers
 
         #region Public method results
 
-        //public IEnumerable<ResultPlateStress> GetPlateCombinationsResults()
-        //{
-        //    return _femModel.ResultPlateStresses;
-        //}
 
-        //public List<ResultNodeDisplacement> GetNodeDisplacementCombinationResults()
-        //{
-        //    return _femModel.ResultNodeDisplacement;
-        //}
+        /// <inheritdoc cref="Model.FEM.FemModel.GetCombinationNodeDisplacementResult(Combination)"/>
+        public IEnumerable<ResultNodeDisplacement> GetCombinationNodeDisplacementResult(Combination combination)
+        {
+            return FemModel.GetCombinationNodeDisplacementResult(combination);
+        }
+
+
+        /// <inheritdoc cref="Model.FEM.FemModel.GetCombinationPlateStressResult(Combination)"/>
+        public IEnumerable<ResultPlateStress> GetCombinationPlateStressResult(Combination combination)
+        {
+            return FemModel.GetCombinationPlateStressResult(combination);
+        }
+
 
         public void GetWorkinRatio()
         {

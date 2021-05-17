@@ -2,9 +2,11 @@
 using GPC.Geometry.Meshes;
 using GPC.Model.Materials;
 using GPC.TestUtilities;
+using GPC.Model.Results;
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System;
 using System.IO;
 
 namespace GlassTests
@@ -13,9 +15,7 @@ namespace GlassTests
     {
         protected GlassTestBase()
         {
-
         }
-
 
         #region Shape
 
@@ -44,20 +44,20 @@ namespace GlassTests
 
             return new Shape(poly, null, null);
         }
-        #endregion
 
+        #endregion
 
         #region Material
 
         protected GlassMaterialEn16612 GetGlassMaterialEn16612(double fgk = 45)
         {
             return new GlassMaterialEn16612("Glass", 70000, 0.23, fgk, GlassMaterialEn16612.GlassTypes.FloatGlass, GlassMaterialEn16612.SurfaceTreatments.AsProduced,
-                                        GlassMaterialEn16612.PrestressTypes.HeatStrengthened, GlassMaterialEn16612.ManufactoringProcesses.HorizontalToughening, 
+                                        GlassMaterialEn16612.PrestressTypes.HeatStrengthened, GlassMaterialEn16612.ManufactoringProcesses.HorizontalToughening,
                                         GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0);
         }
 
-        protected GlassMaterialEn16612 GetGlassMaterialEn16612(double fgk, GlassMaterialEn16612.GlassTypes glassType, GlassMaterialEn16612.SurfaceTreatments surfaceTreatments, 
-                                                             GlassMaterialEn16612.PrestressTypes prestress, GlassMaterialEn16612.ManufactoringProcesses manufactoring )
+        protected GlassMaterialEn16612 GetGlassMaterialEn16612(double fgk, GlassMaterialEn16612.GlassTypes glassType, GlassMaterialEn16612.SurfaceTreatments surfaceTreatments,
+                                                             GlassMaterialEn16612.PrestressTypes prestress, GlassMaterialEn16612.ManufactoringProcesses manufactoring)
         {
             return new GlassMaterialEn16612("Glass", 70000, 0.23, fgk, glassType, surfaceTreatments,
                                         prestress, manufactoring, GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0);
@@ -65,10 +65,9 @@ namespace GlassTests
 
         protected GlassMaterialAstm GetGlassMaterialAstm(double psiSurface = 1, double nCoeff = 16, double surfaceBaseStress = 23.3, double surfaceBaseEdgeStress = 18.3, double probabiltyOfBreakage = 0.001)
         {
-            return new GlassMaterialAstm("Glass", 70000, 0.23, psiSurface, nCoeff, surfaceBaseStress, surfaceBaseEdgeStress, probabiltyOfBreakage, 
+            return new GlassMaterialAstm("Glass", 70000, 0.23, psiSurface, nCoeff, surfaceBaseStress, surfaceBaseEdgeStress, probabiltyOfBreakage,
                                             GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0.1);
         }
-
 
         protected InterlayerMaterial GetInterlayerMaterial()
         {
@@ -86,23 +85,22 @@ namespace GlassTests
         protected InterlayerMaterial GetInterlayerMaterialSentryGlas()
         {
             var it = new InterlayerMaterial("SG", GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0, InterlayerMaterial.InterlayerType.SentryGlass);
-            it.AddShearModule(3,                 new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 236, 211, 141,  63,   26.4, 8.2, 2.9, 1.3 });
-            it.AddShearModule(30,                new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 228, 206, 119,  36.6, 13.5, 4.3, 2.1, 1.0 });
-            it.AddShearModule(60,                new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 225, 195, 110,  30.7, 11.3, 3.7, 1.9, 0.8 });
-            it.AddShearModule(5 * 60,            new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 220, 188, 82.8, 19.4, 7.3,  2.6, 1.4, 0.6 });
-            it.AddShearModule(30 * 60,           new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 217, 175, 66.1, 11.4, 4.9,  1.9, 1.0, 0.4 });
-            it.AddShearModule(60 * 60,           new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 206, 169, 60.0, 9.3,  4.2,  1.7, 0.8, 0.3 });
-            it.AddShearModule(1 * 24 * 60 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 190, 146, 49.7, 4.5,  2.8,  1.3, 0.6, 0.3 });
-            it.AddShearModule(5 * 24 * 60 * 60,  new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 178, 130, 24.7, 3.6,  2.4,  1.2, 0.6, 0.2 });
-            it.AddShearModule(21 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 172, 115, 12.9, 3.3,  2.2,  1.2, 0.5, 0.2 });
-            it.AddShearModule(30 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 171, 112, 11.6, 3.3,  2.2,  1.1, 0.5, 0.2 });
-            it.AddShearModule(365 * 24 * 60 * 60,new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 161, 96.5, 6.8, 3.1,  2.1,  1.0, 0.5, 0.2 });
+            it.AddShearModule(3, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 236, 211, 141, 63, 26.4, 8.2, 2.9, 1.3 });
+            it.AddShearModule(30, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 228, 206, 119, 36.6, 13.5, 4.3, 2.1, 1.0 });
+            it.AddShearModule(60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 225, 195, 110, 30.7, 11.3, 3.7, 1.9, 0.8 });
+            it.AddShearModule(5 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 220, 188, 82.8, 19.4, 7.3, 2.6, 1.4, 0.6 });
+            it.AddShearModule(30 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 217, 175, 66.1, 11.4, 4.9, 1.9, 1.0, 0.4 });
+            it.AddShearModule(60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 206, 169, 60.0, 9.3, 4.2, 1.7, 0.8, 0.3 });
+            it.AddShearModule(1 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 190, 146, 49.7, 4.5, 2.8, 1.3, 0.6, 0.3 });
+            it.AddShearModule(5 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 178, 130, 24.7, 3.6, 2.4, 1.2, 0.6, 0.2 });
+            it.AddShearModule(21 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 172, 115, 12.9, 3.3, 2.2, 1.2, 0.5, 0.2 });
+            it.AddShearModule(30 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 171, 112, 11.6, 3.3, 2.2, 1.1, 0.5, 0.2 });
+            it.AddShearModule(365 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 161, 96.5, 6.8, 3.1, 2.1, 1.0, 0.5, 0.2 });
 
             it.AddShearModule(50 * 365 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 0, 0, 0, 0, 0, 0, 0, 0 });
 
             return it;
         }
-
 
         /// <summary>
         /// Set the InterlayerMaterial with the Shear modulus of ES Stiff PVB
@@ -110,12 +108,12 @@ namespace GlassTests
         protected InterlayerMaterial GetInterlayerMaterialPVBStiff()
         {
             var it = new InterlayerMaterial("ES Stiff PVB", GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0, InterlayerMaterial.InterlayerType.NormalPVB);
-            it.AddShearModule(3,                new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 699, 342, 58, 3.4, 1.7, 1.6, 0, 0 });
+            it.AddShearModule(3, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 699, 342, 58, 3.4, 1.7, 1.6, 0, 0 });
             //it.AddShearModule(30,               new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 228, 206, 119, 36.6, 13.5, 4.3, 2.1, 1.0 });
-            it.AddShearModule(60,               new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 573, 196, 9.2, 1.8, 1.6, 1.5, 1.9, 0.8 });
+            it.AddShearModule(60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 573, 196, 9.2, 1.8, 1.6, 1.5, 1.9, 0.8 });
             //it.AddShearModule(5 * 60,           new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 220, 188, 82.8, 19.4, 7.3, 2.6, 1.4, 0.6 });
             //it.AddShearModule(30 * 60,          new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 217, 175, 66.1, 11.4, 4.9, 1.9, 1.0, 0.4 });
-            it.AddShearModule(60 * 60,          new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 388, 37, 2, 1.6, 0, 0, 0, 0 });
+            it.AddShearModule(60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 388, 37, 2, 1.6, 0, 0, 0, 0 });
             //it.AddShearModule(1 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 190, 146, 49.7, 4.5, 2.8, 1.3, 0.6, 0.3 });
             //it.AddShearModule(5 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 178, 130, 24.7, 3.6, 2.4, 1.2, 0.6, 0.2 });
             //it.AddShearModule(21 * 24 * 60 * 60, new double[] { 10, 20, 30, 40, 50, 60, 70, 80 }, new double[] { 172, 115, 12.9, 3.3, 2.2, 1.2, 0.5, 0.2 });
@@ -128,7 +126,6 @@ namespace GlassTests
         }
 
         #endregion
-
 
         #region Export
 
@@ -143,7 +140,6 @@ namespace GlassTests
 
         protected void RunApiServer()
         {
-
             if (Process.GetProcessesByName("St7ApiServer").Length == 0)
             {
                 string filePath = System.AppContext.BaseDirectory;
@@ -173,30 +169,141 @@ namespace GlassTests
                 {
                     throw new ApplicationException($"Api server not found at this location {filePath}. Start the ApiServer manually");
                 }
-
             }
         }
 
-
         #endregion
-
 
         #region Standard
 
         protected class EN16612LoadDurations
         {
-            public const double WIND            = 3;
-            public const double LIVE            = 30;
-            public const double LIVECROWD       = 5*60;
-            public const double MAINTENANCE     = 30*60;
-            public const double CLIMATEWINTER   = 6*60*60;
-            public const double CLIMATESUMMER   = 12 * 60 * 60;
-            public const double SNOW            = 5 * 24 * 60 * 60;
-            public const double SELFWEIGHT      = 50*365 * 24 * 60 * 60;
-
+            public const double WIND = 3;
+            public const double LIVE = 30;
+            public const double LIVECROWD = 5 * 60;
+            public const double MAINTENANCE = 30 * 60;
+            public const double CLIMATEWINTER = 6 * 60 * 60;
+            public const double CLIMATESUMMER = 12 * 60 * 60;
+            public const double SNOW = 5 * 24 * 60 * 60;
+            public const double SELFWEIGHT = 50 * 365 * 24 * 60 * 60;
         }
 
         #endregion
 
+        #region Results
+
+        protected ResultNodeDisplacement[] GetWorstDisplacementResults(IEnumerable<ResultNodeDisplacement> nodeDisplacements)
+        {
+            ResultNodeDisplacement[] worstResults = new ResultNodeDisplacement[12];
+            // [0] == max D1
+            // [1] == max D2
+            // [3] == max D3
+            // ...
+            // [7] == min D1
+
+            for (int i = 0; i < worstResults.Length; i++)
+            {
+                worstResults[i] = nodeDisplacements.First();
+            }
+
+            foreach (ResultNodeDisplacement result in nodeDisplacements)
+            {
+                if (worstResults[0] != null && result.D1 > worstResults[0].D1)
+                {
+                    worstResults[0] = result;
+                }
+                else if (worstResults[1] != null && result.D2 > worstResults[1].D2)
+                {
+                    worstResults[1] = result;
+                }
+                else if (worstResults[2] != null && result.D3 > worstResults[2].D3)
+                {
+                    worstResults[2] = result;
+                }
+                else if (worstResults[3] != null && result.R1 > worstResults[3].R1)
+                {
+                    worstResults[3] = result;
+                }
+                else if (worstResults[4] != null && result.R2 > worstResults[4].R2)
+                {
+                    worstResults[4] = result;
+                }
+                else if (worstResults[5] != null && result.R3 > worstResults[5].R3)
+                {
+                    worstResults[5] = result;
+                }
+
+
+                if (worstResults[6] != null && result.D1 < worstResults[6].D1)
+                {
+                    worstResults[6] = result;
+                }
+                else if (worstResults[7] != null && result.D2 < worstResults[7].D2)
+                {
+                    worstResults[7] = result;
+                }
+                else if (worstResults[8] != null && result.D3 < worstResults[8].D3)
+                {
+                    worstResults[8] = result;
+                }
+                else if (worstResults[9] != null && result.R1 < worstResults[9].R1)
+                {
+                    worstResults[9] = result;
+                }
+                else if (worstResults[10] != null && result.R2 < worstResults[10].R2)
+                {
+                    worstResults[10] = result;
+                }
+                else if (worstResults[11] != null && result.R3 < worstResults[11].R3)
+                {
+                    worstResults[11] = result;
+                }
+
+
+            }
+
+            return worstResults;
+        }
+
+
+        protected ResultPlateStress[] GetWorstStressResults(IEnumerable<ResultPlateStress> plateStresses)
+        {
+            ResultPlateStress[] worstResults = new ResultPlateStress[4];
+            // [0] == max S11
+            // [1] == max S22
+
+
+            for (int i = 0; i < worstResults.Length; i++)
+            {
+                worstResults[i] = plateStresses.First();
+            }
+
+            foreach (ResultPlateStress result in plateStresses)
+            {
+                if (worstResults[0] != null && result.S11 > worstResults[0].S11)
+                {
+                    worstResults[0] = result;
+                }
+                else if (worstResults[1] != null && result.S22 > worstResults[1].S22)
+                {
+                    worstResults[1] = result;
+                }
+
+                if (worstResults[2] != null && result.S11 < worstResults[2].S11)
+                {
+                    worstResults[2] = result;
+                }
+                else if (worstResults[3] != null && result.S22 < worstResults[3].S22)
+                {
+                    worstResults[3] = result;
+                }
+
+            }
+
+            return worstResults;
+        }
+
+
+        #endregion 
     }
 }

@@ -175,17 +175,18 @@ namespace GPC.Checkers.Glasses.Models
 
 
         /// <summary>
-        /// 
+        /// Run the <see cref="Checker.PerformCheck()"/> that run the femModels e fill the results
         /// </summary>
         /// <remarks> <see cref="RebuildAllCheckers"/> Must be called before calling this method</remarks>
-        // TODO: glass, cambiare facendo in modo che se il checker non è stato creato lo crei lui, cosi da farlo andare avanti in qualsiasi caso.
         public void PerformChecks()
         {
+            // TODO: glass, cambiare facendo in modo che se il checker non è stato creato lo crei lui, cosi da farlo andare avanti in qualsiasi caso.
             foreach (var surface in _glassSurfaces)
                 surface.Checker.PerformCheck();
         }
 
 
+        
         public List<List<ResultPlateStress>> GetPlateCombinationsResult()
         {
             List<List<ResultPlateStress>> results = new List<List<ResultPlateStress>>();
