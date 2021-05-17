@@ -152,7 +152,7 @@ namespace GlassTests
 
             var timeSpan = TimeSpan.FromMilliseconds(GPC.Utilities.Time.MeasureTime.FunctionExecutionTime(2, action, true));
 
-            Console.WriteLine($"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
+            Debug.WriteLine($"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
             Assert.IsTrue(timeSpan.TotalSeconds < 1, $"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
         }
 
