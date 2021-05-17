@@ -1,12 +1,11 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using GPC.Model.Combinations;
-using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.Checkers;
-using GPC.Checkers.Glasses.Results;
-using GPC.Model.Results;
+using GPC.Checkers.Glasses.Glasses;
 using GPC.Model;
+using GPC.Model.Combinations;
+using GPC.Model.Results;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GPC.Checkers.Glasses.Models
 {
@@ -144,11 +143,11 @@ namespace GPC.Checkers.Glasses.Models
         /// <summary>
         /// SetUp the FemModel of each surface, 
         /// </summary>
-        public void RebuildAllCheckers() 
+        public void RebuildAllCheckers()
         {
             foreach (var surface in _glassSurfaces)
             {
-                Checkers.Checker checker = null;
+                Checker checker = null;
 
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
@@ -176,25 +175,26 @@ namespace GPC.Checkers.Glasses.Models
 
 
         /// <summary>
-        /// 
+        /// Run the <see cref="Checker.PerformCheck()"/> that run the femModels e fill the results
         /// </summary>
         /// <remarks> <see cref="RebuildAllCheckers"/> Must be called before calling this method</remarks>
-        // TODO: glass, cambiare facendo in modo che se il checker non è stato creato lo crei lui, cosi da farlo andare avanti in qualsiasi caso.
         public void PerformChecks()
         {
+            // TODO: glass, cambiare facendo in modo che se il checker non è stato creato lo crei lui, cosi da farlo andare avanti in qualsiasi caso.
             foreach (var surface in _glassSurfaces)
                 surface.Checker.PerformCheck();
         }
 
 
+        
         public List<List<ResultPlateStress>> GetPlateCombinationsResult()
         {
             List<List<ResultPlateStress>> results = new List<List<ResultPlateStress>>();
 
             //foreach (var checker in _checkers)
             //    results.Add(checker.GetPlateCombinationsResults());
-            foreach (var surface in _glassSurfaces)
-                results.Add(surface.Checker.GetPlateCombinationsResults());
+            //foreach (var surface in _glassSurfaces)
+            //    results.Add(surface.Checker.GetPlateCombinationsResults());
 
             return results;
         }
@@ -207,8 +207,8 @@ namespace GPC.Checkers.Glasses.Models
 
             //foreach (var checker in _checkers)
             //    results.Add(checker.GetNodeDisplacementCombinationResults());
-            foreach (var surface in _glassSurfaces)
-                results.Add(surface.Checker.GetNodeDisplacementCombinationResults());
+            //foreach (var surface in _glassSurfaces)
+            //    results.Add(surface.Checker.GetNodeDisplacementCombinationResults());
 
             return results;
         }
@@ -223,7 +223,7 @@ namespace GPC.Checkers.Glasses.Models
         }
 
 
-#endregion
+        #endregion
 
         #region Private methods
 

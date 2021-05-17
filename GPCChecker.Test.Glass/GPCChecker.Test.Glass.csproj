@@ -47,8 +47,8 @@
     <Reference Include="GPCGeometry, Version=1.0.8.3, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCGeometry.1.0.8.3\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.0.13.13, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.0.13.13\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.0.13.14, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.0.13.14\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.6, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.6\lib\net472\GPCTestUtilities.dll</HintPath>
@@ -87,6 +87,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GPCChecker.Common\GPCChecker.Common.csproj">
+      <Project>{468983DC-5288-4A32-BA38-B06FB247A1B8}</Project>
+      <Name>GPCChecker.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\GPCChecker.Glass\GPCChecker.Glass.csproj">
       <Project>{19977875-dc88-47e0-92c9-d9ace7ce4f3d}</Project>
       <Name>GPCChecker.Glass</Name>
