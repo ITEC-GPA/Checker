@@ -1,4 +1,4 @@
-
+﻿
 using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Results;
@@ -693,27 +693,37 @@ namespace GPC.Checkers.Glasses.FemModel
 
                                         aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
 
+                                        var coordinateSystem = new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8]));
+
+                                        List<ResultLocationId> resultLocationPoints = new List<ResultLocationId>();
+                                        List<ResultStress> resultStresses = new List<ResultStress>();
+
                                         for (int np = 0; np < numPoints; np++)
                                         {
                                             for (int nc = 0; nc < numColumns; nc++)
                                             {
-                                                ResultPlateStress rps = new ResultPlateStress(plate, combination,
-                                                                        new ResultStressPoint(np),
-                                                                        new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
-                                                                        plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]);
+                                                resultLocationPoints.Add(new ResultLocationId(np));
 
-                                                rps.CalculatePrincipalStressSimplifiedMethod();
-                                                _resultPlateStress.Add(rps);
+                                                ResultStress rs = new ResultStress(coordinateSystem, plateResults[nc * numColumns + 0], 
+                                                                                                     plateResults[nc * numColumns + 1], 
+                                                                                                     plateResults[nc * numColumns + 3],
+                                                                                                     plateResults[nc * numColumns + 4], 
+                                                                                                     plateResults[nc * numColumns + 5]);
+                                                rs.CalculatePrincipalStressSimplifiedMethod();
+
+                                                resultStresses.Add(rs);
                                             }
                                         }
 
+                                        plate.AddResult(new PlateResult(combination, coordinateSystem, resultStresses, resultLocationPoints));
                                     }
                                 }
 
                                 foreach (var node in _nodes)
                                 {
                                     aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], comboId, ref nodeResult);
-                                    _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
+
+                                    node.AddResult(new NodeResult(combination, CoordinateSystem.Global, new ResultDisplacement(nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5])));
                                 }
 
                             }

@@ -77,10 +77,6 @@ namespace GlassTests
             model.AddSurface(gs1, base.GetTestName());
             model.PerformChecks();
 
-            var gs = model.GlassSurfaces.FirstOrDefault();
-            GPC.Checkers.Glasses.Checkers.Checker chk = gs.Checker;
-            var results = chk.GetCombinationNodeDisplacementResult(cmb1);
-
             var worstDisplacementsCmb1 = GetWorstDisplacementResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb1));
             var worstDisplacementsCmb2 = GetWorstDisplacementResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb2));
 
@@ -162,70 +158,18 @@ namespace GlassTests
 
             model.PerformChecks();
 
-            var a = model.GlassSurfaces.ToList();
+            var gs1WorstDisplacementsCmb1 = GetWorstDisplacementResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb1));
+            var gs1WorstStressesCmb1 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(cmb1));
 
-            var stressResults = model.GetPlateCombinationsResult();
-            var deflectionResults = model.GetNodeDisplacementCombinationsResult();
+            var gs2WorstDisplacementsCmb1 = GetWorstDisplacementResults(model.GlassSurfaces.LastOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb1));
+            var gs2WorstStressesCmb1 = GetWorstStressResults(model.GlassSurfaces.LastOrDefault().Checker.GetCombinationPlateStressResult(cmb1));
+
+            Assert.AreEqual(5.78, gs1WorstDisplacementsCmb1[2].D3, 0.2);
+            Assert.AreEqual(28.46, gs1WorstStressesCmb1[0].S11, 1);
 
 
-
-            Assert.AreEqual(2, stressResults.Count, 0);
-            Assert.AreEqual(2, deflectionResults.Count, 0);
-            Assert.IsTrue(stressResults[0].Count > 0);
-            Assert.IsTrue(deflectionResults[0].Count > 0);
-
-            ResultPlateStress worstPlateResult1 = null;
-            ResultPlateStress worstPlateResult2 = null;
-            foreach (var comboResult in stressResults.First())
-            {
-                if (worstPlateResult1 is null)
-                    worstPlateResult1 = comboResult;
-                else if (comboResult.S11 > worstPlateResult1.S11)
-                    worstPlateResult1 = comboResult;
-            }
-            foreach (var comboResult in stressResults.First())
-            {
-
-                if (worstPlateResult2 is null)
-                    worstPlateResult2 = comboResult;
-                else if (comboResult.S11 > worstPlateResult2.S11)
-                    worstPlateResult2 = comboResult;
-            }
-
-            ResultNodeDisplacement worstNodeDisplacement1 = null;
-            ResultNodeDisplacement worstNodeDisplacement2 = null;
-            foreach (var comboResult in deflectionResults.First())
-            {
-                double disp = comboResult.GetResultingDisplacement();
-
-                if (worstNodeDisplacement1 is null)
-                    worstNodeDisplacement1 = comboResult;
-                else if (Math.Abs(disp) > Math.Abs(worstNodeDisplacement1.GetResultingDisplacement()))
-                    worstNodeDisplacement1 = comboResult;
-            }
-            foreach (var comboResult in deflectionResults.First())
-            {
-                double disp = comboResult.GetResultingDisplacement();
-
-                if (worstNodeDisplacement2 is null)
-                    worstNodeDisplacement2 = comboResult;
-                else if (Math.Abs(disp) > Math.Abs(worstNodeDisplacement2.GetResultingDisplacement()))
-                    worstNodeDisplacement2 = comboResult;
-            }
-
-            Console.WriteLine($"STRESS");
-            Console.WriteLine($"\t Stress11: {worstPlateResult1.S11}, stress22: {worstPlateResult1.S22}, stress33: {worstPlateResult1.S33}");
-            Console.WriteLine($"\t Id: {worstPlateResult1.Element.Id} Point: {(worstPlateResult1.ResultPoint as ResultStressPoint).Location} Node0 Id: {worstPlateResult1.GetPlate().Nodes[0].Position}");
-
-            Console.WriteLine($"DEFLECTION");
-            Console.WriteLine($"\t WorstDeflection: {worstNodeDisplacement1.GetResultingDisplacement()}");
-            Console.WriteLine($"\t Id: {worstNodeDisplacement1.Element.Id} Point: {worstNodeDisplacement1.GetNode().Position} D1: {worstNodeDisplacement1.D1} D2: {worstNodeDisplacement1.D2} D3: {worstNodeDisplacement1.D3} ");
-
-            Assert.AreEqual(28.71, worstPlateResult1.S11, 1);
-            Assert.AreEqual(5.78, worstNodeDisplacement1.D3, 0.2);
-
-            Assert.AreEqual(28.71, worstPlateResult2.S11, 1);
-            Assert.AreEqual(5.78, worstNodeDisplacement2.D3, 0.2);
+            Assert.AreEqual(5.78, gs2WorstDisplacementsCmb1[2].D3, 0.2);
+            Assert.AreEqual(23.17, gs2WorstStressesCmb1[0].S11, 0.2);
         }
 
         [TestMethod]
