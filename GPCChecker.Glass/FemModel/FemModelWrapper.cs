@@ -1,4 +1,4 @@
-﻿
+
 using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Results;
@@ -741,97 +741,6 @@ namespace GPC.Checkers.Glasses.FemModel
             }
             else
                 throw new FileNotFoundException(_st7ResultFilePath);
-        }
-
-        private void ReadSt7LinearCombinationResults()
-        {
-            if (File.Exists(_st7ResultFilePath))
-            {
-                if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
-                {
-                    int mid = 0;
-
-                    int numPrimary = 0;     // LoadCase
-                    int numSecondary = 0;   // Combinazioni
-
-                    bool status = aw.OpenFile(_st7FilePath, Path.GetTempPath(), ref mid);
-
-                    if (status)
-                        status = aw.OpenResultFile(mid, _st7ResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
-
-                    if (status)
-                    {
-                        foreach (var combination in _combinations)
-                        {
-                            if (_st7LSACombinationMap.ContainsKey(combination))
-                            {
-                                int comboId = _st7LSACombinationMap[combination];
-
-                                foreach (var element in _elements)
-                                {
-                                    if (element is Plate plate)
-                                    {
-
-                                        // LETTURA STRESS PLATE
-                                        int numPoints = 0; // punti in cui straus da i risultati
-                                        int numColumns = 0; // numero di risultati per punto
-
-                                        double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
-                                        double[] angles = new double[9];
-                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
-                                                               comboId + numPrimary, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
-
-                                        aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
-
-                                        for (int np = 0; np < numPoints; np++)
-                                        {
-                                            for (int nc = 0; nc < numColumns; nc++)
-                                            {
-                                                ResultPlateStress rps = new ResultPlateStress(plate, combination,
-                                                                        new ResultStressPoint(np),
-                                                                        new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8])),
-                                                                        plateResults[nc * numColumns + 0], plateResults[nc * numColumns + 1], plateResults[nc * numColumns + 3], plateResults[nc * numColumns + 4], plateResults[nc * numColumns + 5]);
-
-                                                rps.CalculatePrincipalStressSimplifiedMethod();
-                                                _resultPlateStress.Add(rps);
-                                            }
-                                        }
-                                    }
-                                }
-
-                                foreach (var node in _nodes)
-                                {
-                                    double[] nodeResult = new double[6];
-                                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], comboId + numPrimary, ref nodeResult);
-                                    _resultNodeDisplacements.Add(new ResultNodeDisplacement(node, combination, CoordinateSystem.Global, nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]));
-                                }
-
-
-                            }
-
-                        }
-
-                        aw.CloseResultFile(mid);
-                        aw.CloseFile(mid);
-                    }
-                    else
-                        aw.CloseFile(mid);
-
-
-                    if (!status)
-                        throw new Straus7Exception(aw.GetLastErrorString());
-                }
-                else
-                {
-                    throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
-                }
-
-                if (channel != null)
-                    ChannelServices.UnregisterChannel(channel);
-            }
-            else
-                throw new FileNotFoundException(_st7ResultFilePath);
-
         }
 
 
