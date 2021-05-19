@@ -140,9 +140,8 @@ namespace GPC.Checkers.Glasses.FemModel
 
             var nodeIdMap = _nodes.GetElementIdMap();
 
-
-            var nodes1 = new List<GPC.Model.FEM.Node>();
-            var nodes2 = new List<GPC.Model.FEM.Node>();
+            var nodes1 = new List<Model.FEM.Node>();
+            var nodes2 = new List<Model.FEM.Node>();
 
 
             foreach (var id in node1Ids)
