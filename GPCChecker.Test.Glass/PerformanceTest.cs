@@ -212,7 +212,7 @@ namespace GlassTests
             gs1.AddLoad(swl);
 
             gs1.AddRestrains(gs1.Shape.Fill.Explode()
-                .Select(i => (GeometryRestrain)LineRestrain.GetAllFixed(i, new GPC.Model.FreedomCases.FreedomCase("fc1"), CoordinateSystem.Global))
+                .Select(i => (GeometryRestrain)LineRestrain.GetAllFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global))
                 .ToList());
 
             Debug.WriteLine(stopWatch.Elapsed, "GlassSurface created");
@@ -331,6 +331,7 @@ namespace GlassTests
         {
             /// Tempo per ogni iterazione
             /// 2021/05/13: 15 secondi 
+            /// 2021/05/19: 16 secondi (Geometry 1.0.8.4)
 
 
             Action action = new Action(() =>

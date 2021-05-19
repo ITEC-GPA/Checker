@@ -322,11 +322,16 @@ namespace GPC.Checkers.Glasses.Checkers
                         _femModel.AnalysisType = (Model.FEM.FemModel.AnalysisTypes)_glassSurface.Prototype.AnalysisType;
 
                         // O(nlc * n^2)
-                        Dictionary<Combination, List<int>> comboStageIdMap = new Dictionary<Combination, List<int>>();
+                        // Ciclo i loadcase unici
+
+                        bool firstIteration = true;
+                        Dictionary<Combination, (List<int> stageId, List<Combination> comboFictituous)> comboStageIdMap = new Dictionary<Combination, (List<int>, List<Combination>)>();
+
                         foreach (var loadCase in _combinations.SelectMany(i => i.GetLoadCases()).Select(i => i as MMLoadCaseBase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
                         {
                             Stage stagelc = _femModel.AddStage(loadCase.Name, (Model.FEM.FemModel.AnalysisTypes)_glassSurface.Prototype.AnalysisType);
 
+                            // aggiunge gli elementi allo stage e cambia le proprietà dell'interlayer
                             for (int i = 0; i < glassPackage.Length; i++)
                             {
                                 if (glassPackage[i] is Interlayer)
@@ -337,18 +342,22 @@ namespace GPC.Checkers.Glasses.Checkers
                                     stagelc.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
                             }
 
+                            // cerco tutti i coefficienti associati al loadcase che sto guardando fra tutte le combinazioni
                             foreach (Combination combo in _combinations.Select(i => i).Where(i => i.GetLoadCaseCoefficient(loadCase) != 0).ToList())
                             {
-                                if (!comboStageIdMap.ContainsKey(combo))
-                                    comboStageIdMap[combo] = new List<int>();
-                                comboStageIdMap[combo].Add(stagelc.Id);
+                                if (firstIteration)
+                                    comboStageIdMap[combo] = (new List<int>(), new List<Combination>());
 
-                                Combination comboFict;
-                                comboFict = new Combination($"{loadCase.Name} {combo[loadCase]}");
+                                Combination comboFict = new Combination($"{loadCase.Name} {combo[loadCase]}");
                                 comboFict.AddLoadCaseCoefficient(loadCase, combo[loadCase]);
+
+                                comboStageIdMap[combo].stageId.Add(stagelc.Id);
+                                comboStageIdMap[combo].comboFictituous.Add(comboFict);
 
                                 stagelc.AddCombination(comboFict);
                             }
+
+                            firstIteration = false;
                         }
                     }
                     else if (_glassSurface.Prototype.AnalysisType == Prototype.AnalysisTypes.NonLinearStaticAnalysis)
