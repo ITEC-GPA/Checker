@@ -667,6 +667,8 @@ namespace GPC.Checkers.Glasses.FemModel
                             
                             int comboId = -1;
 
+                            int[] straus7PlatePosition = new[] { St7ApiConst.psPlateZMinus, St7ApiConst.psPlateMidPlane, St7ApiConst.psPlateZPlus };
+
                             foreach (var combination in _combinations)
                             {
                                 if (AnalysisType == AnalysisTypes.Linear)
@@ -687,35 +689,39 @@ namespace GPC.Checkers.Glasses.FemModel
                                     // LETTURA STRESS PLATE di una certa combo in straus
                                     if (element is Plate plate)
                                     {
-
-                                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
-                                                               comboId, St7ApiConst.AtGaussPoints, St7ApiConst.psPlateZPlus, 0, ref numPoints, ref numColumns, ref plateResults);
-
                                         aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
-
                                         var coordinateSystem = new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8]));
 
                                         List<ResultLocationId> resultLocationPoints = new List<ResultLocationId>();
                                         List<ResultStress> resultStresses = new List<ResultStress>();
 
-                                        for (int np = 0; np < numPoints; np++)
+
+                                        for (int i = 0; i < straus7PlatePosition.Length; i++)
                                         {
-                                            for (int nc = 0; nc < numColumns; nc++)
+                                            aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
+                                                                   comboId, St7ApiConst.AtGaussPoints, straus7PlatePosition[i], 0, ref numPoints, ref numColumns, ref plateResults);
+
+
+                                            for (int np = 0; np < numPoints; np++)
                                             {
-                                                resultLocationPoints.Add(new ResultLocationId(np));
+                                                for (int nc = 0; nc < numColumns; nc++)
+                                                {
+                                                    resultLocationPoints.Add(new ResultLocationId(np));
 
-                                                ResultStress rs = new ResultStress(coordinateSystem, plateResults[nc * numColumns + 0], 
-                                                                                                     plateResults[nc * numColumns + 1], 
-                                                                                                     plateResults[nc * numColumns + 3],
-                                                                                                     plateResults[nc * numColumns + 4], 
-                                                                                                     plateResults[nc * numColumns + 5]);
-                                                rs.CalculatePrincipalStressSimplifiedMethod();
+                                                    ResultStress rs = new ResultStress(coordinateSystem, plateResults[nc * numColumns + 0],
+                                                                                                         plateResults[nc * numColumns + 1],
+                                                                                                         plateResults[nc * numColumns + 3],
+                                                                                                         plateResults[nc * numColumns + 4],
+                                                                                                         plateResults[nc * numColumns + 5]);
+                                                    rs.CalculatePrincipalStressSimplifiedMethod();
 
-                                                resultStresses.Add(rs);
+                                                    resultStresses.Add(rs);
+                                                }
                                             }
                                         }
 
-                                        plate.AddResult(new PlateResult(combination, coordinateSystem, resultStresses, resultLocationPoints));
+
+                                        plate.AddResult(new PlateResult(combination, coordinateSystem, resultStresses.ToArray(), resultLocationPoints.ToArray()));
                                     }
                                 }
 

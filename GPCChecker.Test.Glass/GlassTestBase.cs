@@ -192,9 +192,9 @@ namespace GlassTests
 
         #region Results
 
-        protected ResultNodeDisplacement[] GetWorstDisplacementResults(IEnumerable<ResultNodeDisplacement> nodeDisplacements)
+        protected ResultDisplacement[] GetWorstDisplacementResults(IEnumerable<NodeResult> nodeDisplacements)
         {
-            ResultNodeDisplacement[] worstResults = new ResultNodeDisplacement[12];
+            ResultDisplacement[] worstResults = new ResultDisplacement[12];
             // [0] == max D1
             // [1] == max D2
             // [3] == max D3
@@ -203,60 +203,63 @@ namespace GlassTests
 
             for (int i = 0; i < worstResults.Length; i++)
             {
-                worstResults[i] = nodeDisplacements.First();
+                worstResults[i] = (ResultDisplacement)nodeDisplacements.First().Result;
             }
 
-            foreach (ResultNodeDisplacement result in nodeDisplacements)
+            foreach (NodeResult result in nodeDisplacements)
             {
-                if (worstResults[0] != null && result.D1 > worstResults[0].D1)
+                var res = result.Result as ResultDisplacement;
+
+
+                if (worstResults[0] != null && res.D1 > worstResults[0].D1)
                 {
-                    worstResults[0] = result;
+                    worstResults[0] = res;
                 }
-                else if (worstResults[1] != null && result.D2 > worstResults[1].D2)
+                else if (worstResults[1] != null && res.D2 > worstResults[1].D2)
                 {
-                    worstResults[1] = result;
+                    worstResults[1] = res;
                 }
-                else if (worstResults[2] != null && result.D3 > worstResults[2].D3)
+                else if (worstResults[2] != null && res.D3 > worstResults[2].D3)
                 {
-                    worstResults[2] = result;
+                    worstResults[2] = res;
                 }
-                else if (worstResults[3] != null && result.R1 > worstResults[3].R1)
+                else if (worstResults[3] != null && res.R1 > worstResults[3].R1)
                 {
-                    worstResults[3] = result;
+                    worstResults[3] = res;
                 }
-                else if (worstResults[4] != null && result.R2 > worstResults[4].R2)
+                else if (worstResults[4] != null && res.R2 > worstResults[4].R2)
                 {
-                    worstResults[4] = result;
+                    worstResults[4] = res;
                 }
-                else if (worstResults[5] != null && result.R3 > worstResults[5].R3)
+                else if (worstResults[5] != null && res.R3 > worstResults[5].R3)
                 {
-                    worstResults[5] = result;
+                    worstResults[5] = res;
                 }
 
 
-                if (worstResults[6] != null && result.D1 < worstResults[6].D1)
+                if (worstResults[6] != null && res.D1 < worstResults[6].D1)
                 {
-                    worstResults[6] = result;
+                    worstResults[6] = res;
                 }
-                else if (worstResults[7] != null && result.D2 < worstResults[7].D2)
+                else if (worstResults[7] != null && res.D2 < worstResults[7].D2)
                 {
-                    worstResults[7] = result;
+                    worstResults[7] = res;
                 }
-                else if (worstResults[8] != null && result.D3 < worstResults[8].D3)
+                else if (worstResults[8] != null && res.D3 < worstResults[8].D3)
                 {
-                    worstResults[8] = result;
+                    worstResults[8] = res;
                 }
-                else if (worstResults[9] != null && result.R1 < worstResults[9].R1)
+                else if (worstResults[9] != null && res.R1 < worstResults[9].R1)
                 {
-                    worstResults[9] = result;
+                    worstResults[9] = res;
                 }
-                else if (worstResults[10] != null && result.R2 < worstResults[10].R2)
+                else if (worstResults[10] != null && res.R2 < worstResults[10].R2)
                 {
-                    worstResults[10] = result;
+                    worstResults[10] = res;
                 }
-                else if (worstResults[11] != null && result.R3 < worstResults[11].R3)
+                else if (worstResults[11] != null && res.R3 < worstResults[11].R3)
                 {
-                    worstResults[11] = result;
+                    worstResults[11] = res;
                 }
 
 
@@ -266,38 +269,45 @@ namespace GlassTests
         }
 
 
-        protected ResultPlateStress[] GetWorstStressResults(IEnumerable<ResultPlateStress> plateStresses)
+        protected ResultStress[] GetWorstStressResults(IEnumerable<FiniteElementResult> plateStresses)
         {
-            ResultPlateStress[] worstResults = new ResultPlateStress[4];
+            ResultStress[] worstResults = new ResultStress[4];
             // [0] == max S11
             // [1] == max S22
 
 
             for (int i = 0; i < worstResults.Length; i++)
             {
-                worstResults[i] = plateStresses.First();
+                worstResults[i] = (ResultStress)plateStresses.First().Results.First();
             }
 
-            foreach (ResultPlateStress result in plateStresses)
+            foreach (FiniteElementResult results in plateStresses)
             {
-                if (worstResults[0] != null && result.S11 > worstResults[0].S11)
+                foreach(var result in results.Results)
                 {
-                    worstResults[0] = result;
-                }
-                else if (worstResults[1] != null && result.S22 > worstResults[1].S22)
-                {
-                    worstResults[1] = result;
-                }
+                    var res = result as ResultStress;
+                    
+                    if (res != null)
+                    {
+                        if (worstResults[0] != null && res.S11 > worstResults[0].S11)
+                        {
+                            worstResults[0] = res;
+                        }
+                        else if (worstResults[1] != null && res.S22 > worstResults[1].S22)
+                        {
+                            worstResults[1] = res;
+                        }
 
-                if (worstResults[2] != null && result.S11 < worstResults[2].S11)
-                {
-                    worstResults[2] = result;
+                        if (worstResults[2] != null && res.S11 < worstResults[2].S11)
+                        {
+                            worstResults[2] = res;
+                        }
+                        else if (worstResults[3] != null && res.S22 < worstResults[3].S22)
+                        {
+                            worstResults[3] = res;
+                        }
+                    }
                 }
-                else if (worstResults[3] != null && result.S22 < worstResults[3].S22)
-                {
-                    worstResults[3] = result;
-                }
-
             }
 
             return worstResults;
