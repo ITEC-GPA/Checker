@@ -184,8 +184,8 @@ namespace GPC.Checkers.Glasses.Checkers
                                                   out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapInternal);
 
 
-
-                    // Creo modello, aggiungendo elementi creando prop etch
+                    
+                    // Creo modello, aggiungendo elementi creando prop etc
                     _femModel = new FemModelWrapper(femModelName);
 
                     List<IGlassLoadCase> loadCasesUnique = loads.Select(i => i.LoadCase as IGlassLoadCase).Where(i => i != null).Distinct().ToList();
@@ -323,7 +323,6 @@ namespace GPC.Checkers.Glasses.Checkers
 
                         // O(nlc * n^2)
                         // Ciclo i loadcase unici
-
                         bool firstIteration = true;
                         Dictionary<Combination, (List<int> stageId, List<Combination> comboFictituous)> comboStageIdMap = new Dictionary<Combination, (List<int>, List<Combination>)>();
 
@@ -346,7 +345,9 @@ namespace GPC.Checkers.Glasses.Checkers
                             foreach (Combination combo in _combinations.Select(i => i).Where(i => i.GetLoadCaseCoefficient(loadCase) != 0).ToList())
                             {
                                 if (firstIteration)
+                                {
                                     comboStageIdMap[combo] = (new List<int>(), new List<Combination>());
+                                }
 
                                 Combination comboFict = new Combination($"{loadCase.Name} {combo[loadCase]}");
                                 comboFict.AddLoadCaseCoefficient(loadCase, combo[loadCase]);
@@ -355,10 +356,13 @@ namespace GPC.Checkers.Glasses.Checkers
                                 comboStageIdMap[combo].comboFictituous.Add(comboFict);
 
                                 stagelc.AddCombination(comboFict);
+
+                                _femModel.AddStageCombinationSplittedMap(combo.Name, new int[] { stagelc.Id }, new string[] { comboFict.Name });
                             }
 
                             firstIteration = false;
                         }
+                        
                     }
                     else if (_glassSurface.Prototype.AnalysisType == Prototype.AnalysisTypes.NonLinearStaticAnalysis)
                     {
@@ -504,6 +508,8 @@ namespace GPC.Checkers.Glasses.Checkers
                     }
 
                     // COMBINAZIONI
+                    // uso le combo a livello di modello per salvare le combo di riferimento da girare.
+                    // negli stage ci sono o quelle complete o quelle splittate da ricostruire
                     _femModel.AddCombinations(_combinations);
                 }
                 else
