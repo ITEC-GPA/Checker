@@ -33,6 +33,12 @@ namespace GPC.Checkers.Glasses.FemModel
 
         private Prototype.SolverTypes _solverType;
 
+
+        /// <summary>
+        /// Map used to identify how a combination is splitted into different stage combinations.
+        /// </summary>
+        protected Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)> _stageCombinationsSplittedMap;
+
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and St7ComboId in the Linear loadcase combination table  ;
         /// </summary>
@@ -84,7 +90,8 @@ namespace GPC.Checkers.Glasses.FemModel
         private readonly Dictionary<int, int> _st7StageMap;
 
 
-        public FemModelWrapper() : this(string.Empty)
+        public FemModelWrapper() 
+            : this(string.Empty)
         {
 
         }
@@ -93,6 +100,9 @@ namespace GPC.Checkers.Glasses.FemModel
             : base(name)
         {
             _st7ServerIp = "localhost";
+
+            _stageCombinationsSplittedMap = new Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>();
+
             _st7LSACombinationMap = new Dictionary<Combination, int>(new ModelObjectNameEqualityComparer());
             _st7NLACombinationMap = new Dictionary<Combination, int>(new ModelObjectNameEqualityComparer());
             _st7LoadCaseMap = new Dictionary<string, int>();
@@ -116,6 +126,58 @@ namespace GPC.Checkers.Glasses.FemModel
 
 
         #region Public methods 
+
+        #region Combinations
+
+        /// <summary>
+        /// Map used to identify how a combination is splitted into different stage combinations.
+        /// </summary>
+        /// <returns> 
+        /// <para><see langword="False"/> if <paramref name="combinationName"/> is not contained in the <see cref="Model.FEM.FemModel.Combinations"/> collection</para>
+        /// <para><see langword="False"/> if <paramref name="stageIds"/> lenght is differenet to <paramref name="stageCombinationsNames"/> lenght</para>
+        /// <para><see langword="False"/> if <paramref name="stageIds"/> or <paramref name="stageCombinationsNames"/> are not contained the in the collections</para>
+        /// </returns>
+        /// <remarks>If the <paramref name="combinationName"/> already exist, the <paramref name="stageIds"/> and <paramref name="stageCombinationsNames"/> will be merged </remarks>
+        public bool AddStageCombinationMap(string combinationName, IEnumerable<int> stageIds, IEnumerable<string> stageCombinationsNames)
+        {
+            if (!_combinations.Contains(combinationName))
+                return false;
+
+            if (stageIds.Count() != stageCombinationsNames.Count())
+                return false;
+
+            if (_stages.ContainsRange(stageIds) && _combinations.ContainsRange(stageCombinationsNames))
+            {
+                if (_stageCombinationsSplittedMap.ContainsKey(combinationName))
+                {
+                    _stageCombinationsSplittedMap[combinationName].stageIds.AddRange(stageIds);
+                    _stageCombinationsSplittedMap[combinationName].stageCombinationsNames.AddRange(stageCombinationsNames);
+                }
+
+                _stageCombinationsSplittedMap[combinationName] = (stageIds.ToList(), stageCombinationsNames.ToList());
+
+                return true;
+            }
+            return false;
+        }
+
+        public bool RemoveStageCombinationMap(string combinationName)
+        {
+            return _stageCombinationsSplittedMap.Remove(combinationName);
+        }
+
+        public (List<int> stageIds, List<string> stageCombinationsNames) GetStageCombinationMap(string combinationName)
+        {
+            if (!_stageCombinationsSplittedMap.ContainsKey(combinationName))
+                throw new KeyNotFoundException(combinationName);
+
+            return _stageCombinationsSplittedMap[combinationName];
+        }
+
+
+        #endregion
+
+
 
         public override void Solve()
         {
