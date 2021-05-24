@@ -1,4 +1,4 @@
-﻿
+
 using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Results;
@@ -1493,59 +1493,72 @@ namespace GPC.Checkers.Glasses.FemModel
             }
         }
 
-        private bool St7SetStageIncrement(ISt7ApiService aw, int mid)
-        {
-
-            int stageId = _st7StageMap.First().Value;
-
-            int stageIncrement = 1;
-            foreach (var combo in _combinations)
-            {
-                if (aw.AddNLAIncrement(mid, stageId, combo.Name))
-                {
-                    _st7NLACombinationMap[combo.Name] = stageIncrement;
-                    foreach (var (loadcase, coefficient) in combo.GetLoadCaseCoefficientsTuple())
-                    {
-                        aw.SetNLALoadIncrementFactor(mid, stageId, stageIncrement, _st7LoadCaseMap[loadcase.Name], coefficient);
-                    }
-                    stageIncrement++;
-                }
-                else
-                {
-                    throw new Straus7Exception($"St7 Error: {aw.GetLastErrorString()}");
-                }
-            }
-
-            return true;
-        }
-
-        private bool St7SetStageCombinations(ISt7ApiService aw, int mid, int stageId)
-        {
-
-            int stageIncrement = 1;
-            foreach (var combo in GetStageCombinations(stageId))
-            {
-                if (aw.AddNLAIncrement(mid, _st7StageMap[stageId], combo.Name))
-                {
-                    _st7NLACombinationMap[combo.Name] = stageIncrement;
-
-                    foreach (var (loadcase, coefficient) in combo.GetLoadCaseCoefficientsTuple())
-                    {
-                        aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stageId], stageIncrement, _st7LoadCaseMap[loadcase.Name], coefficient);
-                    }
-                    stageIncrement++;
-                }
-                else
-                {
-                    throw new Straus7Exception($"St7 Error: {aw.GetLastErrorString()}");
-                }
-            }
-
-            return true;
-
-        }
-
         #endregion
+
+
+#if DEBUG
+        #region STRAUS7 - DEBUG INTERNAL METHODS
+
+        internal void ExportSt7PlateUserDefinedCustomResultFile(string filePath, Combination combination)
+        {
+
+            using (StreamWriter sw = File.CreateText(filePath))
+            {
+                sw.WriteLine($"{combination.Name} My User Generated Gauss Point File");
+
+                IEnumerator<FiniteElement> enumerator = GetElementsEnumerator();
+
+                using (enumerator)
+                {
+                    while (enumerator.MoveNext())
+                    {
+                        var element = enumerator.Current;
+
+                        if (element is Plate plate)
+                        {
+                            sw.Write($"{_st7PlateMap[element.Id]} ");
+
+                            foreach (var result in element.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault().Results)
+                            {
+                                if (result is ResultStress rs)
+                                {
+                                    sw.Write($"{rs.S11} ");
+                                }
+                            }
+                            sw.Write("\n");
+                        }
+                    }
+                }
+            }
+        }
+
+
+        internal void ExportSt7NodeUserDefinedCustomResultFile(string filePath, Combination combination)
+        {
+
+            using (StreamWriter sw = File.CreateText(filePath))
+            {
+                sw.WriteLine($"{combination.Name} My User Generated Node Contour File");
+
+                IEnumerator<Model.FEM.Node> enumerator = GetNodesEnumerator();
+
+                using (enumerator)
+                {
+                    while (enumerator.MoveNext())
+                    {
+                        var node = enumerator.Current;
+
+                        if (node.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault().Result is ResultDisplacement rd)
+                        {
+                            sw.WriteLine($"{_st7NodeMap[node.Id]} {rd.D3}");
+                        }
+                    }
+                }
+            }
+        }
+
+        #endregion  
+#endif
 
 
         #endregion
