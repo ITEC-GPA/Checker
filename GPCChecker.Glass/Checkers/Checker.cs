@@ -32,7 +32,7 @@ namespace GPC.Checkers.Glasses.Checkers
         /// </summary>
         protected List<Combination> _combinations;
 
-        public Model.FEM.FemModel FemModel => _femModel;
+        public FemModelWrapper FemModel => _femModel;
 
         public Checker(GlassSurface glassSurface, List<Combination> combinations, ModelOptions modelOptions)
         {
@@ -342,7 +342,7 @@ namespace GPC.Checkers.Glasses.Checkers
                             }
 
                             // cerco tutti i coefficienti associati al loadcase che sto guardando fra tutte le combinazioni
-                            foreach (Combination combo in _combinations.Select(i => i).Where(i => i.GetLoadCaseCoefficient(loadCase) != 0).ToList())
+                            foreach (Combination combo in _combinations.Select(i => i).Where(i => i.GetLoadCaseCoefficient(loadCase)  != 0 ).ToList())
                             {
                                 if (firstIteration)
                                 {
@@ -360,6 +360,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                 _femModel.AddStageCombinationSplittedMap(combo.Name, new int[] { stagelc.Id }, new string[] { comboFict.Name });
                             }
 
+                            
                             firstIteration = false;
                         }
                         
