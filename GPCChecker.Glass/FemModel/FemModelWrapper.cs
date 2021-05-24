@@ -1,4 +1,4 @@
-
+﻿
 using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Results;
@@ -19,6 +19,7 @@ using System.Reflection;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Serialization;
+using System.Text;
 
 namespace GPC.Checkers.Glasses.FemModel
 {
@@ -52,9 +53,9 @@ namespace GPC.Checkers.Glasses.FemModel
         private readonly Dictionary<string, int> _st7LSACombinationMap;
 
         /// <summary>
-        /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and stageIncrement;
+        /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and Stage id - Stage increment id;
         /// </summary>
-        private readonly Dictionary<string, int> _st7NLACombinationMap;
+        private readonly Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)> _st7NLACombinationMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._loadCases"/> St7 loadcase id;
@@ -118,7 +119,7 @@ namespace GPC.Checkers.Glasses.FemModel
             _stageCombinationsSplittedMap = new Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>();
 
             _st7LSACombinationMap = new Dictionary<string, int>();
-            _st7NLACombinationMap = new Dictionary<string, int>();
+            _st7NLACombinationMap = new Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>();
             _st7LoadCaseMap = new Dictionary<string, int>();
             _st7FreedomCaseMap = new Dictionary<string, int>();
             _st7PlatePropertyMap = new Dictionary<PlateProperty, int>(new ModelObjectNameEqualityComparer());
@@ -156,7 +157,7 @@ namespace GPC.Checkers.Glasses.FemModel
         /// <remarks>If the <paramref name="combinationName"/> already exist, the <paramref name="stageIds"/> and <paramref name="stageCombinationsNames"/> will be merged </remarks>
         public bool AddStageCombinationSplittedMap(string combinationName, IEnumerable<int> stageIds, IEnumerable<string> stageCombinationsNames)
         {
-            if (stageIds.Count() != stageCombinationsNames.Count())
+            if (stageIds.Count() != stageCombinationsNames.Count() )
                 return false;
 
             if (_stages.ContainsRange(stageIds))
@@ -164,9 +165,10 @@ namespace GPC.Checkers.Glasses.FemModel
                 var stageIdsList = stageIds.ToList();
                 var stageCombinationsNamesList = stageCombinationsNames.ToList();
 
+                // controllo che tutti i nomi stageCombinationsNames siano effetivamente delle combo negli stage
                 for (int i = 0; i < stageIdsList.Count(); i++)
                 {
-                    if (!_stageCombinationsMap[stageIdsList[i]].Contains(stageCombinationsNamesList[i]))
+                    if (!_stageCombinationsMap[stageIdsList[i]].Contains(stageCombinationsNamesList[i])) 
                         return false;
                 }
 
@@ -650,48 +652,6 @@ namespace GPC.Checkers.Glasses.FemModel
                     throw new NotSupportedException();
             }
 
-
-
-            //// Setup Stages
-            //if (_stages.Count > 0)
-            //{
-            //    St7SetStages(aw, mid); // crea gli stages, senza combo. Non spegne elementi
-
-            //    St7SetStagesCombination(aw, mid);
-
-            //    if (AnalysisType == AnalysisTypes.Linear)
-            //    {
-            //        // uso il solutore non lineare
-            //        // non linearità disattivata
-
-            //        St7NonLinearSolverSetup(aw, mid, false, false, true);
-            //    }
-            //    else
-            //    {
-            //        // uso il solutore non lineare
-            //        // non linearità attivata
-
-            //        St7NonLinearSolverSetup(aw, mid, false, true, true);
-            //    }
-            //}
-            //else
-            //{
-            //    if (AnalysisType == AnalysisTypes.Linear) // No stage e analisi lineare
-            //    {
-            //        bool status = St7LinearSolverSetup(aw, mid);
-
-            //        if (status)
-            //            St7SetLinearLoadCaseCombination(aw, mid);
-
-            //        if (status)
-            //            aw.SaveFile(mid);
-            //    }
-
-            //    else
-            //        throw new NotSupportedException(); // Non è possibile avere analisi non lineare senza stages.
-            //}
-
-
             return true;
         }
 
@@ -796,16 +756,15 @@ namespace GPC.Checkers.Glasses.FemModel
                     if (fileOpened && resultFileOpened)
                     {
                         try
-                        {                 
-
+                        {       
                             foreach (Combination combination in _combinations)
                             {
                                 if (_st7SolverType == Straus7SolverTypes.Linear)
                                 {
                                     int comboId = _st7LSACombinationMap[combination.Name] + numPrimary;
 
-                                    St7ReadElementResults(aw, mid, comboId, combination);
-                                    St7ReadNodeResults(aw, mid, comboId, combination);
+                                    St7ReadElementResults(aw, mid, new List<int> { comboId }, combination);
+                                    St7ReadNodeResults(aw, mid, new List<int> { comboId }, combination);
                                 }
                                 else if (_st7SolverType == Straus7SolverTypes.NonLinear)
                                 {                                   
@@ -813,23 +772,13 @@ namespace GPC.Checkers.Glasses.FemModel
 
                                     List<int> comboIdSplitted = _stageCombinationsSplittedMap[combination.Name].stageIds;
 
+                                    List<string> comboFictitiousName = _stageCombinationsSplittedMap[combination.Name].stageCombinationsNames;
 
-                                    var comboFictitiousName = _stageCombinationsSplittedMap[combination.Name].stageCombinationsNames;
+                                    // lista degli indici degli incrementi dove leggere le forze
+                                    List<int> incrementIds = comboFictitiousName.Select(i => _st7NLACombinationMap[i].progressiveIncrementId).ToList();
 
-                                    List<int> c = comboFictitiousName.Select(i => _st7NLACombinationMap[i]).ToList();
-
-                                    St7ReadElementResults2(aw, mid, c, combination);
-
-                                    //for (int i = 0; i < comboIdSplitted.Count; i++)
-                                    //{
-                                    //    string comboFictitiousName = _stageCombinationsSplittedMap[combination.Name].stageCombinationsNames[i];
-
-                                    //    int incrementFictCombo = _st7NLACombinationMap[comboFictitiousName];
-
-
-                                    //    St7ReadElementResults2(aw, mid, incrementFictCombo, combination);
-
-                                    //}
+                                    St7ReadElementResults(aw, mid, incrementIds, combination);
+                                    St7ReadNodeResults(aw, mid, incrementIds, combination);
 
                                 }
 
@@ -860,7 +809,7 @@ namespace GPC.Checkers.Glasses.FemModel
                 throw new FileNotFoundException(_st7ResultFilePath);
         }
 
-        private void St7ReadElementResults2(ISt7ApiService aw, int mid, List<int> incrementIds, Combination combination)
+        private void St7ReadElementResults(ISt7ApiService aw, int mid, List<int> incrementIds, Combination combination)
         {
 
             int numPoints = 0; // punti in cui straus da i risultati
@@ -916,64 +865,9 @@ namespace GPC.Checkers.Glasses.FemModel
                                 }
                                 else
                                 {
-                                    resultStresses[index] = rs;
+                                    resultStresses[index] += rs;
                                     index++;
                                 }
-                            }
-                        }
-                    }
-
-                    new PlateResult(combination, coordinateSystem, resultStresses.ToArray(), resultLocationPoints.ToArray());
-                }
-            }
-
-        }
-
-        private void St7ReadElementResults(ISt7ApiService aw, int mid, int incrementId, Combination combination)
-        {
-
-            int numPoints = 0; // punti in cui straus da i risultati
-            int numColumns = 0; // numero di risultati per punto
-
-            double[] angles = new double[9];
-
-            int[] straus7PlatePosition = new[] { St7ApiConst.psPlateZMinus, St7ApiConst.psPlateMidPlane, St7ApiConst.psPlateZPlus };
-
-            double[] plateResults = new double[St7ApiConst.kMaxPlateResult];
-
-            foreach (var element in _elements)
-            {
-
-                // LETTURA STRESS PLATE di una certa combo in straus
-                if (element is Plate plate)
-                {
-                    aw.GetPlateAxisSystem(mid, _st7PlateMap[plate.Id], St7ApiConst.btTrue, ref angles);
-                    var coordinateSystem = new CoordinateSystem(new Vector3d(angles[0], angles[1], angles[2]), new Vector3d(angles[3], angles[4], angles[5]), new Vector3d(angles[6], angles[7], angles[8]));
-
-                    List<ResultLocationId> resultLocationPoints = new List<ResultLocationId>();
-                    List<ResultStress> resultStresses = new List<ResultStress>();
-
-
-                    for (int j = 0; j < straus7PlatePosition.Length; j++)
-                    {
-                        aw.GetPlateResultArray(mid, St7ApiConst.rtPlateStress, St7ApiConst.stPlateLocal, _st7PlateMap[plate.Id],
-                                               incrementId, St7ApiConst.AtGaussPoints, straus7PlatePosition[j], 0, ref numPoints, ref numColumns, ref plateResults);
-
-                        for (int np = 0; np < numPoints; np++)
-                        {
-                            for (int nc = 0; nc < numColumns; nc++)
-                            {
-                                resultLocationPoints.Add(new ResultLocationId(np));
-
-                                ResultStress rs = new ResultStress(coordinateSystem, plateResults[nc * numColumns + 0],
-                                                                                     plateResults[nc * numColumns + 1],
-                                                                                     plateResults[nc * numColumns + 2],
-                                                                                     plateResults[nc * numColumns + 3],
-                                                                                     plateResults[nc * numColumns + 4],
-                                                                                     plateResults[nc * numColumns + 5]);
-                                rs.CalculatePrincipalStressFullMethod();
-
-                                resultStresses.Add(rs);
                             }
                         }
                     }
@@ -984,16 +878,30 @@ namespace GPC.Checkers.Glasses.FemModel
 
         }
 
-        private void St7ReadNodeResults(ISt7ApiService aw, int mid, int incrementId, Combination combination)
+
+        private void St7ReadNodeResults(ISt7ApiService aw, int mid, List<int> incrementIds, Combination combination)
         {
 
             double[] nodeResult = new double[6];
 
             foreach (var node in _nodes)
             {
-                aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], incrementId, ref nodeResult);
+                List<ResultDisplacement> resultDisplacements = new List<ResultDisplacement>();
 
-                node.AddResult(new NodeResult(combination, CoordinateSystem.Global, new ResultDisplacement(nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5])));
+                ResultDisplacement rd = null;
+
+                for (int i = 0; i < incrementIds.Count; i++)
+                {
+
+                    aw.GetNodeResult(mid, St7ApiConst.rtNodeDisp, _st7NodeMap[node.Id], incrementIds[i], ref nodeResult);
+
+                    if (rd != null)
+                        rd += new ResultDisplacement(nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]);
+                    else
+                        rd = new ResultDisplacement(nodeResult[0], nodeResult[1], nodeResult[2], nodeResult[3], nodeResult[4], nodeResult[5]);
+                }
+
+                node.AddResult(new NodeResult(combination, CoordinateSystem.Global, rd)); 
             }
 
         }
@@ -1059,21 +967,27 @@ namespace GPC.Checkers.Glasses.FemModel
         private void St7SetStagesCombination(ISt7ApiService aw, int mid)
         {
 
-            foreach (Model.FEM.Stage stage in _stages)
+            int progressiveID = 1;
+            foreach (Model.FEM.Stage stage in _stages.OrderBy(i => _st7StageMap[i.Id]))
             {
+                int comboIndex = 1;
+
                 if (_st7StageMap.ContainsKey(stage.Id))
                 {
-                    int comboIndex = 1;
                     foreach (var combo in GetStageCombinations(stage.Id))
                     {
                         aw.AddNLAIncrement(mid, _st7StageMap[stage.Id], combo.Name);
-                        _st7NLACombinationMap[combo.Name] = _st7StageMap[stage.Id]; 
+                        
 
                         foreach (var (loadcase, coefficient) in combo.GetLoadCaseCoefficientsTuple())
-                        {
                             aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stage.Id], comboIndex, _st7LoadCaseMap[loadcase.Name], coefficient);
-                        }
+
+
+                        _st7NLACombinationMap[combo.Name] = (_st7StageMap[stage.Id], comboIndex, progressiveID); 
+
+
                         comboIndex++;
+                        progressiveID++;
                     }
                 }
             }
