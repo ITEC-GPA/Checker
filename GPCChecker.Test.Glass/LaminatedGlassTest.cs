@@ -387,6 +387,14 @@ namespace GlassTests
 
             model.PerformChecks();
 
+            //Assert.IsTrue(model.GlassSurfaces.First().Checker.FemModel.no);
+
+
+#if DEBUG
+            model.GlassSurfaces.First().Checker.FemModel.ExportSt7PlateUserDefinedCustomResultFile(base.GetFilePathInOutputFolder(base.GetTestName() + "_PlateContour", "txt"), combo3);
+            model.GlassSurfaces.First().Checker.FemModel.ExportSt7NodeUserDefinedCustomResultFile(base.GetFilePathInOutputFolder(base.GetTestName() + "_NodeContour", "txt"), combo3);
+#endif
+
         }
 
 
