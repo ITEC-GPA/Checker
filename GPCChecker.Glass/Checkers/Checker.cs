@@ -323,7 +323,7 @@ namespace GPC.Checkers.Glasses.Checkers
 
                         // O(nlc * n^2)
                         // Ciclo i loadcase unici
-                        bool firstIteration = true;
+
                         Dictionary<Combination, (List<int> stageId, List<Combination> comboFictituous)> comboStageIdMap = new Dictionary<Combination, (List<int>, List<Combination>)>();
 
                         foreach (var loadCase in _combinations.SelectMany(i => i.GetLoadCases()).Select(i => i as MMLoadCaseBase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
@@ -344,7 +344,7 @@ namespace GPC.Checkers.Glasses.Checkers
                             // cerco tutti i coefficienti associati al loadcase che sto guardando fra tutte le combinazioni
                             foreach (Combination combo in _combinations.Select(i => i).Where(i => i.GetLoadCaseCoefficient(loadCase)  != 0 ).ToList())
                             {
-                                if (firstIteration)
+                                if (!comboStageIdMap.ContainsKey(combo))
                                 {
                                     comboStageIdMap[combo] = (new List<int>(), new List<Combination>());
                                 }
@@ -360,8 +360,6 @@ namespace GPC.Checkers.Glasses.Checkers
                                 _femModel.AddStageCombinationSplittedMap(combo.Name, new int[] { stagelc.Id }, new string[] { comboFict.Name });
                             }
 
-                            
-                            firstIteration = false;
                         }
                         
                     }
