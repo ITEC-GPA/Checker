@@ -391,7 +391,7 @@ namespace GlassTests
 
 
 #if DEBUG
-            model.GlassSurfaces.First().Checker.FemModel.ExportSt7PlateUserDefinedCustomResultFile(base.GetFilePathInOutputFolder(base.GetTestName() + "_PlateContour", "txt"), combo3);
+            model.GlassSurfaces.First().Checker.FemModel.ExportSt7PlateUserDefinedCustomResultFile(base.GetOutputFolder(), base.GetTestName() + "_PlateContour", combo3);
             model.GlassSurfaces.First().Checker.FemModel.ExportSt7NodeUserDefinedCustomResultFile(base.GetFilePathInOutputFolder(base.GetTestName() + "_NodeContour", "txt"), combo3);
 #endif
 

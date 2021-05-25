@@ -13,6 +13,7 @@ using St7ApiWrapper;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -911,8 +912,6 @@ namespace GPC.Checkers.Glasses.FemModel
         /// <summary>
         /// Add each stage in <see cref="Model.FEM.FemModel._stages"/> to st7 and update <see cref="_st7StageMap"/>
         /// </summary>
-        /// <param name="aw"></param>
-        /// <param name="mid"></param>
         /// <remarks>This method does not turn off elements (groups for straus) at certain stage</remarks>
         private void St7SetStages(ISt7ApiService aw, int mid)
         {
@@ -962,8 +961,6 @@ namespace GPC.Checkers.Glasses.FemModel
         /// <summary>
         /// This method set also the map <see cref="_st7NLACombinationMap"/>
         /// </summary>
-        /// <param name="aw"></param>
-        /// <param name="mid"></param>
         private void St7SetStagesCombination(ISt7ApiService aw, int mid)
         {
 
@@ -1413,14 +1410,26 @@ namespace GPC.Checkers.Glasses.FemModel
 #if DEBUG
         #region STRAUS7 - DEBUG INTERNAL METHODS
 
-        internal void ExportSt7PlateUserDefinedCustomResultFile(string filePath, Combination combination)
+        internal bool ExportSt7PlateUserDefinedCustomResultFile(string folderPath, string fileName, Combination combination)
         {
+            if (!Directory.Exists(folderPath))
+                return false;
 
-            using (StreamWriter sw = File.CreateText(filePath))
+            string fileZminus = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Lower"), "txt");
+            string fileZmid = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Mid"), "txt");
+            string fileZplus = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Upper"), "txt");
+
+            using (StreamWriter swMinus = File.CreateText(fileZminus))
+            using (StreamWriter swMid = File.CreateText(fileZmid))
+            using (StreamWriter swPlus = File.CreateText(fileZplus))
             {
-                sw.WriteLine($"{combination.Name} My User Generated Gauss Point File");
+                swMinus.WriteLine($"{combination.Name} My User Generated Gauss Point File");
+                swMid.WriteLine($"{combination.Name} My User Generated Gauss Point File");
+                swPlus.WriteLine($"{combination.Name} My User Generated Gauss Point File");
 
                 IEnumerator<FiniteElement> enumerator = GetElementsEnumerator();
+
+                NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;
 
                 using (enumerator)
                 {
@@ -1430,20 +1439,68 @@ namespace GPC.Checkers.Glasses.FemModel
 
                         if (element is Plate plate)
                         {
-                            sw.Write($"{_st7PlateMap[element.Id]} ");
+                            PlateResult plateResult = (PlateResult)element.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault();
 
-                            foreach (var result in element.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault().Results)
+                            swMinus.Write($"{_st7PlateMap[element.Id]} ");
+                            swMid.Write($"{_st7PlateMap[element.Id]} ");
+                            swPlus.Write($"{_st7PlateMap[element.Id]} ");
+
+
+                            (ResultType[] lowerFace, ResultType[] midFace, ResultType[] upperFace) faceResults = plateResult.GetFaceResults();
+
+                            bool isRs = false;
+                            foreach (ResultType result in faceResults.lowerFace)
                             {
                                 if (result is ResultStress rs)
                                 {
-                                    sw.Write($"{rs.S11} ");
+                                    swMinus.Write($"{rs.S11.ToString("N5", nfi)} ");
+                                    isRs = true;
                                 }
                             }
-                            sw.Write("\n");
+                            //if (faceResults.lowerFace.Length < 4 && isRs)
+                            //{
+                            //    swMinus.Write("0");
+                            //}
+
+
+                            isRs = false;
+                            foreach (ResultType result in faceResults.midFace)
+                            {
+                                if (result is ResultStress rs)
+                                {
+                                    swMid.Write($"{rs.S11.ToString("N5", nfi)} ");
+                                    isRs = true;
+                                }
+                            }
+                            //if (faceResults.midFace.Length < 4 && isRs)
+                            //{
+                            //    swMid.Write("0");
+                            //}
+
+
+                            isRs = false;
+                            foreach (ResultType result in faceResults.upperFace)
+                            {
+                                if (result is ResultStress rs)
+                                {
+                                    swPlus.Write($"{rs.S11.ToString("N5", nfi)} ");
+                                    isRs = true;
+                                }
+                            }
+                            //if (faceResults.upperFace.Length < 4 && isRs)
+                            //{
+                            //    swPlus.Write("0");
+                            //}
+
+                            swMinus.Write("\n");
+                            swMid.Write("\n");
+                            swPlus.Write("\n");
                         }
                     }
                 }
             }
+
+            return true;
         }
 
 
@@ -1456,6 +1513,10 @@ namespace GPC.Checkers.Glasses.FemModel
 
                 IEnumerator<Model.FEM.Node> enumerator = GetNodesEnumerator();
 
+                //NumberFormatInfo nfi = new NumberFormatInfo();
+                //nfi.NumberDecimalSeparator = ",";
+                NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;
+
                 using (enumerator)
                 {
                     while (enumerator.MoveNext())
@@ -1464,7 +1525,7 @@ namespace GPC.Checkers.Glasses.FemModel
 
                         if (node.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault().Result is ResultDisplacement rd)
                         {
-                            sw.WriteLine($"{_st7NodeMap[node.Id]} {rd.D3}");
+                            sw.WriteLine($"{_st7NodeMap[node.Id]} {rd.D3.ToString("N5", nfi)}");
                         }
                     }
                 }
