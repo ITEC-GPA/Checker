@@ -34,6 +34,11 @@ namespace GPC.Checkers.Glasses.Models
         /// </summary>
         public bool Straus7BrickBubbleFunction { get; set; }
 
+        /// <summary>
+        /// Rapresent the value of the Elastic Modulus to be used to define the <see cref="GPC.Model.FEM.Materials.OrthotropicFemMaterial"/> of the interlayer bricks. 
+        /// In order to avoid numerical singularity.         
+        /// </summary>
+        public double InterlayerBrickElasticModulus { get; set; }
 
         // Explicit static constructor to tell C# compiler not to mark type as beforefieldinit
         static ModelAnalysisOptions()
@@ -44,6 +49,7 @@ namespace GPC.Checkers.Glasses.Models
         private ModelAnalysisOptions()
         {
             Straus7BrickBubbleFunction = false;
+            InterlayerBrickElasticModulus = 1e3;
         }
 
     }

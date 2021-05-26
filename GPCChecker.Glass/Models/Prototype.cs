@@ -13,7 +13,7 @@ using System.Runtime.Serialization;
 namespace GPC.Checkers.Glasses.Models
 {
     [Serializable]
-    public sealed class Prototype : GPC.Model.ModelObject, IEquatable<Prototype>
+    public sealed class Prototype : ModelObject, IEquatable<Prototype>
     {
         #region PUBLIC ENUMS
 
@@ -121,6 +121,7 @@ namespace GPC.Checkers.Glasses.Models
 
         #region Property
 
+        /// <remarks>Order of the glass panels is from external to internal</remarks>
         public Glass Glass => _glass;
 
         public AnalysisTypes AnalysisType => _analysisType;
@@ -165,7 +166,7 @@ namespace GPC.Checkers.Glasses.Models
             if (restrains != null && polygon == null)
                 throw new ArgumentException("If there are restraints provided the polygon cannot be null");
             _polygon = polygon;
-            _restrains = restrains == null ? new List<IParametricRestrain>() : restrains;
+            _restrains = restrains ?? new List<IParametricRestrain>();
 
             _combinations = new UniqueNameCollection<Combination>();
             _combinations.AddRange(combinations);

@@ -1197,32 +1197,32 @@ namespace GPC.Checkers.Glasses.FemModel
             {
                 if (restrain.Dof == Model.FEM.Solver.DOF.DX)
                 {
-                    status[0] = restrain.Restrained == true || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
+                    status[0] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
                     imposedDisplacement[0] = restrain.ImposedDisplacement;
                 }
                 else if (restrain.Dof == Model.FEM.Solver.DOF.DY)
                 {
-                    status[1] = restrain.Restrained == true || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
+                    status[1] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
                     imposedDisplacement[1] = restrain.ImposedDisplacement;
                 }
                 else if (restrain.Dof == Model.FEM.Solver.DOF.DZ)
                 {
-                    status[2] = restrain.Restrained == true || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
+                    status[2] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
                     imposedDisplacement[2] = restrain.ImposedDisplacement;
                 }
                 else if (restrain.Dof == Model.FEM.Solver.DOF.RX)
                 {
-                    status[3] = restrain.Restrained == true || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
+                    status[3] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
                     imposedDisplacement[3] = restrain.ImposedDisplacement;
                 }
                 else if (restrain.Dof == Model.FEM.Solver.DOF.RY)
                 {
-                    status[4] = restrain.Restrained == true || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
+                    status[4] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
                     imposedDisplacement[4] = restrain.ImposedDisplacement;
                 }
                 else if (restrain.Dof == Model.FEM.Solver.DOF.RZ)
                 {
-                    status[5] = restrain.Restrained == true || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
+                    status[5] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
                     imposedDisplacement[5] = restrain.ImposedDisplacement;
                 }
                 else

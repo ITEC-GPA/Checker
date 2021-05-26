@@ -221,7 +221,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                                     out Dictionary<int, int> brickNewIndexMap);
 
                                 packageNodesNewIndexMap[i] = nodesNewIndexMap;
-                                elementIndexes[i].platesId = platesNewIndexMap.Values.ToArray(); // TODO SISTEMARE
+                                elementIndexes[i].platesId = platesNewIndexMap.Values.ToArray(); 
                             }
                             else if (meshes[i].CompareGuid(meshInternal.Guid))
                             {
@@ -232,7 +232,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                                                             out Dictionary<int, int> brickNewIndexMap);
 
                                 packageNodesNewIndexMap[i] = nodesNewIndexMap;
-                                elementIndexes[i].platesId = platesNewIndexMap.Values.ToArray(); // TODO SISTEMARE
+                                elementIndexes[i].platesId = platesNewIndexMap.Values.ToArray(); 
                             }
                             else
                             {
@@ -242,7 +242,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                                                             out Dictionary<int, int> brickNewIndexMap);
 
                                 packageNodesNewIndexMap[i] = nodesNewIndexMap;
-                                elementIndexes[i].platesId = platesNewIndexMap.Values.ToArray(); // TODO SISTEMARE
+                                elementIndexes[i].platesId = platesNewIndexMap.Values.ToArray();
                             }
                         }
                         else if (layer is Interlayer il)
@@ -608,9 +608,9 @@ namespace GPC.Checkers.Glasses.Checkers
             {
                 // Il nome è la chiave della collection. Do un nome che indentifica univocamente la proprietà
                 var mat = material.GetOrthotropicFemMaterial(loadCase.LoadDuration, loadCase.Temperature,
-                                                            FemOptions.Instance.InterlayerBrickElasticModulus,
-                                                            FemOptions.Instance.InterlayerBrickElasticModulus,
-                                                            FemOptions.Instance.InterlayerBrickElasticModulus,
+                                                            ModelAnalysisOptions.Instance.InterlayerBrickElasticModulus,
+                                                            ModelAnalysisOptions.Instance.InterlayerBrickElasticModulus,
+                                                            ModelAnalysisOptions.Instance.InterlayerBrickElasticModulus,
                                                             FemOptions.Instance.InterlayerPoissonValue,
                                                             FemOptions.Instance.InterlayerPoissonValue,
                                                             FemOptions.Instance.InterlayerPoissonValue);

@@ -33,7 +33,7 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
@@ -105,7 +105,7 @@ namespace GlassTests
             Shape s2 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 1600, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
@@ -190,7 +190,7 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
@@ -263,7 +263,7 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
@@ -329,7 +329,7 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
@@ -396,7 +396,7 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 2000, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
