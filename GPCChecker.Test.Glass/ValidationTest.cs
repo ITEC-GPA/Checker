@@ -32,6 +32,7 @@ namespace GlassTests
             Model model = new Model(base.GetOutputFolder());
 
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 2000, 0));
+            //Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(100, 200, 0));
 
             MonolithicGlass mg4mm = new MonolithicGlass("Mg1", 4, GetGlassMaterialEn16612());
             MonolithicGlass mg6mm = new MonolithicGlass("Mg2", 6, GetGlassMaterialEn16612());
@@ -63,6 +64,7 @@ namespace GlassTests
             SelfWeightLoad loadSw = new SelfWeightLoad(lcSw, model.Options.GetGravityVector(), GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
             NormalAreaLoad loadWp = new NormalAreaLoad(-1.2 / 1000, s1, lcWp);
             LineLoad loadLl = new LineLoad(model.Options.GetGravityVector() * 0.8, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(0, 500, 0), new Point3d(1000, 500, 0)), lcLl, CoordinateSystem.Global);
+            //LineLoad loadLl = new LineLoad(model.Options.GetGravityVector() * 0.8, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(0, 50, 0), new Point3d(200, 50, 0)), lcLl, CoordinateSystem.Global);
 
             // Combinazioni
             Combination combo1 = new Combination("Cmb1");
@@ -104,38 +106,48 @@ namespace GlassTests
                                                                                        new DofRestrain(GPC.Model.FEM.Solver.DOF.DY)}));
 
 
+            // Combo
             model.AddCombination(combo1);
             model.AddCombination(combo2);
             model.AddCombination(combo3);
             model.AddCombination(combo4);
             model.AddCombination(combo5);
 
-            // Model
+            // Start analysis
             Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
-
 
             model.PerformChecks();
 
-            ResultStress[] worstStressesCmb1 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo1));
-            ResultStress[] worstStressesCmb2 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo2));
-            ResultStress[] worstStressesCmb3 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo3));
-            ResultStress[] worstStressesCmb4 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo4));
-            ResultStress[] worstStressesCmb5 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo5));
 
-            AssertStressValue(2.17, worstStressesCmb1[1].S11, 5, GetTestName());
-            AssertStressValue(3.33, worstStressesCmb1[0].S11, 5, GetTestName());
+            // Assert
+            GPC.Model.FEM.Group[] groups = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetGroups();
 
-            AssertStressValue(2.29, worstStressesCmb2[1].S11, 5, GetTestName());
-            AssertStressValue(6.37, worstStressesCmb2[0].S11, 5, GetTestName());
+            // Assert - Layer 6 mm
+            ResultStress[] worstStressesCmb1 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo1, groups[0].Name));
+            ResultStress[] worstStressesCmb2 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo2, groups[0].Name));
+            ResultStress[] worstStressesCmb3 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo3, groups[0].Name));
+            ResultStress[] worstStressesCmb4 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo4, groups[0].Name));
+            ResultStress[] worstStressesCmb5 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo5, groups[0].Name));
+            
+            AssertStressValue(worstStressesCmb1[0].S11, 3.33, 1, GetTestName());
+            AssertStressValue(worstStressesCmb2[0].S11, 6.37, 1, GetTestName());
+            AssertStressValue(worstStressesCmb3[0].S11, 4.76, 1, GetTestName());
+            AssertStressValue(worstStressesCmb4[0].S11, 12.7, 1, GetTestName());
+            AssertStressValue(worstStressesCmb5[0].S11, 6.69, 1, GetTestName());
 
-            AssertStressValue(4.66, worstStressesCmb3[1].S11, 5, GetTestName());
-            AssertStressValue(1.87, worstStressesCmb3[0].S11, 5, GetTestName());
 
-            AssertStressValue(4.60,   worstStressesCmb4[1].S11, 5, GetTestName());
-            AssertStressValue(12.68, worstStressesCmb4[0].S11, 5, GetTestName());
+            // Assert - Layer 4 mm
+            worstStressesCmb1 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo1, groups[2].Name));
+            worstStressesCmb2 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo2, groups[2].Name));
+            worstStressesCmb3 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo3, groups[2].Name));
+            worstStressesCmb4 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo4, groups[2].Name));
+            worstStressesCmb5 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo5, groups[2].Name));
 
-            AssertStressValue(3.97, worstStressesCmb5[1].S11, 5, GetTestName());
-            AssertStressValue(6.69, worstStressesCmb5[0].S11, 5, GetTestName());
+            AssertStressValue(worstStressesCmb1[1].S11, 2.17, 1, GetTestName());
+            AssertStressValue(worstStressesCmb2[1].S11, 2.29, 1, GetTestName());
+            AssertStressValue(worstStressesCmb3[1].S11, 1.85, 1, GetTestName());
+            AssertStressValue(worstStressesCmb4[1].S11, 4.60, 1, GetTestName());
+            AssertStressValue(worstStressesCmb5[1].S11, 3.97, 1, GetTestName());
 
         }
 
