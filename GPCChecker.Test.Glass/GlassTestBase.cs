@@ -8,6 +8,9 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using GPC.Model.FEM.FiniteElements;
+using GPC.Model.Combinations;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GlassTests
 {
@@ -192,14 +195,10 @@ namespace GlassTests
 
         #region Results
 
+        /// <returns>An array of ResultStress.  [0] == max D1; [1] == max D2; [3] == max D3; ...; [7] == min D1 </returns>
         protected ResultDisplacement[] GetWorstDisplacementResults(IEnumerable<NodeResult> nodeDisplacements)
         {
             ResultDisplacement[] worstResults = new ResultDisplacement[12];
-            // [0] == max D1
-            // [1] == max D2
-            // [3] == max D3
-            // ...
-            // [7] == min D1
 
             for (int i = 0; i < worstResults.Length; i++)
             {
@@ -269,11 +268,14 @@ namespace GlassTests
         }
 
 
+        /// <returns>An array of ResultStress.  [0] == max S11. [1] == max S22. [2] == min S11. [3] == min S22  </returns>
         protected ResultStress[] GetWorstStressResults(IEnumerable<FiniteElementResult> plateStresses)
         {
             ResultStress[] worstResults = new ResultStress[4];
             // [0] == max S11
             // [1] == max S22
+            // [2] == min S11
+            // [3] == min S22
 
 
             for (int i = 0; i < worstResults.Length; i++)
@@ -314,6 +316,40 @@ namespace GlassTests
         }
 
 
-        #endregion 
+        /// <returns>An array of ResultStress.  [0] == max S11. [1] == max S22. [2] == min S11. [3] == min S22  </returns>
+        protected ResultStress[] GetWorstStressResults(IEnumerable<Plate> plates, Combination combination)
+        {
+
+            IEnumerable<FiniteElementResult> plateStresses = plates.SelectMany(i => i.Results.Where(j => ((Combination)j.Case) == combination));
+
+            return GetWorstStressResults(plateStresses);
+        }
+
+        #endregion
+
+        #region Assert 
+
+        protected void AssertStressValue(double stressValue, double stressExpected, double percentageTollerance, string testName = null)
+        {
+            double difference = Math.Round(Math.Abs((stressValue - stressExpected) / stressValue) * 100, 2);
+
+            string output = $"Test: {testName} STRESS: expected: {stressExpected}, result: {stressValue}. Difference: {difference}%";
+
+            Console.WriteLine(output);
+
+            Assert.IsTrue(difference < percentageTollerance, output);
+        }
+
+        protected void AssertDisplacementValue(double displacementValue, double displacementExpected, double percentageTollerance, string testName = null)
+        {
+            double difference = Math.Round(Math.Abs((displacementValue - displacementExpected) / displacementValue) * 100, 2);
+
+            string output = $"Test: {testName} DISPLACEMENT: expected: { displacementExpected}, result: { displacementValue}. Difference: { difference}%";
+
+            Console.WriteLine(output);
+
+            Assert.IsTrue(difference < percentageTollerance, output);
+        }
+        #endregion  
     }
 }
