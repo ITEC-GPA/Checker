@@ -11,15 +11,15 @@ using GPC.Model.Sections.Steel;
 
 namespace GPC.Checkers.Steel.EuroCode
 {
-    public class EN1993_1Checker : EuroCodeChecker
+    public class EN1993p11Checker : EuroCodeChecker
     {
 
-        public EN1993_1Checker(ISteelSection section, BeamResult[] beamResult, EN1993_1Options options)
+        public EN1993p11Checker(ISteelSection section, BeamResult[] beamResult, EN1993_1Options options)
             : base(section, beamResult, options)
         {
 
         }
-        public EN1993_1Checker(ISteelSection section, BeamResult[] beamResult, EN1993_1Options options, StandardEN1990 standard)
+        public EN1993p11Checker(ISteelSection section, BeamResult[] beamResult, EN1993_1Options options, StandardEN1993p11 standard)
             : base(section, beamResult, options, standard)
         {
 

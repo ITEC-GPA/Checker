@@ -20,13 +20,13 @@ namespace GPC.Checkers.Steel.CopSuos2011
         // Standard
 
 
-        public CopSuos2011Checker(ISteelSection section, BeamResult[] beamResult, CopSuos2011Options options)
+        public CopSuos2011Checker(ISteelSection section, BeamResult[] beamResult, CopSuos2011Options[] options)
             :base(section, beamResult, options)
         {
             Standard = new StandardCopSuos2011();
         }
 
-        public CopSuos2011Checker(ISteelSection section, BeamResult[] beamResult, CopSuos2011Options options, StandardCopSuos2011 standard)
+        public CopSuos2011Checker(ISteelSection section, BeamResult[] beamResult, CopSuos2011Options[] options, StandardCopSuos2011 standard)
             : base(section, beamResult, options, standard)
         {
 
@@ -36,6 +36,10 @@ namespace GPC.Checkers.Steel.CopSuos2011
         {
             throw new NotImplementedException();
         }
+
+
+
+
 
 
         public class CopSuos2011Options : Options
@@ -51,6 +55,16 @@ namespace GPC.Checkers.Steel.CopSuos2011
                 d
             }
 
+            /// <summary>
+            /// The class of the steel material. See CopSuos2011 table 4.1
+            /// </summary>
+            public enum SteelClasses
+            {
+                Class1,
+                Class2,
+                Class3,
+                Class1H,
+            }
 
 
             #endregion
@@ -60,6 +74,7 @@ namespace GPC.Checkers.Steel.CopSuos2011
 
             private readonly double _l0;
             private readonly BuckingCurves _buckingCurve;
+            private SteelClasses _steelClass;
 
             #endregion
 
@@ -70,19 +85,24 @@ namespace GPC.Checkers.Steel.CopSuos2011
 
             public BuckingCurves BuckingCurve => _buckingCurve;
 
+            public SteelClasses SteelClass => _steelClass;
+
             #endregion
 
 
             #region Constructor
 
-            public CopSuos2011Options(double columnEffectiveLength, BuckingCurves buckingCurve)
+            public CopSuos2011Options(double columnEffectiveLength, BuckingCurves buckingCurve, SteelClasses steelGrade = SteelClasses.Class1)
             {
                 _l0 = columnEffectiveLength;
                 _buckingCurve = buckingCurve;
+                _steelClass = steelGrade;
             }
 
             #endregion
         }
+
+
 
     }
 }

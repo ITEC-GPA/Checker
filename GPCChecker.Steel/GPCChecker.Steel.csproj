@@ -65,7 +65,7 @@
     <Compile Include="CopSuos2011\CopSuos2011BeamCheckerResults.cs" />
     <Compile Include="CopSuos2011\CopSuos2011BeamStationCheckerResults.cs" />
     <Compile Include="EuroCodeChecker\EN1993-1BeamStationCheckerResults.cs" />
-    <Compile Include="EuroCodeChecker\EN1993-1BeamCheckerResults.cs" />
+    <Compile Include="EuroCodeChecker\En1993p11BeamCheckerResults.cs" />
     <Compile Include="EuroCodeChecker\EN1993-1Checker.cs" />
     <Compile Include="CopSuos2011\CopSuos2011Checker.cs" />
     <Compile Include="EuroCodeChecker\EuroCodeChecker.cs" />

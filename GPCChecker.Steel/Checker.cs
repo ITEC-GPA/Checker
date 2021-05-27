@@ -17,7 +17,7 @@ namespace GPC.Checkers.Steel
 
         private readonly ISteelSection _section;  
         private readonly BeamResult[] _result;
-        private readonly Options _options;
+        private readonly Options[] _options;
         private readonly BeamCheckerResults[] _beamCheckerResults;
         private readonly Standard _standard;
 
@@ -32,7 +32,7 @@ namespace GPC.Checkers.Steel
 
         public BeamResult[] BeamResult => _result;
 
-        public Options CheckerOptions => _options;
+        public Options[] CheckerOptions => _options;
 
         public BeamCheckerResults[] BeamCheckerResults => _beamCheckerResults;
 
@@ -43,7 +43,7 @@ namespace GPC.Checkers.Steel
 
         #region Constructor
 
-        public Checker(ISteelSection section, BeamResult[] beamResult, Options options, Standard standard)
+        public Checker(ISteelSection section, BeamResult[] beamResult, Options[] options, Standard standard)
         {
             _section = section;
             Length = beamResult.Length < 0 ? throw new ArgumentException($"Length cannot be lower than zero") : Length;
@@ -54,7 +54,7 @@ namespace GPC.Checkers.Steel
             _standard = standard;
         }
 
-        public Checker(ISteelSection section, BeamResult[] beamResult, Options options)
+        public Checker(ISteelSection section, BeamResult[] beamResult, Options[] options)
         {
             _section = section;
             Length = beamResult.Length < 0 ? throw new ArgumentException($"Length cannot be lower than zero") : Length;
@@ -109,47 +109,7 @@ namespace GPC.Checkers.Steel
             }
 
 
-            public virtual double MinSigma(double N, double M2, double M1)
-            {
-                if (Section is SectionCHS sectionCHS)
-                {
-                    double sigmaN = N / sectionCHS.Area;
-                    double M = Math.Sqrt(M1 * M1 + M2 * M2);
-                    double sigmaM = -M / Wel22Min;
 
-                    return sigmaN + sigmaM;
-                }
-
-                else if (Section is SectionH sectionH)
-                {
-                    double sigmap1 = N / sectionH.Area - M2 / _wel22Top + M1 / _j11 * sectionH.LenghtTopFlange / 2.0;
-                    double sigmap2 = N / sectionH.Area - M2 / _wel22Top - M1 / _j11 * sectionH.LenghtTopFlange / 2.0;
-                    double sigmap3 = N / sectionH.Area + M2 / _wel22Bottom + M1 / _j11 * sectionH.LenghtBottomFlange / 2.0;
-                    double sigmap4 = N / sectionH.Area + M2 / _wel22Bottom - M1 / _j11 * sectionH.LenghtBottomFlange / 2.0;
-
-                    double sigmaMin = Math.Min(sigmap1, sigmap2);
-                    sigmaMin = Math.Min(sigmaMin, sigmap3);
-                    sigmaMin = Math.Min(sigmaMin, sigmap4);
-
-                    return sigmaMin;
-                }
-
-                else if (Section is SectionRHS sectionRHS)
-                {
-                    double sigma1 = N / sectionRHS.Area - M2 / J22 * (sectionRHS.H - _centroid.Y) + M1 / J11 * (_centroid.X);
-                    double sigma2 = N / sectionRHS.Area - M2 / J22 * (sectionRHS.H - _centroid.Y) - M1 / J11 * (sectionRHS.B - _centroid.X);
-                    double sigma3 = N / sectionRHS.Area + M2 / J22 * (_centroid.Y) + M1 / J11 * (_centroid.X);
-                    double sigma4 = N / sectionRHS.Area + M2 / J22 * (_centroid.Y) - M1 / J11 * (sectionRHS.B - _centroid.X);
-
-                    double sigmaMin = Math.Min(sigma1, sigma2);
-                    sigmaMin = Math.Min(sigmaMin, sigma3);
-                    sigmaMin = Math.Min(sigmaMin, sigma4);
-
-                    return sigmaMin;
-                }
-                else
-                    throw new NotImplementedException();
-            }
 
         }
 
