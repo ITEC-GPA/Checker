@@ -285,31 +285,48 @@ namespace GlassTests
 
             foreach (FiniteElementResult results in plateStresses)
             {
-                foreach(var result in results.Results)
+                if (results is PlateResult pr)
                 {
-                    var res = result as ResultStress;
-                    
-                    if (res != null)
+                    (ResultType lowerFace, ResultType midFace, ResultType upperFace) meanResult = pr.GetMeanFaceResults();
+                                        
+                    if (meanResult.lowerFace is ResultStress lfs)
                     {
-                        if (worstResults[0] != null && res.S11 > worstResults[0].S11)
+                        if (worstResults[0] != null && lfs.S11 > worstResults[0].S11)
                         {
-                            worstResults[0] = res;
+                            worstResults[0] = lfs;
                         }
-                        else if (worstResults[1] != null && res.S22 > worstResults[1].S22)
+                        else if (worstResults[1] != null && lfs.S22 > worstResults[1].S22)
                         {
-                            worstResults[1] = res;
-                        }
-
-                        if (worstResults[2] != null && res.S11 < worstResults[2].S11)
-                        {
-                            worstResults[2] = res;
-                        }
-                        else if (worstResults[3] != null && res.S22 < worstResults[3].S22)
-                        {
-                            worstResults[3] = res;
+                            worstResults[1] = lfs;
                         }
                     }
+
+                    if (meanResult.midFace is ResultStress mfs)
+                    {
+                        if (worstResults[0] != null && mfs.S11 > worstResults[0].S11)
+                        {
+                            worstResults[0] = mfs;
+                        }
+                        else if (worstResults[1] != null && mfs.S22 > worstResults[1].S22)
+                        {
+                            worstResults[1] = mfs;
+                        }
+                    }
+
+                    if (meanResult.upperFace is ResultStress ufs)
+                    {
+                        if (worstResults[0] != null && ufs.S11 > worstResults[0].S11)
+                        {
+                            worstResults[0] = ufs;
+                        }
+                        else if (worstResults[1] != null && ufs.S22 > worstResults[1].S22)
+                        {
+                            worstResults[1] = ufs;
+                        }
+                    }
+
                 }
+                
             }
 
             return worstResults;

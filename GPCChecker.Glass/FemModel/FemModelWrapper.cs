@@ -1,4 +1,4 @@
-﻿
+
 using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Results;
@@ -1486,49 +1486,29 @@ namespace GPC.Checkers.Glasses.FemModel
 
                             (ResultType[] lowerFace, ResultType[] midFace, ResultType[] upperFace) faceResults = plateResult.GetFaceResults();
 
-                            bool isRs = false;
                             foreach (ResultType result in faceResults.lowerFace)
                             {
                                 if (result is ResultStress rs)
                                 {
                                     swMinus.Write($"{rs.S11.ToString("N5", nfi)} ");
-                                    isRs = true;
                                 }
                             }
-                            //if (faceResults.lowerFace.Length < 4 && isRs)
-                            //{
-                            //    swMinus.Write("0");
-                            //}
 
-
-                            isRs = false;
                             foreach (ResultType result in faceResults.midFace)
                             {
                                 if (result is ResultStress rs)
                                 {
                                     swMid.Write($"{rs.S11.ToString("N5", nfi)} ");
-                                    isRs = true;
                                 }
                             }
-                            //if (faceResults.midFace.Length < 4 && isRs)
-                            //{
-                            //    swMid.Write("0");
-                            //}
 
-
-                            isRs = false;
                             foreach (ResultType result in faceResults.upperFace)
                             {
                                 if (result is ResultStress rs)
                                 {
                                     swPlus.Write($"{rs.S11.ToString("N5", nfi)} ");
-                                    isRs = true;
                                 }
                             }
-                            //if (faceResults.upperFace.Length < 4 && isRs)
-                            //{
-                            //    swPlus.Write("0");
-                            //}
 
                             swMinus.Write("\n");
                             swMid.Write("\n");
