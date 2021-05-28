@@ -46,7 +46,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                 Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
 
-            p1.MeshOptions.MeshSize = 50;
+            p1.MeshOptions.MeshSize = 200;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
@@ -117,6 +117,9 @@ namespace GlassTests
             Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
 
             model.PerformChecks();
+
+            GPC.Utilities.Serialization.Serialization.SerializeToBinaryFile(base.GetFilePathInOutputFolder("model", "obj"), model.GlassSurfaces.FirstOrDefault().Checker.FemModel);
+            
 
 
             // Assert
