@@ -24,7 +24,8 @@ using System.Text;
 
 namespace GPC.Checkers.Glasses.FemModel
 {
-    public class FemModelWrapper : Model.FEM.FemModel
+    [Serializable]
+    public class FemModelWrapper : Model.FEM.FemModel, ISerializable
     {
 
         public enum Straus7SolverTypes
@@ -136,10 +137,47 @@ namespace GPC.Checkers.Glasses.FemModel
             _st7NonLinearGeometryActive = false;
         }
 
-        public FemModelWrapper(SerializationInfo info, StreamingContext context)
+
+        public FemModelWrapper(SerializationInfo info, StreamingContext context) 
             : base(info, context)
         {
-            throw new NotImplementedException();
+            _st7ServerIp = (string)info.GetValue("ServerIp", typeof(string));
+            _stageCombinationsSplittedMap = (Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>)info.GetValue("StageCombinationsSplittedMap", typeof(Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>));
+            _st7LSACombinationMap = (Dictionary<string, int>)info.GetValue("LSACombinationMap", typeof(Dictionary<string, int>));
+            _st7NLACombinationMap = (Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>)info.GetValue("NLACombinationMap", 
+                                    typeof(Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>));
+            _st7LoadCaseMap = (Dictionary<string, int>)info.GetValue("LoadCaseMap", typeof(Dictionary<string, int>));
+            _st7FreedomCaseMap = (Dictionary<string, int>)info.GetValue("FreedomCaseMap", typeof(Dictionary<string, int>));
+            _st7PlatePropertyMap = (Dictionary<PlateProperty, int>)info.GetValue("PlatePropertyMap", typeof(Dictionary<PlateProperty, int>));
+            _st7BrickPropertyMap = (Dictionary<BrickProperty, int>)info.GetValue("BrickPropertyMap", typeof(Dictionary<BrickProperty, int>));
+
+            _st7NodeMap = (Dictionary<int, int>)info.GetValue("NodeMap", typeof(Dictionary<int, int>));
+            _st7PlateMap = (Dictionary<int, int>)info.GetValue("PlateMap", typeof(Dictionary<int, int>));
+            _st7BrickMap = (Dictionary<int, int>)info.GetValue("BrickMap", typeof(Dictionary<int, int>));
+            _st7StageMap = (Dictionary<int, int>)info.GetValue("StageMap", typeof(Dictionary<int, int>));
+
+            _solverType = (Prototype.SolverTypes)info.GetValue("SolverType", typeof(Prototype.SolverTypes));
+            _st7NonLinearGeometryActive = (bool)info.GetValue("NonLinearGeometryActive", typeof(bool));
+        }
+
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("ServerIp", _st7ServerIp);
+            info.AddValue("StageCombinationsSplittedMap", _stageCombinationsSplittedMap);
+            info.AddValue("LSACombinationMap", _st7LSACombinationMap);
+            info.AddValue("NLACombinationMap", _st7NLACombinationMap);
+            info.AddValue("LoadCaseMap", _st7LoadCaseMap);
+            info.AddValue("FreedomCaseMap", _st7FreedomCaseMap);
+            info.AddValue("PlatePropertyMap", _st7PlatePropertyMap);
+            info.AddValue("BrickPropertyMap", _st7BrickPropertyMap);
+            info.AddValue("NodeMap", _st7NodeMap);
+            info.AddValue("PlateMap", _st7PlateMap);
+            info.AddValue("BrickMap", _st7BrickMap);
+            info.AddValue("StageMap", _st7StageMap);
+            info.AddValue("SolverType", _solverType);
+            info.AddValue("NonLinearGeometryActive", _st7NonLinearGeometryActive);
         }
 
 
