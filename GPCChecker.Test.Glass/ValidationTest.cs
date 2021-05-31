@@ -132,11 +132,11 @@ namespace GlassTests
             ResultStress[] worstStressesCmb4 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo4, groups[0].Name));
             ResultStress[] worstStressesCmb5 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo5, groups[0].Name));
             
-            AssertStressValue(worstStressesCmb1[0].S11, 3.33, 1, GetTestName());
-            AssertStressValue(worstStressesCmb2[0].S11, 6.37, 1, GetTestName());
-            AssertStressValue(worstStressesCmb3[0].S11, 4.76, 1, GetTestName());
-            AssertStressValue(worstStressesCmb4[0].S11, 15.48, 1, GetTestName());
-            AssertStressValue(worstStressesCmb5[0].S11, 13.32, 1, GetTestName());
+            AssertStressValue(worstStressesCmb1[0].S11, 3.330, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb2[0].S11, 6.370, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb3[0].S11, 4.760, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb4[0].S11, 15.48, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb5[0].S11, 13.32, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
 
 
             // Assert - Layer 4 mm
@@ -146,11 +146,12 @@ namespace GlassTests
             worstStressesCmb4 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo4, groups[2].Name));
             worstStressesCmb5 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo5, groups[2].Name));
 
-            AssertStressValue(worstStressesCmb1[0].S11, 2.17, 1, GetTestName());
-            AssertStressValue(worstStressesCmb2[0].S11, 2.29, 1, GetTestName());
-            AssertStressValue(worstStressesCmb3[0].S11, 1.85, 1, GetTestName());
-            AssertStressValue(worstStressesCmb4[0].S11, 5.93, 1, GetTestName());
-            AssertStressValue(worstStressesCmb5[0].S11, 5.51, 1, GetTestName());
+
+            AssertStressValue(worstStressesCmb1[0].S11, 2.17, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb2[0].S11, 2.29, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb3[0].S11, 1.85, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb4[0].S11, 5.93, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb5[0].S11, 5.51, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
 
         }
 
