@@ -1,4 +1,4 @@
-
+﻿
 using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Results;
@@ -189,7 +189,7 @@ namespace GPC.Checkers.Glasses.FemModel
         /// Map used to identify how a combination is splitted into different stage combinations.
         /// </summary>
         /// <returns> 
-        /// <para><see langword="False"/> if <paramref name="combinationName"/> is not contained in the <see cref="Model.FEM.FemModel.Combinations"/> collection</para>
+        /// <para><see langword="False"/> if <paramref name="combinationName"/> is not contained in the <see cref="Model.FEM.FemModel._combinations"/> collection</para>
         /// <para><see langword="False"/> if <paramref name="stageIds"/> lenght is differenet to <paramref name="stageCombinationsNames"/> lenght</para>
         /// <para><see langword="False"/> if <paramref name="stageIds"/> or <paramref name="stageCombinationsNames"/> are not contained the in the collections</para>
         /// </returns>
@@ -894,7 +894,9 @@ namespace GPC.Checkers.Glasses.FemModel
                                                                                      plateResults[np * numColumns + 2],
                                                                                      plateResults[np * numColumns + 3],
                                                                                      plateResults[np * numColumns + 4],
-                                                                                     plateResults[np * numColumns + 5]);
+                                                                                     plateResults[np * numColumns + 5], 
+                                                                                     _st7PlateMap[plate.Id].ToString());
+
                                 rs.CalculatePrincipalStressFullMethod();
 
                                 if (k == 0)
