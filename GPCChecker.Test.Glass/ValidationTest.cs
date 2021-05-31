@@ -46,7 +46,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                 Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
 
-            p1.MeshOptions.MeshSize = 200;
+            p1.MeshOptions.MeshSize = 50;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
@@ -62,7 +62,7 @@ namespace GlassTests
             };
 
             SelfWeightLoad loadSw = new SelfWeightLoad(lcSw, model.Options.GetGravityVector(), GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
-            NormalAreaLoad loadWp = new NormalAreaLoad(-1.2 / 1000, s1, lcWp);
+            NormalAreaLoad loadWp = new NormalAreaLoad( - 1.2 / 1000, s1, lcWp);
             LineLoad loadLl = new LineLoad(model.Options.GetGravityVector() * 0.8, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(0, 500, 0), new Point3d(1000, 500, 0)), lcLl, CoordinateSystem.Global);
             //LineLoad loadLl = new LineLoad(model.Options.GetGravityVector() * 0.8, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(0, 50, 0), new Point3d(200, 50, 0)), lcLl, CoordinateSystem.Global);
 
@@ -118,7 +118,7 @@ namespace GlassTests
 
             model.PerformChecks();
 
-            GPC.Utilities.Serialization.Serialization.SerializeToBinaryFile(base.GetFilePathInOutputFolder("model", "obj"), model.GlassSurfaces.FirstOrDefault().Checker.FemModel);
+            //GPC.Utilities.Serialization.Serialization.SerializeToBinaryFile(base.GetFilePathInOutputFolder("model", "obj"), model.GlassSurfaces.FirstOrDefault().Checker.FemModel);
             
 
 
@@ -132,11 +132,11 @@ namespace GlassTests
             ResultStress[] worstStressesCmb4 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo4, groups[0].Name));
             ResultStress[] worstStressesCmb5 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo5, groups[0].Name));
             
-            AssertStressValue(worstStressesCmb1[0].S11, 3.33, 1, GetTestName());
-            AssertStressValue(worstStressesCmb2[0].S11, 6.37, 1, GetTestName());
-            AssertStressValue(worstStressesCmb3[0].S11, 4.76, 1, GetTestName());
-            AssertStressValue(worstStressesCmb4[0].S11, 12.7, 1, GetTestName());
-            AssertStressValue(worstStressesCmb5[0].S11, 6.69, 1, GetTestName());
+            AssertStressValue(worstStressesCmb1[0].S11, 3.330, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb2[0].S11, 6.370, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb3[0].S11, 4.760, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb4[0].S11, 15.48, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb5[0].S11, 13.32, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
 
 
             // Assert - Layer 4 mm
@@ -146,11 +146,12 @@ namespace GlassTests
             worstStressesCmb4 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo4, groups[2].Name));
             worstStressesCmb5 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(combo5, groups[2].Name));
 
-            AssertStressValue(worstStressesCmb1[1].S11, 2.17, 1, GetTestName());
-            AssertStressValue(worstStressesCmb2[1].S11, 2.29, 1, GetTestName());
-            AssertStressValue(worstStressesCmb3[1].S11, 1.85, 1, GetTestName());
-            AssertStressValue(worstStressesCmb4[1].S11, 4.60, 1, GetTestName());
-            AssertStressValue(worstStressesCmb5[1].S11, 3.97, 1, GetTestName());
+
+            AssertStressValue(worstStressesCmb1[0].S11, 2.17, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb2[0].S11, 2.29, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb3[0].S11, 1.85, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb4[0].S11, 5.93, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+            AssertStressValue(worstStressesCmb5[0].S11, 5.51, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
 
         }
 
