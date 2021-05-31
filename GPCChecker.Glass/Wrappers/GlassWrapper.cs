@@ -9,7 +9,7 @@ using GPC.Model.Loads;
 
 namespace GPC.Checkers.Glasses.Wrappers
 {
-    public abstract class GlassWrapper
+    public abstract class GlassWrapper : Model.ModelObject
     {
         protected GlassSurface _glassSurface;
         protected Glass _glass;

@@ -23,41 +23,6 @@ namespace GlassTests
     {
 
 
-
-        [TestMethod]
-        [TestCategory("Linear")]
-        [TestCategory("MissingAssert")]
-        [TestCategory("Layers: 5")]
-        public void LaminatedGlass1()
-        {
-            RunApiServer();
-
-            Model model = new Model(base.GetOutputFolder());
-
-            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 0, 500));
-
-
-            MonolithicGlass mg1 = new MonolithicGlass("Mg12", 8, GetGlassMaterialAstm());
-            MonolithicGlass mg2 = new MonolithicGlass("Mg12", 8, GetGlassMaterialAstm());
-
-            Interlayer intr = new Interlayer("Int", 0.76, GetInterlayerMaterial(), Guid.NewGuid());
-
-            LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2 }, new Interlayer[] { intr });
-
-            // Prototype
-            Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
-            p1.MeshOptions.MeshSize = 40;
-
-            // Surface
-            GlassSurface gs1 = new GlassSurface(p1, s1);
-
-            model.AddSurface(gs1, base.GetTestName());
-
-            model.PerformChecks();
-        }
-
-
         [TestMethod]
         [TestCategory("Linear")]
         [TestCategory("MissingAssert")]
@@ -422,6 +387,14 @@ namespace GlassTests
 
             model.PerformChecks();
 
+            //Assert.IsTrue(model.GlassSurfaces.First().Checker.FemModel.no);
+
+
+#if DEBUG
+            model.GlassSurfaces.First().Checker.FemModel.ExportSt7PlateUserDefinedCustomResultFile(base.GetOutputFolder(), base.GetTestName() + "_PlateContour", combo3);
+            model.GlassSurfaces.First().Checker.FemModel.ExportSt7NodeUserDefinedCustomResultFile(base.GetFilePathInOutputFolder(base.GetTestName() + "_NodeContour", "txt"), combo3);
+#endif
+
         }
 
 
@@ -527,6 +500,9 @@ namespace GlassTests
                 $"\t\t GPvb: {intrPvb.Material.GetShearModule((i as IGlassLoadCase).LoadDuration, (i as IGlassLoadCase).Temperature):F3} \t GSentry: {intrSentry.Material.GetShearModule((i as IGlassLoadCase).LoadDuration, (i as IGlassLoadCase).Temperature):F3}"));
 
         }
+
+
+
 
     }
 }

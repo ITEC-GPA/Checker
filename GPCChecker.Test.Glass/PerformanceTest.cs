@@ -107,7 +107,7 @@ namespace GlassTests
                 Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
 
                 List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-                parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX, true) })));
+                parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
                 List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
                 geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
@@ -212,7 +212,7 @@ namespace GlassTests
             gs1.AddLoad(swl);
 
             gs1.AddRestrains(gs1.Shape.Fill.Explode()
-                .Select(i => (GeometryRestrain)LineRestrain.GetAllFixed(i, new GPC.Model.FreedomCases.FreedomCase("fc1"), CoordinateSystem.Global))
+                .Select(i => (GeometryRestrain)LineRestrain.GetAllFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global))
                 .ToList());
 
             Debug.WriteLine(stopWatch.Elapsed, "GlassSurface created");
@@ -331,6 +331,7 @@ namespace GlassTests
         {
             /// Tempo per ogni iterazione
             /// 2021/05/13: 15 secondi 
+            /// 2021/05/19: 16 secondi (Geometry 1.0.8.4)
 
 
             Action action = new Action(() =>
