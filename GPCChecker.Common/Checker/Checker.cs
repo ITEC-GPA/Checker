@@ -8,7 +8,7 @@ namespace GPC.Checkers.Common
 
         }
 
-        protected abstract string GetCheckerName();
+        public abstract string GetCheckerName();
 
     }
 }
