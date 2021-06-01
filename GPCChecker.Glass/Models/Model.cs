@@ -16,7 +16,6 @@ namespace GPC.Checkers.Glasses.Models
         protected string _outputFolder;
         protected List<GlassSurface> _glassSurfaces;
         protected UniqueNameCollection<Combination> _combinations;
-        protected List<ResultPlateStress> _combinationResults;
         protected ModelOptions _options;
 
         #endregion
@@ -187,9 +186,9 @@ namespace GPC.Checkers.Glasses.Models
 
 
         
-        public List<List<ResultPlateStress>> GetPlateCombinationsResult()
+        public List<List<ResultStress>> GetPlateCombinationsResult()
         {
-            List<List<ResultPlateStress>> results = new List<List<ResultPlateStress>>();
+            List<List<ResultStress>> results = new List<List<ResultStress>>();
 
             //foreach (var checker in _checkers)
             //    results.Add(checker.GetPlateCombinationsResults());
@@ -201,9 +200,9 @@ namespace GPC.Checkers.Glasses.Models
 
 
 
-        public List<List<ResultNodeDisplacement>> GetNodeDisplacementCombinationsResult()
+        public List<List<ResultDisplacement>> GetNodeDisplacementCombinationsResult()
         {
-            List<List<ResultNodeDisplacement>> results = new List<List<ResultNodeDisplacement>>();
+            List<List<ResultDisplacement>> results = new List<List<ResultDisplacement>>();
 
             //foreach (var checker in _checkers)
             //    results.Add(checker.GetNodeDisplacementCombinationResults());

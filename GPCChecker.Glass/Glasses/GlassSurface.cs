@@ -21,6 +21,7 @@ namespace GPC.Checkers.Glasses.Glasses
     public sealed class GlassSurface : Model.Elements.Glasses.GlassSurface, IEquatable<GlassSurface>
     {
         private static int _maxId;
+
         private readonly Prototype _prototype;
         private readonly List<GeometryRestrain> _restrains;
         private readonly List<Load> _loads;
@@ -45,7 +46,7 @@ namespace GPC.Checkers.Glasses.Glasses
         #region Constructors
 
         public GlassSurface(Prototype prototype, Shape shape) 
-            : base(shape, Guid.NewGuid())
+            : base(shape, _maxId++, Guid.NewGuid())
         {
             _prototype = prototype;
             _loads = new List<Load>();
@@ -53,7 +54,6 @@ namespace GPC.Checkers.Glasses.Glasses
             _restrains = new List<GeometryRestrain>();
             _meshOptions = (Mesh.GenerateOptions)prototype.MeshOptions.Clone();
 
-            Id = _maxId++;
         }
 
 

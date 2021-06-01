@@ -42,9 +42,9 @@ namespace GlassTests
             PointLoad p1 = new PointLoad(1, 2, 3, 4, 5, 6, new Point3d(35, 35, 0), new LoadCase("LC1", 2, 10, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad));
             LineLoad l1 = new LineLoad(1, 2, 3, 4, 5, 6, new Line3d(new Point3d(35, 150, 0), new Point3d(75, 100, 0)), new LoadCase("LC2", 2, 10, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad));
 
-            PointRestrain pr = new PointRestrain(new Point3d(70, 70, 0), new FreedomCase("fc1"), new List<DofRestrain>{ new DofRestrain(LinearSolver.DOF.DX, true), new DofRestrain(LinearSolver.DOF.RZ, true) });
+            PointRestrain pr = new PointRestrain(new Point3d(70, 70, 0), new FreedomCase("fc1"), new List<DofRestrain>{ new DofRestrain(Solver.DOF.DX), new DofRestrain(Solver.DOF.RZ) });
 
-            LineRestrain lr = new LineRestrain(borders[0], new FreedomCase("fc1"), new List<DofRestrain> { new DofRestrain(LinearSolver.DOF.DY, true), new DofRestrain(LinearSolver.DOF.RZ, true) });
+            LineRestrain lr = new LineRestrain(borders[0], new FreedomCase("fc1"), new List<DofRestrain> { new DofRestrain(Solver.DOF.DY), new DofRestrain(Solver.DOF.RZ) });
             fmw.AddProperty(pp);
             fmw.AddShape(s1, pp.Name, meshOptions, new List<Load>() { p1, l1 }, new List<GeometryRestrain>() { pr, lr });
 

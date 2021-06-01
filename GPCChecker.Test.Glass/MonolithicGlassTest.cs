@@ -33,7 +33,7 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
@@ -77,10 +77,6 @@ namespace GlassTests
             model.AddSurface(gs1, base.GetTestName());
             model.PerformChecks();
 
-            var gs = model.GlassSurfaces.FirstOrDefault();
-            GPC.Checkers.Glasses.Checkers.Checker chk = gs.Checker;
-            var results = chk.GetCombinationNodeDisplacementResult(cmb1);
-
             var worstDisplacementsCmb1 = GetWorstDisplacementResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb1));
             var worstDisplacementsCmb2 = GetWorstDisplacementResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb2));
 
@@ -109,7 +105,7 @@ namespace GlassTests
             Shape s2 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 1600, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
@@ -162,70 +158,24 @@ namespace GlassTests
 
             model.PerformChecks();
 
-            var a = model.GlassSurfaces.ToList();
 
-            var stressResults = model.GetPlateCombinationsResult();
-            var deflectionResults = model.GetNodeDisplacementCombinationsResult();
+#if DEBUG
+            model.GlassSurfaces.First().Checker.FemModel.ExportSt7PlateUserDefinedCustomResultFile(base.GetOutputFolder(), base.GetTestName() + "_PlateContour", cmb1);
+            model.GlassSurfaces.First().Checker.FemModel.ExportSt7NodeUserDefinedCustomResultFile(base.GetFilePathInOutputFolder(base.GetTestName() + "_NodeContour", "txt"), cmb1);
+#endif
+
+            var gs1WorstDisplacementsCmb1 = GetWorstDisplacementResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb1));
+            var gs1WorstStressesCmb1 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(cmb1));
+
+            var gs2WorstDisplacementsCmb1 = GetWorstDisplacementResults(model.GlassSurfaces.LastOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb1));
+            var gs2WorstStressesCmb1 = GetWorstStressResults(model.GlassSurfaces.LastOrDefault().Checker.GetCombinationPlateStressResult(cmb1));
+
+            Assert.AreEqual(5.78, gs1WorstDisplacementsCmb1[2].D3, 0.2);
+            Assert.AreEqual(28.46, gs1WorstStressesCmb1[0].S11, 1);
 
 
-
-            Assert.AreEqual(2, stressResults.Count, 0);
-            Assert.AreEqual(2, deflectionResults.Count, 0);
-            Assert.IsTrue(stressResults[0].Count > 0);
-            Assert.IsTrue(deflectionResults[0].Count > 0);
-
-            ResultPlateStress worstPlateResult1 = null;
-            ResultPlateStress worstPlateResult2 = null;
-            foreach (var comboResult in stressResults.First())
-            {
-                if (worstPlateResult1 is null)
-                    worstPlateResult1 = comboResult;
-                else if (comboResult.S11 > worstPlateResult1.S11)
-                    worstPlateResult1 = comboResult;
-            }
-            foreach (var comboResult in stressResults.First())
-            {
-
-                if (worstPlateResult2 is null)
-                    worstPlateResult2 = comboResult;
-                else if (comboResult.S11 > worstPlateResult2.S11)
-                    worstPlateResult2 = comboResult;
-            }
-
-            ResultNodeDisplacement worstNodeDisplacement1 = null;
-            ResultNodeDisplacement worstNodeDisplacement2 = null;
-            foreach (var comboResult in deflectionResults.First())
-            {
-                double disp = comboResult.GetResultingDisplacement();
-
-                if (worstNodeDisplacement1 is null)
-                    worstNodeDisplacement1 = comboResult;
-                else if (Math.Abs(disp) > Math.Abs(worstNodeDisplacement1.GetResultingDisplacement()))
-                    worstNodeDisplacement1 = comboResult;
-            }
-            foreach (var comboResult in deflectionResults.First())
-            {
-                double disp = comboResult.GetResultingDisplacement();
-
-                if (worstNodeDisplacement2 is null)
-                    worstNodeDisplacement2 = comboResult;
-                else if (Math.Abs(disp) > Math.Abs(worstNodeDisplacement2.GetResultingDisplacement()))
-                    worstNodeDisplacement2 = comboResult;
-            }
-
-            Console.WriteLine($"STRESS");
-            Console.WriteLine($"\t Stress11: {worstPlateResult1.S11}, stress22: {worstPlateResult1.S22}, stress33: {worstPlateResult1.S33}");
-            Console.WriteLine($"\t Id: {worstPlateResult1.Element.Id} Point: {(worstPlateResult1.ResultPoint as ResultStressPoint).Location} Node0 Id: {worstPlateResult1.GetPlate().Nodes[0].Position}");
-
-            Console.WriteLine($"DEFLECTION");
-            Console.WriteLine($"\t WorstDeflection: {worstNodeDisplacement1.GetResultingDisplacement()}");
-            Console.WriteLine($"\t Id: {worstNodeDisplacement1.Element.Id} Point: {worstNodeDisplacement1.GetNode().Position} D1: {worstNodeDisplacement1.D1} D2: {worstNodeDisplacement1.D2} D3: {worstNodeDisplacement1.D3} ");
-
-            Assert.AreEqual(28.71, worstPlateResult1.S11, 1);
-            Assert.AreEqual(5.78, worstNodeDisplacement1.D3, 0.2);
-
-            Assert.AreEqual(28.71, worstPlateResult2.S11, 1);
-            Assert.AreEqual(5.78, worstNodeDisplacement2.D3, 0.2);
+            Assert.AreEqual(10.84, gs2WorstDisplacementsCmb1[2].D3, 0.2);
+            Assert.AreEqual(35.27, gs2WorstStressesCmb1[0].S11, 0.2);
         }
 
         [TestMethod]
@@ -240,7 +190,7 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
@@ -287,45 +237,16 @@ namespace GlassTests
             model.AddSurface(gs1, base.GetTestName());
             model.PerformChecks();
 
-            var stressResults = model.GetPlateCombinationsResult();
-            var deflectionResults = model.GetNodeDisplacementCombinationsResult();
 
-            Assert.AreEqual(1, stressResults.Count, 0);
-            Assert.AreEqual(1, deflectionResults.Count, 0);
-            Assert.IsTrue(stressResults[0].Count > 0);
-            Assert.IsTrue(deflectionResults[0].Count > 0);
+            var gs1WorstDisplacementsCmb1 = GetWorstDisplacementResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb1));
+            var gs1WorstStressesCmb1 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(cmb1));
 
-            ResultPlateStress worstPlateResult = null;
-            foreach (var comboResult in stressResults.First())
-            {
+            var gs2WorstDisplacementsCmb1 = GetWorstDisplacementResults(model.GlassSurfaces.LastOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb1));
+            var gs2WorstStressesCmb1 = GetWorstStressResults(model.GlassSurfaces.LastOrDefault().Checker.GetCombinationPlateStressResult(cmb1));
 
-                if (worstPlateResult is null)
-                    worstPlateResult = comboResult;
-                else if (comboResult.S11 > worstPlateResult.S11)
-                    worstPlateResult = comboResult;
-            }
+            Assert.AreEqual(4.16, gs1WorstDisplacementsCmb1[2].D3, 0.2);
+            Assert.AreEqual(26.04, gs1WorstStressesCmb1[0].S11, 1);
 
-            ResultNodeDisplacement worstNodeDisplacement = null;
-            foreach (var comboResult in deflectionResults.First())
-            {
-                double disp = comboResult.GetResultingDisplacement();
-
-                if (worstNodeDisplacement is null)
-                    worstNodeDisplacement = comboResult;
-                else if (Math.Abs(disp) > Math.Abs(worstNodeDisplacement.GetResultingDisplacement()))
-                    worstNodeDisplacement = comboResult;
-            }
-
-            Console.WriteLine($"STRESS");
-            Console.WriteLine($"\t Stress11: {worstPlateResult.S11}, stress22: {worstPlateResult.S22}, stress33: {worstPlateResult.S33}");
-            Console.WriteLine($"\t Id: {worstPlateResult.Element.Id} Point: {(worstPlateResult.ResultPoint as ResultStressPoint).Location} Node0 Id: {worstPlateResult.GetPlate().Nodes[0].Position}");
-
-            Console.WriteLine($"DEFLECTION");
-            Console.WriteLine($"\t WorstDeflection: {worstNodeDisplacement.GetResultingDisplacement()}");
-            Console.WriteLine($"\t Id: {worstNodeDisplacement.Element.Id} Point: {worstNodeDisplacement.GetNode().Position} D1: {worstNodeDisplacement.D1} D2: {worstNodeDisplacement.D2} D3: {worstNodeDisplacement.D3} ");
-
-            Assert.AreEqual(26.04, worstPlateResult.S11, 1);
-            Assert.AreEqual(4.16, worstNodeDisplacement.D3, 0.2);
         }
 
 
@@ -342,7 +263,7 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
@@ -408,7 +329,7 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 1600, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
@@ -475,7 +396,7 @@ namespace GlassTests
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(800, 2000, 0));
 
             List<IParametricRestrain> parametricRestrains = new List<IParametricRestrain>();
-            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(LinearSolver.DOF.DX, true) })));
+            parametricRestrains.AddRange(s1.Fill.Explode().Select(i => new ParametricLineRestrain(i, new FreedomCase("FC1"), new List<DofRestrain>() { new DofRestrain(Solver.DOF.DX) })));
 
             List<GeometryRestrain> geometryRestrains1 = new List<GeometryRestrain>();
             geometryRestrains1.AddRange(s1.Fill.Explode().Select(i => LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("FC1"), CoordinateSystem.Global)));
