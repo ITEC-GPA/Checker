@@ -15,6 +15,7 @@ using GPC.Model.Materials;
 using GPC.Model.Restrains;
 using GPC.Model.Results;
 using GPC.Model.FreedomCases;
+using GPC.Utilities.Fem;
 
 namespace GlassTests
 {
@@ -152,6 +153,118 @@ namespace GlassTests
             AssertStressValue(worstStressesCmb3[0].S11, 1.85, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
             AssertStressValue(worstStressesCmb4[0].S11, 5.93, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
             AssertStressValue(worstStressesCmb5[0].S11, 5.51, 1, $"{GetTestName()} st7PlateId: {worstStressesCmb1[0].Name}");
+
+        }
+
+
+
+        [TestMethod]
+        [TestCategory("V-EQT-EET1")]
+        [TestCategory("Layers: 2")]
+        public void EQTEET1()
+        {
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 2000, 0));
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 1, GetGlassMaterialEn16612());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            p1.MeshOptions.MeshSize = 25;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 1, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
+            {
+                lcPressure
+            };
+
+            NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure);
+
+            // Combinazioni
+            Combination combo1 = new Combination("Cmb1");
+            combo1.AddLoadCaseCoefficient(lcPressure, 1);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            gs1.AddLoad(loadWp);
+
+            gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+
+            // Combo
+            model.AddCombination(combo1);
+
+            // Start analysis
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+
+            model.PerformChecks();
+
+            // Assert
+            GPC.Model.FEM.Group[] groups = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetGroups();
+
+            GPC.Model.FEM.Node[] nodes = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetNodes();
+            GPC.Model.FEM.FiniteElements.FiniteElement[] elements = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetElements();
+
+
+            Dictionary<int, (double D3, double R1, double R2)> displacementMap = new Dictionary<int, (double D3, double R1, double R2)>();
+
+
+            GPC.Model.FEM.GaussIntegration.GaussPoint[] gaussPointsQuad = GPC.Model.FEM.GaussIntegration.GetPointsRectangular(4);
+            GPC.Model.FEM.GaussIntegration.GaussPoint[] gaussPointsTri = GPC.Model.FEM.GaussIntegration.GetPointsRectangular(3);
+
+
+            double num = 0;
+            double den = 0;
+            foreach (var element in elements)
+            {
+                IEnumerable<ResultDisplacement> resultDisplacement = element.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+
+                var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+                num += Math.Abs(mean.D3) * 25 * 25;
+
+                den += (mean.R1 * mean.R1 + mean.R2 * mean.R2) * 25 * 25;
+            }
+
+            Console.WriteLine($"Num: {num}");
+            Console.WriteLine($"Den: {den}");
+            Console.WriteLine($"Num/Den: {num / den}");
+
+            Assert.AreEqual(12.48, num / den, 1.0, (num / den).ToString());
+
+
+
+            //foreach (var node in nodes)
+            //{
+            //    var p = new Point3d(node.Position.X, node.Position.Y, 0);
+            //    displacementMap.Add(p.GetHashCode(), (((ResultDisplacement)node.Results.FirstOrDefault().Result).D3,
+            //                                                     -((ResultDisplacement)node.Results.FirstOrDefault().Result).R2,
+            //                                                     -((ResultDisplacement)node.Results.FirstOrDefault().Result).R1
+            //                                                     ));
+
+            //}
+
+            //Func<double, double, double> fDisp = (x, y) =>
+            //{
+            //    var p = new Point3d(x, y, 0);
+            //    return displacementMap[p.GetHashCode()].D3;
+            //};
+
+            //Func<double, double, double> fDispDxDySquare = (x, y) =>
+            //{
+            //    var p = new Point3d(x, y, 0);
+            //    return  Math.Pow(displacementMap[p.GetHashCode()].R2, 2) + Math.Pow(displacementMap[p.GetHashCode()].R1, 2);
+            //};
+
+            //var num = MathNet.Numerics.Integration.GaussLegendreRule.Integrate(fDisp, 0, 1000, 0, 2000, 1);
+            //var den = MathNet.Numerics.Integration.GaussLegendreRule.Integrate(fDispDxDySquare, 0, 1000, 0, 2000, 1);
 
         }
 
