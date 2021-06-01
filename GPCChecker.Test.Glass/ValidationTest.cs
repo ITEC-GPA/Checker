@@ -23,9 +23,9 @@ namespace GlassTests
     {
 
         [TestMethod]
-        [TestCategory("V-MG-LS1")]
+        [TestCategory("V-LG-LS1")]
         [TestCategory("Layers: 2")]
-        public void MGLS1()
+        public void LGLS1()
         {
             RunApiServer();
 
