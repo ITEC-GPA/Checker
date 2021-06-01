@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using GPC.Model.Standards;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Results;
+using System.ComponentModel;
 
-namespace GPC.Checkers.Steel.CopSuos2011
+namespace GPC.Checkers.Steel.Cop2011
 {
-    public class CopSuos2011Checker : Checker
+    public class Cop2011Checker : Checker
     {
         // VARIABILI EREDITATE DA CHECKER
         // Section
@@ -20,13 +21,13 @@ namespace GPC.Checkers.Steel.CopSuos2011
         // Standard
 
 
-        public CopSuos2011Checker(ISteelSection section, BeamResult[] beamResult, CopSuos2011Options[] options)
+        public Cop2011Checker(ISteelSection[] section, BeamResult[] beamResult, Cop2011Options[] options)
             :base(section, beamResult, options)
         {
             Standard = new StandardCopSuos2011();
         }
 
-        public CopSuos2011Checker(ISteelSection section, BeamResult[] beamResult, CopSuos2011Options[] options, StandardCopSuos2011 standard)
+        public Cop2011Checker(ISteelSection[] section, BeamResult[] beamResult, Cop2011Options[] options, StandardCopSuos2011 standard)
             : base(section, beamResult, options, standard)
         {
 
@@ -42,7 +43,7 @@ namespace GPC.Checkers.Steel.CopSuos2011
 
 
 
-        public class CopSuos2011Options : Options
+        public class Cop2011Options : Options
         {
             #region Enumerable
 
@@ -66,37 +67,41 @@ namespace GPC.Checkers.Steel.CopSuos2011
                 Class1H,
             }
 
+            public enum LateralTorsionalBucklingConditions
+            {
+                [Description("Compressed flange restrained at ends")] Default,
+                [Description("Compressed flange fully Restrained")] FullyRestrained,
+                [Description("Compressed flange unrestrained")] Unrestrained,
+                [Description("Compressed flange unrestrained and under destabilizing loads")] DestabilizingLoad,
+            }
 
             #endregion
 
 
             #region Variables
 
-            private readonly double _l0;
-            private readonly BuckingCurves _buckingCurve;
-            private SteelClasses _steelClass;
+            private readonly SteelClasses _steelClass;
+            private readonly LateralTorsionalBucklingConditions _lateralTorsionalBucklingConditions;
 
             #endregion
 
 
             #region Properties
 
-            public double ColumnEffectiveLength => _l0;
-
-            public BuckingCurves BuckingCurve => _buckingCurve;
-
             public SteelClasses SteelClass => _steelClass;
+
+            public LateralTorsionalBucklingConditions LateralTorsionalBucklingCondition => _lateralTorsionalBucklingConditions;
 
             #endregion
 
 
             #region Constructor
 
-            public CopSuos2011Options(double columnEffectiveLength, BuckingCurves buckingCurve, SteelClasses steelGrade = SteelClasses.Class1)
+            public Cop2011Options(double columnEffectiveLength, SteelClasses steelGrade = SteelClasses.Class1, LateralTorsionalBucklingConditions lateralTorsionalBucklingConditions = default)
+                : base(columnEffectiveLength)
             {
-                _l0 = columnEffectiveLength;
-                _buckingCurve = buckingCurve;
                 _steelClass = steelGrade;
+                _lateralTorsionalBucklingConditions = lateralTorsionalBucklingConditions;
             }
 
             #endregion

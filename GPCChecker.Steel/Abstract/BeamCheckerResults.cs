@@ -83,7 +83,7 @@ namespace GPC.Checkers.Steel.Results
             {
                 double sigmaN = N / sectionCHS.Area;
                 double M = Math.Sqrt(M1 * M1 + M2 * M2);
-                double sigmaM = -M / ((Section)section).Wel2;
+                double sigmaM = -M / sectionCHS.CalculateWel();
 
                 return sigmaN + sigmaM;
             }

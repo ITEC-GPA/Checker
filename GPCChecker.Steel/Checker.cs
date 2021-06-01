@@ -15,20 +15,20 @@ namespace GPC.Checkers.Steel
     {
         #region Variables
 
-        private readonly ISteelSection _section;  
-        private readonly BeamResult[] _result;
-        private readonly Options[] _options;
-        private readonly BeamCheckerResults[] _beamCheckerResults;
-        private readonly Standard _standard;
+        protected readonly ISteelSection[] _section;
+        protected readonly BeamResult[] _result;
+        protected readonly Options[] _options;
+        protected readonly BeamCheckerResults[] _beamCheckerResults;
+        protected readonly Standard _standard;
 
         #endregion
 
             
         #region Properties
 
-        public ISteelSection Section => _section;
+        public ISteelSection[] Section => _section;
 
-        public double Length { get => BeamResult.Length; set => Length = value; }
+        public double Length => BeamResult.Length;
 
         public BeamResult[] BeamResult => _result;
 
@@ -43,10 +43,9 @@ namespace GPC.Checkers.Steel
 
         #region Constructor
 
-        public Checker(ISteelSection section, BeamResult[] beamResult, Options[] options, Standard standard)
+        public Checker(ISteelSection[] section, BeamResult[] beamResult, Options[] options, Standard standard)
         {
             _section = section;
-            Length = beamResult.Length < 0 ? throw new ArgumentException($"Length cannot be lower than zero") : Length;
             if (beamResult.Length < 1)
                 throw new ArgumentException("BeamResult can not be null");
             _result = beamResult;
@@ -54,10 +53,9 @@ namespace GPC.Checkers.Steel
             _standard = standard;
         }
 
-        public Checker(ISteelSection section, BeamResult[] beamResult, Options[] options)
+        public Checker(ISteelSection[] section, BeamResult[] beamResult, Options[] options)
         {
             _section = section;
-            Length = beamResult.Length < 0 ? throw new ArgumentException($"Length cannot be lower than zero") : Length;
             if (beamResult.Length < 1)
                 throw new ArgumentException("BeamResult can not be null");
             _result = beamResult;
@@ -77,43 +75,75 @@ namespace GPC.Checkers.Steel
 
         public abstract class Options
         {
-
-        }
-
-
-        #region Nested class: SectionProperties
-
-        public abstract class SectionProperties
-        {
-            #region Variables
-
-            private readonly ISteelSection _section;
-            private readonly Options _options;
-
-            #endregion
+            protected double _l;
+            protected double _kAxialBuckling1;
+            protected double _kAxialBuckling2;
+            protected double _kLatTorsBuckling;
+            protected double _kCriticalMoment1;
+            protected double _kCriticalMoment2;
+            protected double _mAxialBuckling1;
+            protected double _mAxialBuckling2;
+            protected double _mLatTorsBuckling;
+            protected double _mCriticalMoment1;
+            protected double _mCriticalMoment2;
 
 
-            #region Properties
+            public double Length => _l;
 
-            public ISteelSection Section => _section;            
+            /// <summary>
+            /// Unbraced length factor for buckling about the frame object 1-axis
+            /// </summary>
+            public double UnbracedLengthFactorAxialBuck1 => _kAxialBuckling1;
 
-            public Checker.Options Options => _options;
+            /// <summary>
+            /// Unbraced length factor for buckling about the frame object 1-axis
+            /// </summary>
+            public double UnbracedLengthFactorAxialBuck2 => _kAxialBuckling2;
+            public double UnbracedLengthFactorLatTorsBuck => _kLatTorsBuckling;
+            public double UnbracedLengthFactorCriticalMoment1 => _kCriticalMoment1;
+            public double UnbracedLengthFactorCriticalMoment2 => _kCriticalMoment2;
 
-            #endregion
+            /// <summary>
+            /// Effective length factor for buckling about the frame object major axis
+            /// </summary>
+            public double EffectiveLengthFactorAxialBuck1 => _mAxialBuckling1;
+            public double EffectiveLengthFactorAxialBuck2 => _mAxialBuckling2;
+            public double EffectiveLengthFactorLatTorsBuck => _mLatTorsBuckling;
+            public double EffectiveLengthFactorCriticalMoment1 => _mCriticalMoment1;
+            public double EffectiveLengthFactorCriticalMoment2 => _mCriticalMoment2;
 
-
-            public SectionProperties(ISteelSection section, Checker.Options standard)
+            public Options(double length)
             {
-                _section = section;
-                _options = standard;
+                _l = length;
             }
 
+            public double GetLenghtAxialBuckling1()
+            {
+                return Length * UnbracedLengthFactorAxialBuck1 * EffectiveLengthFactorAxialBuck1;
+            }
 
+            public double GetLenghtAxialBuckling2()
+            {
+                return Length * UnbracedLengthFactorAxialBuck2 * EffectiveLengthFactorAxialBuck2;
+            }
 
+            public double GetLenghtLatTorsBuckling()
+            {
+                return Length * UnbracedLengthFactorLatTorsBuck * EffectiveLengthFactorLatTorsBuck;
+            }
 
+            public double GetLenghtCriticalMoment1()
+            {
+                return Length * UnbracedLengthFactorCriticalMoment1 * EffectiveLengthFactorCriticalMoment1;
+            }
+
+            public double GetLenghtCriticalMoment2()
+            {
+                return Length * UnbracedLengthFactorCriticalMoment2 * EffectiveLengthFactorCriticalMoment2;
+            }
         }
 
-        #endregion
+
     }
 
 

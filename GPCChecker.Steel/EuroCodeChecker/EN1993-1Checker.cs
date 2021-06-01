@@ -14,12 +14,12 @@ namespace GPC.Checkers.Steel.EuroCode
     public class EN1993p11Checker : EuroCodeChecker
     {
 
-        public EN1993p11Checker(ISteelSection section, BeamResult[] beamResult, EN1993_1Options options)
+        public EN1993p11Checker(ISteelSection[] section, BeamResult[] beamResult, EN1993_1Options[] options)
             : base(section, beamResult, options)
         {
 
         }
-        public EN1993p11Checker(ISteelSection section, BeamResult[] beamResult, EN1993_1Options options, StandardEN1993p11 standard)
+        public EN1993p11Checker(ISteelSection[] section, BeamResult[] beamResult, EN1993_1Options[] options, StandardEN1993p11 standard)
             : base(section, beamResult, options, standard)
         {
 
@@ -67,7 +67,6 @@ namespace GPC.Checkers.Steel.EuroCode
 
             #region Variables
 
-            private readonly double _l0;
             private readonly BuckingCurves _buckingCurve;
             private readonly SupportConditions _supportCondition;
             private readonly LoadConditions _loadCondition;
@@ -76,8 +75,6 @@ namespace GPC.Checkers.Steel.EuroCode
 
 
             #region Properties
-
-            public double ColumnEffectiveLength => _l0;
 
             public BuckingCurves BuckingCurve => _buckingCurve;
 
@@ -90,10 +87,10 @@ namespace GPC.Checkers.Steel.EuroCode
 
             #region Constructor
 
-            public EN1993_1Options(double columnEffectiveLength, BuckingCurves buckingCurve)
+            public EN1993_1Options(double columnEffectiveLength)
+                :base(columnEffectiveLength)
             {
-                _l0 = columnEffectiveLength;
-                _buckingCurve = buckingCurve;
+
             }
 
             #endregion

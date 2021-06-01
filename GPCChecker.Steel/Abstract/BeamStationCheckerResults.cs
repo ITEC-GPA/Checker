@@ -60,7 +60,7 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        public BeamStationCheckerResults(ISteelSection section, ResultBeamForces forces)
+        public BeamStationCheckerResults(ISteelSection section, ResultBeamForces forces)    // load case e stazione
         {
             _section = section;
             _forces = forces;                     

@@ -8,7 +8,7 @@ using GPC.Model.Sections;
 using GPC.Model.Standards;
 using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
-using GPC.Checkers.Steel.CopSuos2011;
+using GPC.Checkers.Steel.Cop2011;
 
 namespace GPC.Checkers.Steel.Results
 {
