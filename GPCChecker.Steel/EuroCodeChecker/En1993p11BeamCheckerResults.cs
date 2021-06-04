@@ -106,7 +106,7 @@ namespace GPC.Checkers.Steel.EuroCode
 
         #region Constructor
 
-        public En1993p11BeamCheckerResults(ILoadCase loadCase, ResultBeamForces[] forces, ResultStation[] stations, ISteelSection section, EN1993p11Checker.EN1993_1Options options, StandardEN1990 standard)
+        public En1993p11BeamCheckerResults(ILoadCase loadCase, ResultBeamForces[] forces, ResultStation[] stations, ISteelSection[] section, EN1993p11Checker.EN1993_1Options options, StandardEN1990 standard)
             : base(loadCase, forces, stations, section, options, standard)
         { 
         }        

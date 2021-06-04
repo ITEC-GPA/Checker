@@ -28,12 +28,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces ( 0, 0, 0, 0, 10000, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionH steelSectionH = new GPC.Model.Sections.Steel.SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Welded);
+            GPC.Model.Sections.Steel.SteelSectionH[] steelSectionH = new GPC.Model.Sections.Steel.SteelSectionH[] {
+                                                                        new GPC.Model.Sections.Steel.SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Welded)};
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionH, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass =  copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass =  copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class1); 
         }
@@ -51,12 +52,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(-100, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionH steelSectionH = new GPC.Model.Sections.Steel.SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Welded);
+            GPC.Model.Sections.Steel.SteelSectionH[] steelSectionH = new GPC.Model.Sections.Steel.SteelSectionH[] {
+                                                                        new GPC.Model.Sections.Steel.SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Welded)};
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionH, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class2);
         }
@@ -74,12 +76,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(0, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionH steelSectionH = new GPC.Model.Sections.Steel.SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Welded);
+            GPC.Model.Sections.Steel.SteelSectionH[] steelSectionH = new GPC.Model.Sections.Steel.SteelSectionH[] {
+                                                                        new GPC.Model.Sections.Steel.SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Welded)};
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionH, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class3);
         }
@@ -97,12 +100,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(-100000, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionH steelSectionH = new GPC.Model.Sections.Steel.SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Welded);
+            GPC.Model.Sections.Steel.SteelSectionH[] steelSectionH = new GPC.Model.Sections.Steel.SteelSectionH[] {
+                                                                        new GPC.Model.Sections.Steel.SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Welded)};
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionH, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class4);
         }
@@ -119,12 +123,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(-1100000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionRHS steelSectionRHS = new GPC.Model.Sections.Steel.SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty);
+            GPC.Model.Sections.Steel.SteelSectionRHS[] steelSectionRHS = new GPC.Model.Sections.Steel.SteelSectionRHS[]{
+                                                                            new GPC.Model.Sections.Steel.SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty)};
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionRHS, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionRHS, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionRHS[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class4);
         }
@@ -141,12 +146,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(-1100000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionRHS steelSectionRHS = new GPC.Model.Sections.Steel.SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty);
+            GPC.Model.Sections.Steel.SteelSectionRHS[] steelSectionRHS = new GPC.Model.Sections.Steel.SteelSectionRHS[]{
+                                                                            new GPC.Model.Sections.Steel.SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionRHS, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionRHS, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionRHS[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class3);
         }
@@ -163,12 +169,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(0, 0, 0, 0, 1100000, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionRHS steelSectionRHS = new GPC.Model.Sections.Steel.SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty);
+            GPC.Model.Sections.Steel.SteelSectionRHS[] steelSectionRHS = new GPC.Model.Sections.Steel.SteelSectionRHS[] { 
+                                                                            new GPC.Model.Sections.Steel.SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionRHS, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionRHS, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionRHS[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class1);
         }
@@ -185,12 +192,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(0, 0, 0, 0, 1100000, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionRHS steelSectionRHS = new GPC.Model.Sections.Steel.SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty);
+            GPC.Model.Sections.Steel.SteelSectionRHS[] steelSectionRHS = new GPC.Model.Sections.Steel.SteelSectionRHS[] { 
+                                                                            new GPC.Model.Sections.Steel.SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionRHS, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionRHS, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionRHS[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class2);
         }
@@ -206,12 +214,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(-5000000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionCHS steelSectionCHS = new GPC.Model.Sections.Steel.SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished);
+            GPC.Model.Sections.Steel.SteelSectionCHS[] steelSectionCHS = new GPC.Model.Sections.Steel.SteelSectionCHS[]{
+                                                                            new GPC.Model.Sections.Steel.SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionCHS, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionCHS, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionCHS[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class4);
         }
@@ -227,12 +236,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(-1000000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionCHS steelSectionCHS = new GPC.Model.Sections.Steel.SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished);
+            GPC.Model.Sections.Steel.SteelSectionCHS[] steelSectionCHS = new GPC.Model.Sections.Steel.SteelSectionCHS[]{
+                                                                            new GPC.Model.Sections.Steel.SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionCHS, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionCHS, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionCHS[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class4);
         }
@@ -248,12 +258,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(0, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionCHS steelSectionCHS = new GPC.Model.Sections.Steel.SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished);
+            GPC.Model.Sections.Steel.SteelSectionCHS[] steelSectionCHS = new GPC.Model.Sections.Steel.SteelSectionCHS[]{
+                                                                            new GPC.Model.Sections.Steel.SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionCHS, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionCHS, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionCHS[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class3);
         }
@@ -269,12 +280,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(0, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionCHS steelSectionCHS = new GPC.Model.Sections.Steel.SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished);
+            GPC.Model.Sections.Steel.SteelSectionCHS[] steelSectionCHS = new GPC.Model.Sections.Steel.SteelSectionCHS[]{
+                                                                            new GPC.Model.Sections.Steel.SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionCHS, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionCHS, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionCHS[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class1);
         }
@@ -290,12 +302,13 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             GPC.Model.Results.ResultBeamForces[] resultBeamForces = new GPC.Model.Results.ResultBeamForces[1] { new GPC.Model.Results.ResultBeamForces(0, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionCHS steelSectionCHS = new GPC.Model.Sections.Steel.SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished);
+            GPC.Model.Sections.Steel.SteelSectionCHS[] steelSectionCHS = new GPC.Model.Sections.Steel.SteelSectionCHS[]{
+                                                                            new GPC.Model.Sections.Steel.SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(6000, Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionCHS, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionCHS, resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionCHS[0], resultBeamForces[0]);
 
             Assert.AreEqual(sectionClass, CopSuos2011BeamCheckerResults.SectionClass.Class1);
         }
@@ -318,35 +331,50 @@ namespace SteelTests
                                                     new GPC.Model.Results.ResultBeamForces(0, 0, 0, 0, 931800, 0, CoordinateSystem.Global), 
                                                     new GPC.Model.Results.ResultBeamForces(0, 0, 0, 0, 465900, 0, CoordinateSystem.Global) };
             GPC.Model.Results.ResultStation[] resultStations = new GPC.Model.Results.ResultStation[1] { new GPC.Model.Results.ResultStation(1, 3000, 6000) };
-            GPC.Model.Sections.Steel.SteelSectionH steelSectionH = new GPC.Model.Sections.Steel.SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled);
+            GPC.Model.Sections.Steel.SteelSectionH[] steelSectionH = new GPC.Model.Sections.Steel.SteelSectionH[] { 
+                                                                        new GPC.Model.Sections.Steel.SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled) };
             Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
-            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(length, steelClasses);
+            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(length, steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
+                                                                                    1, 1, 1, 1, lengthBuckling / length, 1, 1, 1, 1, 1);
             GPC.Model.Standards.StandardCopSuos2011 standardCopSuos2011 = new GPC.Model.Standards.StandardCopSuos2011();
 
             CopSuos2011BeamCheckerResults copSuos2011BeamCheckerResults = new CopSuos2011BeamCheckerResults(loadCase, resultBeamForces, resultStations, steelSectionH, options, standardCopSuos2011);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass1 = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH, resultBeamForces[0]);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass2 = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH, resultBeamForces[1]);
-            CopSuos2011BeamCheckerResults.SectionClass sectionClass3 = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH, resultBeamForces[2]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass1 = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH[0], resultBeamForces[0]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass2 = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH[0], resultBeamForces[1]);
+            CopSuos2011BeamCheckerResults.SectionClass sectionClass3 = copSuos2011BeamCheckerResults.CalculateSectionClass(steelSectionH[0], resultBeamForces[2]);
 
-            double shearCapacity = copSuos2011BeamCheckerResults.CalculateShearYCapacity(steelSectionH);
+            double expJx = 1180000000;
+            double expWplx = 3994000;
+
+            double shearCapacity = copSuos2011BeamCheckerResults.CalculateShearYCapacity(steelSectionH[0]);
+            double SC = shearCapacity / 1000;
             double expShearCapacity = 1213;         //kN    
 
-            double momentCapacity1 = copSuos2011BeamCheckerResults.CalculateBendingMoment1Capacity(resultBeamForces[1], steelSectionH);     //N*mm
-            double momentCapacity2 = copSuos2011BeamCheckerResults.CalculateBendingMoment1Capacity(resultBeamForces[2], steelSectionH);     //N*mm
+            double momentCapacity1 = copSuos2011BeamCheckerResults.CalculateBendingMoment1Capacity(resultBeamForces[1], steelSectionH[0]);     //N*mm
+            double momentCapacity2 = copSuos2011BeamCheckerResults.CalculateBendingMoment1Capacity(resultBeamForces[2], steelSectionH[0]);     //N*mm
+            double MC1 = momentCapacity1 / 1000000;
+            double MC2 = momentCapacity2 / 1000000;
             double expMomentCapacity = 1058;        //kN*m
 
-            double latTorsBucklingCapacity1 = copSuos2011BeamCheckerResults.CalculateLateralTorsionalBucklingMomentCapacity(resultBeamForces[1], steelSectionH);
-            double latTorsBucklingCapacity2 = copSuos2011BeamCheckerResults.CalculateLateralTorsionalBucklingMomentCapacity(resultBeamForces[2], steelSectionH);
-            double expLatTorsBuckilingCapacity = 851;
+            double latTorsBucklingCapacity1 = copSuos2011BeamCheckerResults.CalculateLateralTorsionalBucklingMomentCapacity(resultBeamForces[1], steelSectionH[0]);
+            double latTorsBucklingCapacity2 = copSuos2011BeamCheckerResults.CalculateLateralTorsionalBucklingMomentCapacity(resultBeamForces[2], steelSectionH[0]);
+            double LTBC1 = latTorsBucklingCapacity1 / 1000000;
+            double LTBC2 = latTorsBucklingCapacity2 / 1000000;
+            double expLatTorsBuckilingCapacity = 851;        
 
             Assert.AreEqual(sectionClass1, CopSuos2011BeamCheckerResults.SectionClass.Class1);
             Assert.AreEqual(sectionClass2, CopSuos2011BeamCheckerResults.SectionClass.Class1);
             Assert.AreEqual(sectionClass3, CopSuos2011BeamCheckerResults.SectionClass.Class1);
-            Assert.IsTrue(Math.Abs((shearCapacity / 1000) / expShearCapacity - 1) < 0.1, $"Shear Capacity % Error: {Math.Abs((shearCapacity / 1000) / expShearCapacity - 1)}");
-            Assert.IsTrue(Math.Abs((momentCapacity1 / 1000000) / expMomentCapacity - 1) < 0.1, $"Moment Capacity % Error: {Math.Abs((momentCapacity1 / 1000000) / expMomentCapacity - 1)}");
-            Assert.IsTrue(Math.Abs((momentCapacity2 / 1000000) / expMomentCapacity - 1) < 0.1, $"Moment Capacity % Error: {Math.Abs((momentCapacity2 / 1000000) / expMomentCapacity - 1)}");
-            Assert.IsTrue(Math.Abs((latTorsBucklingCapacity1 / 1000000) / expLatTorsBuckilingCapacity - 1) < 0.1, $"LateralTorsionalBucklingMoment Capacity % Error: {Math.Abs((latTorsBucklingCapacity1 / 1000000) / expLatTorsBuckilingCapacity - 1)}");
-            Assert.IsTrue(Math.Abs((latTorsBucklingCapacity2 / 1000000) / expLatTorsBuckilingCapacity - 1) < 0.1, $"LateralTorsionalBucklingMoment Capacity % Error: {Math.Abs((latTorsBucklingCapacity2 / 1000000) / expLatTorsBuckilingCapacity - 1)}");
+            Assert.IsTrue(Math.Abs(expJx / steelSectionH[0].J11) - 1 < 0.02, $"Jx % Error: {Math.Abs(expJx / steelSectionH[0].J11 - 1) * 100}");
+            Assert.IsTrue(Math.Abs(expWplx / steelSectionH[0].Wpl1) - 1 < 0.02, $"S % Error: {Math.Abs(expWplx / steelSectionH[0].Wpl1 - 1) * 100}");
+            Assert.IsTrue(Math.Abs((SC) / expShearCapacity - 1) <0.01, $"Shear Capacity % Error: {Math.Abs((SC) / expShearCapacity - 1) * 100}");
+            Assert.IsTrue(Math.Abs((MC1) / expMomentCapacity - 1) < 0.02, $"Moment Capacity % Error: {Math.Abs((MC1) / expMomentCapacity - 1) * 100}");
+            Assert.IsTrue(Math.Abs((MC2) / expMomentCapacity - 1) < 0.02, $"Moment Capacity % Error: {Math.Abs((MC2) / expMomentCapacity - 1) * 100}");
+            Assert.IsTrue(expMomentCapacity - MC1 > 0);
+            Assert.IsTrue(Math.Abs((LTBC1) / expLatTorsBuckilingCapacity - 1) < 0.05, $"LateralTorsionalBucklingMoment Capacity % Error: {Math.Abs((LTBC1) / expLatTorsBuckilingCapacity - 1) * 100}");
+            Assert.IsTrue(Math.Abs((LTBC2) / expLatTorsBuckilingCapacity - 1) < 0.05, $"LateralTorsionalBucklingMoment Capacity % Error: {Math.Abs((LTBC2) / expLatTorsBuckilingCapacity - 1) * 100}");
+            Assert.IsTrue(expLatTorsBuckilingCapacity - LTBC1 > 0);
+
 
         }
     }

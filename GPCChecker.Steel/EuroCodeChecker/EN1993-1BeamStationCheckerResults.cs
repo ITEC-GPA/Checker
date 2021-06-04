@@ -14,8 +14,8 @@ namespace GPC.Checkers.Steel.EuroCode
 {
     public class EN1993_1BeamStationCheckerResults : BeamStationCheckerResults
     {
-        public EN1993_1BeamStationCheckerResults(ISteelSection section, ResultBeamForces forces)
-            : base(section, forces)
+        public EN1993_1BeamStationCheckerResults(ISteelSection section, ILoadCase loadCase, ResultBeamForces forces, ResultStation station)
+            : base(section, loadCase, forces, station)
         {
 
         }

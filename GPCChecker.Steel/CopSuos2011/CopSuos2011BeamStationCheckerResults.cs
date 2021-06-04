@@ -15,8 +15,8 @@ namespace GPC.Checkers.Steel.Results
     public class CopSuos2011BeamStationCheckerResults : BeamStationCheckerResults
     {
 
-        public CopSuos2011BeamStationCheckerResults(ISteelSection section, ResultBeamForces forces)
-            : base(section, forces)
+        public CopSuos2011BeamStationCheckerResults(ISteelSection section, ILoadCase loadCase, ResultBeamForces forces, ResultStation station)
+            : base(section, loadCase, forces, station)
         {
 
         }

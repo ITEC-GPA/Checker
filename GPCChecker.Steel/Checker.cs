@@ -112,9 +112,23 @@ namespace GPC.Checkers.Steel
             public double EffectiveLengthFactorCriticalMoment1 => _mCriticalMoment1;
             public double EffectiveLengthFactorCriticalMoment2 => _mCriticalMoment2;
 
-            public Options(double length)
+            public Options(double length, double unbracedLengthFactorAxialBuck1 = 1, double effectiveLengthFactorAxialBuck1 = 1,
+                double unbracedLengthFactorAxialBuck2 = 1, double effectiveLengthFactorAxialBuck2 = 1,
+                double UnbracedLengthFactorLatTorsBuck = 1, double effectiveLengthFactorLatTorsBuck = 1,
+                double unbracedLengthFactorCriticalMoment1 = 1, double effectiveLengthFactorCriticalMoment1 = 1,
+                double unbracedLengthFactorCriticalMoment2 = 1, double effectiveLengthFactorCriticalMoment2 = 1)
             {
                 _l = length;
+                _kAxialBuckling1 = unbracedLengthFactorAxialBuck1;
+                _kAxialBuckling2 = unbracedLengthFactorAxialBuck2;
+                _kLatTorsBuckling = UnbracedLengthFactorLatTorsBuck;
+                _kCriticalMoment1 = unbracedLengthFactorCriticalMoment1;
+                _kCriticalMoment2 = unbracedLengthFactorCriticalMoment2;
+                _mAxialBuckling1 = effectiveLengthFactorAxialBuck1;
+                _mAxialBuckling2 = effectiveLengthFactorAxialBuck2;
+                _mLatTorsBuckling = effectiveLengthFactorLatTorsBuck;
+                _mCriticalMoment1 = effectiveLengthFactorCriticalMoment1;
+                _mCriticalMoment2 = effectiveLengthFactorCriticalMoment2;
             }
 
             public double GetLenghtAxialBuckling1()

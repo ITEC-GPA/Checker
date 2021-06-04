@@ -97,11 +97,17 @@ namespace GPC.Checkers.Steel.Cop2011
 
             #region Constructor
 
-            public Cop2011Options(double columnEffectiveLength, SteelClasses steelGrade = SteelClasses.Class1, LateralTorsionalBucklingConditions lateralTorsionalBucklingConditions = default)
-                : base(columnEffectiveLength)
+            public Cop2011Options(double length, SteelClasses steelGrade = SteelClasses.Class1, LateralTorsionalBucklingConditions latTorsBucklingCondition = default, 
+                double unbracedLengthFactorAxialBuck1 = 1, double effectiveLengthFactorAxialBuck1 = 1, double unbracedLengthFactorAxialBuck2 = 1, 
+                double effectiveLengthFactorAxialBuck2 = 1, double UnbracedLengthFactorLatTorsBuck = 1, double effectiveLengthFactorLatTorsBuck = 1, 
+                double unbracedLengthFactorCriticalMoment1 = 1, double effectiveLengthFactorCriticalMoment1 = 1, double unbracedLengthFactorCriticalMoment2 = 1,
+                double effectiveLengthFactorCriticalMoment2 = 1)
+                : base(length, unbracedLengthFactorAxialBuck1, effectiveLengthFactorAxialBuck1, unbracedLengthFactorAxialBuck2, 
+                      effectiveLengthFactorAxialBuck2, UnbracedLengthFactorLatTorsBuck, effectiveLengthFactorLatTorsBuck, 
+                      unbracedLengthFactorCriticalMoment1, effectiveLengthFactorCriticalMoment1, unbracedLengthFactorCriticalMoment2, effectiveLengthFactorCriticalMoment2)
             {
                 _steelClass = steelGrade;
-                _lateralTorsionalBucklingConditions = lateralTorsionalBucklingConditions;
+                _lateralTorsionalBucklingConditions = latTorsBucklingCondition;
             }
 
             #endregion

@@ -21,7 +21,7 @@ namespace GPC.Checkers.Steel.Results
         private ResultStation[] _resultStations;
         private double _workingRatio;
         private double _length;
-        private ISteelSection _section;
+        private ISteelSection[] _section;
         private BeamStationCheckerResults[] _beamStationCheckerResults;
         private readonly Checker.Options _options;
         private readonly Standard _standard;
@@ -35,11 +35,11 @@ namespace GPC.Checkers.Steel.Results
 
         public ResultBeamForces[] ResultBeamForces { get => _resultBeamForces; set => _resultBeamForces = value; }
 
-        public ResultStation[] BeamResult { get => _resultStations; set => _resultStations = value; }
+        public ResultStation[] Stations { get => _resultStations; set => _resultStations = value; }
 
         public double WorkingRatio { get => _workingRatio; set => _workingRatio = value; }
 
-        public ISteelSection Section { get => _section; set => _section = value; }
+        public ISteelSection[] Section { get => _section; set => _section = value; }
 
         public BeamStationCheckerResults[] BeamStationCheckerResults { get => _beamStationCheckerResults; set => _beamStationCheckerResults = value; }
 
@@ -54,7 +54,7 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        internal BeamCheckerResults(ILoadCase loadCase, ResultBeamForces[] forces, ResultStation[] stations, ISteelSection section, Checker.Options options, Standard standard)
+        internal BeamCheckerResults(ILoadCase loadCase, ResultBeamForces[] forces, ResultStation[] stations, ISteelSection[] section, Checker.Options options, Standard standard)
         {
             _section = section;
             if(forces.Length < 1)
@@ -65,7 +65,7 @@ namespace GPC.Checkers.Steel.Results
             _resultStations = stations;
             _combination = loadCase;
             _length = stations.Length < 0 ? throw new ArgumentException($"Length cannot be lower than zero") : Length; 
-            _options = (Checker.Options)options;
+            _options = options;
             _standard = standard;
         }
 
@@ -158,8 +158,6 @@ namespace GPC.Checkers.Steel.Results
             else
                 throw new NotImplementedException();
         }
-
-
 
     }
 }
