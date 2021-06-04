@@ -8,6 +8,7 @@ using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
 using GPC.Checkers.Steel.Results;
 using GPC.Model.Standards;
+using GPCCheckers.Steel.Generic;
 
 namespace GPC.Checkers.Steel.EuroCode
 {
@@ -106,8 +107,8 @@ namespace GPC.Checkers.Steel.EuroCode
 
         #region Constructor
 
-        public En1993p11BeamCheckerResults(ILoadCase loadCase, ResultBeamForces[] forces, ResultStation[] stations, ISteelSection[] section, EN1993p11Checker.EN1993_1Options options, StandardEN1990 standard)
-            : base(loadCase, forces, stations, section, options, standard)
+        public En1993p11BeamCheckerResults(EN1993p11BeamChecker BeamChecker , ILoadCase loadCase, StandardEN1990 standard)
+            : base(BeamChecker, loadCase, standard)
         { 
         }        
 

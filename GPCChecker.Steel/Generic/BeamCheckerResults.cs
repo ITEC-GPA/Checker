@@ -8,6 +8,7 @@ using GPC.Model.Standards;
 using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Sections;
+using GPCCheckers.Steel.Generic;
 
 namespace GPC.Checkers.Steel.Results
 {
@@ -16,56 +17,47 @@ namespace GPC.Checkers.Steel.Results
     {
         #region Variables
 
-        private ILoadCase _combination;
-        private ResultBeamForces[] _resultBeamForces;
-        private ResultStation[] _resultStations;
+        private readonly BeamChecker _beamChecker;
         private double _workingRatio;
-        private double _length;
-        private ISteelSection[] _section;
+        private readonly double _length;
         private BeamStationCheckerResults[] _beamStationCheckerResults;
-        private readonly Checker.Options _options;
         private readonly Standard _standard;
+        private readonly ILoadCase _combination;
 
         #endregion
 
 
         #region Properties
 
-        public ILoadCase Combination { get => _combination; set => _combination = value; }
+        public BeamChecker BeamChecker => _beamChecker;
 
-        public ResultBeamForces[] ResultBeamForces { get => _resultBeamForces; set => _resultBeamForces = value; }
+        public ResultBeamForces[] ResultBeamForces => BeamChecker.ResultBeamForces;
 
-        public ResultStation[] Stations { get => _resultStations; set => _resultStations = value; }
+        public ResultStation[] Stations => BeamChecker.Stations;
+
+        public Checker.Options Options => BeamChecker.Options;
+
+        public ISteelSection Section => BeamChecker.Section;
 
         public double WorkingRatio { get => _workingRatio; set => _workingRatio = value; }
 
-        public ISteelSection[] Section { get => _section; set => _section = value; }
-
         public BeamStationCheckerResults[] BeamStationCheckerResults { get => _beamStationCheckerResults; set => _beamStationCheckerResults = value; }
-
-        public double Length { get => _length; set => _length = value; }
-
-        public Checker.Options Options { get => _options; }
+        
+        public double Length => _length; 
 
         public Standard Standard => _standard;
+
+        public ILoadCase LoadCase => _combination;
 
         #endregion
 
 
         #region Constructor
 
-        internal BeamCheckerResults(ILoadCase loadCase, ResultBeamForces[] forces, ResultStation[] stations, ISteelSection[] section, Checker.Options options, Standard standard)
+        internal BeamCheckerResults(BeamChecker beamChecker, ILoadCase loadCase,  Standard standard)
         {
-            _section = section;
-            if(forces.Length < 1)
-                throw new ArgumentException("ResultBeamForces can not be null");
-            _resultBeamForces = forces;
-            if (stations.Length < 1)
-                throw new ArgumentException("ResultStation can not be null");
-            _resultStations = stations;
+            _beamChecker = beamChecker;
             _combination = loadCase;
-            _length = stations.Length < 0 ? throw new ArgumentException($"Length cannot be lower than zero") : Length; 
-            _options = options;
             _standard = standard;
         }
 

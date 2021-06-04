@@ -8,19 +8,21 @@ using GPC.Model.Sections;
 using GPC.Geometry;
 using GPC.Model.Results;
 using GPC.Model.Sections.Steel;
+using GPCCheckers.Steel.Generic;
+using GPC.Model.LoadCases;
 
 namespace GPC.Checkers.Steel.EuroCode
 {
     public class EN1993p11Checker : EuroCodeChecker
     {
 
-        public EN1993p11Checker(ISteelSection[] section, BeamResult[] beamResult, EN1993_1Options[] options)
-            : base(section, beamResult, options)
+        public EN1993p11Checker(EN1993p11BeamChecker[] eN1993P11BeamCheckers, ILoadCase loadCase)
+            : base(eN1993P11BeamCheckers, loadCase)
         {
 
         }
-        public EN1993p11Checker(ISteelSection[] section, BeamResult[] beamResult, EN1993_1Options[] options, StandardEN1993p11 standard)
-            : base(section, beamResult, options, standard)
+        public EN1993p11Checker(EN1993p11BeamChecker[] eN1993P11BeamCheckers, ILoadCase loadCase, StandardEN1993p11 standard)
+            : base(eN1993P11BeamCheckers, loadCase, standard)
         {
 
         }
@@ -28,7 +30,7 @@ namespace GPC.Checkers.Steel.EuroCode
 
 
 
-        public override bool PerformCheck()
+        public override void PerformCheck()
         {
             throw new NotImplementedException();
         }
@@ -36,7 +38,7 @@ namespace GPC.Checkers.Steel.EuroCode
 
 
 
-        public class EN1993_1Options : Options
+        public class EN1993p11Options : Options
         {
             #region Enumerable
 
@@ -87,7 +89,7 @@ namespace GPC.Checkers.Steel.EuroCode
 
             #region Constructor
 
-            public EN1993_1Options(double columnEffectiveLength)
+            public EN1993p11Options(double columnEffectiveLength)
                 :base(columnEffectiveLength)
             {
 

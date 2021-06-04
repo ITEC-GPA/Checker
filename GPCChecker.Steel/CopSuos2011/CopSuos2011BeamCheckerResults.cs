@@ -11,6 +11,8 @@ using System.ComponentModel;
 using GPC.Model.Sections;
 using GPC.Checkers.Steel.Results;
 using GPC.Model.Materials;
+using GPCCheckers.Steel.Generic;
+using GPCCheckers.Steel.Cop2011;
 
 namespace GPC.Checkers.Steel.Cop2011
 {
@@ -43,16 +45,16 @@ namespace GPC.Checkers.Steel.Cop2011
         // Options 
         // Stations
 
+        //private double _axialTensionRd;
+        //private double _axialCompressionXRd;
+        //private double _axialCompressionYRd;
+        //private double _shearXRd;
+        //private double _shearYRd;
+        //private double _bendingMomentXRd;
+        //private double _bendingMomentYRd;
+        //private double _torsionalMomentRd;
+        //private double _lateralTorsionalMomentRd;
         private double _py;
-        private double _axialTensionRd;
-        private double _axialCompressionXRd;
-        private double _axialCompressionYRd;
-        private double _shearXRd;
-        private double _shearYRd;
-        private double _bendingMomentXRd;
-        private double _bendingMomentYRd;
-        private double _torsionalMomentRd;
-        private double _lateralTorsionalMomentRd;
         private SectionClass _class;
         private readonly Cop2011Checker.Cop2011Options.SteelClasses _steelClass;
 
@@ -61,59 +63,59 @@ namespace GPC.Checkers.Steel.Cop2011
 
         #region Properties
 
-        public double AxialTensionCapacity
-        {
-            get => _axialTensionRd;
-            set => _axialTensionRd = value;
-        }
+        //public double AxialTensionCapacity
+        //{
+        //    get => _axialTensionRd;
+        //    set => _axialTensionRd = value;
+        //}
 
-        public double AxialCompression1Capacity
-        {
-            get => _axialCompressionXRd;
-            set => _axialCompressionXRd = value;
-        }
+        //public double AxialCompression1Capacity
+        //{
+        //    get => _axialCompressionXRd;
+        //    set => _axialCompressionXRd = value;
+        //}
 
-        public double AxialCompression2Capacity
-        {
-            get => _axialCompressionYRd;
-            set => _axialCompressionYRd = value;
-        }
+        //public double AxialCompression2Capacity
+        //{
+        //    get => _axialCompressionYRd;
+        //    set => _axialCompressionYRd = value;
+        //}
 
-        public double Shear1Capacity
-        {
-            get => _shearXRd;
-            set => _shearXRd = value;
-        }
+        //public double Shear1Capacity
+        //{
+        //    get => _shearXRd;
+        //    set => _shearXRd = value;
+        //}
 
-        public double Shear2Capacity
-        {
-            get => _shearYRd;
-            set => _shearYRd = value;
-        }
+        //public double Shear2Capacity
+        //{
+        //    get => _shearYRd;
+        //    set => _shearYRd = value;
+        //}
 
-        public double BendingMoment1Capacity
-        {
-            get => _bendingMomentXRd;
-            set => _bendingMomentXRd = value;
-        }
+        //public double BendingMoment1Capacity
+        //{
+        //    get => _bendingMomentXRd;
+        //    set => _bendingMomentXRd = value;
+        //}
 
-        public double BendingMoment2Capacity
-        {
-            get => _bendingMomentYRd;
-            set => _bendingMomentYRd = value;
-        }
+        //public double BendingMoment2Capacity
+        //{
+        //    get => _bendingMomentYRd;
+        //    set => _bendingMomentYRd = value;
+        //}
 
-        public double TorsionMomentCapacity
-        {
-            get => _torsionalMomentRd;
-            set => _torsionalMomentRd = value;
-        }
+        //public double TorsionMomentCapacity
+        //{
+        //    get => _torsionalMomentRd;
+        //    set => _torsionalMomentRd = value;
+        //}
 
-        public double LateralTosionalBucklingCapacity
-        {
-            get => _lateralTorsionalMomentRd;
-            set => _lateralTorsionalMomentRd = value;
-        }
+        //public double LateralTosionalBucklingCapacity
+        //{
+        //    get => _lateralTorsionalMomentRd;
+        //    set => _lateralTorsionalMomentRd = value;
+        //}
 
         public SectionClass Class
         {
@@ -121,7 +123,7 @@ namespace GPC.Checkers.Steel.Cop2011
             set => _class = value;
         }
 
-        public SteelMaterial Material => (SteelMaterial)Section[0].Material;
+        public SteelMaterial Material => (SteelMaterial)Section.Material;
 
         public Cop2011Checker.Cop2011Options.SteelClasses SteelClass => _steelClass;
 
@@ -136,38 +138,32 @@ namespace GPC.Checkers.Steel.Cop2011
 
         #region Constructor
 
-        public CopSuos2011BeamCheckerResults(ILoadCase loadCase, ResultBeamForces[] forces, ResultStation[] stations, ISteelSection[] section, Cop2011Checker.Cop2011Options options, StandardCopSuos2011 standard)
-            : base(loadCase, forces, stations, section, options, standard)
+        public CopSuos2011BeamCheckerResults(Cop2011BeamChecker cop2011BeamChecker, ILoadCase loadCase, StandardCopSuos2011 standard)
+            : base(cop2011BeamChecker, loadCase, standard)
         {
-            _steelClass = options.SteelClass;
             _py = GetPy();
+            _steelClass = ((Cop2011Checker.Cop2011Options)cop2011BeamChecker.Options).SteelClass;
         }
 
         #endregion
 
 
-        internal void SetProperties(ResultBeamForces resultBeamForces, ISteelSection section)
-        {
-            AxialTensionCapacity = CalculateAxialTensionCapacity(section);
-            AxialCompression1Capacity = CalculateAxialBucklingCapacity1Axis(resultBeamForces, section);
-            AxialCompression2Capacity = CalculateAxialBucklingCapacity2Axis(resultBeamForces, section);
-            Shear1Capacity = CalculateShearXCapacity(section);
-            Shear2Capacity = CalculateShearYCapacity(section);
-            BendingMoment1Capacity = CalculateBendingMoment1Capacity(resultBeamForces, section);
-            BendingMoment2Capacity = CalculateBendingMoment2Capacity(resultBeamForces, section);
-            LateralTosionalBucklingCapacity = CalculateLateralTorsionalBucklingMomentCapacity(resultBeamForces, section);
-        }
+        //internal void SetProperties(ResultBeamForces resultBeamForces, ISteelSection section)
+        //{
+        //    AxialTensionCapacity = CalculateAxialTensionCapacity(section);
+        //    AxialCompression1Capacity = CalculateAxialBucklingCapacity1Axis(resultBeamForces, section);
+        //    AxialCompression2Capacity = CalculateAxialBucklingCapacity2Axis(resultBeamForces, section);
+        //    Shear1Capacity = CalculateShearXCapacity(section);
+        //    Shear2Capacity = CalculateShearYCapacity(section);
+        //    BendingMoment1Capacity = CalculateBendingMoment1Capacity(resultBeamForces, section);
+        //    BendingMoment2Capacity = CalculateBendingMoment2Capacity(resultBeamForces, section);
+        //    LateralTosionalBucklingCapacity = CalculateLateralTorsionalBucklingMomentCapacity(resultBeamForces, section);
+        //}
 
 
         #region Check
 
         internal override void PerformCheck()
-        {
-
-        }
-
-
-        internal BeamStationCheckerResults[] SetBeamStationCheckerResults()
         {
             BeamStationCheckerResults[] beamStationCheckerResults = new BeamStationCheckerResults[Stations.Count()];
 
@@ -185,30 +181,29 @@ namespace GPC.Checkers.Steel.Cop2011
 
             for (int i = 0; i < Stations.Count(); i++)
             {
-                CopSuos2011BeamStationCheckerResults stationResult = new CopSuos2011BeamStationCheckerResults(Section[i], Combination, ResultBeamForces[i], Stations[i]);
+                CopSuos2011BeamStationCheckerResults stationResult = new CopSuos2011BeamStationCheckerResults(Section, LoadCase, ResultBeamForces[i], Stations[i]);
 
-                double shear1WR = CalculateShear1WR(ResultBeamForces[i], Section[i]);
-                double shear2WR = CalculateShear2WR(ResultBeamForces[i], Section[i]);
-                double bending1WR = CalculateBendingMoment1WR(ResultBeamForces[i], Section[i]);
-                double bending2WR = CalculateBendingMoment2WR(ResultBeamForces[i], Section[i]);
-                double latTorsWR = CalculateLateralTorsionalBucklingWR(ResultBeamForces[i], Section[i]);
-                double torsWr = CalculateTorqueMomentWR(ResultBeamForces[i], Section[i]);
-                double axialTensionWR = CalculateAxialTensionWR(ResultBeamForces[i], Section[i]);
-                double axialBuck1WR = CalculateAxiaBucklWR(ResultBeamForces[i], Section[i]);
-                double axialBuck2WR = CalculateAxiaBuck2WR(ResultBeamForces[i], Section[i]);
-                double interactionWR = CalculateInteractionWR(ResultBeamForces[i], Section[i]);
+                double latTorsWR = 0;
+                double latTorsRd = 0;
+
+                Class = CalculateSectionClass(ResultBeamForces[i], Section);
+
+                double shear1WR = CalculateShear1WR(ResultBeamForces[i], Section, out double shear1Rd);
+                double shear2WR = CalculateShear2WR(ResultBeamForces[i], Section, out double shear2Rd);
+                double bending1WR = CalculateBendingMoment1WR(ResultBeamForces[i], Section, out double bending1Rd);
+                double bending2WR = CalculateBendingMoment2WR(ResultBeamForces[i], Section, out double bending2Rd);
+
+                double torsWr = CalculateTorqueMomentWR(ResultBeamForces[i], Section, out double torsRd);
+                if (IsNecessaryTheLatTorsBucklingCheck(ResultBeamForces[i], Section))
+                    latTorsWR = CalculateLateralTorsionalBucklingWR(ResultBeamForces[i], Section, out latTorsRd);
+
+                double axialTensionWR = CalculateAxialTensionWR(ResultBeamForces[i], Section, out double axialTensionRd);
+                double axialBuck1WR = CalculateAxiaBuck1WR(ResultBeamForces[i], Section, out double axialBuck1Rd);
+                double axialBuck2WR = CalculateAxiaBuck2WR(ResultBeamForces[i], Section, out double axialBuck2Rd);
+                double interactionWR = CalculateInteractionWR(ResultBeamForces[i], Section);
                 double maxStationWR = GetMaxValue(new double[] { shear1WR, shear2WR, bending1WR, bending2WR, latTorsWR, torsWr, axialTensionWR, axialBuck1WR, axialBuck2WR, interactionWR });
-                stationResult.SetWorkingRatio(axialTensionWR, axialBuck1WR, axialBuck2WR, shear1WR, shear2WR, bending1WR, bending2WR, torsWr, latTorsWR, interactionWR, maxStationWR);
 
-                double shear1Rd = CalculateShearXCapacity(Section[i]);
-                double shear2Rd = CalculateShearYCapacity(Section[i]);
-                double bending1Rd = CalculateBendingMoment1Capacity(ResultBeamForces[i], Section[i]);
-                double bending2Rd = CalculateBendingMoment2Capacity(ResultBeamForces[i], Section[i]);
-                double latTorsRd = CalculateLateralTorsionalBucklingMomentCapacity(ResultBeamForces[i], Section[i]);
-                double torsRd = CalculateTorqueMomentCapacity(ResultBeamForces[i], Section[i]);
-                double axialTensionRd = CalculateAxialTensionCapacity(Section[i]);
-                double axialBuck1Rd = CalculateAxialBucklingCapacity1Axis(ResultBeamForces[i], Section[i]);
-                double axialBuck2Rd = CalculateAxialBucklingCapacity2Axis(ResultBeamForces[i], Section[i]);
+                stationResult.SetWorkingRatio(axialTensionWR, axialBuck1WR, axialBuck2WR, shear1WR, shear2WR, bending1WR, bending2WR, torsWr, latTorsWR, interactionWR, maxStationWR);
                 stationResult.SetCapacity(axialTensionRd, axialBuck1Rd, axialBuck2Rd, shear1Rd, shear2Rd, bending1Rd, bending2Rd, torsRd, latTorsRd);
                 beamStationCheckerResults[i] = stationResult;
 
@@ -237,78 +232,84 @@ namespace GPC.Checkers.Steel.Cop2011
                 if (interactionWR > outInteractionWR)
                     outInteractionWR = interactionWR;
 
-                if (outMaxBeamWR > maxStationWR)
-                    maxStationWR = outMaxBeamWR;
+                if (maxStationWR > outMaxBeamWR)
+                    outMaxBeamWR = maxStationWR;
             }
-            return beamStationCheckerResults;
+
+            WorkingRatio = outMaxBeamWR;
+            BeamStationCheckerResults = beamStationCheckerResults;
         }
 
 
 
-        private double CalculateAxialTensionWR(ResultBeamForces resultBeamForces, ISteelSection section)
+        private double CalculateAxialTensionWR(ResultBeamForces resultBeamForces, ISteelSection section, out double axialTensionRd)
         {
-            if (MinSigma(section, resultBeamForces.N, resultBeamForces.M2, resultBeamForces.M1) > 0)
-                return resultBeamForces.N / CalculateAxialTensionCapacity(section);
+            axialTensionRd = CalculateAxialTensionCapacity(section);
+            if (MinSigma(section, resultBeamForces.N, resultBeamForces.M2, resultBeamForces.M1) > 0)          
+                return resultBeamForces.N / axialTensionRd;            
             else
                 return 0.0;
         }
 
-        private double CalculateAxiaBucklWR(ResultBeamForces resultBeamForces, ISteelSection section)
+        private double CalculateAxiaBuck1WR(ResultBeamForces resultBeamForces, ISteelSection section, out double axialBuck1Rd)
         {
+            axialBuck1Rd = CalculateAxialBucklingCapacity1Axis(resultBeamForces, section);
             if (MinSigma(section, resultBeamForces.N, resultBeamForces.M2, resultBeamForces.M1) > 0)
                 return 0.0;
             else
-                return resultBeamForces.N / CalculateAxialBucklingCapacity1Axis(resultBeamForces, section);
+                return resultBeamForces.N / axialBuck1Rd;
         }
 
-        private double CalculateAxiaBuck2WR(ResultBeamForces resultBeamForces, ISteelSection section)
+        private double CalculateAxiaBuck2WR(ResultBeamForces resultBeamForces, ISteelSection section, out double axialBuck2Rd)
         {
+            axialBuck2Rd = CalculateAxialBucklingCapacity2Axis(resultBeamForces, section);
             if (MinSigma(section, resultBeamForces.N, resultBeamForces.M2, resultBeamForces.M1) > 0)
                 return 0.0;
             else
-                return resultBeamForces.N / CalculateAxialBucklingCapacity2Axis(resultBeamForces, section);
+                return resultBeamForces.N / axialBuck2Rd;
         }
 
-        private double CalculateShear2WR(ResultBeamForces resultBeamForces, ISteelSection section)
+        private double CalculateShear2WR(ResultBeamForces resultBeamForces, ISteelSection section, out double shear2Rd)
         {
-            return resultBeamForces.V2 / CalculateShearYCapacity(section);
+            shear2Rd = CalculateShearYCapacity(section);
+            return resultBeamForces.V2 / shear2Rd;
         }
 
-        private double CalculateShear1WR(ResultBeamForces resultBeamForces, ISteelSection section)
+        private double CalculateShear1WR(ResultBeamForces resultBeamForces, ISteelSection section, out double shear1Rd)
         {
-            return resultBeamForces.V1 / CalculateShearXCapacity(section);
+            shear1Rd = CalculateShearXCapacity(section);
+            return resultBeamForces.V1 / shear1Rd;
         }
 
-        private double CalculateBendingMoment1WR(ResultBeamForces resultBeamForces, ISteelSection section)
+        private double CalculateBendingMoment1WR(ResultBeamForces resultBeamForces, ISteelSection section, out double bending1Rd)
         {
-            return resultBeamForces.M1 / CalculateBendingMoment1Capacity(resultBeamForces, section);
+            bending1Rd = CalculateBendingMoment1Capacity(resultBeamForces, section);
+            return resultBeamForces.M1 / bending1Rd;
         }
 
-        private double CalculateBendingMoment2WR(ResultBeamForces resultBeamForces, ISteelSection section)
+        private double CalculateBendingMoment2WR(ResultBeamForces resultBeamForces, ISteelSection section, out double bending2Rd)
         {
+            bending2Rd = CalculateBendingMoment2Capacity(resultBeamForces, section);
             return resultBeamForces.M2 / CalculateBendingMoment2Capacity(resultBeamForces, section);
         }
 
-        private double CalculateLateralTorsionalBucklingWR(ResultBeamForces resultBeamForces, ISteelSection section)
+        private double CalculateLateralTorsionalBucklingWR(ResultBeamForces resultBeamForces, ISteelSection section, out double latTorsBuckRd)
         {
+            latTorsBuckRd = CalculateLateralTorsionalBucklingMomentCapacity(resultBeamForces, section);
             return CalculateMLTForLatTorsBuckling() * resultBeamForces.M1 / CalculateLateralTorsionalBucklingMomentCapacity(resultBeamForces, section);
         }
 
-        private double CalculateTorqueMomentWR(ResultBeamForces resultBeamForces, ISteelSection section)
+        private double CalculateTorqueMomentWR(ResultBeamForces resultBeamForces, ISteelSection section, out double torqueRd)
         {
-
-        }
-
-        private double CalculateTorqueMomentCapacity(ResultBeamForces resultBeamForces, ISteelSection section)
-        {
-
+            torqueRd = CalculateTorqueMomentCapacity(resultBeamForces, section);
+            return resultBeamForces.T / torqueRd;
         }
 
         private double CalculateInteractionWR(ResultBeamForces resultBeamForces, ISteelSection section)
         {
             if (MinSigma(section, resultBeamForces.N, resultBeamForces.M2, resultBeamForces.M1) < 0.0)      // compressione
             {
-                SectionClass sectionClass = CalculateSectionClass(section, resultBeamForces);
+                SectionClass sectionClass = CalculateSectionClass(resultBeamForces, section);
                 if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
                     return resultBeamForces.N / Math.Min(CalculateAxialBucklingCapacity1Axis(resultBeamForces, section), CalculateAxialBucklingCapacity2Axis(resultBeamForces, section)) +
                         (resultBeamForces.M1 / CalculateBendingMoment1Capacity(resultBeamForces, section)) +
@@ -345,7 +346,7 @@ namespace GPC.Checkers.Steel.Cop2011
         /// <returns></returns>
         public double CalculateAxialBucklingCapacity1Axis(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            SectionClass sectionClass = CalculateSectionClass(section, resultBeamForces);
+            SectionClass sectionClass = CalculateSectionClass(resultBeamForces, section);
             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
                 return section.Area * CalculatePCompressionXAxis(section);
             else
@@ -358,7 +359,7 @@ namespace GPC.Checkers.Steel.Cop2011
         /// <returns></returns>
         public double CalculateAxialBucklingCapacity2Axis(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            SectionClass sectionClass = CalculateSectionClass(section, resultBeamForces);
+            SectionClass sectionClass = CalculateSectionClass(resultBeamForces, section);
             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
                 return section.Area * CalculatePCompressionYAxis(section);
             else
@@ -742,7 +743,7 @@ namespace GPC.Checkers.Steel.Cop2011
 
         public double CalculateBendingMoment1Capacity(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            SectionClass sectionClass = CalculateSectionClass(section, resultBeamForces);
+            SectionClass sectionClass = CalculateSectionClass(resultBeamForces, section);
             if (resultBeamForces.V2 < 0.6 * CalculateShearYCapacity(section))   // low shear condition
             {
                 if (sectionClass == SectionClass.Class1 || Class == SectionClass.Class2)
@@ -803,7 +804,17 @@ namespace GPC.Checkers.Steel.Cop2011
 
         private double CalculateBendingMoment2Capacity(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            throw new NotImplementedException();
+            return 0.0;     //TODO: implementare CalculateBendingMoment2Capacity
+        }
+
+        #endregion
+
+
+        #region Torque Moment
+
+        private double CalculateTorqueMomentCapacity(ResultBeamForces resultBeamForces, ISteelSection section)
+        {
+            return 0.0;     //TODO: implementare CalculateTorqueMomentCapacity
         }
 
         #endregion
@@ -818,9 +829,9 @@ namespace GPC.Checkers.Steel.Cop2011
         /// </summary>
         public double CalculateLateralTorsionalBucklingMomentCapacity(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            if (CalculateSectionClass(section, resultBeamForces) == SectionClass.Class1 || CalculateSectionClass(section, resultBeamForces) == SectionClass.Class2)
+            if (CalculateSectionClass(resultBeamForces, section) == SectionClass.Class1 || CalculateSectionClass(resultBeamForces, section) == SectionClass.Class2)
                 return CalculatePbForLatTorsBuckling(section, resultBeamForces) * ((Section)section).Wpl1;            
-            else if (CalculateSectionClass(section, resultBeamForces) == SectionClass.Class3)           
+            else if (CalculateSectionClass(resultBeamForces, section) == SectionClass.Class3)           
                 return CalculatePbForLatTorsBuckling(section, resultBeamForces) * ((Section)section).Wel1;            
             else
                 throw new NotImplementedException("CalculateBucklingMomentCapacity: not implemented Section Class 4");
@@ -890,7 +901,7 @@ namespace GPC.Checkers.Steel.Cop2011
         /// <summary>
         /// Return true if the CopSuos2011 Chapter 8.3.5 say to check the lateral-torsional buckling. 
         /// </summary>
-        private bool IsNecessaryTheLatTorsBucklingCheck(ISteelSection section, ResultBeamForces resultBeamForces)
+        private bool IsNecessaryTheLatTorsBucklingCheck(ResultBeamForces resultBeamForces, ISteelSection section)
         {
             double lambda = CalculateLambdaForLatTorsBuckling(section);
             double lambdaLT = CalculateLambdaLTForLatTorsBuckling(section, resultBeamForces);
@@ -1045,7 +1056,10 @@ namespace GPC.Checkers.Steel.Cop2011
         /// <returns></returns>
         private double CalculateVForLatTorsBuckling(ISteelSection section)
         {
-            return 1 / Math.Pow(1 + 0.05 * (Math.Pow(CalculateLambdaForLatTorsBuckling(section) / CalculateXForLatTorsBuckling(section), 2)), 0.25);
+            if (section is SectionH sectionH)
+                if (sectionH.IsDoubleSymmetric)                
+                    return 1 / Math.Pow(1 + 0.05 * (Math.Pow(CalculateLambdaForLatTorsBuckling(section) / CalculateXForLatTorsBuckling(section), 2)), 0.25);
+            throw new NotImplementedException("CopSuos2011 not implemented v coefficient for this section");
         }
 
         /// <summary>
@@ -1085,10 +1099,10 @@ namespace GPC.Checkers.Steel.Cop2011
         /// <returns></returns>
         private double CalculateBwForLatTorsBuckling(ISteelSection section, ResultBeamForces resultBeamForces)
         {
-            if (CalculateSectionClass(section, resultBeamForces) == SectionClass.Class1 ||
-                CalculateSectionClass(section, resultBeamForces) == SectionClass.Class2)
+            if (CalculateSectionClass(resultBeamForces, section) == SectionClass.Class1 ||
+                CalculateSectionClass(resultBeamForces, section) == SectionClass.Class2)
                 return 1.0;
-            else if (CalculateSectionClass(section, resultBeamForces) == SectionClass.Class3)
+            else if (CalculateSectionClass(resultBeamForces, section) == SectionClass.Class3)
                 return ((Section)section).Wel1 / ((Section)section).Sx;
             else        //class4
                 return CalculateEffettiveElasticModulus() / ((Section)section).Sx;
@@ -1103,7 +1117,7 @@ namespace GPC.Checkers.Steel.Cop2011
         /// Return the <see cref="SectionClass"/> of the section <paramref name="section"/> with the <paramref name="resultBeamForces"/> - Chapter 7
         /// </summary>
         /// <returns></returns>
-        public SectionClass CalculateSectionClass(ISteelSection section, ResultBeamForces resultBeamForces)
+        public SectionClass CalculateSectionClass(ResultBeamForces resultBeamForces, ISteelSection section)
         {
             SectionClass sectionClass = SectionClass.Class1;
 

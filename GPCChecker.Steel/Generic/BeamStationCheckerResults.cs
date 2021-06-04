@@ -65,7 +65,7 @@ namespace GPC.Checkers.Steel.Results
 
         protected double InteractionWorkingRatio => _interactioWorkingRatio;
 
-        protected double WorkingRatio { get; set; }
+        protected double WorkingRatio { get => _maxWorkingRatio; set => _maxWorkingRatio = value; }
 
         protected ResultBeamForces ResultBeamForces => _forces;
 
@@ -74,6 +74,7 @@ namespace GPC.Checkers.Steel.Results
         protected ILoadCase LoadCase => _loadCase;
 
         protected ISteelSection Section => _section;
+
         public double AxialTensionCapacity { get => _axialTensionRd; set => _axialTensionRd = value; }
 
         public double AxialCompression1Capacity { get => _axialCompression1Rd; set => _axialCompression1Rd = value; }

@@ -8,6 +8,8 @@ using GPC.Model.Results;
 using GPC.Checkers.Steel.Results;
 using GPC.Model.Standards;
 using GPC.Model.Sections.Steel;
+using GPCCheckers.Steel.Generic;
+using GPC.Model.LoadCases;
 
 namespace GPC.Checkers.Steel
 {
@@ -15,51 +17,39 @@ namespace GPC.Checkers.Steel
     {
         #region Variables
 
-        protected readonly ISteelSection[] _section;
-        protected readonly BeamResult[] _result;
-        protected readonly Options[] _options;
-        protected readonly BeamCheckerResults[] _beamCheckerResults;
-        protected readonly Standard _standard;
+        protected readonly BeamChecker[] _beamCheckers;
+        protected BeamCheckerResults[] _beamCheckerResults;
+        protected Standard _standard;
+        protected readonly ILoadCase _loadCase;
 
         #endregion
 
-            
+
         #region Properties
 
-        public ISteelSection[] Section => _section;
+        public BeamChecker[] BeamCheckers => _beamCheckers;
 
-        public double Length => BeamResult.Length;
+        public BeamCheckerResults[] BeamCheckerResults { get => _beamCheckerResults; set => _beamCheckerResults = value; }
 
-        public BeamResult[] BeamResult => _result;
+        public Standard Standard { get => _standard; set => _standard = value; }
 
-        public Options[] CheckerOptions => _options;
-
-        public BeamCheckerResults[] BeamCheckerResults => _beamCheckerResults;
-
-        public Standard Standard { get => _standard; set => Standard = value; }
+        public ILoadCase LoadCase => _loadCase;
 
         #endregion
 
 
         #region Constructor
 
-        public Checker(ISteelSection[] section, BeamResult[] beamResult, Options[] options, Standard standard)
+        public Checker(BeamChecker[] beamCheckers, ILoadCase loadCase, Standard standard)
+            :this(beamCheckers, loadCase)
         {
-            _section = section;
-            if (beamResult.Length < 1)
-                throw new ArgumentException("BeamResult can not be null");
-            _result = beamResult;
-            _options = options;
             _standard = standard;
         }
 
-        public Checker(ISteelSection[] section, BeamResult[] beamResult, Options[] options)
+        public Checker(BeamChecker[] beamCheckers, ILoadCase loadCase)
         {
-            _section = section;
-            if (beamResult.Length < 1)
-                throw new ArgumentException("BeamResult can not be null");
-            _result = beamResult;
-            _options = options;
+            _beamCheckers = beamCheckers;
+            _loadCase = loadCase;
         }
 
         #endregion
@@ -68,7 +58,7 @@ namespace GPC.Checkers.Steel
 
         #region Public abstract method
 
-        public abstract bool PerformCheck();
+        public abstract void PerformCheck();
 
         #endregion
 

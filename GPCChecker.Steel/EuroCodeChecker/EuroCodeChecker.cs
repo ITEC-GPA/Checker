@@ -7,27 +7,38 @@ using GPC.Model.Sections;
 using GPC.Model.Results;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
+using GPCCheckers.Steel.Generic;
+using GPC.Model.LoadCases;
 
 namespace GPC.Checkers.Steel.EuroCode
 {
     public abstract class EuroCodeChecker : Checker
     {
+        // VARIABILI EREDITATE DA CHECKER
+        // BeamChecker[]
+        // dentro beamchecker c'è : 
+        //                          ISteelSection[] 
+        //                          ResultBeamForces[]
+        //                          ResultStation[] 
+        //                          Checker.Options 
+        // BeamCheckerResults[]
+        // Standard
 
-        public EuroCodeChecker(ISteelSection[] section, BeamResult[] beamResult, EN1993p11Checker.EN1993_1Options[] options)
-            : base(section, beamResult, options)
+        public EuroCodeChecker(EN1993p11BeamChecker[] beamCheckers, ILoadCase loadCase)
+            : base(beamCheckers, loadCase)
         {
 
         }
 
-        public EuroCodeChecker(ISteelSection[] section, BeamResult[] beamResult, EN1993p11Checker.EN1993_1Options[] options, StandardEN1990 standardEN1990)
-            : base(section, beamResult, options, standardEN1990)
+        public EuroCodeChecker(EN1993p11BeamChecker[] beamCheckers, ILoadCase loadCase, StandardEN1990 standardEN1990)
+            : base(beamCheckers, loadCase, standardEN1990)
         {
 
         }
 
-        public override bool PerformCheck()
+        public override void PerformCheck()
         {
-                return true;
+
         }
     }
 
