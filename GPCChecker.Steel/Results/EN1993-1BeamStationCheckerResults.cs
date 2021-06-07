@@ -10,7 +10,7 @@ using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
 using GPC.Checkers.Steel.Results;
 
-namespace GPC.Checkers.Steel.EuroCode
+namespace GPC.Checkers.Steel.Results
 {
     public class EN1993_1BeamStationCheckerResults : BeamStationCheckerResults
     {

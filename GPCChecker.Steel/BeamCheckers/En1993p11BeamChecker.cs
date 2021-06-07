@@ -8,16 +8,16 @@ using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
 using GPC.Checkers.Steel.Results;
 using GPC.Model.Standards;
-using GPCCheckers.Steel.Generic;
+using GPC.Checkers.Steel.Checkers;
 
-namespace GPC.Checkers.Steel.EuroCode
+namespace GPC.Checkers.Steel.BeamChecker
 {
-    public class En1993p11BeamCheckerResults : BeamCheckerResults
+    internal class En1993p11BeamChecker : BeamChecker
     {
 
         #region Public enum
 
-        public enum SectionClass
+        internal enum SectionClass
         {
             Class1 = 1,
             Class2 = 2,
@@ -39,14 +39,14 @@ namespace GPC.Checkers.Steel.EuroCode
         // Length 
         // Options 
 
-        private double _nTenrd;
-        private double _nComrd;
-        private double _txrd;
-        private double _tyrd;
-        private double _mxrd;
-        private double _myrd;
-        private double _trd;
-        private SectionClass _class;
+        protected double _nTenrd;
+        protected double _nComrd;
+        protected double _txrd;
+        protected double _tyrd;
+        protected double _mxrd;
+        protected double _myrd;
+        protected double _trd;
+        protected SectionClass _class;
 
 
         #endregion
@@ -107,7 +107,7 @@ namespace GPC.Checkers.Steel.EuroCode
 
         #region Constructor
 
-        public En1993p11BeamCheckerResults(EN1993p11BeamChecker BeamChecker , ILoadCase loadCase, StandardEN1990 standard)
+        public En1993p11BeamChecker(EN1993p11BeamCheckerOptions BeamChecker , ILoadCase loadCase, StandardEN1990 standard)
             : base(BeamChecker, loadCase, standard)
         { 
         }        

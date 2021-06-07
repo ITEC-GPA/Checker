@@ -8,55 +8,54 @@ using GPC.Model.Standards;
 using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Sections;
-using GPCCheckers.Steel.Generic;
+using GPC.Checkers.Steel.Checkers;
+using GPC.Checkers.Steel.Results;
 
-namespace GPC.Checkers.Steel.Results
+namespace GPC.Checkers.Steel.BeamChecker
 {
 
-    public abstract class BeamCheckerResults
+    internal abstract class BeamChecker
     {
         #region Variables
 
-        private readonly BeamChecker _beamChecker;
-        private double _workingRatio;
-        private readonly double _length;
-        private BeamStationCheckerResults[] _beamStationCheckerResults;
-        private readonly Standard _standard;
-        private readonly ILoadCase _combination;
+        protected readonly BeamCheckerOptions _beam;
+        protected BeamStationCheckerResults[] _beamStationCheckerResults;
+        protected readonly Standard _standard;
+        protected readonly ILoadCase _combination;
 
         #endregion
 
 
         #region Properties
 
-        public BeamChecker BeamChecker => _beamChecker;
+        internal BeamCheckerOptions Beam => _beam;
 
-        public ResultBeamForces[] ResultBeamForces => BeamChecker.ResultBeamForces;
+        internal ResultBeamForces[] ResultBeamForces => Beam.ResultBeamForces;
 
-        public ResultStation[] Stations => BeamChecker.Stations;
+        internal ResultStation[] Stations => Beam.Stations;
 
-        public Checker.Options Options => BeamChecker.Options;
+        internal Checker.Options Options => Beam.Options;
 
-        public ISteelSection Section => BeamChecker.Section;
+        internal ISteelSection[] Section => Beam.Section;
 
-        public double WorkingRatio { get => _workingRatio; set => _workingRatio = value; }
+        internal double WorkingRatio { get => _beamStationCheckerResults.Select(i => i.GetMaxWorkingRation()).Max(); }
 
-        public BeamStationCheckerResults[] BeamStationCheckerResults { get => _beamStationCheckerResults; set => _beamStationCheckerResults = value; }
-        
-        public double Length => _length; 
+        internal BeamStationCheckerResults[] BeamStationCheckerResults { get => _beamStationCheckerResults; set => _beamStationCheckerResults = value; }
 
-        public Standard Standard => _standard;
+        internal double Length => _beam.BeamLength;
 
-        public ILoadCase LoadCase => _combination;
+        internal Standard Standard => _standard;
+
+        internal ILoadCase LoadCase => _combination;
 
         #endregion
 
 
         #region Constructor
 
-        internal BeamCheckerResults(BeamChecker beamChecker, ILoadCase loadCase,  Standard standard)
+        internal BeamChecker(BeamCheckerOptions beamChecker, ILoadCase loadCase,  Standard standard)
         {
-            _beamChecker = beamChecker;
+            _beam = beamChecker;
             _combination = loadCase;
             _standard = standard;
         }
@@ -69,7 +68,8 @@ namespace GPC.Checkers.Steel.Results
         // _beamStationCheckerResults = .....
         // _workingRatio = .....
 
-        public virtual double MinSigma(ISteelSection section, double N, double M2, double M1)
+
+        internal virtual double MinSigma(ISteelSection section, double N, double M2, double M1)
         {
             if (section is SectionCHS sectionCHS)
             {

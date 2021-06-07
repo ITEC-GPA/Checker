@@ -8,20 +8,22 @@ using GPC.Model.Sections;
 using GPC.Geometry;
 using GPC.Model.Results;
 using GPC.Model.Sections.Steel;
-using GPCCheckers.Steel.Generic;
+using GPC.Checkers.Steel.Checkers;
+using GPC.Checkers.Steel.BeamChecker;
+using GPC.Checkers.Steel.Results;
 using GPC.Model.LoadCases;
 
-namespace GPC.Checkers.Steel.EuroCode
+namespace GPC.Checkers.Steel.Checkers
 {
     public class EN1993p11Checker : EuroCodeChecker
     {
 
-        public EN1993p11Checker(EN1993p11BeamChecker[] eN1993P11BeamCheckers, ILoadCase loadCase)
+        public EN1993p11Checker(EN1993p11BeamCheckerOptions[] eN1993P11BeamCheckers, ILoadCase loadCase)
             : base(eN1993P11BeamCheckers, loadCase)
         {
 
         }
-        public EN1993p11Checker(EN1993p11BeamChecker[] eN1993P11BeamCheckers, ILoadCase loadCase, StandardEN1993p11 standard)
+        public EN1993p11Checker(EN1993p11BeamCheckerOptions[] eN1993P11BeamCheckers, ILoadCase loadCase, StandardEN1993p11 standard)
             : base(eN1993P11BeamCheckers, loadCase, standard)
         {
 

@@ -5,10 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Model.Standards;
 using System.ComponentModel;
-using GPCCheckers.Steel.Cop2011;
+using GPC.Checkers.Steel.Checkers;
+using GPC.Checkers.Steel.BeamChecker;
+using GPC.Checkers.Steel.Results;
 using GPC.Model.LoadCases;
 
-namespace GPC.Checkers.Steel.Cop2011
+namespace GPC.Checkers.Steel.Checkers
 {
     public class Cop2011Checker : Checker
     {
@@ -23,13 +25,13 @@ namespace GPC.Checkers.Steel.Cop2011
         // Standard
 
 
-        public Cop2011Checker(Cop2011BeamChecker[] beamCheckers, ILoadCase loadCase)
+        public Cop2011Checker(Cop2011BeamCheckerOptions[] beamCheckers, ILoadCase loadCase)
             :base(beamCheckers, loadCase)
         {
-            Standard = new StandardCopSuos2011();
+            _standard = new StandardCopSuos2011();
         }
 
-        public Cop2011Checker(Cop2011BeamChecker[] beamCheckers, ILoadCase loadCase, StandardCopSuos2011 standard)
+        public Cop2011Checker(Cop2011BeamCheckerOptions[] beamCheckers, ILoadCase loadCase, StandardCopSuos2011 standard)
             : base(beamCheckers, loadCase, standard)
         {
 
@@ -37,11 +39,11 @@ namespace GPC.Checkers.Steel.Cop2011
 
         public override void PerformCheck()
         {
-            List<CopSuos2011BeamCheckerResults> list = new List<CopSuos2011BeamCheckerResults>();
+            List<Cop2011BeamChecker> list = new List<Cop2011BeamChecker>();
             StandardCopSuos2011 StandardCopSuos2011 = new StandardCopSuos2011();
-            foreach (Cop2011BeamChecker cop2011BeamChecker in BeamCheckers)
+            foreach (Cop2011BeamCheckerOptions cop2011BeamChecker in BeamCheckers)
             {
-                CopSuos2011BeamCheckerResults beamCheckerResults = new CopSuos2011BeamCheckerResults(cop2011BeamChecker, LoadCase, StandardCopSuos2011);
+                Cop2011BeamChecker beamCheckerResults = new Cop2011BeamChecker(cop2011BeamChecker, LoadCase, StandardCopSuos2011);
                 beamCheckerResults.PerformCheck();
                 list.Add(beamCheckerResults);
             }
@@ -107,12 +109,12 @@ namespace GPC.Checkers.Steel.Cop2011
 
             #region Constructor
 
-            public Cop2011Options(double length, SteelClasses steelGrade = SteelClasses.Class1, LateralTorsionalBucklingConditions latTorsBucklingCondition = default, 
+            public Cop2011Options(SteelClasses steelGrade = SteelClasses.Class1, LateralTorsionalBucklingConditions latTorsBucklingCondition = default, 
                 double unbracedLengthFactorAxialBuck1 = 1, double effectiveLengthFactorAxialBuck1 = 1, double unbracedLengthFactorAxialBuck2 = 1, 
                 double effectiveLengthFactorAxialBuck2 = 1, double UnbracedLengthFactorLatTorsBuck = 1, double effectiveLengthFactorLatTorsBuck = 1, 
                 double unbracedLengthFactorCriticalMoment1 = 1, double effectiveLengthFactorCriticalMoment1 = 1, double unbracedLengthFactorCriticalMoment2 = 1,
                 double effectiveLengthFactorCriticalMoment2 = 1)
-                : base(length, unbracedLengthFactorAxialBuck1, effectiveLengthFactorAxialBuck1, unbracedLengthFactorAxialBuck2, 
+                : base(unbracedLengthFactorAxialBuck1, effectiveLengthFactorAxialBuck1, unbracedLengthFactorAxialBuck2, 
                       effectiveLengthFactorAxialBuck2, UnbracedLengthFactorLatTorsBuck, effectiveLengthFactorLatTorsBuck, 
                       unbracedLengthFactorCriticalMoment1, effectiveLengthFactorCriticalMoment1, unbracedLengthFactorCriticalMoment2, 
                       effectiveLengthFactorCriticalMoment2)
