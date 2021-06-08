@@ -16,6 +16,7 @@ using GPC.Model.Restrains;
 using GPC.Model.Results;
 using GPC.Model.FreedomCases;
 using GPC.Utilities.Fem;
+using System.Threading.Tasks;
 
 namespace GlassTests
 {
@@ -161,6 +162,7 @@ namespace GlassTests
         [TestMethod]
         [TestCategory("V-EQT-EET1")]
         [TestCategory("Layers: 2")]
+        [TestCategory("Uniform Pressure load")]
         public void EQTEET1()
         {
             RunApiServer();
@@ -207,66 +209,740 @@ namespace GlassTests
             model.PerformChecks();
 
             // Assert
-            GPC.Model.FEM.Group[] groups = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetGroups();
 
-            GPC.Model.FEM.Node[] nodes = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetNodes();
             GPC.Model.FEM.FiniteElements.FiniteElement[] elements = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetElements();
 
-
-            Dictionary<int, (double D3, double R1, double R2)> displacementMap = new Dictionary<int, (double D3, double R1, double R2)>();
-
-
-            GPC.Model.FEM.GaussIntegration.GaussPoint[] gaussPointsQuad = GPC.Model.FEM.GaussIntegration.GetPointsRectangular(4);
-            GPC.Model.FEM.GaussIntegration.GaussPoint[] gaussPointsTri = GPC.Model.FEM.GaussIntegration.GetPointsRectangular(3);
+            double flexularRigidity = mg.Material.E * Math.Pow(mg.Thickness, 3.0) / (12.0 * (1.0 - Math.Pow(mg.Material.Ni, 2.0)));
 
 
             double num = 0;
             double den = 0;
-            foreach (var element in elements)
+
+            foreach(var element in elements)
             {
-                IEnumerable<ResultDisplacement> resultDisplacement = element.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+                if (element is GPC.Model.FEM.FiniteElements.Plate plate)
+                {
+                    var elementArea = Math.Abs(plate.GetArea());
 
-                var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
 
-                num += Math.Abs(mean.D3) * 25 * 25;
+                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
 
-                den += (mean.R1 * mean.R1 + mean.R2 * mean.R2) * 25 * 25;
+                    if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+                    {
+                        num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                    }
+
+                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
+                }
             }
+
+            double psi = Math.Abs(num / den * Math.Pow(10, 6));
 
             Console.WriteLine($"Num: {num}");
             Console.WriteLine($"Den: {den}");
-            Console.WriteLine($"Num/Den: {num / den}");
+            Console.WriteLine($"Psi: {psi}");
 
-            Assert.AreEqual(12.48, num / den, 1.0, (num / den).ToString());
-
-
-
-            //foreach (var node in nodes)
-            //{
-            //    var p = new Point3d(node.Position.X, node.Position.Y, 0);
-            //    displacementMap.Add(p.GetHashCode(), (((ResultDisplacement)node.Results.FirstOrDefault().Result).D3,
-            //                                                     -((ResultDisplacement)node.Results.FirstOrDefault().Result).R2,
-            //                                                     -((ResultDisplacement)node.Results.FirstOrDefault().Result).R1
-            //                                                     ));
-
-            //}
-
-            //Func<double, double, double> fDisp = (x, y) =>
-            //{
-            //    var p = new Point3d(x, y, 0);
-            //    return displacementMap[p.GetHashCode()].D3;
-            //};
-
-            //Func<double, double, double> fDispDxDySquare = (x, y) =>
-            //{
-            //    var p = new Point3d(x, y, 0);
-            //    return  Math.Pow(displacementMap[p.GetHashCode()].R2, 2) + Math.Pow(displacementMap[p.GetHashCode()].R1, 2);
-            //};
-
-            //var num = MathNet.Numerics.Integration.GaussLegendreRule.Integrate(fDisp, 0, 1000, 0, 2000, 1);
-            //var den = MathNet.Numerics.Integration.GaussLegendreRule.Integrate(fDispDxDySquare, 0, 1000, 0, 2000, 1);
+            Assert.AreEqual(12.48, psi, 0.2,  psi.ToString());
 
         }
 
+
+
+
+        [TestMethod]
+        [TestCategory("V-EQT-EET2")]
+        [TestCategory("Layers: 2")]
+        [TestCategory("Uniform Pressure load")]
+        public void EQTEET2()
+        {
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            double majorSide = 800;
+            double minorSide = 320;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(Math.Min(majorSide, minorSide), Math.Max(majorSide, minorSide), 0));
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 1, GetGlassMaterialEn16612());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            p1.MeshOptions.MeshSize = 25;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 1, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
+            {
+                lcPressure
+            };
+
+            NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure);
+
+            // Combinazioni
+            Combination combo1 = new Combination("Cmb1");
+            combo1.AddLoadCaseCoefficient(lcPressure, 1);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            gs1.AddLoad(loadWp);
+
+            gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+            
+            // vincolo su tre lati
+            gs1.RemoveRestrain(gs1.GetRestrains().Where(i => ((Line3d)i.GetGeometry()).GetLength() > minorSide).FirstOrDefault());
+
+            // Combo
+            model.AddCombination(combo1);
+
+            // Start analysis
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+
+            model.PerformChecks();
+
+            // Assert
+            GPC.Model.FEM.FiniteElements.FiniteElement[] elements = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetElements();
+
+            double flexularRigidity = mg.Material.E * Math.Pow(mg.Thickness, 3.0) / (12.0 * (1.0 - Math.Pow(mg.Material.Ni, 2.0)));
+
+            double num = 0;
+            double den = 0;
+
+            foreach(var element in elements)
+            {
+                if (element is GPC.Model.FEM.FiniteElements.Plate plate)
+                {
+                    var elementArea = plate.GetArea();
+
+                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+
+                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+                    if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+                    {
+                        num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                    }
+
+                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
+                }
+            }
+
+
+            //Parallel.ForEach(elements, (element) =>
+            //{
+            //    if (element is GPC.Model.FEM.FiniteElements.Plate plate)
+            //    {
+            //        var elementArea = plate.GetArea();
+
+            //        IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+
+            //        var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+            //        if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+            //        {
+            //            num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+            //        }
+
+            //        den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
+            //    }
+            //});
+
+            double psi = Math.Abs(num / den * Math.Pow(10, 6));
+
+            Console.WriteLine($"Num: {num}");
+            Console.WriteLine($"Den: {den}");
+            Console.WriteLine($"Psi: {psi}");
+
+            Assert.AreEqual(21.7879, psi, 0.2, psi.ToString());
+
+        }
+
+
+
+        [TestMethod]
+        [TestCategory("V-EQT-EET3")]
+        [TestCategory("Layers: 2")]
+        [TestCategory("Uniform Pressure load")]
+        public void EQTEET3()
+        {
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            double majorSide = 1500;
+            double minorSide = 700;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(Math.Min(majorSide, minorSide), Math.Max(majorSide, minorSide), 0));
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 1, GetGlassMaterialEn16612());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            p1.MeshOptions.MeshSize = 25;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 1, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
+            {
+                lcPressure
+            };
+
+            NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure);
+
+            // Combinazioni
+            Combination combo1 = new Combination("Cmb1");
+            combo1.AddLoadCaseCoefficient(lcPressure, 1);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            gs1.AddLoad(loadWp);
+
+            // vincolo su un lati
+            gs1.AddRestrain((GeometryRestrain)LineRestrain.GetAllFixed(
+                             s1.Fill.Explode().Where(i => i.GetLength() < majorSide).FirstOrDefault(), new FreedomCase("fc1"), CoordinateSystem.Global));
+
+            // Combo
+            model.AddCombination(combo1);
+
+            // Start analysis
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+
+            model.PerformChecks();
+
+            // Assert
+            GPC.Model.FEM.FiniteElements.FiniteElement[] elements = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetElements();
+
+            double flexularRigidity = mg.Material.E * Math.Pow(mg.Thickness, 3.0) / (12.0 * (1.0 - Math.Pow(mg.Material.Ni, 2.0)));
+
+            double num = 0;
+            double den = 0;
+            Parallel.ForEach(elements, (element) =>
+            {
+                if (element is GPC.Model.FEM.FiniteElements.Plate plate)
+                {
+                    var elementArea = plate.GetArea();
+
+                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+
+                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+                    if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+                    {
+                        num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                    }
+
+                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
+                }
+            });
+            double psi = Math.Abs(num / den * Math.Pow(10, 6));
+
+            Console.WriteLine($"Num: {num}");
+            Console.WriteLine($"Den: {den}");
+            Console.WriteLine($"Psi: {psi}");
+
+            Assert.AreEqual(1.24444, psi, 0.2, psi.ToString());
+
+        }
+
+
+
+        [TestMethod]
+        [TestCategory("V-EQT-EET4")]
+        [TestCategory("Layers: 2")]
+        [TestCategory("Punctual load")]
+        public void EQTEET4()
+        {
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            double majorSide = 1000;
+            double minorSide = 800;
+            double loadWidth = 300;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(Math.Min(majorSide, minorSide), Math.Max(majorSide, minorSide), 0));
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 1, GetGlassMaterialEn16612());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            p1.MeshOptions.MeshSize = 25;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads;
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 1, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
+            {
+                lcPressure
+            };
+
+            Shape loadShape = GetRectangularShape(new Point3d(minorSide / 2.0 - loadWidth / 2.0, majorSide / 2.0 - loadWidth / 2.0, 0), new Vector3d(loadWidth, loadWidth, 0));
+
+            NormalAreaLoad loadWp = new NormalAreaLoad(-1, loadShape, lcPressure);
+
+
+            // Combinazioni
+            Combination combo1 = new Combination("Cmb1");
+            combo1.AddLoadCaseCoefficient(lcPressure, 1);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            gs1.AddLoad(loadWp);
+
+            // vincolo su quattro lati
+            gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+
+            // Combo
+            model.AddCombination(combo1);
+
+            // Start analysis
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+
+            model.PerformChecks();
+
+            // Assert
+            GPC.Model.FEM.FiniteElements.FiniteElement[] elements = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetElements();
+
+            double flexularRigidity = mg.Material.E * Math.Pow(mg.Thickness, 3.0) / (12.0 * (1.0 - Math.Pow(mg.Material.Ni, 2.0)));
+
+            double num = 0;
+            double den = 0;
+            
+            foreach(var element in elements)
+            {
+                if (element is GPC.Model.FEM.FiniteElements.Plate plate)
+                {
+                    var elementArea = plate.GetArea();
+
+                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+
+                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+                    if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+                    {
+                        num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                    }
+
+                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
+                }
+            }
+
+            double psi = Math.Abs(num / den * Math.Pow(10, 6));
+
+
+            Console.WriteLine($"Num: {num}");
+            Console.WriteLine($"Den: {den}");
+            Console.WriteLine($"Psi: {psi}");
+
+            Assert.AreEqual(26.1610615, psi, 0.2, psi.ToString());
+
+        }
+
+
+
+
+        [TestMethod]
+        [TestCategory("V-EQT-EET5")]
+        [TestCategory("Layers: 2")]
+        [TestCategory("Punctual load")]
+        public void EQTEET5()
+        {
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            double majorSide = 1000;
+            double minorSide = 800;
+            double loadWidth = 50;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(Math.Min(majorSide, minorSide), Math.Max(majorSide, minorSide), 0));
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 1, GetGlassMaterialEn16612());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            p1.MeshOptions.MeshSize = 25;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads;
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 1, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
+            {
+                lcPressure
+            };
+
+            Shape loadShape = GetRectangularShape(new Point3d(minorSide / 2.0 - loadWidth / 2.0, majorSide / 2.0 - loadWidth / 2.0, 0), new Vector3d(loadWidth, loadWidth, 0));
+
+            NormalAreaLoad loadWp = new NormalAreaLoad(-1, loadShape, lcPressure);
+
+
+            // Combinazioni
+            Combination combo1 = new Combination("Cmb1");
+            combo1.AddLoadCaseCoefficient(lcPressure, 1);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            gs1.AddLoad(loadWp);
+
+            // vincolo su quattro lati
+            gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+
+            // Combo
+            model.AddCombination(combo1);
+
+            // Start analysis
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+
+            model.PerformChecks();
+
+            // Assert
+            GPC.Model.FEM.FiniteElements.FiniteElement[] elements = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetElements();
+
+            double flexularRigidity = mg.Material.E * Math.Pow(mg.Thickness, 3.0) / (12.0 * (1.0 - Math.Pow(mg.Material.Ni, 2.0)));
+
+            double num = 0;
+            double den = 0;
+
+            foreach (var element in elements)
+            {
+                if (element is GPC.Model.FEM.FiniteElements.Plate plate)
+                {
+                    var elementArea = plate.GetArea();
+
+                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+
+                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+                    if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+                    {
+                        num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                    }
+
+                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
+                }
+            }
+
+            double psi = Math.Abs(num / den * Math.Pow(10, 6));
+
+
+            Console.WriteLine($"Num: {num}");
+            Console.WriteLine($"Den: {den}");
+            Console.WriteLine($"Psi: {psi}");
+
+            Assert.AreEqual(27.68825379, psi, 0.4, psi.ToString());
+
+        }
+
+
+
+        [TestMethod]
+        [TestCategory("V-EQT-EET6")]
+        [TestCategory("Layers: 2")]
+        [TestCategory("Punctual load")]
+        public void EQTEET6()
+        {
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            double majorSide = 1000;
+            double minorSide = 800;
+            double loadWidth = 10;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(Math.Min(majorSide, minorSide), Math.Max(majorSide, minorSide), 0));
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 1, GetGlassMaterialEn16612());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            p1.MeshOptions.MeshSize = 25;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads;
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 1, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
+            {
+                lcPressure
+            };
+
+            Shape loadShape = GetRectangularShape(new Point3d(minorSide / 2.0 - loadWidth / 2.0, majorSide / 2.0 - loadWidth / 2.0, 0), new Vector3d(loadWidth, loadWidth, 0));
+
+            NormalAreaLoad loadWp = new NormalAreaLoad(-1, loadShape, lcPressure);
+
+
+            // Combinazioni
+            Combination combo1 = new Combination("Cmb1");
+            combo1.AddLoadCaseCoefficient(lcPressure, 1);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            gs1.AddLoad(loadWp);
+
+            // vincolo su quattro lati
+            gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+
+            // Combo
+            model.AddCombination(combo1);
+
+            // Start analysis
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+
+            model.PerformChecks();
+
+            // Assert
+            GPC.Model.FEM.FiniteElements.FiniteElement[] elements = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetElements();
+
+            double flexularRigidity = mg.Material.E * Math.Pow(mg.Thickness, 3.0) / (12.0 * (1.0 - Math.Pow(mg.Material.Ni, 2.0)));
+
+            double num = 0;
+            double den = 0;
+
+            foreach (var element in elements)
+            {
+                if (element is GPC.Model.FEM.FiniteElements.Plate plate)
+                {
+                    var elementArea = plate.GetArea();
+
+                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+
+                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+                    if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+                    {
+                        num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                    }
+
+                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
+                }
+            }
+
+            double psi = Math.Abs(num / den * Math.Pow(10, 6));
+
+
+            Console.WriteLine($"Num: {num}");
+            Console.WriteLine($"Den: {den}");
+            Console.WriteLine($"Psi: {psi}");
+
+            Assert.AreEqual(27.76315991, psi, 0.5, psi.ToString());
+
+        }
+
+
+        [TestMethod]
+        [TestCategory("V-EQT-EET7")]
+        [TestCategory("Layers: 2")]
+        [TestCategory("Linear load")]
+        public void EQTEET7()
+        {
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            double majorSide = 1500;
+            double minorSide = 800;
+            double loadHeight = 300;
+            double loadWidth = 10;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(Math.Min(majorSide, minorSide), Math.Max(majorSide, minorSide), 0));
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 1, GetGlassMaterialEn16612());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            p1.MeshOptions.MeshSize = 25;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads;
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 1, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
+            {
+                lcPressure
+            };
+
+            Shape loadShape = GetRectangularShape(new Point3d(0, loadHeight - loadWidth / 2.0, 0), new Vector3d(minorSide, loadWidth, 0));
+
+            var lineExport = new List<GeometryBase>();
+            lineExport.AddRange(s1.Fill.Explode());
+            lineExport.AddRange(loadShape.Fill.Explode());
+
+            GeometryExport.ExportToGeoFormat(base.GetFilePathInOutputFolder("export", "geo"), lineExport);
+
+
+            NormalAreaLoad loadWp = new NormalAreaLoad(-1, loadShape, lcPressure);
+
+
+            // Combinazioni
+            Combination combo1 = new Combination("Cmb1");
+            combo1.AddLoadCaseCoefficient(lcPressure, 1);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            gs1.AddLoad(loadWp);
+
+            // vincolo su quattro lati
+            gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+
+            // Combo
+            model.AddCombination(combo1);
+
+            // Start analysis
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+
+            model.PerformChecks();
+
+            // Assert
+            GPC.Model.FEM.FiniteElements.FiniteElement[] elements = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetElements();
+
+            double flexularRigidity = mg.Material.E * Math.Pow(mg.Thickness, 3.0) / (12.0 * (1.0 - Math.Pow(mg.Material.Ni, 2.0)));
+
+            double num = 0;
+            double den = 0;
+
+            Parallel.ForEach(elements, (element) =>
+            {
+                if (element is GPC.Model.FEM.FiniteElements.Plate plate)
+                {
+                    var elementArea = plate.GetArea();
+
+                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+
+                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+                    if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+                    {
+                        num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                    }
+
+                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
+                }
+            });
+
+
+            double psi = Math.Abs(num / den * Math.Pow(10, 6));
+
+            Console.WriteLine($"Num: {num}");
+            Console.WriteLine($"Den: {den}");
+            Console.WriteLine($"Psi: {psi}");
+
+            Assert.AreEqual(23.74092648, psi, 0.2, psi.ToString());
+
+        }
+
+
+        [TestMethod]
+        [TestCategory("V-EQT-EET8")]
+        [TestCategory("Layers: 2")]
+        [TestCategory("Linear load")]
+        public void EQTEET8()
+        {
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            double majorSide = 1500;
+            double minorSide = 800;
+            double loadHeight = 300;
+            double loadWidth = 10;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(Math.Min(majorSide, minorSide), Math.Max(majorSide, minorSide), 0));
+
+            MonolithicGlass mg = new MonolithicGlass("Mg1", 1, GetGlassMaterialEn16612());
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+
+            p1.MeshOptions.MeshSize = 25;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads;
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 1, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
+            {
+                lcPressure
+            };
+
+            var loadShape = GetRectangularShape(new Point3d(0, loadHeight, 0), new Vector3d(minorSide+10, loadHeight + loadWidth, 0));
+
+            var lineExport = new List<GeometryBase>();
+            lineExport.AddRange(s1.Fill.Explode());
+            lineExport.AddRange(loadShape.Fill.Explode());
+
+            GeometryExport.ExportToGeoFormat(base.GetFilePathInOutputFolder("export", "geo"), lineExport);
+
+            NormalAreaLoad loadWp = new NormalAreaLoad(-1, loadShape, lcPressure);
+
+
+            // Combinazioni
+            Combination combo1 = new Combination("Cmb1");
+            combo1.AddLoadCaseCoefficient(lcPressure, 1);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            gs1.AddLoad(loadWp);
+
+            // vincolo su quattro lati
+            gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+
+            // Combo
+            model.AddCombination(combo1);
+
+            // Start analysis
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+
+            model.PerformChecks();
+
+            // Assert
+            GPC.Model.FEM.FiniteElements.FiniteElement[] elements = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetElements();
+
+            double flexularRigidity = mg.Material.E * Math.Pow(mg.Thickness, 3.0) / (12.0 * (1.0 - Math.Pow(mg.Material.Ni, 2.0)));
+
+            double num = 0;
+            double den = 0;
+
+            Parallel.ForEach(elements, (element) =>
+            {
+                if (element is GPC.Model.FEM.FiniteElements.Plate plate)
+                {
+                    var elementArea = plate.GetArea();
+
+                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+
+                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+                    if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+                    {
+                        num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                    }
+
+                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
+                }
+            });
+
+
+            double psi = Math.Abs(num / den * Math.Pow(10, 6));
+
+            Console.WriteLine($"Num: {num}");
+            Console.WriteLine($"Den: {den}");
+            Console.WriteLine($"Psi: {psi}");
+
+            Assert.AreEqual(20.02656784, psi, 0.2, psi.ToString());
+
+        }
     }
 }
