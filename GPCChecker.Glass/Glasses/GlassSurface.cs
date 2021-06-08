@@ -110,6 +110,22 @@ namespace GPC.Checkers.Glasses.Glasses
         }
 
         /// <summary>
+        /// Remove a specific restrain to this surface
+        /// </summary>
+        public bool RemoveRestrain(GeometryRestrain geometryRestrain)
+        {
+            return _restrains.Remove(geometryRestrain);
+        }
+
+        /// <summary>
+        /// Remove a specific restrain to this surface
+        /// </summary>
+        public void RemoveRestrainAt(int index)
+        {
+            _restrains.RemoveAt(index);
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns>The loads of the specific surface. Parametric loads will be converted in specific loads for this surface</returns>
@@ -126,7 +142,7 @@ namespace GPC.Checkers.Glasses.Glasses
         public List<GeometryRestrain> GetRestrains()
         {
             // TODO: implementare conversione restrain parametrici
-            return _restrains;
+            return _restrains.ToList(); // shallow copy
         } 
 
         #endregion
