@@ -8,6 +8,7 @@ using GPC.Model.Sections;
 using GPC.Model.Standards;
 using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
+using GPC.Checkers.Steel.BeamChecker;
 
 namespace GPC.Checkers.Steel.Results
 {
@@ -39,6 +40,7 @@ namespace GPC.Checkers.Steel.Results
         protected double _torsionalMomentRd;
         protected double _lateralTorsionalMomentRd;
 
+        protected Cop2011BeamChecker.SectionClass _class;
         protected readonly ISteelSection _section;
         protected readonly ResultBeamForces _forces;
         protected readonly ResultStation _station;
@@ -49,29 +51,29 @@ namespace GPC.Checkers.Steel.Results
 
         #region Properties
 
-        protected double Axial1WorkingRatio => _axialTensionWorkingRatio;
+        public double Axial1WorkingRatio => _axialTensionWorkingRatio;
 
-        protected double Axial2WorkingRatio => _axialCompressionWorkingRatio;
+        public double Axial2WorkingRatio => _axialCompressionWorkingRatio;
 
-        protected double AxialBuckling1WorkingRatio => _axialBuckling1WorkingRatio;
+        public double AxialBuckling1WorkingRatio => _axialBuckling1WorkingRatio;
 
-        protected double AxialBuckling2WorkingRatio => _axialBuckling2WorkingRatio;
+        public double AxialBuckling2WorkingRatio => _axialBuckling2WorkingRatio;
 
-        protected double Shear1WorkingRatio => _shear1WorkingRatio;
+        public double Shear1WorkingRatio => _shear1WorkingRatio;
 
-        protected double Shear2WorkingRatio => _shear2WorkingRatio;
+        public double Shear2WorkingRatio => _shear2WorkingRatio;
 
-        protected double BendingMoment1WorkingRatio => _bendingMoment1WorkingRatio;
+        public double BendingMoment1WorkingRatio => _bendingMoment1WorkingRatio;
 
-        protected double BendingMoment2WorkingRatio => _bendingMoment2WorkingRatio;
+        public double BendingMoment2WorkingRatio => _bendingMoment2WorkingRatio;
 
-        protected double TorsionalMomentWorkingRatio => _torsionalMomentWorkingRatio;
+        public double TorsionalMomentWorkingRatio => _torsionalMomentWorkingRatio;
 
-        protected double LateralTorsionalBucklingWorkingRatio => _lateraTorsionalBucklingWorkingRatio;
+        public double LateralTorsionalBucklingWorkingRatio => _lateraTorsionalBucklingWorkingRatio;
 
-        protected double InteractionWorkingRatio => _interactioWorkingRatio;
+        public double InteractionWorkingRatio => _interactioWorkingRatio;
 
-        protected double WorkingRatio => GetMaxWorkingRation();
+        public double WorkingRatio => GetMaxWorkingRation();
 
         public double AxialTensionCapacity => _axialTensionRd;
 
@@ -93,16 +95,15 @@ namespace GPC.Checkers.Steel.Results
 
         public double LateralTosionalBucklingCapacity => _lateralTorsionalMomentRd;
 
-        protected ResultBeamForces ResultBeamForces => _forces;
+        public ResultBeamForces ResultBeamForces => _forces;
 
-        protected ResultStation Station => _station;
+        public ResultStation Station => _station;
 
-        protected ILoadCase LoadCase => _loadCase;
+        public ILoadCase LoadCase => _loadCase;
 
-        protected ISteelSection Section => _section;
+        public ISteelSection Section => _section;
 
-
-
+        public Cop2011BeamChecker.SectionClass Class => _class;
 
         #endregion
 
@@ -150,6 +151,11 @@ namespace GPC.Checkers.Steel.Results
             _torsionalMomentWorkingRatio = torsWR;
             _lateraTorsionalBucklingWorkingRatio = latTorsWR;
             _interactioWorkingRatio = interactioNWR;
+        }
+
+        internal void SetClass(Cop2011BeamChecker.SectionClass sectionClass)
+        {
+            _class = sectionClass;
         }
 
         internal double GetMaxWorkingRation()

@@ -14,7 +14,7 @@ using GPC.Checkers.Steel.Results;
 namespace GPC.Checkers.Steel.BeamChecker
 {
 
-    internal abstract class BeamChecker
+    public abstract class BeamChecker
     {
         #region Variables
 
@@ -40,7 +40,7 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         internal double WorkingRatio { get => _beamStationCheckerResults.Select(i => i.GetMaxWorkingRation()).Max(); }
 
-        internal BeamStationCheckerResults[] BeamStationCheckerResults { get => _beamStationCheckerResults; set => _beamStationCheckerResults = value; }
+        public BeamStationCheckerResults[] BeamStationCheckerResults { get => _beamStationCheckerResults; set => _beamStationCheckerResults = value; }
 
         internal double Length => _beam.BeamLength;
 

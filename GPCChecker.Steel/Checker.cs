@@ -19,7 +19,7 @@ namespace GPC.Checkers.Steel
         #region Variables
 
         protected readonly BeamCheckerOptions[] _beamCheckers;
-        protected BeamChecker.BeamChecker[] _beamCheckerResults;
+        private BeamChecker.BeamChecker[] _beamCheckerResults;
         protected Standard _standard;
         protected readonly ILoadCase _loadCase;
 

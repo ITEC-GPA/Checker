@@ -11,7 +11,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Public Constructors
 
-        public EN1993p11BeamCheckerOptions(ISteelSection sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, EN1993p11Checker.EN1993p11Options options)
+        public EN1993p11BeamCheckerOptions(ISteelSection[] sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, EN1993p11Checker.EN1993p11Options options)
             :base(sections, resultBeamForces, resultStations, options)
         {
 
