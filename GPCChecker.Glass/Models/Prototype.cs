@@ -67,7 +67,7 @@ namespace GPC.Checkers.Glasses.Models
         public enum Standards
         {
             /// <summary>EN 16612-2019</summary>
-            [Description("EN 16612")]
+            [Description("EN 16612-2019")]
             EN16612 = 0,
 
             /// <summary>ASTM E1300 - 16 </summary>

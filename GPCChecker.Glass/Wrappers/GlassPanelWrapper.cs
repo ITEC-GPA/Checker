@@ -167,7 +167,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
         /// <remarks>The load will be added only if it is different from <see cref="SelfWeightLoad"/></remarks>
-        public void AddExternalFaceLoads(List<Load> loads)
+        public void AddExternalFaceLoads(IEnumerable<Load> loads)
         {
             _externalFaceLoads.AddRange(loads.Where(i => !(i is SelfWeightLoad)).ToList());
         }
@@ -182,7 +182,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
         /// <remarks>The load will be added only if it is different from <see cref="SelfWeightLoad"/></remarks>
-        public void AddInternalFaceLoads(List<Load> loads)
+        public void AddInternalFaceLoads(IEnumerable<Load> loads)
         {
             _internalFaceLoads.AddRange(loads.Where(i => !(i is SelfWeightLoad)).ToList());
         }

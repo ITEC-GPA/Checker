@@ -17,8 +17,8 @@ namespace GPC.Checkers.Glasses.Checkers
         public AstmChecker(GlassSurface glassSurface, List<Combination> combinations, ModelOptions options)
             : base(glassSurface, combinations, options)
         {
-            if (_glassSurface.Prototype.Standard != Models.Prototype.Standards.ASTME1300)
-                throw new ArgumentException($"Standard not supported for {Models.Prototype.Standards.ASTME1300} {GetCheckerName()} Checker");
+            if (_glassSurface.Prototype.Standard != Prototype.Standards.ASTME1300)
+                throw new ArgumentException($"Standard not supported for {Prototype.Standards.ASTME1300} {GetCheckerName()} Checker");
 
         }
 
@@ -29,7 +29,7 @@ namespace GPC.Checkers.Glasses.Checkers
         }
 
 
-        protected override string GetCheckerName() => "ASTM E1300 - 16";
+        public override string GetCheckerName() => "ASTM E1300 - 16";
 
     }
 }
