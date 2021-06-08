@@ -78,7 +78,7 @@ namespace GPC.Checkers.Glasses.Models
             Checker checker;
             if (glassSurface.Prototype.Standard == Prototype.Standards.EN16612)
             {
-                checker = new En16612Checker(glassSurface, MergeCombinations(_combinations, glassSurface.Prototype.Combinations), _options);
+                checker = new EN16612Checker(glassSurface, MergeCombinations(_combinations, glassSurface.Prototype.Combinations), _options);
             }
             else if (glassSurface.Prototype.Standard == Prototype.Standards.ASTME1300)
             {
@@ -150,7 +150,7 @@ namespace GPC.Checkers.Glasses.Models
 
                 if (surface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
-                    checker = new En16612Checker(surface, MergeCombinations(_combinations, surface.Prototype.Combinations), _options);
+                    checker = new EN16612Checker(surface, MergeCombinations(_combinations, surface.Prototype.Combinations), _options);
                 }
                 else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
                 {

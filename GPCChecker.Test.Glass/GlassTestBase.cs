@@ -35,6 +35,7 @@ namespace GlassTests
             return new Shape(p);
         }
 
+
         protected Shape GetRectangularShape(Point3d p, Vector3d vector)
         {
             Polygon3d poly = new Polygon3d()
