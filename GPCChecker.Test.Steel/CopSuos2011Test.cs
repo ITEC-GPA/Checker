@@ -159,9 +159,43 @@ namespace SteelTests
             double expBuckWR = 0.4523;
 
             Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
-            Assert.IsTrue(Math.Abs(expBucklingCapacity / bucklingCapacity) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity / bucklingCapacity) * 100}");
-            Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR) * 100}");
+            Assert.IsTrue(Math.Abs(expBucklingCapacity / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity / bucklingCapacity) * 100}");
+            Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR) * 100}");
+        }
 
+        [TestMethod]
+        public void ClassificationSectionHTest6()
+        {
+            // 254x102x22
+            double h = 362.0;         // Steel_CoP_2011_commentary E8.9.2 example 8.3 
+            double b = 370.5;         // NOTA: l'esempio dice che la sezione è in classe 2 in compressione ma la norma non permette tale classe in compressione.
+            double t = 14.2;        // le due classi possibili sono 3 e 4 (la 3 è formalmente uguale alla 2).
+            double tw = 20.7;        // le flange sono non slender e l'anima in classe 1
+            double length = 7000;
+
+            LoadCase loadCase = new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight);
+            SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-480000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
+            ResultStation[] resultStations = new ResultStation[1] { new ResultStation(1, length / 2.0, length) };
+            SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
+            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
+                                                        Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 2.9, 1, 2.9, 1);
+            Cop2011BeamCheckerOptions[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerOptions[] { new Cop2011BeamCheckerOptions(steelSectionH, resultBeamForces, resultStations, options) };
+            StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
+
+            Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, loadCase, standardCopSuos2011);
+            cop2011Checker.PerformCheck();
+            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].Class;
+            double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
+            double bucklingWR = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].WorkingRatio;        //N
+            double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
+            double expBucklingCapacity = 715.4;     //KN
+            double expBuckWR = 0.671;
+
+            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.IsTrue(Math.Abs(expBucklingCapacity / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity / bucklingCapacity) * 100}");
+            Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR) * 100}");
         }
 
         [TestMethod]
