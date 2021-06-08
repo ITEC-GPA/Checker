@@ -210,11 +210,9 @@ namespace GPC.Checkers.Steel.BeamChecker
         /// <returns></returns>
         internal double CalculateAxialBucklingCapacity1Axis(SectionClass sectionClass, ISteelSection section)
         {
-            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
-            {
-                double a = CalculatePCompressionXAxis(section);
+            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)            
                 return section.Area * CalculatePCompressionXAxis(section);
-            }
+            
             else
                 return GetEffettiveArea(section) * CalculatePCompressionReducedXAxis(section);
         }
@@ -225,11 +223,9 @@ namespace GPC.Checkers.Steel.BeamChecker
         /// <returns></returns>
         internal double CalculateAxialBucklingCapacity2Axis(SectionClass sectionClass, ISteelSection section)
         {
-            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
-            {
-                double a = CalculatePCompressionYAxis(section);
+            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)           
                 return section.Area * CalculatePCompressionYAxis(section);
-            }
+            
             else
                 return GetEffettiveArea(section) * CalculatePCompressionReducesYAxis(section);
         }
@@ -256,7 +252,6 @@ namespace GPC.Checkers.Steel.BeamChecker
         {
             double pe = CalculatePeforAxialBucklingXAxis(section);
             double phi = CalculatePhiforAxialBucklingXAxis(section);
-            double a = (pe * Py) / (phi + Math.Pow(Math.Pow(phi, 2) + pe * Py, 0.5));
             return (pe * Py) / (phi + Math.Pow(Math.Pow(phi, 2) - pe * Py , 0.5));
         }
 
@@ -275,8 +270,6 @@ namespace GPC.Checkers.Steel.BeamChecker
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
             double lambdaXAxis = Beam.GetLenghtAxialBuckling1() / ((Section)section).InertiaRadiusX;
             double nForAxialBuckXAxis = Math.Max(GetAlphaBucklingCurveXXAxis(section) * (lambdaXAxis - lambda0) / 1000, 0);
-            double a = (Py + (nForAxialBuckXAxis + 1) * CalculatePeforAxialBucklingXAxis(section)) / 2;
-            double b = CalculatePeforAxialBucklingXAxis(section);
             return (Py + (nForAxialBuckXAxis + 1) * CalculatePeforAxialBucklingXAxis(section)) / 2;
         }
 
@@ -288,8 +281,6 @@ namespace GPC.Checkers.Steel.BeamChecker
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5); 
             double lambdaYAxis = Beam.GetLenghtAxialBuckling2() / ((Section)section).InertiaRadiusY;
             double nForAxialBuck = Math.Max(GetAlphaBucklingCurveYYAxis(section) * (lambdaYAxis - lambda0) / 1000, 0);
-            double a = CalculatePeforAxialBucklingYAxis(section);
-            double b = (Py + (nForAxialBuck + 1) * CalculatePeforAxialBucklingYAxis(section)) / 2;
             return (Py + (nForAxialBuck + 1) * CalculatePeforAxialBucklingYAxis(section)) / 2;
         }
 
@@ -350,80 +341,6 @@ namespace GPC.Checkers.Steel.BeamChecker
         /// <summary>
         /// CopSuos2011 Table 8.7 - Buckling curve
         /// </summary>
-        private Cop2011Checker.Cop2011Options.BuckingCurves GetBucklingCurveXXAxis(ISteelSection section)
-        {
-            if (section is SectionCHS sectionCHS)
-            {
-                if (sectionCHS.FormedType == Model.Sections.Section.FormedTypes.HotFinished)
-                {
-                    if (Material.Fyk >= 460)
-                        return Cop2011Checker.Cop2011Options.BuckingCurves.a0;
-                    else // (material.Fyk < 460)
-                        return Cop2011Checker.Cop2011Options.BuckingCurves.a;
-                }
-                else //(sectionCHS.FormedType == Model.Sections.Section.FormedTypes.ColdFormed)
-                {
-                    if (sectionCHS.IsDoubleSymmetric)
-                        return Cop2011Checker.Cop2011Options.BuckingCurves.a0;
-                    else
-                        return Cop2011Checker.Cop2011Options.BuckingCurves.c;
-                }
-            }
-            else if (section is SectionRHS sectionRHS)
-            {
-                if (sectionRHS.SectionType == Model.Sections.Section.SectionTypes.Welded)
-                {
-                    if (sectionRHS.TBottom < 40 && sectionRHS.TTop < 40 && sectionRHS.TWebLeft < 40 && sectionRHS.TWebRight < 40)
-                        return Cop2011Checker.Cop2011Options.BuckingCurves.b;
-                    else
-                        return Cop2011Checker.Cop2011Options.BuckingCurves.c;
-                }
-                else if (sectionRHS.FormedType == Model.Sections.Section.FormedTypes.HotFinished)
-                {
-                    if (Material.Fyk >= 460)
-                        return Cop2011Checker.Cop2011Options.BuckingCurves.a0;
-                    else // (material.Fyk < 460)
-                        return Cop2011Checker.Cop2011Options.BuckingCurves.a;
-                }
-                else //(sectionCHS.FormedType == Model.Sections.Section.FormedTypes.ColdFormed)
-                    return Cop2011Checker.Cop2011Options.BuckingCurves.c;
-            }
-            else if (section is SectionH sectionH)
-            {
-                if (sectionH.SectionType == Model.Sections.Section.SectionTypes.Rolled)
-                {
-                    if (sectionH.IsISection)
-                    {
-                        if (sectionH.ThicknessBottomFlange < 40 && sectionH.ThicknessTopFlange < 40 && sectionH.ThicknessWeb < 40)
-                            return Cop2011Checker.Cop2011Options.BuckingCurves.a;
-                        else
-                            return Cop2011Checker.Cop2011Options.BuckingCurves.b;
-                    }
-                    else // (sectionH.IsHSection)
-                    {
-                        if (sectionH.ThicknessBottomFlange < 40 && sectionH.ThicknessTopFlange < 40 && sectionH.ThicknessWeb < 40)
-                            return Cop2011Checker.Cop2011Options.BuckingCurves.b;
-                        else
-                            return Cop2011Checker.Cop2011Options.BuckingCurves.c;
-                    }
-                }
-                else //(sectionH.SectionType == Model.Sections.Section.SectionTypes.Welded)
-                {
-                    if (sectionH.ThicknessBottomFlange < 40 && sectionH.ThicknessTopFlange < 40 && sectionH.ThicknessWeb < 40)
-                        return Cop2011Checker.Cop2011Options.BuckingCurves.b;
-                    else
-                        return Cop2011Checker.Cop2011Options.BuckingCurves.b;
-                }
-            }
-            else if (section is SectionC _ || section is SectionL _ || section is SectionT _)
-                return Cop2011Checker.Cop2011Options.BuckingCurves.c;
-            else
-                throw new NotImplementedException("GetBucklingCurve: not implemented section");
-        }
-
-        /// <summary>
-        /// CopSuos2011 Table 8.7 - Buckling curve
-        /// </summary>
         private Cop2011Checker.Cop2011Options.BuckingCurves GetBucklingCurveYYAxis(ISteelSection section)
         {
             if (section is SectionCHS sectionCHS)
@@ -466,7 +383,81 @@ namespace GPC.Checkers.Steel.BeamChecker
             {
                 if (sectionH.SectionType == Model.Sections.Section.SectionTypes.Rolled)
                 {
-                    if (sectionH.IsISection)
+                    if ((2 * sectionH.H) / (sectionH.LenghtTopFlange + sectionH.LenghtBottomFlange) > 1.2)
+                    {
+                        if (sectionH.ThicknessBottomFlange < 40 && sectionH.ThicknessTopFlange < 40 && sectionH.ThicknessWeb < 40)
+                            return Cop2011Checker.Cop2011Options.BuckingCurves.a;
+                        else
+                            return Cop2011Checker.Cop2011Options.BuckingCurves.b;
+                    }
+                    else // (sectionH.IsHSection)
+                    {
+                        if (sectionH.ThicknessBottomFlange < 40 && sectionH.ThicknessTopFlange < 40 && sectionH.ThicknessWeb < 40)
+                            return Cop2011Checker.Cop2011Options.BuckingCurves.b;
+                        else
+                            return Cop2011Checker.Cop2011Options.BuckingCurves.c;
+                    }
+                }
+                else //(sectionH.SectionType == Model.Sections.Section.SectionTypes.Welded)
+                {
+                    if (sectionH.ThicknessBottomFlange < 40 && sectionH.ThicknessTopFlange < 40 && sectionH.ThicknessWeb < 40)
+                        return Cop2011Checker.Cop2011Options.BuckingCurves.b;
+                    else
+                        return Cop2011Checker.Cop2011Options.BuckingCurves.b;
+                }
+            }
+            else if (section is SectionC _ || section is SectionL _ || section is SectionT _)
+                return Cop2011Checker.Cop2011Options.BuckingCurves.c;
+            else
+                throw new NotImplementedException("GetBucklingCurve: not implemented section");
+        }
+
+        /// <summary>
+        /// CopSuos2011 Table 8.7 - Buckling curve
+        /// </summary>
+        private Cop2011Checker.Cop2011Options.BuckingCurves GetBucklingCurveXXAxis(ISteelSection section)
+        {
+            if (section is SectionCHS sectionCHS)
+            {
+                if (sectionCHS.FormedType == Model.Sections.Section.FormedTypes.HotFinished)
+                {
+                    if (Material.Fyk >= 460)
+                        return Cop2011Checker.Cop2011Options.BuckingCurves.a0;
+                    else // (material.Fyk < 460)
+                        return Cop2011Checker.Cop2011Options.BuckingCurves.a;
+                }
+                else //(sectionCHS.FormedType == Model.Sections.Section.FormedTypes.ColdFormed)
+                {
+                    if (sectionCHS.IsDoubleSymmetric)
+                        return Cop2011Checker.Cop2011Options.BuckingCurves.a0;
+                    else
+                        return Cop2011Checker.Cop2011Options.BuckingCurves.c;
+                }
+            }
+            else if (section is SectionRHS sectionRHS)
+            {
+                if (sectionRHS.SectionType == Model.Sections.Section.SectionTypes.Welded)
+                {
+                    if (sectionRHS.TBottom < 40 && sectionRHS.TTop < 40 && sectionRHS.TWebLeft < 40 && sectionRHS.TWebRight < 40)
+                        return Cop2011Checker.Cop2011Options.BuckingCurves.b;
+                    else
+                        return Cop2011Checker.Cop2011Options.BuckingCurves.c;
+                }
+                else if (sectionRHS.FormedType == Model.Sections.Section.FormedTypes.HotFinished)
+                {
+                    if (Material.Fyk >= 460)
+                        return Cop2011Checker.Cop2011Options.BuckingCurves.a0;
+                    else // (material.Fyk < 460)
+                        return Cop2011Checker.Cop2011Options.BuckingCurves.a;
+                }
+                else //(sectionCHS.FormedType == Model.Sections.Section.FormedTypes.ColdFormed)
+                    return Cop2011Checker.Cop2011Options.BuckingCurves.c;
+            }
+            else if (section is SectionH sectionH)
+            {
+                if (sectionH.SectionType == Model.Sections.Section.SectionTypes.Rolled)
+                {
+                    if ((2 * sectionH.H) / (sectionH.LenghtTopFlange + sectionH.LenghtBottomFlange) > 1.2)
                     {
                         if (sectionH.ThicknessBottomFlange < 40 && sectionH.ThicknessTopFlange < 40 && sectionH.ThicknessWeb < 40)
                             return Cop2011Checker.Cop2011Options.BuckingCurves.b;
