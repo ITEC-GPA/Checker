@@ -53,6 +53,7 @@ namespace GPC.Checkers.Glasses.Models
             EET = 0,
 
             /// <summary> Ref EN 16612-2019 </summary>
+            [Description("EN 16612-2019 §D")]
             Omega = 1,
 
             /// <summary> Ref ASTM E1300-16 §X9 </summary>
@@ -60,6 +61,7 @@ namespace GPC.Checkers.Glasses.Models
             ASTME1300 = 2,
 
             /// <summary> Ref NEN 2608:2014 §F </summary>
+            [Description("NEN 2608:2014 §F")]
             NEN = 3,
         }
 

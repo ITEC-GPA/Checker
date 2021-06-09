@@ -332,25 +332,6 @@ namespace GlassTests
             }
 
 
-            //Parallel.ForEach(elements, (element) =>
-            //{
-            //    if (element is GPC.Model.FEM.FiniteElements.Plate plate)
-            //    {
-            //        var elementArea = plate.GetArea();
-
-            //        IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
-
-            //        var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
-
-            //        if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
-            //        {
-            //            num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
-            //        }
-
-            //        den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
-            //    }
-            //});
-
             double psi = Math.Abs(num / den * Math.Pow(10, 6));
 
             Console.WriteLine($"Num: {num}");
@@ -423,7 +404,8 @@ namespace GlassTests
 
             double num = 0;
             double den = 0;
-            Parallel.ForEach(elements, (element) =>
+
+            foreach (var element in elements)
             {
                 if (element is GPC.Model.FEM.FiniteElements.Plate plate)
                 {
@@ -440,7 +422,8 @@ namespace GlassTests
 
                     den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
                 }
-            });
+            }
+
             double psi = Math.Abs(num / den * Math.Pow(10, 6));
 
             Console.WriteLine($"Num: {num}");
@@ -813,7 +796,8 @@ namespace GlassTests
             double num = 0;
             double den = 0;
 
-            Parallel.ForEach(elements, (element) =>
+
+            foreach (var element in elements)
             {
                 if (element is GPC.Model.FEM.FiniteElements.Plate plate)
                 {
@@ -830,7 +814,8 @@ namespace GlassTests
 
                     den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
                 }
-            });
+            }
+
 
 
             double psi = Math.Abs(num / den * Math.Pow(10, 6));
@@ -915,7 +900,7 @@ namespace GlassTests
             double num = 0;
             double den = 0;
 
-            Parallel.ForEach(elements, (element) =>
+            foreach (var element in elements)
             {
                 if (element is GPC.Model.FEM.FiniteElements.Plate plate)
                 {
@@ -932,8 +917,7 @@ namespace GlassTests
 
                     den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
                 }
-            });
-
+            }
 
             double psi = Math.Abs(num / den * Math.Pow(10, 6));
 
