@@ -51,29 +51,29 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// <inheritdoc/>
         public override double GetTotalThickness()
         {
-            return (Glass as MonolithicGlass).Thickness;
+            return ((MonolithicGlass)Glass).GetTotalThickness();
         }
 
         public override double GetElasticModulus()
         {
-            return (Glass as MonolithicGlass).Material.E;
+            return ((MonolithicGlass)Glass).GetElasticModulus();
         }
 
         public override double GetPoissonRatios()
         {
-            return (Glass as MonolithicGlass).Material.Ni;
+            return ((MonolithicGlass)Glass).GetPoissonRatios();
         }
 
         public override double GetSelfWeightPerUnitArea()
         {
             // mm * T/mm3 => T / mm2
-            return (Glass as MonolithicGlass).Thickness * (Glass as MonolithicGlass).Material.Density;
+            return ((MonolithicGlass)Glass).GetSelfWeightPerUnitArea();
         }
 
         public override double GetSelfWeightTotal()
         {
             // mm2 * mm * T/mm3 => T
-            return _glassSurface.Shape.GetArea() * (Glass as MonolithicGlass).Thickness * (Glass as MonolithicGlass).Material.Density;
+            return _glassSurface.Shape.GetArea() * GetSelfWeightPerUnitArea();
         }
 
         /// <inheritdoc cref="GlassWrapper.GenerateMesh()"/>

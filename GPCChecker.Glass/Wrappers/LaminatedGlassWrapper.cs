@@ -112,8 +112,8 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
         public override double GetTotalThickness()
-        { 
-            return (Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Thickness).Sum() + (Glass as LaminatedGlass).Interlayers.Select(i => i.Thickness).Sum(); ;
+        {
+            return ((LaminatedGlass)Glass).GetTotalThickness();
         }
 
         /// <returns>The incremental distances of the glass layers center of mass starting from the first one</returns>
@@ -163,26 +163,28 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         public override double GetElasticModulus()
         {
-            return (Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Material.E).Min();
+            return ((LaminatedGlass)Glass).GetElasticModulus();
         }
 
         public override double GetPoissonRatios()
         {
-            return (Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Material.Ni).Min();
+            return ((LaminatedGlass)Glass).GetPoissonRatios();
         }
 
         public override double GetSelfWeightPerUnitArea()
         {
-            return (Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Thickness * i.Material.Density).Sum() + (Glass as LaminatedGlass).Interlayers.Select(i => i.Thickness * i.Material.Density).Sum();
+            return ((LaminatedGlass)Glass).GetSelfWeightPerUnitArea();
         }
 
         public override double GetSelfWeightTotal()
         {
-            return _glassSurface.Shape.GetArea() * ((Glass as LaminatedGlass).MonolithicGlasses.Select(i => i.Thickness * i.Material.Density).Sum() + (Glass as LaminatedGlass).Interlayers.Select(i => i.Thickness * i.Material.Density).Sum());
+            return _glassSurface.Shape.GetArea() * GetSelfWeightPerUnitArea();
         }
 
 
         #endregion
+
+        #region Mesh
 
         /// <inheritdoc cref="GlassWrapper.GenerateMesh()"/>
         public override bool GenerateMesh()
@@ -262,7 +264,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
                     {
-                        plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
+                        plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto piï¿½ distante dell'interlyaer
 
                         // primo strato di brick
                         if (vertexIdMap != null)
@@ -274,7 +276,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                         }
                         else
                         {
-                            // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
+                            // se ï¿½ nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
 
                             upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
                                                             Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
