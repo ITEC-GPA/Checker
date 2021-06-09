@@ -190,161 +190,234 @@ namespace GPC.Checkers.Glasses.Wrappers
             if (!status)
                 return false;
 
-            Mesh[] meshes = new Mesh[(Glass as LaminatedGlass).MonolithicGlasses.Count() + (Glass as LaminatedGlass).Interlayers.Count()];
+            Mesh[] meshes;
 
-            var interlayerDistances = GetInterlayerBarycenterDistances();
-            var glassDistances = GetMonolithicBarycenterDistances();
-
-            Vector3d normal = _glassSurface.Shape.GetNormalVector();
-
-
-            // Copia mesh
-            for (int i = 0; i < glassDistances.Length; i++)
+            switch (_glassSurface.Prototype.LaminatedAnalysisType)
             {
-                Mesh cloned = (Mesh)mesh.Clone(false);
+                case Models.Prototype.LaminatedAnalysisTypes.MultiLayered:
+                    meshes = new Mesh[1];
+                    meshes[0] = mesh;
+                    _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>()
+                                                    { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) };
 
-                cloned.Move(normal * glassDistances[i]);
+                    _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
+                    _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
 
-                meshes[i * 2] = cloned;
-
-                var ids = cloned.Faces.SelectMany(k => k.GetNodes()).Distinct().ToList();// faccio cosi cosi prendo gli id degli elementi nell'ordine degli elementi nella lista
-
-                //var ids = cloned.Vertices.GetElementIdMap().Keys.ToList(); // faccio cosi cosi prendo gli id degli elementi nell'ordine degli elementi nella lista
-
-                _volumeUpperLowerVerticesIds[i * 2] = (ids, ids);
-            }
-
-            // Copia mesh e Generazione brick
-            for (int i = 0; i < interlayerDistances.Length; i++)
-            {
-                IEnumerable<int> lowerVertices = null;
-                IEnumerable<int> upperVertices = null;
-
-                for (int j = 0; j < INTERLAYER_DISCRETIZATION; j++)
-                {
-                    Mesh cloned = (Mesh)mesh.Clone(false);
-                    Plane plane = _glassSurface.Shape.GetPlane(GeometryBase.GetDefaultTolerance());
-
-                    double thickness = (Glass as LaminatedGlass).Interlayers[i].Thickness;
-                    double increment = thickness / INTERLAYER_DISCRETIZATION * j;
-
-                    cloned.Move(normal * (interlayerDistances[i] - thickness / 2.0 + increment));
-                    plane.Move(normal * (interlayerDistances[i] - thickness / 2.0 + increment));
-
-                    Mesh volumeMesh = cloned.ExtrudeFaces(normal * thickness / INTERLAYER_DISCRETIZATION);
-
-                    Dictionary<int, int> vertexIdMap = null;
-
-                    if (meshes[i * 2 + 1] == null)
-                        meshes[i * 2 + 1] = volumeMesh;
-                    else
+                    foreach (var load in _externalFaceLoads)
                     {
-                        // vertexIdMap: Map between MeshVertex.Id of meshToJoin and id of the same vertex in meshes[i * 2 + 1] (Map old, new)
-                        meshes[i * 2 + 1].JoinMesh(volumeMesh, out vertexIdMap, out _, out _);
-                    }
-
-
-                    if (j == 0)
-                    {
-                        // primo strato di brick
-                        if (vertexIdMap == null)
+                        if (meshLoadsFaceIndexes.ContainsKey(load))
                         {
-                            lowerVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
-                                                            Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
+                            if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(mesh.Guid)).Count() == 0)
+                            {
+                                _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, new Dictionary<Load, int[]>()));
+                            }
+                            _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(mesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
                         }
-                        else
-                            throw new NotSupportedException();
-                    }
 
-                    if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
-                    {
-                        plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
-
-                        // primo strato di brick
-                        if (vertexIdMap != null)
+                        if (meshLoadsVertexIndexes.ContainsKey(load))
                         {
-                            // il join mesh ha preso volumeMesh e joinanto dentro meshes, cambiando gli iD, bisogna usare la mappa.
-                            upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
-                                           Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id).Select(x => vertexIdMap[x]);
-
-                        }
-                        else
-                        {
-                            // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
-
-                            upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
-                                                            Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
+                            if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(mesh.Guid)).Count() == 0)
+                            {
+                                _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, new Dictionary<Load, int[]>()));
+                            }
+                            _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(mesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
                         }
                     }
-                }
 
+                    break;
 
-                _volumeUpperLowerVerticesIds[i * 2 + 1] = (lowerVertices, upperVertices);
+                case Models.Prototype.LaminatedAnalysisTypes.EquivalentThickness:
+                    meshes = new Mesh[1];
+                    meshes[0] = mesh;
+                    _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>()
+                                                    { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) };
 
-            }
+                    _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
+                    _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
 
-
-            // Assegno mesh a wrapper
-            _meshes = meshes;
-
-            // Creo e assegno mappa - meshcarichi,id al wrapper
-
-            Mesh externalMesh = GetExternalGlassMesh();
-            Mesh internalMesh = GetInternalGlassMesh();
-
-
-            _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(externalMesh, meshGeometryRestrainVertices) }; ;
-
-            _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
-            _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
-
-            foreach (var load in _externalFaceLoads)
-            {
-                if (meshLoadsFaceIndexes.ContainsKey(load))
-                {
-                    if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(externalMesh.Guid)).Count() == 0)
+                    foreach (var load in _externalFaceLoads)
                     {
-                        _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(externalMesh, new Dictionary<Load, int[]>()));
-                    }
-                    _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
-                }
-            }
-            foreach (var load in _internalFaceLoads)
-            {
-                if (meshLoadsFaceIndexes.ContainsKey(load))
-                {
-                    if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(internalMesh.Guid)).Count() == 0)
-                    {
-                        _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(internalMesh, new Dictionary<Load, int[]>()));
-                    }
-                    _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(internalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
-                }
-            }
+                        if (meshLoadsFaceIndexes.ContainsKey(load))
+                        {
+                            if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(mesh.Guid)).Count() == 0)
+                            {
+                                _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, new Dictionary<Load, int[]>()));
+                            }
+                            _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(mesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
+                        }
 
-            foreach (var load in _externalFaceLoads)
-            {
-                if (meshLoadsVertexIndexes.ContainsKey(load))
-                {
-                    if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(externalMesh.Guid)).Count() == 0)
-                    {
-                        _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(externalMesh, new Dictionary<Load, int[]>()));
+                        if (meshLoadsVertexIndexes.ContainsKey(load))
+                        {
+                            if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(mesh.Guid)).Count() == 0)
+                            {
+                                _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, new Dictionary<Load, int[]>()));
+                            }
+                            _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(mesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
+                        }
                     }
-                    _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
-                }
-            }
-            foreach (var load in _internalFaceLoads)
-            {
-                if (meshLoadsVertexIndexes.ContainsKey(load))
-                {
-                    if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(internalMesh.Guid)).Count() == 0)
-                    {
-                        _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(internalMesh, new Dictionary<Load, int[]>()));
-                    }
-                    _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(internalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
-                }
-            }
 
-            _meshComputed = true;
+                    break;
+
+                case Models.Prototype.LaminatedAnalysisTypes.MultiElement:
+                    meshes = new Mesh[(Glass as LaminatedGlass).MonolithicGlasses.Count() + (Glass as LaminatedGlass).Interlayers.Count()];
+
+                    var interlayerDistances = GetInterlayerBarycenterDistances();
+                    var glassDistances = GetMonolithicBarycenterDistances();
+
+                    Vector3d normal = _glassSurface.Shape.GetNormalVector();
+
+                    // Copia mesh
+                    for (int i = 0; i < glassDistances.Length; i++)
+                    {
+                        Mesh cloned = (Mesh)mesh.Clone(false);
+
+                        cloned.Move(normal * glassDistances[i]);
+
+                        meshes[i * 2] = cloned;
+
+                        var ids = cloned.Faces.SelectMany(k => k.GetNodes()).Distinct().ToList();// faccio cosi cosi prendo gli id degli elementi nell'ordine degli elementi nella lista
+
+                        //var ids = cloned.Vertices.GetElementIdMap().Keys.ToList(); // faccio cosi cosi prendo gli id degli elementi nell'ordine degli elementi nella lista
+
+                        _volumeUpperLowerVerticesIds[i * 2] = (ids, ids);
+                    }
+
+                    // Copia mesh e Generazione brick
+                    for (int i = 0; i < interlayerDistances.Length; i++)
+                    {
+                        IEnumerable<int> lowerVertices = null;
+                        IEnumerable<int> upperVertices = null;
+
+                        for (int j = 0; j < INTERLAYER_DISCRETIZATION; j++)
+                        {
+                            Mesh cloned = (Mesh)mesh.Clone(false);
+                            Plane plane = _glassSurface.Shape.GetPlane(GeometryBase.GetDefaultTolerance());
+
+                            double thickness = (Glass as LaminatedGlass).Interlayers[i].Thickness;
+                            double increment = thickness / INTERLAYER_DISCRETIZATION * j;
+
+                            cloned.Move(normal * (interlayerDistances[i] - thickness / 2.0 + increment));
+                            plane.Move(normal * (interlayerDistances[i] - thickness / 2.0 + increment));
+
+                            Mesh volumeMesh = cloned.ExtrudeFaces(normal * thickness / INTERLAYER_DISCRETIZATION);
+
+                            Dictionary<int, int> vertexIdMap = null;
+
+                            if (meshes[i * 2 + 1] == null)
+                                meshes[i * 2 + 1] = volumeMesh;
+                            else
+                            {
+                                // vertexIdMap: Map between MeshVertex.Id of meshToJoin and id of the same vertex in meshes[i * 2 + 1] (Map old, new)
+                                meshes[i * 2 + 1].JoinMesh(volumeMesh, out vertexIdMap, out _, out _);
+                            }
+
+
+                            if (j == 0)
+                            {
+                                // primo strato di brick
+                                if (vertexIdMap == null)
+                                {
+                                    lowerVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
+                                                                    Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
+                                }
+                                else
+                                    throw new NotSupportedException();
+                            }
+
+                            if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
+                            {
+                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
+
+                                // primo strato di brick
+                                if (vertexIdMap != null)
+                                {
+                                    // il join mesh ha preso volumeMesh e joinanto dentro meshes, cambiando gli iD, bisogna usare la mappa.
+                                    upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
+                                                   Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id).Select(x => vertexIdMap[x]);
+
+                                }
+                                else
+                                {
+                                    // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
+
+                                    upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
+                                                                    Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
+                                }
+                            }
+                        }
+
+
+                        _volumeUpperLowerVerticesIds[i * 2 + 1] = (lowerVertices, upperVertices);
+
+                    }
+
+
+                    // Assegno mesh a wrapper
+                    _meshes = meshes;
+
+                    // Creo e assegno mappa - meshcarichi,id al wrapper
+
+                    Mesh externalMesh = GetExternalGlassMesh();
+                    Mesh internalMesh = GetInternalGlassMesh();
+
+
+                    _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() 
+                                                    { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(externalMesh, meshGeometryRestrainVertices) };
+
+                    _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
+                    _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
+
+                    foreach (var load in _externalFaceLoads)
+                    {
+                        if (meshLoadsFaceIndexes.ContainsKey(load))
+                        {
+                            if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(externalMesh.Guid)).Count() == 0)
+                            {
+                                _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(externalMesh, new Dictionary<Load, int[]>()));
+                            }
+                            _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
+                        }
+
+                        if (meshLoadsVertexIndexes.ContainsKey(load))
+                        {
+                            if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(externalMesh.Guid)).Count() == 0)
+                            {
+                                _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(externalMesh, new Dictionary<Load, int[]>()));
+                            }
+                            _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
+                        }
+                    }
+
+                    foreach (var load in _internalFaceLoads)
+                    {
+                        if (meshLoadsFaceIndexes.ContainsKey(load))
+                        {
+                            if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(internalMesh.Guid)).Count() == 0)
+                            {
+                                _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(internalMesh, new Dictionary<Load, int[]>()));
+                            }
+                            _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(internalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
+                        }
+
+                        if (meshLoadsVertexIndexes.ContainsKey(load))
+                        {
+                            if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(internalMesh.Guid)).Count() == 0)
+                            {
+                                _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(internalMesh, new Dictionary<Load, int[]>()));
+                            }
+                            _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(internalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
+                        }
+                    }
+
+                    _meshComputed = true;
+
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+            
+            
             return true;
         }
 
@@ -372,7 +445,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             switch (_glassSurface.Prototype.LaminatedEqThicknessMethod)
             {
                 case Models.Prototype.LaminatedEqThicknessMethods.EET:
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
                     break;
                 
                 case Models.Prototype.LaminatedEqThicknessMethods.ASTME1300:
@@ -426,6 +499,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                     break;
                 
                 case Models.Prototype.LaminatedEqThicknessMethods.NEN:
+
                     throw new NotImplementedException();
                     //break;
                 
