@@ -28,7 +28,7 @@ namespace GPC.Checkers.Steel
 
         #region Properties
 
-        public BeamCheckerOptions[] BeamCheckers => _beamCheckers;
+        public BeamCheckerOptions[] BeamCheckersOptions => _beamCheckers;
 
         public BeamChecker.BeamChecker[] BeamCheckerResults { get => _beamCheckerResults; set => _beamCheckerResults = value; }
 

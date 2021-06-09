@@ -40,7 +40,8 @@ namespace GPC.Checkers.Steel.Results
         protected double _torsionalMomentRd;
         protected double _lateralTorsionalMomentRd;
 
-        protected Cop2011BeamChecker.SectionClass _class;
+        protected Cop2011BeamChecker.SectionClass _axialCompressionClass;
+        protected Cop2011BeamChecker.SectionClass _bendingCompressionClass;
         protected readonly ISteelSection _section;
         protected readonly ResultBeamForces _forces;
         protected readonly ResultStation _station;
@@ -51,9 +52,9 @@ namespace GPC.Checkers.Steel.Results
 
         #region Properties
 
-        public double Axial1WorkingRatio => _axialTensionWorkingRatio;
+        public double AxialTensionWorkingRatio => _axialTensionWorkingRatio;
 
-        public double Axial2WorkingRatio => _axialCompressionWorkingRatio;
+        public double AxialCompressionWorkingRatio => _axialCompressionWorkingRatio;
 
         public double AxialBuckling1WorkingRatio => _axialBuckling1WorkingRatio;
 
@@ -103,7 +104,9 @@ namespace GPC.Checkers.Steel.Results
 
         public ISteelSection Section => _section;
 
-        public Cop2011BeamChecker.SectionClass Class => _class;
+        public Cop2011BeamChecker.SectionClass AxialCompressionClass => _axialCompressionClass;
+
+        public Cop2011BeamChecker.SectionClass BendingCompressionClass => _bendingCompressionClass;
 
         #endregion
 
@@ -123,7 +126,7 @@ namespace GPC.Checkers.Steel.Results
 
         #region Public Method
 
-        internal void SetCapacity(double axialTension, double axialCompression, double axialBuck1, double axialBuck2, double shear1, double shear2, double bending1, double bending2, double tors, double latTors)
+        internal void SetCapacity(double axialTension, double axialCompression, double axialBuck1, double axialBuck2, double shear1, double shear2, double bending1, double bending2, double latTors)
         {
             _axialTensionRd = axialTension;
             _axialCompressionRd = axialCompression;
@@ -133,12 +136,11 @@ namespace GPC.Checkers.Steel.Results
             _shear2Rd = shear2;
             _bendingMoment1Rd = bending1;
             _bendingMoment2Rd = bending2;
-            _torsionalMomentRd = tors;
             _lateralTorsionalMomentRd = latTors;
         }
 
         internal void SetWorkingRatio(double axialTensionWR, double axialCompressionWR, double axialBuck1WR, double axialBuck2WR, double shear1WR, double shear2WR, double bending1WR, 
-                                        double bending2WR, double torsWR, double latTorsWR, double interactioNWR)
+                                        double bending2WR, double latTorsWR, double interactioNWR)
         {
             _axialTensionWorkingRatio = axialTensionWR;
             _axialCompressionWorkingRatio = axialCompressionWR;
@@ -148,14 +150,14 @@ namespace GPC.Checkers.Steel.Results
             _shear2WorkingRatio = shear2WR;
             _bendingMoment1WorkingRatio = bending1WR;
             _bendingMoment2WorkingRatio = bending2WR;
-            _torsionalMomentWorkingRatio = torsWR;
             _lateraTorsionalBucklingWorkingRatio = latTorsWR;
             _interactioWorkingRatio = interactioNWR;
         }
 
-        internal void SetClass(Cop2011BeamChecker.SectionClass sectionClass)
+        internal void SetClasses(Cop2011BeamChecker.SectionClass axialSectionClass, Cop2011BeamChecker.SectionClass bendingSectionClass)
         {
-            _class = sectionClass;
+            _axialCompressionClass = axialSectionClass;
+            _bendingCompressionClass = bendingSectionClass;
         }
 
         internal double GetMaxWorkingRation()
