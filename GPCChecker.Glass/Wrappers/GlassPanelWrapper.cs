@@ -132,13 +132,11 @@ namespace GPC.Checkers.Glasses.Wrappers
         #region Public methods - geometry
 
 
-        /// <param name="loadDuration"></param>
         /// <returns>Glass thickness for deformation analysis</returns>
-        public abstract double GetDeformationThickness(double loadDuration);
+        public abstract double GetDeformationThickness(double loadDuration, double temperature);
 
-        /// <param name="loadDuration"></param>
         /// <returns>Glass thickness for stress analysis</returns>
-        public abstract double GetStressThickness(double loadDuration);
+        public abstract double[] GetStressThickness(double loadDuration, double temperature);
 
 
         /// <returns>Total thickness of the glass package included interlayer</returns>

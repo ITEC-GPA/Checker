@@ -5,6 +5,7 @@ using System.Linq;
 using GPC.Geometry.Meshes;
 using GPC.Geometry;
 using GPC.Checkers.Glasses.Glasses;
+using GPC.Checkers.Glasses.LoadCases;
 using GPC.Model.Glasses;
 using GPC.Model.Restrains;
 using GPC.Model.Loads;
@@ -17,14 +18,14 @@ namespace GPC.Checkers.Glasses.Wrappers
         protected const int INTERLAYER_DISCRETIZATION = 3;
 
         /// <summary>
-        /// Thickness associates to displacement. Key = load duration; Value = thickness
+        /// Thickness associates to displacement
         /// </summary>
-        protected Dictionary<double, double> _thicknessesW;
+        protected Dictionary<(double loadDuration, double temperature), double> _thicknessesW;
 
         /// <summary>
-        /// Thickness associates to stress. Key = load duration; Value = thickness
+        /// Thickness associates to stress for each glass layer 
         /// </summary>
-        protected Dictionary<double, double> _thicknessesStress;
+        protected Dictionary<(double loadDuration, double temperature), double>[] _thicknessesStress;
         
         /// <summary>
         /// List of upper and lower vertices Id of each volume layer
@@ -43,72 +44,65 @@ namespace GPC.Checkers.Glasses.Wrappers
         internal LaminatedGlassWrapper(GlassSurface glassSurface, LaminatedGlass glass, GlassPanelPositions position)
             : base(glassSurface, glass, position)
         {
-            _thicknessesW = new Dictionary<double, double>();
-            _thicknessesStress = new Dictionary<double, double>();
+            _thicknessesW = new Dictionary<(double loadDuration, double temperature), double>();
+            _thicknessesStress = new Dictionary<(double loadDuration, double temperature), double>[glass.GlassLayerCount]; 
 
-            _volumeUpperLowerVerticesIds = new (IEnumerable<int> lowerVertices, IEnumerable<int> upperVertices)[(Glass as LaminatedGlass).MonolithicGlasses.Count() + (Glass as LaminatedGlass).Interlayers.Count()];
+            _volumeUpperLowerVerticesIds = new (IEnumerable<int> lowerVertices, IEnumerable<int> upperVertices)[glass.GlassLayerCount + glass.InterlayerCount];
         }
 
         #endregion
 
-        #region Public methods - Geometry
+        #region Geometry
 
-        public override double GetDeformationThickness(double loadDuration)
+        public override double GetDeformationThickness(double loadDuration, double temperature)
         {
-            if (_thicknessesStress.Keys.Count > 0)
+            if (_thicknessesW.Keys.Count == 0)
             {
-                if (_thicknessesW.ContainsKey(loadDuration))
-                    return _thicknessesW[loadDuration];
+                CalculateEquivalentThicknesses();
+                if (_thicknessesW.Keys.Count == 0)
+                    throw new ArgumentException();
+            }
 
-                var keys = _thicknessesW.Keys.ToList();
-                if (keys.Max() > loadDuration)
-                    throw new ArgumentOutOfRangeException($"Load duration of {loadDuration} is higher than maximum value available: {_thicknessesW.Keys.Max()}");
-                if (keys.Min() > loadDuration)
-                    throw new ArgumentOutOfRangeException($"Load duration of {loadDuration} is lower than minimum value available: {_thicknessesW.Keys.Min()}");
 
-                for (int i = 0; i < keys.Count - 1; i++)
-                {
-                    if (keys[i] < loadDuration && keys[i + 1] > loadDuration)
-                    {
-                        return Utilities.Maths.Interpolation.GetLinearInterpolation(keys[i], keys[i + 1], _thicknessesW[keys[i]], _thicknessesW[keys[i + 1]], loadDuration);
-                    }
-                }
-
-                throw new NotSupportedException($"Deformation thickness not found for load duration: {loadDuration}");
+            if (_thicknessesW.ContainsKey((loadDuration, temperature)))
+            {
+                return _thicknessesW[(loadDuration, temperature)];
             }
             else
             {
-                throw new ArgumentException($"Stress thickness table is empty");
+                // da valutare se inserire interpolazione valori. Ocio che il valore dello spessore non varia linearmente
+                throw new NotSupportedException($"Deformation thickness not found for load duration: {loadDuration} and temperature: {temperature}");
             }
+
         }
 
-        public override double GetStressThickness(double loadDuration)
+
+        public override double[] GetStressThickness(double loadDuration, double temperature)
         {
-            if (_thicknessesStress.Keys.Count > 0)
+            if (_thicknessesStress.Length == 0)
             {
-                if (_thicknessesStress.ContainsKey(loadDuration))
-                    return _thicknessesStress[loadDuration];
+                CalculateEquivalentThicknesses();
+                if (_thicknessesStress.Length == 0)
+                    throw new ArgumentException();
+            }
 
-                var keys = _thicknessesStress.Keys.ToList();
-                if (keys.Max() > loadDuration)
-                    throw new ArgumentOutOfRangeException($"Load duration of {loadDuration} is higher than maximum value available: {_thicknessesStress.Keys.Max()}");
-                if (keys.Min() > loadDuration)
-                    throw new ArgumentOutOfRangeException($"Load duration of {loadDuration} is lower than minimum value available: {_thicknessesStress.Keys.Min()}");
+            double[] stressThickness = new double[((LaminatedGlass)Glass).GlassLayerCount];
 
-                for (int i = 0; i < keys.Count - 1; i++)
+            for (int i = 0; i < _thicknessesStress.Length; i++)
+            {
+                if (_thicknessesStress[i].ContainsKey((loadDuration, temperature)))
                 {
-                    if (keys[i] < loadDuration && keys[i + 1] > loadDuration)
-                    {
-                        return Utilities.Maths.Interpolation.GetLinearInterpolation(keys[i], keys[i + 1], _thicknessesStress[keys[i]], _thicknessesStress[keys[i + 1]], loadDuration);
-                    }
+                    stressThickness[i] = _thicknessesStress[i][(loadDuration, temperature)];
                 }
-                
-                throw new ArgumentException($"Stress thickness not found for load duration: {loadDuration}");
+                else
+                {
+                    // da valutare se inserire interpolazione valori. Ocio che il valore dello spessore non varia linearmente
+                    throw new NotSupportedException($"Stress thickness not found for layer: {i} " +
+                                                    $"load duration: {loadDuration} and temperature: {temperature}");
+                }
             }
-            else
-            {
-                throw new ArgumentException($"Stress thickness table is empty");
-            }
+
+            return stressThickness;
         }
 
         public override double GetTotalThickness()
@@ -210,10 +204,10 @@ namespace GPC.Checkers.Glasses.Wrappers
                 Mesh cloned = (Mesh)mesh.Clone(false);
 
                 cloned.Move(normal * glassDistances[i]);
-                
+
                 meshes[i * 2] = cloned;
 
-                var ids = cloned.Faces.SelectMany(k => k.GetNodes()).Distinct().ToList() ;// faccio cosi cosi prendo gli id degli elementi nell'ordine degli elementi nella lista
+                var ids = cloned.Faces.SelectMany(k => k.GetNodes()).Distinct().ToList();// faccio cosi cosi prendo gli id degli elementi nell'ordine degli elementi nella lista
 
                 //var ids = cloned.Vertices.GetElementIdMap().Keys.ToList(); // faccio cosi cosi prendo gli id degli elementi nell'ordine degli elementi nella lista
 
@@ -221,7 +215,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             }
 
             // Copia mesh e Generazione brick
-            for(int i = 0; i < interlayerDistances.Length; i++)
+            for (int i = 0; i < interlayerDistances.Length; i++)
             {
                 IEnumerable<int> lowerVertices = null;
                 IEnumerable<int> upperVertices = null;
@@ -264,7 +258,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
                     {
-                        plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto piï¿½ distante dell'interlyaer
+                        plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
 
                         // primo strato di brick
                         if (vertexIdMap != null)
@@ -276,7 +270,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                         }
                         else
                         {
-                            // se ï¿½ nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
+                            // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
 
                             upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
                                                             Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
@@ -288,7 +282,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                 _volumeUpperLowerVerticesIds[i * 2 + 1] = (lowerVertices, upperVertices);
 
             }
-            
+
 
             // Assegno mesh a wrapper
             _meshes = meshes;
@@ -362,5 +356,88 @@ namespace GPC.Checkers.Glasses.Wrappers
             return _volumeUpperLowerVerticesIds[layerIndex];
         }
 
+        #endregion
+
+
+        #region Equivalent thickness
+
+
+        /// <summary>
+        /// Perform calculation of the equivalent thickness based on <see cref="Models.Prototype.LaminatedAnalysisType"/>
+        /// </summary>
+        /// <exception cref="NotSupportedException"></exception>
+        public void CalculateEquivalentThicknesses()
+        {
+            
+            switch (_glassSurface.Prototype.LaminatedEqThicknessMethod)
+            {
+                case Models.Prototype.LaminatedEqThicknessMethods.EET:
+
+                    break;
+                
+                case Models.Prototype.LaminatedEqThicknessMethods.ASTME1300:
+
+                    if (((LaminatedGlass)Glass).GlassLayerCount > 2) 
+                        throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only two layers glass.");
+
+                    if (((LaminatedGlass)Glass).InterlayerCount > 1)
+                        throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only one interlayer.");
+
+                    LaminatedGlass glass = (LaminatedGlass)Glass;
+
+                    double elasticModulus = glass.GetElasticModulus();
+
+                    double h1 = glass.MonolithicGlasses[0].Thickness;
+                    double h2 = glass.MonolithicGlasses[1].Thickness;
+                    double hv = glass.Interlayers[0].Thickness;
+
+                    double hs = 0.5 * (h1 + h2) + hv;
+
+                    double hs1 = hs * h1 / (h1 + h2);
+                    double hs2 = hs * h2 / (h2 + h1);
+
+
+                    double a = _glassSurface.Shape.Fill.Explode().Select(i => i.GetLength()).Min(); // in casi regolari funziona,
+                                                                                                    // in casi irregolari non tanto bene
+                                                                                                    // es. un poligono di 5 lati con uno dei lati molto piccolo
+                                                                                                    // andrebbe fatto un metodo per capire qual è "smallest dimension of bending of the laminate plate"
+                    
+                    double Is = h1 * Math.Pow(hs2, 2.0) + h2 * Math.Pow(hs1, 2.0);
+
+                    double aSquare = Math.Pow(a, 2);
+                    double hsSquare = Math.Pow(hs, 2);
+
+                    double hs1Square = Math.Pow(hs1, 2);
+                    double hs2Square = Math.Pow(hs2, 2);
+
+                    foreach (Load load in _externalFaceLoads.Union(_internalFaceLoads).Distinct())
+                    {
+                        var shearModule = glass.Interlayers[0].Material.GetShearModule(((LoadCase)load.LoadCase).LoadDuration, ((LoadCase)load.LoadCase).Temperature);
+
+                        double lambda = 1.0 / (1.0 + (9.6 * elasticModulus * Is * hv) / (shearModule * hsSquare * aSquare)); // Shear transfer coefficient
+
+                        double hw = Math.Pow(hs1Square + hs2Square + 12.0 * lambda * Is, 1.0 / 3.0);
+
+                        _thicknessesW[(((LoadCase)load.LoadCase).LoadDuration, ((LoadCase)load.LoadCase).Temperature)] = hw;
+                        _thicknessesStress[0][(((LoadCase)load.LoadCase).LoadDuration, ((LoadCase)load.LoadCase).Temperature)] = Math.Sqrt(Math.Pow(hw, 3.0) / (h1 + 2.0 * lambda * hs2));
+                        _thicknessesStress[1][(((LoadCase)load.LoadCase).LoadDuration, ((LoadCase)load.LoadCase).Temperature)] = Math.Sqrt(Math.Pow(hw, 3.0) / (h2 + 2.0 * lambda * hs1));
+                    }
+
+                    break;
+                
+                case Models.Prototype.LaminatedEqThicknessMethods.NEN:
+                    throw new NotImplementedException();
+                    //break;
+                
+                case Models.Prototype.LaminatedEqThicknessMethods.Omega:
+                    throw new NotImplementedException();
+                    //break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        #endregion
     }
 }

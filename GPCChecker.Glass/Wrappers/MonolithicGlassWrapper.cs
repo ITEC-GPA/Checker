@@ -30,8 +30,8 @@ namespace GPC.Checkers.Glasses.Wrappers
             return (Glass as MonolithicGlass).Thickness;
         }
 
-        /// <inheritdoc/>
-        public override double GetDeformationThickness(double loadDuration)
+
+        public override double GetDeformationThickness(double loadDuration, double temperature)
         {
             return (Glass as MonolithicGlass).Thickness;
         }
@@ -42,13 +42,11 @@ namespace GPC.Checkers.Glasses.Wrappers
             return (Glass as MonolithicGlass).Thickness;
         }
 
-        /// <inheritdoc/>
-        public override double GetStressThickness(double loadDuration)
+        public override double[] GetStressThickness(double loadDuration, double temperature)
         {
-            return (Glass as MonolithicGlass).Thickness;
+            return new[] { (Glass as MonolithicGlass).Thickness };
         }
 
-        /// <inheritdoc/>
         public override double GetTotalThickness()
         {
             return ((MonolithicGlass)Glass).GetTotalThickness();
