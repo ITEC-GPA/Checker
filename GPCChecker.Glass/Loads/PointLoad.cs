@@ -13,9 +13,10 @@ namespace GPC.Checkers.Glasses.Loads
     public class PointLoad : Model.Loads.PointLoad, IGlassLoad
     {
 
-        private GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
+        private readonly GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
 
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
+
 
         public PointLoad(Vector3d force, Vector3d moment, Point3d point, LoadCaseBase loadCase, CoordinateSystem cSys, GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External) 
             : base(force, moment, point, loadCase, cSys)

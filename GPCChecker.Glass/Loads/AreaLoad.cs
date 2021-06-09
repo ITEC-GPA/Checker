@@ -13,7 +13,7 @@ namespace GPC.Checkers.Glasses.Loads
     public class AreaLoad : Model.Loads.AreaLoad, IGlassLoad
     {
 
-        private GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
+        private readonly GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
 
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
 

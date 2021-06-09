@@ -12,10 +12,10 @@ namespace GPC.Checkers.Glasses.Loads
 {
     public class NormalAreaLoad : Model.Loads.NormalAreaLoad, IGlassLoad
     {
+        private readonly GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
 
-        public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
+        public  GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
 
-        private GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
 
 
         public NormalAreaLoad(double pressure, Shape shape, LoadCaseBase loadCase, GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External) 

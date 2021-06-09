@@ -17,14 +17,12 @@ namespace GPC.Checkers.Glasses.Loads
     public class ParametricLineLoad : GPC.Model.Loads.LineLoad, IParametricLoad, IGlassLoad
     {
 
-        private GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
+        private readonly GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
 
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
 
 
-        /// <summary>
-        /// 
-        /// </summary>
+
         /// <param name="f1"></param>
         /// <param name="f2"></param>
         /// <param name="f3"></param>
@@ -40,9 +38,7 @@ namespace GPC.Checkers.Glasses.Loads
             _glassPanelPositions = glassPanelPosition;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+
         /// <param name="f1"></param>
         /// <param name="f2"></param>
         /// <param name="f3"></param>
