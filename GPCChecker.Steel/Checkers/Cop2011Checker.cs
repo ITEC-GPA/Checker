@@ -24,8 +24,6 @@ namespace GPC.Checkers.Steel.Checkers
         // BeamCheckerResults[]
         // Standard
 
-        internal StandardCopSuos2011 StandardCopSuos2011 => (StandardCopSuos2011)Standard;
-
 
         public Cop2011Checker(Cop2011BeamCheckerOptions[] beamCheckers, ILoadCase loadCase)
             :base(beamCheckers, loadCase)
@@ -45,12 +43,12 @@ namespace GPC.Checkers.Steel.Checkers
 
             foreach (Cop2011BeamCheckerOptions cop2011BeamChecker in BeamCheckersOptions)
             {
-                Cop2011BeamChecker beamCheckerResults = new Cop2011BeamChecker(cop2011BeamChecker, LoadCase, StandardCopSuos2011);
+                Cop2011BeamChecker beamCheckerResults = new Cop2011BeamChecker(cop2011BeamChecker, LoadCase, (StandardCopSuos2011)Standard);
                 beamCheckerResults.PerformCheck();
                 list.Add(beamCheckerResults);
             }
 
-            BeamCheckerResults = list.ToArray();
+            _beamCheckerResults = list.ToArray();
         }
 
 
@@ -84,10 +82,14 @@ namespace GPC.Checkers.Steel.Checkers
 
             public enum LateralTorsionalBucklingConditions
             {
-                [Description("Compressed flange restrained at ends")] Default,
-                [Description("Compressed flange fully Restrained")] FullyRestrained,
-                [Description("Compressed flange unrestrained")] Unrestrained,
-                [Description("Compressed flange unrestrained and under destabilizing loads")] DestabilizingLoad,
+                [Description("Compressed flange restrained at ends")] 
+                Default,
+                [Description("Compressed flange fully Restrained")] 
+                FullyRestrained,
+                [Description("Compressed flange unrestrained")] 
+                Unrestrained,
+                [Description("Compressed flange unrestrained and under destabilizing loads")] 
+                DestabilizingLoad,
             }
 
             #endregion
@@ -112,7 +114,7 @@ namespace GPC.Checkers.Steel.Checkers
 
             #region Constructor
 
-            public Cop2011Options(SteelClasses steelGrade = SteelClasses.Class1, LateralTorsionalBucklingConditions latTorsBucklingCondition = default, 
+            public Cop2011Options(SteelClasses steelGrade = SteelClasses.Class1, LateralTorsionalBucklingConditions latTorsBucklingCondition = LateralTorsionalBucklingConditions.Default, 
                 double unbracedLengthFactorAxialBuck1 = 1, double effectiveLengthFactorAxialBuck1 = 1, double unbracedLengthFactorAxialBuck2 = 1, 
                 double effectiveLengthFactorAxialBuck2 = 1, double UnbracedLengthFactorLatTorsBuck = 1, double effectiveLengthFactorLatTorsBuck = 1, 
                 double unbracedLengthFactorCriticalMoment1 = 1, double effectiveLengthFactorCriticalMoment1 = 1, double unbracedLengthFactorCriticalMoment2 = 1,

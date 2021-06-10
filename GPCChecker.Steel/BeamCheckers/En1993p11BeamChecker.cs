@@ -12,7 +12,7 @@ using GPC.Checkers.Steel.Checkers;
 
 namespace GPC.Checkers.Steel.BeamChecker
 {
-    internal class En1993p11BeamChecker : BeamChecker
+    internal class En1993p11BeamChecker : BeamCheckerResults
     {
 
         #region Public enum

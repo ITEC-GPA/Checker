@@ -12,9 +12,8 @@ using GPC.Checkers.Steel.BeamChecker;
 
 namespace GPC.Checkers.Steel.Results
 {
-    public abstract class BeamStationCheckerResults
+    public class BeamStationCheckerResults
     {
-
         #region Variables
 
         protected double _axialTensionWorkingRatio;
@@ -75,7 +74,7 @@ namespace GPC.Checkers.Steel.Results
 
         public double InteractionWorkingRatio => _interactioWorkingRatio;
 
-        public double WorkingRatio => GetMaxWorkingRation();
+        public double WorkingRatio => GetMaxWorkingRatio();
 
         public double AxialTensionCapacity => _axialTensionRd;
 
@@ -116,10 +115,10 @@ namespace GPC.Checkers.Steel.Results
 
         internal BeamStationCheckerResults(ISteelSection section, ILoadCase loadCase, ResultBeamForces forces, ResultStation station)    
         {
-            _section = section;
-            _forces = forces;
-            _station = station;
-            _loadCase = loadCase;
+            _section = section ?? throw new ArgumentNullException(nameof(section));
+            _forces = forces ?? throw new ArgumentNullException(nameof(forces));
+            _station = station ?? throw new ArgumentNullException(nameof(station));
+            _loadCase = loadCase ?? throw new ArgumentNullException(nameof(loadCase));
         }
 
         #endregion
@@ -129,30 +128,30 @@ namespace GPC.Checkers.Steel.Results
 
         internal void SetCapacity(double axialTension, double axialCompression, double axialBuck1, double axialBuck2, double shear1, double shear2, double bending1, double bending2, double latTors)
         {
-            _axialTensionRd = axialTension;
-            _axialCompressionRd = axialCompression;
-            _axialBuckling1Rd = axialBuck1;
-            _axialBuckling2Rd = axialBuck2;
-            _shear1Rd = shear1;
-            _shear2Rd = shear2;
-            _bendingMoment1Rd = bending1;
-            _bendingMoment2Rd = bending2;
-            _lateralTorsionalMomentRd = latTors;
+            _axialTensionRd = axialTension < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : axialTension;
+            _axialCompressionRd = axialCompression < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : axialCompression;
+            _axialBuckling1Rd = axialBuck1 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : axialBuck1;
+            _axialBuckling2Rd = axialBuck2 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : axialBuck2;
+            _shear1Rd = shear1 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : shear1;
+            _shear2Rd = shear2 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : shear2;
+            _bendingMoment1Rd = bending1 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : bending1;
+            _bendingMoment2Rd = bending2 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : bending2;
+            _lateralTorsionalMomentRd = latTors < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : latTors;
         }
 
         internal void SetWorkingRatio(double axialTensionWR, double axialCompressionWR, double axialBuck1WR, double axialBuck2WR, double shear1WR, double shear2WR, double bending1WR, 
-                                        double bending2WR, double latTorsWR, double interactioNWR)
+                                        double bending2WR, double latTorsWR, double interactionWR)
         {
-            _axialTensionWorkingRatio = axialTensionWR;
-            _axialCompressionWorkingRatio = axialCompressionWR;
-            _axialBuckling1WorkingRatio = axialBuck1WR;
-            _axialBuckling2WorkingRatio = axialBuck2WR;
-            _shear1WorkingRatio = shear1WR; 
-            _shear2WorkingRatio = shear2WR;
-            _bendingMoment1WorkingRatio = bending1WR;
-            _bendingMoment2WorkingRatio = bending2WR;
-            _lateraTorsionalBucklingWorkingRatio = latTorsWR;
-            _interactioWorkingRatio = interactioNWR;
+            _axialTensionWorkingRatio = axialTensionWR < 0 ? throw new ArgumentException($"AxialTensionWorkingRatio cannot be lower than zero") : axialTensionWR;
+            _axialCompressionWorkingRatio = axialCompressionWR < 0 ? throw new ArgumentException($"AxialCompressionWorkingRatio cannot be lower than zero") : axialCompressionWR;
+            _axialBuckling1WorkingRatio = axialBuck1WR < 0 ? throw new ArgumentException($"AxialBuckling1AxisWorkingRatio cannot be lower than zero") : axialBuck1WR;
+            _axialBuckling2WorkingRatio = axialBuck2WR < 0 ? throw new ArgumentException($"AxialBuckling2AxisWorkingRatio cannot be lower than zero") : axialBuck2WR;
+            _shear1WorkingRatio = shear1WR < 0 ? throw new ArgumentException($"Shear1WorkingRatio cannot be lower than zero") : shear1WR;
+            _shear2WorkingRatio = shear2WR < 0 ? throw new ArgumentException($"Shear2WorkingRatio cannot be lower than zero") : shear2WR;
+            _bendingMoment1WorkingRatio = bending1WR < 0 ? throw new ArgumentException($"BendingMoment1AxisWorkingRatio cannot be lower than zero") : bending1WR;
+            _bendingMoment2WorkingRatio = bending2WR < 0 ? throw new ArgumentException($"BendingMoment2AxisWorkingRatio cannot be lower than zero") : bending2WR;
+            _lateraTorsionalBucklingWorkingRatio = latTorsWR < 0 ? throw new ArgumentException($"LateralTorsionalWorkingRatio cannot be lower than zero") : latTorsWR;
+            _interactioWorkingRatio = interactionWR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interactionWR;
         }
 
         internal void SetClasses(Cop2011BeamChecker.SectionClass axialSectionClass, Cop2011BeamChecker.SectionClass bendingSectionClass)
@@ -161,12 +160,13 @@ namespace GPC.Checkers.Steel.Results
             _bendingCompressionClass = bendingSectionClass;
         }
 
-        internal double GetMaxWorkingRation()
+        internal double GetMaxWorkingRatio()
         {
             List<double> workingRatioList = new List<double>() { _axialTensionWorkingRatio, _axialCompressionWorkingRatio, _axialBuckling1WorkingRatio, 
                                                                 _axialBuckling2WorkingRatio, _shear1WorkingRatio, _shear2WorkingRatio, _bendingMoment1WorkingRatio, 
                                                                 _bendingMoment2WorkingRatio, _torsionalMomentWorkingRatio, _lateraTorsionalBucklingWorkingRatio, 
                                                                 _interactioWorkingRatio};
+
             return workingRatioList.Max();
         }
 

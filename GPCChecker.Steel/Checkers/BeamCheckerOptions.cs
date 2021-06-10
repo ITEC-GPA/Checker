@@ -1,12 +1,10 @@
-﻿using GPC.Model.Results;
-using GPC.Model.Sections.Steel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GPC.Checkers.Steel;
-using GPC.Model.LoadCases;
+using GPC.Model.Results;
+using GPC.Model.Sections.Steel;
 
 namespace GPC.Checkers.Steel.Checkers
 {
@@ -18,7 +16,6 @@ namespace GPC.Checkers.Steel.Checkers
         protected readonly ResultBeamForces[] _resultBeamForces;
         protected readonly ResultStation[] _resultStations;
         protected readonly Checker.Options _options;
-
 
         #endregion
 
@@ -35,27 +32,17 @@ namespace GPC.Checkers.Steel.Checkers
 
         public ResultStation[] Stations  => _resultStations;
 
-
-
         #endregion
 
 
         #region Public Constructors
 
         public BeamCheckerOptions(ISteelSection[] sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, Checker.Options options)
-        {
-            if (sections.Length < 1)
-                throw new ArgumentException("Input sections can not be null");
-            _section = sections;
-            if (resultBeamForces.Length < 1)
-                throw new ArgumentException("Input resultBeamForces can not be null");
-            _resultBeamForces = resultBeamForces;
-            if (resultStations.Length < 1)
-                throw new ArgumentException("Input resultStations can not be null");
-            _resultStations = resultStations;
-            if (options== null)
-                throw new ArgumentException("Input options can not be null");
-            _options = options;
+        {                
+            _section = sections ?? throw new ArgumentException("Input sections can not be null");
+            _resultBeamForces = resultBeamForces ?? throw new ArgumentException("Input resultBeamForces can not be null");
+            _resultStations = resultStations ?? throw new ArgumentException("Input resultStations can not be null");
+            _options = options ?? throw new ArgumentException("Input options can not be null");
 
             if (_resultStations.Length != _resultBeamForces.Length || _resultStations.Length != _section.Length)
                 throw new ArgumentException("The input array must have the same length");

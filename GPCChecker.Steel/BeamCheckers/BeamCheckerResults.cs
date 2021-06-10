@@ -14,11 +14,11 @@ using GPC.Checkers.Steel.Results;
 namespace GPC.Checkers.Steel.BeamChecker
 {
 
-    public abstract class BeamChecker
+    public abstract class BeamCheckerResults
     {
         #region Variables
 
-        protected readonly BeamCheckerOptions _beam;
+        protected readonly BeamCheckerOptions _beamOptions;
         protected BeamStationCheckerResults[] _beamStationCheckerResults;
         protected readonly Standard _standard;
         protected readonly ILoadCase _combination;
@@ -28,21 +28,21 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         #region Properties
 
-        internal BeamCheckerOptions Beam => _beam;
+        internal BeamCheckerOptions BeamOptions => _beamOptions;
 
-        internal ResultBeamForces[] ResultBeamForces => Beam.ResultBeamForces;
+        internal ResultBeamForces[] ResultBeamForces => BeamOptions.ResultBeamForces;
 
-        internal ResultStation[] Stations => Beam.Stations;
+        internal ResultStation[] Stations => BeamOptions.Stations;
 
-        internal Checker.Options Options => Beam.Options;
+        internal Checker.Options Options => BeamOptions.Options;
 
-        internal ISteelSection[] Section => Beam.Section;
+        internal ISteelSection[] Section => BeamOptions.Section;
 
-        internal double WorkingRatio { get => _beamStationCheckerResults.Select(i => i.GetMaxWorkingRation()).Max(); }
+        public double WorkingRatio => _beamStationCheckerResults.Select(i => i.GetMaxWorkingRatio()).Max();
 
-        public BeamStationCheckerResults[] BeamStationCheckerResults { get => _beamStationCheckerResults; set => _beamStationCheckerResults = value; }
+        public BeamStationCheckerResults[] BeamStationCheckerResults => _beamStationCheckerResults; 
 
-        internal double Length => _beam.BeamLength;
+        internal double Length => _beamOptions.BeamLength;
 
         internal Standard Standard => _standard;
 
@@ -53,21 +53,17 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         #region Constructor
 
-        internal BeamChecker(BeamCheckerOptions beamChecker, ILoadCase loadCase,  Standard standard)
+        internal BeamCheckerResults(BeamCheckerOptions beamChecker, ILoadCase loadCase,  Standard standard)
         {
-            _beam = beamChecker;
-            _combination = loadCase;
-            _standard = standard;
+            _beamOptions = beamChecker ?? throw new ArgumentNullException(nameof(beamChecker));
+            _combination = loadCase ?? throw new ArgumentNullException(nameof(loadCase));
+            _standard = standard ?? throw new ArgumentNullException(nameof(standard));
         }
 
         #endregion
 
 
         internal abstract void PerformCheck();
-        // deve settare  le variabili che mancano
-        // _beamStationCheckerResults = .....
-        // _workingRatio = .....
-
 
         internal virtual double MinSigma(ISteelSection section, double N, double M2, double M1)
         {

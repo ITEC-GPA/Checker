@@ -194,7 +194,7 @@ namespace SteelTests
         public void ClassificationSectionRHSTest2()
         {
             // 254x102x22
-            double h = 250; // Steel_CoP_2011_commentary E7.9
+            double h = 250; 
             double b = 150;
             double t = 6;
             double length = 6000;
@@ -210,16 +210,18 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamChecker.SectionClass sectionClassA = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamChecker.SectionClass sectionClassB = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClassA, Cop2011BeamChecker.SectionClass.Class4);
+            Assert.AreEqual(sectionClassB, Cop2011BeamChecker.SectionClass.Class2);
         }
 
         [TestMethod]
         public void ClassificationSectionRHSTest3()
         {
             // 254x102x22
-            double h = 250; // Steel_CoP_2011_commentary E7.9
+            double h = 250; 
             double b = 250;
             double t = 12.5;
             double length = 6000;
@@ -235,16 +237,18 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamChecker.SectionClass sectionClassB = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamChecker.SectionClass sectionClassA = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class1);
+            Assert.AreEqual(sectionClassB, Cop2011BeamChecker.SectionClass.Class1);
+            Assert.AreEqual(sectionClassA, Cop2011BeamChecker.SectionClass.Class3);
         }
 
         [TestMethod]
         public void ClassificationSectionRHSTest4()
         {
             // 254x102x22
-            double h = 200; // Steel_CoP_2011_commentary E7.9
+            double h = 200; 
             double b = 200;
             double t = 8;
             double length = 6000;
@@ -285,8 +289,10 @@ namespace SteelTests
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
             Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamChecker.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
 
             Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class4);
+            Assert.AreEqual(sectionClassBend, Cop2011BeamChecker.SectionClass.Class3);
         }
 
         [TestMethod]
@@ -356,9 +362,11 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamChecker.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamChecker.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class1);
+            Assert.AreEqual(sectionClassBend, Cop2011BeamChecker.SectionClass.Class1);
+            Assert.AreEqual(sectionClassComp, Cop2011BeamChecker.SectionClass.Class3);
         }
 
         [TestMethod]
