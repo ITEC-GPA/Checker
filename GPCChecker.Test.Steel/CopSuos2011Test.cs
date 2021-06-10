@@ -253,7 +253,7 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 1100000, 0, CoordinateSystem.Global) };
             ResultStation[] resultStations = new ResultStation[1] { new ResultStation(1, length / 2.0, length) };
-            SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty) };
+            SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty, 0, Section.FormedTypes.HotFinished, Section.SectionTypes.Rolled) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             Cop2011BeamCheckerOptions[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerOptions[] { new Cop2011BeamCheckerOptions(steelSectionRHS, resultBeamForces, resultStations, options) };
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
@@ -611,7 +611,7 @@ namespace SteelTests
         public void AxialBucklingSectionRHSTest1()
         {
             // 254x102x22
-            double h = 200; // Steel_CoP_2011_commentary E7.9
+            double h = 200; 
             double b = 200;
             double t = 8;
             double length = 6000;
@@ -620,7 +620,7 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 100 * 1000000, 0, CoordinateSystem.Global) };
             ResultStation[] resultStations = new ResultStation[1] { new ResultStation(1, length / 2.0, length) };
-            SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty) };
+            SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty, 0, Section.FormedTypes.HotFinished, Section.SectionTypes.Rolled) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
             Cop2011BeamCheckerOptions[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerOptions[] { new Cop2011BeamCheckerOptions(steelSectionRHS, resultBeamForces, resultStations, options) };
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
