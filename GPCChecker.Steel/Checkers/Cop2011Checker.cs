@@ -24,6 +24,8 @@ namespace GPC.Checkers.Steel.Checkers
         // BeamCheckerResults[]
         // Standard
 
+        internal StandardCopSuos2011 StandardCopSuos2011 => (StandardCopSuos2011)Standard;
+
 
         public Cop2011Checker(Cop2011BeamCheckerOptions[] beamCheckers, ILoadCase loadCase)
             :base(beamCheckers, loadCase)
@@ -40,13 +42,14 @@ namespace GPC.Checkers.Steel.Checkers
         public override void PerformCheck()
         {
             List<Cop2011BeamChecker> list = new List<Cop2011BeamChecker>();
-            StandardCopSuos2011 StandardCopSuos2011 = new StandardCopSuos2011();
+
             foreach (Cop2011BeamCheckerOptions cop2011BeamChecker in BeamCheckersOptions)
             {
                 Cop2011BeamChecker beamCheckerResults = new Cop2011BeamChecker(cop2011BeamChecker, LoadCase, StandardCopSuos2011);
                 beamCheckerResults.PerformCheck();
                 list.Add(beamCheckerResults);
             }
+
             BeamCheckerResults = list.ToArray();
         }
 

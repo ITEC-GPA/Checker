@@ -44,6 +44,8 @@ namespace GPC.Checkers.Steel.Checkers
 
         public BeamCheckerOptions(ISteelSection[] sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, Checker.Options options)
         {
+            if (sections.Length < 1)
+                throw new ArgumentException("Input sections can not be null");
             _section = sections;
             if (resultBeamForces.Length < 1)
                 throw new ArgumentException("Input resultBeamForces can not be null");
@@ -55,7 +57,7 @@ namespace GPC.Checkers.Steel.Checkers
                 throw new ArgumentException("Input options can not be null");
             _options = options;
 
-            if (_resultStations.Length != _resultBeamForces.Length)
+            if (_resultStations.Length != _resultBeamForces.Length || _resultStations.Length != _section.Length)
                 throw new ArgumentException("The input array must have the same length");
         }
 

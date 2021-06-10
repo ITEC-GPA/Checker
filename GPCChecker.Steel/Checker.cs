@@ -32,7 +32,7 @@ namespace GPC.Checkers.Steel
 
         public BeamChecker.BeamChecker[] BeamCheckerResults { get => _beamCheckerResults; set => _beamCheckerResults = value; }
 
-        public Standard Standard { get => _standard; }
+        public Standard Standard => _standard; 
 
         public ILoadCase LoadCase => _loadCase;
 
@@ -66,6 +66,8 @@ namespace GPC.Checkers.Steel
 
         public abstract class Options
         {
+            #region Variables
+
             protected double _kAxialBuckling1;
             protected double _kAxialBuckling2;
             protected double _kLatTorsBuckling;
@@ -77,28 +79,65 @@ namespace GPC.Checkers.Steel
             protected double _mCriticalMoment1;
             protected double _mCriticalMoment2;
 
+            #endregion
+
+
+            #region Properties
 
             /// <summary>
-            /// Unbraced length factor for buckling about the frame object 1-axis
+            /// Unbraced length factor for axial buckling about the frame object 1-axis
             /// </summary>
             public double UnbracedLengthFactorAxialBuck1 => _kAxialBuckling1;
 
             /// <summary>
-            /// Unbraced length factor for buckling about the frame object 1-axis
+            /// Unbraced length factor for buckling about the frame object 2-axis
             /// </summary>
             public double UnbracedLengthFactorAxialBuck2 => _kAxialBuckling2;
+
+            /// <summary>
+            /// Unbraced length factor for lateral torsional buckling
+            /// </summary>
             public double UnbracedLengthFactorLatTorsBuck => _kLatTorsBuckling;
+
+            /// <summary>
+            /// Unbraced length factor for critical moment about the frame object 1-axis
+            /// </summary>
             public double UnbracedLengthFactorCriticalMoment1 => _kCriticalMoment1;
+
+            /// <summary>
+            /// Unbraced length factor for critical moment about the frame object 2-axis
+            /// </summary>
             public double UnbracedLengthFactorCriticalMoment2 => _kCriticalMoment2;
 
             /// <summary>
-            /// Effective length factor for buckling about the frame object major axis
+            /// Effective length factor for axial buckling about the frame object 1-axis
             /// </summary>
             public double EffectiveLengthFactorAxialBuck1 => _mAxialBuckling1;
+
+            /// <summary>
+            /// Effective length factor for axial buckling about the frame object 2-axis
+            /// </summary>
             public double EffectiveLengthFactorAxialBuck2 => _mAxialBuckling2;
+
+            /// <summary>
+            /// Effective length factor for lateral torsional buckling
+            /// </summary>
             public double EffectiveLengthFactorLatTorsBuck => _mLatTorsBuckling;
+
+            /// <summary>
+            /// Effective length factor for critical moment about the frame object 1-axis
+            /// </summary>
             public double EffectiveLengthFactorCriticalMoment1 => _mCriticalMoment1;
+
+            /// <summary>
+            /// Effective length factor for critical moment about the frame object 2-axis
+            /// </summary>
             public double EffectiveLengthFactorCriticalMoment2 => _mCriticalMoment2;
+
+            #endregion
+
+
+            #region Constructor
 
             public Options(double unbracedLengthFactorAxialBuck1 = 1, double effectiveLengthFactorAxialBuck1 = 1,
                 double unbracedLengthFactorAxialBuck2 = 1, double effectiveLengthFactorAxialBuck2 = 1,
@@ -118,11 +157,8 @@ namespace GPC.Checkers.Steel
                 _mCriticalMoment2 = effectiveLengthFactorCriticalMoment2;
             }
 
+            #endregion
             
-        }
-
-
+        }        
     }
-
-
 }

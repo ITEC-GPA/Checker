@@ -91,10 +91,18 @@ namespace GPC.Checkers.Steel.Checkers
 
             #region Constructor
 
-            public EN1993p11Options(double columnEffectiveLength)
-                :base(columnEffectiveLength)
+            public EN1993p11Options(BuckingCurves buckingCurve, SupportConditions supportCondition, LoadConditions loadCondition, double unbracedLengthFactorAxialBuck1 = 1, double effectiveLengthFactorAxialBuck1 = 1,
+                double unbracedLengthFactorAxialBuck2 = 1, double effectiveLengthFactorAxialBuck2 = 1,
+                double UnbracedLengthFactorLatTorsBuck = 1, double effectiveLengthFactorLatTorsBuck = 1,
+                double unbracedLengthFactorCriticalMoment1 = 1, double effectiveLengthFactorCriticalMoment1 = 1,
+                double unbracedLengthFactorCriticalMoment2 = 1, double effectiveLengthFactorCriticalMoment2 = 1)
+                :base(unbracedLengthFactorAxialBuck1, effectiveLengthFactorAxialBuck1,
+                unbracedLengthFactorAxialBuck2, effectiveLengthFactorAxialBuck2, UnbracedLengthFactorLatTorsBuck, effectiveLengthFactorLatTorsBuck,
+                unbracedLengthFactorCriticalMoment1, effectiveLengthFactorCriticalMoment1, unbracedLengthFactorCriticalMoment2, effectiveLengthFactorCriticalMoment2)
             {
-
+                _buckingCurve = buckingCurve;
+                _supportCondition = supportCondition;
+                _loadCondition = loadCondition;
             }
 
             #endregion

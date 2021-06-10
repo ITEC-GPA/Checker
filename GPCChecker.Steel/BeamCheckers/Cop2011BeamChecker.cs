@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,7 +28,6 @@ namespace GPC.Checkers.Steel.BeamChecker
             [Description("Slender")] Class4 = 4,
         }
 
-
         #endregion
 
 
@@ -56,7 +55,7 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         internal Cop2011Checker.Cop2011Options.SteelClasses SteelClass => _steelClass;
 
-        internal double Py { get => _py; set { _py = value; } }
+        internal double Py => GetPy();  
 
         internal Cop2011Checker.Cop2011Options CopSuos2011Options => (Cop2011Checker.Cop2011Options)Options;
 
@@ -70,7 +69,6 @@ namespace GPC.Checkers.Steel.BeamChecker
         public Cop2011BeamChecker(Cop2011BeamCheckerOptions cop2011BeamChecker, ILoadCase loadCase, StandardCopSuos2011 standard)
             : base(cop2011BeamChecker, loadCase, standard)
         {
-            _py = GetPy();
             _steelClass = ((Cop2011Checker.Cop2011Options)cop2011BeamChecker.Options).SteelClass;
         }
 
@@ -116,7 +114,7 @@ namespace GPC.Checkers.Steel.BeamChecker
                 if (IsNecessaryTheLatTorsBucklingCheck(bendingCompSectionClass, Section[i]))
                 {
                     latTorsRd = CalculateLateralTorsionalBucklingMomentCapacity(bendingCompSectionClass, Section[i]);
-                    latTorsWR = GetWorkingRatio(CalculateMLTForLatTorsBuckling() * ResultBeamForces[i].M1, latTorsRd);                    
+                    latTorsWR = GetWorkingRatio(CalculateMLTForLatTorsBuckling() * Math.Max(ResultBeamForces[i].M1, ResultBeamForces[i].M2), latTorsRd);                    
                 }
 
                 double interactionWR;
@@ -503,36 +501,36 @@ namespace GPC.Checkers.Steel.BeamChecker
                 if (sectionH.SectionType == Model.Sections.Section.SectionTypes.Rolled)
                 {
                     if (sectionH.HeightWeb / sectionH.ThicknessWeb > 70.0 * Epsilon)
-                        throw new NotImplementedException("Warning: shear buckling resistance must be checked");
+                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * GetShearBucklingReduction(section) * GetShearAreaYaxis(section);
                 }
                 else
                 {
                     if (sectionH.HeightWeb / sectionH.ThicknessWeb > 62.0 * Epsilon)
-                        throw new NotImplementedException("Warning: shear buckling resistance must be checked");
+                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * GetShearBucklingReduction(section) * GetShearAreaYaxis(section);
                 }
             if (section is SectionRHS sectionRHS)
                 if (sectionRHS.SectionType == Model.Sections.Section.SectionTypes.Rolled)
                 {
                     if (sectionRHS.ThicknessWebLeft / sectionRHS.Heightinternal > 70.0 * Epsilon ||
                         sectionRHS.ThicknessWebRight / sectionRHS.Heightinternal > 70.0 * Epsilon)
-                        throw new NotImplementedException("Warning: shear buckling resistance must be checked");
+                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * GetShearBucklingReduction(section) * GetShearAreaYaxis(section);
                 }
                 else
                 {
                     if (sectionRHS.ThicknessWebLeft / sectionRHS.Heightinternal > 62.0 * Epsilon ||
                         sectionRHS.ThicknessWebRight / sectionRHS.Heightinternal > 62.0 * Epsilon)
-                        throw new NotImplementedException("Warning: shear buckling resistance must be checked");
+                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * GetShearBucklingReduction(section) * GetShearAreaYaxis(section);
                 }
             if (section is SectionC sectionC)
                 if (sectionC.SectionType == Model.Sections.Section.SectionTypes.Rolled)
                 {
                     if (sectionC.HeightWeb / sectionC.ThicknessWeb > 70.0 * Epsilon)
-                        throw new NotImplementedException("Warning: shear buckling resistance must be checked");
+                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * GetShearBucklingReduction(section) * GetShearAreaYaxis(section);
                 }
                 else
                 {
                     if (sectionC.HeightWeb / sectionC.ThicknessWeb > 62.0 * Epsilon)
-                        throw new NotImplementedException("Warning: shear buckling resistance must be checked");
+                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * GetShearBucklingReduction(section) * GetShearAreaYaxis(section);
                 }
             return CalculateShearReductionDueToTorsion(resultBeamForces, section) * Py * GetShearAreaYaxis(section) / Math.Sqrt(3);
         }
@@ -616,6 +614,35 @@ namespace GPC.Checkers.Steel.BeamChecker
                     throw new NotImplementedException("Not implemented section for Torsional moment");
             }
             return 1.0;
+        }
+
+        private double GetShearBucklingReduction(ISteelSection section)
+        {
+            if (section is SectionH sectionH)
+            {
+                double pv = 0.6 * Py;
+                double qe = Math.Pow(1000 / (sectionH.HeightWeb / sectionH.ThicknessWeb), 2);
+                double lambdaW = Math.Sqrt(pv / qe);
+
+                if(sectionH.SectionType == Model.Sections.Section.SectionTypes.Rolled)
+                {
+                    if(lambdaW <=0.9)                    
+                        return pv;                    
+                    else                    
+                        return 0.9 * pv / lambdaW;                    
+                }
+                else            //Welded
+                {
+                    if (lambdaW <= 0.8)
+                        return pv;
+                    else if (lambdaW > 0.8 && lambdaW < 1.25)
+                        return (13.48 - 5.6 * lambdaW) / 9 * pv;
+                    else
+                        return 0.9 * pv / lambdaW;
+                }
+            }
+            else
+                return Py;
         }
 
         #endregion
@@ -919,7 +946,7 @@ namespace GPC.Checkers.Steel.BeamChecker
         /// <returns></returns>
         private double CalculateMLTForLatTorsBuckling()
         {
-            //TODO: implementare con le stazioni
+            //TODO: implementare CalculateMLTForLatTorsBuckling con le stazioni
             // mLt = Math.Max( (0.2+(0.15 * M1 + 0.5 * M2 + 0.15 * M4)) / Mmax, 0.44)
             return 1.0; // a favore di sicurezza si prende il massimo possibile
         }

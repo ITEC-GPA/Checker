@@ -42,6 +42,7 @@ namespace GPC.Checkers.Steel.Results
 
         protected Cop2011BeamChecker.SectionClass _axialCompressionClass;
         protected Cop2011BeamChecker.SectionClass _bendingCompressionClass;
+
         protected readonly ISteelSection _section;
         protected readonly ResultBeamForces _forces;
         protected readonly ResultStation _station;
