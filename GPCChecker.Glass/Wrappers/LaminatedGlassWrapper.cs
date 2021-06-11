@@ -38,7 +38,14 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// </summary>
         protected (IEnumerable<int> lowerVertices, IEnumerable<int> upperVertices)[] _volumeUpperLowerVerticesIds;
 
-        
+
+        public Dictionary<(double loadDuration, double temperature), double> ThicknessesW => _thicknessesW;
+
+        public Dictionary<(double loadDuration, double temperature), double>[] ThicknessesStress => _thicknessesStress;
+
+
+
+
         #region Public constructors
 
         internal LaminatedGlassWrapper(GlassSurface glassSurface, LaminatedGlass glass) 
@@ -340,7 +347,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                             if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
                             {
-                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
+                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto piï¿½ distante dell'interlyaer
 
                                 // primo strato di brick
                                 if (vertexIdMap != null)
@@ -352,7 +359,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                                 }
                                 else
                                 {
-                                    // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
+                                    // se ï¿½ nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
 
                                     upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
                                                                     Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
@@ -453,7 +460,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// Perform calculation of the equivalent thickness based on <see cref="Models.Prototype.LaminatedAnalysisType"/>
         /// </summary>
         /// <exception cref="NotSupportedException"></exception>
-        public void CalculateEquivalentThicknesses()
+        public bool CalculateEquivalentThicknesses()
         {
             var eqThicknessParameters = _glassSurface.Prototype.LaminatedEqThicknessParameter;
             var boundaryCondition = eqThicknessParameters.LaminatedEqThicknessBoundaryCondition;
@@ -471,7 +478,9 @@ namespace GPC.Checkers.Glasses.Wrappers
             List<Load> loadsToProcess = _externalFaceLoads.Union(_internalFaceLoads).Distinct(new Loads.LoadDurationAndTemperatureEqualityComparer()).ToList();
 
 
-            
+            if (loadsToProcess.Count() == 0)
+                return false;
+
             // Calcola lo spessore equivalente per i casi supportati, altrimenti usa eet numerico
             switch (boundaryCondition)
             {
@@ -479,7 +488,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     SetEquivalentThicknessEET(loadsToProcess, GetPsiEETNumerical(loadsToProcess).ToList());
 
-                    return; // già processati tutti, ritorna
+                    return true; // giï¿½ processati tutti, ritorna
 
                 case Models.Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped:
 
@@ -549,11 +558,16 @@ namespace GPC.Checkers.Glasses.Wrappers
                     throw new NotSupportedException();
             }
 
+
+            
             // processo i rimanenti con il numerico
             if (loadsToProcess.Count() > 0)
             {
                 SetEquivalentThicknessEET(loadsToProcess, GetPsiEETNumerical(loadsToProcess).ToList());
+                return true;
             }
+
+            return false;
         }
 
 
@@ -581,7 +595,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             double a = _glassSurface.Shape.Fill.Explode().Select(i => i.GetLength()).Min(); // in casi regolari funziona,
                                                                                             // in casi irregolari non tanto bene
                                                                                             // es. un poligono di 5 lati con uno dei lati molto piccolo
-                                                                                            // andrebbe fatto un metodo per capire qual è "smallest dimension of bending of the laminate plate"
+                                                                                            // andrebbe fatto un metodo per capire qual ï¿½ "smallest dimension of bending of the laminate plate"
             
             double Is = h1 * Math.Pow(hs2, 2.0) + h2 * Math.Pow(hs1, 2.0);
 
@@ -666,7 +680,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             Parallel.ForEach(Enumerable.Range(0, loads.Count()), action);
 
 
-            // TODO: valutare se tenere parallel più for o solo for a livello prestazionale
+            // TODO: valutare se tenere parallel piï¿½ for o solo for a livello prestazionale
             for (int i = 0; i < loads.Count; i++)
             {
                 _thicknessesW[(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = twBuffer[loads[i]];
