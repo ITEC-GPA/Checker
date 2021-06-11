@@ -477,7 +477,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             {
                 case Models.Prototype.LaminatedEqThicknessBoundaryConditions.Other:
 
-                    SetEquivalentThicknessEETNumerical(loadsToProcess, GetPsiEETNumerical(loadsToProcess).ToList());
+                    SetEquivalentThicknessEET(loadsToProcess, GetPsiEETNumerical(loadsToProcess).ToList());
 
                     return; // già processati tutti, ritorna
 
@@ -493,7 +493,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                             double psi = 14.0 * 5.0 / eqThicknessParameters.A;
 
-                            SetEquivalentThicknessEETNumerical(areaLoads, areaLoads.Select(i => psi).ToList());
+                            SetEquivalentThicknessEET(areaLoads, areaLoads.Select(i => psi).ToList());
                         }
                     }
                     break;
@@ -552,7 +552,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             // processo i rimanenti con il numerico
             if (loadsToProcess.Count() > 0)
             {
-                SetEquivalentThicknessEETNumerical(loadsToProcess, GetPsiEETNumerical(loadsToProcess).ToList());
+                SetEquivalentThicknessEET(loadsToProcess, GetPsiEETNumerical(loadsToProcess).ToList());
             }
         }
 
@@ -560,10 +560,10 @@ namespace GPC.Checkers.Glasses.Wrappers
         protected void SetEquivalentThicknessASTM(List<Load> loads)
         {
             if (((LaminatedGlass)Glass).GlassLayerCount > 2)
-                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only two layers glass.");
+                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessParameter.LaminatedEqThicknessMethod} does support only two layers glass.");
 
             if (((LaminatedGlass)Glass).InterlayerCount > 1)
-                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only one interlayer.");
+                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessParameter.LaminatedEqThicknessMethod} does support only one interlayer.");
 
             LaminatedGlass glass = (LaminatedGlass)Glass;
 
@@ -607,7 +607,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        protected void SetEquivalentThicknessEETNumerical(List<Load> loads, List<double> psiFactors)
+        protected void SetEquivalentThicknessEET(List<Load> loads, List<double> psiFactors)
         {
 
             if (loads.Count() != psiFactors.Count())
@@ -680,10 +680,10 @@ namespace GPC.Checkers.Glasses.Wrappers
         protected double[] GetPsiEETNumerical(List<Load> loads)
         {
             if (((LaminatedGlass)Glass).GlassLayerCount > 2)
-                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only two layers glass.");
+                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessParameter} does support only two layers glass.");
 
             if (((LaminatedGlass)Glass).InterlayerCount > 1)
-                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only one interlayer.");
+                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessParameter} does support only one interlayer.");
 
 
             LaminatedGlass glass = (LaminatedGlass)Glass;
