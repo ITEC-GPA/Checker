@@ -113,7 +113,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         public override double GetTotalThickness()
         {
-            return ((LaminatedGlass)Glass).GetTotalThickness();
+            return ((LaminatedGlass)Glass).TotalThickness;
         }
 
         /// <returns>The incremental distances of the glass layers center of mass starting from the first one</returns>
