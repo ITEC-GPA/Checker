@@ -455,15 +455,16 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// <exception cref="NotSupportedException"></exception>
         public void CalculateEquivalentThicknesses()
         {
-            var boundaryCondition = _glassSurface.Prototype.LaminatedEqThicknessBoundaryCondition;
-            var eqThicknessMethod = _glassSurface.Prototype.LaminatedEqThicknessMethod;
+            var eqThicknessParameters = _glassSurface.Prototype.LaminatedEqThicknessParameter;
+            var boundaryCondition = eqThicknessParameters.LaminatedEqThicknessBoundaryCondition;
+            var eqThicknessMethod = eqThicknessParameters.LaminatedEqThicknessMethod;
 
 
             if (((LaminatedGlass)Glass).GlassLayerCount > 2)
-                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only two layers glass.");
+                throw new NotSupportedException($"{eqThicknessMethod} does support only two layers glass.");
 
             if (((LaminatedGlass)Glass).InterlayerCount > 1)
-                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only one interlayer.");
+                throw new NotSupportedException($"{eqThicknessMethod} does support only one interlayer.");
 
 
             // vengono filtrati in base a loadDuration, temperature e stessa geometria
@@ -475,14 +476,25 @@ namespace GPC.Checkers.Glasses.Wrappers
             switch (boundaryCondition)
             {
                 case Models.Prototype.LaminatedEqThicknessBoundaryConditions.Other:
-                    
 
-                    break;
+                    SetEquivalentThicknessEETNumerical(loadsToProcess, GetPsiEETNumerical(loadsToProcess).ToList());
+
+                    return; // già processati tutti, ritorna
+
                 case Models.Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped:
 
                     if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.EET)
                     {
-                        
+                        List<Load> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(NormalAreaLoad)).ToList();
+
+                        if (areaLoads.Count() > 0)
+                        {
+                            areaLoads.ForEach(i => loadsToProcess.Remove(i));
+
+                            double psi = 14.0 * 5.0 / eqThicknessParameters.A;
+
+                            SetEquivalentThicknessEETNumerical(areaLoads, areaLoads.Select(i => psi).ToList());
+                        }
                     }
                     break;
 
@@ -537,9 +549,11 @@ namespace GPC.Checkers.Glasses.Wrappers
                     throw new NotSupportedException();
             }
 
-
-
-            SetEquivalentThicknessEETNumerical(loadsToProcess);
+            // processo i rimanenti con il numerico
+            if (loadsToProcess.Count() > 0)
+            {
+                SetEquivalentThicknessEETNumerical(loadsToProcess, GetPsiEETNumerical(loadsToProcess).ToList());
+            }
         }
 
 
@@ -593,7 +607,77 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        protected void SetEquivalentThicknessEETNumerical(List<Load> loads)
+        protected void SetEquivalentThicknessEETNumerical(List<Load> loads, List<double> psiFactors)
+        {
+
+            if (loads.Count() != psiFactors.Count())
+                throw new ArgumentOutOfRangeException();
+
+
+            LaminatedGlass glass = (LaminatedGlass)Glass;
+
+            double h1 = glass.MonolithicGlasses[0].Thickness;
+            double h2 = glass.MonolithicGlasses[1].Thickness;
+            double hint = glass.Interlayers[0].Thickness;
+
+            double E = GetElasticModulus();
+            double ni = GetPoissonRatios();
+
+            double d = 0.5 * (h1 + h2) + hint; // eq. 6.37
+            double d1 = d * h2 / (h1 + h2);
+            double d2 = d * h1 / (h1 + h2);
+
+            double oneMinusNiSquare = 1.0 - Math.Pow(ni, 2.0);
+            double h1Cube = Math.Pow(h1, 3.0);
+            double h2Cube = Math.Pow(h2, 3.0);
+
+            // eq. 6.52
+            double DAbs = E * h1Cube / (12.0 * (1.0 - oneMinusNiSquare)) + E * h2Cube / (12.0 * (1.0 - oneMinusNiSquare));
+
+            // eq. 6.53
+            double DFull = DAbs + E / oneMinusNiSquare * h1 * h2 / (h1 + h2) * Math.Pow(d, 2.0);
+
+            // eq 6.46
+            double secondDeno = h1Cube + h2Cube;
+
+            // eq 6.46
+            double firstDeno = secondDeno + 12 * (h1 * Math.Pow(d1, 2.0) + h2 * Math.Pow(d2, 2.0));
+
+            ConcurrentDictionary<Load, double> twBuffer = new ConcurrentDictionary<Load, double>();
+            ConcurrentDictionary<Load, double> tSigma1Buffer = new ConcurrentDictionary<Load, double>();
+            ConcurrentDictionary<Load, double> tSigma2Buffer = new ConcurrentDictionary<Load, double>();
+
+
+            Action<int> action = new Action<int>((index) =>
+            {                
+                double shearModule = glass.Interlayers[0].Material.GetShearModule(((LoadCase)loads[index].LoadCase).LoadDuration, ((LoadCase)loads[index].LoadCase).Temperature);
+
+                // eq. 6.55
+                double eta2D = 1.0 / (1.0 + hint * E / (shearModule * oneMinusNiSquare)) * DAbs / DFull * h1 * h2 / (h1 + h2) * psiFactors[index];
+
+                double tw = Math.Pow(1 / (eta2D / firstDeno + (1.0 - eta2D) / secondDeno), 1.0 / 3.0);
+
+                twBuffer[loads[index]] = tw;
+                tSigma1Buffer[loads[index]] = Math.Sqrt(1.0 / (2.0 * eta2D * Math.Abs(d1) / firstDeno + h1 / Math.Pow(tw, 3.0)));
+                tSigma2Buffer[loads[index]] = Math.Sqrt(1.0 / (2.0 * eta2D * Math.Abs(d2) / firstDeno + h2 / Math.Pow(tw, 3.0)));
+            });
+
+
+            Parallel.ForEach(Enumerable.Range(0, loads.Count()), action);
+
+
+            // TODO: valutare se tenere parallel più for o solo for a livello prestazionale
+            for (int i = 0; i < loads.Count; i++)
+            {
+                _thicknessesW[(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = twBuffer[loads[i]];
+                _thicknessesStress[0][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = tSigma1Buffer[loads[i]];
+                _thicknessesStress[1][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = tSigma2Buffer[loads[i]];
+            }
+
+        }
+
+
+        protected double[] GetPsiEETNumerical(List<Load> loads)
         {
             if (((LaminatedGlass)Glass).GlassLayerCount > 2)
                 throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only two layers glass.");
@@ -625,10 +709,6 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             double flexularRigidity = material.E * Math.Pow(plateThickness, 3.0) / (12.0 * (1.0 - Math.Pow(material.Ni, 2.0)));
 
-            double h1 = glass.MonolithicGlasses[0].Thickness;
-            double h2 = glass.MonolithicGlasses[1].Thickness;
-            double hint = glass.Interlayers[0].Thickness;
-
             Model.FEM.FiniteElements.FiniteElement[] elements = femModel.GetElements();
 
             double num = 0;
@@ -655,58 +735,13 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             double psi = Math.Abs(num / den); // * Math.Pow(10, 6));
 
-            double d = 0.5 * (h1 + h2) + hint; // eq. 6.37
-            double d1 = d * h2 / (h1 + h2);
-            double d2 = d * h1 / (h1 + h2);
 
-            double oneMinusNiSquare = 1.0 - Math.Pow(material.Ni, 2.0);
-            double h1Cube = Math.Pow(h1, 3.0);
-            double h2Cube = Math.Pow(h2, 3.0);
-
-            // eq. 6.52
-            double DAbs = material.E * h1Cube / (12.0 * (1.0 - oneMinusNiSquare)) + material.E * h2Cube / (12.0 * (1.0 - oneMinusNiSquare));
-
-            // eq. 6.53
-            double DFull = DAbs + material.E / oneMinusNiSquare * h1 * h2 / (h1 + h2) * Math.Pow(d, 2.0);
-
-            // eq 6.46
-            double secondDeno = h1Cube + h2Cube;
-            
-            // eq 6.46
-            double firstDeno = secondDeno + 12 * (h1 * Math.Pow(d1, 2.0) + h2 * Math.Pow(d2, 2.0));
-
-            ConcurrentDictionary<Load, double> twBuffer = new ConcurrentDictionary<Load, double>();
-            ConcurrentDictionary<Load, double> tSigma1Buffer = new ConcurrentDictionary<Load, double>();
-            ConcurrentDictionary<Load, double> tSigma2Buffer = new ConcurrentDictionary<Load, double>();
-
-            // cambiare in tupla 
-            Action<Load> action = new Action<Load>((load) =>
-            {
-                double shearModule = glass.Interlayers[0].Material.GetShearModule(((LoadCase)load.LoadCase).LoadDuration, ((LoadCase)load.LoadCase).Temperature);
-
-                // eq. 6.55
-                double eta2D = 1.0 / (1.0 + hint * material.E / (shearModule * oneMinusNiSquare)) * DAbs / DFull * h1 * h2 / (h1 + h2) * psi;
-
-                double tw = Math.Pow(1 / (eta2D / firstDeno + (1.0 - eta2D) / secondDeno), 1.0 / 3.0);
-
-                twBuffer[load] = tw;
-                tSigma1Buffer[load] = Math.Sqrt(1.0 / (2.0 * eta2D * Math.Abs(d1) / firstDeno + h1 / Math.Pow(tw, 3.0)));
-                tSigma2Buffer[load] = Math.Sqrt(1.0 / (2.0 * eta2D * Math.Abs(d2) / firstDeno + h2 / Math.Pow(tw, 3.0)));
-            });
-
-
-            Parallel.ForEach(loads, action);
-
-            // TODO: valutare se tenere parallel più for o solo for a livello prestazionale
-            for (int i = 0; i < loads.Count; i++)
-            {
-                _thicknessesW[(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = twBuffer[loads[i]];
-                _thicknessesStress[0][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = tSigma1Buffer[loads[i]];
-                _thicknessesStress[1][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = tSigma2Buffer[loads[i]];
-            }
-
-
+            return new[] { psi };
         }
+
+
+
+
 
         #endregion
     }
