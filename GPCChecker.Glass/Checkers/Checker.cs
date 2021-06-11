@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using MMLoadCaseBase = GPC.Model.LoadCases.LoadCaseBase;
 
 namespace GPC.Checkers.Glasses.Checkers
@@ -222,14 +223,11 @@ namespace GPC.Checkers.Glasses.Checkers
                                                     LaminatedGlass lg, IEnumerable<Load> loads, Prototype.AnalysisTypes analysisType, 
                                                     Prototype.LaminatedAnalysisTypes laminatedAnalysisType, IEnumerable<Combination> combinations)
         {
-
-
             // Creo modello
             FemModelWrapper femModel = new FemModelWrapper(femModelName);
 
             if (laminatedAnalysisType == Prototype.LaminatedAnalysisTypes.MultiElement)
             {
-
                 if (loads.Count() == 0)
                     return null;
 
@@ -262,12 +260,9 @@ namespace GPC.Checkers.Glasses.Checkers
                                               out Dictionary<ILineLoad, int[]> vertexLineLoadMeshEntityMapInternal,
                                               out Dictionary<IAreaLoad, int[]> faceAreaLoadMeshEntityMapInternal);
 
-
                 List<IGlassLoadCase> loadCasesUnique = loads.Select(i => i.LoadCase as IGlassLoadCase).Where(i => i != null).Distinct().ToList();
 
-
                 IGlassPackage[] glassPackage = lg.GetGlassPackage();
-
 
                 // Associazione fra l'indice del layer e l'indice degli elementi plate volumi e nodi
                 (int[] nodesId, int[] platesId, int[] volumesId)[] elementIndexes = new (int[] nodesId, int[] platesId, int[] volumesId)[glassPackage.Count()];
@@ -277,9 +272,12 @@ namespace GPC.Checkers.Glasses.Checkers
                 // Map between interlayerIndex -> loadcase e nome della proprietà associata a quel loadcase
                 Dictionary<int, Dictionary<IGlassLoadCase, string>> interlayerLoadCasePropertyNameMap = new Dictionary<int, Dictionary<IGlassLoadCase, string>>();
 
+                System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
+
                 // Aggiunta delle mesh al femModel
                 Dictionary<int, int>[] packageNodesNewIndexMap = new Dictionary<int, int>[glassPackage.Count()];
                 for (int i = 0; i < glassPackage.Length; i++)
+                //Parallel.For(0, glassPackage.Length, (i) =>
                 {
                     IGlassPackage layer = glassPackage[i];
                     if (layer is MonolithicGlass glass)
@@ -367,9 +365,13 @@ namespace GPC.Checkers.Glasses.Checkers
                         throw new NotSupportedException();
                     }
 
-                }
+                }//);
+                stopWatch.Stop();
+                System.Diagnostics.Debug.WriteLine(stopWatch.ElapsedMilliseconds, "Elapsed");
 
+                stopWatch.Restart();
                 for (int i = 0; i < glassPackage.Length; i++)
+                //Parallel.For(0, glassPackage.Length, (i) =>
                 {
                     // Generazione links
                     if (i == 0)
@@ -390,8 +392,9 @@ namespace GPC.Checkers.Glasses.Checkers
                         femModel.GenerateRigidLinks(wrapper.GetLayerUpperLowerVerticesIds(i - 1).upperVertices.Select(k => packageNodesNewIndexMap[i - 1][k]),
                                                     wrapper.GetLayerUpperLowerVerticesIds(i).lowerVertices.Select(k => packageNodesNewIndexMap[i][k]));
                     }
-                }
-
+                }//);
+                stopWatch.Stop();
+                System.Diagnostics.Debug.WriteLine(stopWatch.ElapsedMilliseconds, "Elapsed");
 
                 #endregion Geometria
 
@@ -797,8 +800,6 @@ namespace GPC.Checkers.Glasses.Checkers
                 }
             }
         }
-
-
 
         #endregion
 
