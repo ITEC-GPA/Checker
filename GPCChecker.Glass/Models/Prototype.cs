@@ -117,11 +117,10 @@ namespace GPC.Checkers.Glasses.Models
         // Parametri
         private readonly AnalysisTypes _analysisType;
         private readonly CheckMethods _checkMethod;
-        private readonly LaminatedEqThicknessMethods _laminatedEqThicknessMethod;
-        private readonly LaminatedEqThicknessBoundaryConditions _laminatedEqThicknessBoundaryCondition;
         private readonly Standards _standard;
         private readonly SolverTypes _solverType;
         private readonly LaminatedAnalysisTypes _laminatedAnalysisType;
+        private readonly LaminatedEqThicknessParameters _laminatedEqThicknessParameters;
         private readonly Geometry.Meshes.Mesh.GenerateOptions _meshOptions;
 
         // Proprietà vetro
@@ -144,11 +143,9 @@ namespace GPC.Checkers.Glasses.Models
 
         public CheckMethods CheckMethod => _checkMethod;
 
-        public LaminatedEqThicknessMethods LaminatedEqThicknessMethod => _laminatedEqThicknessMethod;
-
-        public LaminatedEqThicknessBoundaryConditions LaminatedEqThicknessBoundaryCondition => _laminatedEqThicknessBoundaryCondition;
-
         public LaminatedAnalysisTypes LaminatedAnalysisType => _laminatedAnalysisType;
+
+        public LaminatedEqThicknessParameters LaminatedEqThicknessParameter => _laminatedEqThicknessParameters;
 
         public Standards Standard => _standard;
 
@@ -169,14 +166,13 @@ namespace GPC.Checkers.Glasses.Models
         #endregion
 
         public Prototype(string name, Glass glass, Polygon3d polygon, List<IParametricRestrain> restrains, IEnumerable<Combination> combinations, Standards standard,
-            AnalysisTypes analysisType, CheckMethods checkMethod, LaminatedEqThicknessMethods laminatedEqThicknessMethod, SolverTypes solverType, LaminatedAnalysisTypes laminatedAnalysisType,
-            LaminatedEqThicknessBoundaryConditions laminatedEqThicknessBoundaryCondition = LaminatedEqThicknessBoundaryConditions.Other)
+            AnalysisTypes analysisType, CheckMethods checkMethod, SolverTypes solverType, LaminatedAnalysisTypes laminatedAnalysisType,
+            LaminatedEqThicknessParameters laminatedEqThicknessParameters)
             : base(name)
         {
             _standard = standard;
             _analysisType = analysisType;
             _checkMethod = checkMethod;
-            _laminatedEqThicknessMethod = laminatedEqThicknessMethod;
             _solverType = solverType;
             _laminatedAnalysisType = laminatedAnalysisType;
 
@@ -191,14 +187,13 @@ namespace GPC.Checkers.Glasses.Models
             _combinations.AddRange(combinations);
             _meshOptions = new Geometry.Meshes.Mesh.GenerateOptions();
 
-            _laminatedEqThicknessBoundaryCondition = laminatedEqThicknessBoundaryCondition;
+            _laminatedEqThicknessParameters = laminatedEqThicknessParameters ?? throw new ArgumentNullException(nameof(laminatedEqThicknessParameters));
         }
 
 
-        public Prototype(string name, Glass glass, Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, 
-            LaminatedEqThicknessMethods laminatedEqThicknessMethod, SolverTypes solverType, LaminatedAnalysisTypes laminatedAnalysisType,
-            LaminatedEqThicknessBoundaryConditions laminatedEqThicknessBoundaryCondition = LaminatedEqThicknessBoundaryConditions.Other)
-            : this(name, glass, null, null, null, standard, analysisType, checkMethod, laminatedEqThicknessMethod, solverType, laminatedAnalysisType, laminatedEqThicknessBoundaryCondition)
+        public Prototype(string name, Glass glass, Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, SolverTypes solverType, 
+            LaminatedAnalysisTypes laminatedAnalysisType, LaminatedEqThicknessParameters laminatedEqThicknessParameters)
+            : this(name, glass, null, null, null, standard, analysisType, checkMethod, solverType, laminatedAnalysisType, laminatedEqThicknessParameters)
         {
 
         }
@@ -209,8 +204,7 @@ namespace GPC.Checkers.Glasses.Models
         {
             _analysisType = (AnalysisTypes)info.GetValue("AnalysisType", typeof(AnalysisTypes));
             _checkMethod = (CheckMethods)info.GetValue("CheckMethod", typeof(CheckMethods));
-            _laminatedEqThicknessMethod = (LaminatedEqThicknessMethods)info.GetValue("LaminatedEqThicknessMethod", typeof(LaminatedEqThicknessMethods));
-            _laminatedEqThicknessBoundaryCondition = (LaminatedEqThicknessBoundaryConditions)info.GetValue("LaminatedEqThicknessBoundaryConditions", typeof(LaminatedEqThicknessBoundaryConditions));
+            _laminatedEqThicknessParameters = (LaminatedEqThicknessParameters)info.GetValue("LaminatedEqThicknessParameters", typeof(LaminatedEqThicknessParameters));
             _standard = (Standards)info.GetValue("Standard", typeof(Standards));      
             _solverType = (SolverTypes)info.GetValue("SolverType", typeof(SolverTypes));
             _laminatedAnalysisType = (LaminatedAnalysisTypes)info.GetValue("LaminatedAnalysisType", typeof(LaminatedAnalysisTypes));
@@ -226,8 +220,7 @@ namespace GPC.Checkers.Glasses.Models
 
             info.AddValue("AnalysisType", _analysisType, typeof(AnalysisTypes));
             info.AddValue("CheckMethod", _checkMethod, typeof(CheckMethods));
-            info.AddValue("LaminatedEqThicknessMethod", _laminatedEqThicknessMethod, typeof(LaminatedEqThicknessMethods));
-            info.AddValue("LaminatedEqThicknessBoundaryConditions", _laminatedEqThicknessBoundaryCondition, typeof(LaminatedEqThicknessBoundaryConditions));
+            info.AddValue("LaminatedEqThicknessParameters", _laminatedEqThicknessParameters, typeof(LaminatedEqThicknessParameters));
             info.AddValue("Standard", _standard, typeof(Standards));
             info.AddValue("SolverType", _solverType, typeof(SolverTypes));
             info.AddValue("Glass", _glass, typeof(Glass));
@@ -295,8 +288,7 @@ namespace GPC.Checkers.Glasses.Models
 
             return !(other is null) && other._analysisType.Equals(_analysisType)
                                     && other._checkMethod.Equals(_checkMethod)
-                                    && other._laminatedEqThicknessMethod.Equals(_laminatedEqThicknessMethod)
-                                    && other._laminatedEqThicknessBoundaryCondition.Equals(_laminatedEqThicknessBoundaryCondition)
+                                    && other._laminatedEqThicknessParameters.Equals(_laminatedEqThicknessParameters)
                                     && other._standard.Equals(_standard)
                                     && other._solverType.Equals(_solverType)
                                     && other._glass.Equals(_glass)
@@ -315,8 +307,7 @@ namespace GPC.Checkers.Glasses.Models
                 hashCode = hashCode * -17 + base.GetHashCode();
                 hashCode = hashCode * -17 + EqualityComparer<AnalysisTypes>.Default.GetHashCode(_analysisType);
                 hashCode = hashCode * -17 + EqualityComparer<CheckMethods>.Default.GetHashCode(_checkMethod);
-                hashCode = hashCode * -17 + EqualityComparer<LaminatedEqThicknessMethods>.Default.GetHashCode(_laminatedEqThicknessMethod);
-                hashCode = hashCode * -17 + EqualityComparer<LaminatedEqThicknessBoundaryConditions>.Default.GetHashCode(_laminatedEqThicknessBoundaryCondition);
+                hashCode = hashCode * -17 + EqualityComparer<LaminatedEqThicknessParameters>.Default.GetHashCode(_laminatedEqThicknessParameters);
                 hashCode = hashCode * -17 + EqualityComparer<Standards>.Default.GetHashCode(_standard);
                 hashCode = hashCode * -17 + EqualityComparer<SolverTypes>.Default.GetHashCode(_solverType);
                 hashCode = hashCode * -17 + EqualityComparer<LaminatedAnalysisTypes>.Default.GetHashCode(_laminatedAnalysisType);
@@ -336,5 +327,117 @@ namespace GPC.Checkers.Glasses.Models
 
 
         #endregion
+
+
+        [Serializable]
+        public class LaminatedEqThicknessParameters : ISerializable
+        {
+
+            private readonly LaminatedEqThicknessBoundaryConditions _laminatedEqThicknessBoundaryCondition;
+            private readonly LaminatedEqThicknessMethods _laminatedEqThicknessMethod;
+
+            private readonly double _a;
+            private readonly double _b;
+
+
+            /// <summary>
+            /// Minor lenght of the rectangular plate, according to EET notation
+            /// </summary>
+            public double B => _b;
+
+            /// <summary>
+            /// Major lenght of the rectangular plate, according to EET notation
+            /// </summary>
+            public double A => _a;
+
+            /// <summary>
+            /// Boundary condition of glass
+            /// </summary>
+            public LaminatedEqThicknessBoundaryConditions LaminatedEqThicknessBoundaryCondition => _laminatedEqThicknessBoundaryCondition;
+
+            /// <summary>
+            /// Method to use to calculate the eq thickness
+            /// </summary>
+            public LaminatedEqThicknessMethods LaminatedEqThicknessMethod => _laminatedEqThicknessMethod;
+
+
+            /// <param name="laminatedEqThicknessMethod"></param>
+            /// <param name="laminatedEqThicknessBoundaryCondition"></param>
+            /// <param name="a">Major lenght of the rectangular plate, according to EET notation</param>
+            /// <param name="b">Minor lenght of the rectangular plate, according to EET notation</param>
+            public LaminatedEqThicknessParameters(LaminatedEqThicknessMethods laminatedEqThicknessMethod,
+                                                 LaminatedEqThicknessBoundaryConditions laminatedEqThicknessBoundaryCondition,
+                                                 double a, double b)
+            {
+                _laminatedEqThicknessBoundaryCondition = laminatedEqThicknessBoundaryCondition;
+                _laminatedEqThicknessMethod = laminatedEqThicknessMethod;
+
+                if (a < b)
+                    throw new ArgumentException();
+
+                if (laminatedEqThicknessBoundaryCondition != LaminatedEqThicknessBoundaryConditions.Other)
+                {
+                    _a = a <= 0 ? throw new ArgumentException() : a;
+                    _b = b <= 0 ? throw new ArgumentException() : b;
+                }
+
+            }
+
+            /// <summary>
+            /// This construct the object with <see cref="LaminatedEqThicknessBoundaryConditions.Other"/> and <see cref="LaminatedEqThicknessMethods.EET"/>, 
+            /// set <see cref="A"/> and <see cref="B"/> to zero
+            /// </summary>
+            public LaminatedEqThicknessParameters()
+            {
+                _laminatedEqThicknessBoundaryCondition = LaminatedEqThicknessBoundaryConditions.Other;
+                _laminatedEqThicknessMethod = LaminatedEqThicknessMethods.EET;
+
+                _a = 0;
+                _b = 0;
+            }
+
+
+            public override bool Equals(object obj)
+            {
+                return obj is LaminatedEqThicknessParameters parameters &&
+                       _laminatedEqThicknessBoundaryCondition == parameters._laminatedEqThicknessBoundaryCondition &&
+                       _laminatedEqThicknessMethod == parameters._laminatedEqThicknessMethod &&
+                       _a == parameters._a && _b == parameters._b;
+            }
+
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hashCode = 17;
+                    hashCode = hashCode * -23 + _laminatedEqThicknessBoundaryCondition.GetHashCode();
+                    hashCode = hashCode * -23 + _laminatedEqThicknessMethod.GetHashCode();
+                    hashCode = hashCode * -23 + _a.GetHashCode();
+                    hashCode = hashCode * -23 + _b.GetHashCode();
+                    return hashCode; 
+                }
+            }
+
+            protected LaminatedEqThicknessParameters(SerializationInfo info, StreamingContext context)
+            {
+                _a = (double)info.GetValue("A", typeof(double));
+                _b = (double)info.GetValue("B", typeof(double));
+                _laminatedEqThicknessBoundaryCondition = (LaminatedEqThicknessBoundaryConditions)info.GetValue("LaminatedEqThicknessBoundaryCondition", typeof(LaminatedEqThicknessBoundaryConditions));
+                _laminatedEqThicknessMethod = (LaminatedEqThicknessMethods)info.GetValue("LaminatedEqThicknessMethods", typeof(LaminatedEqThicknessMethods));
+            }
+
+
+            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                info.AddValue("A", _a);
+                info.AddValue("B", _b);
+                info.AddValue("LaminatedEqThicknessBoundaryCondition", _laminatedEqThicknessBoundaryCondition);
+                info.AddValue("LaminatedEqThicknessMethods", _laminatedEqThicknessMethod);
+            }
+        }
+
+
     }
+ 
 }
