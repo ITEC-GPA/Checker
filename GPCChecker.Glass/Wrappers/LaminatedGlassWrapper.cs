@@ -340,7 +340,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                             if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
                             {
-                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto piï¿½ distante dell'interlyaer
+                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
 
                                 // primo strato di brick
                                 if (vertexIdMap != null)
@@ -352,7 +352,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                                 }
                                 else
                                 {
-                                    // se ï¿½ nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
+                                    // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
 
                                     upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
                                                                     Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
@@ -455,75 +455,257 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// <exception cref="NotSupportedException"></exception>
         public void CalculateEquivalentThicknesses()
         {
+            var boundaryCondition = _glassSurface.Prototype.LaminatedEqThicknessBoundaryCondition;
+            var eqThicknessMethod = _glassSurface.Prototype.LaminatedEqThicknessMethod;
+
+
+            if (((LaminatedGlass)Glass).GlassLayerCount > 2)
+                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only two layers glass.");
+
+            if (((LaminatedGlass)Glass).InterlayerCount > 1)
+                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only one interlayer.");
+
+
+            // vengono filtrati in base a loadDuration, temperature e stessa geometria
+            List<Load> loadsToProcess = _externalFaceLoads.Union(_internalFaceLoads).Distinct(new Loads.LoadDurationAndTemperatureEqualityComparer()).ToList();
+
+
             
-            switch (_glassSurface.Prototype.LaminatedEqThicknessMethod)
+            // Calcola lo spessore equivalente per i casi supportati, altrimenti usa eet numerico
+            switch (boundaryCondition)
             {
-                case Models.Prototype.LaminatedEqThicknessMethods.EET:
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
-                    break;
-                
-                case Models.Prototype.LaminatedEqThicknessMethods.ASTME1300:
-
-                    if (((LaminatedGlass)Glass).GlassLayerCount > 2) 
-                        throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only two layers glass.");
-
-                    if (((LaminatedGlass)Glass).InterlayerCount > 1)
-                        throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only one interlayer.");
-
-                    LaminatedGlass glass = (LaminatedGlass)Glass;
-
-                    double elasticModulus = glass.GetElasticModulus();
-
-                    double h1 = glass.MonolithicGlasses[0].Thickness;
-                    double h2 = glass.MonolithicGlasses[1].Thickness;
-                    double hv = glass.Interlayers[0].Thickness;
-
-                    double hs = 0.5 * (h1 + h2) + hv;
-
-                    double hs1 = hs * h1 / (h1 + h2);
-                    double hs2 = hs * h2 / (h2 + h1);
-
-
-                    double a = _glassSurface.Shape.Fill.Explode().Select(i => i.GetLength()).Min(); // in casi regolari funziona,
-                                                                                                    // in casi irregolari non tanto bene
-                                                                                                    // es. un poligono di 5 lati con uno dei lati molto piccolo
-                                                                                                    // andrebbe fatto un metodo per capire qual ï¿½ "smallest dimension of bending of the laminate plate"
+                case Models.Prototype.LaminatedEqThicknessBoundaryConditions.Other:
                     
-                    double Is = h1 * Math.Pow(hs2, 2.0) + h2 * Math.Pow(hs1, 2.0);
-
-                    double aSquare = Math.Pow(a, 2);
-                    double hsSquare = Math.Pow(hs, 2);
-
-                    double hs1Square = Math.Pow(hs1, 2);
-                    double hs2Square = Math.Pow(hs2, 2);
-
-                    foreach (Load load in _externalFaceLoads.Union(_internalFaceLoads).Distinct())
-                    {
-                        var shearModule = glass.Interlayers[0].Material.GetShearModule(((LoadCase)load.LoadCase).LoadDuration, ((LoadCase)load.LoadCase).Temperature);
-
-                        double lambda = 1.0 / (1.0 + (9.6 * elasticModulus * Is * hv) / (shearModule * hsSquare * aSquare)); // Shear transfer coefficient
-
-                        double hw = Math.Pow(hs1Square + hs2Square + 12.0 * lambda * Is, 1.0 / 3.0);
-
-                        _thicknessesW[(((LoadCase)load.LoadCase).LoadDuration, ((LoadCase)load.LoadCase).Temperature)] = hw;
-                        _thicknessesStress[0][(((LoadCase)load.LoadCase).LoadDuration, ((LoadCase)load.LoadCase).Temperature)] = Math.Sqrt(Math.Pow(hw, 3.0) / (h1 + 2.0 * lambda * hs2));
-                        _thicknessesStress[1][(((LoadCase)load.LoadCase).LoadDuration, ((LoadCase)load.LoadCase).Temperature)] = Math.Sqrt(Math.Pow(hw, 3.0) / (h2 + 2.0 * lambda * hs1));
-                    }
 
                     break;
-                
-                case Models.Prototype.LaminatedEqThicknessMethods.NEN:
+                case Models.Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped:
 
-                    throw new NotImplementedException();
-                    //break;
-                
-                case Models.Prototype.LaminatedEqThicknessMethods.Omega:
-                    throw new NotImplementedException();
-                    //break;
+                    if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.EET)
+                    {
+                        
+                    }
+                    break;
 
+                case Models.Prototype.LaminatedEqThicknessBoundaryConditions.RectangularTwoSidesSimplySupported:
+
+                    if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.EET)
+                    {
+                        
+                    }
+                    else if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.ASTME1300)
+                    {
+                        SetEquivalentThicknessASTM(loadsToProcess);
+                    }
+                    else if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.NEN)
+                    {
+                        
+                    }
+                    break;
+
+                case Models.Prototype.LaminatedEqThicknessBoundaryConditions.RectangularThreeSidesSimplySupported:
+
+                    if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.EET)
+                    {
+
+                    }
+                    else if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.NEN)
+                    {
+
+                    }
+                    break;
+
+                case Models.Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported:
+
+                    if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.EET)
+                    {
+
+                    }
+                    else if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.ASTME1300)
+                    {
+                        SetEquivalentThicknessASTM(loadsToProcess);
+                    }
+                    else if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.NEN)
+                    {
+
+                    }
+                    else if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.Omega)
+                    {
+
+                    }
+                    break;
                 default:
                     throw new NotSupportedException();
             }
+
+
+
+            SetEquivalentThicknessEETNumerical(loadsToProcess);
+        }
+
+
+        protected void SetEquivalentThicknessASTM(List<Load> loads)
+        {
+            if (((LaminatedGlass)Glass).GlassLayerCount > 2)
+                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only two layers glass.");
+
+            if (((LaminatedGlass)Glass).InterlayerCount > 1)
+                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only one interlayer.");
+
+            LaminatedGlass glass = (LaminatedGlass)Glass;
+
+            double elasticModulus = glass.GetElasticModulus();
+
+            double h1 = glass.MonolithicGlasses[0].Thickness;
+            double h2 = glass.MonolithicGlasses[1].Thickness;
+            double hv = glass.Interlayers[0].Thickness;
+
+            double hs = 0.5 * (h1 + h2) + hv;
+
+            double hs1 = hs * h1 / (h1 + h2);
+            double hs2 = hs * h2 / (h2 + h1);
+
+            double a = _glassSurface.Shape.Fill.Explode().Select(i => i.GetLength()).Min(); // in casi regolari funziona,
+                                                                                            // in casi irregolari non tanto bene
+                                                                                            // es. un poligono di 5 lati con uno dei lati molto piccolo
+                                                                                            // andrebbe fatto un metodo per capire qual è "smallest dimension of bending of the laminate plate"
+            
+            double Is = h1 * Math.Pow(hs2, 2.0) + h2 * Math.Pow(hs1, 2.0);
+
+            double aSquare = Math.Pow(a, 2);
+            double hsSquare = Math.Pow(hs, 2);
+
+            double hs1Square = Math.Pow(hs1, 2);
+            double hs2Square = Math.Pow(hs2, 2);
+
+            for (int i = 0; i < loads.Count; i++)
+            {
+                var shearModule = glass.Interlayers[0].Material.GetShearModule(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature);
+
+                double lambda = 1.0 / (1.0 + (9.6 * elasticModulus * Is * hv) / (shearModule * hsSquare * aSquare)); // Shear transfer coefficient
+
+                double hw = Math.Pow(hs1Square + hs2Square + 12.0 * lambda * Is, 1.0 / 3.0);
+
+                _thicknessesW[(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = hw;
+                _thicknessesStress[0][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = Math.Sqrt(Math.Pow(hw, 3.0) / (h1 + 2.0 * lambda * hs2));
+                _thicknessesStress[1][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = Math.Sqrt(Math.Pow(hw, 3.0) / (h2 + 2.0 * lambda * hs1));
+            }
+
+        }
+
+
+        protected void SetEquivalentThicknessEETNumerical(List<Load> loads)
+        {
+            if (((LaminatedGlass)Glass).GlassLayerCount > 2)
+                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only two layers glass.");
+
+            if (((LaminatedGlass)Glass).InterlayerCount > 1)
+                throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessMethod} does support only one interlayer.");
+
+
+            LaminatedGlass glass = (LaminatedGlass)Glass;
+
+            FemModel.FemModelWrapper femModel = new FemModel.FemModelWrapper("EETNumerical");
+
+            IsotropicFemMaterial material = new IsotropicFemMaterial(GetElasticModulus(), GetPoissonRatios(), 0, GetDensity());
+
+            double plateThickness = 1;
+            PlateProperty property = new PlateProperty(material, plateThickness, plateThickness, "p1");
+            femModel.AddProperty(property);
+
+            var bbboxSize = _glassSurface.Shape.ToLocal().GetBoundingBox().Size;
+            
+            // dimensione mesh di default 2% del massimo lato della bbox. Alla Straus
+            femModel.AddShape(_glassSurface.Shape, "p1", 
+                              new Mesh.GenerateOptions() { MeshSize = Math.Max(bbboxSize.X, bbboxSize.Y) * 0.02 }, 
+                              loads, _glassSurface.GetRestrains());
+
+            femModel.SaveFemModelToSt7(System.IO.Path.GetTempPath()); // TODO: rimuovere e passare a solutore interno
+
+            femModel.Solve();
+
+            double flexularRigidity = material.E * Math.Pow(plateThickness, 3.0) / (12.0 * (1.0 - Math.Pow(material.Ni, 2.0)));
+
+            double h1 = glass.MonolithicGlasses[0].Thickness;
+            double h2 = glass.MonolithicGlasses[1].Thickness;
+            double hint = glass.Interlayers[0].Thickness;
+
+            Model.FEM.FiniteElements.FiniteElement[] elements = femModel.GetElements();
+
+            double num = 0;
+            double den = 0;
+
+            for (int e = 0; e < elements.Length; e++)
+            {
+                if (elements[e] is Model.FEM.FiniteElements.Plate plate)
+                {
+                    var elementArea = plate.GetArea();
+
+                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+
+                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+                    if (plate.AttributesLoadCase.Where(i => i is Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+                    {
+                        num += mean.D3 * flexularRigidity * elementArea * ((Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                    }
+
+                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
+                }
+            }
+
+            double psi = Math.Abs(num / den); // * Math.Pow(10, 6));
+
+            double d = 0.5 * (h1 + h2) + hint; // eq. 6.37
+            double d1 = d * h2 / (h1 + h2);
+            double d2 = d * h1 / (h1 + h2);
+
+            double oneMinusNiSquare = 1.0 - Math.Pow(material.Ni, 2.0);
+            double h1Cube = Math.Pow(h1, 3.0);
+            double h2Cube = Math.Pow(h2, 3.0);
+
+            // eq. 6.52
+            double DAbs = material.E * h1Cube / (12.0 * (1.0 - oneMinusNiSquare)) + material.E * h2Cube / (12.0 * (1.0 - oneMinusNiSquare));
+
+            // eq. 6.53
+            double DFull = DAbs + material.E / oneMinusNiSquare * h1 * h2 / (h1 + h2) * Math.Pow(d, 2.0);
+
+            // eq 6.46
+            double secondDeno = h1Cube + h2Cube;
+            
+            // eq 6.46
+            double firstDeno = secondDeno + 12 * (h1 * Math.Pow(d1, 2.0) + h2 * Math.Pow(d2, 2.0));
+
+            ConcurrentDictionary<Load, double> twBuffer = new ConcurrentDictionary<Load, double>();
+            ConcurrentDictionary<Load, double> tSigma1Buffer = new ConcurrentDictionary<Load, double>();
+            ConcurrentDictionary<Load, double> tSigma2Buffer = new ConcurrentDictionary<Load, double>();
+
+            // cambiare in tupla 
+            Action<Load> action = new Action<Load>((load) =>
+            {
+                double shearModule = glass.Interlayers[0].Material.GetShearModule(((LoadCase)load.LoadCase).LoadDuration, ((LoadCase)load.LoadCase).Temperature);
+
+                // eq. 6.55
+                double eta2D = 1.0 / (1.0 + hint * material.E / (shearModule * oneMinusNiSquare)) * DAbs / DFull * h1 * h2 / (h1 + h2) * psi;
+
+                double tw = Math.Pow(1 / (eta2D / firstDeno + (1.0 - eta2D) / secondDeno), 1.0 / 3.0);
+
+                twBuffer[load] = tw;
+                tSigma1Buffer[load] = Math.Sqrt(1.0 / (2.0 * eta2D * Math.Abs(d1) / firstDeno + h1 / Math.Pow(tw, 3.0)));
+                tSigma2Buffer[load] = Math.Sqrt(1.0 / (2.0 * eta2D * Math.Abs(d2) / firstDeno + h2 / Math.Pow(tw, 3.0)));
+            });
+
+
+            Parallel.ForEach(loads, action);
+
+            // TODO: valutare se tenere parallel più for o solo for a livello prestazionale
+            for (int i = 0; i < loads.Count; i++)
+            {
+                _thicknessesW[(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = twBuffer[loads[i]];
+                _thicknessesStress[0][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = tSigma1Buffer[loads[i]];
+                _thicknessesStress[1][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = tSigma2Buffer[loads[i]];
+            }
+
+
         }
 
         #endregion
