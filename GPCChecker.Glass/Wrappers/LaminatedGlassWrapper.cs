@@ -9,6 +9,12 @@ using GPC.Checkers.Glasses.LoadCases;
 using GPC.Model.Glasses;
 using GPC.Model.Restrains;
 using GPC.Model.Loads;
+using GPC.Model.FEM.Properties;
+using GPC.Model.FEM.Materials;
+using GPC.Model.Materials;
+using System.Threading.Tasks;
+using GPC.Model.Results;
+using System.Collections.Concurrent;
 
 namespace GPC.Checkers.Glasses.Wrappers
 {
@@ -155,16 +161,19 @@ namespace GPC.Checkers.Glasses.Wrappers
             return distances;
         }
 
+        /// <inheritdoc cref="LaminatedGlass.GetElasticModulus()"/>
         public override double GetElasticModulus()
         {
             return ((LaminatedGlass)Glass).GetElasticModulus();
         }
 
+        /// <inheritdoc cref="LaminatedGlass.GetPoissonRatios()"/>
         public override double GetPoissonRatios()
         {
             return ((LaminatedGlass)Glass).GetPoissonRatios();
         }
 
+        /// <inheritdoc cref="LaminatedGlass.GetSelfWeightPerUnitArea()"/>
         public override double GetSelfWeightPerUnitArea()
         {
             return ((LaminatedGlass)Glass).GetSelfWeightPerUnitArea();
@@ -175,6 +184,11 @@ namespace GPC.Checkers.Glasses.Wrappers
             return _glassSurface.Shape.GetArea() * GetSelfWeightPerUnitArea();
         }
 
+        /// <inheritdoc cref="LaminatedGlass.GetDensity()"/>
+        public override double GetDensity()
+        {
+            return ((LaminatedGlass)Glass).GetDensity();
+        }
 
         #endregion
 
@@ -326,7 +340,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                             if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
                             {
-                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
+                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto piï¿½ distante dell'interlyaer
 
                                 // primo strato di brick
                                 if (vertexIdMap != null)
@@ -338,7 +352,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                                 }
                                 else
                                 {
-                                    // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
+                                    // se ï¿½ nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
 
                                     upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
                                                                     Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
@@ -473,7 +487,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                     double a = _glassSurface.Shape.Fill.Explode().Select(i => i.GetLength()).Min(); // in casi regolari funziona,
                                                                                                     // in casi irregolari non tanto bene
                                                                                                     // es. un poligono di 5 lati con uno dei lati molto piccolo
-                                                                                                    // andrebbe fatto un metodo per capire qual è "smallest dimension of bending of the laminate plate"
+                                                                                                    // andrebbe fatto un metodo per capire qual ï¿½ "smallest dimension of bending of the laminate plate"
                     
                     double Is = h1 * Math.Pow(hs2, 2.0) + h2 * Math.Pow(hs1, 2.0);
 
