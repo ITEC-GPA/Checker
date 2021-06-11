@@ -1051,8 +1051,10 @@ namespace GPC.Checkers.Glasses.FemModel
                     throw new NotSupportedException("Plate properties not in order");
                 _bufferId = st7PropId;
 
-                if (property is MonolithicGlassProperty mgp)
+                if (property is MonolithicGlassProperty || property is PlateProperty)
                 {
+                    var mgp = (PlateProperty)property;
+
                     if (mgp.Material is Model.FEM.Materials.IsotropicFemMaterial iso)
                     {
                         aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, mgp.Name);
