@@ -193,16 +193,10 @@ namespace GlassTests
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
-            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
-            {
-                lcPressure
-            };
-
             NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure);
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
-            gs1.AddLoad(loadWp);
 
             gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
 
@@ -269,16 +263,10 @@ namespace GlassTests
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
-            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
-            {
-                lcPressure
-            };
-
             NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure);
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
-            gs1.AddLoad(loadWp);
 
             // vincolo su tre lati
             gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
@@ -346,16 +334,10 @@ namespace GlassTests
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
-            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
-            {
-                lcPressure
-            };
-
             NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure);
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
-            gs1.AddLoad(loadWp);
 
             // vincolo su un lati
             gs1.AddRestrain((GeometryRestrain)LineRestrain.GetAllFixed(
@@ -425,18 +407,12 @@ namespace GlassTests
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
-            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
-            {
-                lcPressure
-            };
-
             Shape loadShape = GetRectangularShape(new Point3d(minorSide / 2.0 - loadWidth / 2.0, majorSide / 2.0 - loadWidth / 2.0, 0), new Vector3d(loadWidth, loadWidth, 0));
 
             NormalAreaLoad loadWp = new NormalAreaLoad(-1, loadShape, lcPressure);
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
-            gs1.AddLoad(loadWp);
 
             gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
 
@@ -504,18 +480,12 @@ namespace GlassTests
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
-            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
-            {
-                lcPressure
-            };
-
             Shape loadShape = GetRectangularShape(new Point3d(minorSide / 2.0 - loadWidth / 2.0, majorSide / 2.0 - loadWidth / 2.0, 0), new Vector3d(loadWidth, loadWidth, 0));
 
             NormalAreaLoad loadWp = new NormalAreaLoad(-1, loadShape, lcPressure);
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
-            gs1.AddLoad(loadWp);
 
             gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
 
@@ -580,18 +550,12 @@ namespace GlassTests
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
-            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
-            {
-                lcPressure
-            };
-
             Shape loadShape = GetRectangularShape(new Point3d(minorSide / 2.0 - loadWidth / 2.0, majorSide / 2.0 - loadWidth / 2.0, 0), new Vector3d(loadWidth, loadWidth, 0));
 
             NormalAreaLoad loadWp = new NormalAreaLoad(-1, loadShape, lcPressure);
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
-            gs1.AddLoad(loadWp);
 
             gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
 
@@ -656,18 +620,12 @@ namespace GlassTests
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
-            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
-            {
-                lcPressure
-            };
-
             Shape loadShape = GetRectangularShape(new Point3d(0, loadHeight - loadWidth / 2.0, 0), new Vector3d(minorSide, loadWidth, 0));
 
             NormalAreaLoad loadWp = new NormalAreaLoad(-1, loadShape, lcPressure);
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
-            gs1.AddLoad(loadWp);
 
             gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
 
@@ -733,18 +691,12 @@ namespace GlassTests
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
-            List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
-            {
-                lcPressure
-            };
-
             Shape loadShape = GetRectangularShape(new Point3d(0, loadHeight - loadWidth / 2.0, 0), new Vector3d(minorSide, loadWidth, 0));
 
             NormalAreaLoad loadWp = new NormalAreaLoad(-1, loadShape, lcPressure);
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
-            gs1.AddLoad(loadWp);
 
             gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
 
