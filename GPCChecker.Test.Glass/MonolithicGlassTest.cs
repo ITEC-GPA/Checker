@@ -88,7 +88,7 @@ namespace GlassTests
             Assert.AreEqual(23.17, worstDisplacementsCmb1[2].D3, 0.2);
             Assert.AreEqual(18.54, worstDisplacementsCmb2[2].D3, 0.2);
 
-            Assert.AreEqual(107, worstStressesCmb1[0].S11, 0.2);
+            Assert.AreEqual(107, worstStressesCmb1[0].S11, 1);
             Assert.AreEqual(85, worstStressesCmb2[0].S11, 1);
 
         }
