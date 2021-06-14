@@ -354,7 +354,7 @@ namespace GPC.Checkers.Glasses.Checkers
                             groupName);
 
                         packageNodesNewIndexMap[i] = nodesNewIndexMap;
-                        elementIndexes[i].volumesId = brickNewIndexMap.Values.ToArray(); // TODO SISTEMARE
+                        elementIndexes[i].volumesId = brickNewIndexMap.Values.ToArray(); 
                     }
                     else
                     {
@@ -512,7 +512,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                 c.RemoveLoadCaseCoefficients(firstCombo.GetLoadCaseCoefficientsTuple(missingLoadCases).Select(i => ((MMLoadCaseBase loadCase, double coefficient))i).ToArray());
                                 c.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
 
-                                if (c.LoadCaseCount > 0) // TODO: cambiare in LoadCaseCount
+                                if (c.LoadCaseCount > 0) 
                                 {
                                     stCombinations.Add(c);
                                 }
