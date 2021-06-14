@@ -15,6 +15,7 @@ using GPC.Model.Materials;
 using System.Threading.Tasks;
 using GPC.Model.Results;
 using System.Collections.Concurrent;
+using GPC.Model.Combinations;
 
 namespace GPC.Checkers.Glasses.Wrappers
 {
@@ -347,7 +348,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                             if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
                             {
-                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto piï¿½ distante dell'interlyaer
+                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
 
                                 // primo strato di brick
                                 if (vertexIdMap != null)
@@ -359,7 +360,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                                 }
                                 else
                                 {
-                                    // se ï¿½ nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
+                                    // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
 
                                     upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
                                                                     Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
@@ -488,7 +489,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     SetEquivalentThicknessEET(loadsToProcess, GetPsiEETNumerical(loadsToProcess).ToList());
 
-                    return true; // giï¿½ processati tutti, ritorna
+                    return true; // già processati tutti, ritorna
 
                 case Models.Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped:
 
@@ -595,7 +596,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             double a = _glassSurface.Shape.Fill.Explode().Select(i => i.GetLength()).Min(); // in casi regolari funziona,
                                                                                             // in casi irregolari non tanto bene
                                                                                             // es. un poligono di 5 lati con uno dei lati molto piccolo
-                                                                                            // andrebbe fatto un metodo per capire qual ï¿½ "smallest dimension of bending of the laminate plate"
+                                                                                            // andrebbe fatto un metodo per capire qual è "smallest dimension of bending of the laminate plate"
             
             double Is = h1 * Math.Pow(hs2, 2.0) + h2 * Math.Pow(hs1, 2.0);
 
@@ -646,7 +647,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             double h2Cube = Math.Pow(h2, 3.0);
 
             // eq. 6.52
-            double DAbs = E * h1Cube / (12.0 * (1.0 - oneMinusNiSquare)) + E * h2Cube / (12.0 * (1.0 - oneMinusNiSquare));
+            double DAbs = E * h1Cube / (12.0 * oneMinusNiSquare) + E * h2Cube / (12.0 * oneMinusNiSquare);
 
             // eq. 6.53
             double DFull = DAbs + E / oneMinusNiSquare * h1 * h2 / (h1 + h2) * Math.Pow(d, 2.0);
@@ -661,15 +662,14 @@ namespace GPC.Checkers.Glasses.Wrappers
             ConcurrentDictionary<Load, double> tSigma1Buffer = new ConcurrentDictionary<Load, double>();
             ConcurrentDictionary<Load, double> tSigma2Buffer = new ConcurrentDictionary<Load, double>();
 
-
             Action<int> action = new Action<int>((index) =>
             {                
                 double shearModule = glass.Interlayers[0].Material.GetShearModule(((LoadCase)loads[index].LoadCase).LoadDuration, ((LoadCase)loads[index].LoadCase).Temperature);
 
                 // eq. 6.55
-                double eta2D = 1.0 / (1.0 + hint * E / (shearModule * oneMinusNiSquare)) * DAbs / DFull * h1 * h2 / (h1 + h2) * psiFactors[index];
+                double eta2D = 1.0 / (1.0 + hint * E / (shearModule * oneMinusNiSquare) * DAbs / DFull * h1 * h2 / (h1 + h2) * psiFactors[index]);
 
-                double tw = Math.Pow(1 / (eta2D / firstDeno + (1.0 - eta2D) / secondDeno), 1.0 / 3.0);
+                double tw = Math.Pow(1.0 / (eta2D / firstDeno + (1.0 - eta2D) / secondDeno), 1.0 / 3.0);
 
                 twBuffer[loads[index]] = tw;
                 tSigma1Buffer[loads[index]] = Math.Sqrt(1.0 / (2.0 * eta2D * Math.Abs(d1) / firstDeno + h1 / Math.Pow(tw, 3.0)));
@@ -677,10 +677,12 @@ namespace GPC.Checkers.Glasses.Wrappers
             });
 
 
+            // TODO: valutare se tenere parallel più for o solo for a livello prestazionale
             Parallel.ForEach(Enumerable.Range(0, loads.Count()), action);
 
 
-            // TODO: valutare se tenere parallel piï¿½ for o solo for a livello prestazionale
+            _thicknessesStress[0] = new Dictionary<(double loadDuration, double temperature), double>();
+            _thicknessesStress[1] = new Dictionary<(double loadDuration, double temperature), double>();
             for (int i = 0; i < loads.Count; i++)
             {
                 _thicknessesW[(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = twBuffer[loads[i]];
@@ -702,23 +704,39 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             LaminatedGlass glass = (LaminatedGlass)Glass;
 
+
             FemModel.FemModelWrapper femModel = new FemModel.FemModelWrapper("EETNumerical");
+            femModel.AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear;
 
             IsotropicFemMaterial material = new IsotropicFemMaterial(GetElasticModulus(), GetPoissonRatios(), 0, GetDensity());
 
             double plateThickness = 1;
             PlateProperty property = new PlateProperty(material, plateThickness, plateThickness, "p1");
+
             femModel.AddProperty(property);
 
             var bbboxSize = _glassSurface.Shape.ToLocal().GetBoundingBox().Size;
-            
+
+
             // dimensione mesh di default 2% del massimo lato della bbox. Alla Straus
             femModel.AddShape(_glassSurface.Shape, "p1", 
                               new Mesh.GenerateOptions() { MeshSize = Math.Max(bbboxSize.X, bbboxSize.Y) * 0.02 }, 
                               loads, _glassSurface.GetRestrains());
 
-            femModel.SaveFemModelToSt7(System.IO.Path.GetTempPath()); // TODO: rimuovere e passare a solutore interno
+            loads.ForEach(i => femModel.AddLoadCase(i.LoadCase));
 
+            var combinations = new List<Combination>();
+            for (int i = 0; i < loads.Count(); i++)
+            {
+                combinations.Add(new Combination($"Load {i}"));
+                combinations[i].AddLoadCaseCoefficient(loads[i].LoadCase, 1);
+            }
+
+
+            femModel.AddCombinations(combinations);
+
+            femModel.SaveFemModelToSt7(System.IO.Path.GetTempPath()); // TODO: rimuovere e passare a solutore interno
+            
             femModel.Solve();
 
             double flexularRigidity = material.E * Math.Pow(plateThickness, 3.0) / (12.0 * (1.0 - Math.Pow(material.Ni, 2.0)));
@@ -735,6 +753,10 @@ namespace GPC.Checkers.Glasses.Wrappers
                     var elementArea = plate.GetArea();
 
                     IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+
+                    if (resultDisplacement is null)
+                        throw new ArgumentNullException();
+
 
                     var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
 
