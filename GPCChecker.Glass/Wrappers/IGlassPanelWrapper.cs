@@ -1,31 +1,21 @@
-﻿using GPC.Model.Elements.Glasses;
-using GPC.Geometry;
-using System.Collections.Generic;
+﻿
 
 namespace GPC.Checkers.Glasses.Wrappers
 {
-    internal interface IGlassPanelWrapper
+    public interface IGlassPanelWrapper
     {
-        #region Properties
-        //double GetTotalThickness();
 
-        //double GetDeformationThickness(double loadDuration);
+        double GetElasticModulus();
 
-        //double GetStressThickness(double loadDuration); 
+        double GetPoissonRatios();
 
-        //#endregion
+        double GetSelfWeightPerUnitArea();
 
-        //#region Material
+        double GetSelfWeightTotal();
 
-        //double GetElasticModulus();
+        double GetTotalThickness();
 
-        //double GetPoissonRatios();
-
-        //double GetSelfWeightPerUnitArea();
-
-        //double GetSelfWeightTotal(); 
-
-        #endregion
+        double GetDensity();
 
     }
 }

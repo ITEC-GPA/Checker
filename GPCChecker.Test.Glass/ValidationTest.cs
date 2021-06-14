@@ -46,7 +46,8 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement, 
+                                        new Prototype.LaminatedEqThicknessParameters());
 
             p1.MeshOptions.MeshSize = 50;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -169,19 +170,28 @@ namespace GlassTests
 
             Model model = new Model(base.GetOutputFolder());
 
-            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 2000, 0));
+            double majorSide = 2000;
+            double minorSide = 1000;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
 
-            MonolithicGlass mg = new MonolithicGlass("Mg1", 1, GetGlassMaterialEn16612());
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 5, GetGlassMaterialEn16612());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg1", 5, GetGlassMaterialEn16612());
+
+            Interlayer[] interlayers = new Interlayer[] { new Interlayer("int1", 0.76, GetInterlayerMaterial()) };
+
+            LaminatedGlass lg = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2 }, interlayers);
 
             // Prototype
-            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+            Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped,
+                                        majorSide, minorSide));
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
-            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 1, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
             List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
             {
@@ -190,60 +200,35 @@ namespace GlassTests
 
             NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure);
 
-            // Combinazioni
-            Combination combo1 = new Combination("Cmb1");
-            combo1.AddLoadCaseCoefficient(lcPressure, 1);
-
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddLoad(loadWp);
 
             gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllDisplacementFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
 
-            // Combo
-            model.AddCombination(combo1);
 
-            // Start analysis
-            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+            GPC.Checkers.Glasses.Wrappers.LaminatedGlassWrapper lgw = new GPC.Checkers.Glasses.Wrappers.LaminatedGlassWrapper(gs1, lg);
+            lgw.AddExternalFaceLoad(loadWp);
 
-            model.PerformChecks();
-
-            // Assert
-
-            GPC.Model.FEM.FiniteElements.FiniteElement[] elements = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetElements();
-
-            double flexularRigidity = mg.Material.E * Math.Pow(mg.Thickness, 3.0) / (12.0 * (1.0 - Math.Pow(mg.Material.Ni, 2.0)));
+            lgw.CalculateEquivalentThicknesses();
 
 
-            double num = 0;
-            double den = 0;
+            double tw = lgw.ThicknessesW[(lcPressure.LoadDuration, lcPressure.Temperature)];
+            double ts1 = lgw.ThicknessesStress[0][(lcPressure.LoadDuration, lcPressure.Temperature)];
+            double ts2 = lgw.ThicknessesStress[1][(lcPressure.LoadDuration, lcPressure.Temperature)];
+            double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
-            foreach(var element in elements)
-            {
-                if (element is GPC.Model.FEM.FiniteElements.Plate plate)
-                {
-                    var elementArea = Math.Abs(plate.GetArea());
+            Console.WriteLine($"G interlayer: {interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature)}");
+            Console.WriteLine($"Tw: {tw}");
+            Console.WriteLine($"Ts1: {ts1}");
+            Console.WriteLine($"Ts2: {ts2}");
 
-                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+            Assert.AreEqual(0.23333, shearModule, 0.001, shearModule.ToString()); // valore di G su cui sono tarati gli expected value sotto
 
-                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+            Assert.AreEqual(7.16, tw, 0.1, tw.ToString());
+            Assert.AreEqual(8.04, ts1, 0.1, ts1.ToString());
+            Assert.AreEqual(8.04, ts2, 0.1, ts2.ToString());
 
-                    if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
-                    {
-                        num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
-                    }
-
-                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
-                }
-            }
-
-            double psi = Math.Abs(num / den * Math.Pow(10, 6));
-
-            Console.WriteLine($"Num: {num}");
-            Console.WriteLine($"Den: {den}");
-            Console.WriteLine($"Psi: {psi}");
-
-            Assert.AreEqual(12.48, psi, 0.2,  psi.ToString());
 
         }
 
@@ -268,7 +253,8 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+                Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters());
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -356,19 +342,26 @@ namespace GlassTests
 
             double majorSide = 1500;
             double minorSide = 700;
-            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(Math.Min(majorSide, minorSide), Math.Max(majorSide, minorSide), 0));
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
 
-            MonolithicGlass mg = new MonolithicGlass("Mg1", 1, GetGlassMaterialEn16612());
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 5, GetGlassMaterialEn16612());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg1", 5, GetGlassMaterialEn16612());
+
+            Interlayer[] interlayers = new Interlayer[] { new Interlayer("int1", 0.76, GetInterlayerMaterial()) };
+
+            LaminatedGlass lg = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2 }, interlayers);
 
             // Prototype
-            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+            Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped,
+                                        majorSide, minorSide));
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
 
             // Load
-            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 1, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
             List<GPC.Model.LoadCases.LoadCaseBase> loadCases = new List<GPC.Model.LoadCases.LoadCaseBase>
             {
@@ -377,60 +370,39 @@ namespace GlassTests
 
             NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure);
 
-            // Combinazioni
-            Combination combo1 = new Combination("Cmb1");
-            combo1.AddLoadCaseCoefficient(lcPressure, 1);
-
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddLoad(loadWp);
 
             // vincolo su un lati
             gs1.AddRestrain((GeometryRestrain)LineRestrain.GetAllFixed(
-                             s1.Fill.Explode().Where(i => i.GetLength() < majorSide).FirstOrDefault(), new FreedomCase("fc1"), CoordinateSystem.Global));
+                             s1.Fill.Explode().Where(i => i.GetLength() < majorSide).FirstOrDefault(), 
+                             new FreedomCase("fc1"), CoordinateSystem.Global));
 
-            // Combo
-            model.AddCombination(combo1);
 
-            // Start analysis
-            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
 
-            model.PerformChecks();
+            GPC.Checkers.Glasses.Wrappers.LaminatedGlassWrapper lgw = new GPC.Checkers.Glasses.Wrappers.LaminatedGlassWrapper(gs1, lg);
+            lgw.AddExternalFaceLoad(loadWp);
 
-            // Assert
-            GPC.Model.FEM.FiniteElements.FiniteElement[] elements = model.GlassSurfaces.FirstOrDefault().Checker.FemModel.GetElements();
+            lgw.CalculateEquivalentThicknesses();
 
-            double flexularRigidity = mg.Material.E * Math.Pow(mg.Thickness, 3.0) / (12.0 * (1.0 - Math.Pow(mg.Material.Ni, 2.0)));
 
-            double num = 0;
-            double den = 0;
+            double tw = lgw.ThicknessesW[(lcPressure.LoadDuration, lcPressure.Temperature)];
+            double ts1 = lgw.ThicknessesStress[0][(lcPressure.LoadDuration, lcPressure.Temperature)];
+            double ts2 = lgw.ThicknessesStress[1][(lcPressure.LoadDuration, lcPressure.Temperature)];
+            double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
-            foreach (var element in elements)
-            {
-                if (element is GPC.Model.FEM.FiniteElements.Plate plate)
-                {
-                    var elementArea = plate.GetArea();
+            Console.WriteLine($"G interlayer: {interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature)}");
+            Console.WriteLine($"Tw: {tw}");
+            Console.WriteLine($"Ts1: {ts1}");
+            Console.WriteLine($"Ts2: {ts2}");
 
-                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+            Assert.AreEqual(0.23333, shearModule, 0.001, shearModule.ToString()); // valore di G su cui sono tarati gli expected value sotto
 
-                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
 
-                    if (plate.AttributesLoadCase.Where(i => i is GPC.Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
-                    {
-                        num += mean.D3 * flexularRigidity * elementArea * ((GPC.Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
-                    }
-
-                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
-                }
-            }
-
-            double psi = Math.Abs(num / den * Math.Pow(10, 6));
-
-            Console.WriteLine($"Num: {num}");
-            Console.WriteLine($"Den: {den}");
-            Console.WriteLine($"Psi: {psi}");
-
-            Assert.AreEqual(1.24444, psi, 0.2, psi.ToString());
+            Assert.AreEqual(9.39, tw, 0.1, tw.ToString());
+            Assert.AreEqual(9.96, ts1, 0.1, ts1.ToString());
+            Assert.AreEqual(9.96, ts2, 0.1, ts2.ToString());
 
         }
 
@@ -455,7 +427,8 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+                Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters());
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads;
@@ -552,7 +525,8 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+                Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters());
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads;
@@ -648,7 +622,8 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+                Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters());
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads;
@@ -744,7 +719,8 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+                Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters());
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads;
@@ -849,7 +825,8 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                Prototype.CheckMethods.DominantLoad, Prototype.LaminatedEqThicknessMethods.EET, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement);
+                Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters());
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads;
@@ -928,5 +905,9 @@ namespace GlassTests
             Assert.AreEqual(20.02656784, psi, 0.2, psi.ToString());
 
         }
+
+
+
+
     }
 }
