@@ -34,6 +34,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// </summary>
         protected Dictionary<(double loadDuration, double temperature), double>[] _thicknessesStress;
         
+
         /// <summary>
         /// List of upper and lower vertices Id of each volume layer
         /// </summary>
@@ -43,8 +44,6 @@ namespace GPC.Checkers.Glasses.Wrappers
         public Dictionary<(double loadDuration, double temperature), double> ThicknessesW => _thicknessesW;
 
         public Dictionary<(double loadDuration, double temperature), double>[] ThicknessesStress => _thicknessesStress;
-
-
 
 
         #region Public constructors
@@ -453,7 +452,6 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         #endregion
 
-
         #region Equivalent thickness
 
 
@@ -477,7 +475,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             // vengono filtrati in base a loadDuration, temperature e stessa geometria
             List<Load> loadsToProcess = _externalFaceLoads.Union(_internalFaceLoads).Distinct(new Loads.LoadDurationAndTemperatureEqualityComparer()).ToList();
-
+            // Ora carichi uguali per il fem (stessa geometria, stesso valore del carico) ma duration e temperature diverse vengono processati.
 
             if (loadsToProcess.Count() == 0)
                 return false;
@@ -487,7 +485,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             {
                 case Models.Prototype.LaminatedEqThicknessBoundaryConditions.Other:
 
-                    SetEquivalentThicknessEET(loadsToProcess, GetPsiEETNumerical(loadsToProcess).ToList());
+                    SetEquivalentThicknessEET(GetPsiEETNumerical(loadsToProcess));
 
                     return true; // già processati tutti, ritorna
 
@@ -495,7 +493,8 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.EET)
                     {
-                        List<Load> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(NormalAreaLoad)).ToList();
+                        List<Load> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(GPC.Checkers.Glasses.Loads.NormalAreaLoad) || i.GetType() 
+                                                                                     == typeof(NormalAreaLoad)).ToList();
 
                         if (areaLoads.Count() > 0)
                         {
@@ -503,7 +502,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                             double psi = 14.0 * 5.0 / eqThicknessParameters.A;
 
-                            SetEquivalentThicknessEET(areaLoads, areaLoads.Select(i => psi).ToList());
+                            SetEquivalentThicknessEET(areaLoads.Select(i => (i, psi)).ToArray());
                         }
                     }
                     break;
@@ -564,7 +563,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             // processo i rimanenti con il numerico
             if (loadsToProcess.Count() > 0)
             {
-                SetEquivalentThicknessEET(loadsToProcess, GetPsiEETNumerical(loadsToProcess).ToList());
+                SetEquivalentThicknessEET(GetPsiEETNumerical(loadsToProcess));
                 return true;
             }
 
@@ -622,11 +621,10 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        protected void SetEquivalentThicknessEET(List<Load> loads, List<double> psiFactors)
+        protected void SetEquivalentThicknessEET((Load load, double psi)[] loadsToProcessPsiValues)
         {
-
-            if (loads.Count() != psiFactors.Count())
-                throw new ArgumentOutOfRangeException();
+            var loads = loadsToProcessPsiValues.Select(i => i.load).ToArray();
+            var psiValues = loadsToProcessPsiValues.Select(i => i.psi).ToArray();
 
 
             LaminatedGlass glass = (LaminatedGlass)Glass;
@@ -667,7 +665,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                 double shearModule = glass.Interlayers[0].Material.GetShearModule(((LoadCase)loads[index].LoadCase).LoadDuration, ((LoadCase)loads[index].LoadCase).Temperature);
 
                 // eq. 6.55
-                double eta2D = 1.0 / (1.0 + hint * E / (shearModule * oneMinusNiSquare) * DAbs / DFull * h1 * h2 / (h1 + h2) * psiFactors[index]);
+                double eta2D = 1.0 / (1.0 + hint * E / (shearModule * oneMinusNiSquare) * DAbs / DFull * h1 * h2 / (h1 + h2) * psiValues[index]);
 
                 double tw = Math.Pow(1.0 / (eta2D / firstDeno + (1.0 - eta2D) / secondDeno), 1.0 / 3.0);
 
@@ -683,7 +681,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             _thicknessesStress[0] = new Dictionary<(double loadDuration, double temperature), double>();
             _thicknessesStress[1] = new Dictionary<(double loadDuration, double temperature), double>();
-            for (int i = 0; i < loads.Count; i++)
+            for (int i = 0; i < loads.Length; i++)
             {
                 _thicknessesW[(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = twBuffer[loads[i]];
                 _thicknessesStress[0][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = tSigma1Buffer[loads[i]];
@@ -693,7 +691,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        protected double[] GetPsiEETNumerical(List<Load> loads)
+        protected (Load load, double psi)[] GetPsiEETNumerical(List<Load> loads)
         {
             if (((LaminatedGlass)Glass).GlassLayerCount > 2)
                 throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessParameter} does support only two layers glass.");
@@ -743,36 +741,74 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             Model.FEM.FiniteElements.FiniteElement[] elements = femModel.GetElements();
 
-            double num = 0;
-            double den = 0;
 
-            for (int e = 0; e < elements.Length; e++)
+            ConcurrentBag<(Load load, double psi)> psiValues = new ConcurrentBag<(Load load, double psi)>();
+
+            Action<int> action = new Action<int>((loadIndex) =>
             {
+                double num = 0;
+                double den = 0;
+                for (int e = 0; e < elements.Length; e++)
+                {
                 if (elements[e] is Model.FEM.FiniteElements.Plate plate)
                 {
                     var elementArea = plate.GetArea();
 
-                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault().Result).Cast<ResultDisplacement>();
+                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault(j =>
+                                                ((Combination)j.Case).ContainsLoadCases(new[] { (Model.LoadCases.LoadCaseBase)loads[loadIndex].LoadCase })).Result)
+                                                    .Cast<ResultDisplacement>(); // TODO: cambiare in containsLoadCase
 
-                    if (resultDisplacement is null)
-                        throw new ArgumentNullException();
+                        if (resultDisplacement is null)
+                            throw new ArgumentNullException();
 
 
-                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+                        var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
 
-                    if (plate.AttributesLoadCase.Where(i => i is Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
-                    {
-                        num += mean.D3 * flexularRigidity * elementArea * ((Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                        if (plate.AttributesLoadCase.Where(i => i is Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+                        {
+                            num += mean.D3 * flexularRigidity * elementArea * ((Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                        }
+
+                        den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
                     }
-
-                    den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
                 }
-            }
 
-            double psi = Math.Abs(num / den); // * Math.Pow(10, 6));
+                if (den == 0)
+                    psiValues.Add((loads[loadIndex], double.MaxValue)); // se c'è qualcosa che non va (den == 0) allora diamo un psi grande che corrisponde ad eta 0 cioè layerered limit
+                else
+                    psiValues.Add((loads[loadIndex], num / den));
+            });
+
+            Parallel.ForEach(Enumerable.Range(0, loads.Count()), action);
+
+            //double num = 0;
+            //double den = 0;
+            //for (int e = 0; e < elements.Length; e++)
+            //{
+            //    if (elements[e] is Model.FEM.FiniteElements.Plate plate)
+            //    {
+            //        var elementArea = plate.GetArea();
+
+            //        IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault(j => 
+            //                                    (Model.LoadCases.LoadCaseBase)j.Case == loads[0].LoadCase).Result).Cast<ResultDisplacement>();
+
+            //        if (resultDisplacement is null)
+            //            throw new ArgumentNullException();
 
 
-            return new[] { psi };
+            //        var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+            //        if (plate.AttributesLoadCase.Where(i => i is Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+            //        {
+            //            num += mean.D3 * flexularRigidity * elementArea * ((Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+            //        }
+
+            //        den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
+            //    }
+            //}
+
+
+            return psiValues.ToArray();
         }
 
 
