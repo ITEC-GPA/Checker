@@ -401,8 +401,8 @@ namespace GlassTests
 
             Model model = new Model(base.GetOutputFolder());
 
-            double majorSide = 2000;
-            double minorSide = 1000;
+            double majorSide = 1000;
+            double minorSide = 800;
             double loadWidth = 300;
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
 
@@ -480,8 +480,8 @@ namespace GlassTests
 
             Model model = new Model(base.GetOutputFolder());
 
-            double majorSide = 2000;
-            double minorSide = 1000;
+            double majorSide = 1000;
+            double minorSide = 800;
             double loadWidth = 50;
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
 
@@ -556,8 +556,8 @@ namespace GlassTests
 
             Model model = new Model(base.GetOutputFolder());
 
-            double majorSide = 2000;
-            double minorSide = 1000;
+            double majorSide = 1000;
+            double minorSide = 800;
             double loadWidth = 10;
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
 
@@ -631,8 +631,8 @@ namespace GlassTests
 
             Model model = new Model(base.GetOutputFolder());
 
-            double majorSide = 2000;
-            double minorSide = 1000;
+            double majorSide = 1000;
+            double minorSide = 800;
             double loadHeight = 300;
             double loadWidth = 10;
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
@@ -708,8 +708,8 @@ namespace GlassTests
 
             Model model = new Model(base.GetOutputFolder());
 
-            double majorSide = 2000;
-            double minorSide = 1000;
+            double majorSide = 1000;
+            double minorSide = 800;
             double loadHeight = 500;
             double loadWidth = 300;
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
