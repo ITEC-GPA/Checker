@@ -18,6 +18,7 @@ namespace GlassTests
     {
         protected GlassTestBase()
         {
+
         }
 
         #region Shape
