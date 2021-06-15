@@ -77,7 +77,7 @@
     <Compile Include="LoadCases\LoadCase.cs" />
     <Compile Include="LoadCases\LoadCaseEn16612.cs" />
     <Compile Include="Loads\AreaLoad.cs" />
-    <Compile Include="Loads\LoadDurationAndTemperatureEqualityComparer.cs" />
+    <Compile Include="Loads\LoadDurationTemperatureAndGeometryEqualityComparer.cs" />
     <Compile Include="Loads\SelfWeightLoad.cs" />
     <Compile Include="Loads\IGlassLoad.cs" />
     <Compile Include="Loads\IParametricLoad.cs" />
