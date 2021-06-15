@@ -20,6 +20,13 @@ namespace GPC.Checkers.Glasses.Glasses
     /// </summary>
     public sealed class GlassSurface : Model.Elements.Glasses.GlassSurface, IEquatable<GlassSurface>
     {
+        public enum LoadRestrainCondition
+        {
+            AsSurface, 
+            FourSidesClimate
+        }
+
+
         private static int _maxId;
 
         private readonly Prototype _prototype;
@@ -192,11 +199,13 @@ namespace GPC.Checkers.Glasses.Glasses
 
         public static bool operator ==(GlassSurface obj1, GlassSurface obj2)
         {
+            if (obj1 is null)
+            {
+                return obj2 is null;
+            }
+
             if (ReferenceEquals(obj1, obj2))
                 return true;
-
-            if (obj1 is null || obj2 is null)
-                return false;
 
             return obj1.Equals(obj2);
         }

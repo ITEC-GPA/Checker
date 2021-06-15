@@ -14,8 +14,10 @@ namespace GPC.Checkers.Glasses.Loads
     {
 
         private readonly GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
+        private readonly GlassSurface.LoadRestrainCondition _loadRestrainCondition;
 
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
+        public GlassSurface.LoadRestrainCondition LoadRestrainCondition => _loadRestrainCondition;
 
 
         public PointLoad(Vector3d force, Vector3d moment, Point3d point, LoadCaseBase loadCase, CoordinateSystem cSys, GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External) 
