@@ -16,7 +16,10 @@ namespace GPC.Checkers.Glasses.Loads
         GlassPanelWrapper.GlassPanelPositions GlassPanelPosition { get; }
 
         GlassSurface.LoadRestrainCondition LoadRestrainCondition { get; }
+
         IGlassLoadCase GlassLoadCase { get; }
+
+        Model.LoadCases.LoadCaseBase LoadCase { get; }
 
         GeometryBase GetGeometryBase();
 

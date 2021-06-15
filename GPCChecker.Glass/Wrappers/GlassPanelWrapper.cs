@@ -192,6 +192,8 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         public void AddSelfWeightLoad(Loads.SelfWeightLoad load)
         {
+            load.GlassPanelPosition = _glassPanelPositions;
+
             _selfWeightLoad = load;
         }
 
