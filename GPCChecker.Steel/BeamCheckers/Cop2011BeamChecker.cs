@@ -201,7 +201,6 @@ namespace GPC.Checkers.Steel.BeamChecker
         /// <returns></returns>
         private double CalculateAxialBucklingCapacity1Axis(SectionClass sectionClass, ISteelSection section)
         {
-            var a = CalculatePCompressionXAxis(section);
             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)            
                 return section.Area * CalculatePCompressionXAxis(section);
             
