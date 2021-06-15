@@ -1,4 +1,5 @@
 ﻿using GPC.Checkers.Glasses.Glasses;
+using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Wrappers;
 using GPC.Geometry;
 using GPC.Model.LoadCases;
@@ -20,12 +21,12 @@ namespace GPC.Checkers.Glasses.Loads
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
         public GlassSurface.LoadRestrainCondition LoadRestrainCondition => _loadRestrainCondition;
 
+        public IGlassLoadCase GlassLoadCase => (IGlassLoadCase)base.LoadCase;
 
-
-        public NormalAreaLoad(double pressure, Shape shape, LoadCaseBase loadCase, 
+        public NormalAreaLoad(double pressure, Shape shape, IGlassLoadCase loadCase, 
                               GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External,
                               GlassSurface.LoadRestrainCondition loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface)
-            : base(pressure, shape, loadCase)
+            : base(pressure, shape, (LoadCaseBase)loadCase)
         {
             _glassPanelPositions = glassPanelPosition;
             _loadRestrainCondition = loadRestrainCondition;

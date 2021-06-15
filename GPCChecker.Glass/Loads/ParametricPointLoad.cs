@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Checkers.Glasses.Glasses;
+using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Wrappers;
 using GPC.Geometry;
 using GPC.Model.LoadCases;
@@ -22,29 +23,30 @@ namespace GPC.Checkers.Glasses.Loads
 
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
         public GlassSurface.LoadRestrainCondition LoadRestrainCondition => _loadRestrainCondition;
+        public IGlassLoadCase GlassLoadCase => (IGlassLoadCase)base.LoadCase;
 
 
-        public ParametricPointLoad(Vector3d force, Vector3d moment, Point3d point, LoadCase loadCase, CoordinateSystem cSys, 
+        public ParametricPointLoad(Vector3d force, Vector3d moment, Point3d point, IGlassLoadCase loadCase, CoordinateSystem cSys, 
                                     GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External) 
-            : base(force, moment, point, loadCase, cSys)
+            : base(force, moment, point, (LoadCaseBase)loadCase, cSys)
         {
             _loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface;
             _glassPanelPositions = glassPanelPosition;
         }
 
-        public ParametricPointLoad(double f1, double f2, double f3, double m1, double m2, double m3, Point3d point, LoadCase loadCase, 
+        public ParametricPointLoad(double f1, double f2, double f3, double m1, double m2, double m3, Point3d point, IGlassLoadCase loadCase, 
                                     GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External) 
-            : base(f1, f2, f3, m1, m2, m3, point, loadCase)
+            : base(f1, f2, f3, m1, m2, m3, point, (LoadCaseBase)loadCase)
         {
             _loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface;
             _glassPanelPositions = glassPanelPosition;
         }
 
 
-        public ParametricPointLoad(double f1, double f2, double f3, double m1, double m2, double m3, Point3d point, LoadCase loadCase, 
+        public ParametricPointLoad(double f1, double f2, double f3, double m1, double m2, double m3, Point3d point, IGlassLoadCase loadCase, 
                                 CoordinateSystem coordinateSystem, 
                                 GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External) 
-            : base(f1, f2, f3, m1, m2, m3, point, loadCase, coordinateSystem)
+            : base(f1, f2, f3, m1, m2, m3, point, (LoadCaseBase)loadCase, coordinateSystem)
         {
             _loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface;
             _glassPanelPositions = glassPanelPosition;

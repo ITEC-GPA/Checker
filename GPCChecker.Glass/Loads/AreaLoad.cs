@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Checkers.Glasses.Wrappers;
 using GPC.Checkers.Glasses.Glasses;
+using GPC.Checkers.Glasses.LoadCases;
 
 namespace GPC.Checkers.Glasses.Loads
 {
@@ -22,21 +23,23 @@ namespace GPC.Checkers.Glasses.Loads
 
         public GlassSurface.LoadRestrainCondition LoadRestrainCondition => _loadRestrainCondition;
 
+        public IGlassLoadCase GlassLoadCase => (IGlassLoadCase)base.LoadCase;
 
-        public AreaLoad(double p1, double p2, double p3, Shape shape, LoadCaseBase loadCase, 
+
+        public AreaLoad(double p1, double p2, double p3, Shape shape, IGlassLoadCase loadCase, 
                         GlassPanelWrapper.GlassPanelPositions glassPanelPositions = GlassPanelWrapper.GlassPanelPositions.External,
                         GlassSurface.LoadRestrainCondition loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface) 
-            : base(p1, p2, p3, shape, loadCase)
+            : base(p1, p2, p3, shape, (LoadCaseBase)loadCase)
         {
             _glassPanelPositions = glassPanelPositions;
             _loadRestrainCondition = loadRestrainCondition;
         }
 
 
-        public AreaLoad(double p1, double p2, double p3, Shape shape, LoadCaseBase loadCase, CoordinateSystem coordinateSystem, 
+        public AreaLoad(double p1, double p2, double p3, Shape shape, IGlassLoadCase loadCase, CoordinateSystem coordinateSystem, 
                         GlassPanelWrapper.GlassPanelPositions glassPanelPositions = GlassPanelWrapper.GlassPanelPositions.External,
                         GlassSurface.LoadRestrainCondition loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface) 
-            : base(p1, p2, p3, shape, loadCase, coordinateSystem)
+            : base(p1, p2, p3, shape, (LoadCaseBase)loadCase, coordinateSystem)
         {
             _glassPanelPositions = glassPanelPositions;
             _loadRestrainCondition = loadRestrainCondition;
