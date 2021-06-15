@@ -129,14 +129,14 @@ namespace GPC.Checkers.Steel.Results
         internal void SetCapacity(double axialTension, double axialCompression, double axialBuck1, double axialBuck2, double shear1, double shear2, double bending1, double bending2, double latTors)
         {
             _axialTensionRd = axialTension < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : axialTension;
-            _axialCompressionRd = axialCompression < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : axialCompression;
-            _axialBuckling1Rd = axialBuck1 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : axialBuck1;
-            _axialBuckling2Rd = axialBuck2 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : axialBuck2;
-            _shear1Rd = shear1 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : shear1;
-            _shear2Rd = shear2 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : shear2;
-            _bendingMoment1Rd = bending1 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : bending1;
-            _bendingMoment2Rd = bending2 < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : bending2;
-            _lateralTorsionalMomentRd = latTors < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : latTors;
+            _axialCompressionRd = axialCompression < 0 ? throw new ArgumentException($"AxialCompressionRd cannot be lower than zero") : axialCompression;
+            _axialBuckling1Rd = axialBuck1 < 0 ? throw new ArgumentException($"AxialBuckling1Rd cannot be lower than zero") : axialBuck1;
+            _axialBuckling2Rd = axialBuck2 < 0 ? throw new ArgumentException($"AxialBuckling2Rd cannot be lower than zero") : axialBuck2;
+            _shear1Rd = shear1 < 0 ? throw new ArgumentException($"Shear1Rd cannot be lower than zero") : shear1;
+            _shear2Rd = shear2 < 0 ? throw new ArgumentException($"Shear2Rd cannot be lower than zero") : shear2;
+            _bendingMoment1Rd = bending1 < 0 ? throw new ArgumentException($"BendingMoment1Rd cannot be lower than zero") : bending1;
+            _bendingMoment2Rd = bending2 < 0 ? throw new ArgumentException($"BendingMoment2Rd cannot be lower than zero") : bending2;
+            _lateralTorsionalMomentRd = latTors < 0 ? throw new ArgumentException($"LateralTorsionalBucklingRd cannot be lower than zero") : latTors;
         }
 
         internal void SetWorkingRatio(double axialTensionWR, double axialCompressionWR, double axialBuck1WR, double axialBuck2WR, double shear1WR, double shear2WR, double bending1WR, 

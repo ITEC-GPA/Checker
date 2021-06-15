@@ -691,17 +691,17 @@ namespace GPC.Checkers.Steel.BeamChecker
         private double CalculatePlasticModulusShearXAxis(ISteelSection section)
         {
             if (section is SectionH sech && sech.SectionType == Model.Sections.Section.SectionTypes.Rolled)
-                return (1/4) * sech.Height * Math.Pow(sech.ThicknessWeb, 2);
+                return (1.0/4.0) * sech.Height * Math.Pow(sech.ThicknessWeb, 2);
             if (section is SectionH secH && secH.SectionType == Model.Sections.Section.SectionTypes.Welded)
-                return (1 / 4) * secH.HeightWeb * Math.Pow(secH.ThicknessWeb, 2);
+                return (1.0 / 4.0) * secH.HeightWeb * Math.Pow(secH.ThicknessWeb, 2);
             if (section is SectionC secC && secC.SectionType == Model.Sections.Section.SectionTypes.Rolled)
-                return (1 / 4) * secC.ThicknessWeb * Math.Pow(secC.Height, 2);
+                return (1.0 / 4.0) * secC.ThicknessWeb * Math.Pow(secC.Height, 2);
             if (section is SectionRHS sectionRHS)
-                return  2 *(1/4) * ((sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight) / 2) * Math.Pow(sectionRHS.BaseInternal,2);
+                return  2 *(1.0/4.0) * ((sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight) / 2) * Math.Pow(sectionRHS.BaseInternal,2);
             if (section is SectionCHS sectionCHS)
-                return 0.6 * (1 / 6) * Math.Pow(sectionCHS.Diameter, 3) * Math.Pow(sectionCHS.DiameterInternal, 3);
+                return 0.6 * (1.0 / 6.0) * (Math.Pow(sectionCHS.Diameter, 3) - Math.Pow(sectionCHS.DiameterInternal, 3));
             if (section is SectionT sectionT)
-                return (1/4) * sectionT.ThicknessWeb * Math.Pow((sectionT.Height - sectionT.ThicknessFlange),3);
+                return (1.0/4.0) * sectionT.ThicknessWeb * Math.Pow((sectionT.Height - sectionT.ThicknessFlange),3);
             else
                 throw new NotImplementedException("GetShearArea: not implemented section");
         }
@@ -725,7 +725,7 @@ namespace GPC.Checkers.Steel.BeamChecker
             }
             else // high shear condition
             {
-                double rhoMomentShearInteraction = Math.Pow((2 * resultBeamForces.V2 / CalculateShearXCapacity(resultBeamForces, section)) - 1, 2);
+                double rhoMomentShearInteraction = Math.Pow((2 * resultBeamForces.V1 / CalculateShearXCapacity(resultBeamForces, section)) - 1, 2);
                 if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
                     return Math.Min(Py * (((Section)section).Wpl2 - rhoMomentShearInteraction * CalculatePlasticModulusShearYAxis(section)),
                                     1.2 * Py * (((Section)section).Wel2 - rhoMomentShearInteraction * CalculatePlasticModulusShearYAxis(section) / 1.5));
@@ -744,16 +744,16 @@ namespace GPC.Checkers.Steel.BeamChecker
         private double CalculatePlasticModulusShearYAxis(ISteelSection section)
         {
             if (section is SectionH sech)
-                return (1 / 4) * sech.LenghtTopFlange * Math.Pow(sech.ThicknessTopFlange, 2) + 
-                    (1 / 4) * sech.LenghtBottomFlange * Math.Pow(sech.ThicknessBottomFlange, 2);
+                return (1.0 / 4.0) * sech.LenghtTopFlange * Math.Pow(sech.ThicknessTopFlange, 2) + 
+                    (1.0 / 4.0) * sech.LenghtBottomFlange * Math.Pow(sech.ThicknessBottomFlange, 2);
             if (section is SectionC secC)
-                return (1 / 4) * secC.LengthTop * Math.Pow(secC.ThicknessTop, 2) + (1 / 4) * secC.LengthBottom * Math.Pow(secC.ThicknessBottom, 2);
+                return (1.0 / 4.0) * secC.LengthTop * Math.Pow(secC.ThicknessTop, 2) + (1.0 / 4.0) * secC.LengthBottom * Math.Pow(secC.ThicknessBottom, 2);
             if (section is SectionRHS sectionRHS)
-                return 2 * (1 / 4) * ((sectionRHS.ThicknessBottom + sectionRHS.ThicknessTop) / 2) * Math.Pow(sectionRHS.BaseInternal, 2);
+                return 2.0 * (1.0 / 4.0) * ((sectionRHS.ThicknessBottom + sectionRHS.ThicknessTop) / 2) * Math.Pow(sectionRHS.BaseInternal, 2);
             if (section is SectionCHS sectionCHS)
-                return 0.6 * (1 / 6) * Math.Pow(sectionCHS.Diameter, 3) * Math.Pow(sectionCHS.DiameterInternal, 3);
+                return 0.6 * (1.0 / 6.0) * (Math.Pow(sectionCHS.Diameter, 3) - Math.Pow(sectionCHS.DiameterInternal, 3));
             if (section is SectionT sectionT)
-                return (1 / 4) * sectionT.LenghtFlange * Math.Pow(sectionT.ThicknessFlange, 2);
+                return (1.0 / 4.0) * sectionT.LenghtFlange * Math.Pow(sectionT.ThicknessFlange, 2);
             else
                 throw new NotImplementedException("GetShearArea: not implemented section");
         }
