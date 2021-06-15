@@ -9,6 +9,7 @@ using GPC.Model.Restrains;
 using GPC.Model.Glasses;
 using GPC.Model.Loads;
 using GPC.Checkers.Glasses.Glasses;
+using GPC.Checkers.Glasses.Loads;
 
 namespace GPC.Checkers.Glasses.Wrappers
 {
@@ -27,7 +28,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         protected List<Load> _externalFaceLoads;
         protected List<Load> _internalFaceLoads;
-        protected SelfWeightLoad _selfWeightLoad;
+        protected Loads.SelfWeightLoad _selfWeightLoad;
 
         protected List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>> _meshGeometryRestrainVertices;
         protected List<KeyValuePair<Mesh, Dictionary<Load, int[]>>> _meshLoadsVertexIndexes;
@@ -103,7 +104,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             }
         }
 
-        public SelfWeightLoad SelfWeightLoad => _selfWeightLoad;
+        public Loads.SelfWeightLoad SelfWeightLoad => _selfWeightLoad;
 
         #endregion
 
@@ -133,10 +134,10 @@ namespace GPC.Checkers.Glasses.Wrappers
 
 
         /// <returns>Glass thickness for deformation analysis</returns>
-        public abstract double GetDeformationThickness(double loadDuration, double temperature);
+        public abstract double GetDeformationThickness(IGlassLoad load);
 
         /// <returns>Glass thickness for stress analysis</returns>
-        public abstract double[] GetStressThickness(double loadDuration, double temperature);
+        public abstract double[] GetStressThickness(IGlassLoad load);
 
 
         /// <returns>Total thickness of the glass package included interlayer</returns>
@@ -158,36 +159,38 @@ namespace GPC.Checkers.Glasses.Wrappers
         #region Public methods - analysis
 
         /// <remarks>The load will be added only if it is different from <see cref="SelfWeightLoad"/></remarks>
-        public void AddExternalFaceLoad(Load load)
+        public void AddExternalFaceLoad(IGlassLoad load)
         {
-            if (load is SelfWeightLoad)
+            if (load is Loads.SelfWeightLoad)
                 return;
             else
-                _externalFaceLoads.Add(load);
+                _externalFaceLoads.Add((Load)load);
         }
 
         /// <remarks>The load will be added only if it is different from <see cref="SelfWeightLoad"/></remarks>
-        public void AddExternalFaceLoads(IEnumerable<Load> loads)
+        public void AddExternalFaceLoads(IEnumerable<IGlassLoad> loads)
         {
-            _externalFaceLoads.AddRange(loads.Where(i => !(i is SelfWeightLoad)).ToList());
+            var loadCasted = loads.Cast<Load>().ToList();
+            _externalFaceLoads.AddRange(loadCasted.Where(i => !(i is Loads.SelfWeightLoad)).ToList());
         }
 
         /// <remarks>The load will be added only if it is different from <see cref="SelfWeightLoad"/></remarks>
-        public void AddInternalFaceLoad(Load load)
+        public void AddInternalFaceLoad(IGlassLoad load)
         {
-            if (load is SelfWeightLoad)
+            if (load is Loads.SelfWeightLoad)
                 return;
             else
-                _internalFaceLoads.Add(load);
+                _internalFaceLoads.Add((Load)load);
         }
 
         /// <remarks>The load will be added only if it is different from <see cref="SelfWeightLoad"/></remarks>
-        public void AddInternalFaceLoads(IEnumerable<Load> loads)
+        public void AddInternalFaceLoads(IEnumerable<IGlassLoad> loads)
         {
-            _internalFaceLoads.AddRange(loads.Where(i => !(i is SelfWeightLoad)).ToList());
+            var loadCasted = loads.Cast<Load>().ToList();
+            _internalFaceLoads.AddRange(loadCasted.Where(i => !(i is Loads.SelfWeightLoad)).ToList());
         }
 
-        public void AddSelfWeightLoad(SelfWeightLoad load)
+        public void AddSelfWeightLoad(Loads.SelfWeightLoad load)
         {
             _selfWeightLoad = load;
         }
