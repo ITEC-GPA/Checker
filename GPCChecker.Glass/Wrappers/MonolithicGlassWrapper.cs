@@ -49,7 +49,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         public override double GetTotalThickness()
         {
-            return ((MonolithicGlass)Glass).GetTotalThickness();
+            return ((MonolithicGlass)Glass).TotalThickness;
         }
 
         public override double GetElasticModulus()
