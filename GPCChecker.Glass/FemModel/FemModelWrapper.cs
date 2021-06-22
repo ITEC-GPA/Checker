@@ -266,7 +266,7 @@ namespace GPC.Checkers.Glasses.FemModel
             if (count != node2Ids.Count())
                 throw new ArgumentException();
 
-            var nodeIdMap = _nodes.GetElementIdMap();
+            //var nodeIdMap = _nodes.GetElementIdMap();
             /* 
              * Giorgio: Ottimizzato in un unico ciclo. in questo caso il guadagno di prestazioni irrisorio ma seguiamo uno standard 
              *          che, se sempre rispettato, porta ad un generale aumento di prestazioeni
@@ -302,8 +302,8 @@ namespace GPC.Checkers.Glasses.FemModel
                 en2.MoveNext();
                 var id2 = en2.Current;
 
-                Model.FEM.Node node1 = _nodes.GetElementByIndex(nodeIdMap[id1]);
-                Model.FEM.Node node2 = _nodes.GetElementByIndex(nodeIdMap[id2]);
+                Model.FEM.Node node1 = _nodes[id1];//.GetByIndex(nodeIdMap[id1]);
+                Model.FEM.Node node2 = _nodes[id2];//.GetByIndex(nodeIdMap[id2]);
 
                 AddCostrain(new Model.FEM.Costrains.RigidLink(node1, node2));
             }
