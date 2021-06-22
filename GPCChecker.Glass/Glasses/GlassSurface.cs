@@ -89,7 +89,7 @@ namespace GPC.Checkers.Glasses.Glasses
             if (!(load is IGlassLoad))
                 throw new ArgumentException();
 
-            _loads.Add((IGlassLoad)load);
+            _loads.Add(load);
         }
 
         /// <summary>

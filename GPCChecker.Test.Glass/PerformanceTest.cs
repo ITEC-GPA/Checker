@@ -8,7 +8,7 @@ using GPC.Model.Combinations;
 using GPC.Model.FEM;
 using GPC.Model.FreedomCases;
 using GPC.Model.Glasses;
-using GPC.Model.Loads;
+using GPC.Checkers.Glasses.Loads;
 using GPC.Model.Materials;
 using GPC.Model.Restrains;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -67,9 +67,11 @@ namespace GlassTests
             };
             Shape shape = new Shape(fill);
             GlassSurface gs1 = new GlassSurface(prototype, shape);
+
             NormalAreaLoad nal1 = new NormalAreaLoad(1, gs1.Shape, lcCSD);
             NormalAreaLoad nal2 = new NormalAreaLoad(2, gs1.Shape, lcWp);
             NormalAreaLoad nal3 = new NormalAreaLoad(3, gs1.Shape, lcLl);
+
             SelfWeightLoad swl = new SelfWeightLoad(lcSw, model.Options.GetGravityVector(), GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
             LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0,
                 new Line3d(new Point3d(50, 0, 1000), new Point3d(950, 0, 1000)), lcLl, CoordinateSystem.Global);
