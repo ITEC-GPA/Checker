@@ -68,7 +68,7 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         #region Constructor
 
-        public Cop2011BeamChecker(Cop2011BeamCheckerOptions cop2011BeamChecker, ILoadCase loadCase, StandardCopSuos2011 standard)
+        public Cop2011BeamChecker(Cop2011BeamCheckerAttribute cop2011BeamChecker, ILoadCase loadCase, StandardCopSuos2011 standard)
             : base(cop2011BeamChecker, loadCase, standard)
         {
             _py = GetPy();

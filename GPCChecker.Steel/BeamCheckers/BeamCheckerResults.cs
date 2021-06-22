@@ -18,7 +18,7 @@ namespace GPC.Checkers.Steel.BeamChecker
     {
         #region Variables
 
-        protected readonly BeamCheckerOptions _beamOptions;
+        protected readonly BeamCheckerAttribute _beamOptions;
         protected BeamStationCheckerResults[] _beamStationCheckerResults;
         protected readonly Standard _standard;
         protected readonly ILoadCase _combination;
@@ -28,7 +28,7 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         #region Properties
 
-        internal BeamCheckerOptions BeamOptions => _beamOptions;
+        internal BeamCheckerAttribute BeamOptions => _beamOptions;
 
         internal ResultBeamForces[] ResultBeamForces => BeamOptions.ResultBeamForces;
 
@@ -36,7 +36,7 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         internal Checker.Options Options => BeamOptions.Options;
 
-        internal ISteelSection[] Section => BeamOptions.Section;
+        internal ISteelSection[] Section => BeamOptions.Sections;
 
         public double WorkingRatio => _beamStationCheckerResults.Select(i => i.GetMaxWorkingRatio()).Max();
 
@@ -53,7 +53,7 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         #region Constructor
 
-        internal BeamCheckerResults(BeamCheckerOptions beamChecker, ILoadCase loadCase,  Standard standard)
+        internal BeamCheckerResults(BeamCheckerAttribute beamChecker, ILoadCase loadCase,  Standard standard)
         {
             _beamOptions = beamChecker ?? throw new ArgumentNullException(nameof(beamChecker));
             _combination = loadCase ?? throw new ArgumentNullException(nameof(loadCase));

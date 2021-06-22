@@ -5,13 +5,13 @@ using System.Collections.Generic;
 
 namespace GPC.Checkers.Steel.Checkers
 {
-    public class Cop2011BeamCheckerOptions : BeamCheckerOptions
+    public class Cop2011BeamCheckerAttribute : BeamCheckerAttribute
     {
 
 
         #region Public Constructors
 
-        public Cop2011BeamCheckerOptions(ISteelSection[] sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, Cop2011Checker.Cop2011Options options)
+        public Cop2011BeamCheckerAttribute(ISteelSection[] sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, Cop2011Checker.Cop2011Options options)
             :base(sections, resultBeamForces, resultStations, options)
         {
 
