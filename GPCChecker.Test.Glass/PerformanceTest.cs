@@ -222,6 +222,7 @@ namespace GlassTests
             stopWatch.Stop();
             Debug.WriteLine(stopWatch.Elapsed, "GlassSurface added to model");
             // Da 26 secondi a 12
+            // Con collection nodi ordinata: 7-8 secondi
             
             Debug.WriteLine("Finish");
             //Assert.IsTrue(stopWatch.ElapsedMilliseconds < 5000, "Too slow");
