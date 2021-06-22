@@ -150,6 +150,8 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         public abstract double GetSelfWeightTotal();
 
+        public abstract double GetDensity();
+
         #endregion
 
 

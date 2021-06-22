@@ -74,6 +74,11 @@ namespace GPC.Checkers.Glasses.Wrappers
             return _glassSurface.Shape.GetArea() * GetSelfWeightPerUnitArea();
         }
 
+        public override double GetDensity()
+        {
+            return ((MonolithicGlass)Glass).GetDensity();
+        }
+
         /// <inheritdoc cref="GlassWrapper.GenerateMesh()"/>
         public override bool GenerateMesh()
         {

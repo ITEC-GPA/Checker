@@ -18,6 +18,7 @@ namespace GlassTests
     {
         protected GlassTestBase()
         {
+
         }
 
         #region Shape
@@ -78,8 +79,7 @@ namespace GlassTests
             var it = new InterlayerMaterial("", GPC.Model.Units.ConvertDensityToDefault(2500, GPC.Model.Units.SI), 0, InterlayerMaterial.InterlayerType.NormalPVB);
             it.AddShearModule(3, new double[] { 10, 20, 50 }, new double[] { 0.1, 0.2, 0.30 });
             it.AddShearModule(100, new double[] { 10, 20, 50 }, new double[] { 0.15, 0.25, 0.35 });
-
-            it.AddShearModule(100, new double[] { 10, 20, 50 }, new double[] { 0.15, 0.25, 0.35 });
+            it.AddShearModule(600, new double[] { 10, 20, 50 }, new double[] { 0.05, 0.15, 0.10 });
             return it;
         }
 

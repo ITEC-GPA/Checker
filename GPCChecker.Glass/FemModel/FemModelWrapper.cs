@@ -496,7 +496,7 @@ namespace GPC.Checkers.Glasses.FemModel
 
             // Create a new model
             if (!aw.NewFile(_st7FilePath, scratchPath, ref mid))
-                throw new Exception("Failed to create new model");
+                throw new Straus7Exception("Failed to create new model");
 
             // Units
             int[] st7Units = new int[St7ApiConst.kLastUnit];
@@ -508,7 +508,7 @@ namespace GPC.Checkers.Glasses.FemModel
             st7Units[St7ApiConst.ipENERGYU] = St7ApiConst.euJOULE;
 
             if (!aw.SetUnits(mid, st7Units))
-                throw new Exception("Failed to set the units");
+                throw new Straus7Exception("Failed to set the units");
 
 
             // Setup loadcases
@@ -1067,8 +1067,10 @@ namespace GPC.Checkers.Glasses.FemModel
                     throw new NotSupportedException("Plate properties not in order");
                 _bufferId = st7PropId;
 
-                if (property is MonolithicGlassProperty mgp)
+                if (property is MonolithicGlassProperty || property is PlateProperty)
                 {
+                    var mgp = (PlateProperty)property;
+
                     if (mgp.Material is Model.FEM.Materials.IsotropicFemMaterial iso)
                     {
                         aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, mgp.Name);
