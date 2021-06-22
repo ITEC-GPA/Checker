@@ -145,7 +145,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         public abstract double GetElasticModulus();
 
-        public abstract double GetPoissonRatios();
+        public abstract double GetPoissonRatio();
 
         public abstract double GetSelfWeightPerUnitArea();
 

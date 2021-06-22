@@ -7,7 +7,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         double GetElasticModulus();
 
-        double GetPoissonRatios();
+        double GetPoissonRatio();
 
         double GetSelfWeightPerUnitArea();
 
