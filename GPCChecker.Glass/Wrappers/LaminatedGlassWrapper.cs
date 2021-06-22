@@ -511,7 +511,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                         {
                             areaLoads.ForEach(i => loadsToProcess.Remove(i));
 
-                            double psi = 14.0 * 5.0 / eqThicknessParameters.A;
+                            double psi = 14.0 / 5.0 / Math.Pow(eqThicknessParameters.A, 2.0);
 
                             SetEquivalentThicknessEET(areaLoads.Select(i => (i, psi)).ToArray());
                         }
@@ -823,6 +823,14 @@ namespace GPC.Checkers.Glasses.Wrappers
                 Temperature = temperature;
                 LoadGeometry = loadGeometry ?? throw new ArgumentNullException(nameof(loadGeometry));
                 RestrainCondition = restrainCondition;
+            }
+
+            public bool Equals(double loadDuration, double temperature, GeometryBase loadGeometry, GlassSurface.LoadRestrainCondition restrainCondition)
+            {
+                return     LoadDuration == loadDuration
+                        && Temperature == temperature
+                        && LoadGeometry == loadGeometry
+                        && RestrainCondition == restrainCondition;
             }
 
             public override bool Equals(object obj)
