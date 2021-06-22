@@ -28,12 +28,12 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// <summary>
         /// Thickness associates to displacement
         /// </summary>
-        protected Dictionary<(double loadDuration, double temperature), double> _thicknessesW;
+        protected Dictionary<EquivalentThicknessParameters, double> _thicknessesW;
 
         /// <summary>
         /// Thickness associates to stress for each glass layer 
         /// </summary>
-        protected Dictionary<(double loadDuration, double temperature), double>[] _thicknessesStress;
+        protected Dictionary<EquivalentThicknessParameters, double>[] _thicknessesStress;
         
 
         /// <summary>
@@ -42,9 +42,9 @@ namespace GPC.Checkers.Glasses.Wrappers
         protected (IEnumerable<int> lowerVertices, IEnumerable<int> upperVertices)[] _volumeUpperLowerVerticesIds;
 
 
-        public Dictionary<(double loadDuration, double temperature), double> ThicknessesW => _thicknessesW;
+        public Dictionary<EquivalentThicknessParameters, double> ThicknessesW => _thicknessesW;
 
-        public Dictionary<(double loadDuration, double temperature), double>[] ThicknessesStress => _thicknessesStress;
+        public Dictionary<EquivalentThicknessParameters, double>[] ThicknessesStress => _thicknessesStress;
 
 
         #region Public constructors
@@ -58,8 +58,8 @@ namespace GPC.Checkers.Glasses.Wrappers
         internal LaminatedGlassWrapper(GlassSurface glassSurface, LaminatedGlass glass, GlassPanelPositions position)
             : base(glassSurface, glass, position)
         {
-            _thicknessesW = new Dictionary<(double loadDuration, double temperature), double>();
-            _thicknessesStress = new Dictionary<(double loadDuration, double temperature), double>[glass.GlassLayerCount]; 
+            _thicknessesW = new Dictionary<EquivalentThicknessParameters, double>();
+            _thicknessesStress = new Dictionary<EquivalentThicknessParameters, double>[glass.GlassLayerCount]; 
 
             _volumeUpperLowerVerticesIds = new (IEnumerable<int> lowerVertices, IEnumerable<int> upperVertices)[glass.GlassLayerCount + glass.InterlayerCount];
         }
@@ -77,15 +77,19 @@ namespace GPC.Checkers.Glasses.Wrappers
                     throw new ArgumentException();
             }
 
+            var loadcase = load.GlassLoadCase;
 
-            if (_thicknessesW.ContainsKey((loadDuration, temperature)))
+            EquivalentThicknessParameters parameters = new EquivalentThicknessParameters(loadcase.LoadDuration, loadcase.Temperature, 
+                                                            load.GetGeometryBase(), load.LoadRestrainCondition);
+
+            if (_thicknessesW.ContainsKey(parameters))
             {
-                return _thicknessesW[(loadDuration, temperature)];
+                return _thicknessesW[parameters];
             }
             else
             {
                 // da valutare se inserire interpolazione valori. Ocio che il valore dello spessore non varia linearmente
-                throw new NotSupportedException($"Deformation thickness not found for load duration: {loadDuration} and temperature: {temperature}");
+                throw new NotSupportedException($"Deformation thickness not found for load duration: {parameters.LoadDuration}, temperature: {parameters.Temperature} and geometry: {parameters.LoadGeometry}");
             }
 
         }
@@ -102,17 +106,22 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             double[] stressThickness = new double[((LaminatedGlass)Glass).GlassLayerCount];
 
+            var loadcase = load.GlassLoadCase;
+
+            EquivalentThicknessParameters parameters = new EquivalentThicknessParameters(loadcase.LoadDuration, loadcase.Temperature, 
+                                                            load.GetGeometryBase(), load.LoadRestrainCondition);
+
             for (int i = 0; i < _thicknessesStress.Length; i++)
             {
-                if (_thicknessesStress[i].ContainsKey((loadDuration, temperature)))
+                if (_thicknessesStress[i].ContainsKey(parameters))
                 {
-                    stressThickness[i] = _thicknessesStress[i][(loadDuration, temperature)];
+                    stressThickness[i] = _thicknessesStress[i][parameters];
                 }
                 else
                 {
                     // da valutare se inserire interpolazione valori. Ocio che il valore dello spessore non varia linearmente
-                    throw new NotSupportedException($"Stress thickness not found for layer: {i} " +
-                                                    $"load duration: {loadDuration} and temperature: {temperature}");
+                    throw new NotSupportedException($"Deformation thickness not found for load duration: " +
+                        $"{parameters.LoadDuration}, temperature: {parameters.Temperature} and geometry: {parameters.LoadGeometry}");
                 }
             }
 
@@ -348,7 +357,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                             if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
                             {
-                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto piï¿½ distante dell'interlyaer
+                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
 
                                 // primo strato di brick
                                 if (vertexIdMap != null)
@@ -360,7 +369,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                                 }
                                 else
                                 {
-                                    // se ï¿½ nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
+                                    // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
 
                                     upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
                                                                     Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
@@ -489,7 +498,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     SetEquivalentThicknessEET(GetPsiEETNumerical(loadsToProcess));
 
-                    return true; // giï¿½ processati tutti, ritorna
+                    return true; // già processati tutti, ritorna
 
                 case Models.Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped:
 
@@ -597,7 +606,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             double a = _glassSurface.Shape.Fill.Explode().Select(i => i.GetLength()).Min(); // in casi regolari funziona,
                                                                                             // in casi irregolari non tanto bene
                                                                                             // es. un poligono di 5 lati con uno dei lati molto piccolo
-                                                                                            // andrebbe fatto un metodo per capire qual ï¿½ "smallest dimension of bending of the laminate plate"
+                                                                                            // andrebbe fatto un metodo per capire qual è "smallest dimension of bending of the laminate plate"
             
             double Is = h1 * Math.Pow(hs2, 2.0) + h2 * Math.Pow(hs1, 2.0);
 
@@ -609,15 +618,20 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             for (int i = 0; i < loads.Count; i++)
             {
-                var shearModule = glass.Interlayers[0].Material.GetShearModule(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature);
+                var loadCase = loads[i].GlassLoadCase;
+
+                var shearModule = glass.Interlayers[0].Material.GetShearModule(loadCase.LoadDuration, loadCase.Temperature);
 
                 double lambda = 1.0 / (1.0 + (9.6 * elasticModulus * Is * hv) / (shearModule * hsSquare * aSquare)); // Shear transfer coefficient
 
                 double hw = Math.Pow(hs1Square + hs2Square + 12.0 * lambda * Is, 1.0 / 3.0);
 
-                _thicknessesW[(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = hw;
-                _thicknessesStress[0][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = Math.Sqrt(Math.Pow(hw, 3.0) / (h1 + 2.0 * lambda * hs2));
-                _thicknessesStress[1][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = Math.Sqrt(Math.Pow(hw, 3.0) / (h2 + 2.0 * lambda * hs1));
+                EquivalentThicknessParameters parameters = new EquivalentThicknessParameters(loadCase.LoadDuration, 
+                                                            loadCase.Temperature, loads[i].GetGeometryBase(), loads[i].LoadRestrainCondition);
+
+                _thicknessesW[parameters] = hw;
+                _thicknessesStress[0][parameters] = Math.Sqrt(Math.Pow(hw, 3.0) / (h1 + 2.0 * lambda * hs2));
+                _thicknessesStress[1][parameters] = Math.Sqrt(Math.Pow(hw, 3.0) / (h2 + 2.0 * lambda * hs1));
             }
 
         }
@@ -677,17 +691,21 @@ namespace GPC.Checkers.Glasses.Wrappers
             });
 
 
-            // TODO: valutare se tenere parallel piï¿½ for o solo for a livello prestazionale
+            // TODO: valutare se tenere parallel più for o solo for a livello prestazionale
             Parallel.ForEach(Enumerable.Range(0, loads.Count()), action);
 
 
-            _thicknessesStress[0] = new Dictionary<(double loadDuration, double temperature), double>();
-            _thicknessesStress[1] = new Dictionary<(double loadDuration, double temperature), double>();
+            _thicknessesStress[0] = new Dictionary<EquivalentThicknessParameters, double>();
+            _thicknessesStress[1] = new Dictionary<EquivalentThicknessParameters, double>();
             for (int i = 0; i < loads.Length; i++)
             {
-                _thicknessesW[(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = twBuffer[loads[i]];
-                _thicknessesStress[0][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = tSigma1Buffer[loads[i]];
-                _thicknessesStress[1][(((LoadCase)loads[i].LoadCase).LoadDuration, ((LoadCase)loads[i].LoadCase).Temperature)] = tSigma2Buffer[loads[i]];
+                EquivalentThicknessParameters parameters = new EquivalentThicknessParameters(loads[i].GlassLoadCase.LoadDuration, 
+                                                            loads[i].GlassLoadCase.Temperature, 
+                                                            loads[i].GetGeometryBase(), loads[i].LoadRestrainCondition);
+
+                _thicknessesW[parameters] = twBuffer[loads[i]];
+                _thicknessesStress[0][parameters] = tSigma1Buffer[loads[i]];
+                _thicknessesStress[1][parameters] = tSigma2Buffer[loads[i]];
             }
 
         }
@@ -705,8 +723,10 @@ namespace GPC.Checkers.Glasses.Wrappers
             LaminatedGlass glass = (LaminatedGlass)Glass;
 
 
-            FemModel.FemModelWrapper femModel = new FemModel.FemModelWrapper("EETNumerical");
-            femModel.AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear;
+            FemModel.FemModelWrapper femModel = new FemModel.FemModelWrapper("EETNumerical")
+            {
+                AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear
+            };
 
             IsotropicFemMaterial material = new IsotropicFemMaterial(GetElasticModulus(), GetPoissonRatios(), 0, GetDensity());
 
@@ -715,13 +735,12 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             femModel.AddProperty(property);
 
-            var bbboxSize = _glassSurface.Shape.ToLocal().GetBoundingBox().Size;
-
 
             // dimensione mesh di default 2% del massimo lato della bbox. Alla Straus
+            var bbboxSize = _glassSurface.Shape.ToLocal().GetBoundingBox().Size;
             femModel.AddShape(_glassSurface.Shape, "p1", 
                               new Mesh.GenerateOptions() { MeshSize = Math.Max(bbboxSize.X, bbboxSize.Y) * 0.02 }, 
-                              loads, _glassSurface.GetRestrains());
+                              loads.Cast<Load>().ToList(), _glassSurface.GetRestrains());
 
             loads.ForEach(i => femModel.AddLoadCase(i.LoadCase));
 
@@ -731,7 +750,6 @@ namespace GPC.Checkers.Glasses.Wrappers
                 combinations.Add(new Combination($"Load {i}"));
                 combinations[i].AddLoadCaseCoefficient(loads[i].LoadCase, 1);
             }
-
 
             femModel.AddCombinations(combinations);
 
@@ -751,13 +769,13 @@ namespace GPC.Checkers.Glasses.Wrappers
                 double den = 0;
                 for (int e = 0; e < elements.Length; e++)
                 {
-                if (elements[e] is Model.FEM.FiniteElements.Plate plate)
-                {
-                    var elementArea = plate.GetArea();
+                    if (elements[e] is Model.FEM.FiniteElements.Plate plate)
+                    {
+                        var elementArea = plate.GetArea();
 
-                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault(j =>
-                                                ((Combination)j.Case).ContainsLoadCases(new[] { (Model.LoadCases.LoadCaseBase)loads[loadIndex].LoadCase })).Result)
-                                                    .Cast<ResultDisplacement>(); // TODO: cambiare in containsLoadCase
+                        IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault(j =>
+                                                    ((Combination)j.Case).ContainsLoadCases(new[] { (Model.LoadCases.LoadCaseBase)loads[loadIndex].LoadCase })).Result)
+                                                        .Cast<ResultDisplacement>(); // TODO: cambiare in containsLoadCase
 
                         if (resultDisplacement is null)
                             throw new ArgumentNullException();
@@ -775,47 +793,86 @@ namespace GPC.Checkers.Glasses.Wrappers
                 }
 
                 if (den == 0)
-                    psiValues.Add((loads[loadIndex], double.MaxValue)); // se c'ï¿½ qualcosa che non va (den == 0) allora diamo un psi grande che corrisponde ad eta 0 cioï¿½ layerered limit
+                    psiValues.Add((loads[loadIndex], double.MaxValue)); // se c'è qualcosa che non va (den == 0) allora diamo un psi grande che corrisponde ad eta 0 cioè layerered limit
                 else
                     psiValues.Add((loads[loadIndex], num / den));
             });
 
             Parallel.ForEach(Enumerable.Range(0, loads.Count()), action);
 
-            //double num = 0;
-            //double den = 0;
-            //for (int e = 0; e < elements.Length; e++)
-            //{
-            //    if (elements[e] is Model.FEM.FiniteElements.Plate plate)
-            //    {
-            //        var elementArea = plate.GetArea();
-
-            //        IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault(j => 
-            //                                    (Model.LoadCases.LoadCaseBase)j.Case == loads[0].LoadCase).Result).Cast<ResultDisplacement>();
-
-            //        if (resultDisplacement is null)
-            //            throw new ArgumentNullException();
-
-
-            //        var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
-
-            //        if (plate.AttributesLoadCase.Where(i => i is Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
-            //        {
-            //            num += mean.D3 * flexularRigidity * elementArea * ((Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
-            //        }
-
-            //        den += (Math.Pow(mean.R1 * flexularRigidity, 2.0) + Math.Pow(mean.R2 * flexularRigidity, 2.0)) * elementArea;
-            //    }
-            //}
-
 
             return psiValues.ToArray();
         }
 
 
-
-
-
         #endregion
+    
+        
+        public sealed class EquivalentThicknessParameters : IEquatable<EquivalentThicknessParameters>
+        {
+            public double LoadDuration { get;}
+            public double Temperature { get;}
+            public GeometryBase LoadGeometry { get;}
+            public GlassSurface.LoadRestrainCondition RestrainCondition { get;}
+
+
+            internal EquivalentThicknessParameters(double loadDuration, double temperature, 
+                                                  GeometryBase loadGeometry, GlassSurface.LoadRestrainCondition restrainCondition)
+            {
+                LoadDuration = loadDuration;
+                Temperature = temperature;
+                LoadGeometry = loadGeometry ?? throw new ArgumentNullException(nameof(loadGeometry));
+                RestrainCondition = restrainCondition;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return Equals(obj as EquivalentThicknessParameters);
+            }
+
+            public bool Equals(EquivalentThicknessParameters other)
+            {
+                if (ReferenceEquals(this, other))
+                    return true;
+
+                return other != null &&
+                       LoadDuration == other.LoadDuration &&
+                       Temperature == other.Temperature &&
+                       EqualityComparer<GeometryBase>.Default.Equals(LoadGeometry, other.LoadGeometry) &&
+                       RestrainCondition == other.RestrainCondition;
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hashCode = -23;
+                    hashCode = hashCode * -17 + LoadDuration.GetHashCode();
+                    hashCode = hashCode * -17 + Temperature.GetHashCode();
+                    hashCode = hashCode * -17 + EqualityComparer<GeometryBase>.Default.GetHashCode(LoadGeometry);
+                    hashCode = hashCode * -17 + RestrainCondition.GetHashCode();
+                    return hashCode; 
+                }
+            }
+
+            public static bool operator ==(EquivalentThicknessParameters obj1, EquivalentThicknessParameters obj2)
+            {
+                if (obj1 is null)
+                {
+                    return obj2 is null;
+                }
+
+                if (ReferenceEquals(obj1, obj2))
+                    return true;
+
+                return obj1.Equals(obj2);
+            }
+
+            public static bool operator !=(EquivalentThicknessParameters obj1, EquivalentThicknessParameters obj2)
+            {
+                return !(obj1 == obj2);
+            }
+        }
+
     }
 }
