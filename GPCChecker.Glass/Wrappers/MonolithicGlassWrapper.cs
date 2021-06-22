@@ -1,4 +1,5 @@
-using GPC.Checkers.Glasses.Glasses;
+﻿using GPC.Checkers.Glasses.Glasses;
+using GPC.Checkers.Glasses.Loads;
 using GPC.Geometry.Meshes;
 using GPC.Model.Glasses;
 using GPC.Model.Loads;
@@ -31,7 +32,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        public override double GetDeformationThickness(double loadDuration, double temperature)
+        public override double GetDeformationThickness(IGlassLoad load)
         {
             return (Glass as MonolithicGlass).Thickness;
         }
@@ -42,7 +43,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             return (Glass as MonolithicGlass).Thickness;
         }
 
-        public override double[] GetStressThickness(double loadDuration, double temperature)
+        public override double[] GetStressThickness(IGlassLoad load)
         {
             return new[] { (Glass as MonolithicGlass).Thickness };
         }

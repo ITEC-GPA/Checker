@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using GPC.Model.Results;
 using System.Collections.Concurrent;
 using GPC.Model.Combinations;
+using GPC.Checkers.Glasses.Loads;
 
 namespace GPC.Checkers.Glasses.Wrappers
 {
@@ -67,7 +68,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         #region Geometry
 
-        public override double GetDeformationThickness(double loadDuration, double temperature)
+        public override double GetDeformationThickness(IGlassLoad load)
         {
             if (_thicknessesW.Keys.Count == 0)
             {
@@ -90,7 +91,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        public override double[] GetStressThickness(double loadDuration, double temperature)
+        public override double[] GetStressThickness(IGlassLoad load)
         {
             if (_thicknessesStress.Length == 0)
             {
@@ -347,7 +348,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                             if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
                             {
-                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
+                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto piï¿½ distante dell'interlyaer
 
                                 // primo strato di brick
                                 if (vertexIdMap != null)
@@ -359,7 +360,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                                 }
                                 else
                                 {
-                                    // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
+                                    // se ï¿½ nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
 
                                     upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
                                                                     Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
@@ -473,9 +474,10 @@ namespace GPC.Checkers.Glasses.Wrappers
                 throw new NotSupportedException($"{eqThicknessMethod} does support only one interlayer.");
 
 
-            // vengono filtrati in base a loadDuration, temperature e stessa geometria
-            List<Load> loadsToProcess = _externalFaceLoads.Union(_internalFaceLoads).Distinct(new Loads.LoadDurationAndTemperatureEqualityComparer()).ToList();
-            // Ora carichi uguali per il fem (stessa geometria, stesso valore del carico) ma duration e temperature diverse vengono processati.
+            // vengono filtrati in base a loadDuration, temperature e geometria del carico
+            List<IGlassLoad> loadsToProcess = _externalFaceLoads.Union(_internalFaceLoads)
+                                                .Distinct(new LoadDurationTemperatureAndGeometryEqualityComparer()).Cast<IGlassLoad>().ToList();
+
 
             if (loadsToProcess.Count() == 0)
                 return false;
@@ -487,14 +489,14 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     SetEquivalentThicknessEET(GetPsiEETNumerical(loadsToProcess));
 
-                    return true; // già processati tutti, ritorna
+                    return true; // giï¿½ processati tutti, ritorna
 
                 case Models.Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped:
 
                     if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.EET)
                     {
-                        List<Load> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(GPC.Checkers.Glasses.Loads.NormalAreaLoad) || i.GetType() 
-                                                                                     == typeof(NormalAreaLoad)).ToList();
+                        List<IGlassLoad> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad) || 
+                                                                               i.GetType() == typeof(Loads.NormalAreaLoad)).ToList();
 
                         if (areaLoads.Count() > 0)
                         {
@@ -571,7 +573,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        protected void SetEquivalentThicknessASTM(List<Load> loads)
+        protected void SetEquivalentThicknessASTM(List<IGlassLoad> loads)
         {
             if (((LaminatedGlass)Glass).GlassLayerCount > 2)
                 throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessParameter.LaminatedEqThicknessMethod} does support only two layers glass.");
@@ -595,7 +597,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             double a = _glassSurface.Shape.Fill.Explode().Select(i => i.GetLength()).Min(); // in casi regolari funziona,
                                                                                             // in casi irregolari non tanto bene
                                                                                             // es. un poligono di 5 lati con uno dei lati molto piccolo
-                                                                                            // andrebbe fatto un metodo per capire qual è "smallest dimension of bending of the laminate plate"
+                                                                                            // andrebbe fatto un metodo per capire qual ï¿½ "smallest dimension of bending of the laminate plate"
             
             double Is = h1 * Math.Pow(hs2, 2.0) + h2 * Math.Pow(hs1, 2.0);
 
@@ -621,7 +623,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        protected void SetEquivalentThicknessEET((Load load, double psi)[] loadsToProcessPsiValues)
+        protected void SetEquivalentThicknessEET((IGlassLoad load, double psi)[] loadsToProcessPsiValues)
         {
             var loads = loadsToProcessPsiValues.Select(i => i.load).ToArray();
             var psiValues = loadsToProcessPsiValues.Select(i => i.psi).ToArray();
@@ -656,13 +658,13 @@ namespace GPC.Checkers.Glasses.Wrappers
             // eq 6.46
             double firstDeno = secondDeno + 12 * (h1 * Math.Pow(d1, 2.0) + h2 * Math.Pow(d2, 2.0));
 
-            ConcurrentDictionary<Load, double> twBuffer = new ConcurrentDictionary<Load, double>();
-            ConcurrentDictionary<Load, double> tSigma1Buffer = new ConcurrentDictionary<Load, double>();
-            ConcurrentDictionary<Load, double> tSigma2Buffer = new ConcurrentDictionary<Load, double>();
+            ConcurrentDictionary<IGlassLoad, double> twBuffer = new ConcurrentDictionary<IGlassLoad, double>();
+            ConcurrentDictionary<IGlassLoad, double> tSigma1Buffer = new ConcurrentDictionary<IGlassLoad, double>();
+            ConcurrentDictionary<IGlassLoad, double> tSigma2Buffer = new ConcurrentDictionary<IGlassLoad, double>();
 
             Action<int> action = new Action<int>((index) =>
             {                
-                double shearModule = glass.Interlayers[0].Material.GetShearModule(((LoadCase)loads[index].LoadCase).LoadDuration, ((LoadCase)loads[index].LoadCase).Temperature);
+                double shearModule = glass.Interlayers[0].Material.GetShearModule(loads[index].GlassLoadCase.LoadDuration, loads[index].GlassLoadCase.Temperature);
 
                 // eq. 6.55
                 double eta2D = 1.0 / (1.0 + hint * E / (shearModule * oneMinusNiSquare) * DAbs / DFull * h1 * h2 / (h1 + h2) * psiValues[index]);
@@ -675,7 +677,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             });
 
 
-            // TODO: valutare se tenere parallel più for o solo for a livello prestazionale
+            // TODO: valutare se tenere parallel piï¿½ for o solo for a livello prestazionale
             Parallel.ForEach(Enumerable.Range(0, loads.Count()), action);
 
 
@@ -691,7 +693,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        protected (Load load, double psi)[] GetPsiEETNumerical(List<Load> loads)
+        protected (IGlassLoad load, double psi)[] GetPsiEETNumerical(List<IGlassLoad> loads)
         {
             if (((LaminatedGlass)Glass).GlassLayerCount > 2)
                 throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessParameter} does support only two layers glass.");
@@ -741,8 +743,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             Model.FEM.FiniteElements.FiniteElement[] elements = femModel.GetElements();
 
-
-            ConcurrentBag<(Load load, double psi)> psiValues = new ConcurrentBag<(Load load, double psi)>();
+            ConcurrentBag<(IGlassLoad load, double psi)> psiValues = new ConcurrentBag<(IGlassLoad load, double psi)>();
 
             Action<int> action = new Action<int>((loadIndex) =>
             {
@@ -774,7 +775,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                 }
 
                 if (den == 0)
-                    psiValues.Add((loads[loadIndex], double.MaxValue)); // se c'è qualcosa che non va (den == 0) allora diamo un psi grande che corrisponde ad eta 0 cioè layerered limit
+                    psiValues.Add((loads[loadIndex], double.MaxValue)); // se c'ï¿½ qualcosa che non va (den == 0) allora diamo un psi grande che corrisponde ad eta 0 cioï¿½ layerered limit
                 else
                     psiValues.Add((loads[loadIndex], num / den));
             });

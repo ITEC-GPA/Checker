@@ -6,12 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 using GPC.Geometry;
-using GPC.Model.Loads;
 using GPC.Checkers.Glasses.Loads;
 using GPC.Checkers.Glasses.Models;
 using GPC.Model.Restrains;
 using GPC.Geometry.Meshes;
 using GPC.Utilities.Extensions;
+using GPC.Model.Loads;
 
 namespace GPC.Checkers.Glasses.Glasses
 {
@@ -31,7 +31,7 @@ namespace GPC.Checkers.Glasses.Glasses
 
         private readonly Prototype _prototype;
         private readonly List<GeometryRestrain> _restrains;
-        private readonly List<Load> _loads;
+        private readonly List<IGlassLoad> _loads;
         private readonly List<IParametricLoad> _parametricLoads;
         private readonly Mesh.GenerateOptions _meshOptions;
         private Checkers.Checker _checker;
@@ -56,7 +56,7 @@ namespace GPC.Checkers.Glasses.Glasses
             : base(shape, _maxId++, Guid.NewGuid())
         {
             _prototype = prototype;
-            _loads = new List<Load>();
+            _loads = new List<IGlassLoad>();
             _parametricLoads = new List<IParametricLoad>();
             _restrains = new List<GeometryRestrain>();
             _meshOptions = (Mesh.GenerateOptions)prototype.MeshOptions.Clone();
@@ -83,7 +83,7 @@ namespace GPC.Checkers.Glasses.Glasses
         /// <summary>
         /// Add a load to the surface
         /// </summary>
-        public void AddLoad(Load load)
+        public void AddLoad(IGlassLoad load)
         {
             if (load is IParametricLoad)
                 throw new ArgumentException();
@@ -91,6 +91,19 @@ namespace GPC.Checkers.Glasses.Glasses
             _loads.Add(load);
         }
 
+        /// <summary>
+        /// Add a load to the surface
+        /// </summary>
+        public void AddLoad(Load load)
+        {
+            if (load is IParametricLoad)
+                throw new ArgumentException();
+
+            if (!(load is IGlassLoad))
+                throw new ArgumentException();
+
+            _loads.Add((IGlassLoad)load);
+        }
 
         /// <summary>
         /// Add a parametric load to the surface
@@ -132,19 +145,15 @@ namespace GPC.Checkers.Glasses.Glasses
             _restrains.RemoveAt(index);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+
         /// <returns>The loads of the specific surface. Parametric loads will be converted in specific loads for this surface</returns>
-        public List<Load> GetLoads()
+        public List<IGlassLoad> GetLoads()
         {
             // TODO: implementare conversione carichi parametrici
             return _loads;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+
         /// <returns>The restrains of the specific sursface. Parametric restrain will be converted in the specific restrain for this surface</returns>
         public List<GeometryRestrain> GetRestrains()
         {
@@ -181,7 +190,7 @@ namespace GPC.Checkers.Glasses.Glasses
 
             foreach (var el in _loads)
             {
-                hashCode += 17 * EqualityComparer<Load>.Default.GetHashCode(el);
+                hashCode += 17 * el.GetHashCode();
             }
 
             foreach (var el in _restrains)
