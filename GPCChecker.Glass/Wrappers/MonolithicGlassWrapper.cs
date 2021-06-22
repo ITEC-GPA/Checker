@@ -58,7 +58,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             return ((MonolithicGlass)Glass).GetElasticModulus();
         }
 
-        public override double GetPoissonRatios()
+        public override double GetPoissonRatio()
         {
             return ((MonolithicGlass)Glass).GetPoissonRatios();
         }
