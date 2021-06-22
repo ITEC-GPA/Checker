@@ -80,25 +80,12 @@ namespace GPC.Checkers.Glasses.Glasses
             throw new NotSupportedException();
         }
 
+
         /// <summary>
         /// Add a load to the surface
         /// </summary>
         public void AddLoad(IGlassLoad load)
         {
-            if (load is IParametricLoad)
-                throw new ArgumentException();
-
-            _loads.Add(load);
-        }
-
-        /// <summary>
-        /// Add a load to the surface
-        /// </summary>
-        public void AddLoad(Load load)
-        {
-            if (load is IParametricLoad)
-                throw new ArgumentException();
-
             if (!(load is IGlassLoad))
                 throw new ArgumentException();
 
