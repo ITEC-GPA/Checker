@@ -1,5 +1,4 @@
-﻿
-using GPC.Checkers.Glasses.LoadCases;
+﻿using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Results;
 using GPC.Geometry;
@@ -20,27 +19,22 @@ using System.Reflection;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace GPC.Checkers.Glasses.FemModel
 {
     [Serializable]
     public class FemModelWrapper : Model.FEM.FemModel, ISerializable
     {
-
         public enum Straus7SolverTypes
         {
             Linear,
             NonLinear
         }
 
-
         private readonly string _st7ServerIp;
-
         private string _saveFolderPath;
         private string _st7FilePath;
         private string _st7ResultFilePath;
-
         private Prototype.SolverTypes _solverType;
 
 
