@@ -606,11 +606,13 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                         areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad)).ToList();
                         List<IGlassLoad> lineLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.LineLoad) && i.GetType() == typeof(Loads.LineLoad)).ToList();
+                        List<IGlassLoad> pointLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.PointLoad) && i.GetType() == typeof(Loads.PointLoad)).ToList();
 
-                        if (areaLoads.Count > 0 || lineLoads.Count > 0)
+                        if (areaLoads.Count > 0 || lineLoads.Count > 0 || pointLoads.Count > 0)
                         {
                             List<Task<(IGlassLoad, double)>> tasksAreaLoadPsi = new List<Task<(IGlassLoad, double)>>();
                             List<Task<(IGlassLoad, double)>> tasksLineLoadPsi = new List<Task<(IGlassLoad, double)>>();
+                            List<Task<(IGlassLoad, double)>> tasksPointLoadsPsi = new List<Task<(IGlassLoad, double)>>();
 
                             if (areaLoads.Count() > 0)
                             {
@@ -622,8 +624,14 @@ namespace GPC.Checkers.Glasses.Wrappers
                                 tasksLineLoadPsi = lineLoads.Select(i => GetEETFourSidePsiConcentratedLoadAsync(i, eqThicknessParameters)).ToList();
                             }
 
+                            if (pointLoads.Count() > 0)
+                            {
+                                tasksPointLoadsPsi = pointLoads.Select(i => GetEETFourSidePsiConcentratedLoadAsync(i, eqThicknessParameters)).ToList();
+                            }
+
+
                             // aspetto tutti i thread prima di processare psi
-                            Task.WaitAll(tasksAreaLoadPsi.Concat(tasksLineLoadPsi).ToArray());
+                            Task.WaitAll(tasksAreaLoadPsi.Concat(tasksLineLoadPsi).Concat(tasksPointLoadsPsi).ToArray());
 
                             for (int i = 0; i < tasksAreaLoadPsi.Count; i++)
                             {
@@ -641,7 +649,17 @@ namespace GPC.Checkers.Glasses.Wrappers
                                     SetEquivalentThicknessEET(new[] { (tasksLineLoadPsi[i].Result.Item1, tasksLineLoadPsi[i].Result.Item2) });
                                     loadsToProcess.Remove(tasksLineLoadPsi[i].Result.Item1);
                                 }
-                            } 
+                            }
+
+                            for (int i = 0; i < tasksPointLoadsPsi.Count; i++)
+                            {
+                                if (tasksPointLoadsPsi[i].Result.Item2 != -1)
+                                {
+                                    SetEquivalentThicknessEET(new[] { (tasksPointLoadsPsi[i].Result.Item1, tasksPointLoadsPsi[i].Result.Item2) });
+                                    loadsToProcess.Remove(tasksPointLoadsPsi[i].Result.Item1);
+                                }
+                            }
+
                         }
 
                         break;
@@ -1034,8 +1052,8 @@ namespace GPC.Checkers.Glasses.Wrappers
                     Point3d p1 = line.Start.CloneAndMove(movementVector);
                     Point3d p2 = line.End.CloneAndMove(movementVector);
                     movementVector.Reverse();
-                    Point3d p3 = line.Start.CloneAndMove(movementVector);
-                    Point3d p4 = line.End.CloneAndMove(movementVector);
+                    Point3d p3 = line.End.CloneAndMove(movementVector);
+                    Point3d p4 = line.Start.CloneAndMove(movementVector);
 
                     loadPerimeter = new Polygon3d()
                         {
@@ -1049,10 +1067,13 @@ namespace GPC.Checkers.Glasses.Wrappers
                 {
                     Point3d point = pl.GetGeometry();
 
-                    Vector3d v1 = new Vector3d(loadPerimeter[1] - loadPerimeter[0]);
+                    Vector3d v1 = new Vector3d(glassPerimeter[0].Start - glassPerimeter[0].End);
                     v1.Unitize();
-                    Vector3d v2 = new Vector3d(loadPerimeter[2] - loadPerimeter[1]);
+                    v1 *= _glassSurface.Checker.Options.PointLoadWidthEqThickness / 2.0;
+
+                    Vector3d v2 = new Vector3d(glassPerimeter[1].Start - glassPerimeter[1].End);
                     v2.Unitize();
+                    v2 *= _glassSurface.Checker.Options.PointLoadWidthEqThickness / 2.0;
 
                     Point3d p1 = point.CloneAndMove(v1);
                     v1.Reverse();
@@ -1062,8 +1083,8 @@ namespace GPC.Checkers.Glasses.Wrappers
                     p2.Move(v2);
 
                     v2.Reverse();
-                    Point3d p3 = p1.CloneAndMove(v2);
-                    Point3d p4 = p2.CloneAndMove(v2);
+                    Point3d p3 = p2.CloneAndMove(v2);
+                    Point3d p4 = p1.CloneAndMove(v2);
 
                     loadPerimeter = new Polygon3d()
                         {

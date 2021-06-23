@@ -41,7 +41,7 @@ namespace GPC.Checkers.Glasses.Models
             GravityAxis = GravityAxes.Z;
             GravityPositiveAxis = false;
             LineLoadWidthEqThickness = 20;
-            LineLoadWidthEqThickness = 20;
+            PointLoadWidthEqThickness = 20;
         }
 
         /// <summary>
