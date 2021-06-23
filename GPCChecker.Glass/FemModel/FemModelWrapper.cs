@@ -1217,7 +1217,7 @@ namespace GPC.Checkers.Glasses.FemModel
 
                     foreach (var (loadcase, coefficient) in lcTuples)
                     {
-                        if (_loadCases.Contains(loadcase.Name))
+                        if (_loadCases.ContainsName(loadcase.Name))
                         {
                             if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _st7LoadCaseMap[loadcase.Name], 1, combo[loadcase]))
                             {
