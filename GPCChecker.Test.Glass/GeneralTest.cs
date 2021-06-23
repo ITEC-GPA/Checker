@@ -153,7 +153,7 @@ namespace GlassTests
         public void LoadEqualityComparerTest1()
         {
 
-            HashSet<GPC.Model.Loads.Load> loads1 = new HashSet<GPC.Model.Loads.Load>(new LoadDurationAndTemperatureEqualityComparer())
+            HashSet<GPC.Model.Loads.Load> loads1 = new HashSet<GPC.Model.Loads.Load>(new LoadDurationTemperatureAndGeometryEqualityComparer())
             {
                 new PointLoad(new Vector3d(0, 0, 0), new Vector3d(1, 2, 3), new Point3d(4, 5, 6),
                                     new LoadCase("lc", 10, 20, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.Earthquake), CoordinateSystem.Global),
@@ -169,7 +169,7 @@ namespace GlassTests
             };
 
 
-            HashSet<GPC.Model.Loads.Load> loads2 = new HashSet<GPC.Model.Loads.Load>(new LoadDurationAndTemperatureEqualityComparer())
+            HashSet<GPC.Model.Loads.Load> loads2 = new HashSet<GPC.Model.Loads.Load>(new LoadDurationTemperatureAndGeometryEqualityComparer())
             {
                 new PointLoad(new Vector3d(0, 0, 0), new Vector3d(1, 2, 3), new Point3d(40, 5, 6),
                                     new LoadCase("lc", 10, 20, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.Earthquake), CoordinateSystem.Global),
@@ -182,7 +182,7 @@ namespace GlassTests
             };
 
 
-            HashSet<GPC.Model.Loads.Load> loads3 = new HashSet<GPC.Model.Loads.Load>(new LoadDurationAndTemperatureEqualityComparer())
+            HashSet<GPC.Model.Loads.Load> loads3 = new HashSet<GPC.Model.Loads.Load>(new LoadDurationTemperatureAndGeometryEqualityComparer())
             {
                 new PointLoad(new Vector3d(0, 0, 0), new Vector3d(1, 2, 3), new Point3d(4, 5, 6),
                               new LoadCase("lc", 10, 20, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.Earthquake), CoordinateSystem.Global),

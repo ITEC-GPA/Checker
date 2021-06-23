@@ -2,6 +2,7 @@
 using GPC.Checkers.Glasses.FemModel;
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.LoadCases;
+using GPC.Checkers.Glasses.Loads;
 using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Wrappers;
 using GPC.Geometry.Meshes;
@@ -33,6 +34,9 @@ namespace GPC.Checkers.Glasses.Checkers
         protected List<Combination> _combinations;
 
         public FemModelWrapper FemModel => _femModel;
+
+        public ModelOptions Options => _options;
+
 
         public Checker(GlassSurface glassSurface, List<Combination> combinations, ModelOptions modelOptions)
         {
@@ -141,7 +145,7 @@ namespace GPC.Checkers.Glasses.Checkers
 
         
 
-        private FemModelWrapper BuildMonolithicGlass(string femModelName, MonolithicGlassWrapper wrapper, MonolithicGlass mg, IEnumerable<Load> loads, 
+        private FemModelWrapper BuildMonolithicGlass(string femModelName, MonolithicGlassWrapper wrapper, MonolithicGlass mg, IEnumerable<IGlassLoad> loads, 
                                                                                                           Prototype.AnalysisTypes analysisType,
                                                                                                           IEnumerable<Combination> combinations)
         {
@@ -154,8 +158,8 @@ namespace GPC.Checkers.Glasses.Checkers
             
             wrapper.AddExternalFaceLoads(loads);
 
-            if (loads.OfType<SelfWeightLoad>().Count() > 0)
-                wrapper.AddSelfWeightLoad(loads.OfType<SelfWeightLoad>().SingleOrDefault());
+            if (loads.OfType<Loads.SelfWeightLoad>().Count() > 0)
+                wrapper.AddSelfWeightLoad(loads.OfType<Loads.SelfWeightLoad>().SingleOrDefault());
 
             // GEOMETRIA
             Mesh[] meshes = wrapper.Meshes;
@@ -219,7 +223,7 @@ namespace GPC.Checkers.Glasses.Checkers
 
 
         private FemModelWrapper BuildLaminatedGlass(string femModelName, LaminatedGlassWrapper wrapper, 
-                                                    LaminatedGlass lg, IEnumerable<Load> loads, Prototype.AnalysisTypes analysisType, 
+                                                    LaminatedGlass lg, IEnumerable<IGlassLoad> loads, Prototype.AnalysisTypes analysisType, 
                                                     Prototype.LaminatedAnalysisTypes laminatedAnalysisType, IEnumerable<Combination> combinations)
         {
 
@@ -235,8 +239,8 @@ namespace GPC.Checkers.Glasses.Checkers
 
                 wrapper.AddInternalFaceLoads(loads);
 
-                if (loads.OfType<SelfWeightLoad>().Count() > 0)
-                    wrapper.AddSelfWeightLoad(loads.OfType<SelfWeightLoad>().SingleOrDefault());
+                if (loads.OfType<Loads.SelfWeightLoad>().Count() > 0)
+                    wrapper.AddSelfWeightLoad(loads.OfType<Loads.SelfWeightLoad>().SingleOrDefault());
 
                 // GEOMETRIA
 
@@ -706,7 +710,7 @@ namespace GPC.Checkers.Glasses.Checkers
         /// <param name="femModel"></param>
         /// <param name="load"></param>
         /// <inheritdoc cref="Model.FEM.FemModel.AddModelAcceleration(string)"/>
-        private void ModelGravitySetUp(FemModelWrapper femModel, SelfWeightLoad load)
+        private void ModelGravitySetUp(FemModelWrapper femModel, Loads.SelfWeightLoad load)
         {
             var accelerationModel = femModel.AddModelAcceleration(load.LoadCase.Name);
 
