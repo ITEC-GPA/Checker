@@ -14,7 +14,7 @@ namespace GPC.Checkers.Steel
     {
         #region Variables
 
-        protected readonly BeamCheckerOptions[] _beamCheckers;
+        protected readonly BeamCheckerAttribute[] _beamCheckers;
         protected BeamCheckerResults[] _beamCheckerResults;
         protected Standard _standard;
         protected readonly ILoadCase _loadCase;
@@ -24,7 +24,7 @@ namespace GPC.Checkers.Steel
 
         #region Properties
 
-        public BeamCheckerOptions[] BeamCheckersOptions => _beamCheckers;
+        public BeamCheckerAttribute[] BeamCheckersOptions => _beamCheckers;
 
         public BeamCheckerResults[] BeamCheckerResults { get => _beamCheckerResults; }
 
@@ -37,7 +37,7 @@ namespace GPC.Checkers.Steel
 
         #region Constructor
 
-        public Checker(BeamCheckerOptions[] beamCheckers, ILoadCase loadCase, Standard standard)
+        public Checker(BeamCheckerAttribute[] beamCheckers, ILoadCase loadCase, Standard standard)
             : this(beamCheckers, loadCase)
         {
             if (beamCheckers is null)
@@ -49,7 +49,7 @@ namespace GPC.Checkers.Steel
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
         }
 
-        public Checker(BeamCheckerOptions[] beamCheckers, ILoadCase loadCase)
+        public Checker(BeamCheckerAttribute[] beamCheckers, ILoadCase loadCase)
         {
             _beamCheckers = beamCheckers ?? throw new ArgumentNullException(nameof(beamCheckers));
             _loadCase = loadCase ?? throw new ArgumentNullException(nameof(loadCase));
@@ -80,6 +80,7 @@ namespace GPC.Checkers.Steel
             protected double _mLatTorsBuckling;
             protected double _mCriticalMoment1;
             protected double _mCriticalMoment2;
+            protected double _mLT;
 
             #endregion
 
@@ -136,6 +137,11 @@ namespace GPC.Checkers.Steel
             /// </summary>
             public double EffectiveLengthFactorCriticalMoment2 { get => _mCriticalMoment2; set => _mCriticalMoment2 = value; }
 
+            /// <summary>
+            /// Equivalent uniform moment factor for lateral torsional buckling 
+            /// </summary>
+            public double UniformMomentFactormLT { get => _mLT; set => _mLT = value; }
+
             #endregion
 
 
@@ -145,7 +151,8 @@ namespace GPC.Checkers.Steel
                             double unbracedLengthFactorAxialBuck2 = 1, double effectiveLengthFactorAxialBuck2 = 1,
                             double unbracedLengthFactorLatTorsBuck = 1, double effectiveLengthFactorLatTorsBuck = 1,
                             double unbracedLengthFactorCriticalMoment1 = 1, double effectiveLengthFactorCriticalMoment1 = 1,
-                            double unbracedLengthFactorCriticalMoment2 = 1, double effectiveLengthFactorCriticalMoment2 = 1)
+                            double unbracedLengthFactorCriticalMoment2 = 1, double effectiveLengthFactorCriticalMoment2 = 1, 
+                            double eqvUniformMomentFactormLT = 1)
             {
                 if (unbracedLengthFactorAxialBuck1 < 0)
                     throw new ArgumentException("UnbracedLengthFactorAxialBuck1 must be positive");
@@ -186,6 +193,11 @@ namespace GPC.Checkers.Steel
                 if (effectiveLengthFactorCriticalMoment2 < 0)
                     throw new ArgumentException("EffectiveLengthFactorCriticalMoment2 must be positive");
                 _mCriticalMoment2 = effectiveLengthFactorCriticalMoment2;
+
+                if (eqvUniformMomentFactormLT < 0)
+                    throw new ArgumentException("EffectiveLengthFactorCriticalMoment2 must be positive");
+                _mLT = eqvUniformMomentFactormLT;
+
             }
 
 
@@ -262,6 +274,13 @@ namespace GPC.Checkers.Steel
                 if (effectiveLengthFactorCriticalMoment2 < 0)
                     throw new ArgumentException("EffectiveLengthFactorCriticalMoment2 must be positive");
                 _mCriticalMoment2 = effectiveLengthFactorCriticalMoment2;
+            }
+
+            public void SetUniformMomentFactormLT(double uniformMomentFactormLT)
+            {
+                if (uniformMomentFactormLT < 0)
+                    throw new ArgumentException("UniformMomentFactormLT must be positive");
+                _mLT = uniformMomentFactormLT;
             }
 
             #endregion

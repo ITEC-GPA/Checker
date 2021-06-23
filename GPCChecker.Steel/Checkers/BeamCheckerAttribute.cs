@@ -8,21 +8,22 @@ using GPC.Model.Sections.Steel;
 
 namespace GPC.Checkers.Steel.Checkers
 {
-    public class BeamCheckerOptions
+    public class BeamCheckerAttribute
     {
         #region Variables
 
-        protected readonly ISteelSection[] _section;
+        protected readonly ISteelSection[] _sections;
         protected readonly ResultBeamForces[] _resultBeamForces;
         protected readonly ResultStation[] _resultStations;
         protected readonly Checker.Options _options;
+        protected readonly string _name;
 
         #endregion
 
 
         #region Properties
 
-        public ISteelSection[] Section => _section;
+        public ISteelSection[] Sections => _sections;
 
         public double BeamLength => Stations[0].ElementLenght;
 
@@ -32,19 +33,22 @@ namespace GPC.Checkers.Steel.Checkers
 
         public ResultStation[] Stations  => _resultStations;
 
+        public string BeamName => _name;
+
         #endregion
 
 
         #region Public Constructors
 
-        public BeamCheckerOptions(ISteelSection[] sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, Checker.Options options)
+        public BeamCheckerAttribute(ISteelSection[] sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, Checker.Options options, string name = "")
         {                
-            _section = sections ?? throw new ArgumentException("Input sections can not be null");
+            _sections = sections ?? throw new ArgumentException("Input sections can not be null");
             _resultBeamForces = resultBeamForces ?? throw new ArgumentException("Input resultBeamForces can not be null");
             _resultStations = resultStations ?? throw new ArgumentException("Input resultStations can not be null");
             _options = options ?? throw new ArgumentException("Input options can not be null");
+            _name = name;
 
-            if (_resultStations.Length != _resultBeamForces.Length || _resultStations.Length != _section.Length)
+            if (_resultStations.Length != _resultBeamForces.Length || _resultStations.Length != _sections.Length)
                 throw new ArgumentException("The input array must have the same length");
         }
 

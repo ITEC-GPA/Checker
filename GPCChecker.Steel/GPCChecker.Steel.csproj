@@ -38,11 +38,11 @@
     <Reference Include="GMsh.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GMsh.Net.1.0.0.1\lib\net472\GMsh.Net.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=1.0.8.8, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCGeometry.1.0.8.8\lib\net472\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=1.0.8.11, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCGeometry.1.0.8.11\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.0.13.23, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.0.13.23\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.0.13.24, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.0.13.24\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCUtilities, Version=1.0.30.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCUtilities.1.0.30\lib\net472\GPCUtilities.dll</HintPath>
@@ -60,9 +60,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Checkers\Cop2011BeamCheckerOptions.cs" />
+    <Compile Include="Checkers\Cop2011BeamCheckerAttribute.cs" />
     <Compile Include="Checkers\EN1993p11BeamCheckerOptions.cs" />
-    <Compile Include="Checkers\BeamCheckerOptions.cs" />
+    <Compile Include="Checkers\BeamCheckerAttribute.cs" />
     <Compile Include="Checker.cs" />
     <Compile Include="BeamCheckers\Cop2011BeamChecker.cs" />
     <Compile Include="BeamCheckers\En1993p11BeamChecker.cs" />
@@ -114,7 +114,6 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
