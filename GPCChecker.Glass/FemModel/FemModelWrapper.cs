@@ -305,7 +305,8 @@ namespace GPC.Checkers.Glasses.FemModel
                 Model.FEM.Node node1 = _nodes[id1];//.GetByIndex(nodeIdMap[id1]);
                 Model.FEM.Node node2 = _nodes[id2];//.GetByIndex(nodeIdMap[id2]);
 
-                AddCostrain(new Model.FEM.Costrains.RigidLink(node1, node2));
+                if (node1!= null && node2 != null)
+                    AddCostrain(new Model.FEM.Costrains.RigidLink(node1, node2));
             }
         }
 
