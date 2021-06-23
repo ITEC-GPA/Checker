@@ -60,6 +60,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Checkers\Cop2011BeamCheckerAttribute.cs" />
+    <Compile Include="Checkers\EN1993p11BeamCheckerOptions.cs" />
+    <Compile Include="Checkers\BeamCheckerAttribute.cs" />
+    <Compile Include="Checker.cs" />
+    <Compile Include="BeamCheckers\Cop2011BeamChecker.cs" />
+    <Compile Include="BeamCheckers\En1993p11BeamChecker.cs" />
+    <Compile Include="Checkers\EN1993p11Checker.cs" />
+    <Compile Include="Checkers\Cop2011Checker.cs" />
+    <Compile Include="Checkers\EuroCodeChecker.cs" />
     <Compile Include="EuroCode\Annex.cs" />
     <Compile Include="EuroCode\EuroCodeBeamChecker.cs" />
     <Compile Include="EuroCode\ECPlate.cs" />
@@ -72,6 +81,8 @@
     <Compile Include="PanelsStability\TransverseStiffener.cs" />
     <Compile Include="PanelsStability\UnstiffenedPanel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Results\BeamStationCheckerResults.cs" />
+    <Compile Include="BeamCheckers\BeamCheckerResults.cs" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="Microsoft.Office.Core">

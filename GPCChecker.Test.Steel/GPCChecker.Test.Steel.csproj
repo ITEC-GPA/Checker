@@ -78,6 +78,7 @@
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CopSuos2011Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SteelResistanceTest.cs" />
     <Compile Include="SteelInstabilityTest.cs" />
