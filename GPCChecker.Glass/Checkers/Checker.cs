@@ -35,6 +35,9 @@ namespace GPC.Checkers.Glasses.Checkers
 
         public FemModelWrapper FemModel => _femModel;
 
+        public ModelOptions Options => _options;
+
+
         public Checker(GlassSurface glassSurface, List<Combination> combinations, ModelOptions modelOptions)
         {
             _glassSurface = glassSurface ?? throw new ArgumentNullException(nameof(glassSurface));
