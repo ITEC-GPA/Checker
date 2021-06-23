@@ -498,7 +498,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     SetEquivalentThicknessEET(GetPsiEETNumerical(loadsToProcess));
 
-                    return true; // già processati tutti, ritorna
+                    return true; // già processati tutti con il numerico, ritorna
 
                 case Models.Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped:
 
@@ -614,12 +614,12 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                             if (areaLoads.Count() > 0)
                             {
-                                tasksAreaLoadPsi = areaLoads.Select(i => GetEETPsiConcentratedLoadAsync(i, eqThicknessParameters)).ToList();
+                                tasksAreaLoadPsi = areaLoads.Select(i => GetEETFourSidePsiConcentratedLoadAsync(i, eqThicknessParameters)).ToList();
                             }
 
                             if (lineLoads.Count() > 0)
                             {
-                                tasksLineLoadPsi = lineLoads.Select(i => GetEETPsiConcentratedLoadAsync(i, eqThicknessParameters)).ToList();
+                                tasksLineLoadPsi = lineLoads.Select(i => GetEETFourSidePsiConcentratedLoadAsync(i, eqThicknessParameters)).ToList();
                             }
 
                             // aspetto tutti i thread prima di processare psi
@@ -652,11 +652,11 @@ namespace GPC.Checkers.Glasses.Wrappers
                     }
                     else if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.NEN)
                     {
-
+                        throw new NotImplementedException();
                     }
                     else if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.Omega)
                     {
-
+                        throw new NotImplementedException();
                     }
                     break;
                 default:
@@ -920,7 +920,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// <param name="b">Smallest slab side</param>
         /// <param name="m">Series coefficient. Must be > 0 </param>
         /// <param name="n">Series coefficient. Must be > 0 </param>
-        protected double GetEETAmnCoefficient(double csi, double eta, double u, double v, double a, double b, int m, int n)
+        protected double GetEETFourSideAmnCoefficient(double csi, double eta, double u, double v, double a, double b, int m, int n)
         {
             // da foglio galuppi EET_plates_conc_NEW_REV02.xlsx
             return 1.0 / (m * n * Math.Pow(m * m / a / a + n * n / b / b, 2d)) * 16.0 / Math.Pow(Math.PI, 2d) *
@@ -928,8 +928,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                             Math.Sin(n * Math.PI * eta / b) * Math.Sin(n * Math.PI * v / 2d / b);
         }
 
-
-        protected async Task<double> GetEETGxCoefficientAsync(double a, double b, double[,] ACoefficientsSquare)
+        protected async Task<double> GetEETFourSideGxCoefficientAsync(double a, double b, double[,] ACoefficientsSquare)
         {
             // da foglio galuppi EET_plates_conc_NEW_REV02.xlsx
             double gx = 0;
@@ -949,7 +948,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             return gx;
         }
 
-        protected async Task<double> GetEETGyCoefficientAsync(double a, double b, double[,] ACoefficientsSquare)
+        protected async Task<double> GetEETFourSideGyCoefficientAsync(double a, double b, double[,] ACoefficientsSquare)
         {
             // da foglio galuppi EET_plates_conc_NEW_REV02.xlsx
             double gy = 0;
@@ -968,7 +967,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             return gy;
         }
 
-        protected async Task<double> GetEETGpCoefficientAsync(double a, double b, double xi, double eta, double u, double v, double[,] ACoefficients)
+        protected async Task<double> GetEETFourSideGpCoefficientAsync(double a, double b, double xi, double eta, double u, double v, double[,] ACoefficients)
         {
             // da foglio galuppi EET_plates_conc_NEW_REV02.xlsx
             double gp = 0;
@@ -995,7 +994,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             return gp;
         }
 
-        protected async Task<(IGlassLoad, double)> GetEETPsiConcentratedLoadAsync(IGlassLoad load, Models.Prototype.LaminatedEqThicknessParameters eqThicknessParameters)
+        protected async Task<(IGlassLoad, double)> GetEETFourSidePsiConcentratedLoadAsync(IGlassLoad load, Models.Prototype.LaminatedEqThicknessParameters eqThicknessParameters)
         {
             // da foglio galuppi EET_plates_conc_NEW_REV02.xlsx
             double psi = -1;
@@ -1022,23 +1021,49 @@ namespace GPC.Checkers.Glasses.Wrappers
                 {
                     Line3d line = ll.GetGeometry();
 
-                    Vector3d normal = _glassSurface.Shape.GetNormalVector();
-                    Vector3d lineVector = new Vector3d(line.Start, line.End);
+                    Vector3d surfaceNormal = _glassSurface.Shape.GetNormalVector();
+                    surfaceNormal.Unitize();
 
-                    Vector3d movementVector = normal.CrossProduct(lineVector);
+                    Vector3d lineVector = new Vector3d(line.Start, line.End);
+                    lineVector.Unitize();
+
+                    Vector3d movementVector = surfaceNormal.CrossProduct(lineVector);
+                    movementVector *= _glassSurface.Checker.Options.LineLoadWidthEqThickness;
                     movementVector /= 2.0;
 
-                    Point3d p1 = (Point3d)line.Start.Clone();
-                    Point3d p2 = (Point3d)line.End.Clone();
-                    Point3d p3 = (Point3d)line.Start.Clone();
-                    Point3d p4 = (Point3d)line.End.Clone();
-
-                    p1.Move(movementVector);
-                    p2.Move(movementVector);
-
+                    Point3d p1 = line.Start.CloneAndMove(movementVector);
+                    Point3d p2 = line.End.CloneAndMove(movementVector);
                     movementVector.Reverse();
-                    p3.Move(movementVector);
-                    p4.Move(movementVector);
+                    Point3d p3 = line.Start.CloneAndMove(movementVector);
+                    Point3d p4 = line.End.CloneAndMove(movementVector);
+
+                    loadPerimeter = new Polygon3d()
+                        {
+                            p1,
+                            p2,
+                            p3,
+                            p4
+                        };
+                }
+                else if (load is Loads.PointLoad pl)
+                {
+                    Point3d point = pl.GetGeometry();
+
+                    Vector3d v1 = new Vector3d(loadPerimeter[1] - loadPerimeter[0]);
+                    v1.Unitize();
+                    Vector3d v2 = new Vector3d(loadPerimeter[2] - loadPerimeter[1]);
+                    v2.Unitize();
+
+                    Point3d p1 = point.CloneAndMove(v1);
+                    v1.Reverse();
+                    Point3d p2 = point.CloneAndMove(v1);
+
+                    p1.Move(v2);
+                    p2.Move(v2);
+
+                    v2.Reverse();
+                    Point3d p3 = p1.CloneAndMove(v2);
+                    Point3d p4 = p2.CloneAndMove(v2);
 
                     loadPerimeter = new Polygon3d()
                         {
@@ -1125,16 +1150,16 @@ namespace GPC.Checkers.Glasses.Wrappers
                             // double[,] non è threadsafe ma ogni thread scrive su un punto diverso.
                             for (int n = 1; n <= 10; n++)
                             {
-                                ACoefficients[m - 1, n - 1] = GetEETAmnCoefficient(xi, eta, u, v, eqThicknessParameters.A, eqThicknessParameters.B, m, n);
+                                ACoefficients[m - 1, n - 1] = GetEETFourSideAmnCoefficient(xi, eta, u, v, eqThicknessParameters.A, eqThicknessParameters.B, m, n);
                                 ACoefficientsSquare[m - 1, n - 1] = Math.Pow(ACoefficients[m - 1, n - 1], 2.0);
                             }
                         });
 
                         Parallel.For(1, 11, ACoefficientAction);
 
-                        Task<double> gxTask = GetEETGxCoefficientAsync(eqThicknessParameters.A, eqThicknessParameters.B, ACoefficientsSquare);
-                        Task<double> gyTask = GetEETGyCoefficientAsync(eqThicknessParameters.A, eqThicknessParameters.B, ACoefficientsSquare);
-                        Task<double> gpTask = GetEETGpCoefficientAsync(eqThicknessParameters.A, eqThicknessParameters.B, xi, eta, u, v, ACoefficients);
+                        Task<double> gxTask = GetEETFourSideGxCoefficientAsync(eqThicknessParameters.A, eqThicknessParameters.B, ACoefficientsSquare);
+                        Task<double> gyTask = GetEETFourSideGyCoefficientAsync(eqThicknessParameters.A, eqThicknessParameters.B, ACoefficientsSquare);
+                        Task<double> gpTask = GetEETFourSideGpCoefficientAsync(eqThicknessParameters.A, eqThicknessParameters.B, xi, eta, u, v, ACoefficients);
 
                         Task.WaitAll(gxTask, gyTask, gpTask);
 
