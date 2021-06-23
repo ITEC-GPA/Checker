@@ -32,6 +32,14 @@ namespace GPC.Checkers.Glasses.Loads
             _loadRestrainCondition = loadRestrainCondition;
         }
 
+        internal NormalAreaLoad(double pressure, Shape shape, IGlassLoadCase loadCase,
+                                string name,
+                                GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External,
+                                GlassSurface.LoadRestrainCondition loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface)
+                : this(pressure, shape, loadCase, glassPanelPosition, loadRestrainCondition)
+        {
+            _name = name;
+        }
 
         public override bool Equals(object obj)
         {

@@ -24,7 +24,7 @@ namespace GPC.Checkers.Glasses.Loads
         /// <remarks> Only <see cref="Load"/> is used as equality parameter </remarks>
         bool IEqualityComparer<Load>.Equals(Load x, Load y)
         {
-            if (!(x.LoadCase is GPC.Checkers.Glasses.LoadCases.LoadCase) || !(y.LoadCase is GPC.Checkers.Glasses.LoadCases.LoadCase))
+            if (!(x.LoadCase is LoadCase) || !(y.LoadCase is LoadCase))
                 throw new ArgumentException();
 
 
