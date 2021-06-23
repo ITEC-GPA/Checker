@@ -68,7 +68,7 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         #region Constructor
 
-        public Cop2011BeamChecker(Cop2011BeamCheckerOptions cop2011BeamChecker, ILoadCase loadCase, StandardCopSuos2011 standard)
+        public Cop2011BeamChecker(Cop2011BeamCheckerAttribute cop2011BeamChecker, ILoadCase loadCase, StandardCopSuos2011 standard)
             : base(cop2011BeamChecker, loadCase, standard)
         {
             _py = GetPy();
@@ -226,7 +226,7 @@ namespace GPC.Checkers.Steel.BeamChecker
         /// </summary>
         private double CalculatePCompressionReducedXAxis(ISteelSection section)
         {
-            return CalculatePCompressionXAxis(section) * BeamOptions.GetLenghtAxialBuckling1() / ((Section)section).InertiaRadiusX *
+            return CalculatePCompressionXAxis(section) * BeamCheckerAttribute.GetLenghtAxialBuckling1() / ((Section)section).InertiaRadiusX *
                 Math.Sqrt(GetEffettiveArea(section) / section.Area);
         }
 
@@ -235,7 +235,7 @@ namespace GPC.Checkers.Steel.BeamChecker
         /// </summary>
         private double CalculatePCompressionReducesYAxis(ISteelSection section)
         {
-            return CalculatePCompressionYAxis(section) * BeamOptions.GetLenghtAxialBuckling2() / ((Section)section).InertiaRadiusY *
+            return CalculatePCompressionYAxis(section) * BeamCheckerAttribute.GetLenghtAxialBuckling2() / ((Section)section).InertiaRadiusY *
                 Math.Sqrt(GetEffettiveArea(section) / section.Area);
         }
 
@@ -266,7 +266,7 @@ namespace GPC.Checkers.Steel.BeamChecker
         private double CalculatePhiforAxialBucklingXAxis(ISteelSection section)
         {
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
-            double lambdaXAxis = BeamOptions.GetLenghtAxialBuckling1() / ((Section)section).InertiaRadiusX;
+            double lambdaXAxis = BeamCheckerAttribute.GetLenghtAxialBuckling1() / ((Section)section).InertiaRadiusX;
             double nForAxialBuckXAxis = Math.Max(GetAlphaBucklingCurveXXAxis(section) * (lambdaXAxis - lambda0) / 1000, 0);
             double py = Py;
             if (((Section)section).SectionType == Model.Sections.Section.SectionTypes.Welded)
@@ -280,7 +280,7 @@ namespace GPC.Checkers.Steel.BeamChecker
         private double CalculatePhiforAxialBucklingYAxis(ISteelSection section)
         {
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5); 
-            double lambdaYAxis = BeamOptions.GetLenghtAxialBuckling2() / ((Section)section).InertiaRadiusY;
+            double lambdaYAxis = BeamCheckerAttribute.GetLenghtAxialBuckling2() / ((Section)section).InertiaRadiusY;
             double nForAxialBuck = Math.Max(GetAlphaBucklingCurveYYAxis(section) * (lambdaYAxis - lambda0) / 1000, 0);
             double py = Py;
             if (((Section)section).SectionType == Model.Sections.Section.SectionTypes.Welded)
@@ -290,13 +290,13 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         private double CalculatePeforAxialBucklingXAxis(ISteelSection section)
         {
-            double lambdaXAxis = BeamOptions.GetLenghtAxialBuckling1() / ((Section)section).InertiaRadiusX;
+            double lambdaXAxis = BeamCheckerAttribute.GetLenghtAxialBuckling1() / ((Section)section).InertiaRadiusX;
             return (Math.Pow(Math.PI, 2) * Material.E) / (Math.Pow(lambdaXAxis, 2));
         }
 
         private double CalculatePeforAxialBucklingYAxis(ISteelSection section)
         {
-            double lambdaYAxis = BeamOptions.GetLenghtAxialBuckling2() / ((Section)section).InertiaRadiusY;
+            double lambdaYAxis = BeamCheckerAttribute.GetLenghtAxialBuckling2() / ((Section)section).InertiaRadiusY;
             return (Math.Pow(Math.PI, 2) * Material.E) / (Math.Pow(lambdaYAxis, 2));
         }
 
@@ -987,13 +987,13 @@ namespace GPC.Checkers.Steel.BeamChecker
             // CopSuos2011 Chapter 8.3.4
             double le;
             if (CopSuos2011Options.LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default)
-                le = BeamOptions.GetLenghtLatTorsBuckling();
+                le = BeamCheckerAttribute.GetLenghtLatTorsBuckling();
             else if (CopSuos2011Options.LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.FullyRestrained)
-                le = 0.8 * BeamOptions.GetLenghtLatTorsBuckling();
+                le = 0.8 * BeamCheckerAttribute.GetLenghtLatTorsBuckling();
             else if (CopSuos2011Options.LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Unrestrained)
-                le = 1.2 * BeamOptions.GetLenghtLatTorsBuckling() + 2 * section.Height;
+                le = 1.2 * BeamCheckerAttribute.GetLenghtLatTorsBuckling() + 2 * section.Height;
             else if (CopSuos2011Options.LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad)
-                le = 1.2 * BeamOptions.GetLenghtLatTorsBuckling();
+                le = 1.2 * BeamCheckerAttribute.GetLenghtLatTorsBuckling();
             else
                 throw new NotImplementedException("GetLeForLatTorsBuckling: not implemented LateralTorsionalBucklingConditions");
 

@@ -18,7 +18,7 @@ namespace GPC.Checkers.Steel.BeamChecker
     {
         #region Variables
 
-        protected readonly BeamCheckerOptions _beamOptions;
+        protected readonly BeamCheckerAttribute _beamCheckerAttribute;
         protected BeamStationCheckerResults[] _beamStationCheckerResults;
         protected readonly Standard _standard;
         protected readonly ILoadCase _combination;
@@ -28,34 +28,36 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         #region Properties
 
-        internal BeamCheckerOptions BeamOptions => _beamOptions;
+        internal BeamCheckerAttribute BeamCheckerAttribute => _beamCheckerAttribute;
 
-        internal ResultBeamForces[] ResultBeamForces => BeamOptions.ResultBeamForces;
+        internal ResultBeamForces[] ResultBeamForces => BeamCheckerAttribute.ResultBeamForces;
 
-        internal ResultStation[] Stations => BeamOptions.Stations;
+        internal ResultStation[] Stations => BeamCheckerAttribute.Stations;
 
-        internal Checker.Options Options => BeamOptions.Options;
+        internal Checker.Options Options => BeamCheckerAttribute.Options;
 
-        internal ISteelSection[] Section => BeamOptions.Section;
+        internal ISteelSection[] Section => BeamCheckerAttribute.Sections;
 
         public double WorkingRatio => _beamStationCheckerResults.Select(i => i.GetMaxWorkingRatio()).Max();
 
         public BeamStationCheckerResults[] BeamStationCheckerResults => _beamStationCheckerResults; 
 
-        internal double Length => _beamOptions.BeamLength;
+        internal double Length => _beamCheckerAttribute.BeamLength;
 
         internal Standard Standard => _standard;
 
         internal ILoadCase LoadCase => _combination;
+
+        public string BeamName => _beamCheckerAttribute.BeamName;
 
         #endregion
 
 
         #region Constructor
 
-        internal BeamCheckerResults(BeamCheckerOptions beamChecker, ILoadCase loadCase,  Standard standard)
+        internal BeamCheckerResults(BeamCheckerAttribute beamChecker, ILoadCase loadCase,  Standard standard)
         {
-            _beamOptions = beamChecker ?? throw new ArgumentNullException(nameof(beamChecker));
+            _beamCheckerAttribute = beamChecker ?? throw new ArgumentNullException(nameof(beamChecker));
             _combination = loadCase ?? throw new ArgumentNullException(nameof(loadCase));
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
         }
