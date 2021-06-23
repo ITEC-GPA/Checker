@@ -272,8 +272,9 @@ namespace GPC.Checkers.Glasses.Checkers
                 // Map between interlayerIndex -> loadcase e nome della proprietà associata a quel loadcase
                 Dictionary<int, Dictionary<IGlassLoadCase, string>> interlayerLoadCasePropertyNameMap = new Dictionary<int, Dictionary<IGlassLoadCase, string>>();
 
-                System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
-                stopWatch.Start();
+                //System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
+                //stopWatch.Start();
+
                 // Aggiunta delle mesh al femModel
                 Dictionary<int, int>[] packageNodesNewIndexMap = new Dictionary<int, int>[glassPackage.Count()];
                 for (int i = 0; i < glassPackage.Length; i++)
@@ -293,21 +294,35 @@ namespace GPC.Checkers.Glasses.Checkers
 
                         if (meshes[i].CompareGuid(meshExternal.Guid))
                         {
-                            femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapExternal, vertexLineLoadMeshEntityMapExternal, faceAreaLoadMeshEntityMapExternal,
-                                              wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
-                                              out Dictionary<int, int> nodesNewIndexMap,
-                                              out Dictionary<int, int> platesNewIndexMap,
-                                              out Dictionary<int, int> brickNewIndexMap,
-                                              groupName);
+                            femModel.AddMesh(
+                                meshes[i], 
+                                propertyName, 
+                                null, 
+                                vertexLoadMeshEntityMapExternal, 
+                                vertexLineLoadMeshEntityMapExternal, 
+                                faceAreaLoadMeshEntityMapExternal, 
+                                wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshExternal.Guid)).FirstOrDefault().Value,
+                                out Dictionary<int, int> nodesNewIndexMap, 
+                                out Dictionary<int, int> platesNewIndexMap, 
+                                out Dictionary<int, int> brickNewIndexMap,
+                                groupName);
 
                             packageNodesNewIndexMap[i] = nodesNewIndexMap;
                             elementIndexes[i].platesId = platesNewIndexMap.Values.ToArray();
                         }
                         else if (meshes[i].CompareGuid(meshInternal.Guid))
                         {
-                            femModel.AddMesh(meshes[i], propertyName, null, vertexLoadMeshEntityMapInternal, vertexLineLoadMeshEntityMapInternal, faceAreaLoadMeshEntityMapInternal,
+                            femModel.AddMesh(
+                                meshes[i], 
+                                propertyName, 
+                                null, 
+                                vertexLoadMeshEntityMapInternal, 
+                                vertexLineLoadMeshEntityMapInternal, 
+                                faceAreaLoadMeshEntityMapInternal,
                                 wrapper.MeshGeometryRestrainVertices.Where(j => j.Key.CompareGuid(meshInternal.Guid)).FirstOrDefault().Value,
-                                out Dictionary<int, int> nodesNewIndexMap, out Dictionary<int, int> platesNewIndexMap, out Dictionary<int, int> brickNewIndexMap,
+                                out Dictionary<int, int> nodesNewIndexMap, 
+                                out Dictionary<int, int> platesNewIndexMap, 
+                                out Dictionary<int, int> brickNewIndexMap,
                                 groupName);
 
                             packageNodesNewIndexMap[i] = nodesNewIndexMap;
@@ -315,11 +330,18 @@ namespace GPC.Checkers.Glasses.Checkers
                         }
                         else
                         {
-                            femModel.AddMesh(meshes[i], propertyName, null, null, null, null, null,
-                                                                        out Dictionary<int, int> nodesNewIndexMap,
-                                                                        out Dictionary<int, int> platesNewIndexMap,
-                                                                        out Dictionary<int, int> brickNewIndexMap,
-                                                                        groupName);
+                            femModel.AddMesh(
+                                meshes[i], 
+                                propertyName, 
+                                null, 
+                                null, 
+                                null, 
+                                null, 
+                                null,
+                                out Dictionary<int, int> nodesNewIndexMap,
+                                out Dictionary<int, int> platesNewIndexMap,
+                                out Dictionary<int, int> brickNewIndexMap,
+                                groupName);
 
                             packageNodesNewIndexMap[i] = nodesNewIndexMap;
                             elementIndexes[i].platesId = platesNewIndexMap.Values.ToArray();
@@ -340,17 +362,24 @@ namespace GPC.Checkers.Glasses.Checkers
                         for (var j = 0; j < properties.Count; j++)
                         {
                             if (femModel.AddProperty(properties[j])) // Per ogni layer creo le proprietà dentro al fem
-                            {
                                 interlayerLoadCasePropertyNameMap[i][loadCasesUnique[j]] = properties[j].Name;
-                            }
                             else
                                 throw new ArgumentException(); // In teoria non è possibile che vada in eccezione perchè i nomi delle proprietà sono uniche e quindi vengono sempre aggiunti
                         }
 
                         var minProperty = properties.OrderBy(j => ((Model.FEM.Materials.OrthotropicFemMaterial)j.Material).G12).FirstOrDefault(); // Prendo la proprietà con i G minimo per ogni layer e la uso come proprietà iniziale
 
-                        var indexes = femModel.AddMesh(meshes[i], null, minProperty.Name, null, null, null, null, 
-                            out Dictionary<int, int> nodesNewIndexMap, out Dictionary<int, int> platesNewIndexMap, out Dictionary<int, int> brickNewIndexMap, 
+                        var indexes = femModel.AddMesh(
+                            meshes[i], 
+                            null, 
+                            minProperty.Name, 
+                            null, 
+                            null, 
+                            null, 
+                            null, 
+                            out Dictionary<int, int> nodesNewIndexMap, 
+                            out Dictionary<int, int> platesNewIndexMap, 
+                            out Dictionary<int, int> brickNewIndexMap, 
                             groupName);
 
                         packageNodesNewIndexMap[i] = nodesNewIndexMap;
@@ -362,11 +391,14 @@ namespace GPC.Checkers.Glasses.Checkers
                     }
 
                 }//);
-                stopWatch.Stop();
-                System.Diagnostics.Debug.WriteLine(stopWatch.ElapsedMilliseconds, "Elapsed");
 
-                stopWatch.Restart();
-                for (int i = 0; i < glassPackage.Length; i++)
+                //stopWatch.Stop();
+                //System.Diagnostics.Debug.WriteLine(stopWatch.ElapsedMilliseconds, "Elapsed");
+
+                //stopWatch.Restart();
+
+                //for (int i = 0; i < glassPackage.Length; i++)
+                Parallel.For(0, glassPackage.Length, (i) =>
                 {
                     // Generazione links
                     if (i == 0)
@@ -387,9 +419,10 @@ namespace GPC.Checkers.Glasses.Checkers
                         femModel.GenerateRigidLinks(wrapper.GetLayerUpperLowerVerticesIds(i - 1).upperVertices.Select(k => packageNodesNewIndexMap[i - 1][k]),
                                                     wrapper.GetLayerUpperLowerVerticesIds(i).lowerVertices.Select(k => packageNodesNewIndexMap[i][k]));
                     }
-                }
-                stopWatch.Stop();
-                System.Diagnostics.Debug.WriteLine(stopWatch.ElapsedMilliseconds, "Elapsed");
+                });
+
+                //stopWatch.Stop();
+                //System.Diagnostics.Debug.WriteLine(stopWatch.ElapsedMilliseconds, "Elapsed");
 
                 #endregion Geometria
 

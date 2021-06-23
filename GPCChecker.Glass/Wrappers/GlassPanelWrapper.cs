@@ -52,12 +52,8 @@ namespace GPC.Checkers.Glasses.Wrappers
             get
             {
                 if (!_meshComputed)
-                {
                     GenerateMesh();
-                    return _meshes;
-                }
-                else
-                    return _meshes;
+                return _meshes;
             }
         }
 
@@ -66,12 +62,8 @@ namespace GPC.Checkers.Glasses.Wrappers
             get
             {
                 if (!_meshComputed)
-                {
                     GenerateMesh();
-                    return _meshGeometryRestrainVertices;
-                }
-                else
-                    return _meshGeometryRestrainVertices;
+                return _meshGeometryRestrainVertices;
             }
         }
 
@@ -80,12 +72,8 @@ namespace GPC.Checkers.Glasses.Wrappers
             get
             {
                 if (!_meshComputed)
-                {
                     GenerateMesh();
-                    return _meshLoadsVertexIndexes;
-                }
-                else
-                    return _meshLoadsVertexIndexes;
+                return _meshLoadsVertexIndexes;
             }
         }
 
@@ -94,12 +82,8 @@ namespace GPC.Checkers.Glasses.Wrappers
             get
             {
                 if (!_meshComputed)
-                {
                     GenerateMesh();
-                    return _meshLoadsFaceIndexes;
-                }
-                else
-                    return _meshLoadsFaceIndexes;
+                return _meshLoadsFaceIndexes;
             }
         }
 
@@ -184,7 +168,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// <remarks>The load will be added only if it is different from <see cref="SelfWeightLoad"/></remarks>
         public void AddInternalFaceLoads(IEnumerable<Load> loads)
         {
-            _internalFaceLoads.AddRange(loads.Where(i => !(i is SelfWeightLoad)).ToList());
+            _internalFaceLoads.AddRange(loads.Where(i => !(i is SelfWeightLoad)));
         }
 
         public void AddSelfWeightLoad(SelfWeightLoad load)
