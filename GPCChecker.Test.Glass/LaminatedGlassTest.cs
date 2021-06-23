@@ -650,11 +650,15 @@ namespace GlassTests
 
             //Shape loadShape = GetRectangularShape(new Point3d(minorSide / 2.0 - loadWidth / 2.0, majorSide / 2.0 - loadWidth / 2.0, 0), new Vector3d(loadWidth, loadWidth, 0));
 
-            Shape loadShape = new Shape(new Polygon3d() { new Point3d(500, 900, 0), new Point3d(600, 1000, 0), new Point3d(500, 1100, 0), new Point3d(400, 1000, 0) });
+            Shape loadShapeNotParallel = new Shape(new Polygon3d() { new Point3d(500, 900, 0), new Point3d(600, 1000, 0), new Point3d(500, 1100, 0), new Point3d(400, 1000, 0) });
+            
+            Shape loadShapeParallel = s1.Scale(50 / 1000.0);
 
-            NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure);
-            NormalAreaLoad punctualLoadWp1 = new NormalAreaLoad(-1, loadShape, lcPressure2);
-            NormalAreaLoad punctualLoadWp2 = new NormalAreaLoad(-1, loadShape, lcPointLoad);
+            var shap = loadShapeParallel == s1;
+
+            NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure, "WholeSurface");
+            NormalAreaLoad punctualLoadWp1 = new NormalAreaLoad(-1, loadShapeParallel, lcPressure2, "ConcentratedParallel");
+            NormalAreaLoad punctualLoadWp2 = new NormalAreaLoad(-1, loadShapeNotParallel, lcPointLoad, "ConcentratedNotParallel");
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
