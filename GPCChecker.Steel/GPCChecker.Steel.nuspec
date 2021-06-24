@@ -8,7 +8,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
 	<projectUrl>https://github.com/ITEC-GPA/Checker</projectUrl>
-    <description>Library to perform the steel check</description>
+    <description>Library to convert</description>
     <releaseNotes>First release.</releaseNotes>
     <copyright>$copyright$</copyright>
     <tags>GPC Checks</tags>

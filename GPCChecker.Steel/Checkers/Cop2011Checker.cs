@@ -52,10 +52,6 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
 
-
-
-
-
         public class Cop2011Options : Options
         {
             #region Enumerable
