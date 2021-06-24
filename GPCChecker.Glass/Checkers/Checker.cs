@@ -141,7 +141,7 @@ namespace GPC.Checkers.Glasses.Checkers
             }
         }
 
-        private FemModelWrapper BuildMonolithicGlass(string femModelName, MonolithicGlassWrapper wrapper, MonolithicGlass mg, IEnumerable<Load> loads, 
+        private FemModelWrapper BuildMonolithicGlass(string femModelName, MonolithicGlassWrapper wrapper, MonolithicGlass mg, IEnumerable<IGlassLoad> loads, 
             Prototype.AnalysisTypes analysisType, IEnumerable<Combination> combinations)
         {
             // Creo modello
@@ -213,7 +213,7 @@ namespace GPC.Checkers.Glasses.Checkers
         }
 
 
-        private FemModelWrapper BuildLaminatedGlass(string femModelName, LaminatedGlassWrapper wrapper,  LaminatedGlass lg, IEnumerable<Load> loads, 
+        private FemModelWrapper BuildLaminatedGlass(string femModelName, LaminatedGlassWrapper wrapper,  LaminatedGlass lg, IEnumerable<IGlassLoad> loads, 
             Prototype.AnalysisTypes analysisType, Prototype.LaminatedAnalysisTypes laminatedAnalysisType, IEnumerable<Combination> combinations)
         {
             // Creo modello
