@@ -244,7 +244,7 @@ namespace GlassTests
         {
             /// Tempo per ogni iterazione
             /// 2021/05/13: > 15 min
-            /// 2021-06-24: ~ 1.5 min
+            /// 2021-06-24: < 1.5 min
 
             Action action = new Action(() => 
             {
@@ -333,7 +333,7 @@ namespace GlassTests
             var timeSpan = TimeSpan.FromMilliseconds(GPC.Utilities.Time.MeasureTime.FunctionExecutionTime(2, action, true));
 
             Debug.WriteLine($"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
-            Assert.IsTrue(timeSpan.TotalSeconds < 100, $"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
+            Assert.IsTrue(timeSpan.TotalSeconds < 30, $"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
         }
 
 
@@ -345,7 +345,7 @@ namespace GlassTests
             /// 2021/05/13: 15 secondi 
             /// 2021/05/19: 16 secondi (Geometry 1.0.8.4)
             /// 2021/06/11: 7 secondi
-
+            /// 2021/06/24: 2 secondi
 
             Action action = new Action(() =>
             {
@@ -434,7 +434,7 @@ namespace GlassTests
 
             var timeSpan = TimeSpan.FromMilliseconds(GPC.Utilities.Time.MeasureTime.FunctionExecutionTime(2, action, true));
 
-            Console.WriteLine($"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
+            Debug.WriteLine($"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
             Assert.IsTrue(timeSpan.TotalSeconds < 100, $"Seconds elapsed for each iteration: {timeSpan.TotalSeconds}");
 
         }

@@ -41,8 +41,8 @@
     <Reference Include="GPCGeometry, Version=1.0.8.12, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCGeometry.1.0.8.12\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.0.13.24, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.0.13.24\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.1.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.1.0\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCUtilities, Version=1.0.30.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCUtilities.1.0.30\lib\net472\GPCUtilities.dll</HintPath>
@@ -115,6 +115,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="gmsh-4.7.dll" />
+    <Content Include="UnsafeEx.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.0.1\build\GMsh.Net.targets')" />
