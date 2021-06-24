@@ -13,7 +13,16 @@ namespace GPC.Checkers.Glasses.LoadCases
 
         public double Temperature => _temperature;
 
-        public LoadCaseEn16612(string name, double loadDuration, double temperature, LoadCaseTypes loadCaseType, LoadCaseEn16612Types loadCasePrEnType, Guid guid)
+
+        public LoadCaseEn16612(string name, double loadDuration, double temperature, LoadCaseTypes loadCaseType,
+                        LoadCaseEn16612Types loadCasePrEnType)
+             : this(name, loadDuration, temperature, loadCaseType, loadCasePrEnType, Guid.NewGuid())
+        {
+
+        }
+
+        public LoadCaseEn16612(string name, double loadDuration, double temperature, LoadCaseTypes loadCaseType, 
+                                LoadCaseEn16612Types loadCasePrEnType, Guid guid)
             : base(name, loadCaseType, loadCasePrEnType, guid)
         {
             _temperature = temperature;
@@ -24,12 +33,14 @@ namespace GPC.Checkers.Glasses.LoadCases
             : base(info, context)
         {
             _loadDuration = info.GetDouble("LoadDuration");
+            _temperature = info.GetDouble("Temperature");
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
             info.AddValue("LoadDuration", _loadDuration);
+            info.AddValue("LoadDuration", _temperature);
         }
     }
 }

@@ -10,10 +10,10 @@ using GPC.Checkers.Glasses.LoadCases;
 namespace GPC.Checkers.Glasses.Loads
 {
     /// <summary>
-    /// Compare two <see cref="Load"/> using only
+    /// Compare two <see cref="Load"/> using the load duration, temperature and load geometry as comparer
     /// </summary>
     [Serializable]
-    public class LoadDurationAndTemperatureEqualityComparer : IEqualityComparer<Load>
+    public class LoadDurationTemperatureAndGeometryEqualityComparer : IEqualityComparer<Load>
     {
 
         /// <returns>
@@ -24,17 +24,21 @@ namespace GPC.Checkers.Glasses.Loads
         /// <remarks> Only <see cref="Load"/> is used as equality parameter </remarks>
         bool IEqualityComparer<Load>.Equals(Load x, Load y)
         {
+            if (!(x.LoadCase is LoadCase) || !(y.LoadCase is LoadCase))
+                throw new ArgumentException();
+
+
             if (x == null && y == null)
                 return true;
 
             if (x == null || y == null)
                 return false;
 
-            if (x.GetType() == y.GetType())
+            if (x.GetType() == y.GetType()) // controllo che il tipo di carico sia lo stesso
             {
-                if (x.GetGeometryBase() == y.GetGeometryBase())
+                if (x.GetGeometryBase() == y.GetGeometryBase()) // controllo che la geometria del carico sia la stessa
                 {
-                    if (((LoadCase)x.LoadCase).LoadDuration.Equals(((LoadCase)y.LoadCase).LoadDuration)
+                    if (((LoadCase)x.LoadCase).LoadDuration.Equals(((LoadCase)y.LoadCase).LoadDuration) // controllo che load duration e temperature siano uguali
                         && ((LoadCase)y.LoadCase).Temperature.Equals(((LoadCase)y.LoadCase).Temperature))
                     {
                         return true;

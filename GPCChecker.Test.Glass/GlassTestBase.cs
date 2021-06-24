@@ -288,9 +288,9 @@ namespace GlassTests
             {
                 if (results is PlateResult pr)
                 {
-                    (ResultType lowerFace, ResultType midFace, ResultType upperFace) meanResult = pr.GetMeanFaceResults();
+                    (ResultType lowerFace, ResultType midFace, ResultType upperFace) = pr.GetMeanFaceResults();
                                         
-                    if (meanResult.lowerFace is ResultStress lfs)
+                    if (lowerFace is ResultStress lfs)
                     {
                         if (worstResults[0] != null && lfs.S11 > worstResults[0].S11)
                         {
@@ -302,7 +302,7 @@ namespace GlassTests
                         }
                     }
 
-                    if (meanResult.midFace is ResultStress mfs)
+                    if (midFace is ResultStress mfs)
                     {
                         if (worstResults[0] != null && mfs.S11 > worstResults[0].S11)
                         {
@@ -314,7 +314,7 @@ namespace GlassTests
                         }
                     }
 
-                    if (meanResult.upperFace is ResultStress ufs)
+                    if (upperFace is ResultStress ufs)
                     {
                         if (worstResults[0] != null && ufs.S11 > worstResults[0].S11)
                         {

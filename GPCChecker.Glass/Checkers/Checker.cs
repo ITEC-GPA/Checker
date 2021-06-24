@@ -2,6 +2,7 @@
 using GPC.Checkers.Glasses.FemModel;
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.LoadCases;
+using GPC.Checkers.Glasses.Loads;
 using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Wrappers;
 using GPC.Geometry.Meshes;
@@ -34,6 +35,9 @@ namespace GPC.Checkers.Glasses.Checkers
         protected List<Combination> _combinations;
 
         public FemModelWrapper FemModel => _femModel;
+
+        public ModelOptions Options => _options;
+
 
         public Checker(GlassSurface glassSurface, List<Combination> combinations, ModelOptions modelOptions)
         {
@@ -147,8 +151,8 @@ namespace GPC.Checkers.Glasses.Checkers
             
             wrapper.AddExternalFaceLoads(loads);
 
-            if (loads.OfType<SelfWeightLoad>().Count() > 0)
-                wrapper.AddSelfWeightLoad(loads.OfType<SelfWeightLoad>().SingleOrDefault());
+            if (loads.OfType<Loads.SelfWeightLoad>().Count() > 0)
+                wrapper.AddSelfWeightLoad(loads.OfType<Loads.SelfWeightLoad>().SingleOrDefault());
 
             // GEOMETRIA
             Mesh[] meshes = wrapper.Meshes;
@@ -222,8 +226,8 @@ namespace GPC.Checkers.Glasses.Checkers
 
                 wrapper.AddInternalFaceLoads(loads);
 
-                if (loads.OfType<SelfWeightLoad>().Count() > 0)
-                    wrapper.AddSelfWeightLoad(loads.OfType<SelfWeightLoad>().SingleOrDefault());
+                if (loads.OfType<Loads.SelfWeightLoad>().Count() > 0)
+                    wrapper.AddSelfWeightLoad(loads.OfType<Loads.SelfWeightLoad>().SingleOrDefault());
 
                 // GEOMETRIA
 
@@ -741,7 +745,7 @@ namespace GPC.Checkers.Glasses.Checkers
         /// <param name="femModel"></param>
         /// <param name="load"></param>
         /// <inheritdoc cref="Model.FEM.FemModel.AddModelAcceleration(string)"/>
-        private void ModelGravitySetUp(FemModelWrapper femModel, SelfWeightLoad load)
+        private void ModelGravitySetUp(FemModelWrapper femModel, Loads.SelfWeightLoad load)
         {
             var accelerationModel = femModel.AddModelAcceleration(load.LoadCase.Name);
 

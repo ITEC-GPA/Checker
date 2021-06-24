@@ -25,12 +25,23 @@ namespace GPC.Checkers.Glasses.Models
         /// </summary>
         public bool GravityPositiveAxis { get; set; }
 
+        /// <summary>
+        /// Rapresent width of the line load strip used in the eq thickness analysis
+        /// </summary>
+        public double LineLoadWidthEqThickness { get; set; }
+
+        /// <summary>
+        /// Rapresent lenght of the point load square side used in the eq thickness analysis
+        /// </summary>
+        public double PointLoadWidthEqThickness { get; set; }
 
 
         public ModelOptions()
         {
             GravityAxis = GravityAxes.Z;
             GravityPositiveAxis = false;
+            LineLoadWidthEqThickness = 20;
+            PointLoadWidthEqThickness = 20;
         }
 
         /// <summary>
