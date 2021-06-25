@@ -8,7 +8,6 @@ namespace GPC.Checkers.Steel.Checkers
     public class Cop2011BeamCheckerAttribute : BeamCheckerAttribute
     {
 
-
         #region Public Constructors
 
         public Cop2011BeamCheckerAttribute(ISteelSection[] sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, Cop2011Checker.Cop2011Options options, string name = "")

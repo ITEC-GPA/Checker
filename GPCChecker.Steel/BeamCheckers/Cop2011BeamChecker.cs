@@ -256,7 +256,6 @@ namespace GPC.Checkers.Steel.BeamChecker
             double py = Py;
             if (((Section)section).SectionType == Model.Sections.Section.SectionTypes.Welded)
                 py -= 20;
-            //double a = (pe * Py) / (phi + Math.Pow(Math.Pow(phi, 2) - pe * Py, 0.5));
             return (pe * py) / (phi + Math.Pow(Math.Pow(phi, 2) - pe * py, 0.5));
         }
 
@@ -932,7 +931,7 @@ namespace GPC.Checkers.Steel.BeamChecker
         {
             //TODO: implementare CalculateMLTForLatTorsBuckling con le stazioni
             // mLt = Math.Max( (0.2+(0.15 * M1 + 0.5 * M2 + 0.15 * M4)) / Mmax, 0.44)
-            return 1.0; // a favore di sicurezza si prende il massimo possibile
+            return Options.UniformMomentFactormLT;
         }
 
         /// <summary>
@@ -1145,7 +1144,7 @@ namespace GPC.Checkers.Steel.BeamChecker
                     return SectionClass.Class4;
             }
             else
-                throw new NotImplementedException();
+                throw new NotImplementedException("CalculateSectionClassException: not implemented Section for GetClassCompressedOuterFlangeBending");
         }
 
         /// <summary>
@@ -1292,7 +1291,7 @@ namespace GPC.Checkers.Steel.BeamChecker
                     return SectionClass.Class4;
             }
             else
-                throw new NotImplementedException("Not supported Section type");
+                throw new NotImplementedException("CalculateSectionClassException: not implemented Section for GetClassCompressedFlangeRHS");
         }
 
         /// <summary>
@@ -1325,7 +1324,7 @@ namespace GPC.Checkers.Steel.BeamChecker
                     return SectionClass.Class4;
             }
             else
-                throw new NotImplementedException("Not supported Section type");
+                throw new NotImplementedException("CalculateSectionClassException: not implemented Section for GetClassCompressedWebRHS");
         }
 
         /// <summary>
@@ -1454,7 +1453,7 @@ namespace GPC.Checkers.Steel.BeamChecker
                 return r1;
             }
             else
-                throw new NotImplementedException("Not supported Section type");
+                throw new NotImplementedException("Cop2011 R1 factor (§7.3) not supported Section type");
         }
 
         /// <summary>
@@ -1468,13 +1467,18 @@ namespace GPC.Checkers.Steel.BeamChecker
                 if (sectionH.ThicknessBottomFlange == sectionH.ThicknessTopFlange && sectionH.LenghtBottomFlange == sectionH.LenghtTopFlange)
                     return (-resultBeamForces.N / (section.Area * Py));
                 else
-                    throw new NotImplementedException("Not supported case");
+                {
+                    double sigma1 = (-resultBeamForces.N / section.Area) + (resultBeamForces.M1 / sectionH.CalculateWelxTop());
+                    double sigma2 = (-resultBeamForces.N / section.Area) + (resultBeamForces.M1 / sectionH.CalculateWelxBottom());
+                    return (sigma1 + sigma2) / (2 * Py);
+                }                    
             }
+
             else if (section is SectionRHS _)           
                 return (-resultBeamForces.N / (section.Area * Py));
             
             else
-                throw new NotImplementedException("Not supported Section type");
+                throw new NotImplementedException("Cop2011 R2 factor (§7.3) not supported Section type");
         }
 
         private double GetEffettiveArea(ISteelSection section)
