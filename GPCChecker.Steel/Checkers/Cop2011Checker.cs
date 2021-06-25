@@ -43,9 +43,16 @@ namespace GPC.Checkers.Steel.Checkers
 
             foreach (Cop2011BeamCheckerAttribute cop2011BeamChecker in BeamCheckersOptions)
             {
-                Cop2011BeamChecker beamCheckerResults = new Cop2011BeamChecker(cop2011BeamChecker, LoadCase, (StandardCopSuos2011)Standard);
-                beamCheckerResults.PerformCheck();
-                list.Add(beamCheckerResults);
+                try
+                {
+                    Cop2011BeamChecker beamCheckerResults = new Cop2011BeamChecker(cop2011BeamChecker, LoadCase, (StandardCopSuos2011)Standard);
+                    beamCheckerResults.PerformCheck();
+                    list.Add(beamCheckerResults);
+                }
+                catch(Exception ex)
+                {
+                    throw new Exception(ex.Message, ex.InnerException);
+                }
             }
 
             _beamCheckerResults = list.ToArray();
