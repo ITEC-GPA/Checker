@@ -5,13 +5,11 @@ using System.Linq;
 using GPC.Geometry.Meshes;
 using GPC.Geometry;
 using GPC.Checkers.Glasses.Glasses;
-using GPC.Checkers.Glasses.LoadCases;
 using GPC.Model.Glasses;
 using GPC.Model.Restrains;
 using GPC.Model.Loads;
 using GPC.Model.FEM.Properties;
 using GPC.Model.FEM.Materials;
-using GPC.Model.Materials;
 using System.Threading.Tasks;
 using GPC.Model.Results;
 using System.Collections.Concurrent;
@@ -22,7 +20,6 @@ namespace GPC.Checkers.Glasses.Wrappers
 {
     public class LaminatedGlassWrapper : GlassPanelWrapper
     {
-
         protected const int INTERLAYER_DISCRETIZATION = 3;
 
         /// <summary>
@@ -79,8 +76,8 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             var loadcase = load.GlassLoadCase;
 
-            EquivalentThicknessParameters parameters = new EquivalentThicknessParameters(loadcase.LoadDuration, loadcase.Temperature, 
-                                                            load.GetGeometryBase(), load.LoadRestrainCondition);
+            EquivalentThicknessParameters parameters = 
+                new EquivalentThicknessParameters(loadcase.LoadDuration, loadcase.Temperature, load.GetGeometryBase(), load.LoadRestrainCondition);
 
             if (_thicknessesW.ContainsKey(parameters))
             {
@@ -91,9 +88,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                 // da valutare se inserire interpolazione valori. Ocio che il valore dello spessore non varia linearmente
                 throw new NotSupportedException($"Deformation thickness not found for load duration: {parameters.LoadDuration}, temperature: {parameters.Temperature} and geometry: {parameters.LoadGeometry}");
             }
-
         }
-
 
         public override double[] GetStressThickness(IGlassLoad load)
         {
@@ -108,8 +103,8 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             var loadcase = load.GlassLoadCase;
 
-            EquivalentThicknessParameters parameters = new EquivalentThicknessParameters(loadcase.LoadDuration, loadcase.Temperature, 
-                                                            load.GetGeometryBase(), load.LoadRestrainCondition);
+            EquivalentThicknessParameters parameters = 
+                new EquivalentThicknessParameters(loadcase.LoadDuration, loadcase.Temperature, load.GetGeometryBase(), load.LoadRestrainCondition);
 
             for (int i = 0; i < _thicknessesStress.Length; i++)
             {
@@ -215,8 +210,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         public override bool GenerateMesh()
         {
             bool status = GenerateSingleLayerMesh(out Mesh mesh, out Dictionary<GeometryRestrain, int[]> meshGeometryRestrainVertices,
-                                                                 out Dictionary<Load, int[]> meshLoadsVertexIndexes,
-                                                                 out Dictionary<Load, int[]> meshLoadsFaceIndexes);
+                out Dictionary<Load, int[]> meshLoadsVertexIndexes, out Dictionary<Load, int[]> meshLoadsFaceIndexes);
 
             if (!status)
                 return false;
@@ -229,29 +223,35 @@ namespace GPC.Checkers.Glasses.Wrappers
                     meshes = new Mesh[1];
                     meshes[0] = mesh;
                     _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>()
-                                                    { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) };
+                    { 
+                        new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) 
+                    };
 
                     _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
                     _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
 
-                    foreach (var load in _externalFaceLoads)
+                    for (int n = 0; n < _externalFaceLoads.Count; n++)
                     {
-                        if (meshLoadsFaceIndexes.ContainsKey(load))
+                        if (meshLoadsFaceIndexes.ContainsKey(_externalFaceLoads[n]))
                         {
                             if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(mesh.Guid)).Count() == 0)
                             {
                                 _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, new Dictionary<Load, int[]>()));
                             }
-                            _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(mesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
+                            _meshLoadsFaceIndexes
+                                .Where(i => i.Key.CompareGuid(mesh.Guid))
+                                .First().Value.Add(_externalFaceLoads[n], meshLoadsFaceIndexes[_externalFaceLoads[n]]);
                         }
 
-                        if (meshLoadsVertexIndexes.ContainsKey(load))
+                        if (meshLoadsVertexIndexes.ContainsKey(_externalFaceLoads[n]))
                         {
                             if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(mesh.Guid)).Count() == 0)
                             {
                                 _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, new Dictionary<Load, int[]>()));
                             }
-                            _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(mesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
+                            _meshLoadsVertexIndexes
+                                .Where(i => i.Key.CompareGuid(mesh.Guid))
+                                .First().Value.Add(_externalFaceLoads[n], meshLoadsVertexIndexes[_externalFaceLoads[n]]);
                         }
                     }
 
@@ -261,29 +261,35 @@ namespace GPC.Checkers.Glasses.Wrappers
                     meshes = new Mesh[1];
                     meshes[0] = mesh;
                     _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>()
-                                                    { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) };
+                    { 
+                        new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) 
+                    };
 
                     _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
                     _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
 
-                    foreach (var load in _externalFaceLoads)
+                    for (int n = 0; n < _externalFaceLoads.Count; n++)
                     {
-                        if (meshLoadsFaceIndexes.ContainsKey(load))
+                        if (meshLoadsFaceIndexes.ContainsKey(_externalFaceLoads[n]))
                         {
                             if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(mesh.Guid)).Count() == 0)
                             {
                                 _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, new Dictionary<Load, int[]>()));
                             }
-                            _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(mesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
+                            _meshLoadsFaceIndexes
+                                .Where(i => i.Key.CompareGuid(mesh.Guid))
+                                .First().Value.Add(_externalFaceLoads[n], meshLoadsFaceIndexes[_externalFaceLoads[n]]);
                         }
 
-                        if (meshLoadsVertexIndexes.ContainsKey(load))
+                        if (meshLoadsVertexIndexes.ContainsKey(_externalFaceLoads[n]))
                         {
                             if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(mesh.Guid)).Count() == 0)
                             {
                                 _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, new Dictionary<Load, int[]>()));
                             }
-                            _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(mesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
+                            _meshLoadsVertexIndexes
+                                .Where(i => i.Key.CompareGuid(mesh.Guid))
+                                .First().Value.Add(_externalFaceLoads[n], meshLoadsVertexIndexes[_externalFaceLoads[n]]);
                         }
                     }
 
@@ -335,7 +341,9 @@ namespace GPC.Checkers.Glasses.Wrappers
                             Dictionary<int, int> vertexIdMap = null;
 
                             if (meshes[i * 2 + 1] == null)
+                            {
                                 meshes[i * 2 + 1] = volumeMesh;
+                            }
                             else
                             {
                                 // vertexIdMap: Map between MeshVertex.Id of meshToJoin and id of the same vertex in meshes[i * 2 + 1] (Map old, new)
@@ -348,11 +356,14 @@ namespace GPC.Checkers.Glasses.Wrappers
                                 // primo strato di brick
                                 if (vertexIdMap == null)
                                 {
-                                    lowerVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
-                                                                    Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
+                                    lowerVertices = volumeMesh.Vertices
+                                        .Where(k => plane.SquareDistanceToPlane(k.Point) < Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance()))
+                                        .Select(k => k.Id);
                                 }
                                 else
+                                {
                                     throw new NotSupportedException();
+                                }
                             }
 
                             if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
@@ -363,25 +374,23 @@ namespace GPC.Checkers.Glasses.Wrappers
                                 if (vertexIdMap != null)
                                 {
                                     // il join mesh ha preso volumeMesh e joinanto dentro meshes, cambiando gli iD, bisogna usare la mappa.
-                                    upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
-                                                   Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id).Select(x => vertexIdMap[x]);
-
+                                    upperVertices = volumeMesh.Vertices
+                                        .Where(k => plane.SquareDistanceToPlane(k.Point) < Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance()))
+                                        .Select(k => k.Id)
+                                        .Select(x => vertexIdMap[x]);
                                 }
                                 else
                                 {
                                     // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
-
-                                    upperVertices = volumeMesh.Vertices.Where(k => plane.SquareDistanceToPlane(k.Point) <
-                                                                    Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance())).Select(k => k.Id);
+                                    upperVertices = volumeMesh.Vertices
+                                        .Where(k => plane.SquareDistanceToPlane(k.Point) < Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance()))
+                                        .Select(k => k.Id);
                                 }
                             }
                         }
 
-
                         _volumeUpperLowerVerticesIds[i * 2 + 1] = (lowerVertices, upperVertices);
-
                     }
-
 
                     // Assegno mesh a wrapper
                     _meshes = meshes;
@@ -391,52 +400,61 @@ namespace GPC.Checkers.Glasses.Wrappers
                     Mesh externalMesh = GetExternalGlassMesh();
                     Mesh internalMesh = GetInternalGlassMesh();
 
-
                     _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() 
-                                                    { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(externalMesh, meshGeometryRestrainVertices) };
+                    { 
+                        new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(externalMesh, meshGeometryRestrainVertices) 
+                    };
 
                     _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
                     _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>();
 
-                    foreach (var load in _externalFaceLoads)
+                    for (int n = 0; n < _externalFaceLoads.Count; n++)
                     {
-                        if (meshLoadsFaceIndexes.ContainsKey(load))
+                        if (meshLoadsFaceIndexes.ContainsKey(_externalFaceLoads[n]))
                         {
                             if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(externalMesh.Guid)).Count() == 0)
                             {
                                 _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(externalMesh, new Dictionary<Load, int[]>()));
                             }
-                            _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
+                            _meshLoadsFaceIndexes
+                                .Where(i => i.Key.CompareGuid(externalMesh.Guid))
+                                .First().Value.Add(_externalFaceLoads[n], meshLoadsFaceIndexes[_externalFaceLoads[n]]);
                         }
 
-                        if (meshLoadsVertexIndexes.ContainsKey(load))
+                        if (meshLoadsVertexIndexes.ContainsKey(_externalFaceLoads[n]))
                         {
                             if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(externalMesh.Guid)).Count() == 0)
                             {
                                 _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(externalMesh, new Dictionary<Load, int[]>()));
                             }
-                            _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(externalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
+                            _meshLoadsVertexIndexes
+                                .Where(i => i.Key.CompareGuid(externalMesh.Guid))
+                                .First().Value.Add(_externalFaceLoads[n], meshLoadsVertexIndexes[_externalFaceLoads[n]]);
                         }
                     }
 
-                    foreach (var load in _internalFaceLoads)
+                    for (int n = 0; n < _internalFaceLoads.Count; n++)
                     {
-                        if (meshLoadsFaceIndexes.ContainsKey(load))
+                        if (meshLoadsFaceIndexes.ContainsKey(_internalFaceLoads[n]))
                         {
                             if (_meshLoadsFaceIndexes.Select(i => i.Key.CompareGuid(internalMesh.Guid)).Count() == 0)
                             {
                                 _meshLoadsFaceIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(internalMesh, new Dictionary<Load, int[]>()));
                             }
-                            _meshLoadsFaceIndexes.Where(i => i.Key.CompareGuid(internalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsFaceIndexes[load]);
+                            _meshLoadsFaceIndexes
+                                .Where(i => i.Key.CompareGuid(internalMesh.Guid))
+                                .First().Value.Add(_internalFaceLoads[n], meshLoadsFaceIndexes[_internalFaceLoads[n]]);
                         }
 
-                        if (meshLoadsVertexIndexes.ContainsKey(load))
+                        if (meshLoadsVertexIndexes.ContainsKey(_internalFaceLoads[n]))
                         {
                             if (_meshLoadsVertexIndexes.Select(i => i.Key.CompareGuid(internalMesh.Guid)).Count() == 0)
                             {
                                 _meshLoadsVertexIndexes.Add(new KeyValuePair<Mesh, Dictionary<Load, int[]>>(internalMesh, new Dictionary<Load, int[]>()));
                             }
-                            _meshLoadsVertexIndexes.Where(i => i.Key.CompareGuid(internalMesh.Guid)).FirstOrDefault().Value.Add(load, meshLoadsVertexIndexes[load]);
+                            _meshLoadsVertexIndexes
+                                .Where(i => i.Key.CompareGuid(internalMesh.Guid))
+                                .First().Value.Add(_internalFaceLoads[n], meshLoadsVertexIndexes[_internalFaceLoads[n]]);
                         }
                     }
 
@@ -446,8 +464,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                 default:
                     throw new NotSupportedException();
-            }
-            
+            }            
             
             return true;
         }

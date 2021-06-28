@@ -1,5 +1,4 @@
-﻿
-using GPC.Checkers.Glasses.LoadCases;
+﻿using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Results;
 using GPC.Geometry;
@@ -20,27 +19,22 @@ using System.Reflection;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace GPC.Checkers.Glasses.FemModel
 {
     [Serializable]
     public class FemModelWrapper : Model.FEM.FemModel, ISerializable
     {
-
         public enum Straus7SolverTypes
         {
             Linear,
             NonLinear
         }
 
-
         private readonly string _st7ServerIp;
-
         private string _saveFolderPath;
         private string _st7FilePath;
         private string _st7ResultFilePath;
-
         private Prototype.SolverTypes _solverType;
 
 
@@ -262,15 +256,17 @@ namespace GPC.Checkers.Glasses.FemModel
 
         public void GenerateRigidLinks(IEnumerable<int> node1Ids, IEnumerable<int> node2Ids)
         {
-
-            if (node1Ids.Count() != node2Ids.Count())
+            int count = node1Ids.Count();
+            if (count != node2Ids.Count())
                 throw new ArgumentException();
 
-            var nodeIdMap = _nodes.GetElementIdMap();
-
+            //var nodeIdMap = _nodes.GetElementIdMap();
+            /* 
+             * Giorgio: Ottimizzato in un unico ciclo. in questo caso il guadagno di prestazioni irrisorio ma seguiamo uno standard 
+             *          che, se sempre rispettato, porta ad un generale aumento di prestazioeni
+             *          
             var nodes1 = new List<Model.FEM.Node>();
             var nodes2 = new List<Model.FEM.Node>();
-
 
             foreach (var id in node1Ids)
             {
@@ -282,7 +278,6 @@ namespace GPC.Checkers.Glasses.FemModel
                 nodes2.Add(_nodes.GetElementByIndex(nodeIdMap[id]));
             }
 
-
             for (int i = 0; i < nodes1.Count; i++)
             {
                 Model.FEM.Node node1 = nodes1[i];
@@ -290,7 +285,23 @@ namespace GPC.Checkers.Glasses.FemModel
 
                 AddCostrain(new Model.FEM.Costrains.RigidLink(node1, node2));
             }
+            */
 
+            IEnumerator<int> en1 = node1Ids.GetEnumerator();
+            IEnumerator<int> en2 = node2Ids.GetEnumerator();
+            for (int i = 0; i < count; i++)
+            {
+                en1.MoveNext();
+                var id1 = en1.Current;
+                en2.MoveNext();
+                var id2 = en2.Current;
+
+                Model.FEM.Node node1 = _nodes[id1];//.GetByIndex(nodeIdMap[id1]);
+                Model.FEM.Node node2 = _nodes[id2];//.GetByIndex(nodeIdMap[id2]);
+
+                if (node1!= null && node2 != null)
+                    AddCostrain(new Model.FEM.Costrains.RigidLink(node1, node2));
+            }
         }
 
 
@@ -1201,7 +1212,7 @@ namespace GPC.Checkers.Glasses.FemModel
 
                     foreach (var (loadcase, coefficient) in lcTuples)
                     {
-                        if (_loadCases.Contains(loadcase.Name))
+                        if (_loadCases.ContainsName(loadcase.Name))
                         {
                             if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _st7LoadCaseMap[loadcase.Name], 1, combo[loadcase]))
                             {

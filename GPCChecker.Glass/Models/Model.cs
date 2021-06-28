@@ -180,8 +180,9 @@ namespace GPC.Checkers.Glasses.Models
         public void PerformChecks()
         {
             // TODO: glass, cambiare facendo in modo che se il checker non è stato creato lo crei lui, cosi da farlo andare avanti in qualsiasi caso.
-            foreach (var surface in _glassSurfaces)
-                surface.Checker.PerformCheck();
+            //foreach (var surface in _glassSurfaces)
+            for (int i = 0; i < _glassSurfaces.Count; i++)
+                _glassSurfaces[i].Checker.PerformCheck();
         }
 
 

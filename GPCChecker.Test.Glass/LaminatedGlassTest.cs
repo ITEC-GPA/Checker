@@ -622,7 +622,7 @@ namespace GlassTests
 
             double majorSide = 2000;
             double minorSide = 1000;
-            double loadWidth = 300;
+            //double loadWidth = 300;
 
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
 

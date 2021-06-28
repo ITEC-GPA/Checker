@@ -616,6 +616,41 @@ namespace SteelTests
         }
 
         [TestMethod]
+        public void AxialBucklingSectionCHSTest3()
+        {
+            // NOTA: i risultati sono stati presi da SAP usando le BS5950. per questo i valori sono leggermente diversi => 5%
+            double D = 400;
+            double t = 12;
+            double length = 7315;
+
+            LoadCase loadCase = new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight);
+            SteelMaterial steelMaterial = new SteelMaterial("355", 206000, 0.3, 355, 510, 7850);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-10000000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
+            ResultStation[] resultStations = new ResultStation[1] { new ResultStation(1, length / 2.0, length) };
+            SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
+            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
+                                                        Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
+            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS, resultBeamForces, resultStations, options) };
+            StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
+
+            Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, loadCase, standardCopSuos2011);
+            cop2011Checker.PerformCheck();
+            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
+            double bucklingWR = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].WorkingRatio;        //N
+            double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
+            double expBucklingCapacity1 = 4348.646;     //KN
+            double expBucklingCapacity2 = 4348.646;
+            double expBuckWR = 2.18;
+
+            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.IsTrue(Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) < 0.05, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) * 100}");
+            Assert.IsTrue(Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) < 0.05, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) * 100}");
+            Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR - 1) < 0.05, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR - 1) * 100}");
+        }
+
+        [TestMethod]
         public void AxialBucklingSectionRHSTest1()
         {
             // 254x102x22

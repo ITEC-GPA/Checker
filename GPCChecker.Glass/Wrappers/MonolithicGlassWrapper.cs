@@ -10,7 +10,6 @@ namespace GPC.Checkers.Glasses.Wrappers
 {
     public class MonolithicGlassWrapper : GlassPanelWrapper
     {
-
         internal MonolithicGlassWrapper(GlassSurface glassSurface, MonolithicGlass glass)
             : base(glassSurface, glass)
         {
@@ -84,16 +83,24 @@ namespace GPC.Checkers.Glasses.Wrappers
         public override bool GenerateMesh()
         {
             bool status = GenerateSingleLayerMesh(out Mesh mesh, out Dictionary<GeometryRestrain, int[]> meshGeometryRestrainVertices,
-                                                                   out Dictionary<Load, int[]> meshLoadsVertexIndexes,
-                                                                   out Dictionary<Load, int[]> meshLoadsFaceIndexes);
+                out Dictionary<Load, int[]> meshLoadsVertexIndexes, out Dictionary<Load, int[]> meshLoadsFaceIndexes);
 
             if (!status)
                 return false;
 
             _meshes[0] = mesh;
-            _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() { new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) };
-            _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>() { new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, meshLoadsFaceIndexes) }; ;
-            _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>() { new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, meshLoadsVertexIndexes) }; ;
+            _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() 
+            { 
+                new KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>(mesh, meshGeometryRestrainVertices) 
+            };
+            _meshLoadsFaceIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>() 
+            { 
+                new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, meshLoadsFaceIndexes) 
+            };
+            _meshLoadsVertexIndexes = new List<KeyValuePair<Mesh, Dictionary<Load, int[]>>>() 
+            { 
+                new KeyValuePair<Mesh, Dictionary<Load, int[]>>(mesh, meshLoadsVertexIndexes) 
+            };
 
             _meshComputed = true;
             return true;

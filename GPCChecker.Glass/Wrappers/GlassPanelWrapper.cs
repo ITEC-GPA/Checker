@@ -53,12 +53,8 @@ namespace GPC.Checkers.Glasses.Wrappers
             get
             {
                 if (!_meshComputed)
-                {
                     GenerateMesh();
-                    return _meshes;
-                }
-                else
-                    return _meshes;
+                return _meshes;
             }
         }
 
@@ -67,12 +63,8 @@ namespace GPC.Checkers.Glasses.Wrappers
             get
             {
                 if (!_meshComputed)
-                {
                     GenerateMesh();
-                    return _meshGeometryRestrainVertices;
-                }
-                else
-                    return _meshGeometryRestrainVertices;
+                return _meshGeometryRestrainVertices;
             }
         }
 
@@ -81,12 +73,8 @@ namespace GPC.Checkers.Glasses.Wrappers
             get
             {
                 if (!_meshComputed)
-                {
                     GenerateMesh();
-                    return _meshLoadsVertexIndexes;
-                }
-                else
-                    return _meshLoadsVertexIndexes;
+                return _meshLoadsVertexIndexes;
             }
         }
 
@@ -95,12 +83,8 @@ namespace GPC.Checkers.Glasses.Wrappers
             get
             {
                 if (!_meshComputed)
-                {
                     GenerateMesh();
-                    return _meshLoadsFaceIndexes;
-                }
-                else
-                    return _meshLoadsFaceIndexes;
+                return _meshLoadsFaceIndexes;
             }
         }
 
