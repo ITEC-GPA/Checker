@@ -535,7 +535,7 @@ namespace GPC.Checkers.Steel.BeamChecker
                     if (sectionC.HeightWeb / sectionC.ThicknessWeb > 62.0 * Epsilon)
                         return CalculateShearReductionDueToTorsion(resultBeamForces, section) * GetShearBucklingReduction(section) * GetShearAreaYaxis(section);
                 }
-            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * Py * GetShearAreaYaxis(section) / Math.Sqrt(3);
+            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * Py * GetShearAreaYaxis(section) / Math.Sqrt(3.0);
         }
 
         /// <summary>
@@ -563,7 +563,7 @@ namespace GPC.Checkers.Steel.BeamChecker
 
         private double CalculateShearXCapacity(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * Py * GetShearAreaXaxis(section) / Math.Sqrt(3);
+            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * Py * GetShearAreaXaxis(section) / Math.Sqrt(3.0);
         }
 
         /// <summary>
@@ -603,16 +603,16 @@ namespace GPC.Checkers.Steel.BeamChecker
                 {
                     double sigmaStVenant = resultBeamForces.T / section.Jt;
                     double sigmaWarp = resultBeamForces.T / section.Jw;
-                    return Math.Sqrt(1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))))) - 1 - (sigmaWarp / (1.25 * (Py / Math.Sqrt(3))));
+                    return Math.Sqrt(1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))))) - (sigmaWarp / (1.25 * (Py / Math.Sqrt(3))));
                 }
                 else if (section is SectionCHS sectionCHS)
                 {
-                    double sigmaStVenant = resultBeamForces.T / 2 / sectionCHS.Area / sectionCHS.Thickness;
+                    double sigmaStVenant = resultBeamForces.T / (2.0 * sectionCHS.Area * sectionCHS.Thickness);
                     return 1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))));
                 }
                 else if (section is SectionRHS sectionRHS)
                 {
-                    double sigmaStVenant = resultBeamForces.T / (2 * sectionRHS.Area *
+                    double sigmaStVenant = resultBeamForces.T / (2.0 * sectionRHS.Area *
                         (sectionRHS.ThicknessBottom + sectionRHS.ThicknessTop + sectionRHS.ThicknessWebRight + sectionRHS.ThicknessWebLeft) / 4);
                     return 1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))));
                 }

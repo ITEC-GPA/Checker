@@ -8,7 +8,7 @@ using GPC.Model.Sections.Steel;
 
 namespace GPC.Checkers.Steel.Checkers
 {
-    public class BeamCheckerAttribute
+    public class BeamCheckerAttributes
     {
         #region Variables
 
@@ -40,7 +40,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Public Constructors
 
-        public BeamCheckerAttribute(ISteelSection[] sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, Checker.Options options, string name = "")
+        public BeamCheckerAttributes(ISteelSection[] sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, Checker.Options options, string name = "")
         {                
             _sections = sections ?? throw new ArgumentException("Input sections can not be null");
             _resultBeamForces = resultBeamForces ?? throw new ArgumentException("Input resultBeamForces can not be null");

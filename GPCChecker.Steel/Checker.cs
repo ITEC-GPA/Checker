@@ -14,7 +14,7 @@ namespace GPC.Checkers.Steel
     {
         #region Variables
 
-        protected readonly BeamCheckerAttribute[] _beamCheckers;
+        protected readonly BeamCheckerAttributes[] _beamCheckersAttributes;
         protected BeamCheckerResults[] _beamCheckerResults;
         protected Standard _standard;
         protected readonly ILoadCase _loadCase;
@@ -24,7 +24,7 @@ namespace GPC.Checkers.Steel
 
         #region Properties
 
-        public BeamCheckerAttribute[] BeamCheckersOptions => _beamCheckers;
+        public BeamCheckerAttributes[] BeamCheckersAttributes => _beamCheckersAttributes;
 
         public BeamCheckerResults[] BeamCheckerResults { get => _beamCheckerResults; }
 
@@ -37,7 +37,7 @@ namespace GPC.Checkers.Steel
 
         #region Constructor
 
-        public Checker(BeamCheckerAttribute[] beamCheckers, ILoadCase loadCase, Standard standard)
+        public Checker(BeamCheckerAttributes[] beamCheckers, ILoadCase loadCase, Standard standard)
             : this(beamCheckers, loadCase)
         {
             if (beamCheckers is null)
@@ -49,9 +49,9 @@ namespace GPC.Checkers.Steel
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
         }
 
-        public Checker(BeamCheckerAttribute[] beamCheckers, ILoadCase loadCase)
+        public Checker(BeamCheckerAttributes[] beamCheckers, ILoadCase loadCase)
         {
-            _beamCheckers = beamCheckers ?? throw new ArgumentNullException(nameof(beamCheckers));
+            _beamCheckersAttributes = beamCheckers ?? throw new ArgumentNullException(nameof(beamCheckers));
             _loadCase = loadCase ?? throw new ArgumentNullException(nameof(loadCase));
         }
 

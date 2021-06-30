@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace GPC.Checkers.Steel.Checkers
 {
-    public class EN1993p11BeamCheckerOptions : BeamCheckerAttribute
+    public class EN1993p11BeamCheckerOptions : BeamCheckerAttributes
     {
 
 

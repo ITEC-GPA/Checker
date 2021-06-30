@@ -39,23 +39,21 @@ namespace GPC.Checkers.Steel.Checkers
 
         public override void PerformCheck()
         {
-            List<Cop2011BeamChecker> list = new List<Cop2011BeamChecker>();
+            _beamCheckerResults = new BeamCheckerResults[BeamCheckersAttributes.Count()];
 
-            for (int i = 0; i < BeamCheckersOptions.Count(); i++)
+            for (int i = 0; i < BeamCheckersAttributes.Count(); i++)
             {
                 try
                 {
-                    Cop2011BeamChecker beamCheckerResults = new Cop2011BeamChecker((Cop2011BeamCheckerAttribute)BeamCheckersOptions[i], LoadCase, (StandardCopSuos2011)Standard);
+                    Cop2011BeamChecker beamCheckerResults = new Cop2011BeamChecker((Cop2011BeamCheckerAttribute)BeamCheckersAttributes[i], LoadCase, (StandardCopSuos2011)Standard);
                     beamCheckerResults.PerformCheck();
-                    list.Add(beamCheckerResults);
+                    _beamCheckerResults[i] = beamCheckerResults;
                 }
                 catch(Exception ex)
                 {
                     throw new Exception(ex.Message, ex.InnerException);
                 }
             }
-
-            _beamCheckerResults = list.ToArray();
         }
 
 
