@@ -966,13 +966,13 @@ namespace GPC.Checkers.Steel.BeamChecker
             else if (section is SectionC sectionC)
                 x = sectionC.Height / ((sectionC.ThicknessBottom + sectionC.ThicknessTop) / 2);
             else
-                throw new NotImplementedException("CalculateXForLatTorsBuckling");
+                throw new NotImplementedException("CalculateXForLatTorsBuckling: CopSuos2011 not implemented x coefficient for this section");
 
             // CopSuos2011 Chapter 8.3.5.3 equation 8.27
-            if (section is SectionH sectionH && sectionH.IsDoubleSymmetric)
+            if (section is SectionH || section is SectionC)
                 v = 1 / Math.Pow(1 + 0.05 * (Math.Pow(CalculateLambdaForLatTorsBuckling(section) / x, 2)), 0.25);
             else
-                throw new NotImplementedException("CopSuos2011 not implemented v coefficient for this section");
+                throw new NotImplementedException("CalculateXForLatTorsBuckling: CopSuos2011 not implemented v coefficient for this section");
 
             return u * v * CalculateLambdaForLatTorsBuckling(section) * Math.Sqrt(bw);
         }
