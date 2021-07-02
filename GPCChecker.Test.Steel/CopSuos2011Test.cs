@@ -39,7 +39,7 @@ namespace SteelTests
             SteelSectionH[] steelSectionH = new SteelSectionH[] { new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled) };
             Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
-                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1);
             Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[]{
                                                                     new Cop2011BeamCheckerAttribute(steelSectionH, resultBeamForces, resultStations, options) };
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
@@ -988,7 +988,7 @@ namespace SteelTests
             ResultStation[] resultStations = new ResultStation[1] { new ResultStation(1, length / 2.0, length) };
             SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
-                                                        Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+                                                        Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1, 1, 1, 1, 1, 1);
             Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionH, resultBeamForces, resultStations, options) };
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
@@ -1055,7 +1055,7 @@ namespace SteelTests
                                                                     new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)};
             Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
-                                                                                    1, 1, 1, 1, lengthBuckling / length, 1, 1, 1, 1, 1);
+                                                                                    1, 1, 1, 1, lengthBuckling / length, 1, 1, 1, 1);
             Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[]{
                                                                     new Cop2011BeamCheckerAttribute(steelSectionH, resultBeamForces, resultStations, options) };
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
@@ -1151,7 +1151,7 @@ namespace SteelTests
                                                                     new SteelSectionH(h, tw-5, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)};
             Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
-                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1);
             Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[]{
                                                                     new Cop2011BeamCheckerAttribute(steelSectionH, resultBeamForces, resultStations, options) };
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
@@ -1201,7 +1201,7 @@ namespace SteelTests
             SteelSectionH[] steelSectionH = new SteelSectionH[] {  new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)};
             Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
-                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1);
             Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[]{
                                                                     new Cop2011BeamCheckerAttribute(steelSectionH, resultBeamForces, resultStations, options) };
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
@@ -1229,7 +1229,7 @@ namespace SteelTests
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(d, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
             Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
-                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1);
             Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[]{
                                                                     new Cop2011BeamCheckerAttribute(steelSectionCHS, resultBeamForces, resultStations, options) };
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
