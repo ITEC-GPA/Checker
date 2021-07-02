@@ -122,12 +122,10 @@ namespace GPC.Checkers.Steel.Checkers
             public Cop2011Options(SteelClasses steelGrade = SteelClasses.Class1, LateralTorsionalBucklingConditions latTorsBucklingCondition = LateralTorsionalBucklingConditions.Default, 
                 double unbracedLengthFactorAxialBuck1 = 1, double effectiveLengthFactorAxialBuck1 = 1, double unbracedLengthFactorAxialBuck2 = 1, 
                 double effectiveLengthFactorAxialBuck2 = 1, double UnbracedLengthFactorLatTorsBuck = 1, double effectiveLengthFactorLatTorsBuck = 1, 
-                double unbracedLengthFactorCriticalMoment1 = 1, double effectiveLengthFactorCriticalMoment1 = 1, double unbracedLengthFactorCriticalMoment2 = 1,
-                double effectiveLengthFactorCriticalMoment2 = 1, double eqvUniformMomentFactormLT = 1)
+                double eqvUniformMomentFactorm1 = 1, double eqvUniformMomentFactorm2 = 1, double eqvUniformMomentFactormLT = 1)
                 : base(unbracedLengthFactorAxialBuck1, effectiveLengthFactorAxialBuck1, unbracedLengthFactorAxialBuck2, 
-                      effectiveLengthFactorAxialBuck2, UnbracedLengthFactorLatTorsBuck, effectiveLengthFactorLatTorsBuck, 
-                      unbracedLengthFactorCriticalMoment1, effectiveLengthFactorCriticalMoment1, unbracedLengthFactorCriticalMoment2, 
-                      effectiveLengthFactorCriticalMoment2, eqvUniformMomentFactormLT)
+                      effectiveLengthFactorAxialBuck2, UnbracedLengthFactorLatTorsBuck, effectiveLengthFactorLatTorsBuck, 1, 1, 1, 1,
+                      eqvUniformMomentFactorm1, eqvUniformMomentFactorm2, eqvUniformMomentFactormLT)
             {
                 _steelClass = steelGrade;
                 _lateralTorsionalBucklingConditions = latTorsBucklingCondition;

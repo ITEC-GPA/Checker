@@ -80,6 +80,8 @@ namespace GPC.Checkers.Steel
             protected double _mLatTorsBuckling;
             protected double _mCriticalMoment1;
             protected double _mCriticalMoment2;
+            protected double _m1;
+            protected double _m2;
             protected double _mLT;
 
             #endregion
@@ -142,6 +144,16 @@ namespace GPC.Checkers.Steel
             /// </summary>
             public double UniformMomentFactormLT { get => _mLT; set => _mLT = value; }
 
+            /// <summary>
+            /// Equivalent uniform moment factor for lateral torsional buckling 
+            /// </summary>
+            public double UniformMomentFactorm1 { get => _m1; set => _m1 = value; }
+
+            /// <summary>
+            /// Equivalent uniform moment factor for lateral torsional buckling 
+            /// </summary>
+            public double UniformMomentFactorm2 { get => _m2; set => _m2 = value; }
+
             #endregion
 
 
@@ -151,7 +163,8 @@ namespace GPC.Checkers.Steel
                             double unbracedLengthFactorAxialBuck2 = 1, double effectiveLengthFactorAxialBuck2 = 1,
                             double unbracedLengthFactorLatTorsBuck = 1, double effectiveLengthFactorLatTorsBuck = 1,
                             double unbracedLengthFactorCriticalMoment1 = 1, double effectiveLengthFactorCriticalMoment1 = 1,
-                            double unbracedLengthFactorCriticalMoment2 = 1, double effectiveLengthFactorCriticalMoment2 = 1, 
+                            double unbracedLengthFactorCriticalMoment2 = 1, double effectiveLengthFactorCriticalMoment2 = 1,
+                            double eqvUniformMomentFactorm1 = 1, double eqvUniformMomentFactorm2 = 1,
                             double eqvUniformMomentFactormLT = 1)
             {
                 if (unbracedLengthFactorAxialBuck1 < 0)
@@ -193,6 +206,14 @@ namespace GPC.Checkers.Steel
                 if (effectiveLengthFactorCriticalMoment2 < 0)
                     throw new ArgumentException("EffectiveLengthFactorCriticalMoment2 must be positive");
                 _mCriticalMoment2 = effectiveLengthFactorCriticalMoment2;
+
+                if (eqvUniformMomentFactorm1 < 0)
+                    throw new ArgumentException("EffectiveLengthFactorCriticalMoment2 must be positive");
+                _m1 = eqvUniformMomentFactorm1;
+
+                if (eqvUniformMomentFactorm2 < 0)
+                    throw new ArgumentException("EffectiveLengthFactorCriticalMoment2 must be positive");
+                _m2 = eqvUniformMomentFactorm2;
 
                 if (eqvUniformMomentFactormLT < 0)
                     throw new ArgumentException("EffectiveLengthFactorCriticalMoment2 must be positive");
@@ -274,6 +295,20 @@ namespace GPC.Checkers.Steel
                 if (effectiveLengthFactorCriticalMoment2 < 0)
                     throw new ArgumentException("EffectiveLengthFactorCriticalMoment2 must be positive");
                 _mCriticalMoment2 = effectiveLengthFactorCriticalMoment2;
+            }
+
+            public void SetUniformMomentFactorm1(double uniformMomentFactorm1)
+            {
+                if (uniformMomentFactorm1 < 0)
+                    throw new ArgumentException("UniformMomentFactorm1 must be positive");
+                _m1 = uniformMomentFactorm1;
+            }
+
+            public void SetUniformMomentFactorm2(double uniformMomentFactorm2)
+            {
+                if (uniformMomentFactorm2 < 0)
+                    throw new ArgumentException("UniformMomentFactorm2 must be positive");
+                _m2 = uniformMomentFactorm2;
             }
 
             public void SetUniformMomentFactormLT(double uniformMomentFactormLT)
