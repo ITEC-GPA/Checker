@@ -734,7 +734,7 @@ namespace SteelTests
             double expShearCapacity = 603.4;
             double expBendingWR = 0.636;
             double expBuckWR = 0.01;
-            double expWR = 0.636;
+            double expWR = 0.745;
 
             Assert.AreEqual(sectionClassComp, Cop2011BeamChecker.SectionClass.Class3);
             Assert.AreEqual(sectionClassBend, Cop2011BeamChecker.SectionClass.Class1);
@@ -873,7 +873,7 @@ namespace SteelTests
             double expShearCapacity = 1800;
             double expBendingWR = 0.852;
             double expBuckWR = 0.208;
-            double expWR = 1.06;
+            double expWR = 1.23;
 
             Assert.AreEqual(sectionClassComp, Cop2011BeamChecker.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity / bucklingCapacity - 1) * 100}");
@@ -919,7 +919,7 @@ namespace SteelTests
             double expBendingCapacity = 23.709;          //KN
             double expBendingWR = 0.4217;
             double expBuckWR = 0.202;
-            double expWR = 0.623;
+            double expWR = 0.708;
 
             Assert.AreEqual(sectionClassComp, Cop2011BeamChecker.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity / bucklingCapacity - 1) * 100}");
@@ -1014,7 +1014,7 @@ namespace SteelTests
             double expBendingCapacity2 = 312.6;          //KN
             double expBendingWR = 0.644;
             double expBuckWR = 0.438;
-            double expWR = 1.12;        // LateralTorsionalBuck
+            double expWR = 1.371;        // LateralTorsionalBuck
 
             Assert.AreEqual(sectionClassComp, Cop2011BeamChecker.SectionClass.Class3);
             Assert.AreEqual(sectionClassBend, Cop2011BeamChecker.SectionClass.Class1);

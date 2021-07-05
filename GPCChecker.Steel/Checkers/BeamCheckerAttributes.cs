@@ -63,6 +63,16 @@ namespace GPC.Checkers.Steel.Checkers
             return BeamLength * Options.UnbracedLengthFactorAxialBuck2 * Options.EffectiveLengthFactorAxialBuck2;
         }
 
+        public double GetEffectiveLenghtAxialBuckling1()
+        {
+            return BeamLength * Options.EffectiveLengthFactorAxialBuck1;
+        }
+
+        public double GetEffectiveLenghtAxialBuckling2()
+        {
+            return BeamLength * Options.EffectiveLengthFactorAxialBuck2;
+        }
+
         public double GetLenghtLatTorsBuckling()
         {
             return BeamLength * Options.UnbracedLengthFactorLatTorsBuck * Options.EffectiveLengthFactorLatTorsBuck;

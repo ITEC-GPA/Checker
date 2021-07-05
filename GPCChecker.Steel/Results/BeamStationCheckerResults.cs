@@ -26,7 +26,10 @@ namespace GPC.Checkers.Steel.Results
         protected double _bendingMoment2WorkingRatio;
         protected double _torsionalMomentWorkingRatio;
         protected double _lateraTorsionalBucklingWorkingRatio;
-        protected double _interactioWorkingRatio;
+        protected double _interaction878WorkingRatio;
+        protected double _interaction879WorkingRatio;
+        protected double _interaction880WorkingRatio;
+        protected double _interaction881WorkingRatio;
 
         protected double _axialTensionRd;
         protected double _axialCompressionRd;
@@ -72,7 +75,13 @@ namespace GPC.Checkers.Steel.Results
 
         public double LateralTorsionalBucklingWorkingRatio => _lateraTorsionalBucklingWorkingRatio;
 
-        public double InteractionWorkingRatio => _interactioWorkingRatio;
+        public double Interaction878WorkingRatio => _interaction878WorkingRatio;
+
+        public double Interaction879WorkingRatio => _interaction879WorkingRatio;
+
+        public double Interaction880WorkingRatio => _interaction880WorkingRatio;
+
+        public double Interaction881WorkingRatio => _interaction881WorkingRatio;
 
         public double WorkingRatio => GetMaxWorkingRatio();
 
@@ -140,7 +149,7 @@ namespace GPC.Checkers.Steel.Results
         }
 
         internal void SetWorkingRatio(double axialTensionWR, double axialCompressionWR, double axialBuck1WR, double axialBuck2WR, double shear1WR, double shear2WR, double bending1WR, 
-                                        double bending2WR, double latTorsWR, double interactionWR)
+                                        double bending2WR, double latTorsWR, double interaction878WR, double interaction879WR, double interaction880WR, double interaction881WR)
         {
             _axialTensionWorkingRatio = axialTensionWR < 0 ? throw new ArgumentException($"AxialTensionWorkingRatio cannot be lower than zero") : axialTensionWR;
             _axialCompressionWorkingRatio = axialCompressionWR < 0 ? throw new ArgumentException($"AxialCompressionWorkingRatio cannot be lower than zero") : axialCompressionWR;
@@ -151,7 +160,10 @@ namespace GPC.Checkers.Steel.Results
             _bendingMoment1WorkingRatio = bending1WR < 0 ? throw new ArgumentException($"BendingMoment1AxisWorkingRatio cannot be lower than zero") : bending1WR;
             _bendingMoment2WorkingRatio = bending2WR < 0 ? throw new ArgumentException($"BendingMoment2AxisWorkingRatio cannot be lower than zero") : bending2WR;
             _lateraTorsionalBucklingWorkingRatio = latTorsWR < 0 ? throw new ArgumentException($"LateralTorsionalWorkingRatio cannot be lower than zero") : latTorsWR;
-            _interactioWorkingRatio = interactionWR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interactionWR;
+            _interaction878WorkingRatio = interaction878WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction878WR;
+            _interaction879WorkingRatio = interaction879WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction879WR;
+            _interaction880WorkingRatio = interaction880WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction880WR;
+            _interaction881WorkingRatio = interaction881WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction881WR;
         }
 
         internal void SetClasses(Cop2011BeamChecker.SectionClass axialSectionClass, Cop2011BeamChecker.SectionClass bendingSectionClass)
@@ -165,7 +177,7 @@ namespace GPC.Checkers.Steel.Results
             List<double> workingRatioList = new List<double>() { _axialTensionWorkingRatio, _axialCompressionWorkingRatio, _axialBuckling1WorkingRatio, 
                                                                 _axialBuckling2WorkingRatio, _shear1WorkingRatio, _shear2WorkingRatio, _bendingMoment1WorkingRatio, 
                                                                 _bendingMoment2WorkingRatio, _torsionalMomentWorkingRatio, _lateraTorsionalBucklingWorkingRatio, 
-                                                                _interactioWorkingRatio};
+                                                                _interaction878WorkingRatio, _interaction879WorkingRatio, _interaction880WorkingRatio, _interaction881WorkingRatio,};
 
             return workingRatioList.Max();
         }
