@@ -42,6 +42,9 @@ namespace GPC.Checkers.Steel.Results
         protected double _torsionalMomentRd;
         protected double _lateralTorsionalMomentRd;
 
+        protected double _py;
+        protected double _epsilon;
+
         protected Cop2011BeamChecker.SectionClass _axialCompressionClass;
         protected Cop2011BeamChecker.SectionClass _bendingCompressionClass;
 
@@ -117,6 +120,10 @@ namespace GPC.Checkers.Steel.Results
 
         public Cop2011BeamChecker.SectionClass BendingCompressionClass => _bendingCompressionClass;
 
+        public double Py => _py;
+
+        public double Epsilon => _epsilon;
+
         #endregion
 
 
@@ -170,6 +177,12 @@ namespace GPC.Checkers.Steel.Results
         {
             _axialCompressionClass = axialSectionClass;
             _bendingCompressionClass = bendingSectionClass;
+        }
+
+        internal void SetPy(double py, double epsilon)
+        {
+            _py = py;
+            _epsilon = epsilon;
         }
 
         internal double GetMaxWorkingRatio()

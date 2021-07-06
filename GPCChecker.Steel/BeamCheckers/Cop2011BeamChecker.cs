@@ -207,6 +207,7 @@ namespace GPC.Checkers.Steel.BeamChecker
                     interaction878WR, interaction879WR, interaction880WR, interaction881WR);
 
                 stationResult.SetClasses(axialCompSectionClass, bendingCompSectionClass);
+                stationResult.SetPy(_py, _epsilon);
 
                 beamStationCheckerResults[i] = stationResult;
             }
