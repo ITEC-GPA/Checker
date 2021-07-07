@@ -45,8 +45,8 @@ namespace GPC.Checkers.Steel.Results
         protected double _py;
         protected double _epsilon;
 
-        protected Cop2011BeamChecker.SectionClass _axialCompressionClass;
-        protected Cop2011BeamChecker.SectionClass _bendingCompressionClass;
+        protected Cop2011BeamCheckerResults.SectionClass _axialCompressionClass;
+        protected Cop2011BeamCheckerResults.SectionClass _bendingCompressionClass;
 
         protected readonly ISteelSection _section;
         protected readonly ResultBeamForces _forces;
@@ -116,9 +116,9 @@ namespace GPC.Checkers.Steel.Results
 
         public ISteelSection Section => _section;
 
-        public Cop2011BeamChecker.SectionClass AxialCompressionClass => _axialCompressionClass;
+        public Cop2011BeamCheckerResults.SectionClass AxialCompressionClass => _axialCompressionClass;
 
-        public Cop2011BeamChecker.SectionClass BendingCompressionClass => _bendingCompressionClass;
+        public Cop2011BeamCheckerResults.SectionClass BendingCompressionClass => _bendingCompressionClass;
 
         public double Py => _py;
 
@@ -173,7 +173,7 @@ namespace GPC.Checkers.Steel.Results
             _interaction881WorkingRatio = interaction881WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction881WR;
         }
 
-        internal void SetClasses(Cop2011BeamChecker.SectionClass axialSectionClass, Cop2011BeamChecker.SectionClass bendingSectionClass)
+        internal void SetClasses(Cop2011BeamCheckerResults.SectionClass axialSectionClass, Cop2011BeamCheckerResults.SectionClass bendingSectionClass)
         {
             _axialCompressionClass = axialSectionClass;
             _bendingCompressionClass = bendingSectionClass;

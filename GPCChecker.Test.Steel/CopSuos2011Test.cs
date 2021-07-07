@@ -88,9 +88,9 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class1); 
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class1); 
         }
 
         [TestMethod]
@@ -114,9 +114,9 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class2);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class2);
         }
 
         [TestMethod]
@@ -140,9 +140,9 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class3);
         }
 
         [TestMethod]
@@ -197,7 +197,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingWR = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].WorkingRatio;        //N
@@ -205,7 +205,7 @@ namespace SteelTests
             double expBucklingCapacity = 2211;     //KN
             double expBuckWR = 0.4523;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity / bucklingCapacity) * 100}");
             Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR) * 100}");
         }
@@ -230,9 +230,9 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class4);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class4);
         }
 
         [TestMethod]
@@ -255,11 +255,11 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClassA = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
-            Cop2011BeamChecker.SectionClass sectionClassB = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassA = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassB = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
 
-            Assert.AreEqual(sectionClassA, Cop2011BeamChecker.SectionClass.Class4);
-            Assert.AreEqual(sectionClassB, Cop2011BeamChecker.SectionClass.Class2);
+            Assert.AreEqual(sectionClassA, Cop2011BeamCheckerResults.SectionClass.Class4);
+            Assert.AreEqual(sectionClassB, Cop2011BeamCheckerResults.SectionClass.Class2);
         }
 
         [TestMethod]
@@ -282,11 +282,11 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClassB = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
-            Cop2011BeamChecker.SectionClass sectionClassA = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassB = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassA = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
 
-            Assert.AreEqual(sectionClassB, Cop2011BeamChecker.SectionClass.Class1);
-            Assert.AreEqual(sectionClassA, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClassB, Cop2011BeamCheckerResults.SectionClass.Class1);
+            Assert.AreEqual(sectionClassA, Cop2011BeamCheckerResults.SectionClass.Class3);
         }
 
         [TestMethod]
@@ -309,9 +309,9 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class1);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class1);
         }
 
         [TestMethod]
@@ -333,11 +333,11 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
-            Cop2011BeamChecker.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class4);
-            Assert.AreEqual(sectionClassBend, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class4);
+            Assert.AreEqual(sectionClassBend, Cop2011BeamCheckerResults.SectionClass.Class3);
         }
 
         [TestMethod]
@@ -359,9 +359,9 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class4);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class4);
         }
 
         [TestMethod]
@@ -383,9 +383,9 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class3);
         }
 
         [TestMethod]
@@ -407,11 +407,11 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
-            Cop2011BeamChecker.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
 
-            Assert.AreEqual(sectionClassBend, Cop2011BeamChecker.SectionClass.Class1);
-            Assert.AreEqual(sectionClassComp, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClassBend, Cop2011BeamCheckerResults.SectionClass.Class1);
+            Assert.AreEqual(sectionClassComp, Cop2011BeamCheckerResults.SectionClass.Class3);
         }
 
         [TestMethod]
@@ -433,9 +433,9 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class1);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class1);
         }
 
         #endregion
@@ -464,7 +464,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingWR = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].WorkingRatio;        //N
@@ -473,7 +473,7 @@ namespace SteelTests
             double expBucklingCapacity2 = 4684;
             double expBuckWR = 0.671;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity1 / bucklingCapacity -1) * 100}");
             Assert.IsTrue(Math.Abs(expBucklingCapacity2 / (bucklingCapacity2/1000) - 1) < 0.02, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) -1) * 100}");
             Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR -1) * 100}");
@@ -501,7 +501,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingWR = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].WorkingRatio;        //N
@@ -510,7 +510,7 @@ namespace SteelTests
             double expBucklingCapacity2 = 4581.7;
             double expBuckWR = 0.213;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) < 0.02, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR - 1) * 100}");
@@ -538,7 +538,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingWR = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].WorkingRatio;        //N
@@ -547,7 +547,7 @@ namespace SteelTests
             double expBucklingCapacity2 = 4532.7;
             double expBuckWR = 0.213;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) < 0.02, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR - 1) * 100}");
@@ -575,7 +575,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingWR = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].WorkingRatio;        //N
@@ -584,7 +584,7 @@ namespace SteelTests
             double expBucklingCapacity2 = 17331.6;
             double expBuckWR = 0.875;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) < 0.02, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR - 1) * 100}");
@@ -610,7 +610,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingWR = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].WorkingRatio;        //N
@@ -619,7 +619,7 @@ namespace SteelTests
             double expBucklingCapacity2 = 10113.7;
             double expBuckWR = 0.9887;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) < 0.02, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR - 1) * 100}");
@@ -645,7 +645,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingWR = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].WorkingRatio;        //N
@@ -654,7 +654,7 @@ namespace SteelTests
             double expBucklingCapacity2 = 493.8;
             double expBuckWR = 0.202;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) < 0.02, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR - 1) * 100}");
@@ -680,7 +680,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingWR = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].WorkingRatio;        //N
@@ -689,7 +689,7 @@ namespace SteelTests
             double expBucklingCapacity2 = 4348.646;
             double expBuckWR = 2.18;
 
-            Assert.AreEqual(sectionClass, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClass, Cop2011BeamCheckerResults.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) < 0.05, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity1 / bucklingCapacity - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) < 0.05, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity2 / (bucklingCapacity2 / 1000) - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBuckWR / bucklingWR - 1) < 0.05, $"Buckling Working Ration % Error: {Math.Abs(expBuckWR / bucklingWR - 1) * 100}");
@@ -715,8 +715,8 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
-            Cop2011BeamChecker.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
@@ -736,8 +736,8 @@ namespace SteelTests
             double expBuckWR = 0.01;
             double expWR = 0.745;
 
-            Assert.AreEqual(sectionClassComp, Cop2011BeamChecker.SectionClass.Class3);
-            Assert.AreEqual(sectionClassBend, Cop2011BeamChecker.SectionClass.Class1);
+            Assert.AreEqual(sectionClassComp, Cop2011BeamCheckerResults.SectionClass.Class3);
+            Assert.AreEqual(sectionClassBend, Cop2011BeamCheckerResults.SectionClass.Class1);
             Assert.IsTrue(Math.Abs(expBucklingCapacity / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity / bucklingCapacity - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBendingCapacity / bendingCapacity - 1) < 0.02, $"Buckling Capacity % Error: {Math.Abs(bendingCapacity / bucklingCapacity2 - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBendingWR / bendingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBendingWR / bendingWR - 1) * 100}");
@@ -855,7 +855,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
@@ -875,7 +875,7 @@ namespace SteelTests
             double expBuckWR = 0.208;
             double expWR = 1.23;
 
-            Assert.AreEqual(sectionClassComp, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClassComp, Cop2011BeamCheckerResults.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity / bucklingCapacity - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBendingCapacity / bendingCapacity - 1) < 0.02, $"Buckling Capacity % Error: {Math.Abs(bendingCapacity / bucklingCapacity2 - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBendingWR / bendingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBendingWR / bendingWR - 1) * 100}");
@@ -904,7 +904,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
@@ -921,7 +921,7 @@ namespace SteelTests
             double expBuckWR = 0.202;
             double expWR = 0.708;
 
-            Assert.AreEqual(sectionClassComp, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClassComp, Cop2011BeamCheckerResults.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity / bucklingCapacity - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBendingCapacity / bendingCapacity - 1) < 0.02, $"Buckling Capacity % Error: {Math.Abs(bendingCapacity / bucklingCapacity2 - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBendingWR / bendingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBendingWR / bendingWR - 1) * 100}");
@@ -948,8 +948,8 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
-            Cop2011BeamChecker.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity = bucklingCapacity1/1000;     //KN
             double bendingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingMoment1Capacity;
@@ -964,8 +964,8 @@ namespace SteelTests
             double expBuckWR = 0.1042;
             double expWR = 0.820;
 
-            Assert.AreEqual(sectionClassComp, Cop2011BeamChecker.SectionClass.Class3);
-            Assert.AreEqual(sectionClassBend, Cop2011BeamChecker.SectionClass.Class3);
+            Assert.AreEqual(sectionClassComp, Cop2011BeamCheckerResults.SectionClass.Class3);
+            Assert.AreEqual(sectionClassBend, Cop2011BeamCheckerResults.SectionClass.Class3);
             Assert.IsTrue(Math.Abs(expBucklingCapacity / bucklingCapacity - 1) < 0.01, $"Buckling Capacity % Error: {Math.Abs(expBucklingCapacity / bucklingCapacity - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBendingCapacity / bendingCapacity - 1) < 0.02, $"Buckling Capacity % Error: {Math.Abs(expBendingCapacity / bendingCapacity - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBendingWR / bendingWR - 1) < 0.01, $"Buckling Working Ration % Error: {Math.Abs(expBendingWR / bendingWR - 1) * 100}");
@@ -994,8 +994,8 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
-            Cop2011BeamChecker.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassComp = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClassBend = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
             double bucklingCapacity1 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling1Capacity;
             double bucklingCapacity2 = cop2011Checker.BeamCheckerResults[0].BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
             double bucklingCapacity11 = bucklingCapacity1 / 1000;                                                                       //KN
@@ -1016,8 +1016,8 @@ namespace SteelTests
             double expBuckWR = 0.438;
             double expWR = 1.371;        // LateralTorsionalBuck
 
-            Assert.AreEqual(sectionClassComp, Cop2011BeamChecker.SectionClass.Class3);
-            Assert.AreEqual(sectionClassBend, Cop2011BeamChecker.SectionClass.Class1);
+            Assert.AreEqual(sectionClassComp, Cop2011BeamCheckerResults.SectionClass.Class3);
+            Assert.AreEqual(sectionClassBend, Cop2011BeamCheckerResults.SectionClass.Class1);
             Assert.IsTrue(Math.Abs(expBucklingCapacity2 / bucklingCapacity22 - 1) < 0.01, $"Buckling2 Capacity % Error: {Math.Abs(expBucklingCapacity2 / bucklingCapacity22 - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBucklingCapacity1 / bucklingCapacity11 - 1) < 0.01, $"Buckling1 Capacity % Error: {Math.Abs(expBucklingCapacity1 / bucklingCapacity11 - 1) * 100}");
             Assert.IsTrue(Math.Abs(expBendingCapacity1 / bendingCapacity11 - 1) < 0.02, $"Bending1 Capacity % Error: {Math.Abs(expBendingCapacity1 / bendingCapacity11 - 1) * 100}");
@@ -1062,9 +1062,9 @@ namespace SteelTests
 
             Cop2011Checker checker = new Cop2011Checker(cop2011BeamCheckerOptions[0], loadCase, standardCopSuos2011);
             checker.PerformCheck();
-            Cop2011BeamChecker.SectionClass sectionClass1 = checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
-            Cop2011BeamChecker.SectionClass sectionClass2 = checker.BeamCheckerResults[0].BeamStationCheckerResults[1].BendingCompressionClass;
-            Cop2011BeamChecker.SectionClass sectionClass3 = checker.BeamCheckerResults[0].BeamStationCheckerResults[2].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass1 = checker.BeamCheckerResults[0].BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass2 = checker.BeamCheckerResults[0].BeamStationCheckerResults[1].BendingCompressionClass;
+            Cop2011BeamCheckerResults.SectionClass sectionClass3 = checker.BeamCheckerResults[0].BeamStationCheckerResults[2].BendingCompressionClass;
 
             double expJx = 1180000000;              // cm^3
             double expWplx = 3994000;               // cm^3
@@ -1095,9 +1095,9 @@ namespace SteelTests
             double expStation3WR = 0.547;
             double expBendingMomentStation2WR = 0.881;
 
-            Assert.AreEqual(sectionClass1, Cop2011BeamChecker.SectionClass.Class1);
-            Assert.AreEqual(sectionClass2, Cop2011BeamChecker.SectionClass.Class1);
-            Assert.AreEqual(sectionClass3, Cop2011BeamChecker.SectionClass.Class1);
+            Assert.AreEqual(sectionClass1, Cop2011BeamCheckerResults.SectionClass.Class1);
+            Assert.AreEqual(sectionClass2, Cop2011BeamCheckerResults.SectionClass.Class1);
+            Assert.AreEqual(sectionClass3, Cop2011BeamCheckerResults.SectionClass.Class1);
             Assert.IsTrue(Math.Abs(expJx / steelSectionH[0].J11) - 1 < 0.02, $"Jx % Error: {Math.Abs(expJx / steelSectionH[0].J11 - 1) * 100}");
             Assert.IsTrue(Math.Abs(expWplx / steelSectionH[0].Wpl1) - 1 < 0.02, $"S % Error: {Math.Abs(expWplx / steelSectionH[0].Wpl1 - 1) * 100}");
             Assert.IsTrue(Math.Abs((SC) / expShearCapacity - 1) <0.01, $"Shear Capacity % Error: {Math.Abs((SC) / expShearCapacity - 1) * 100}");
