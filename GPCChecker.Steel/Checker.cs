@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using GPC.Model.Standards;
 using GPC.Checkers.Steel.Checkers;
 using GPC.Model.LoadCases;
-using GPC.Checkers.Steel.BeamChecker;
+using GPC.Checkers.Steel.Results;
+using GPC.Model.Sections.Steel;
+using GPC.Model.Sections;
 
 namespace GPC.Checkers.Steel
 {
@@ -14,45 +16,49 @@ namespace GPC.Checkers.Steel
     {
         #region Variables
 
-        protected readonly BeamCheckerAttributes _beamCheckersAttribute;
-        protected BeamCheckerResults[] _beamCheckerResults;
+        protected readonly BeamCheckerAttributes[] _beamCheckersAttributes;
+        protected BeamStationCheckerResults[] _beamStationCheckerResults;
         protected Standard _standard;
-        protected readonly ILoadCase[] _loadCases;
+        protected Options _options;
 
         #endregion
 
 
         #region Properties
 
-        public BeamCheckerAttributes BeamCheckersAttribute => _beamCheckersAttribute;
+        public BeamCheckerAttributes[] BeamCheckersAttribute => _beamCheckersAttributes;
 
-        public BeamCheckerResults[] BeamCheckerResults { get => _beamCheckerResults; }
+        public BeamStationCheckerResults[] BeamStationCheckerResults => _beamStationCheckerResults; 
 
         public Standard Standard => _standard;
 
-        public ILoadCase[] LoadCase => _loadCases;
+        public Options CheckerOptions => _options;
+
+        public double BeamLength => _beamCheckersAttributes.FirstOrDefault().Station.ElementLenght;
+
+        public LoadCase[] LoadCases => GetLoadCases();
 
         #endregion
 
 
         #region Constructor
 
-        public Checker(BeamCheckerAttributes beamCheckers, ILoadCase[] loadCase, Standard standard)
-            : this(beamCheckers, loadCase)
+        public Checker(BeamCheckerAttributes[] beamCheckers, Options options, Standard standard)
+            : this(beamCheckers, options)
         {
             if (beamCheckers is null)
                 throw new ArgumentNullException(nameof(beamCheckers));
 
-            if (loadCase is null)
-                throw new ArgumentNullException(nameof(loadCase));
+            if (options is null)
+                throw new ArgumentNullException(nameof(options));
 
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
         }
 
-        public Checker(BeamCheckerAttributes beamCheckers, ILoadCase[] loadCase)
+        public Checker(BeamCheckerAttributes[] beamCheckers, Options options)
         {
-            _beamCheckersAttribute = beamCheckers ?? throw new ArgumentNullException(nameof(beamCheckers));
-            _loadCases = loadCase ?? throw new ArgumentNullException(nameof(loadCase));
+            _beamCheckersAttributes = beamCheckers ?? throw new ArgumentNullException(nameof(beamCheckers));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         #endregion
@@ -65,6 +71,133 @@ namespace GPC.Checkers.Steel
 
         #endregion
 
+        public double GetLenghtAxialBuckling1()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck1 * CheckerOptions.EffectiveLengthFactorAxialBuck1;
+        }
+
+        public double GetLenghtAxialBuckling2()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck2 * CheckerOptions.EffectiveLengthFactorAxialBuck2;
+        }
+
+        public double GetEffectiveLenghtAxialBuckling1()
+        {
+            return BeamLength * CheckerOptions.EffectiveLengthFactorAxialBuck1;
+        }
+
+        public double GetEffectiveLenghtAxialBuckling2()
+        {
+            return BeamLength * CheckerOptions.EffectiveLengthFactorAxialBuck2;
+        }
+
+        public double GetLenghtLatTorsBuckling()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorLatTorsBuck * CheckerOptions.EffectiveLengthFactorLatTorsBuck;
+        }
+
+        public double GetLenghtCriticalMoment1()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment1 * CheckerOptions.EffectiveLengthFactorCriticalMoment1;
+        }
+
+        public double GetLenghtCriticalMoment2()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment2 * CheckerOptions.EffectiveLengthFactorCriticalMoment2;
+        }
+
+        private LoadCase[] GetLoadCases()
+        {
+            List<LoadCase> loadCases = new List<LoadCase>();
+
+            for (int i = 0; i < _beamCheckersAttributes.Count(); i++)
+                for (int j = 0; j < _beamCheckersAttributes[i].BeamResults.Count(); j++)
+                    loadCases.Add((LoadCase)_beamCheckersAttributes[i].BeamResults[j].Case);
+
+            return loadCases.ToArray();
+        }
+
+        internal virtual double MinSigma(ISteelSection section, double N, double M2, double M1)
+        {
+            if (section is SectionCHS sectionCHS)
+            {
+                double sigmaN = N / sectionCHS.Area;
+                double M = Math.Sqrt(M1 * M1 + M2 * M2);
+                double sigmaM = -M / sectionCHS.CalculateWel();
+
+                return sigmaN + sigmaM;
+            }
+            else if (section is SectionH sectionH)
+            {
+                double sigmap1 = N / sectionH.Area - M2 / sectionH.CalculateWelyTop() +
+                                M1 / sectionH.J11 * sectionH.LenghtTopFlange / 2.0;
+                double sigmap2 = N / sectionH.Area - M2 / sectionH.CalculateWelyTop() -
+                                M1 / sectionH.J11 * sectionH.LenghtTopFlange / 2.0;
+                double sigmap3 = N / sectionH.Area + M2 / sectionH.CalculateWelyBottom() +
+                                M1 / sectionH.J11 * sectionH.LenghtBottomFlange / 2.0;
+                double sigmap4 = N / sectionH.Area + M2 / sectionH.CalculateWelyBottom() -
+                                M1 / sectionH.J11 * sectionH.LenghtBottomFlange / 2.0;
+
+                double sigmaMin = Math.Min(sigmap1, sigmap2);
+                sigmaMin = Math.Min(sigmaMin, sigmap3);
+                sigmaMin = Math.Min(sigmaMin, sigmap4);
+
+                return sigmaMin;
+            }
+            else if (section is SectionRHS sectionRHS)
+            {
+                double sigmae1 = N / sectionRHS.Area - M2 / sectionRHS.J22 * (sectionRHS.DistanceYCentroidFromTop()) +
+                                M1 / sectionRHS.J11 * (sectionRHS.DistanceXCentroidFromLeft());
+                double sigmae2 = N / sectionRHS.Area - M2 / sectionRHS.J22 * (sectionRHS.DistanceYCentroidFromTop()) -
+                                M1 / sectionRHS.J11 * (sectionRHS.DistanceXCentroidFromRight());
+                double sigmae3 = N / sectionRHS.Area + M2 / sectionRHS.J22 * (sectionRHS.DistanceYCentroidFromBottom()) +
+                                M1 / sectionRHS.J11 * (sectionRHS.DistanceXCentroidFromLeft());
+                double sigmae4 = N / sectionRHS.Area + M2 / sectionRHS.J22 * (sectionRHS.DistanceYCentroidFromBottom()) -
+                                M1 / sectionRHS.J11 * (sectionRHS.DistanceXCentroidFromRight());
+
+                double sigmaMin = Math.Min(sigmae1, sigmae2);
+                sigmaMin = Math.Min(sigmaMin, sigmae3);
+                sigmaMin = Math.Min(sigmaMin, sigmae4);
+
+                return sigmaMin;
+            }
+            else if (section is SectionC sectionC)
+            {
+                if (sectionC.IsSymmetricAlongXLocalAxis)
+                {
+                    double sigmaP1 = N / sectionC.Area - M2 / sectionC.J22 * (sectionC.DistanceYCentroidFromTop()) +
+                                    M1 / sectionC.J11 * (sectionC.DistanceXCentroidFromLeft());
+                    double sigmaP2 = N / sectionC.Area - M2 / sectionC.J22 * (sectionC.DistanceYCentroidFromTop()) -
+                                    M1 / sectionC.J11 * (sectionC.DistanceXCentroidFromRight());
+                    double sigmaP3 = N / sectionC.Area + M2 / sectionC.J22 * (sectionC.DistanceYCentroidFromBottom()) +
+                                    M1 / sectionC.J11 * (sectionC.DistanceXCentroidFromLeft());
+                    double sigmaP4 = N / sectionC.Area + M2 / sectionC.J22 * (sectionC.DistanceYCentroidFromBottom()) -
+                                    M1 / sectionC.J11 * (sectionC.DistanceXCentroidFromRight());
+
+                    double sigmaMin = Math.Min(sigmaP1, sigmaP2);
+                    sigmaMin = Math.Min(sigmaMin, sigmaP3);
+                    sigmaMin = Math.Min(sigmaMin, sigmaP4);
+
+                    return sigmaMin;
+                }
+                else
+                    throw new Exception("calculation of unequal C not yet supported");
+
+            }
+            else if (section is SectionT sectionT)
+            {
+                double sigmaP1 = N / sectionT.Area - M2 / sectionT.CalculateWelxTop() + M1 / sectionT.CalculateWelyLeft();
+                double sigmaP2 = N / sectionT.Area - M2 / sectionT.CalculateWelxTop() - M1 / sectionT.CalculateWelyRight();
+                double sigmaP3 = N / sectionT.Area + M2 / sectionT.CalculateWelxBottom();
+
+                double sigmaMin = Math.Min(sigmaP1, sigmaP2);
+                sigmaMin = Math.Min(sigmaMin, sigmaP3);
+
+                return sigmaMin;
+            }
+            else
+                throw new NotImplementedException();
+        }
 
         public abstract class Options
         {

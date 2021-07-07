@@ -61,7 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Checkers\Cop2011BeamCheckerAttribute.cs" />
-    <Compile Include="Checkers\EN1993p11BeamCheckerOptions.cs" />
+    <Compile Include="Checkers\EN1993p11BeamCheckerAttributes.cs" />
     <Compile Include="Checkers\BeamCheckerAttributes.cs" />
     <Compile Include="Checker.cs" />
     <Compile Include="BeamCheckers\Cop2011BeamCheckerResults.cs" />

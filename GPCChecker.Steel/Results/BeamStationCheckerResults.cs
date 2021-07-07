@@ -8,7 +8,7 @@ using GPC.Model.Sections;
 using GPC.Model.Standards;
 using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
-using GPC.Checkers.Steel.BeamChecker;
+using GPC.Checkers.Steel.Checkers;
 
 namespace GPC.Checkers.Steel.Results
 {
@@ -45,13 +45,12 @@ namespace GPC.Checkers.Steel.Results
         protected double _py;
         protected double _epsilon;
 
-        protected Cop2011BeamCheckerResults.SectionClass _axialCompressionClass;
-        protected Cop2011BeamCheckerResults.SectionClass _bendingCompressionClass;
+        protected Cop2011Checker.SectionClass _axialCompressionClass;
+        protected Cop2011Checker.SectionClass _bendingCompressionClass;
 
         protected readonly ISteelSection _section;
-        protected readonly ResultBeamForces _forces;
+        protected readonly BeamResult _forces;
         protected readonly ResultStation _station;
-        protected readonly ILoadCase _loadCase;
 
         #endregion
 
@@ -108,17 +107,17 @@ namespace GPC.Checkers.Steel.Results
 
         public double LateralTosionalBucklingCapacity => _lateralTorsionalMomentRd;
 
-        public ResultBeamForces ResultBeamForces => _forces;
+        public BeamResult ResultBeamForces => _forces;
 
         public ResultStation Station => _station;
 
-        public ILoadCase LoadCase => _loadCase;
+        public ILoadCase LoadCase => _forces.Case;
 
         public ISteelSection Section => _section;
 
-        public Cop2011BeamCheckerResults.SectionClass AxialCompressionClass => _axialCompressionClass;
+        public Cop2011Checker.SectionClass AxialCompressionClass => _axialCompressionClass;
 
-        public Cop2011BeamCheckerResults.SectionClass BendingCompressionClass => _bendingCompressionClass;
+        public Cop2011Checker.SectionClass BendingCompressionClass => _bendingCompressionClass;
 
         public double Py => _py;
 
@@ -129,12 +128,11 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        internal BeamStationCheckerResults(ISteelSection section, ILoadCase loadCase, ResultBeamForces forces, ResultStation station)    
+        internal BeamStationCheckerResults(ISteelSection section,  BeamResult forces, ResultStation station)    
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
             _forces = forces ?? throw new ArgumentNullException(nameof(forces));
             _station = station ?? throw new ArgumentNullException(nameof(station));
-            _loadCase = loadCase ?? throw new ArgumentNullException(nameof(loadCase));
         }
 
         #endregion
@@ -173,7 +171,7 @@ namespace GPC.Checkers.Steel.Results
             _interaction881WorkingRatio = interaction881WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction881WR;
         }
 
-        internal void SetClasses(Cop2011BeamCheckerResults.SectionClass axialSectionClass, Cop2011BeamCheckerResults.SectionClass bendingSectionClass)
+        internal void SetClasses(Cop2011Checker.SectionClass axialSectionClass, Cop2011Checker.SectionClass bendingSectionClass)
         {
             _axialCompressionClass = axialSectionClass;
             _bendingCompressionClass = bendingSectionClass;
@@ -196,5 +194,7 @@ namespace GPC.Checkers.Steel.Results
         }
 
         #endregion
+
+        
     }
 }

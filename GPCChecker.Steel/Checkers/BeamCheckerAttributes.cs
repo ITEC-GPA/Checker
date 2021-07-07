@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Model.LoadCases;
 using GPC.Model.Results;
 using GPC.Model.Sections.Steel;
 
@@ -12,10 +13,9 @@ namespace GPC.Checkers.Steel.Checkers
     {
         #region Variables
 
-        protected readonly ISteelSection[] _sections;
-        protected readonly ResultBeamForces[] _resultBeamForces;
-        protected readonly ResultStation[] _resultStations;
-        protected readonly Checker.Options _options;
+        protected readonly ISteelSection _section;
+        protected readonly BeamResult[] _beamResults;
+        protected readonly ResultStation _resultStation;
         protected readonly string _name;
 
         #endregion
@@ -23,69 +23,32 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Properties
 
-        public ISteelSection[] Sections => _sections;
+        public ISteelSection Section => _section;
 
-        public double BeamLength => Stations[0].ElementLenght;
+        public double BeamLength => Station.ElementLenght;
 
-        public ResultBeamForces[] ResultBeamForces => _resultBeamForces;
+        public BeamResult[] BeamResults => _beamResults;
 
-        public Checker.Options Options => _options;
+        public ResultStation Station  => _resultStation;
 
-        public ResultStation[] Stations  => _resultStations;
-
-        public string BeamName => _name;
+        public string BeamName => _name;               
 
         #endregion
 
 
         #region Public Constructors
 
-        public BeamCheckerAttributes(ISteelSection[] sections, ResultBeamForces[] resultBeamForces, ResultStation[] resultStations, Checker.Options options, string name = "")
-        {                
-            _sections = sections ?? throw new ArgumentException("Input sections can not be null");
-            _resultBeamForces = resultBeamForces ?? throw new ArgumentException("Input resultBeamForces can not be null");
-            _resultStations = resultStations ?? throw new ArgumentException("Input resultStations can not be null");
-            _options = options ?? throw new ArgumentException("Input options can not be null");
+        public BeamCheckerAttributes(ISteelSection sections, BeamResult[] beamResults, ResultStation resultStation, string name = "")
+        {       
+            for(int i = 0; i < beamResults.Count(); i++)
+                for(int j = 0; j < beamResults[i].Results.Count(); j++)
+                    if(beamResults[i].Results[j] is ResultBeamForces rbf)  { }
+                    else
+                        throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
+            _beamResults = beamResults ?? throw new ArgumentException("Input resultBeamForces can not be null");
+            _section = sections ?? throw new ArgumentException("Input sections can not be null");
+            _resultStation = resultStation ?? throw new ArgumentException("Input resultStations can not be null");
             _name = name;
-
-            if (_resultStations.Length != _resultBeamForces.Length || _resultStations.Length != _sections.Length)
-                throw new ArgumentException("The input array must have the same length");
-        }
-
-
-        public double GetLenghtAxialBuckling1()
-        {
-            return BeamLength * Options.UnbracedLengthFactorAxialBuck1 * Options.EffectiveLengthFactorAxialBuck1;
-        }
-
-        public double GetLenghtAxialBuckling2()
-        {
-            return BeamLength * Options.UnbracedLengthFactorAxialBuck2 * Options.EffectiveLengthFactorAxialBuck2;
-        }
-
-        public double GetEffectiveLenghtAxialBuckling1()
-        {
-            return BeamLength * Options.EffectiveLengthFactorAxialBuck1;
-        }
-
-        public double GetEffectiveLenghtAxialBuckling2()
-        {
-            return BeamLength * Options.EffectiveLengthFactorAxialBuck2;
-        }
-
-        public double GetLenghtLatTorsBuckling()
-        {
-            return BeamLength * Options.UnbracedLengthFactorLatTorsBuck * Options.EffectiveLengthFactorLatTorsBuck;
-        }
-
-        public double GetLenghtCriticalMoment1()
-        {
-            return BeamLength * Options.UnbracedLengthFactorCriticalMoment1 * Options.EffectiveLengthFactorCriticalMoment1;
-        }
-
-        public double GetLenghtCriticalMoment2()
-        {
-            return BeamLength * Options.UnbracedLengthFactorCriticalMoment2 * Options.EffectiveLengthFactorCriticalMoment2;
         }
 
         #endregion
