@@ -25,13 +25,13 @@ namespace GPC.Checkers.Steel.Checkers
         // Standard
 
 
-        public Cop2011Checker(Cop2011BeamCheckerAttribute[] beamCheckers, ILoadCase loadCase)
+        public Cop2011Checker(Cop2011BeamCheckerAttribute beamCheckers, ILoadCase[] loadCase)
             :base(beamCheckers, loadCase)
         {
             _standard = new StandardCopSuos2011();
         }
 
-        public Cop2011Checker(Cop2011BeamCheckerAttribute[] beamCheckers, ILoadCase loadCase, StandardCopSuos2011 standard)
+        public Cop2011Checker(Cop2011BeamCheckerAttribute beamCheckers, ILoadCase[] loadCase, StandardCopSuos2011 standard)
             : base(beamCheckers, loadCase, standard)
         {
 
@@ -39,13 +39,13 @@ namespace GPC.Checkers.Steel.Checkers
 
         public override void PerformCheck()
         {
-            _beamCheckerResults = new BeamCheckerResults[BeamCheckersAttributes.Count()];
+            _beamCheckerResults = new BeamCheckerResults[_loadCases.Count()];
 
-            for (int i = 0; i < BeamCheckersAttributes.Count(); i++)
+            for (int i = 0; i < _loadCases.Count(); i++)
             {
                 try
                 {
-                    Cop2011BeamChecker beamCheckerResults = new Cop2011BeamChecker((Cop2011BeamCheckerAttribute)BeamCheckersAttributes[i], LoadCase, (StandardCopSuos2011)Standard);
+                    Cop2011BeamChecker beamCheckerResults = new Cop2011BeamChecker((Cop2011BeamCheckerAttribute)BeamCheckersAttribute, LoadCase[i], (StandardCopSuos2011)Standard);
                     beamCheckerResults.PerformCheck();
                     _beamCheckerResults[i] = beamCheckerResults;
                 }

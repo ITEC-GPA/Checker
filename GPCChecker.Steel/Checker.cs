@@ -14,30 +14,30 @@ namespace GPC.Checkers.Steel
     {
         #region Variables
 
-        protected readonly BeamCheckerAttributes[] _beamCheckersAttributes;
+        protected readonly BeamCheckerAttributes _beamCheckersAttribute;
         protected BeamCheckerResults[] _beamCheckerResults;
         protected Standard _standard;
-        protected readonly ILoadCase _loadCase;
+        protected readonly ILoadCase[] _loadCases;
 
         #endregion
 
 
         #region Properties
 
-        public BeamCheckerAttributes[] BeamCheckersAttributes => _beamCheckersAttributes;
+        public BeamCheckerAttributes BeamCheckersAttribute => _beamCheckersAttribute;
 
         public BeamCheckerResults[] BeamCheckerResults { get => _beamCheckerResults; }
 
         public Standard Standard => _standard;
 
-        public ILoadCase LoadCase => _loadCase;
+        public ILoadCase[] LoadCase => _loadCases;
 
         #endregion
 
 
         #region Constructor
 
-        public Checker(BeamCheckerAttributes[] beamCheckers, ILoadCase loadCase, Standard standard)
+        public Checker(BeamCheckerAttributes beamCheckers, ILoadCase[] loadCase, Standard standard)
             : this(beamCheckers, loadCase)
         {
             if (beamCheckers is null)
@@ -49,10 +49,10 @@ namespace GPC.Checkers.Steel
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
         }
 
-        public Checker(BeamCheckerAttributes[] beamCheckers, ILoadCase loadCase)
+        public Checker(BeamCheckerAttributes beamCheckers, ILoadCase[] loadCase)
         {
-            _beamCheckersAttributes = beamCheckers ?? throw new ArgumentNullException(nameof(beamCheckers));
-            _loadCase = loadCase ?? throw new ArgumentNullException(nameof(loadCase));
+            _beamCheckersAttribute = beamCheckers ?? throw new ArgumentNullException(nameof(beamCheckers));
+            _loadCases = loadCase ?? throw new ArgumentNullException(nameof(loadCase));
         }
 
         #endregion

@@ -23,13 +23,13 @@ namespace GPC.Checkers.Steel.Checkers
         // BeamCheckerResults[]
         // Standard
 
-        public EuroCodeChecker(EN1993p11BeamCheckerOptions[] beamCheckers, ILoadCase loadCase)
+        public EuroCodeChecker(EN1993p11BeamCheckerOptions beamCheckers, ILoadCase[] loadCase)
             : base(beamCheckers, loadCase)
         {
 
         }
 
-        public EuroCodeChecker(EN1993p11BeamCheckerOptions[] beamCheckers, ILoadCase loadCase, StandardEN1990 standardEN1990)
+        public EuroCodeChecker(EN1993p11BeamCheckerOptions beamCheckers, ILoadCase[] loadCase, StandardEN1990 standardEN1990)
             : base(beamCheckers, loadCase, standardEN1990)
         {
 
