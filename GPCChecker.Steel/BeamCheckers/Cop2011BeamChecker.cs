@@ -655,6 +655,8 @@ namespace GPC.Checkers.Steel.BeamChecker
                 return secH.ThicknessWeb * secH.HeightWeb;
             if (section is SectionC secC && secC.SectionType == Model.Sections.Section.SectionTypes.Rolled)
                 return secC.ThicknessWeb * secC.Height;
+            if (section is SectionC sectC && sectC.SectionType == Model.Sections.Section.SectionTypes.Welded)
+                return sectC.ThicknessWeb * (sectC.Height - sectC.ThicknessBottom - sectC.ThicknessTop);
             if (section is SectionRHS sectionRHS)
                 return (sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight) * sectionRHS.Heightinternal;
             if (section is SectionCHS sectionCHS)
@@ -681,6 +683,8 @@ namespace GPC.Checkers.Steel.BeamChecker
                 return secH.ThicknessBottomFlange * secH.LenghtBottomFlange + secH.ThicknessTopFlange * secH.LenghtTopFlange;
             if (section is SectionC secC && secC.SectionType == Model.Sections.Section.SectionTypes.Rolled)
                 return secC.LengthTop * secC.ThicknessTop + secC.LengthBottom * secC.ThicknessBottom;
+            if (section is SectionC sectC && sectC.SectionType == Model.Sections.Section.SectionTypes.Welded)
+                return sectC.LengthTop * sectC.ThicknessTop + sectC.LengthBottom * sectC.ThicknessBottom;
             if (section is SectionRHS sectionRHS)
                 return (sectionRHS.ThicknessBottom + sectionRHS.ThicknessTop)  * sectionRHS.BaseInternal;
             if (section is SectionCHS sectionCHS)
