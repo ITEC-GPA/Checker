@@ -13,9 +13,13 @@ using System.Runtime.Serialization;
 
 
 namespace GPC.Checkers.Steel.Results
-{
+{    
+    
+    /// <summary>
+    /// This class contains the result of a check performed on a beam station with a given ILoadCase
+    /// </summary>
     [Serializable]
-    public abstract class BeamStationResults : GPC.Model.ModelObject, ISerializable
+    public abstract class BeamStationResults : Model.ModelObject, ISerializable
     {
 
         #region Variables
