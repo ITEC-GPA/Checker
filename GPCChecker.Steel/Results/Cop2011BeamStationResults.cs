@@ -9,10 +9,16 @@ using GPC.Model.Standards;
 using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
 using GPC.Checkers.Steel.Checkers;
+using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Steel.Results
 {
-    public class BeamStationCheckerResults
+    /// <summary>
+    /// This class contains the result of a check performed on a beam station with a given ILoadCase
+    /// </summary>
+
+    [Serializable]
+    public class Cop2011BeamStationResults : BeamStationResults, ISerializable
     {
         #region Variables
 
@@ -26,10 +32,10 @@ namespace GPC.Checkers.Steel.Results
         protected double _bendingMoment2WorkingRatio;
         protected double _torsionalMomentWorkingRatio;
         protected double _lateraTorsionalBucklingWorkingRatio;
-        protected double _interaction878WorkingRatio;
-        protected double _interaction879WorkingRatio;
-        protected double _interaction880WorkingRatio;
-        protected double _interaction881WorkingRatio;
+        protected double _pMMWorkingRatio;
+        protected double _pMMWorkingRatioBendingSecondOrderEffect;
+        protected double _pMMWorkingRatioAxialSecondOrderEffect;
+        protected double _pMMWorkingRatioLateralTorsionalBuckling;
 
         protected double _axialTensionRd;
         protected double _axialCompressionRd;
@@ -48,9 +54,6 @@ namespace GPC.Checkers.Steel.Results
         protected Cop2011Checker.SectionClass _axialCompressionClass;
         protected Cop2011Checker.SectionClass _bendingCompressionClass;
 
-        protected readonly ISteelSection _section;
-        protected readonly BeamResult _forces;
-        protected readonly ResultStation _station;
 
         #endregion
 
@@ -76,14 +79,26 @@ namespace GPC.Checkers.Steel.Results
         public double TorsionalMomentWorkingRatio => _torsionalMomentWorkingRatio;
 
         public double LateralTorsionalBucklingWorkingRatio => _lateraTorsionalBucklingWorkingRatio;
+        
+        /// <summary>
+        /// Cop2011 Eq. 8.78
+        /// </summary>
+        public double PMMWorkingRatio => _pMMWorkingRatio;
 
-        public double Interaction878WorkingRatio => _interaction878WorkingRatio;
+        /// <summary>
+        /// Cop2011 Eq. 8.79
+        /// </summary>
+        public double PMMWorkingRatioBendingSecondOrderEffect => _pMMWorkingRatioBendingSecondOrderEffect;
 
-        public double Interaction879WorkingRatio => _interaction879WorkingRatio;
+        /// <summary>
+        /// Cop2011 Eq. 8.80
+        /// </summary>
+        public double PMMWorkingRatioAxialSecondOrderEffect => _pMMWorkingRatioAxialSecondOrderEffect;
 
-        public double Interaction880WorkingRatio => _interaction880WorkingRatio;
-
-        public double Interaction881WorkingRatio => _interaction881WorkingRatio;
+        /// <summary>
+        /// Cop2011 Eq. 8.81
+        /// </summary>
+        public double PMMWorkingRatioLateralTorsionalBuckling => _pMMWorkingRatioLateralTorsionalBuckling;
 
         public double WorkingRatio => GetMaxWorkingRatio();
 
@@ -107,14 +122,6 @@ namespace GPC.Checkers.Steel.Results
 
         public double LateralTosionalBucklingCapacity => _lateralTorsionalMomentRd;
 
-        public BeamResult ResultBeamForces => _forces;
-
-        public ResultStation Station => _station;
-
-        public ILoadCase LoadCase => _forces.Case;
-
-        public ISteelSection Section => _section;
-
         public Cop2011Checker.SectionClass AxialCompressionClass => _axialCompressionClass;
 
         public Cop2011Checker.SectionClass BendingCompressionClass => _bendingCompressionClass;
@@ -128,11 +135,10 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        internal BeamStationCheckerResults(ISteelSection section,  BeamResult forces, ResultStation station)    
+        internal Cop2011BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case) :
+            base(section, forces, station, Case)
         {
-            _section = section ?? throw new ArgumentNullException(nameof(section));
-            _forces = forces ?? throw new ArgumentNullException(nameof(forces));
-            _station = station ?? throw new ArgumentNullException(nameof(station));
+
         }
 
         #endregion
@@ -165,10 +171,10 @@ namespace GPC.Checkers.Steel.Results
             _bendingMoment1WorkingRatio = bending1WR < 0 ? throw new ArgumentException($"BendingMoment1AxisWorkingRatio cannot be lower than zero") : bending1WR;
             _bendingMoment2WorkingRatio = bending2WR < 0 ? throw new ArgumentException($"BendingMoment2AxisWorkingRatio cannot be lower than zero") : bending2WR;
             _lateraTorsionalBucklingWorkingRatio = latTorsWR < 0 ? throw new ArgumentException($"LateralTorsionalWorkingRatio cannot be lower than zero") : latTorsWR;
-            _interaction878WorkingRatio = interaction878WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction878WR;
-            _interaction879WorkingRatio = interaction879WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction879WR;
-            _interaction880WorkingRatio = interaction880WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction880WR;
-            _interaction881WorkingRatio = interaction881WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction881WR;
+            _pMMWorkingRatio = interaction878WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction878WR;
+            _pMMWorkingRatioBendingSecondOrderEffect = interaction879WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction879WR;
+            _pMMWorkingRatioAxialSecondOrderEffect = interaction880WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction880WR;
+            _pMMWorkingRatioLateralTorsionalBuckling = interaction881WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction881WR;
         }
 
         internal void SetClasses(Cop2011Checker.SectionClass axialSectionClass, Cop2011Checker.SectionClass bendingSectionClass)
@@ -183,12 +189,12 @@ namespace GPC.Checkers.Steel.Results
             _epsilon = epsilon;
         }
 
-        internal double GetMaxWorkingRatio()
+        internal override double GetMaxWorkingRatio()
         {
             List<double> workingRatioList = new List<double>() { _axialTensionWorkingRatio, _axialCompressionWorkingRatio, _axialBuckling1WorkingRatio, 
                                                                 _axialBuckling2WorkingRatio, _shear1WorkingRatio, _shear2WorkingRatio, _bendingMoment1WorkingRatio, 
                                                                 _bendingMoment2WorkingRatio, _torsionalMomentWorkingRatio, _lateraTorsionalBucklingWorkingRatio, 
-                                                                _interaction878WorkingRatio, _interaction879WorkingRatio, _interaction880WorkingRatio, _interaction881WorkingRatio,};
+                                                                _pMMWorkingRatio, _pMMWorkingRatioBendingSecondOrderEffect, _pMMWorkingRatioAxialSecondOrderEffect, _pMMWorkingRatioLateralTorsionalBuckling,};
 
             return workingRatioList.Max();
         }
