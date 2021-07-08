@@ -83,7 +83,6 @@
     <Compile Include="SteelResistanceTest.cs" />
     <Compile Include="SteelInstabilityTest.cs" />
     <Compile Include="SteelClassificationTest.cs" />
-    <Compile Include="AnnexTest.cs" />
     <Compile Include="ECPlateTest.cs" />
   </ItemGroup>
   <ItemGroup>
