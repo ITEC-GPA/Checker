@@ -10,8 +10,8 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Public Constructors
 
-        public Cop2011BeamCheckerAttribute(ISteelSection sections, BeamResult[] resultBeamForces, ResultStation resultStations, string name = "")
-            :base(sections, resultBeamForces, resultStations, name)
+        public Cop2011BeamCheckerAttribute(ISteelSection sections, BeamResult[] resultBeamForces, string name = "")
+            :base(sections, resultBeamForces, name)
         {
 
         }

@@ -9,6 +9,7 @@ using GPC.Model.LoadCases;
 using GPC.Checkers.Steel.Results;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Sections;
+using GPC.Model.Combinations;
 
 namespace GPC.Checkers.Steel
 {
@@ -36,7 +37,9 @@ namespace GPC.Checkers.Steel
 
         public double BeamLength => _beamCheckersAttributes.FirstOrDefault().Station.ElementLenght;
 
-        public LoadCase[] LoadCases => GetLoadCases();
+        public Combination[] LoadCases => GetLoadCases();
+
+        public string BeamName => _beamCheckersAttributes[0].BeamName;
 
         #endregion
 
@@ -106,13 +109,13 @@ namespace GPC.Checkers.Steel
             return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment2 * CheckerOptions.EffectiveLengthFactorCriticalMoment2;
         }
 
-        private LoadCase[] GetLoadCases()
+        private Combination[] GetLoadCases()
         {
-            List<LoadCase> loadCases = new List<LoadCase>();
+            List<Combination> loadCases = new List<Combination>();
 
             for (int i = 0; i < _beamCheckersAttributes.Count(); i++)
                 for (int j = 0; j < _beamCheckersAttributes[i].BeamResults.Count(); j++)
-                    loadCases.Add((LoadCase)_beamCheckersAttributes[i].BeamResults[j].Case);
+                    loadCases.Add((Combination)_beamCheckersAttributes[i].BeamResults[j].Case);
 
             return loadCases.ToArray();
         }

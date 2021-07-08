@@ -15,7 +15,6 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected readonly ISteelSection _section;
         protected readonly BeamResult[] _beamResults;
-        protected readonly ResultStation _resultStation;
         protected readonly string _name;
 
         #endregion
@@ -25,11 +24,11 @@ namespace GPC.Checkers.Steel.Checkers
 
         public ISteelSection Section => _section;
 
-        public double BeamLength => Station.ElementLenght;
-
         public BeamResult[] BeamResults => _beamResults;
 
-        public ResultStation Station  => _resultStation;
+        public ResultStation Station => (ResultStation)_beamResults.FirstOrDefault().Points.FirstOrDefault();
+
+        public double BeamLength => Station.ElementLenght;
 
         public string BeamName => _name;               
 
@@ -38,17 +37,24 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Public Constructors
 
-        public BeamCheckerAttributes(ISteelSection sections, BeamResult[] beamResults, ResultStation resultStation, string name = "")
-        {       
-            for(int i = 0; i < beamResults.Count(); i++)
-                for(int j = 0; j < beamResults[i].Results.Count(); j++)
-                    if(beamResults[i].Results[j] is ResultBeamForces rbf)  { }
-                    else
-                        throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
+        public BeamCheckerAttributes(ISteelSection sections, BeamResult[] beamResults, string name = "")
+        {
             _beamResults = beamResults ?? throw new ArgumentException("Input resultBeamForces can not be null");
             _section = sections ?? throw new ArgumentException("Input sections can not be null");
-            _resultStation = resultStation ?? throw new ArgumentException("Input resultStations can not be null");
             _name = name;
+
+            for (int i = 0; i < beamResults.Count(); i++)
+                for(int j = 0; j < beamResults[i].Results.Count(); j++)
+                    if(!(beamResults[i].Results[j] is ResultBeamForces _))
+                        throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
+            for (int i = 0; i < beamResults.Count(); i++)
+                for (int j = 0; j < beamResults[i].Results.Count(); j++)
+                    if (((ResultStation)beamResults[i].Points[j]).ElementLenght != BeamLength)
+                        throw new ArgumentException("BeamResult.Stations must be the same for each result");
+            for (int i = 0; i < beamResults.Count(); i++)
+                for (int j = 0; j < beamResults[i].Results.Count(); j++)
+                    if (((ResultStation)beamResults[i].Points[j]).DistanceFromStartPoint != Station.DistanceFromStartPoint)
+                        throw new ArgumentException("BeamResult.Stations must be the same for each result");
         }
 
         #endregion
