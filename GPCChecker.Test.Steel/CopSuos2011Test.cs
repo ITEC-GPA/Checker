@@ -40,7 +40,7 @@ namespace SteelTests
             Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
                                                                                     1, 1, 1, 1, 1, 1, 1, 1, 1);
-            option[] cop2011BeamCheckerOptions = new BeamCheckerAttributes[]{ new BeamCheckerAttributes(steelSectionH[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults) ;
 
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
@@ -54,11 +54,11 @@ namespace SteelTests
 
             for(int j = 0; j < checkers.Count(); j++)
             {
-                Assert.IsTrue(checkers[j].BeamStationCheckerResults.Count() == 1);
-                Assert.IsTrue(checkers[j].BeamStationCheckerResults.Count() == 1);                
-                Assert.IsTrue(checkers[j].BeamStationCheckerResults[0].Station == resultStations[0]);
-                Assert.IsTrue(checkers[j].BeamStationCheckerResults[0].ResultBeamForces.Results[0] == resultBeamForces[0]);
-                Assert.IsTrue(checkers[j].BeamStationCheckerResults[0].WorkingRatio >= 0.01);
+                Assert.IsTrue(checkers[j].Cop2011BeamStationResults.Count() == 1);
+                Assert.IsTrue(checkers[j].Cop2011BeamStationResults.Count() == 1);                
+                Assert.IsTrue(checkers[j].Cop2011BeamStationResults[0].Station == resultStations[0]);
+                Assert.IsTrue(checkers[j].Cop2011BeamStationResults[0].ResultBeamForces == resultBeamForces[0]);
+                Assert.IsTrue(checkers[j].Cop2011BeamStationResults[0].WorkingRatio >= 0.01);
             }    
         }
 
@@ -91,7 +91,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
 
             Assert.AreEqual(sectionClass, Cop2011Checker.SectionClass.Class1); 
         }
@@ -120,7 +120,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
 
             Assert.AreEqual(sectionClass, Cop2011Checker.SectionClass.Class2);
         }
@@ -149,7 +149,7 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].;
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
 
             Assert.AreEqual(sectionClass, Cop2011Checker.SectionClass.Class3);
         }
@@ -239,12 +239,12 @@ namespace SteelTests
             BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
             SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionRHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionRHS[0], beamResults) ;
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
 
             Assert.AreEqual(sectionClass, Cop2011Checker.SectionClass.Class4);
         }
@@ -265,13 +265,13 @@ namespace SteelTests
             BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
             SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionRHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions =new BeamCheckerAttributes(steelSectionRHS[0], beamResults) ;
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClassA = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            Cop2011Checker.SectionClass sectionClassB = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClassA = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            Cop2011Checker.SectionClass sectionClassB = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
 
             Assert.AreEqual(sectionClassA, Cop2011Checker.SectionClass.Class4);
             Assert.AreEqual(sectionClassB, Cop2011Checker.SectionClass.Class2);
@@ -293,13 +293,13 @@ namespace SteelTests
             BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
             SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionRHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionRHS[0], beamResults) ;
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClassB = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
-            Cop2011Checker.SectionClass sectionClassA = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011Checker.SectionClass sectionClassB = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClassA = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
 
             Assert.AreEqual(sectionClassB, Cop2011Checker.SectionClass.Class1);
             Assert.AreEqual(sectionClassA, Cop2011Checker.SectionClass.Class3);
@@ -321,12 +321,12 @@ namespace SteelTests
             BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
             SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty, 0, Section.FormedTypes.HotFinished, Section.SectionTypes.Rolled) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionRHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionRHS[0], beamResults) ;
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
 
             Assert.AreEqual(sectionClass, Cop2011Checker.SectionClass.Class1);
         }
@@ -346,13 +346,13 @@ namespace SteelTests
             BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults) ;
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            Cop2011Checker.SectionClass sectionClassBend = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            Cop2011Checker.SectionClass sectionClassBend = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
 
             Assert.AreEqual(sectionClass, Cop2011Checker.SectionClass.Class4);
             Assert.AreEqual(sectionClassBend, Cop2011Checker.SectionClass.Class3);
@@ -373,12 +373,12 @@ namespace SteelTests
             BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
 
             Assert.AreEqual(sectionClass, Cop2011Checker.SectionClass.Class4);
         }
@@ -398,12 +398,12 @@ namespace SteelTests
             BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults) ;
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
 
             Assert.AreEqual(sectionClass, Cop2011Checker.SectionClass.Class3);
         }
@@ -423,13 +423,13 @@ namespace SteelTests
             BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClassBend = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
-            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
+            Cop2011Checker.SectionClass sectionClassBend = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
 
             Assert.AreEqual(sectionClassBend, Cop2011Checker.SectionClass.Class1);
             Assert.AreEqual(sectionClassComp, Cop2011Checker.SectionClass.Class3);
@@ -450,12 +450,12 @@ namespace SteelTests
             BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
 
             Assert.AreEqual(sectionClass, Cop2011Checker.SectionClass.Class1);
         }
@@ -482,15 +482,15 @@ namespace SteelTests
             SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 2.9, 1, 0.96, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionH[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
-            double bucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling2Capacity;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
             double expBucklingCapacity1 = 715.4;     //KN
             double expBucklingCapacity2 = 4684;
@@ -520,15 +520,15 @@ namespace SteelTests
             SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionH[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
-            double bucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling2Capacity;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
             double expBucklingCapacity1 = 2249.9;     //KN
             double expBucklingCapacity2 = 4581.7;
@@ -558,15 +558,15 @@ namespace SteelTests
             SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionH[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults) ;
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
-            double bucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling2Capacity;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
             double expBucklingCapacity1 = 2249.9;     //KN
             double expBucklingCapacity2 = 4532.7;
@@ -596,15 +596,15 @@ namespace SteelTests
             SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Welded)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionH[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults) ;
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
-            double bucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling2Capacity;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
             double expBucklingCapacity1 = 11429.7;     //KN
             double expBucklingCapacity2 = 17331.6;
@@ -632,15 +632,15 @@ namespace SteelTests
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults) ;
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
-            double bucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling2Capacity;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
             double expBucklingCapacity1 = 10113.7;     //KN
             double expBucklingCapacity2 = 10113.7;
@@ -668,15 +668,15 @@ namespace SteelTests
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
-            double bucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling2Capacity;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
             double expBucklingCapacity1 = 493.8;     //KN
             double expBucklingCapacity2 = 493.8;
@@ -704,15 +704,15 @@ namespace SteelTests
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
-            double bucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling2Capacity;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
             double expBucklingCapacity1 = 4348.646;     //KN
             double expBucklingCapacity2 = 4348.646;
@@ -740,24 +740,24 @@ namespace SteelTests
             BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
             SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty, 0, Section.FormedTypes.HotFinished, Section.SectionTypes.Rolled) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionRHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionRHS[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            Cop2011Checker.SectionClass sectionClassBend = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
-            double bucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
+            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            Cop2011Checker.SectionClass sectionClassBend = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling2Capacity;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
-            double shearCapacity1 = cop2011Checker.BeamStationCheckerResults[0].Shear1Capacity;
+            double shearCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].Shear1Capacity;
             double shearCapacity = shearCapacity1 / 1000;     //KN
-            double bendingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1Capacity;
-            double bendingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment2Capacity;        //N
+            double bendingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity;
+            double bendingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity;        //N
             double bendingCapacity = Math.Min(bendingCapacity1 / 1000000, bendingCapacity2 / 1000000);     //KN
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1WorkingRatio;        //N
-            double bendingWR = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1WorkingRatio;        //N
-            double WR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1WorkingRatio;        //N
+            double bendingWR = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1WorkingRatio;        //N
+            double WR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
 
             double expBucklingCapacity = 1525;         //KN
             double expBendingCapacity = 157.13;          //KN
@@ -797,12 +797,12 @@ namespace SteelTests
             SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 2.9, 1, 0.96, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionH[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            double shearCapacity2 = cop2011Checker.BeamStationCheckerResults[0].Shear2Capacity;
+            double shearCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].Shear2Capacity;
             double shearCapacity = shearCapacity2 / 1000;     //KN
             double expShearCapacity = 599;
 
@@ -826,12 +826,12 @@ namespace SteelTests
             SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 2.9, 1, 0.96, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionH[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            double shearCapacity2 = cop2011Checker.BeamStationCheckerResults[0].Shear2Capacity;
+            double shearCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].Shear2Capacity;
             double shearCapacity = shearCapacity2 / 1000;     //KN
             double expShearCapacity = 1078;
 
@@ -853,12 +853,12 @@ namespace SteelTests
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            double shearCapacity2 = cop2011Checker.BeamStationCheckerResults[0].Shear2Capacity;
+            double shearCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].Shear2Capacity;
             double shearCapacity = shearCapacity2 / 1000;     //KN
             double expShearCapacity = 1790;
 
@@ -884,23 +884,23 @@ namespace SteelTests
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
-            double bucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
+            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling2Capacity;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
-            double shearCapacity1 = cop2011Checker.BeamStationCheckerResults[0].Shear1Capacity;
+            double shearCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].Shear1Capacity;
             double shearCapacity = shearCapacity1 / 1000;     //KN
-            double bendingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1Capacity;
-            double bendingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment2Capacity;        //N
+            double bendingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity;
+            double bendingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity;        //N
             double bendingCapacity = Math.Min(bendingCapacity1 / 1000000, bendingCapacity2 / 1000000);     //KN
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1WorkingRatio;        //N
-            double bendingWR = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1WorkingRatio;        //N
-            double WR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1WorkingRatio;        //N
+            double bendingWR = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1WorkingRatio;        //N
+            double WR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
 
             double expBucklingCapacity = 4796.2;         //KN
             double expBendingCapacity = 586.8;          //KN
@@ -934,21 +934,21 @@ namespace SteelTests
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
-            double bucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
+            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling2Capacity;        //N
             double bucklingCapacity = Math.Min(bucklingCapacity1 / 1000, bucklingCapacity2 / 1000);     //KN
-            double bendingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1Capacity;
-            double bendingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment2Capacity;        //N
+            double bendingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity;
+            double bendingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity;        //N
             double bendingCapacity = Math.Min(bendingCapacity1 / 1000000, bendingCapacity2 / 1000000);     //KN
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1WorkingRatio;        //N
-            double bendingWR = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1WorkingRatio;        //N
-            double WR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1WorkingRatio;        //N
+            double bendingWR = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1WorkingRatio;        //N
+            double WR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
 
             double expBucklingCapacity = 493.8;         //KN
             double expBendingCapacity = 23.709;          //KN
@@ -979,20 +979,20 @@ namespace SteelTests
             SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            Cop2011Checker.SectionClass sectionClassBend = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
+            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            Cop2011Checker.SectionClass sectionClassBend = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
             double bucklingCapacity = bucklingCapacity1/1000;     //KN
-            double bendingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1Capacity;
+            double bendingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity;
             double bendingCapacity = bendingCapacity1 / 1000000;     //KN
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1WorkingRatio;        //N
-            double bendingWR = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1WorkingRatio;        //N
-            double WR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1WorkingRatio;        //N
+            double bendingWR = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1WorkingRatio;        //N
+            double WR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
 
             double expBucklingCapacity = 9593;         //KN
             double expBendingCapacity = 1396.4;          //KN
@@ -1026,24 +1026,24 @@ namespace SteelTests
             SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
                                                         Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[] { new Cop2011BeamCheckerAttribute(steelSectionH[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.BeamStationCheckerResults[0].AxialCompressionClass;
-            Cop2011Checker.SectionClass sectionClassBend = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
-            double bucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1Capacity;
-            double bucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling2Capacity;        //N
+            Cop2011Checker.SectionClass sectionClassComp = cop2011Checker.Cop2011BeamStationResults[0].AxialCompressionClass;
+            Cop2011Checker.SectionClass sectionClassBend = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
+            double bucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1Capacity;
+            double bucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling2Capacity;        //N
             double bucklingCapacity11 = bucklingCapacity1 / 1000;                                                                       //KN
             double bucklingCapacity22 = bucklingCapacity2 / 1000;                                                                       //KN
-            double bendingCapacity1 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1Capacity;
-            double bendingCapacity2 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment2Capacity;         //N
+            double bendingCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity;
+            double bendingCapacity2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity;         //N
             double bendingCapacity11 = bendingCapacity1 / 1000000;                                                                      //KN
             double bendingCapacity22 =bendingCapacity2 / 1000000;                                                                       //KN
-            double bucklingWR = cop2011Checker.BeamStationCheckerResults[0].AxialBuckling1WorkingRatio;        //N
-            double bendingWR = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1WorkingRatio;        //N
-            double WR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;        //N
+            double bucklingWR = cop2011Checker.Cop2011BeamStationResults[0].AxialBuckling1WorkingRatio;        //N
+            double bendingWR = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1WorkingRatio;        //N
+            double WR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;        //N
 
             double expBucklingCapacity1 = 2280;         //KN
             double expBucklingCapacity2 = 4180.8;         //KN
@@ -1094,39 +1094,38 @@ namespace SteelTests
             Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
                                                                                     1, 1, 1, 1, lengthBuckling / length, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[]{
-                                                                    new Cop2011BeamCheckerAttribute(steelSectionH[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
-            Cop2011Checker.SectionClass sectionClass1 = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
-            Cop2011Checker.SectionClass sectionClass2 = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
-            Cop2011Checker.SectionClass sectionClass3 = cop2011Checker.BeamStationCheckerResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClass1 = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClass2 = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
+            Cop2011Checker.SectionClass sectionClass3 = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
 
             double expJx = 1180000000;              // cm^3
             double expWplx = 3994000;               // cm^3
 
-            double shearCapacity = cop2011Checker.BeamStationCheckerResults[0].Shear2Capacity;
+            double shearCapacity = cop2011Checker.Cop2011BeamStationResults[0].Shear2Capacity;
             double SC = shearCapacity / 1000;       //kN
             double expShearCapacity = 1213;         //kN    
 
-            double momentCapacity1 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1Capacity;      //N*mm
-            double momentCapacity2 = cop2011Checker.BeamStationCheckerResults[1].BendingMoment1Capacity;      //N*mm
+            double momentCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity;      //N*mm
+            double momentCapacity2 = cop2011Checker.Cop2011BeamStationResults[1].BendingMoment1Capacity;      //N*mm
             double MC1 = momentCapacity1 / 1000000;     //kN*m
             double MC2 = momentCapacity2 / 1000000;     //kN*m
             double expMomentCapacity = 1058;            //kN*m
 
-            double latTorsBucklingCapacity1 = cop2011Checker.BeamStationCheckerResults[1].LateralTosionalBucklingCapacity;    //N*mm
-            double latTorsBucklingCapacity2 = cop2011Checker.BeamStationCheckerResults[2].LateralTosionalBucklingCapacity;    //N*mm
+            double latTorsBucklingCapacity1 = cop2011Checker.Cop2011BeamStationResults[1].LateralTosionalBucklingCapacity;    //N*mm
+            double latTorsBucklingCapacity2 = cop2011Checker.Cop2011BeamStationResults[2].LateralTosionalBucklingCapacity;    //N*mm
             double LTBC1 = latTorsBucklingCapacity1 / 1000000;      //kN*m
             double LTBC2 = latTorsBucklingCapacity2 / 1000000;      //kN*m
             double expLatTorsBuckilingCapacity = 851;               //kN*m
 
-            double station1WR = cop2011Checker.BeamStationCheckerResults[0].WorkingRatio;
-            double station2WR = cop2011Checker.BeamStationCheckerResults[1].WorkingRatio;
-            double station3WR = cop2011Checker.BeamStationCheckerResults[2].WorkingRatio;
-            double bendingMomentStation2WR = cop2011Checker.BeamStationCheckerResults[1].BendingMoment1WorkingRatio;
+            double station1WR = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;
+            double station2WR = cop2011Checker.Cop2011BeamStationResults[1].WorkingRatio;
+            double station3WR = cop2011Checker.Cop2011BeamStationResults[2].WorkingRatio;
+            double bendingMomentStation2WR = cop2011Checker.Cop2011BeamStationResults[1].BendingMoment1WorkingRatio;
 
             double expStation1WR = 0.394;
             double expStation2WR = 1.095;
@@ -1169,8 +1168,18 @@ namespace SteelTests
 
             LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
             SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
-            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global) };
-            ResultStation[] resultStations = new ResultStation[] { new ResultStation(1, 0.0, length) };
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
+                                                                            new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
+                                                                            new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
+                                                                            new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
+                                                                            new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
+                                                                            new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global)};
+            ResultStation[] resultStations = new ResultStation[] { new ResultStation(1, 0.0, length),
+                                                                    new ResultStation(1, 0.0, length),          
+                                                                    new ResultStation(1, 0.0, length),
+                                                                    new ResultStation(1, 0.0, length),
+                                                                    new ResultStation(1, 0.0, length),
+                                                                    new ResultStation(1, 0.0, length)};
             SteelSectionH[] steelSectionH = new SteelSectionH[] {  new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled),
                                                                     new SteelSectionH(h, tw-1, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled),
                                                                     new SteelSectionH(h, tw-2, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled),
@@ -1181,24 +1190,18 @@ namespace SteelTests
             Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
                                                                                     1, 1, 1, 1, 1, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerAttributes = new Cop2011BeamCheckerAttribute[]{
-                                                                    new Cop2011BeamCheckerAttribute(steelSectionH[0], beamResults),
-                                                                    new Cop2011BeamCheckerAttribute(steelSectionH[1], beamResults), 
-                                                                    new Cop2011BeamCheckerAttribute(steelSectionH[2], beamResults),
-                                                                    new Cop2011BeamCheckerAttribute(steelSectionH[3], beamResults),
-                                                                    new Cop2011BeamCheckerAttribute(steelSectionH[4], beamResults),
-                                                                    new Cop2011BeamCheckerAttribute(steelSectionH[5], beamResults)};
+            BeamCheckerAttributes BeamCheckerAttributess = new BeamCheckerAttributes(steelSectionH, beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
-            Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerAttributes, options, standardCopSuos2011);
+            Cop2011Checker cop2011Checker = new Cop2011Checker(BeamCheckerAttributess, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
 
-            double shearCapacity1 = cop2011Checker.BeamStationCheckerResults[0].Shear2Capacity / 1000;
-            double shearCapacity2 = cop2011Checker.BeamStationCheckerResults[1].Shear2Capacity / 1000;
-            double shearCapacity3 = cop2011Checker.BeamStationCheckerResults[2].Shear2Capacity / 1000;
-            double shearCapacity4 = cop2011Checker.BeamStationCheckerResults[3].Shear2Capacity / 1000;
-            double shearCapacity5 = cop2011Checker.BeamStationCheckerResults[4].Shear2Capacity / 1000;
-            double shearCapacity6 = cop2011Checker.BeamStationCheckerResults[5].Shear2Capacity / 1000;
+            double shearCapacity1 = cop2011Checker.Cop2011BeamStationResults[0].Shear2Capacity / 1000;
+            double shearCapacity2 = cop2011Checker.Cop2011BeamStationResults[1].Shear2Capacity / 1000;
+            double shearCapacity3 = cop2011Checker.Cop2011BeamStationResults[2].Shear2Capacity / 1000;
+            double shearCapacity4 = cop2011Checker.Cop2011BeamStationResults[3].Shear2Capacity / 1000;
+            double shearCapacity5 = cop2011Checker.Cop2011BeamStationResults[4].Shear2Capacity / 1000;
+            double shearCapacity6 = cop2011Checker.Cop2011BeamStationResults[5].Shear2Capacity / 1000;
             double expShearCapacity = 1213;         //kN    
             double expShearCapacity2 = 1109;         //kN    
             double expShearCapacityBuck1 = 1000;         //kN    
@@ -1237,15 +1240,14 @@ namespace SteelTests
             Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
                                                                                     1, 1, 1, 1, 1, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[]{
-                                                                    new Cop2011BeamCheckerAttribute(steelSectionH[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults) ;
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
 
-            double bendCap1 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1Capacity / 1000;
-            double bendCap2 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment2Capacity / 1000;  
+            double bendCap1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity / 1000;
+            double bendCap2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity / 1000;  
 
             Assert.IsTrue(bendCap1 > 0.0);
             Assert.IsTrue(bendCap2 > 0.0);
@@ -1266,15 +1268,14 @@ namespace SteelTests
             Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
                                                                                     1, 1, 1, 1, 1, 1, 1, 1, 1);
-            Cop2011BeamCheckerAttribute[] cop2011BeamCheckerOptions = new Cop2011BeamCheckerAttribute[]{
-                                                                    new Cop2011BeamCheckerAttribute(steelSectionCHS[0], beamResults) };
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults) ;
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
 
-            double bendCap1 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment1Capacity / 1000;
-            double bendCap2 = cop2011Checker.BeamStationCheckerResults[0].BendingMoment2Capacity / 1000;
+            double bendCap1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity / 1000;
+            double bendCap2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity / 1000;
 
             Assert.IsTrue(bendCap1 > 0.0);
             Assert.IsTrue(bendCap2 > 0.0);

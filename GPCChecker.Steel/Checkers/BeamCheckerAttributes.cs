@@ -47,19 +47,17 @@ namespace GPC.Checkers.Steel.Checkers
 
             _results = beamResults ?? throw new ArgumentException("Input resultBeamForces can not be null");
 
-
-            if (beamResults.Select(i => i.Results.Where(j => j.GetType() != typeof(ResultBeamForces))).Count() > 0)
-            {
-                throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
-            }
+            for(int i = 0; i < beamResults.Length; i++)            
+                for(int c = 0; c < beamResults[i].Results.Length; c++)                
+                    if(!(beamResults[i].Results[c] is ResultBeamForces))
+                        throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
 
 
             if (beamResults.Select(i => i.Points.Length).Distinct().Count() > 1)
             {
                 throw new ArgumentException("Different beam station number");
             }
-
-
+                        
             if (beamResults.Select(i => i.Length).Distinct().Count() > 1)
             {
                 throw new ArgumentException("Different beam result lenght");
@@ -76,11 +74,10 @@ namespace GPC.Checkers.Steel.Checkers
             _sections = sections ?? throw new ArgumentException("Input sections can not be null");
 
 
-            if (beamResults.Select(i => i.Results.Where(j => j.GetType() != typeof(ResultBeamForces))).Count() > 0)
-            {
-                throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
-            }
-
+            for (int i = 0; i < beamResults.Length; i++)
+                for (int c = 0; c < beamResults[i].Results.Length; c++)
+                    if (!(beamResults[i].Results[c] is ResultBeamForces))
+                        throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
 
             if (beamResults.Select(i => i.Points.Length).Distinct().Count() > 1)
             {
