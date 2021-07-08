@@ -48,6 +48,8 @@ namespace GPC.Checkers.Steel.Checkers
 
         internal double Epsilon => _epsilon;
 
+        public Cop2011BeamStationResults[] Cop2011BeamStationResults => _beamStationResults.Cast<Cop2011BeamStationResults>().ToArray();
+
         #endregion
 
 
@@ -68,6 +70,12 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="steelSection">section of each station</param>
+        /// <param name="beamResult">result for each station and loadcase</param>
+        /// <returns></returns>
         private Cop2011BeamStationResults[] PerformCheck(ISteelSection[] steelSection, BeamResult[] beamResult)
         {
             Cop2011BeamStationResults[] stationResults = new Cop2011BeamStationResults[steelSection.Length];
@@ -240,6 +248,7 @@ namespace GPC.Checkers.Steel.Checkers
 
             return stationResults;
         }
+
 
         private double GetWorkingRatio(double force, double capacity)
         {

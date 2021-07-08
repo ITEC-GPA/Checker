@@ -65,8 +65,9 @@ namespace GPC.Checkers.Steel.Checkers
                 throw new ArgumentException("Different beam result lenght");
             }
 
-            _sections = Enumerable.Repeat(section, beamResults.Length).ToArray();
+            _sections = Enumerable.Repeat(section, beamResults.First().Points.Length).ToArray();
         }
+
 
         public BeamCheckerAttributes(ISteelSection[] sections, BeamResult[] beamResults, string name = "") 
             : base(name)
@@ -85,12 +86,14 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 throw new ArgumentException("Different beam station number");
             }
-            
-            
+                        
             if (beamResults.Select(i => i.Length).Distinct().Count() > 1)
             {
                 throw new ArgumentException("Different beam result lenght");
             }
+
+            if (sections.Length != beamResults.First().Points.Length)
+                throw new ArgumentException("Sections number different than station number");
         }
 
         public BeamCheckerAttributes(SerializationInfo info, StreamingContext context) 
