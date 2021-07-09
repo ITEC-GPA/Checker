@@ -46,12 +46,13 @@ namespace GPC.Checkers.Steel.Results
 
 
 
-        internal BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case)
+        internal BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, string name = "")
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
             _forces = forces ?? throw new ArgumentNullException(nameof(forces));
             _station = station ?? throw new ArgumentNullException(nameof(station));
             _case = Case ?? throw new ArgumentNullException(nameof(Case));
+            _name = name;
         }
 
         protected BeamStationResults(SerializationInfo info, StreamingContext context) : base(info, context)
