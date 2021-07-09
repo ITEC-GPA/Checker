@@ -26,8 +26,8 @@ namespace GPC.Checkers.Steel.Checkers
         protected readonly BeamCheckerAttributes _beamCheckersAttributes;
 
         protected BeamStationResults[] _beamStationResults;
-        protected Standard _standard;
-        protected Options _options;
+        protected readonly Standard _standard;
+        protected readonly Options _options;
 
         #endregion
 
