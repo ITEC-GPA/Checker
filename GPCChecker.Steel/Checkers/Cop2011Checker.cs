@@ -56,9 +56,6 @@ namespace GPC.Checkers.Steel.Checkers
         public Cop2011Checker(BeamCheckerAttributes attributes, Cop2011Checker.Cop2011Options options, StandardCopSuos2011 standard)
             : base(attributes, options, standard)
         {
-            _standard = standard ?? throw new ArgumentNullException(nameof(standard));
-
-
             _py = GetPy(attributes.Sections.Select(i => i.SteelMaterial.Fyk).Min(), attributes.Sections.Select(i => i.SteelMaterial.Fu).Min());
             _epsilon = Math.Sqrt(275 / _py);        //value of Epsilon for section classification
 
