@@ -48,6 +48,10 @@ namespace GPC.Checkers.Steel.Results
         protected double _torsionalMomentRd;
         protected double _lateralTorsionalMomentRd;
 
+        protected double _lenghtAxialBuckling1;
+        protected double _lenghtAxialBuckling2;
+        protected double _lenghtLateralTorsionalBuckling;
+
         protected double _py;
         protected double _epsilon;
 
@@ -122,6 +126,13 @@ namespace GPC.Checkers.Steel.Results
 
         public double LateralTosionalBucklingCapacity => _lateralTorsionalMomentRd;
 
+        public double LenghtAxialBuckling1 => _lenghtAxialBuckling1;
+        public double LenghtAxialBuckling2 => _lenghtAxialBuckling2;
+        public double LenghtLaterlaTorsionalBuckling => _lenghtLateralTorsionalBuckling;
+
+
+
+
         public Cop2011Checker.SectionClass AxialCompressionClass => _axialCompressionClass;
 
         public Cop2011Checker.SectionClass BendingCompressionClass => _bendingCompressionClass;
@@ -182,6 +193,14 @@ namespace GPC.Checkers.Steel.Results
         {
             _axialCompressionClass = axialSectionClass;
             _bendingCompressionClass = bendingSectionClass;
+        }
+
+        internal void SetBucklingLenght(double axialBuckling1, double axialBuckling2, double lenghtLateralTorsionalBuckling)
+        {
+            _lenghtAxialBuckling1 = axialBuckling1; 
+            _lenghtAxialBuckling2 = axialBuckling2;
+            _lenghtLateralTorsionalBuckling = lenghtLateralTorsionalBuckling;
+
         }
 
         internal void SetPy(double py, double epsilon)

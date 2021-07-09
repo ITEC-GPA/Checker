@@ -252,6 +252,8 @@ namespace GPC.Checkers.Steel.Checkers
 
                     stationResults[i].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
 
+                    stationResults[i].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
+
                     stationResults[i].SetPy(_py, _epsilon);
 
                 }
