@@ -53,7 +53,8 @@ namespace GPC.Checkers.Steel.Results
 
 
 
-        internal BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, Standard standard, Checker.Options checkerOptions, string name = "")
+        internal BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, Standard standard, 
+                                    Checker.Options checkerOptions, string name = "")
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
             _forces = forces ?? throw new ArgumentNullException(nameof(forces));
@@ -65,7 +66,7 @@ namespace GPC.Checkers.Steel.Results
             _name = name;
         }
 
-        protected BeamStationResults(SerializationInfo info, StreamingContext context) : base(info, context)
+        internal BeamStationResults(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             _section = (ISteelSection)info.GetValue("ISteelSection", typeof(ISteelSection));
             _forces = (ResultBeamForces)info.GetValue("ResultBeamForces", typeof(ResultBeamForces));

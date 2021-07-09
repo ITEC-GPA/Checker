@@ -146,6 +146,14 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
+        protected Cop2011BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case,
+                                    Cop2011Checker.Cop2011Options checkerOptions, StandardCopSuos2011 standard) 
+                                : this(section, forces, station, Case, standard, checkerOptions)
+        {
+
+        }
+
+
         internal Cop2011BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, 
                                             StandardCopSuos2011 standard, Cop2011Checker.Cop2011Options checkerOptions) :
             base(section, forces, station, Case, standard, checkerOptions)
