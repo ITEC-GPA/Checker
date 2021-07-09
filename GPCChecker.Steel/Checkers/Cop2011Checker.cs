@@ -139,10 +139,10 @@ namespace GPC.Checkers.Steel.Checkers
                     axialCompressionWR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialCompressionRd[i]);
 
                     shear1Rd[i] = CalculateShear1Capacity(resultBeamForces[i], steelSection[i]);
-                    shear1WR[i] = GetWorkingRatio(Math.Max(resultBeamForces[i].V1, 0), axialTensionRd[i]);
+                    shear1WR[i] = GetWorkingRatio(Math.Max(resultBeamForces[i].V1, 0), shear1Rd[i]);
 
                     shear2Rd[i] = CalculateShear2Capacity(resultBeamForces[i], steelSection[i]);
-                    shear2WR[i] = GetWorkingRatio(Math.Max(resultBeamForces[i].V2, 0), axialTensionRd[i]);
+                    shear2WR[i] = GetWorkingRatio(Math.Max(resultBeamForces[i].V2, 0), shear2Rd[i]);
 
                     axialBuck1Rd[i] = CalculateAxialBucklingCapacity1Axis(axialCompSectionClass[i], steelSection[i]);
                     axialBuck1WR[i] = GetWorkingRatio(resultBeamForces[i].N, axialBuck1Rd[i]);
