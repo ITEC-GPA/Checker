@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Model.Results;
 using GPC.Model.Sections;
+using GPC.Checkers.Steel.Checkers;
 using GPC.Model.Standards;
 using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
-using GPC.Checkers.Steel.Checkers;
 using System.Runtime.Serialization;
 
 
@@ -27,7 +27,10 @@ namespace GPC.Checkers.Steel.Results
         protected readonly ISteelSection _section;
         protected readonly ResultBeamForces _forces;
         protected readonly ResultStation _station;
-        protected readonly ILoadCase _case; 
+        protected readonly ILoadCase _case;
+
+        protected readonly Standard _standard;
+        protected readonly Checker.Options _options;
 
         #endregion
 
@@ -42,16 +45,23 @@ namespace GPC.Checkers.Steel.Results
 
         public ISteelSection Section => _section;
 
+        public Standard Standard => _standard;
+
+        public Checker.Options CheckerOptions => _options;
+
         #endregion
 
 
 
-        internal BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, string name = "")
+        internal BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, Standard standard, Checker.Options checkerOptions, string name = "")
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
             _forces = forces ?? throw new ArgumentNullException(nameof(forces));
             _station = station ?? throw new ArgumentNullException(nameof(station));
             _case = Case ?? throw new ArgumentNullException(nameof(Case));
+
+            _standard = standard ?? throw new ArgumentNullException(nameof(standard));
+            _options = checkerOptions ?? throw new ArgumentNullException(nameof(checkerOptions));
             _name = name;
         }
 
@@ -61,6 +71,8 @@ namespace GPC.Checkers.Steel.Results
             _forces = (ResultBeamForces)info.GetValue("ResultBeamForces", typeof(ResultBeamForces));
             _station = (ResultStation)info.GetValue("ResultStation", typeof(ResultStation));
             _case = (ILoadCase)info.GetValue("ILoadCase", typeof(ILoadCase));
+            _standard = (Standard)info.GetValue("Standard", typeof(Standard));
+            _options = (Checker.Options)info.GetValue("CheckerOptions", typeof(Checker.Options));
         }
 
         internal abstract double GetMaxWorkingRatio();
@@ -73,6 +85,8 @@ namespace GPC.Checkers.Steel.Results
             info.AddValue("ResultBeamForces", _forces, typeof(ResultBeamForces));
             info.AddValue("ResultStation", _station, typeof(ResultStation));
             info.AddValue("ILoadCase", _case, typeof(ILoadCase));
+            info.AddValue("ILoadCase", _standard, typeof(Standard));
+            info.AddValue("ILoadCase", _options, typeof(Checker.Options));
         }
 
         public override bool Equals(object obj)
@@ -84,6 +98,8 @@ namespace GPC.Checkers.Steel.Results
                                                          && _forces.Equals(objCasted._forces)
                                                          && _station.Equals(objCasted._station)
                                                          && _case.Equals(objCasted._case)
+                                                         && _standard.Equals(objCasted._case)
+                                                         && _options.Equals(objCasted._case)
                                                          && base.Equals(objCasted);
         }
 
@@ -97,6 +113,8 @@ namespace GPC.Checkers.Steel.Results
                 hashCode = hashCode * -17 + _forces.GetHashCode();
                 hashCode = hashCode * -17 + _station.GetHashCode();
                 hashCode = hashCode * -17 + _case.GetHashCode();
+                hashCode = hashCode * -17 + _standard.GetHashCode();
+                hashCode = hashCode * -17 + _options.GetHashCode();
 
                 return hashCode;
             }

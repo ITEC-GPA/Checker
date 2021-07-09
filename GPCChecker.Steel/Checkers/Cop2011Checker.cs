@@ -77,9 +77,7 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
+
         /// <param name="steelSection">section of each station</param>
         /// <param name="beamResult">result for each station and loadcase</param>
         /// <returns></returns>
@@ -127,7 +125,9 @@ namespace GPC.Checkers.Steel.Checkers
 
                 for (int i = 0; i < steelSection.Length; i++)
                 {
-                    stationResults[i] = new Cop2011BeamStationResults(steelSection[i], resultBeamForces[i], (ResultStation)beamResult[k].Points[i], beamResult[k].Case);
+                    stationResults[i] = new Cop2011BeamStationResults(steelSection[i], resultBeamForces[i], 
+                                                                      (ResultStation)beamResult[k].Points[i], 
+                                                                      beamResult[k].Case, (StandardCopSuos2011)_standard, (Cop2011Options)_options);
 
                     axialCompSectionClass[i] = CalculateSectionClassDueToCompression(resultBeamForces[i], steelSection[i]);
                     bendingCompSectionClass[i] = CalculateSectionClassDueToBending(resultBeamForces[i], steelSection[i]);
