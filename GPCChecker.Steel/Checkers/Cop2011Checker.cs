@@ -127,7 +127,7 @@ namespace GPC.Checkers.Steel.Checkers
                 {
                     stationResults[i] = new Cop2011BeamStationResults(steelSection[i], resultBeamForces[i], 
                                                                       (ResultStation)beamResult[k].Points[i], 
-                                                                      beamResult[k].Case, (StandardCopSuos2011)_standard, (Cop2011Options)_options);
+                                                                      beamResult[k].Case, (StandardCopSuos2011)_standard, (Cop2011Options)_options, BeamName);
 
                     axialCompSectionClass[i] = CalculateSectionClassDueToCompression(resultBeamForces[i], steelSection[i]);
                     bendingCompSectionClass[i] = CalculateSectionClassDueToBending(resultBeamForces[i], steelSection[i]);
