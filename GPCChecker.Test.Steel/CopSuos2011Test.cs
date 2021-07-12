@@ -78,10 +78,14 @@ namespace SteelTests
             SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global),
                                                     new ResultBeamForces(0, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global), 
+                                                    new ResultBeamForces(0, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global),
+                                                    new ResultBeamForces(0, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global),
                                                     new ResultBeamForces(0, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global)};
             ResultStation[] resultStations = new ResultStation[] { new ResultStation(1, 0.0, length), 
                                                                     new ResultStation(1, 0.0, length), 
-                                                                    new ResultStation(1, 0.0, length) };
+                                                                    new ResultStation(1, 0.0, length),
+                                                                    new ResultStation(1, 0.0, length), 
+                                                                    new ResultStation(1, 0.0, length)};
             BeamResult[] beamResults = new BeamResult[] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global),
                                                         new BeamResult(loadCase[1], resultBeamForces, resultStations, CoordinateSystem.Global),
                                                         new BeamResult(loadCase[2], resultBeamForces, resultStations, CoordinateSystem.Global)};
@@ -98,7 +102,7 @@ namespace SteelTests
             Cop2011Checker checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             checker.PerformCheck();
 
-            Assert.IsTrue(checker.Cop2011BeamStationResults.Count() == 9);            
+            Assert.IsTrue(checker.Cop2011BeamStationResults.Count() == 15);            
         }
 
         #endregion
