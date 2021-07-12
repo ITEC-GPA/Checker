@@ -83,7 +83,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns></returns>
         private Cop2011BeamStationResults[] PerformCheck(ISteelSection[] steelSection, BeamResult[] beamResult)
         {
-            Cop2011BeamStationResults[] stationResults = new Cop2011BeamStationResults[steelSection.Length];
+            Cop2011BeamStationResults[] stationResults = new Cop2011BeamStationResults[steelSection.Length * beamResult.Length];
 
 
             for (int k = 0; k < beamResult.Length; k++)
@@ -125,7 +125,7 @@ namespace GPC.Checkers.Steel.Checkers
 
                 for (int i = 0; i < steelSection.Length; i++)
                 {
-                    stationResults[i] = new Cop2011BeamStationResults(steelSection[i], resultBeamForces[i], 
+                    stationResults[i + k * beamResult.Length] = new Cop2011BeamStationResults(steelSection[i], resultBeamForces[i], 
                                                                       (ResultStation)beamResult[k].Points[i], 
                                                                       beamResult[k].Case, (StandardCopSuos2011)_standard, (Cop2011Options)_options, BeamName);
 
@@ -245,16 +245,16 @@ namespace GPC.Checkers.Steel.Checkers
                         interaction880WR[i] = 0.01;
 
 
-                    stationResults[i].SetCapacity(axialTensionRd[i], axialCompressionRd[i], axialBuck1Rd[i], axialBuck2Rd[i], shear1Rd[i], shear2Rd[i], bending1Rd[i], bending2Rd[i], latTorsRd[i]);
+                    stationResults[i + k * beamResult.Length].SetCapacity(axialTensionRd[i], axialCompressionRd[i], axialBuck1Rd[i], axialBuck2Rd[i], shear1Rd[i], shear2Rd[i], bending1Rd[i], bending2Rd[i], latTorsRd[i]);
 
-                    stationResults[i].SetWorkingRatio(axialTensionWR[i], axialCompressionWR[i], axialBuck1WR[i], axialBuck2WR[i], shear1WR[i], shear2WR[i], bending1WR[i], bending2WR[i], latTorsWR[i],
+                    stationResults[i + k * beamResult.Length].SetWorkingRatio(axialTensionWR[i], axialCompressionWR[i], axialBuck1WR[i], axialBuck2WR[i], shear1WR[i], shear2WR[i], bending1WR[i], bending2WR[i], latTorsWR[i],
                                                       interaction878WR[i], interaction879WR[i], interaction880WR[i], interaction881WR[i]);
 
-                    stationResults[i].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
+                    stationResults[i + k * beamResult.Length].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
 
-                    stationResults[i].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
+                    stationResults[i + k * beamResult.Length].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
 
-                    stationResults[i].SetPy(_py, _epsilon);
+                    stationResults[i + k * beamResult.Length].SetPy(_py, _epsilon);
 
                 }
             }
