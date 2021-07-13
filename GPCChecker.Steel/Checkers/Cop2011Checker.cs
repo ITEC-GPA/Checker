@@ -139,10 +139,10 @@ namespace GPC.Checkers.Steel.Checkers
                     axialCompressionWR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialCompressionRd[i]);
 
                     shear1Rd[i] = CalculateShear1Capacity(resultBeamForces[i], steelSection[i]);
-                    shear1WR[i] = GetWorkingRatio(Math.Max(resultBeamForces[i].V1, 0), shear1Rd[i]);
+                    shear1WR[i] = GetWorkingRatio(Math.Abs(resultBeamForces[i].V1), shear1Rd[i]);
 
                     shear2Rd[i] = CalculateShear2Capacity(resultBeamForces[i], steelSection[i]);
-                    shear2WR[i] = GetWorkingRatio(Math.Max(resultBeamForces[i].V2, 0), shear2Rd[i]);
+                    shear2WR[i] = GetWorkingRatio(Math.Abs(resultBeamForces[i].V2), shear2Rd[i]);
 
                     axialBuck1Rd[i] = CalculateAxialBucklingCapacity1Axis(axialCompSectionClass[i], steelSection[i]);
                     axialBuck1WR[i] = GetWorkingRatio(resultBeamForces[i].N, axialBuck1Rd[i]);
@@ -166,9 +166,9 @@ namespace GPC.Checkers.Steel.Checkers
                         // equazione 8.81 cap. 8.9.2
                         if (MinSigma(steelSection[i], resultBeamForces[i].N, resultBeamForces[i].M2, resultBeamForces[i].M1) < 0.0)
                         {
-                            double result = Math.Abs(resultBeamForces[i].N) / axialBuck2Rd[i] + 
-                                (CalculateMLTForLatTorsBuckling() * resultBeamForces[i].M1 / latTorsRd[i]) +
-                                (_options.UniformMomentFactorm2 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
+                            double result = Math.Abs(resultBeamForces[i].N) / axialBuck2Rd[i] +
+                                 Math.Abs(CalculateMLTForLatTorsBuckling() * resultBeamForces[i].M1 / latTorsRd[i]) +
+                                 Math.Abs(_options.UniformMomentFactorm2 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
 
                             if (result < 0.01)
                                 interaction881WR[i] = 0.01;
@@ -186,9 +186,9 @@ namespace GPC.Checkers.Steel.Checkers
                         SectionClass sectionClass = SetWorstClass(axialCompSectionClass[i], bendingCompSectionClass[i]);
                         if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
                         {
-                            double result = Math.Abs(resultBeamForces[i].N) / axialCompressionRd[i] +
-                                (resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
-                                (resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
+                            double result = Math.Abs(resultBeamForces[i].N / axialCompressionRd[i]) +
+                                 Math.Abs(resultBeamForces[i].M1 / CalculateBendingMoment1Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i])) +
+                                 Math.Abs(resultBeamForces[i].M2 / CalculateBendingMoment2Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i]));
                             if (result < 0.01)
                                 interaction878WR[i] = 0.01;
                             else
@@ -199,9 +199,9 @@ namespace GPC.Checkers.Steel.Checkers
                     }
                     else
                     {
-                        double result = (resultBeamForces[i].N / axialTensionRd[i]) +
-                                (resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
-                                (resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
+                        double result = Math.Abs(resultBeamForces[i].N / axialTensionRd[i]) +
+                                 Math.Abs(resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
+                                 Math.Abs(resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
 
                         if (result < 0.01)
                             interaction878WR[i] = 0.01;
@@ -256,6 +256,11 @@ namespace GPC.Checkers.Steel.Checkers
 
                     stationResults[i + k * steelSection.Length].SetPy(_py, _epsilon);
 
+                    stationResults[i + k * steelSection.Length].SetResultsForReport(GetBucklingCurveXXAxis(steelSection[i]),
+                        GetBucklingCurveYYAxis(steelSection[i]), CalculatePeForAxialBuckling1Axis(steelSection[i]), CalculatePeForAxialBuckling2Axis(steelSection[i]),
+                        CalculatePhiforAxialBuckling1Axis(steelSection[i]), CalculatePhiforAxialBuckling2Axis(steelSection[i]), CalculateLambdaLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]),
+                        CalculateLambdaL0ForLatTorsBucklingBS5950(steelSection[i].SteelMaterial.E), CalculatePeForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]),
+                        CalculatePhiLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculatePbForLatTorsBuckling(bendingCompSectionClass[i], steelSection[i]));
                 }
             }
 
@@ -946,8 +951,7 @@ namespace GPC.Checkers.Steel.Checkers
         private double CalculateLateralTorsionalBucklingMomentCapacity(SectionClass sectionClass, ISteelSection section)
         {
             // Calculate the pb CopSuos2011 Chapter 8.3.5.2 with the BS5950 B.2.2 method
-            double pb = Math.Min((CalculatePeForLatTorsBuckling(section, sectionClass) * Py) / (CalculatePhiLTForLatTorsBuckling(section, sectionClass) +
-                Math.Pow(Math.Pow(CalculatePhiLTForLatTorsBuckling(section, sectionClass), 2) - CalculatePeForLatTorsBuckling(section, sectionClass) * Py, 0.5)), Py);
+            double pb = CalculatePbForLatTorsBuckling(sectionClass, section);
 
             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
                 return pb * ((Section)section).Wpl1;
@@ -955,6 +959,12 @@ namespace GPC.Checkers.Steel.Checkers
                 return pb * ((Section)section).Wel1;
             else
                 throw new NotImplementedException("CalculateBucklingMomentCapacity: not implemented Section Class 4");
+        }
+
+        private double CalculatePbForLatTorsBuckling(SectionClass sectionClass, ISteelSection section)
+        {
+            return Math.Min((CalculatePeForLatTorsBuckling(section, sectionClass) * Py) / (CalculatePhiLTForLatTorsBuckling(section, sectionClass) +
+                Math.Pow(Math.Pow(CalculatePhiLTForLatTorsBuckling(section, sectionClass), 2) - CalculatePeForLatTorsBuckling(section, sectionClass) * Py, 0.5)), Py);
         }
 
         /// <summary>
@@ -973,7 +983,7 @@ namespace GPC.Checkers.Steel.Checkers
             double nlt;                   //Perry factor BS5950 B.2.2
             double alphaLT = 7.0;         // SAP prende come valore 3 => la norma dice 7
             double lambdaLT = CalculateLambdaLTForLatTorsBuckling(section, sectionClass);
-            double lambdaLtBS = CalculateLambdaL0ForLatTorsBucklingBS5950(section.SteelMaterial);
+            double lambdaLtBS = CalculateLambdaL0ForLatTorsBucklingBS5950(section.SteelMaterial.E);
 
             if (section.SectionType == Section.SectionTypes.Rolled)
                 nlt = Math.Max(alphaLT * (lambdaLT - lambdaLtBS) / 1000, 0);
@@ -996,9 +1006,9 @@ namespace GPC.Checkers.Steel.Checkers
         /// <summary>
         /// Return limiting equivalent slenderness BS5950 B2.2
         /// </summary>
-        private double CalculateLambdaL0ForLatTorsBucklingBS5950(SteelMaterial material)
+        private double CalculateLambdaL0ForLatTorsBucklingBS5950(double E)
         {
-            return 0.4 * Math.Pow(Math.Pow(Math.PI, 2) * material.E / Py, 0.5);
+            return 0.4 * Math.Pow(Math.Pow(Math.PI, 2) * E / Py, 0.5);
         }
 
         /// <summary>
@@ -1295,6 +1305,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         /// <param name="b"></param>
         /// <param name="t"></param>
+        /// <param name="section"></param>
         /// <param name="epsilon"></param>
         /// <param name="sectionTypes"></param>
         /// <returns></returns>

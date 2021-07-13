@@ -58,6 +58,20 @@ namespace GPC.Checkers.Steel.Results
         protected Cop2011Checker.SectionClass _axialCompressionClass;
         protected Cop2011Checker.SectionClass _bendingCompressionClass;
 
+        protected Cop2011Checker.Cop2011Options.BuckingCurves _bucklingCurve1;
+        protected Cop2011Checker.Cop2011Options.BuckingCurves _bucklingCurve2;
+        protected double _pEAxialBuckling1;
+        protected double _pEAxialBuckling2;
+        protected double _phiCAxialBuckling1;
+        protected double _phiCAxialBuckling2;
+        protected double _pCAxialBuckling1;
+        protected double _pCAxialBuckling2;
+
+        protected double _lambdaLTBuckling;
+        protected double _lambda0LTBuckling;
+        protected double _pELTBuckling;
+        protected double _phiLTBuckling;
+        protected double _pBLTBuckling;
 
         #endregion
 
@@ -127,7 +141,9 @@ namespace GPC.Checkers.Steel.Results
         public double LateralTosionalBucklingCapacity => _lateralTorsionalMomentRd;
 
         public double LenghtAxialBuckling1 => _lenghtAxialBuckling1;
+
         public double LenghtAxialBuckling2 => _lenghtAxialBuckling2;
+
         public double LenghtLaterlaTorsionalBuckling => _lenghtLateralTorsionalBuckling;
 
 
@@ -140,6 +156,32 @@ namespace GPC.Checkers.Steel.Results
         public double Py => _py;
 
         public double Epsilon => _epsilon;
+
+        public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve1 => _bucklingCurve1;
+
+        public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve2 => _bucklingCurve2;
+
+        public double PEAxialBuckling1 => _pEAxialBuckling1;
+
+        public double PEAxialBuckling2 => _pEAxialBuckling2;
+
+        public double PhiCAxialBuckling1 => _phiCAxialBuckling1;
+
+        public double PhiCAxialBuckling2 => _phiCAxialBuckling2;
+
+        public double PCAxialBuckling1 => _pCAxialBuckling1;
+
+        public double PCAxialBuckling2 => _pCAxialBuckling2;
+
+        public double LambdaLateralTorsionalBuckling => _lambdaLTBuckling;
+
+        public double Lambda0LateralTorsionalBuckling => _lambda0LTBuckling;
+
+        public double PELateralTorsionalBuckling => _pELTBuckling;
+
+        public double PhiLateralTorsionalBuckling => _phiLTBuckling;
+
+        public double PBLateralTorsionalBuckling => _pBLTBuckling;
 
         #endregion
 
@@ -215,6 +257,23 @@ namespace GPC.Checkers.Steel.Results
         {
             _py = py;
             _epsilon = epsilon;
+        }
+
+        internal void SetResultsForReport(Cop2011Checker.Cop2011Options.BuckingCurves buckingCurve1, Cop2011Checker.Cop2011Options.BuckingCurves buckingCurve2,
+            double pEAxialBuckling1, double pEAxialBuckling2, double phiCAxialBuckling1, double phiCAxialBuckling2, 
+            double lambdaLTBuckling, double lambda0LTBuckling, double pELTBuckling, double phiLTBuckling, double pBLTBuckling)
+        {
+            _bucklingCurve1 = buckingCurve1;
+            _bucklingCurve2 = buckingCurve2;
+            _pEAxialBuckling1 = pEAxialBuckling1;
+            _pEAxialBuckling2 = pEAxialBuckling2;
+            _phiCAxialBuckling1 = phiCAxialBuckling1;
+            _phiCAxialBuckling2 = phiCAxialBuckling2;
+            _lambdaLTBuckling = lambdaLTBuckling;
+            _lambda0LTBuckling = lambda0LTBuckling;
+            _pELTBuckling = pELTBuckling;
+            _phiLTBuckling = phiLTBuckling;
+            _pBLTBuckling = pBLTBuckling;
         }
 
         internal override double GetMaxWorkingRatio()
