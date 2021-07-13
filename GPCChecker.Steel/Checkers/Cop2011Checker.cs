@@ -256,11 +256,13 @@ namespace GPC.Checkers.Steel.Checkers
 
                     stationResults[i + k * steelSection.Length].SetPy(_py, _epsilon);
 
-                    stationResults[i + k * steelSection.Length].SetResultsForReport(GetBucklingCurveXXAxis(steelSection[i]),
-                        GetBucklingCurveYYAxis(steelSection[i]), CalculatePeForAxialBuckling1Axis(steelSection[i]), CalculatePeForAxialBuckling2Axis(steelSection[i]),
-                        CalculatePhiforAxialBuckling1Axis(steelSection[i]), CalculatePhiforAxialBuckling2Axis(steelSection[i]), CalculateLambdaLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]),
-                        CalculateLambdaL0ForLatTorsBucklingBS5950(steelSection[i].SteelMaterial.E), CalculatePeForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]),
-                        CalculatePhiLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculatePbForLatTorsBuckling(bendingCompSectionClass[i], steelSection[i]));
+                    stationResults[i + k * steelSection.Length].SetResultsForReport(GetBucklingCurveXXAxis(steelSection[i]), GetBucklingCurveYYAxis(steelSection[i]),
+                        CalculateLambdaAxialBuckling1Axis(steelSection[i]), CalculateLambdaAxialBuckling2Axis(steelSection[i]),
+                        CalculatePeForAxialBuckling1Axis(steelSection[i]), CalculatePeForAxialBuckling2Axis(steelSection[i]),
+                        CalculatePhiforAxialBuckling1Axis(steelSection[i]), CalculatePhiforAxialBuckling2Axis(steelSection[i]), 
+                        CalculateLambdaLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculateLambdaL0ForLatTorsBucklingBS5950(steelSection[i].SteelMaterial.E), 
+                        CalculatePeForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculatePhiLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), 
+                        CalculatePbForLatTorsBuckling(bendingCompSectionClass[i], steelSection[i]));
                 }
             }
 
@@ -457,6 +459,16 @@ namespace GPC.Checkers.Steel.Checkers
         {
             double lambda2Axis = GetLenghtAxialBuckling2() / section.R22;
             return (Math.Pow(Math.PI, 2) * section.SteelMaterial.E) / (Math.Pow(lambda2Axis, 2));
+        }
+
+        private double CalculateLambdaAxialBuckling2Axis(ISteelSection section)
+        {
+            return GetLenghtAxialBuckling2() / section.R22; 
+        }
+
+        private double CalculateLambdaAxialBuckling1Axis(ISteelSection section)
+        {
+            return GetLenghtAxialBuckling1() / section.R11;
         }
 
         /// <summary>
