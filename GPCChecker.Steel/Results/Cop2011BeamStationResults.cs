@@ -149,9 +149,6 @@ namespace GPC.Checkers.Steel.Results
 
         public double LenghtLaterlaTorsionalBuckling => _lenghtLateralTorsionalBuckling;
 
-
-
-
         public Cop2011Checker.SectionClass AxialCompressionClass => _axialCompressionClass;
 
         public Cop2011Checker.SectionClass BendingCompressionClass => _bendingCompressionClass;
@@ -276,13 +273,15 @@ namespace GPC.Checkers.Steel.Results
             _pEAxialBuckling2 = pEAxialBuckling2;
             _phiCAxialBuckling1 = phiCAxialBuckling1;
             _phiCAxialBuckling2 = phiCAxialBuckling2;
+            _lambdaAxialBuckling1 = lambdaAxialBuckling1;
+            _lambdaAxialBuckling2 = lambdaAxialBuckling2;
+
             _lambdaLTBuckling = lambdaLTBuckling;
             _lambda0LTBuckling = lambda0LTBuckling;
             _pELTBuckling = pELTBuckling;
             _phiLTBuckling = phiLTBuckling;
             _pBLTBuckling = pBLTBuckling;
-            _lambdaAxialBuckling1 = lambdaAxialBuckling1;
-            _lambdaAxialBuckling2 = lambdaAxialBuckling2;
+
         }
 
         internal override double GetMaxWorkingRatio()
