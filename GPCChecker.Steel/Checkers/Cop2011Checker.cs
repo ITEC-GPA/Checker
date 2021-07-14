@@ -147,13 +147,13 @@ namespace GPC.Checkers.Steel.Checkers
                     axialBuck1Rd[i] = CalculateAxialBucklingCapacity1Axis(axialCompSectionClass[i], steelSection[i]);
 
                     if (MinSigma(steelSection[i], resultBeamForces[i].N, resultBeamForces[i].M2, resultBeamForces[i].M1) < 0.0)
-                        axialBuck1WR[i] = GetWorkingRatio(resultBeamForces[i].N, axialBuck1Rd[i]);
+                        axialBuck1WR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialBuck1Rd[i]);
                     else
                         axialBuck1WR[i] = 0.001;
 
                     axialBuck2Rd[i] = CalculateAxialBucklingCapacity2Axis(axialCompSectionClass[i], steelSection[i]);
                     if (MinSigma(steelSection[i], resultBeamForces[i].N, resultBeamForces[i].M2, resultBeamForces[i].M1) < 0.0)
-                        axialBuck2WR[i] = GetWorkingRatio(resultBeamForces[i].N, axialBuck2Rd[i]);
+                        axialBuck2WR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialBuck2Rd[i]);
                     else
                         axialBuck2WR[i] = 0.001;
 
@@ -173,7 +173,7 @@ namespace GPC.Checkers.Steel.Checkers
                         // equazione 8.81 cap. 8.9.2
                         if (MinSigma(steelSection[i], resultBeamForces[i].N, resultBeamForces[i].M2, resultBeamForces[i].M1) < 0.0)
                         {
-                            double result = Math.Max(resultBeamForces[i].N, 0) / axialBuck2Rd[i] +
+                            double result = Math.Min(resultBeamForces[i].N, 0) / axialBuck2Rd[i] +
                                  Math.Abs(CalculateMLTForLatTorsBuckling() * resultBeamForces[i].M1 / latTorsRd[i]) +
                                  Math.Abs(_options.UniformMomentFactorm2 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
 
@@ -222,7 +222,7 @@ namespace GPC.Checkers.Steel.Checkers
                     // equazione 8.79 cap. 8.9.2
                     if (MinSigma(steelSection[i], resultBeamForces[i].N, resultBeamForces[i].M2, resultBeamForces[i].M1) < 0.0)
                     {
-                        double result = Math.Abs(Math.Max(resultBeamForces[i].N, 0) / Math.Min(axialBuck1Rd[i], axialBuck2Rd[i])) +
+                        double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(axialBuck1Rd[i], axialBuck2Rd[i])) +
                             Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) + 
                             Math.Abs(_options.UniformMomentFactorm2 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
 
@@ -240,7 +240,7 @@ namespace GPC.Checkers.Steel.Checkers
                     {
                         // <= Pc segnato cap 8.9.2
 
-                        double result = Math.Abs(Math.Max(resultBeamForces[i].N, 0) / Math.Min(CalculateAxialBucklingCapacity1AxisForInteraction(axialCompSectionClass[i], steelSection[i]),
+                        double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(CalculateAxialBucklingCapacity1AxisForInteraction(axialCompSectionClass[i], steelSection[i]),
                                                                                     CalculateAxialBucklingCapacity2AxisForInteraction(axialCompSectionClass[i], steelSection[i]))) +
                                         Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
                                         Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
@@ -286,10 +286,10 @@ namespace GPC.Checkers.Steel.Checkers
             if (Math.Abs(capacity) < 0.01)
                 throw new ArgumentException("Capacity can not be null");
 
-            if (Math.Abs(force) < 0.01)
-                return 0.01;
-            if (result < 0.01)
-                return 0.01;
+            if (Math.Abs(force) < 0.001)
+                return 0.001;
+            if (result < 0.001)
+                return 0.001;
 
             return result;
         }
