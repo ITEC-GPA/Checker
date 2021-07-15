@@ -263,9 +263,17 @@ namespace GPC.Checkers.Steel.Results
             _epsilon = epsilon;
         }
 
-        internal void SetResultsForReport(Cop2011Checker.Cop2011Options.BuckingCurves buckingCurve1, Cop2011Checker.Cop2011Options.BuckingCurves buckingCurve2,
-            double lambdaAxialBuckling1, double lambdaAxialBuckling2, double pEAxialBuckling1, double pEAxialBuckling2, double phiCAxialBuckling1, double phiCAxialBuckling2, 
-            double lambdaLTBuckling, double lambda0LTBuckling, double pELTBuckling, double phiLTBuckling, double pBLTBuckling)
+        internal void SetResultsForReportLTB(double lambdaLTBuckling, double lambda0LTBuckling, double pELTBuckling, double phiLTBuckling, double pBLTBuckling)
+        {
+            _lambdaLTBuckling = lambdaLTBuckling;
+            _lambda0LTBuckling = lambda0LTBuckling;
+            _pELTBuckling = pELTBuckling;
+            _phiLTBuckling = phiLTBuckling;
+            _pBLTBuckling = pBLTBuckling;
+        }
+
+        internal void SetResultsForReportAxialBuckling(Cop2011Checker.Cop2011Options.BuckingCurves buckingCurve1, Cop2011Checker.Cop2011Options.BuckingCurves buckingCurve2,
+            double lambdaAxialBuckling1, double lambdaAxialBuckling2, double pEAxialBuckling1, double pEAxialBuckling2, double phiCAxialBuckling1, double phiCAxialBuckling2)
         {
             _bucklingCurve1 = buckingCurve1;
             _bucklingCurve2 = buckingCurve2;
@@ -275,13 +283,6 @@ namespace GPC.Checkers.Steel.Results
             _phiCAxialBuckling2 = phiCAxialBuckling2;
             _lambdaAxialBuckling1 = lambdaAxialBuckling1;
             _lambdaAxialBuckling2 = lambdaAxialBuckling2;
-
-            _lambdaLTBuckling = lambdaLTBuckling;
-            _lambda0LTBuckling = lambda0LTBuckling;
-            _pELTBuckling = pELTBuckling;
-            _phiLTBuckling = phiLTBuckling;
-            _pBLTBuckling = pBLTBuckling;
-
         }
 
         internal override double GetMaxWorkingRatio()

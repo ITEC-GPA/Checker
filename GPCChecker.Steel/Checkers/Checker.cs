@@ -139,68 +139,40 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
 
-        internal virtual double MinSigma(ISteelSection section, double N, double M2, double M1)
+        public virtual double GetMinSigma(ISteelSection section, double N, double M1, double M2)
         {
             if (section is SectionCHS sectionCHS)
             {
-                double sigmaN = N / sectionCHS.Area;
-                double M = Math.Sqrt(M1 * M1 + M2 * M2);
-                double sigmaM = -M / sectionCHS.CalculateWel();
-
-                return sigmaN + sigmaM;
+                return (N / sectionCHS.Area) - Math.Sqrt(Math.Pow(M1, 2) + Math.Pow(M2, 2)) / sectionCHS.CalculateWel();
             }
             else if (section is SectionH sectionH)
             {
-                double sigmap1 = N / sectionH.Area - M2 / sectionH.CalculateWelyTop() +
-                                M1 / sectionH.J11 * sectionH.LenghtTopFlange / 2.0;
-                double sigmap2 = N / sectionH.Area - M2 / sectionH.CalculateWelyTop() -
-                                M1 / sectionH.J11 * sectionH.LenghtTopFlange / 2.0;
-                double sigmap3 = N / sectionH.Area + M2 / sectionH.CalculateWelyBottom() +
-                                M1 / sectionH.J11 * sectionH.LenghtBottomFlange / 2.0;
-                double sigmap4 = N / sectionH.Area + M2 / sectionH.CalculateWelyBottom() -
-                                M1 / sectionH.J11 * sectionH.LenghtBottomFlange / 2.0;
+                double sigmap1 = N / sectionH.Area - M1 / sectionH.Wel1 + M2 / sectionH.Wel2;
+                double sigmap2 = N / sectionH.Area - M1 / sectionH.Wel1 - M2 / sectionH.Wel2;
+                double sigmap3 = N / sectionH.Area + M1 / sectionH.Wel1 + M2 / sectionH.Wel2;
+                double sigmap4 = N / sectionH.Area + M1 / sectionH.Wel1 - M2 / sectionH.Wel2;
 
-                double sigmaMin = Math.Min(sigmap1, sigmap2);
-                sigmaMin = Math.Min(sigmaMin, sigmap3);
-                sigmaMin = Math.Min(sigmaMin, sigmap4);
-
-                return sigmaMin;
+                return GetMax(new double[] { sigmap1, sigmap2, sigmap3, sigmap4 });
             }
             else if (section is SectionRHS sectionRHS)
             {
-                double sigmae1 = N / sectionRHS.Area - M2 / sectionRHS.J22 * (sectionRHS.DistanceYCentroidFromTop()) +
-                                M1 / sectionRHS.J11 * (sectionRHS.DistanceXCentroidFromLeft());
-                double sigmae2 = N / sectionRHS.Area - M2 / sectionRHS.J22 * (sectionRHS.DistanceYCentroidFromTop()) -
-                                M1 / sectionRHS.J11 * (sectionRHS.DistanceXCentroidFromRight());
-                double sigmae3 = N / sectionRHS.Area + M2 / sectionRHS.J22 * (sectionRHS.DistanceYCentroidFromBottom()) +
-                                M1 / sectionRHS.J11 * (sectionRHS.DistanceXCentroidFromLeft());
-                double sigmae4 = N / sectionRHS.Area + M2 / sectionRHS.J22 * (sectionRHS.DistanceYCentroidFromBottom()) -
-                                M1 / sectionRHS.J11 * (sectionRHS.DistanceXCentroidFromRight());
+                double sigmae1 = N / sectionRHS.Area - M1 / sectionRHS.Wel1 + M2 / sectionRHS.Wel2;
+                double sigmae2 = N / sectionRHS.Area - M1 / sectionRHS.Wel1 - M2 / sectionRHS.Wel2;
+                double sigmae3 = N / sectionRHS.Area + M1 / sectionRHS.Wel1 + M2 / sectionRHS.Wel2;
+                double sigmae4 = N / sectionRHS.Area + M1 / sectionRHS.Wel1 - M2 / sectionRHS.Wel2;
 
-                double sigmaMin = Math.Min(sigmae1, sigmae2);
-                sigmaMin = Math.Min(sigmaMin, sigmae3);
-                sigmaMin = Math.Min(sigmaMin, sigmae4);
-
-                return sigmaMin;
+                return GetMax(new double[] { sigmae1, sigmae2, sigmae3, sigmae4 });
             }
             else if (section is SectionC sectionC)
             {
                 if (sectionC.IsSymmetricAlongXLocalAxis)
                 {
-                    double sigmaP1 = N / sectionC.Area - M2 / sectionC.J22 * (sectionC.DistanceYCentroidFromTop()) +
-                                    M1 / sectionC.J11 * (sectionC.DistanceXCentroidFromLeft());
-                    double sigmaP2 = N / sectionC.Area - M2 / sectionC.J22 * (sectionC.DistanceYCentroidFromTop()) -
-                                    M1 / sectionC.J11 * (sectionC.DistanceXCentroidFromRight());
-                    double sigmaP3 = N / sectionC.Area + M2 / sectionC.J22 * (sectionC.DistanceYCentroidFromBottom()) +
-                                    M1 / sectionC.J11 * (sectionC.DistanceXCentroidFromLeft());
-                    double sigmaP4 = N / sectionC.Area + M2 / sectionC.J22 * (sectionC.DistanceYCentroidFromBottom()) -
-                                    M1 / sectionC.J11 * (sectionC.DistanceXCentroidFromRight());
+                    double sigmaP1 = N / sectionC.Area - M1 / sectionC.Wel1 + M2 / sectionC.Wel2;
+                    double sigmaP2 = N / sectionC.Area - M1 / sectionC.Wel1 - M2 / sectionC.Wel2;
+                    double sigmaP3 = N / sectionC.Area + M1 / sectionC.Wel1 + M2 / sectionC.Wel2;
+                    double sigmaP4 = N / sectionC.Area + M1 / sectionC.Wel1 - M2 / sectionC.Wel2;
 
-                    double sigmaMin = Math.Min(sigmaP1, sigmaP2);
-                    sigmaMin = Math.Min(sigmaMin, sigmaP3);
-                    sigmaMin = Math.Min(sigmaMin, sigmaP4);
-
-                    return sigmaMin;
+                    return GetMax(new double[] { sigmaP1, sigmaP2, sigmaP3, sigmaP4 });
                 }
                 else
                     throw new Exception("calculation of unequal C not yet supported");
@@ -208,19 +180,92 @@ namespace GPC.Checkers.Steel.Checkers
             }
             else if (section is SectionT sectionT)
             {
-                double sigmaP1 = N / sectionT.Area - M2 / sectionT.CalculateWelxTop() + M1 / sectionT.CalculateWelyLeft();
-                double sigmaP2 = N / sectionT.Area - M2 / sectionT.CalculateWelxTop() - M1 / sectionT.CalculateWelyRight();
-                double sigmaP3 = N / sectionT.Area + M2 / sectionT.CalculateWelxBottom();
+                double sigmaP1 = N / sectionT.Area - M1 / sectionT.Wel1 + M2 / sectionT.Wel2;
+                double sigmaP2 = N / sectionT.Area - M1 / sectionT.Wel1 - M2 / sectionT.Wel2;
+                double sigmaP3 = N / sectionT.Area + M1 / sectionT.Wel1;
 
-                double sigmaMin = Math.Min(sigmaP1, sigmaP2);
-                sigmaMin = Math.Min(sigmaMin, sigmaP3);
-
-                return sigmaMin;
+                return GetMin(new double[] { sigmaP1, sigmaP2, sigmaP3 });
             }
             else
                 throw new NotImplementedException();
         }
 
+        public virtual double GetMaxSigma(ISteelSection section, double N, double M1, double M2)
+        {
+            if (section is SectionCHS sectionCHS)
+            {
+                return (N / sectionCHS.Area) + Math.Sqrt(Math.Pow(M1, 2) + Math.Pow(M2, 2)) / sectionCHS.CalculateWel();
+            }
+            else if (section is SectionH sectionH)
+            {
+                double sigmap1 = N / sectionH.Area - M1 / sectionH.Wel1 + M2 / sectionH.Wel2;
+                double sigmap2 = N / sectionH.Area - M1 / sectionH.Wel1 - M2 / sectionH.Wel2;
+                double sigmap3 = N / sectionH.Area + M1 / sectionH.Wel1 + M2 / sectionH.Wel2;
+                double sigmap4 = N / sectionH.Area + M1 / sectionH.Wel1 - M2 / sectionH.Wel2;
+
+                return GetMax(new double[] { sigmap1, sigmap2, sigmap3, sigmap4 });
+            }
+            else if (section is SectionRHS sectionRHS)
+            {
+                double sigmae1 = N / sectionRHS.Area - M1 / sectionRHS.Wel1 + M2 / sectionRHS.Wel2;
+                double sigmae2 = N / sectionRHS.Area - M1 / sectionRHS.Wel1 - M2 / sectionRHS.Wel2;
+                double sigmae3 = N / sectionRHS.Area + M1 / sectionRHS.Wel1 + M2 / sectionRHS.Wel2;
+                double sigmae4 = N / sectionRHS.Area + M1 / sectionRHS.Wel1 - M2 / sectionRHS.Wel2;
+
+                return GetMax(new double[] { sigmae1, sigmae2, sigmae3, sigmae4 });
+            }
+            else if (section is SectionC sectionC)
+            {
+                if (sectionC.IsSymmetricAlongXLocalAxis)
+                {
+                    double sigmaP1 = N / sectionC.Area - M1 / sectionC.Wel1 + M2 / sectionC.Wel2;
+                    double sigmaP2 = N / sectionC.Area - M1 / sectionC.Wel1 - M2 / sectionC.Wel2;
+                    double sigmaP3 = N / sectionC.Area + M1 / sectionC.Wel1 + M2 / sectionC.Wel2;
+                    double sigmaP4 = N / sectionC.Area + M1 / sectionC.Wel1 - M2 / sectionC.Wel2;
+
+                    return GetMax(new double[] { sigmaP1, sigmaP2, sigmaP3, sigmaP4 });
+                }
+                else
+                    throw new Exception("calculation of unequal C not yet supported");
+
+            }
+            else if (section is SectionT sectionT)
+            {
+                double sigmaP1 = N / sectionT.Area - M1 / sectionT.Wel1 + M2 / sectionT.Wel2;
+                double sigmaP2 = N / sectionT.Area - M1 / sectionT.Wel1 - M2 / sectionT.Wel2;
+                double sigmaP3 = N / sectionT.Area + M1 / sectionT.Wel1;
+
+                return GetMax(new double[] { sigmaP1, sigmaP2, sigmaP3 });
+            }
+            else
+                throw new NotImplementedException();
+        }
+
+        private double GetMax(double[] array)
+        {
+            double startValue = array.First();
+
+            for(int i = 0; i < array.Count(); i++)
+            {
+                if (array[i] > startValue)
+                    startValue = array[i];
+            }
+
+            return startValue;
+        }
+
+        private double GetMin(double[] array)
+        {
+            double startValue = array.First();
+
+            for (int i = 0; i < array.Count(); i++)
+            {
+                if (array[i] < startValue)
+                    startValue = array[i];
+            }
+
+            return startValue;
+        }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
