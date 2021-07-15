@@ -146,13 +146,13 @@ namespace GPC.Checkers.Steel.Checkers
 
                     axialBuck1Rd[i] = CalculateAxialBucklingCapacity1Axis(axialCompSectionClass[i], steelSection[i]);
 
-                    if (GetMinSigma(steelSection[i], resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
+                    if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
                         axialBuck1WR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialBuck1Rd[i]);
                     else
                         axialBuck1WR[i] = 0.001;
 
                     axialBuck2Rd[i] = CalculateAxialBucklingCapacity2Axis(axialCompSectionClass[i], steelSection[i]);
-                    if (GetMinSigma(steelSection[i], resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
+                    if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
                         axialBuck2WR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialBuck2Rd[i]);
                     else
                         axialBuck2WR[i] = 0.001;
@@ -171,7 +171,7 @@ namespace GPC.Checkers.Steel.Checkers
                         latTorsWR[i] = GetWorkingRatio(CalculateMLTForLatTorsBuckling() * resultBeamForces[i].M1, latTorsRd[i]);
 
                         // equazione 8.81 cap. 8.9.2
-                        if (GetMinSigma(steelSection[i], resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
+                        if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
                         {
                             double result = Math.Min(resultBeamForces[i].N, 0) / axialBuck2Rd[i] +
                                  Math.Abs(CalculateMLTForLatTorsBuckling() * resultBeamForces[i].M1 / latTorsRd[i]) +
@@ -189,7 +189,7 @@ namespace GPC.Checkers.Steel.Checkers
                         interaction881WR[i] = 0.001;
 
                     // equazione 8.78 cap. 8.9.2
-                    if (GetMinSigma(steelSection[i], resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)      // compressione
+                    if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)      // compressione
                     {
                         SectionClass sectionClass = SetWorstClass(axialCompSectionClass[i], bendingCompSectionClass[i]);
                         if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
@@ -220,7 +220,7 @@ namespace GPC.Checkers.Steel.Checkers
 
 
                     // equazione 8.79 cap. 8.9.2
-                    if (GetMinSigma(steelSection[i], resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
+                    if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
                     {
                         double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(axialBuck1Rd[i], axialBuck2Rd[i])) +
                             Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) + 
@@ -236,7 +236,7 @@ namespace GPC.Checkers.Steel.Checkers
 
 
                     // equazione 8.80 cap. 8.9.2
-                    if (GetMinSigma(steelSection[i], resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
+                    if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
                     {
                         // <= Pc segnato cap 8.9.2
 
@@ -1008,7 +1008,6 @@ namespace GPC.Checkers.Steel.Checkers
                 nlt = Math.Max(alphaLT * (lambdaLT - lambdaLtBS) / 1000, 0);
             else       
             {
-
                 if (lambdaLT <= lambdaLtBS)
                     nlt = 0.0;
                 else if (lambdaLtBS <= lambdaLT && (lambdaLT <= 2 * lambdaLtBS))
@@ -1158,32 +1157,42 @@ namespace GPC.Checkers.Steel.Checkers
             else        //class4
                 bw = CalculateEffettiveElasticModulus() / section.Wpl1;
 
-            // CopSuos2011 Chapter 8.3.5.3 u parameter
-            double u;
-            if (section.SectionType == Section.SectionTypes.Rolled)
-                u = 0.9;
-            else if (section.SectionType == Section.SectionTypes.Welded)
-                u = 1.0;
-            else
-                throw new NotImplementedException("CalculateUForLatTorsBuckling: not implemented SectionType");
+            if (section is SectionCHS || section is SectionRHS)
+            {
+                double gammab = (1 - (section.J11 / section.J22)) * (1 - (section.Jt / (2.6 * section.J22)));
+                double phiB = Math.Sqrt((Math.Pow(section.Wpl1, 2) * gammab) /(section.Area * section.Jt));
 
-            //CopSuos2011 Chapter 8.3.5.3 x parameter
-            double x;
-            if (section is SectionH sec)
-                x = sec.Height / sec.ThicknessWeb;
-            else if (section is SectionC sectionC)
-                x = sectionC.Height / ((sectionC.ThicknessBottom + sectionC.ThicknessTop) / 2);
+                return Math.Max(2.25 * Math.Sqrt(bw * gammab * phiB), 1);
+            }
             else
-                throw new NotImplementedException("CalculateXForLatTorsBuckling: CopSuos2011 not implemented x coefficient for this section");
+            {
+                // CopSuos2011 Chapter 8.3.5.3 u parameter
+                double u;
+                if (section.SectionType == Section.SectionTypes.Rolled)
+                    u = 0.9;
+                else if (section.SectionType == Section.SectionTypes.Welded)
+                    u = 1.0;
+                else
+                    throw new NotImplementedException("CalculateUForLatTorsBuckling: not implemented SectionType");
 
-            double v;
-            // CopSuos2011 Chapter 8.3.5.3 equation 8.27
-            if (section is SectionH || section is SectionC)
-                v = 1 / Math.Pow(1 + 0.05 * (Math.Pow(CalculateLambdaForLatTorsBuckling(section) / x, 2)), 0.25);
-            else
-                throw new NotImplementedException("CalculateXForLatTorsBuckling: CopSuos2011 not implemented v coefficient for this section");
+                //CopSuos2011 Chapter 8.3.5.3 x parameter
+                double x;
+                if (section is SectionH sec)
+                    x = sec.Height / ((sec.ThicknessBottomFlange + sec.ThicknessTopFlange) / 2);
+                else if (section is SectionC sectionC)
+                    x = sectionC.Height / ((sectionC.ThicknessBottom + sectionC.ThicknessTop) / 2);
+                else
+                    throw new NotImplementedException("CalculateXForLatTorsBuckling: CopSuos2011 not implemented x coefficient for this section");
 
-            return u * v * CalculateLambdaForLatTorsBuckling(section) * Math.Sqrt(bw);
+                double v;
+                // CopSuos2011 Chapter 8.3.5.3 equation 8.27
+                if (section is SectionH || section is SectionC)
+                    v = 1 / Math.Pow(1 + 0.05 * (Math.Pow(CalculateLambdaForLatTorsBuckling(section) / x, 2)), 0.25);
+                else
+                    throw new NotImplementedException("CalculateXForLatTorsBuckling: CopSuos2011 not implemented v coefficient for this section");    
+                
+                return u * v * CalculateLambdaForLatTorsBuckling(section) * Math.Sqrt(bw);
+            }
         }
 
         /// <summary>
@@ -1219,7 +1228,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns></returns>
         private SectionClass CalculateSectionClassDueToBending(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            if (GetMinSigma(section, resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2) < 0.0)
+            if (((Section)section).GetMinSigma(resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2) < 0.0)
             {
                 if (section is SectionH sectionH)
                     return SetWorstClass(new SectionClass[] {GetClassCompressedOuterFlangeBending(sectionH.LenghtTopFlange / 2.0, sectionH.ThicknessTopFlange, section),
@@ -1283,7 +1292,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns></returns>
         private SectionClass CalculateSectionClassDueToCompression(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            if (GetMinSigma(section, resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2) < 0.0)
+            if (((Section)section).GetMinSigma(resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2) < 0.0)
             {
                 if (section is SectionH sectionH)
                     return SetWorstClass(new SectionClass[]{ GetClassCompressedWebAxialCompression(sectionH.HeightWeb, sectionH.ThicknessWeb, resultBeamForces, section),

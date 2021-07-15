@@ -105,39 +105,6 @@ namespace SteelTests
             Assert.IsTrue(checker.Cop2011BeamStationResults.Count() == 15);            
         }
 
-        [TestMethod]
-        public void GenericTest3()
-        {
-            // 254x102x22
-            double h = 304.8; // Steel_CoP_2011_commentary E8.3.5 example 8.1 
-            double b = 127;
-            double t = 9.652;
-            double tw = 6.35;
-            double length = 1000;
-
-            LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test1", LoadCase.LoadCaseTypes.SelfWeight) };
-            SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
-            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 0, 0, 649997.4, 0, CoordinateSystem.Global)};
-            ResultStation[] resultStations = new ResultStation[] { new ResultStation(1, length/2, length)};
-            BeamResult[] beamResults = new BeamResult[] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global)};
-            SteelSectionH[] steelSectionH = new SteelSectionH[] { new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)};
-            Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
-            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
-
-            StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
-
-            Cop2011Checker checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
-            double maxSigma = checker.GetMaxSigma(steelSectionH[0], resultBeamForces[0].N, resultBeamForces[0].M1, resultBeamForces[0].M2);
-            double minSigma = checker.GetMinSigma(steelSectionH[0], resultBeamForces[0].N, resultBeamForces[0].M1, resultBeamForces[0].M2);
-
-            double expMaxSigma = 1.545;
-            double expMinSigma = 0;
-
-            Assert.IsTrue(Math.Abs(maxSigma - expMaxSigma) / expMaxSigma < 0.01);
-            Assert.IsTrue(Math.Abs(minSigma - expMinSigma) / expMinSigma < 0.01);
-        }
-
         #endregion
 
         #region Section Classification
@@ -838,7 +805,7 @@ namespace SteelTests
             double expBendingCapacity = 157.13;          //KN
             double expShearCapacity = 603.4;
             double expBendingWR = 0.636;
-            double expBuckWR = 0.01;
+            double expBuckWR = 0.001;
             double expWR = 0.745;
 
             Assert.AreEqual(sectionClassComp, Cop2011Checker.SectionClass.Class3);
@@ -1126,7 +1093,7 @@ namespace SteelTests
             double expBendingCapacity2 = 312.6;          //KN
             double expBendingWR = 0.644;
             double expBuckWR = 0.438;
-            double expWR = 1.371;        // LateralTorsionalBuck
+            double expWR = 1.154;        // LateralTorsionalBuck
 
             Assert.AreEqual(sectionClassComp, Cop2011Checker.SectionClass.Class3);
             Assert.AreEqual(sectionClassBend, Cop2011Checker.SectionClass.Class1);
