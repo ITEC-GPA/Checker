@@ -47,8 +47,8 @@
     <Reference Include="GPCGeometry, Version=1.0.8.12, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCGeometry.1.0.8.12\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.1.0.4, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.1.0.4\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.1.0.11, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.1.0.11\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.7, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.7\lib\net472\GPCTestUtilities.dll</HintPath>
@@ -83,7 +83,6 @@
     <Compile Include="SteelResistanceTest.cs" />
     <Compile Include="SteelInstabilityTest.cs" />
     <Compile Include="SteelClassificationTest.cs" />
-    <Compile Include="AnnexTest.cs" />
     <Compile Include="ECPlateTest.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -8,11 +8,17 @@ using GPC.Model.Sections;
 using GPC.Model.Standards;
 using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
-using GPC.Checkers.Steel.BeamChecker;
+using GPC.Checkers.Steel.Checkers;
+using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Steel.Results
 {
-    public class BeamStationCheckerResults
+    /// <summary>
+    /// This class contains the result of a check performed on a beam station with a given ILoadCase
+    /// </summary>
+
+    [Serializable]
+    public class Cop2011BeamStationResults : BeamStationResults, ISerializable
     {
         #region Variables
 
@@ -26,10 +32,10 @@ namespace GPC.Checkers.Steel.Results
         protected double _bendingMoment2WorkingRatio;
         protected double _torsionalMomentWorkingRatio;
         protected double _lateraTorsionalBucklingWorkingRatio;
-        protected double _interaction878WorkingRatio;
-        protected double _interaction879WorkingRatio;
-        protected double _interaction880WorkingRatio;
-        protected double _interaction881WorkingRatio;
+        protected double _pMMWorkingRatio;
+        protected double _pMMWorkingRatioBendingSecondOrderEffect;
+        protected double _pMMWorkingRatioAxialSecondOrderEffect;
+        protected double _pMMWorkingRatioLateralTorsionalBuckling;
 
         protected double _axialTensionRd;
         protected double _axialCompressionRd;
@@ -42,16 +48,33 @@ namespace GPC.Checkers.Steel.Results
         protected double _torsionalMomentRd;
         protected double _lateralTorsionalMomentRd;
 
+        protected double _lenghtAxialBuckling1;
+        protected double _lenghtAxialBuckling2;
+        protected double _lenghtLateralTorsionalBuckling;
+
         protected double _py;
         protected double _epsilon;
 
-        protected Cop2011BeamCheckerResults.SectionClass _axialCompressionClass;
-        protected Cop2011BeamCheckerResults.SectionClass _bendingCompressionClass;
+        protected Cop2011Checker.SectionClass _axialCompressionClass;
+        protected Cop2011Checker.SectionClass _bendingCompressionClass;
 
-        protected readonly ISteelSection _section;
-        protected readonly ResultBeamForces _forces;
-        protected readonly ResultStation _station;
-        protected readonly ILoadCase _loadCase;
+        protected Cop2011Checker.Cop2011Options.BuckingCurves _bucklingCurve1;
+        protected Cop2011Checker.Cop2011Options.BuckingCurves _bucklingCurve2;
+
+        protected double _lambdaAxialBuckling1;
+        protected double _lambdaAxialBuckling2;
+        protected double _pEAxialBuckling1;
+        protected double _pEAxialBuckling2;
+        protected double _phiCAxialBuckling1;
+        protected double _phiCAxialBuckling2;
+        protected double _pCAxialBuckling1;
+        protected double _pCAxialBuckling2;
+
+        protected double _lambdaLTBuckling;
+        protected double _lambda0LTBuckling;
+        protected double _pELTBuckling;
+        protected double _phiLTBuckling;
+        protected double _pBLTBuckling;
 
         #endregion
 
@@ -77,14 +100,26 @@ namespace GPC.Checkers.Steel.Results
         public double TorsionalMomentWorkingRatio => _torsionalMomentWorkingRatio;
 
         public double LateralTorsionalBucklingWorkingRatio => _lateraTorsionalBucklingWorkingRatio;
+        
+        /// <summary>
+        /// Cop2011 Eq. 8.78
+        /// </summary>
+        public double PMMWorkingRatio => _pMMWorkingRatio;
 
-        public double Interaction878WorkingRatio => _interaction878WorkingRatio;
+        /// <summary>
+        /// Cop2011 Eq. 8.79
+        /// </summary>
+        public double PMMWorkingRatioBendingSecondOrderEffect => _pMMWorkingRatioBendingSecondOrderEffect;
 
-        public double Interaction879WorkingRatio => _interaction879WorkingRatio;
+        /// <summary>
+        /// Cop2011 Eq. 8.80
+        /// </summary>
+        public double PMMWorkingRatioAxialSecondOrderEffect => _pMMWorkingRatioAxialSecondOrderEffect;
 
-        public double Interaction880WorkingRatio => _interaction880WorkingRatio;
-
-        public double Interaction881WorkingRatio => _interaction881WorkingRatio;
+        /// <summary>
+        /// Cop2011 Eq. 8.81
+        /// </summary>
+        public double PMMWorkingRatioLateralTorsionalBuckling => _pMMWorkingRatioLateralTorsionalBuckling;
 
         public double WorkingRatio => GetMaxWorkingRatio();
 
@@ -108,33 +143,68 @@ namespace GPC.Checkers.Steel.Results
 
         public double LateralTosionalBucklingCapacity => _lateralTorsionalMomentRd;
 
-        public ResultBeamForces ResultBeamForces => _forces;
+        public double LenghtAxialBuckling1 => _lenghtAxialBuckling1;
 
-        public ResultStation Station => _station;
+        public double LenghtAxialBuckling2 => _lenghtAxialBuckling2;
 
-        public ILoadCase LoadCase => _loadCase;
+        public double LenghtLaterlaTorsionalBuckling => _lenghtLateralTorsionalBuckling;
 
-        public ISteelSection Section => _section;
+        public Cop2011Checker.SectionClass AxialCompressionClass => _axialCompressionClass;
 
-        public Cop2011BeamCheckerResults.SectionClass AxialCompressionClass => _axialCompressionClass;
-
-        public Cop2011BeamCheckerResults.SectionClass BendingCompressionClass => _bendingCompressionClass;
+        public Cop2011Checker.SectionClass BendingCompressionClass => _bendingCompressionClass;
 
         public double Py => _py;
 
         public double Epsilon => _epsilon;
+
+        public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve1 => _bucklingCurve1;
+
+        public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve2 => _bucklingCurve2;
+
+        public double LambdaLateralTorsionalBuckling1 => _lambdaAxialBuckling1;
+
+        public double LambdaLateralTorsionalBuckling2 => _lambdaAxialBuckling2;
+
+        public double PEAxialBuckling1 => _pEAxialBuckling1;
+
+        public double PEAxialBuckling2 => _pEAxialBuckling2;
+
+        public double PhiCAxialBuckling1 => _phiCAxialBuckling1;
+
+        public double PhiCAxialBuckling2 => _phiCAxialBuckling2;
+
+        public double PCAxialBuckling1 => _pCAxialBuckling1;
+
+        public double PCAxialBuckling2 => _pCAxialBuckling2;
+
+        public double LambdaLateralTorsionalBuckling => _lambdaLTBuckling;
+
+        public double Lambda0LateralTorsionalBuckling => _lambda0LTBuckling;
+
+        public double PELateralTorsionalBuckling => _pELTBuckling;
+
+        public double PhiLateralTorsionalBuckling => _phiLTBuckling;
+
+        public double PBLateralTorsionalBuckling => _pBLTBuckling;
 
         #endregion
 
 
         #region Constructor
 
-        internal BeamStationCheckerResults(ISteelSection section, ILoadCase loadCase, ResultBeamForces forces, ResultStation station)    
+        protected Cop2011BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case,
+                                    Cop2011Checker.Cop2011Options checkerOptions, StandardCopSuos2011 standard, string name = "") 
+                                : this(section, forces, station, Case, standard, checkerOptions, name)
         {
-            _section = section ?? throw new ArgumentNullException(nameof(section));
-            _forces = forces ?? throw new ArgumentNullException(nameof(forces));
-            _station = station ?? throw new ArgumentNullException(nameof(station));
-            _loadCase = loadCase ?? throw new ArgumentNullException(nameof(loadCase));
+
+        }
+
+
+        internal Cop2011BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, 
+                                            StandardCopSuos2011 standard, Cop2011Checker.Cop2011Options checkerOptions, string name = "") :
+            base(section, forces, station, Case, standard, checkerOptions, name)
+        {
+
         }
 
         #endregion
@@ -167,16 +237,24 @@ namespace GPC.Checkers.Steel.Results
             _bendingMoment1WorkingRatio = bending1WR < 0 ? throw new ArgumentException($"BendingMoment1AxisWorkingRatio cannot be lower than zero") : bending1WR;
             _bendingMoment2WorkingRatio = bending2WR < 0 ? throw new ArgumentException($"BendingMoment2AxisWorkingRatio cannot be lower than zero") : bending2WR;
             _lateraTorsionalBucklingWorkingRatio = latTorsWR < 0 ? throw new ArgumentException($"LateralTorsionalWorkingRatio cannot be lower than zero") : latTorsWR;
-            _interaction878WorkingRatio = interaction878WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction878WR;
-            _interaction879WorkingRatio = interaction879WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction879WR;
-            _interaction880WorkingRatio = interaction880WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction880WR;
-            _interaction881WorkingRatio = interaction881WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction881WR;
+            _pMMWorkingRatio = interaction878WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction878WR;
+            _pMMWorkingRatioBendingSecondOrderEffect = interaction879WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction879WR;
+            _pMMWorkingRatioAxialSecondOrderEffect = interaction880WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction880WR;
+            _pMMWorkingRatioLateralTorsionalBuckling = interaction881WR < 0 ? throw new ArgumentException($"InteractionWorkingRatio cannot be lower than zero") : interaction881WR;
         }
 
-        internal void SetClasses(Cop2011BeamCheckerResults.SectionClass axialSectionClass, Cop2011BeamCheckerResults.SectionClass bendingSectionClass)
+        internal void SetClasses(Cop2011Checker.SectionClass axialSectionClass, Cop2011Checker.SectionClass bendingSectionClass)
         {
             _axialCompressionClass = axialSectionClass;
             _bendingCompressionClass = bendingSectionClass;
+        }
+
+        internal void SetBucklingLenght(double axialBuckling1, double axialBuckling2, double lenghtLateralTorsionalBuckling)
+        {
+            _lenghtAxialBuckling1 = axialBuckling1; 
+            _lenghtAxialBuckling2 = axialBuckling2;
+            _lenghtLateralTorsionalBuckling = lenghtLateralTorsionalBuckling;
+
         }
 
         internal void SetPy(double py, double epsilon)
@@ -185,16 +263,40 @@ namespace GPC.Checkers.Steel.Results
             _epsilon = epsilon;
         }
 
-        internal double GetMaxWorkingRatio()
+        internal void SetResultsForReportLTB(double lambdaLTBuckling, double lambda0LTBuckling, double pELTBuckling, double phiLTBuckling, double pBLTBuckling)
+        {
+            _lambdaLTBuckling = lambdaLTBuckling;
+            _lambda0LTBuckling = lambda0LTBuckling;
+            _pELTBuckling = pELTBuckling;
+            _phiLTBuckling = phiLTBuckling;
+            _pBLTBuckling = pBLTBuckling;
+        }
+
+        internal void SetResultsForReportAxialBuckling(Cop2011Checker.Cop2011Options.BuckingCurves buckingCurve1, Cop2011Checker.Cop2011Options.BuckingCurves buckingCurve2,
+            double lambdaAxialBuckling1, double lambdaAxialBuckling2, double pEAxialBuckling1, double pEAxialBuckling2, double phiCAxialBuckling1, double phiCAxialBuckling2)
+        {
+            _bucklingCurve1 = buckingCurve1;
+            _bucklingCurve2 = buckingCurve2;
+            _pEAxialBuckling1 = pEAxialBuckling1;
+            _pEAxialBuckling2 = pEAxialBuckling2;
+            _phiCAxialBuckling1 = phiCAxialBuckling1;
+            _phiCAxialBuckling2 = phiCAxialBuckling2;
+            _lambdaAxialBuckling1 = lambdaAxialBuckling1;
+            _lambdaAxialBuckling2 = lambdaAxialBuckling2;
+        }
+
+        internal override double GetMaxWorkingRatio()
         {
             List<double> workingRatioList = new List<double>() { _axialTensionWorkingRatio, _axialCompressionWorkingRatio, _axialBuckling1WorkingRatio, 
                                                                 _axialBuckling2WorkingRatio, _shear1WorkingRatio, _shear2WorkingRatio, _bendingMoment1WorkingRatio, 
                                                                 _bendingMoment2WorkingRatio, _torsionalMomentWorkingRatio, _lateraTorsionalBucklingWorkingRatio, 
-                                                                _interaction878WorkingRatio, _interaction879WorkingRatio, _interaction880WorkingRatio, _interaction881WorkingRatio,};
+                                                                _pMMWorkingRatio, _pMMWorkingRatioBendingSecondOrderEffect, _pMMWorkingRatioAxialSecondOrderEffect, _pMMWorkingRatioLateralTorsionalBuckling,};
 
             return workingRatioList.Max();
         }
 
         #endregion
+
+        
     }
 }

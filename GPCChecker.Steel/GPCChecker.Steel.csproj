@@ -7,7 +7,7 @@
     <ProjectGuid>{EA309DF3-9824-4C30-9301-5E97C097FCAC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GPCCheckers.Steel</RootNamespace>
+    <RootNamespace>GPC.Checkers.Steel</RootNamespace>
     <AssemblyName>GPCChecker.Steel</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -33,6 +33,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
+    <DocumentationFile>bin\Release\GPCChecker.Steel.xml</DocumentationFile>
+    <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="GMsh.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -41,8 +43,8 @@
     <Reference Include="GPCGeometry, Version=1.0.8.12, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCGeometry.1.0.8.12\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.1.0.4, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.1.0.4\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.1.0.11, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.1.0.11\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCUtilities, Version=1.0.30.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCUtilities.1.0.30\lib\net472\GPCUtilities.dll</HintPath>
@@ -60,12 +62,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Checkers\Cop2011BeamCheckerAttribute.cs" />
-    <Compile Include="Checkers\EN1993p11BeamCheckerOptions.cs" />
     <Compile Include="Checkers\BeamCheckerAttributes.cs" />
-    <Compile Include="Checker.cs" />
-    <Compile Include="BeamCheckers\Cop2011BeamCheckerResults.cs" />
-    <Compile Include="BeamCheckers\En1993p11BeamChecker.cs" />
+    <Compile Include="Checkers\Checker.cs" />
     <Compile Include="Checkers\EN1993p11Checker.cs" />
     <Compile Include="Checkers\Cop2011Checker.cs" />
     <Compile Include="Checkers\EuroCodeChecker.cs" />
@@ -81,8 +79,8 @@
     <Compile Include="PanelsStability\TransverseStiffener.cs" />
     <Compile Include="PanelsStability\UnstiffenedPanel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Results\BeamStationCheckerResults.cs" />
-    <Compile Include="BeamCheckers\BeamCheckerResults.cs" />
+    <Compile Include="Results\BeamStationResults.cs" />
+    <Compile Include="Results\Cop2011BeamStationResults.cs" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="Microsoft.Office.Core">

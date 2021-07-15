@@ -6,54 +6,86 @@ using System.Threading.Tasks;
 using GPC.Model.Standards;
 using GPC.Checkers.Steel.Checkers;
 using GPC.Model.LoadCases;
-using GPC.Checkers.Steel.BeamChecker;
+using GPC.Checkers.Steel.Results;
+using GPC.Model.Sections.Steel;
+using GPC.Model.Sections;
+using GPC.Model.Combinations;
+using System.Runtime.Serialization;
 
-namespace GPC.Checkers.Steel
+namespace GPC.Checkers.Steel.Checkers
 {
-    public abstract class Checker
+    /// <summary>
+    /// The purpose of this class is to perform a check of a single beam between all the ILoadCases
+    /// </summary>
+    
+    [Serializable]
+    public abstract class Checker : Model.ModelObjectId, ISerializable
     {
         #region Variables
 
-        protected readonly BeamCheckerAttributes _beamCheckersAttribute;
-        protected BeamCheckerResults[] _beamCheckerResults;
-        protected Standard _standard;
-        protected readonly ILoadCase[] _loadCases;
+        protected readonly BeamCheckerAttributes _beamCheckersAttributes;
+
+        protected BeamStationResults[] _beamStationResults;
+        protected readonly Standard _standard;
+        protected readonly Options _options;
 
         #endregion
 
 
         #region Properties
 
-        public BeamCheckerAttributes BeamCheckersAttribute => _beamCheckersAttribute;
+        public BeamCheckerAttributes BeamCheckersAttribute => _beamCheckersAttributes;
 
-        public BeamCheckerResults[] BeamCheckerResults { get => _beamCheckerResults; }
+        public BeamStationResults[] BeamStationCheckerResults => _beamStationResults; 
 
         public Standard Standard => _standard;
 
-        public ILoadCase[] LoadCase => _loadCases;
+        public Options CheckerOptions => _options;
+
+        public double BeamLength => _beamCheckersAttributes.Length;
+
+        public ILoadCase[] LoadCases => GetLoadCases();
+
+        public string BeamName => _beamCheckersAttributes.Name;
+
 
         #endregion
 
 
         #region Constructor
 
-        public Checker(BeamCheckerAttributes beamCheckers, ILoadCase[] loadCase, Standard standard)
-            : this(beamCheckers, loadCase)
+        public Checker(BeamCheckerAttributes beamCheckerAttributes, Options options, Standard standard, string name = "")
+            : this(beamCheckerAttributes, options, standard, Model.ModelObjectId.IDUNASSIGNED, name)
         {
-            if (beamCheckers is null)
-                throw new ArgumentNullException(nameof(beamCheckers));
 
-            if (loadCase is null)
-                throw new ArgumentNullException(nameof(loadCase));
+        }
+
+        public Checker(BeamCheckerAttributes beamCheckerAttributes, Options options, Standard standard, int id, string name = "") 
+            : base(id, name)
+        {
+            if (beamCheckerAttributes is null)
+            {
+                throw new ArgumentNullException(nameof(beamCheckerAttributes));
+            }
+
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            _beamCheckersAttributes = beamCheckerAttributes;
+            _options = options;
 
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
+
         }
 
-        public Checker(BeamCheckerAttributes beamCheckers, ILoadCase[] loadCase)
+        protected Checker(SerializationInfo info, StreamingContext context) : base(info, context)
         {
-            _beamCheckersAttribute = beamCheckers ?? throw new ArgumentNullException(nameof(beamCheckers));
-            _loadCases = loadCase ?? throw new ArgumentNullException(nameof(loadCase));
+            // TODO: implementare 
+            throw new NotImplementedException();
         }
+
 
         #endregion
 
@@ -65,6 +97,67 @@ namespace GPC.Checkers.Steel
 
         #endregion
 
+        public double GetLenghtAxialBuckling1()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck1 * CheckerOptions.EffectiveLengthFactorAxialBuck1;
+        }
+
+        public double GetLenghtAxialBuckling2()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck2 * CheckerOptions.EffectiveLengthFactorAxialBuck2;
+        }
+
+        public double GetEffectiveLenghtAxialBuckling1()
+        {
+            return BeamLength * CheckerOptions.EffectiveLengthFactorAxialBuck1;
+        }
+
+        public double GetEffectiveLenghtAxialBuckling2()
+        {
+            return BeamLength * CheckerOptions.EffectiveLengthFactorAxialBuck2;
+        }
+
+        public double GetLenghtLatTorsBuckling()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorLatTorsBuck * CheckerOptions.EffectiveLengthFactorLatTorsBuck;
+        }
+
+        public double GetLenghtCriticalMoment1()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment1 * CheckerOptions.EffectiveLengthFactorCriticalMoment1;
+        }
+
+        public double GetLenghtCriticalMoment2()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment2 * CheckerOptions.EffectiveLengthFactorCriticalMoment2;
+        }
+
+        /// <returns>The unique ILoadCases array</returns>
+        private ILoadCase[] GetLoadCases()
+        {
+            return _beamCheckersAttributes.Results.Select(i => i.Case).Distinct().ToArray();
+        }              
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            // TODO: implementare 
+            throw new NotImplementedException();
+            base.GetObjectData(info, context);
+        }
+
+        public override bool Equals(object obj)
+        {
+            // TODO: implementare 
+            throw new NotImplementedException();
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            // TODO: implementare 
+            throw new NotImplementedException();
+            return base.GetHashCode();
+        }
 
         public abstract class Options
         {
@@ -227,14 +320,14 @@ namespace GPC.Checkers.Steel
 
             #region Setter
 
-            public void SetUnbracedLengthFactorAxialBuck1(double unbracedLengthFactorAxialBuck1)
+            public void SetUnbracedLengthFactorAxialBuckling1(double unbracedLengthFactorAxialBuck1)
             {
                 if (unbracedLengthFactorAxialBuck1 < 0)
                     throw new ArgumentException("UnbracedLengthFactorAxialBuck1 must be positive");
                 _kAxialBuckling1 = unbracedLengthFactorAxialBuck1;
             }
 
-            public void SetUnbracedLengthFactorAxialBuck2(double unbracedLengthFactorAxialBuck2)
+            public void SetUnbracedLengthFactorAxialBuckling2(double unbracedLengthFactorAxialBuck2)
             {
                 if (unbracedLengthFactorAxialBuck2 < 0)
                     throw new ArgumentException("UnbracedLengthFactorAxialBuck2 must be positive");
