@@ -209,8 +209,8 @@ namespace GPC.Checkers.Steel.Checkers
                     else
                     {
                         double result = Math.Abs(resultBeamForces[i].N / axialTensionRd[i]) +
-                                 Math.Abs(resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
-                                 Math.Abs(resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
+                                 Math.Abs(resultBeamForces[i].M1 / CalculateBendingMoment1Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i])) +
+                                 Math.Abs(resultBeamForces[i].M2 / CalculateBendingMoment2Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i]));
 
                         if (result < 0.001)
                             interaction878WR[i] = 0.001;
@@ -239,7 +239,6 @@ namespace GPC.Checkers.Steel.Checkers
                     if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
                     {
                         // <= Pc segnato cap 8.9.2
-
                         double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(CalculateAxialBucklingCapacity1AxisForInteraction(axialCompSectionClass[i], steelSection[i]),
                                                                                     CalculateAxialBucklingCapacity2AxisForInteraction(axialCompSectionClass[i], steelSection[i]))) +
                                         Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
