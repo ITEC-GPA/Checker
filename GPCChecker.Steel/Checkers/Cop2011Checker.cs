@@ -240,7 +240,7 @@ namespace GPC.Checkers.Steel.Checkers
                     {
                         // <= Pc segnato cap 8.9.2
                         double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(CalculateAxialBucklingCapacity1AxisForInteraction(axialCompSectionClass[i], steelSection[i]),
-                                                                                    CalculateAxialBucklingCapacity2AxisForInteraction(axialCompSectionClass[i], steelSection[i]))) +
+                                                                                                CalculateAxialBucklingCapacity2AxisForInteraction(axialCompSectionClass[i], steelSection[i]))) +
                                         Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
                                         Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
 
