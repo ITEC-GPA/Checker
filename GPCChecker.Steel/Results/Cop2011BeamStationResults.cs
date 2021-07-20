@@ -63,18 +63,24 @@ namespace GPC.Checkers.Steel.Results
 
         protected double _lambdaAxialBuckling1;
         protected double _lambdaAxialBuckling2;
+        protected double _lambda0AxialBuckling;
         protected double _pEAxialBuckling1;
         protected double _pEAxialBuckling2;
         protected double _phiCAxialBuckling1;
         protected double _phiCAxialBuckling2;
         protected double _pCAxialBuckling1;
         protected double _pCAxialBuckling2;
+        protected double _nAxialBuckling1;
+        protected double _nAxialBuckling2;
 
         protected double _lambdaLTBuckling;
         protected double _lambda0LTBuckling;
         protected double _pELTBuckling;
         protected double _phiLTBuckling;
         protected double _pBLTBuckling;
+
+        protected double _shearArea1;
+        protected double _shearArea2;
 
         #endregion
 
@@ -161,9 +167,11 @@ namespace GPC.Checkers.Steel.Results
 
         public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve2 => _bucklingCurve2;
 
-        public double LambdaLateralTorsionalBuckling1 => _lambdaAxialBuckling1;
+        public double LambdaAxialBuckling1 => _lambdaAxialBuckling1;
 
-        public double LambdaLateralTorsionalBuckling2 => _lambdaAxialBuckling2;
+        public double LambdaAxialBuckling2 => _lambdaAxialBuckling2;
+
+        public double Lambda0AxialBuckling => _lambda0AxialBuckling;
 
         public double PEAxialBuckling1 => _pEAxialBuckling1;
 
@@ -186,6 +194,10 @@ namespace GPC.Checkers.Steel.Results
         public double PhiLateralTorsionalBuckling => _phiLTBuckling;
 
         public double PBLateralTorsionalBuckling => _pBLTBuckling;
+
+        public double ShearArea1 => _shearArea1;
+
+        public double ShearArea2 => _shearArea2;
 
         #endregion
 
@@ -273,7 +285,8 @@ namespace GPC.Checkers.Steel.Results
         }
 
         internal void SetResultsForReportAxialBuckling(Cop2011Checker.Cop2011Options.BuckingCurves buckingCurve1, Cop2011Checker.Cop2011Options.BuckingCurves buckingCurve2,
-            double lambdaAxialBuckling1, double lambdaAxialBuckling2, double pEAxialBuckling1, double pEAxialBuckling2, double phiCAxialBuckling1, double phiCAxialBuckling2)
+            double lambdaAxialBuckling1, double lambdaAxialBuckling2, double pEAxialBuckling1, double pEAxialBuckling2, double phiCAxialBuckling1, double phiCAxialBuckling2, 
+            double pCAxialBuckling1, double pCAxialBuckling2, double lambda0AxialBuckling, double nAxialBuckling1, double nAxialBuckling2)
         {
             _bucklingCurve1 = buckingCurve1;
             _bucklingCurve2 = buckingCurve2;
@@ -283,6 +296,17 @@ namespace GPC.Checkers.Steel.Results
             _phiCAxialBuckling2 = phiCAxialBuckling2;
             _lambdaAxialBuckling1 = lambdaAxialBuckling1;
             _lambdaAxialBuckling2 = lambdaAxialBuckling2;
+            _pCAxialBuckling1 = pCAxialBuckling1;
+            _pCAxialBuckling2 = pCAxialBuckling2;
+            _lambda0AxialBuckling = lambda0AxialBuckling;
+            _nAxialBuckling1 = nAxialBuckling1;
+            _nAxialBuckling2 = nAxialBuckling2;
+        }
+
+        internal void SetResultForReportShear(double shearArea1, double shearArea2)
+        {
+            _shearArea1 = shearArea1;
+            _shearArea2 = shearArea2;
         }
 
         internal override double GetMaxWorkingRatio()

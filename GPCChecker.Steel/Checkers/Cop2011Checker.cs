@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -267,11 +267,15 @@ namespace GPC.Checkers.Steel.Checkers
                     stationResults[i + k * steelSection.Length].SetResultsForReportAxialBuckling(GetBucklingCurveXXAxis(steelSection[i]), GetBucklingCurveYYAxis(steelSection[i]),
                         CalculateLambdaAxialBuckling1Axis(steelSection[i]), CalculateLambdaAxialBuckling2Axis(steelSection[i]),
                         CalculatePeForAxialBuckling1Axis(steelSection[i]), CalculatePeForAxialBuckling2Axis(steelSection[i]),
-                        CalculatePhiforAxialBuckling1Axis(steelSection[i]), CalculatePhiforAxialBuckling2Axis(steelSection[i]));
+                        CalculatePhiforAxialBuckling1Axis(steelSection[i]), CalculatePhiforAxialBuckling2Axis(steelSection[i]),
+                        CalculatePCompression1Axis(steelSection[i]), CalculatePCompression2Axis(steelSection[i]), CalculateLambda0ForAxialBuckling(steelSection[i]),
+                        CalculateNForAxialBuckling1Axis(steelSection[i]), CalculateNForAxialBuckling2Axis(steelSection[i]));
 
                     stationResults[i + k * steelSection.Length].SetResultsForReportLTB(CalculateLambdaLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculateLambdaL0ForLatTorsBucklingBS5950(steelSection[i].SteelMaterial.E),
                         CalculatePeForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculatePhiLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]),
                         CalculatePbForLatTorsBuckling(bendingCompSectionClass[i], steelSection[i]));
+
+                    stationResults[i + k * steelSection.Length].SetResultForReportShear(GetShearAreaXaxis(steelSection[i]), GetShearAreaYaxis(steelSection[i]));
                 }
             }
 
@@ -456,6 +460,35 @@ namespace GPC.Checkers.Steel.Checkers
             if (section.SectionType == Section.SectionTypes.Welded)
                 py -= 20;
             return (py + (nForAxialBuck + 1) * CalculatePeForAxialBuckling2Axis(section)) / 2;
+        }
+
+        private double CalculateNForAxialBuckling2Axis(ISteelSection section)
+        {
+            double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
+            double lambdaYAxis = GetLenghtAxialBuckling2() / section.R22;
+            return Math.Max(GetAlphaBucklingCurveYYAxis(section) * (lambdaYAxis - lambda0) / 1000, 0);
+        }
+
+        private double CalculateNForAxialBuckling1Axis(ISteelSection section)
+        {
+            double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
+            double lambdaXAxis = GetLenghtAxialBuckling1() / section.R11;
+            return Math.Max(GetAlphaBucklingCurveXXAxis(section) * (lambdaXAxis - lambda0) / 1000, 0);
+        }
+
+        private double CalculateLambda0ForAxialBuckling(ISteelSection section)
+        {
+            return 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
+        }
+
+        private double CalculateLambda2ForAxialBuckling(ISteelSection section)
+        {
+            return GetLenghtAxialBuckling2() / section.R22; 
+        }
+
+        private double CalculateLambda1ForAxialBuckling(ISteelSection section)
+        {
+            return GetLenghtAxialBuckling1() / section.R11;
         }
 
         private double CalculatePeForAxialBuckling1Axis(ISteelSection section)
