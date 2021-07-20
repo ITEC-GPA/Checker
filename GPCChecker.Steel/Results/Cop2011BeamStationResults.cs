@@ -173,6 +173,10 @@ namespace GPC.Checkers.Steel.Results
 
         public double Lambda0AxialBuckling => _lambda0AxialBuckling;
 
+        public double NAxialBuckling1 => _nAxialBuckling1;
+
+        public double NAxialBuckling2 => _nAxialBuckling2;
+
         public double PEAxialBuckling1 => _pEAxialBuckling1;
 
         public double PEAxialBuckling2 => _pEAxialBuckling2;
