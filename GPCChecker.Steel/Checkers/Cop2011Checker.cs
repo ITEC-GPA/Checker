@@ -1357,7 +1357,7 @@ namespace GPC.Checkers.Steel.Checkers
                     throw new NotImplementedException("CalculateSectionClassException: not implemented Section");
             }
             else
-                return SectionClass.Class1;
+                return SectionClass.Class3;
         }
 
         /// <summary>
