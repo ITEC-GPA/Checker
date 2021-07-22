@@ -283,20 +283,7 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
 
-        private double GetWorkingRatio(double force, double capacity)
-        {
-            double result = Math.Abs(force / capacity);
 
-            if (Math.Abs(capacity) < 0.01)
-                throw new ArgumentException("Capacity can not be null");
-
-            if (Math.Abs(force) < 0.001)
-                return 0.001;
-            if (result < 0.001)
-                return 0.001;
-
-            return result;
-        }
 
         #region Section Private Method
 
@@ -811,7 +798,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         private double CalculateShearReductionDueToTorsion(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            if (resultBeamForces.T > 1)
+            if (Math.Abs(resultBeamForces.T) > 1)
             {
                 if (section is SteelSectionH)
                 {

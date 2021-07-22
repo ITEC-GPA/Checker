@@ -136,7 +136,22 @@ namespace GPC.Checkers.Steel.Checkers
         private ILoadCase[] GetLoadCases()
         {
             return _beamCheckersAttributes.Results.Select(i => i.Case).Distinct().ToArray();
-        }              
+        }
+
+        protected double GetWorkingRatio(double force, double capacity)
+        {
+            double result = Math.Abs(force / capacity);
+
+            if (Math.Abs(capacity) < 0.01)
+                throw new ArgumentException("Capacity can not be null");
+
+            if (Math.Abs(force) < 0.001)
+                return 0.001;
+            if (result < 0.001)
+                return 0.001;
+
+            return result;
+        }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
