@@ -97,37 +97,37 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-        public double GetLenghtAxialBuckling1()
+        public double GetLengthAxialBuckling1()
         {
             return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck1 * CheckerOptions.EffectiveLengthFactorAxialBuck1;
         }
 
-        public double GetLenghtAxialBuckling2()
+        public double GetLengthAxialBuckling2()
         {
             return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck2 * CheckerOptions.EffectiveLengthFactorAxialBuck2;
         }
 
-        public double GetEffectiveLenghtAxialBuckling1()
+        public double GetEffectiveLengthAxialBuckling1()
         {
             return BeamLength * CheckerOptions.EffectiveLengthFactorAxialBuck1;
         }
 
-        public double GetEffectiveLenghtAxialBuckling2()
+        public double GetEffectiveLengthAxialBuckling2()
         {
             return BeamLength * CheckerOptions.EffectiveLengthFactorAxialBuck2;
         }
 
-        public double GetLenghtLatTorsBuckling()
+        public double GetLengthLatTorsBuckling()
         {
             return BeamLength * CheckerOptions.UnbracedLengthFactorLatTorsBuck * CheckerOptions.EffectiveLengthFactorLatTorsBuck;
         }
 
-        public double GetLenghtCriticalMoment1()
+        public double GetLengthCriticalMoment1()
         {
             return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment1 * CheckerOptions.EffectiveLengthFactorCriticalMoment1;
         }
 
-        public double GetLenghtCriticalMoment2()
+        public double GetLengthCriticalMoment2()
         {
             return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment2 * CheckerOptions.EffectiveLengthFactorCriticalMoment2;
         }

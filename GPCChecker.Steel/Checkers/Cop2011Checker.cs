@@ -260,7 +260,7 @@ namespace GPC.Checkers.Steel.Checkers
 
                     stationResults[i + k * steelSection.Length].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
 
-                    stationResults[i + k * steelSection.Length].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
+                    stationResults[i + k * steelSection.Length].SetBucklingLenght(GetLengthAxialBuckling1(), GetLengthAxialBuckling2(), GetLengthLatTorsBuckling());
 
                     stationResults[i + k * steelSection.Length].SetPy(_py, _epsilon);
 
@@ -367,7 +367,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         private double CalculatePCompressionReduced1xis(ISteelSection section)
         {
-            return CalculatePCompression1Axis(section) * GetLenghtAxialBuckling1() / section.R11 *
+            return CalculatePCompression1Axis(section) * GetLengthAxialBuckling1() / section.R11 *
                 Math.Sqrt(GetEffettiveArea(section) / section.Area);
         }
 
@@ -376,7 +376,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         private double CalculatePCompressionReduces2Axis(ISteelSection section)
         {
-            return CalculatePCompression2Axis(section) * GetLenghtAxialBuckling2() / section.R22 *
+            return CalculatePCompression2Axis(section) * GetLengthAxialBuckling2() / section.R22 *
                 Math.Sqrt(GetEffettiveArea(section) / section.Area);
         }
 
@@ -385,7 +385,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         private double CalculatePCompressionReduced1AxisForInteraction(ISteelSection section)
         {
-            return CalculatePCompression1Axis(section) * GetEffectiveLenghtAxialBuckling1() / section.R11 *
+            return CalculatePCompression1Axis(section) * GetEffectiveLengthAxialBuckling1() / section.R11 *
                 Math.Sqrt(GetEffettiveArea(section) / section.Area);
         }
 
@@ -394,7 +394,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         private double CalculatePCompressionReduces2AxisForInteraction(ISteelSection section)
         {
-            return CalculatePCompression2Axis(section) * GetEffectiveLenghtAxialBuckling2() / section.R22 *
+            return CalculatePCompression2Axis(section) * GetEffectiveLengthAxialBuckling2() / section.R22 *
                 Math.Sqrt(GetEffettiveArea(section) / section.Area);
         }
 
@@ -425,7 +425,7 @@ namespace GPC.Checkers.Steel.Checkers
         private double CalculatePhiforAxialBuckling1Axis(ISteelSection section)
         {
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
-            double lambdaXAxis = GetLenghtAxialBuckling1() / section.R11;
+            double lambdaXAxis = GetLengthAxialBuckling1() / section.R11;
             double nForAxialBuckXAxis = Math.Max(GetAlphaBucklingCurveXXAxis(section) * (lambdaXAxis - lambda0) / 1000, 0);
             double py = Py;
 
@@ -440,7 +440,7 @@ namespace GPC.Checkers.Steel.Checkers
         private double CalculatePhiforAxialBuckling2Axis(ISteelSection section)
         {
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
-            double lambdaYAxis = GetLenghtAxialBuckling2() / section.R22;
+            double lambdaYAxis = GetLengthAxialBuckling2() / section.R22;
             double nForAxialBuck = Math.Max(GetAlphaBucklingCurveYYAxis(section) * (lambdaYAxis - lambda0) / 1000, 0);
             double py = Py;
 
@@ -452,14 +452,14 @@ namespace GPC.Checkers.Steel.Checkers
         private double CalculateNForAxialBuckling2Axis(ISteelSection section)
         {
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
-            double lambdaYAxis = GetLenghtAxialBuckling2() / section.R22;
+            double lambdaYAxis = GetLengthAxialBuckling2() / section.R22;
             return Math.Max(GetAlphaBucklingCurveYYAxis(section) * (lambdaYAxis - lambda0) / 1000, 0);
         }
 
         private double CalculateNForAxialBuckling1Axis(ISteelSection section)
         {
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
-            double lambdaXAxis = GetLenghtAxialBuckling1() / section.R11;
+            double lambdaXAxis = GetLengthAxialBuckling1() / section.R11;
             return Math.Max(GetAlphaBucklingCurveXXAxis(section) * (lambdaXAxis - lambda0) / 1000, 0);
         }
 
@@ -470,34 +470,34 @@ namespace GPC.Checkers.Steel.Checkers
 
         private double CalculateLambda2ForAxialBuckling(ISteelSection section)
         {
-            return GetLenghtAxialBuckling2() / section.R22; 
+            return GetLengthAxialBuckling2() / section.R22; 
         }
 
         private double CalculateLambda1ForAxialBuckling(ISteelSection section)
         {
-            return GetLenghtAxialBuckling1() / section.R11;
+            return GetLengthAxialBuckling1() / section.R11;
         }
 
         private double CalculatePeForAxialBuckling1Axis(ISteelSection section)
         {
-            double lambda1Axis = GetLenghtAxialBuckling1() / section.R11;
+            double lambda1Axis = GetLengthAxialBuckling1() / section.R11;
             return (Math.Pow(Math.PI, 2) * section.SteelMaterial.E) / (Math.Pow(lambda1Axis, 2));
         }
 
         private double CalculatePeForAxialBuckling2Axis(ISteelSection section)
         {
-            double lambda2Axis = GetLenghtAxialBuckling2() / section.R22;
+            double lambda2Axis = GetLengthAxialBuckling2() / section.R22;
             return (Math.Pow(Math.PI, 2) * section.SteelMaterial.E) / (Math.Pow(lambda2Axis, 2));
         }
 
         private double CalculateLambdaAxialBuckling2Axis(ISteelSection section)
         {
-            return GetLenghtAxialBuckling2() / section.R22; 
+            return GetLengthAxialBuckling2() / section.R22; 
         }
 
         private double CalculateLambdaAxialBuckling1Axis(ISteelSection section)
         {
-            return GetLenghtAxialBuckling1() / section.R11;
+            return GetLengthAxialBuckling1() / section.R11;
         }
 
         /// <summary>
@@ -1223,13 +1223,13 @@ namespace GPC.Checkers.Steel.Checkers
             // CopSuos2011 Chapter 8.3.4
             double le;
             if (((Cop2011Checker.Cop2011Options)_options).LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default)
-                le = GetLenghtLatTorsBuckling();
+                le = GetLengthLatTorsBuckling();
             else if (((Cop2011Checker.Cop2011Options)_options).LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.FullyRestrained)
-                le = 0.8 * GetLenghtLatTorsBuckling();
+                le = 0.8 * GetLengthLatTorsBuckling();
             else if (((Cop2011Checker.Cop2011Options)_options).LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Unrestrained)
-                le = 1.2 * GetLenghtLatTorsBuckling() + 2 * section.Height;
+                le = 1.2 * GetLengthLatTorsBuckling() + 2 * section.Height;
             else if (((Cop2011Checker.Cop2011Options)_options).LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad)
-                le = 1.2 * GetLenghtLatTorsBuckling();
+                le = 1.2 * GetLengthLatTorsBuckling();
             else
                 throw new NotImplementedException("GetLeForLatTorsBuckling: not implemented LateralTorsionalBucklingConditions");
 
