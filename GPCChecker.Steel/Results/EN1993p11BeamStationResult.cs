@@ -10,6 +10,7 @@ using GPC.Model.LoadCases;
 using GPC.Model.Sections.Steel;
 using GPC.Checkers.Steel.Checkers;
 using System.Runtime.Serialization;
+using GPC.Geometry;
 
 namespace GPC.Checkers.Steel.Results
 {
@@ -32,6 +33,8 @@ namespace GPC.Checkers.Steel.Results
         protected double _bendingMoment2WorkingRatio;
         protected double _torsionalMomentWorkingRatio;
         protected double _lateraTorsionalBucklingWorkingRatio;
+        protected double _bucklingInteraction1Axis;
+        protected double _bucklingInteraction2Axis;
 
         protected double _axialTensionRd;
         protected double _axialCompressionRd;
@@ -50,16 +53,16 @@ namespace GPC.Checkers.Steel.Results
 
         protected double _epsilon;
 
-        protected EN1993p11Checker.EN1993p11Options.LoadCondition _loadCondition1;
-        protected EN1993p11Checker.EN1993p11Options.SupportCondition _supportCondition1;
-        protected EN1993p11Checker.EN1993p11Options.LoadCondition _loadCondition2;
-        protected EN1993p11Checker.EN1993p11Options.SupportCondition _supportCondition2;
+        protected EN1993p11Checker.EN1993p11Options.LoadConditions _loadCondition1;
+        protected EN1993p11Checker.EN1993p11Options.SupportConditions _supportCondition1;
+        protected EN1993p11Checker.EN1993p11Options.LoadConditions _loadCondition2;
+        protected EN1993p11Checker.EN1993p11Options.SupportConditions _supportCondition2;
 
         protected EN1993p11Checker.SectionClass _axialCompressionClass;
         protected EN1993p11Checker.SectionClass _bendingCompressionClass;
 
-        protected EN1993p11Checker.EN1993p11Options.BuckingCurves _bucklingCurve1;
-        protected EN1993p11Checker.EN1993p11Options.BuckingCurves _bucklingCurve2;
+        protected EN1993p11Checker.EN1993p11Options.AxialBuckingCurves _bucklingCurve1;
+        protected EN1993p11Checker.EN1993p11Options.AxialBuckingCurves _bucklingCurve2;
 
         protected double _lambdaAxialBuckling1;
         protected double _lambdaAxialBuckling2;
@@ -125,7 +128,17 @@ namespace GPC.Checkers.Steel.Results
         /// Lateral torsional working ratio
         /// </summary>
         public double LateralTorsionalBucklingWorkingRatio => _lateraTorsionalBucklingWorkingRatio;
-        
+
+        /// <summary>
+        /// Buckling interactionworking ration about 1-principal axis §6.3.3
+        /// </summary>
+        public double BucklingInteraction1Axis => _bucklingInteraction1Axis;
+
+        /// <summary>
+        /// Buckling interactionworking ration about 2-principal axis §6.3.3
+        /// </summary>
+        public double BucklingInteraction2Axis => _bucklingInteraction2Axis;
+                                       
         /// <summary>
         /// The max working ratio 
         /// </summary>
@@ -222,12 +235,12 @@ namespace GPC.Checkers.Steel.Results
         /// <summary>
         /// Buckling curve about 1principal axis for axial buckling check (Chapter 8.7.6)
         /// </summary>
-        public EN1993p11Checker.EN1993p11Options.BuckingCurves BuckingCurve1 => _bucklingCurve1;
+        public EN1993p11Checker.EN1993p11Options.AxialBuckingCurves BuckingCurve1 => _bucklingCurve1;
 
         /// <summary>
         /// Buckling curve about 2-principal axis for axial buckling check (Chapter 8.7.6)
         /// </summary>
-        public EN1993p11Checker.EN1993p11Options.BuckingCurves BuckingCurve2 => _bucklingCurve2;
+        public EN1993p11Checker.EN1993p11Options.AxialBuckingCurves BuckingCurve2 => _bucklingCurve2;
 
         /// <summary>
         /// Lambda about 1-principal axis for axial buckling check
@@ -295,7 +308,7 @@ namespace GPC.Checkers.Steel.Results
         }
 
         internal void SetWorkingRatio(double axialTensionWR, double axialCompressionWR, double axialBuck1WR, double axialBuck2WR, double shear1WR, double shear2WR, double bending1WR, 
-                                        double bending2WR, double latTorsWR, double interaction878WR, double interaction879WR, double interaction880WR, double interaction881WR)
+                                        double bending2WR, double latTorsWR, double bucklingInteraction1Axis, double bucklingInteraction2Axis)
         {
             _axialTensionWorkingRatio = axialTensionWR < 0 ? throw new ArgumentException($"AxialTensionWorkingRatio cannot be lower than zero") : axialTensionWR;
             _axialCompressionWorkingRatio = axialCompressionWR < 0 ? throw new ArgumentException($"AxialCompressionWorkingRatio cannot be lower than zero") : axialCompressionWR;
@@ -306,6 +319,8 @@ namespace GPC.Checkers.Steel.Results
             _bendingMoment1WorkingRatio = bending1WR < 0 ? throw new ArgumentException($"BendingMoment1AxisWorkingRatio cannot be lower than zero") : bending1WR;
             _bendingMoment2WorkingRatio = bending2WR < 0 ? throw new ArgumentException($"BendingMoment2AxisWorkingRatio cannot be lower than zero") : bending2WR;
             _lateraTorsionalBucklingWorkingRatio = latTorsWR < 0 ? throw new ArgumentException($"LateralTorsionalWorkingRatio cannot be lower than zero") : latTorsWR;
+            _bucklingInteraction1Axis = bucklingInteraction1Axis;
+            _bucklingInteraction2Axis = bucklingInteraction2Axis;
         }
 
         internal void SetClasses(EN1993p11Checker.SectionClass axialSectionClass, EN1993p11Checker.SectionClass bendingSectionClass)
