@@ -179,15 +179,20 @@ namespace GPC.Checkers.Steel.Checkers
             #region Variables
 
             protected double _kAxialBuckling1;
-            protected double _kAxialBuckling2;
-            protected double _kLatTorsBuckling;
-            protected double _kCriticalMoment1;
-            protected double _kCriticalMoment2;
             protected double _mAxialBuckling1;
+
+            protected double _kAxialBuckling2;
             protected double _mAxialBuckling2;
+
+            protected double _kLatTorsBuckling;
             protected double _mLatTorsBuckling;
+
+            protected double _kCriticalMoment1;
             protected double _mCriticalMoment1;
+
+            protected double _kCriticalMoment2;
             protected double _mCriticalMoment2;
+
             protected double _m1;
             protected double _m2;
             protected double _mLT;

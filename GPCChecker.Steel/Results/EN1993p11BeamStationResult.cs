@@ -33,6 +33,7 @@ namespace GPC.Checkers.Steel.Results
         protected double _bendingMoment2WorkingRatio;
         protected double _torsionalMomentWorkingRatio;
         protected double _lateraTorsionalBucklingWorkingRatio;
+        protected double _crossSectionInteraction;
         protected double _bucklingInteraction1Axis;
         protected double _bucklingInteraction2Axis;
 
@@ -130,12 +131,18 @@ namespace GPC.Checkers.Steel.Results
         public double LateralTorsionalBucklingWorkingRatio => _lateraTorsionalBucklingWorkingRatio;
 
         /// <summary>
-        /// Buckling interactionworking ration about 1-principal axis §6.3.3
+        /// Cross section interaction working ration §6.2.9.1
+        /// </summary>
+        public double CrossSectionInteraction => _crossSectionInteraction;
+
+
+        /// <summary>
+        /// Buckling interaction working ration about 1-principal axis §6.3.3
         /// </summary>
         public double BucklingInteraction1Axis => _bucklingInteraction1Axis;
 
         /// <summary>
-        /// Buckling interactionworking ration about 2-principal axis §6.3.3
+        /// Buckling interaction working ration about 2-principal axis §6.3.3
         /// </summary>
         public double BucklingInteraction2Axis => _bucklingInteraction2Axis;
                                        
@@ -275,16 +282,15 @@ namespace GPC.Checkers.Steel.Results
         #region Constructor
 
         protected EN1993p11BeamStationResult(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case,
-                                    EN1993p11Checker.EN1993p11Options checkerOptions, StandardEN1993p11 standard, string name = "") 
-                                : this(section, forces, station, Case, standard, checkerOptions, name)
+            EN1993p11Checker.EN1993p11Options checkerOptions, StandardEN1993p11 standard, string name = "") 
+            : this(section, forces, station, Case, standard, checkerOptions, name)
         {
 
         }
 
-
         internal EN1993p11BeamStationResult(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, 
-                                            StandardEN1993p11 standard, EN1993p11Checker.EN1993p11Options checkerOptions, string name = "") :
-            base(section, forces, station, Case, standard, checkerOptions, name)
+            StandardEN1993p11 standard, EN1993p11Checker.EN1993p11Options checkerOptions, string name = "") 
+            : base(section, forces, station, Case, standard, checkerOptions, name)
         {
 
         }
@@ -308,7 +314,7 @@ namespace GPC.Checkers.Steel.Results
         }
 
         internal void SetWorkingRatio(double axialTensionWR, double axialCompressionWR, double axialBuck1WR, double axialBuck2WR, double shear1WR, double shear2WR, double bending1WR, 
-                                        double bending2WR, double latTorsWR, double bucklingInteraction1Axis, double bucklingInteraction2Axis)
+                                        double bending2WR, double latTorsWR, double crossSectionInteraction, double bucklingInteraction1Axis, double bucklingInteraction2Axis)
         {
             _axialTensionWorkingRatio = axialTensionWR < 0 ? throw new ArgumentException($"AxialTensionWorkingRatio cannot be lower than zero") : axialTensionWR;
             _axialCompressionWorkingRatio = axialCompressionWR < 0 ? throw new ArgumentException($"AxialCompressionWorkingRatio cannot be lower than zero") : axialCompressionWR;
@@ -319,8 +325,9 @@ namespace GPC.Checkers.Steel.Results
             _bendingMoment1WorkingRatio = bending1WR < 0 ? throw new ArgumentException($"BendingMoment1AxisWorkingRatio cannot be lower than zero") : bending1WR;
             _bendingMoment2WorkingRatio = bending2WR < 0 ? throw new ArgumentException($"BendingMoment2AxisWorkingRatio cannot be lower than zero") : bending2WR;
             _lateraTorsionalBucklingWorkingRatio = latTorsWR < 0 ? throw new ArgumentException($"LateralTorsionalWorkingRatio cannot be lower than zero") : latTorsWR;
-            _bucklingInteraction1Axis = bucklingInteraction1Axis;
-            _bucklingInteraction2Axis = bucklingInteraction2Axis;
+            _crossSectionInteraction = crossSectionInteraction < 0 ? throw new ArgumentException($"CrossSectionInteraction cannot be lower than zero") : crossSectionInteraction;
+            _bucklingInteraction1Axis = bucklingInteraction1Axis < 0 ? throw new ArgumentException($"BucklingInteraction1Axis cannot be lower than zero") : bucklingInteraction1Axis;
+            _bucklingInteraction2Axis = bucklingInteraction2Axis < 0 ? throw new ArgumentException($"BucklingInteraction2Axis cannot be lower than zero") : bucklingInteraction2Axis;
         }
 
         internal void SetClasses(EN1993p11Checker.SectionClass axialSectionClass, EN1993p11Checker.SectionClass bendingSectionClass)
@@ -334,13 +341,7 @@ namespace GPC.Checkers.Steel.Results
             _lenghtAxialBuckling1 = axialBuckling1; 
             _lenghtAxialBuckling2 = axialBuckling2;
             _lenghtLateralTorsionalBuckling = lenghtLateralTorsionalBuckling;
-
         }
-
-
-
-
-
 
         internal override double GetMaxWorkingRatio()
         {
