@@ -414,7 +414,6 @@ namespace GPC.Checkers.Steel.Results
             _lenghtAxialBuckling1 = axialBuckling1; 
             _lenghtAxialBuckling2 = axialBuckling2;
             _lenghtLateralTorsionalBuckling = lenghtLateralTorsionalBuckling;
-
         }
 
         internal void SetPy(double py, double epsilon)

@@ -36,6 +36,7 @@ namespace GPC.Checkers.Steel.Results
         protected double _crossSectionInteraction;
         protected double _bucklingInteraction1Axis;
         protected double _bucklingInteraction2Axis;
+        protected double _flexuralTorsionalInteraction;
 
         protected double _axialTensionRd;
         protected double _axialCompressionRd;
@@ -48,9 +49,11 @@ namespace GPC.Checkers.Steel.Results
         protected double _torsionalMomentRd;
         protected double _lateralTorsionalMomentRd;
 
-        protected double _lenghtAxialBuckling1;
-        protected double _lenghtAxialBuckling2;
-        protected double _lenghtLateralTorsionalBuckling;
+        protected double _lengthAxialBuckling1;
+        protected double _lengthAxialBuckling2;
+        protected double _lengthLateralTorsionalBuckling;
+        protected double _lengthCriticalMoment1;
+        protected double _lengthCriticalMoment2;
 
         protected double _epsilon;
 
@@ -61,17 +64,73 @@ namespace GPC.Checkers.Steel.Results
 
         protected EN1993p11Checker.SectionClass _axialCompressionClass;
         protected EN1993p11Checker.SectionClass _bendingCompressionClass;
-
-        protected EN1993p11Checker.EN1993p11Options.AxialBuckingCurves _bucklingCurve1;
-        protected EN1993p11Checker.EN1993p11Options.AxialBuckingCurves _bucklingCurve2;
+        protected EN1993p11Checker.SectionClass _sectionClass;
 
         protected double _lambdaAxialBuckling1;
         protected double _lambdaAxialBuckling2;
 
-        protected double _lambdaLTBuckling;
+        protected double _chiAxialBuckling1;
+        protected double _phiAxialBuckling1;
+        protected double _lambdaSignedAxialBuckling1;
+        protected double _alphaAxialBuckling1;
+        protected double _nCr1;
+        protected EN1993p11Checker.EN1993p11Options.AxialBuckingCurves _axialBuckingCurves1;
+
+        protected double _chiAxialBuckling2;
+        protected double _phiAxialBuckling2;
+        protected double _lambdaSignedAxialBuckling2;
+        protected double _alphaAxialBuckling2;
+        protected double _nCr2;
+        protected EN1993p11Checker.EN1993p11Options.AxialBuckingCurves _axialBuckingCurves2;
+
+        protected double _chiLTBuckling;
+        protected double _phiLTBuckling;
+        protected double _lambdaSignedLTBuckling;
+        protected double _lambda0LTBuckling;
+        protected double _alphaLTBuckling;
+        protected double _mCr;
+        protected EN1993p11Checker.EN1993p11Options.LateralTorsionalBuckingCurves _lateraltorsionalBucklingCurve;
+
+        protected double _NcrTorsional;     
+        protected double _NcrFlexuralTorsional; 
 
         protected double _shearArea1;
         protected double _shearArea2;
+
+        protected double _cmX0;
+        protected double _cmy0;
+
+        protected double _mux;
+        protected double _muy;
+
+        protected double _wx;
+        protected double _wy;
+
+        protected double _cmx;
+        protected double _cmy;
+        protected double _cmLT;
+
+        protected double _aLT;
+        protected double _bLT;
+        protected double _cLT;
+        protected double _dLT;
+        protected double _eLT;
+        protected double _cxx;
+        protected double _cxy;
+        protected double _cyx;
+        protected double _cyy;
+
+        protected double _epsilonx;
+
+        protected double _kxx;
+        protected double _kxy;
+        protected double _kyx;
+        protected double _kyy;
+
+        protected double _kwInteraction;
+        protected double _kywInteraction; 
+        protected double _kAlphaInteraction; 
+
 
         #endregion
 
@@ -212,17 +271,17 @@ namespace GPC.Checkers.Steel.Results
         /// <summary>
         /// Length for axial buckling about 1-principal axis check
         /// </summary>
-        public double LengthAxialBuckling1 => _lenghtAxialBuckling1;
+        public double LengthAxialBuckling1 => _lengthAxialBuckling1;
 
         /// <summary>
         /// Length for axial buckling about 2-principal axis check
         /// </summary>
-        public double LengthAxialBuckling2 => _lenghtAxialBuckling2;
+        public double LengthAxialBuckling2 => _lengthAxialBuckling2;
 
         /// <summary>
         /// Length for lateral torsional buckling check
         /// </summary>
-        public double LengthLaterlaTorsionalBuckling => _lenghtLateralTorsionalBuckling;
+        public double LengthLaterlaTorsionalBuckling => _lengthLateralTorsionalBuckling;
 
         /// <summary>
         /// Pure compression section class. <see cref="EN1993p11Checker.SectionClass"/>
@@ -242,12 +301,12 @@ namespace GPC.Checkers.Steel.Results
         /// <summary>
         /// Buckling curve about 1principal axis for axial buckling check (Chapter 8.7.6)
         /// </summary>
-        public EN1993p11Checker.EN1993p11Options.AxialBuckingCurves BuckingCurve1 => _bucklingCurve1;
+        public EN1993p11Checker.EN1993p11Options.AxialBuckingCurves BuckingCurve1 => _axialBuckingCurves1;
 
         /// <summary>
         /// Buckling curve about 2-principal axis for axial buckling check (Chapter 8.7.6)
         /// </summary>
-        public EN1993p11Checker.EN1993p11Options.AxialBuckingCurves BuckingCurve2 => _bucklingCurve2;
+        public EN1993p11Checker.EN1993p11Options.AxialBuckingCurves BuckingCurve2 => _axialBuckingCurves2;
 
         /// <summary>
         /// Lambda about 1-principal axis for axial buckling check
@@ -262,7 +321,7 @@ namespace GPC.Checkers.Steel.Results
         /// <summary>
         /// Lambda for lateral torsiona buckling check (Appendix 8.1)
         /// </summary>
-        public double LambdaLateralTorsionalBuckling => _lambdaLTBuckling;
+        public double LambdaLateralTorsionalBuckling => _lambda0LTBuckling;
                 
         /// <summary>
         /// Shear area about 1-principal axis (Chapter 8.2.1)
@@ -300,7 +359,8 @@ namespace GPC.Checkers.Steel.Results
 
         #region Public Method
 
-        internal void SetCapacity(double axialTension, double axialCompression, double axialBuck1, double axialBuck2, double shear1, double shear2, double bending1, double bending2, double latTors)
+        internal void SetCapacity(double axialTension, double axialCompression, double axialBuck1, double axialBuck2, 
+            double shear1, double shear2, double bending1, double bending2, double latTors)
         {
             _axialTensionRd = axialTension < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : axialTension;
             _axialCompressionRd = axialCompression < 0 ? throw new ArgumentException($"AxialCompressionRd cannot be lower than zero") : axialCompression;
@@ -313,8 +373,9 @@ namespace GPC.Checkers.Steel.Results
             _lateralTorsionalMomentRd = latTors < 0 ? throw new ArgumentException($"LateralTorsionalBucklingRd cannot be lower than zero") : latTors;
         }
 
-        internal void SetWorkingRatio(double axialTensionWR, double axialCompressionWR, double axialBuck1WR, double axialBuck2WR, double shear1WR, double shear2WR, double bending1WR, 
-                                        double bending2WR, double latTorsWR, double crossSectionInteraction, double bucklingInteraction1Axis, double bucklingInteraction2Axis)
+        internal void SetWorkingRatio(double axialTensionWR, double axialCompressionWR, double axialBuck1WR, double axialBuck2WR, 
+            double shear1WR, double shear2WR, double bending1WR, double bending2WR, double latTorsWR, double crossSectionInteraction, 
+            double bucklingInteraction1Axis, double bucklingInteraction2Axis, double flextureTorsionInteraction)
         {
             _axialTensionWorkingRatio = axialTensionWR < 0 ? throw new ArgumentException($"AxialTensionWorkingRatio cannot be lower than zero") : axialTensionWR;
             _axialCompressionWorkingRatio = axialCompressionWR < 0 ? throw new ArgumentException($"AxialCompressionWorkingRatio cannot be lower than zero") : axialCompressionWR;
@@ -328,19 +389,99 @@ namespace GPC.Checkers.Steel.Results
             _crossSectionInteraction = crossSectionInteraction < 0 ? throw new ArgumentException($"CrossSectionInteraction cannot be lower than zero") : crossSectionInteraction;
             _bucklingInteraction1Axis = bucklingInteraction1Axis < 0 ? throw new ArgumentException($"BucklingInteraction1Axis cannot be lower than zero") : bucklingInteraction1Axis;
             _bucklingInteraction2Axis = bucklingInteraction2Axis < 0 ? throw new ArgumentException($"BucklingInteraction2Axis cannot be lower than zero") : bucklingInteraction2Axis;
+            _flexuralTorsionalInteraction = flextureTorsionInteraction;
         }
 
-        internal void SetClasses(EN1993p11Checker.SectionClass axialSectionClass, EN1993p11Checker.SectionClass bendingSectionClass)
+        internal void SetClasses(EN1993p11Checker.SectionClass sectionClass, EN1993p11Checker.SectionClass axialSectionClass, EN1993p11Checker.SectionClass bendingSectionClass)
         {
             _axialCompressionClass = axialSectionClass;
             _bendingCompressionClass = bendingSectionClass;
+            _sectionClass = sectionClass;
         }
 
-        internal void SetBucklingLenght(double axialBuckling1, double axialBuckling2, double lenghtLateralTorsionalBuckling)
+        internal void SetBucklingLenght(double lengthAxialBuckling1, double lengthAxialBuckling2, double lengthLateralTorsionalBuckling, 
+            double lengthCriticalMoment1, double lengthCriticalMoment2)
         {
-            _lenghtAxialBuckling1 = axialBuckling1; 
-            _lenghtAxialBuckling2 = axialBuckling2;
-            _lenghtLateralTorsionalBuckling = lenghtLateralTorsionalBuckling;
+            _lengthAxialBuckling1 = lengthAxialBuckling1; 
+            _lengthAxialBuckling2 = lengthAxialBuckling2;
+            _lengthLateralTorsionalBuckling = lengthLateralTorsionalBuckling;
+            _lengthCriticalMoment1 = lengthCriticalMoment1;
+            _lengthCriticalMoment2 = lengthCriticalMoment2;
+        }
+
+        internal void SetResultsForReportAxialBuckling1Axis(double chi1, double phi1, double lambdaSigned1, double alpha1, double nCr1, 
+            EN1993p11Checker.EN1993p11Options.AxialBuckingCurves axialBuckingCurves1)
+        {
+            _chiAxialBuckling1 = chi1;
+            _phiAxialBuckling1 = phi1;
+            _lambdaSignedAxialBuckling1 = lambdaSigned1;
+            _alphaAxialBuckling1 = alpha1;
+            _nCr1 = nCr1;
+            _axialBuckingCurves1 = axialBuckingCurves1;
+        }
+
+        internal void SetResultsForReportAxialBuckling2Axis(double chi2, double phi2, double lambdaSigned2, double alpha2, double nCr2, 
+            EN1993p11Checker.EN1993p11Options.AxialBuckingCurves axialBuckingCurves2)
+        {
+            _chiAxialBuckling2 = chi2;
+            _phiAxialBuckling2 = phi2;
+            _lambdaSignedAxialBuckling2 = lambdaSigned2;
+            _alphaAxialBuckling2 = alpha2;
+            _nCr2 = nCr2;
+            _axialBuckingCurves2 = axialBuckingCurves2;
+        }
+
+        internal void SetResultsForReportLateralTorsionalBuckling(double chi, double phi, double lambdaSigned, double lambda0, double alpha, double mCr, 
+            EN1993p11Checker.EN1993p11Options.LateralTorsionalBuckingCurves LTBuckingCurves, double NcrT, double NcrFT)
+        {
+            _chiLTBuckling = chi;
+            _phiLTBuckling = phi;
+            _lambdaSignedLTBuckling = lambdaSigned;
+            _lambda0LTBuckling = lambda0;
+            _alphaLTBuckling = alpha;
+            _mCr = mCr;
+            _lateraltorsionalBucklingCurve = LTBuckingCurves;
+            _NcrTorsional = NcrT;
+            _NcrFlexuralTorsional = NcrFT;
+        }
+
+        internal void SetResultForReportInteractionCoefficient(double cmX0, double cmy0, double mux, double muy, double wx, double wy, double cmx, double cmy, double cmLT,
+            double aLT, double bLT, double cLT, double dLT, double eLT, double cxx, double cxy, double cyx, double cyy, double epsilonx,
+            double kxx, double kxy, double kyx,double kyy, double kwInteraction, double kywInteraction, double kAlphaInteraction)
+        {                                                   
+            _cmX0 = cmX0;                                   
+            _cmy0 = cmy0;
+
+            _mux = mux;
+            _muy = muy;
+
+            _wx = wx;
+            _wy = wy;
+
+            _cmx = cmx;
+            _cmy = cmy;
+            _cmLT = cmLT;
+
+            _aLT = aLT;
+            _bLT = bLT;
+            _cLT = cLT;
+            _dLT = dLT;
+            _eLT = eLT;
+            _cxx = cxx;
+            _cxy = cxy;
+            _cyx = cyx;
+            _cyy = cyy;
+
+            _epsilonx = epsilonx;
+
+            _kxx = kxx;
+            _kxy = kxy;
+            _kyx = kyx;
+            _kyy = kyy;
+
+            _kwInteraction = kwInteraction;
+            _kywInteraction = kywInteraction;
+            _kAlphaInteraction = kAlphaInteraction;
         }
 
         internal override double GetMaxWorkingRatio()
