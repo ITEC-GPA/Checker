@@ -91,7 +91,7 @@ namespace GPC.Checkers.Glasses.Checkers
             {
                 MonolithicGlassWrapper wrapper = new MonolithicGlassWrapper(_glassSurface, mg);
 
-                _femModel = BuildMonolithicGlass(femModelName, wrapper, mg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, _combinations);
+                _femModel = BuildMonolithicGlassModel(femModelName, wrapper, mg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, _combinations);
 
                 return true;
             }
@@ -99,7 +99,8 @@ namespace GPC.Checkers.Glasses.Checkers
             {
                 LaminatedGlassWrapper wrapper = new LaminatedGlassWrapper(_glassSurface, lg);
 
-                _femModel = BuildLaminatedGlass(femModelName, wrapper, lg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, _glassSurface.Prototype.LaminatedAnalysisType, _combinations);
+                _femModel = BuildLaminatedGlassModel(femModelName, wrapper, lg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, 
+                                                                                _glassSurface.Prototype.LaminatedAnalysisType, _combinations);
 
                 return true;
             }
@@ -141,7 +142,7 @@ namespace GPC.Checkers.Glasses.Checkers
             }
         }
 
-        private FemModelWrapper BuildMonolithicGlass(string femModelName, MonolithicGlassWrapper wrapper, MonolithicGlass mg, IEnumerable<IGlassLoad> loads, 
+        private FemModelWrapper BuildMonolithicGlassModel(string femModelName, MonolithicGlassWrapper wrapper, MonolithicGlass mg, IEnumerable<IGlassLoad> loads, 
             Prototype.AnalysisTypes analysisType, IEnumerable<Combination> combinations)
         {
             // Creo modello
@@ -213,7 +214,7 @@ namespace GPC.Checkers.Glasses.Checkers
         }
 
 
-        private FemModelWrapper BuildLaminatedGlass(string femModelName, LaminatedGlassWrapper wrapper,  LaminatedGlass lg, IEnumerable<IGlassLoad> loads, 
+        private FemModelWrapper BuildLaminatedGlassModel(string femModelName, LaminatedGlassWrapper wrapper,  LaminatedGlass lg, IEnumerable<IGlassLoad> loads, 
             Prototype.AnalysisTypes analysisType, Prototype.LaminatedAnalysisTypes laminatedAnalysisType, IEnumerable<Combination> combinations)
         {
             // Creo modello
