@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace GPC.Checkers.Steel.EuroCode
 {
+#if false
     public class Annex
     {
         public double Gm0 { get; set; }
@@ -24,9 +25,10 @@ namespace GPC.Checkers.Steel.EuroCode
             Beta = 0.75;
         }*/
 
-        public Annex() {
+        public Annex()
+        {
             Gm0 = 1.0;
-            Gm1= 1.1;
+            Gm1 = 1.1;
             Gm2 = 1.25;
 
             LambdaLT0 = 0.4;
@@ -36,10 +38,12 @@ namespace GPC.Checkers.Steel.EuroCode
 
     public class ItalyAnnex : Annex
     {
-        public ItalyAnnex() {
+        public ItalyAnnex()
+        {
             Gm0 = 1.05;
             Gm1 = 1.1;
             Gm2 = 1.25;
         }
-    }
+    } 
+#endif
 }

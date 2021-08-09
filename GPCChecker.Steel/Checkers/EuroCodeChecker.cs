@@ -13,24 +13,10 @@ namespace GPC.Checkers.Steel.Checkers
 {
     public abstract class EuroCodeChecker : Checker
     {
-        // VARIABILI EREDITATE DA CHECKER
-        // BeamChecker[]
-        // dentro beamchecker c'è : 
-        //                          ISteelSection[] 
-        //                          ResultBeamForces[]
-        //                          ResultStation[] 
-        //                          Checker.Options 
-        // BeamCheckerResults[]
-        // Standard
 
-        public EuroCodeChecker(EN1993p11BeamCheckerOptions[] beamCheckers, ILoadCase loadCase)
-            : base(beamCheckers, loadCase)
-        {
 
-        }
-
-        public EuroCodeChecker(EN1993p11BeamCheckerOptions[] beamCheckers, ILoadCase loadCase, StandardEN1990 standardEN1990)
-            : base(beamCheckers, loadCase, standardEN1990)
+        public EuroCodeChecker(BeamCheckerAttributes attributes, Options options, StandardEN1990 standardEN1990)
+            : base(attributes, options, standardEN1990)
         {
 
         }
@@ -39,6 +25,6 @@ namespace GPC.Checkers.Steel.Checkers
         {
 
         }
-    }
 
+    }
 }
