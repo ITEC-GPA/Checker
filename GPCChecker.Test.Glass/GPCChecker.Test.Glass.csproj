@@ -44,6 +44,9 @@
     <Reference Include="GMsh.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GMsh.Net.1.0.0.1\lib\net472\GMsh.Net.dll</HintPath>
     </Reference>
+    <Reference Include="GPCConverters, Version=1.0.1.3, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCConverters.1.0.1.3\lib\net472\GPCConverters.dll</HintPath>
+    </Reference>
     <Reference Include="GPCGeometry, Version=1.0.10.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCGeometry.1.0.10\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
@@ -67,6 +70,11 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\MSTest.TestFramework.2.2.4\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="SAP2000v1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=453d728ef24c6f5e, processorArchitecture=MSIL">
+      <HintPath>..\packages\CSI_SAP2000v23_x64.1.0.0\lib\SAP2000v1.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>False</Private>
     </Reference>
     <Reference Include="St7ApiWrapper, Version=1.0.25.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\St7ApiWrapper.1.0.25\lib\net472\St7ApiWrapper.dll</HintPath>

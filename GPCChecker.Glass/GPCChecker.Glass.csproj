@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -42,6 +42,9 @@
     <Reference Include="GMsh.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GMsh.Net.1.0.0.1\lib\net472\GMsh.Net.dll</HintPath>
     </Reference>
+    <Reference Include="GPCConverters, Version=1.0.1.3, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCConverters.1.0.1.3\lib\net472\GPCConverters.dll</HintPath>
+    </Reference>
     <Reference Include="GPCGeometry, Version=1.0.10.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCGeometry.1.0.10\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
@@ -50,6 +53,11 @@
     </Reference>
     <Reference Include="GPCUtilities, Version=1.0.31.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCUtilities.1.0.31\lib\net472\GPCUtilities.dll</HintPath>
+    </Reference>
+    <Reference Include="SAP2000v1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=453d728ef24c6f5e, processorArchitecture=MSIL">
+      <HintPath>..\packages\CSI_SAP2000v23_x64.1.0.0\lib\SAP2000v1.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>False</Private>
     </Reference>
     <Reference Include="St7ApiWrapper, Version=1.0.25.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\St7ApiWrapper.1.0.25\lib\net472\St7ApiWrapper.dll</HintPath>
