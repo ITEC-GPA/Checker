@@ -20,16 +20,11 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Serialization;
 
-namespace GPC.Checkers.Glasses.FemModel
+namespace GPC.Checkers.Glasses.FemModels
 {
     [Serializable]
     public class FemModelWrapper : Model.FEM.FemModel, ISerializable
     {
-        public enum Straus7SolverTypes
-        {
-            Linear,
-            NonLinear
-        }
 
         private readonly string _st7ServerIp;
         private string _saveFolderPath;

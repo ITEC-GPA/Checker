@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using GPC.Checkers.Glasses.Wrappers;
-using GPC.Checkers.Glasses.FemModel;
+using GPC.Checkers.Glasses.FemModels;
 using GPC.Model.Loads;
 using GPC.Model.Elements;
 using GPC.Model.FEM.Properties;

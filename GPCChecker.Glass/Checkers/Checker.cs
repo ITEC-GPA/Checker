@@ -1,5 +1,5 @@
 ﻿using GPC.Checkers.Glasses.Extensions;
-using GPC.Checkers.Glasses.FemModel;
+using GPC.Checkers.Glasses.FemModels;
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Loads;
