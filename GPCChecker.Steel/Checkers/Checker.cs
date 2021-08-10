@@ -90,7 +90,6 @@ namespace GPC.Checkers.Steel.Checkers
         #endregion
 
 
-
         #region Public abstract method
 
         public abstract void PerformCheck();

@@ -5,8 +5,9 @@ using System.IO;
 using System.Collections.Generic;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
-using GPC.Checkers.Glasses.FemModel;
+using GPC.Checkers.Glasses.FemModels;
 using GPC.Model.FEM.Properties;
+using GPC.Checkers.Glasses.Converters;
 using GPC.Model.FEM;
 using GPC.Model.Materials;
 using GPC.Model.Loads;
@@ -36,8 +37,10 @@ namespace GlassTests
             GlassMaterial gm = new GlassMaterialAstm("", 1, 0.2, 3, 4, 5, 6, 0.008, 0.008, 9);
             MonolithicGlassProperty pp = new MonolithicGlassProperty(1,2, gm.GetIsotropicFemMaterial(), "mgp");
 
-            var meshOptions = new Mesh.GenerateOptions();
-            meshOptions.MeshSize = 10;
+            var meshOptions = new Mesh.GenerateOptions
+            {
+                MeshSize = 10
+            };
 
             PointLoad p1 = new PointLoad(1, 2, 3, 4, 5, 6, new Point3d(35, 35, 0), new LoadCase("LC1", 2, 10, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad));
             LineLoad l1 = new LineLoad(1, 2, 3, 4, 5, 6, new Line3d(new Point3d(35, 150, 0), new Point3d(75, 100, 0)), new LoadCase("LC2", 2, 10, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad));
@@ -48,7 +51,10 @@ namespace GlassTests
             fmw.AddProperty(pp);
             fmw.AddShape(s1, pp.Name, meshOptions, new List<Load>() { p1, l1 }, new List<GeometryRestrain>() { pr, lr });
 
-            fmw.SaveFemModelToSt7(base.GetOutputFolder());
+
+            FemModelConverter converter = new FemModelConverter();
+            converter.FromModelToStraus7(fmw, base.GetOutputFolder(), fmw.Name); // TODO: rimuovere e passare a solutore interno
+
         }
 
 
@@ -65,7 +71,7 @@ namespace GlassTests
                 MeshSize = 10
             };
 
-            GPC.Geometry.Meshes.Mesh.Generate(new List<Shape> { s1 }, op, out List<Mesh> mesh, out _);
+            Mesh.Generate(new List<Shape> { s1 }, op, out List<Mesh> mesh, out _);
 
             Mesh mesh2 = mesh.First().ExtrudeFaces(new Vector3d(0, 0, 50));
             mesh.First().Move(0, 0, 50);

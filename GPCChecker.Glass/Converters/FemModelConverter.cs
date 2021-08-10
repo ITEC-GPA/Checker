@@ -24,9 +24,6 @@ namespace GPC.Checkers.Glasses.Converters
             NonLinear
         }
 
-        private Straus7SolverTypes _st7SolverType;
-        private bool _st7NonLinearGeometryActive;
-
         /// <summary>
         /// Map between <see cref="Stage"/> id and straus7 stage ID
         /// </summary>
@@ -61,6 +58,7 @@ namespace GPC.Checkers.Glasses.Converters
 
             // Estensione  
 
+            femModel.SetSt7FilePath(base._outputFilePath);
 
             // Setup solver
             // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.

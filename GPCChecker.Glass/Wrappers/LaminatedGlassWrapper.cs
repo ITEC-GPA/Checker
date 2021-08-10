@@ -860,7 +860,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             LaminatedGlass glass = (LaminatedGlass)Glass;
 
 
-            FemModel.FemModelWrapper femModel = new FemModel.FemModelWrapper("EETNumerical")
+            FemModels.FemModelWrapper femModel = new FemModels.FemModelWrapper("EETNumerical")
             {
                 AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear
             };
@@ -890,7 +890,10 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             femModel.AddCombinations(combinations);
 
-            femModel.SaveFemModelToSt7(System.IO.Path.GetTempPath()); // TODO: rimuovere e passare a solutore interno
+            Converters.FemModelConverter converter = new Converters.FemModelConverter();
+            converter.FromModelToStraus7(femModel, System.IO.Path.GetTempPath(), femModel.Name); // TODO: rimuovere e passare a solutore interno
+
+            //femModel.SaveFemModelToSt7(System.IO.Path.GetTempPath()); // TODO: rimuovere e passare a solutore interno
 
             femModel.Solve();
 

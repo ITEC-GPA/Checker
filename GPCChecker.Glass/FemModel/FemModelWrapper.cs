@@ -27,7 +27,7 @@ namespace GPC.Checkers.Glasses.FemModels
     {
 
         private readonly string _st7ServerIp;
-        private string _saveFolderPath;
+
         private string _st7FilePath;
         private string _st7ResultFilePath;
         private Prototype.SolverTypes _solverType;
@@ -103,6 +103,7 @@ namespace GPC.Checkers.Glasses.FemModels
         public FemModelWrapper() 
             : this(string.Empty)
         {
+
         }
 
 
@@ -367,6 +368,11 @@ namespace GPC.Checkers.Glasses.FemModels
 
 
         #region STRAUS7
+
+        public void SetSt7FilePath(string filePath)
+        {
+            _st7FilePath = filePath;
+        }
 
         #region STRAUS7 - PRIVATE METHODS
 
