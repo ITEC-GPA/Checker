@@ -76,6 +76,7 @@
     <Compile Include="Checkers\AstmChecker.cs" />
     <Compile Include="Checkers\Checker.cs" />
     <Compile Include="Checkers\EN16612Checker.cs" />
+    <Compile Include="Converters\FemModelConverter.cs" />
     <Compile Include="Extensions\CombinationExtension.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="FemModel\FemModelWrapper.cs" />

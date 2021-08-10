@@ -663,28 +663,13 @@ namespace GPC.Checkers.Glasses.Checkers
 
             if (_glassSurface.Prototype.SolverType == Prototype.SolverTypes.Straus7)
             {
-                // STRAUS7
-                GlassWrapper glassWrapper;
-                if (_glassSurface.Prototype.Glass is MonolithicGlass mg)
+                Converters.FemModelConverter converter = new Converters.FemModelConverter();
+
+                if (!converter.FromModelToStraus7(_femModel, _folderPath, _femModel.Name))
                 {
-                    _femModel.SaveFemModelToSt7(_folderPath); // Esporta modello in st7
+                    throw new St7ApiWrapper.Straus7Exception("Unable to export");
                 }
-                else if (_glassSurface.Prototype.Glass is LaminatedGlass lg)
-                {
-                    _femModel.SaveFemModelToSt7(_folderPath);
-                }
-                else if (_glassSurface.Prototype.Glass is DoubleInsulatingGlass dgu)
-                {
-                    glassWrapper = new DoubleInsulatingGlassWrapper(_glassSurface, dgu);
-                }
-                else if (_glassSurface.Prototype.Glass is TripleInsulatingGlass tgu)
-                {
-                    glassWrapper = new TripleInsulatingGlassWrapper(_glassSurface, tgu);
-                }
-                else
-                {
-                    throw new NotSupportedException();
-                }
+
             }
 
             _femModel.Solve(); // Lancia solver e legge risultati
