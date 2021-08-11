@@ -96,17 +96,18 @@ namespace GlassTests
             gs1.AddLoad(loadLl);
 
             gs1.AddRestrains(s1.Fill.Explode().Select(i => 
-                            new LineRestrain(i, new FreedomCase("fc1"), CoordinateSystem.Global, new List<DofRestrain> { new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ) }))
+                            new LineRestrain(i, new FreedomCase("fc1"), CoordinateSystem.Global, 
+                            new List<DofRestrain> { new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ) }))
                             .Cast<GeometryRestrain>().ToList());
 
             gs1.AddRestrain(new PointRestrain(s1.Fill[0], new FreedomCase("fc1"), new List<DofRestrain> { 
-                                                                                       new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ), 
-                                                                                       new DofRestrain(GPC.Model.FEM.Solver.DOF.DX), 
-                                                                                       new DofRestrain(GPC.Model.FEM.Solver.DOF.DY)} ));
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ), 
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DX), 
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DY)} ));
 
             gs1.AddRestrain(new PointRestrain(s1.Fill[1], new FreedomCase("fc1"), new List<DofRestrain> {
-                                                                                       new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ),
-                                                                                       new DofRestrain(GPC.Model.FEM.Solver.DOF.DY)}));
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ),
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DY)}));
 
 
             // Combo

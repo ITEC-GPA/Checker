@@ -326,12 +326,12 @@ namespace GPC.Checkers.Glasses.Converters
         {
             if (stagedAnalysis)
             {
+                aw.SetNLAStagedAnalysis(mid, stagedAnalysis);
                 foreach (var stageId in _stageMap)
                 {
                     aw.EnableNLAStage(mid, stageId.Value);
                 }
             }
-
             return aw.SetSolverNonlinearMaterial(mid, nonLinearMaterial) 
                    && aw.SetSolverNonlinearGeometry(mid, nonLinearGeometry) 
                    && aw.SetNLAStagedAnalysis(mid, stagedAnalysis);
