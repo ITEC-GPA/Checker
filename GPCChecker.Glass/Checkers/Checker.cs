@@ -214,7 +214,8 @@ namespace GPC.Checkers.Glasses.Checkers
         }
 
 
-        private FemModelWrapper BuildLaminatedGlassModel(string femModelName, LaminatedGlassWrapper wrapper,  LaminatedGlass lg, IEnumerable<IGlassLoad> loads, 
+        private FemModelWrapper BuildLaminatedGlassModel(string femModelName, LaminatedGlassWrapper wrapper,  
+                                                        LaminatedGlass lg, IEnumerable<IGlassLoad> loads, 
             Prototype.AnalysisTypes analysisType, Prototype.LaminatedAnalysisTypes laminatedAnalysisType, IEnumerable<Combination> combinations)
         {
             // Creo modello

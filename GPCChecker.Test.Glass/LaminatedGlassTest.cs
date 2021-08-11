@@ -58,7 +58,10 @@ namespace GlassTests
 
             // Load
             LoadCase lcSw = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
-            ClimateLoadCase lcCSD = new ClimateLoadCase("Climate", GPC.Model.LoadCases.ClimateLoadCase.Seasons.Summer, GPC.Model.LoadCases.ClimateLoadCase.ClimateTypes.DeltaH, 10, 20, EN16612LoadDurations.CLIMATESUMMER, 40);
+            ClimateLoadCase lcCSD = new ClimateLoadCase("Climate", GPC.Model.LoadCases.ClimateLoadCase.Seasons.Summer, 
+                                                                   GPC.Model.LoadCases.ClimateLoadCase.ClimateTypes.DeltaH, 
+                                                                   10, 20, EN16612LoadDurations.CLIMATESUMMER, 40);
+            
             LoadCase lcWp = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
             LoadCase lcLl = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
 
@@ -67,7 +70,9 @@ namespace GlassTests
             NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lcLl);
             SelfWeightLoad swl = new SelfWeightLoad(lcSw, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
-            LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(40, 450, 0), new Point3d(150, 200, 0)), lcLl, CoordinateSystem.Global);
+            LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, 
+                                        model.Options.GetGravityVector() * 0, 
+                                        new Line3d(new Point3d(40, 450, 0), new Point3d(150, 200, 0)), lcLl, CoordinateSystem.Global);
 
             // Combinazioni
             Combination combo1 = new Combination("Cmb1");
@@ -97,7 +102,19 @@ namespace GlassTests
             gs1.AddLoad(lll);
             gs1.AddLoad(swl);
 
-            gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+            gs1.AddRestrains(s1.Fill.Explode().Select(i =>
+                                        new LineRestrain(i, new FreedomCase("fc1"), CoordinateSystem.Global, 
+                                        new List<DofRestrain> { new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ) }))
+                                        .Cast<GeometryRestrain>().ToList());
+
+            gs1.AddRestrain(new PointRestrain(s1.Fill[0], new FreedomCase("fc1"), new List<DofRestrain> {
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ),
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DX),
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DY)}));
+
+            gs1.AddRestrain(new PointRestrain(s1.Fill[1], new FreedomCase("fc1"), new List<DofRestrain> {
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ),
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DY)}));
 
 
             model.AddCombination(combo1);
@@ -487,7 +504,18 @@ namespace GlassTests
             gs1.AddLoad(lll);
             gs1.AddLoad(swl);
 
-            gs1.AddRestrains(s1.Fill.Explode().Select(i => (GeometryRestrain)LineRestrain.GetAllFixed(i, new FreedomCase("fc1"), CoordinateSystem.Global)).ToList());
+            gs1.AddRestrains(s1.Fill.Explode().Select(i =>
+                            new LineRestrain(i, new FreedomCase("fc1"), CoordinateSystem.Global, new List<DofRestrain> { new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ) }))
+                            .Cast<GeometryRestrain>().ToList());
+
+            gs1.AddRestrain(new PointRestrain(s1.Fill[0], new FreedomCase("fc1"), new List<DofRestrain> {
+                                                                                       new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ),
+                                                                                       new DofRestrain(GPC.Model.FEM.Solver.DOF.DX),
+                                                                                       new DofRestrain(GPC.Model.FEM.Solver.DOF.DY)}));
+
+            gs1.AddRestrain(new PointRestrain(s1.Fill[1], new FreedomCase("fc1"), new List<DofRestrain> {
+                                                                                       new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ),
+                                                                                       new DofRestrain(GPC.Model.FEM.Solver.DOF.DY)}));
 
 
             p1.AddCombination(combo1);

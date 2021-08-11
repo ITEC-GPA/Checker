@@ -128,7 +128,7 @@ namespace GPC.Checkers.Glasses.Converters
             
         }
 
-        protected bool ConvertModelToStraus7SetBrickProperties(ISt7ApiService aw, int mid, FemModelWrapper femModel)
+        protected override bool ConvertModelToStraus7SetBrickProperties(ISt7ApiService aw, int mid, FemModel femModel)
         {
 
             int _bufferId = 0;
@@ -161,8 +161,7 @@ namespace GPC.Checkers.Glasses.Converters
 
                         aw.SetBrickIsotropicMaterial(mid, st7PropId, doubles);
 
-                        if (!ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction)
-                            aw.SetBrickAddBubbleFunction(mid, st7PropId, false);
+                        aw.SetBrickAddBubbleFunction(mid, st7PropId, ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction);
                     }
                     else if (inp.Material is Model.FEM.Materials.OrthotropicFemMaterial orto)
                     {
@@ -171,8 +170,7 @@ namespace GPC.Checkers.Glasses.Converters
                         aw.SetBrickOrthotropicMaterial(mid, st7PropId, new[] { orto.E1, orto.E2, orto.E3, orto.G12, orto.G23, orto.G31, orto.Ni12, orto.Ni23, orto.Ni31,
                                                                                orto.Density, orto.Alpha1, orto.Alpha2, orto.Alpha3, 0, 0, 0, 0, 0, 0 });
 
-                        if (!ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction)
-                            aw.SetBrickAddBubbleFunction(mid, st7PropId, false);
+                        aw.SetBrickAddBubbleFunction(mid, st7PropId, ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction);
                     }
                     else
                         throw new NotImplementedException();
