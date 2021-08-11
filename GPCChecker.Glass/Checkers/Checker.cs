@@ -733,29 +733,26 @@ namespace GPC.Checkers.Glasses.Checkers
         /// <inheritdoc cref="Model.FEM.FemModel.AddModelAcceleration(string)"/>
         private void ModelGravitySetUp(FemModelWrapper femModel, Loads.SelfWeightLoad load)
         {
-            var accelerationModel = femModel.AddModelAcceleration(load.LoadCase.Name);
+            var gravityAttribute = femModel.AddModelGravityAttribute(load.LoadCase.Name);
 
-            accelerationModel.CoordinateSystem = Geometry.CoordinateSystem.Global;
-
-            int gravityDirection = Math.Sign(load.GravityVector * Geometry.CoordinateSystem.Global.V1);
-
-            switch (_options.GravityAxis)
+            if (load.GravityVector == GPC.Geometry.CoordinateSystem.Global.V1)
             {
-                case ModelOptions.GravityAxes.X:
-                    accelerationModel.A1 = gravityDirection * load.Acceleration;
-                    break;
-
-                case ModelOptions.GravityAxes.Y:
-                    accelerationModel.A2 = gravityDirection * load.Acceleration;
-                    break;
-
-                case ModelOptions.GravityAxes.Z:
-                    accelerationModel.A3 = gravityDirection * load.Acceleration;
-                    break;
-
-                default:
-                    throw new ArgumentException();
+                gravityAttribute.SetGravityX(load.Acceleration);
             }
+            else if (load.GravityVector == GPC.Geometry.CoordinateSystem.Global.V2)
+            {
+                gravityAttribute.SetGravityY(load.Acceleration);
+            }
+            else if (load.GravityVector == GPC.Geometry.CoordinateSystem.Global.V3)
+            {
+                gravityAttribute.SetGravityZ(load.Acceleration);
+
+            }
+            else
+            {
+                throw new ArgumentException();
+            }
+
         }
 
 
