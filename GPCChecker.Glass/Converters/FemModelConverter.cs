@@ -15,7 +15,7 @@ using St7ApiWrapper;
 namespace GPC.Checkers.Glasses.Converters
 {
 
-    public class FemModelConverter : GPC.Converters.FemModelConverter
+    public class FemModelConverter : GPC.Converters.Straus7.FemModelConverter
     {
 
         public enum Straus7SolverTypes
@@ -27,84 +27,105 @@ namespace GPC.Checkers.Glasses.Converters
         /// <summary>
         /// Map between <see cref="Stage"/> id and straus7 stage ID
         /// </summary>
-        private readonly Dictionary<int, int> _st7StageMap;
+        private readonly Dictionary<int, int> _stageMap;
 
         /// <summary>
         /// Map between <see cref="FemModel._combinations"/> id and Stage id - Stage increment id;
         /// </summary>
-        private readonly Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)> _st7NLACombinationMap;
+        private readonly Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)> _nLACombinationMap;
 
 
         /// <summary>
         /// Map between <see cref="FemModel._combinations"/> id and St7ComboId in the Linear loadcase combination table  ;
         /// </summary>
-        private readonly Dictionary<string, int> _st7LSACombinationMap;
+        private readonly Dictionary<string, int> _lSACombinationMap;
+
+
+        public Dictionary<int, int> NodeMap => _nodeMap;
+
+        public Dictionary<int, int> PlateMap => _plateMap;
+
+        public Dictionary<int, int> BrickMap => _brickMap;
+
+        public Dictionary<string, int> LSACombinationMap => _lSACombinationMap;
+
+        public Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)> NSACombinationMap => _nLACombinationMap;
+
+        public string OutputFilePath => _outputFilePath;
+
+
 
 
         public FemModelConverter() : base()
         {
-            _st7StageMap = new Dictionary<int, int>();
-            _st7LSACombinationMap = new Dictionary<string, int>();
-            _st7NLACombinationMap = new Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>();
+            _stageMap = new Dictionary<int, int>();
+            _lSACombinationMap = new Dictionary<string, int>();
+            _nLACombinationMap = new Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>();
 
         }
 
 
-        protected bool ConvertModelToStraus7(string straus7ModelPath, string fileName, FemModelWrapper femModel, ISt7ApiService aw, int mid)
+        protected override bool ConvertModelToStraus7(string straus7ModelPath, string fileName, FemModel femModel, ISt7ApiService aw, int mid)
         {
             
             if (!base.ConvertModelToStraus7(straus7ModelPath, fileName, femModel, aw, mid))
                 return false;
 
-            // Estensione  
 
-            femModel.SetSt7FilePath(base._outputFilePath);
-
-            // Setup solver
-            // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
-            aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1);
-
-
-            if (femModel.GetStages().Length > 0)
+            if (femModel is FemModelWrapper femModelWrapper)
             {
-                if (!ConvertModelToStraus7SetStages(aw, mid, femModel)) // crea gli stages, senza combo. Non spegne elementi
-                    return false;
+                // Estensione  
 
-                if (!ConvertModelToStraus7SetCombination(aw, mid, femModel)) 
-                    return false;
-                
+                // Setup solver
+                // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
+                aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1);
+
+
+                if (femModel.GetStages().Length > 0)
+                {
+                    if (!ConvertModelToStraus7SetStages(aw, mid, femModelWrapper)) // crea gli stages, senza combo. Non spegne elementi
+                        return false;
+
+                    if (!ConvertModelToStraus7SetCombination(aw, mid, femModelWrapper))
+                        return false;
+
+                }
+
+                switch (ConvertModelToStraus7SetSolverType(femModelWrapper, out bool nonLinearGeometry))
+                {
+                    case Straus7SolverTypes.Linear:
+
+                        if (!ConvertModelToStraus7SetLinearSolverSetup(aw, mid, femModelWrapper))
+                            return false;
+
+                        if (!ConvertModelToStraus7SetSetLinearLoadCaseCombination(aw, mid, femModelWrapper))
+                            return false;
+
+                        femModelWrapper.St7NonLinearGeometryActive = nonLinearGeometry;
+                        femModelWrapper.St7SolverType = Straus7SolverTypes.Linear;
+
+                        break;
+
+                    case Straus7SolverTypes.NonLinear:
+
+                        if (!ConvertModelToStraus7SetNonLinearSolverSetup(aw, mid, false, nonLinearGeometry, false))
+                            return false;
+
+                        femModelWrapper.St7NonLinearGeometryActive = nonLinearGeometry;
+                        femModelWrapper.St7SolverType = Straus7SolverTypes.NonLinear;
+
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                return true;
             }
+            else
+                return false;
 
-            switch (ConvertModelToStraus7SetSolverType(femModel, out bool nonLinearGeometry))
-            {
-                case Straus7SolverTypes.Linear:
-
-                    if (!ConvertModelToStraus7SetLinearSolverSetup(aw, mid, femModel))
-                        return false;
-
-                    if (!ConvertModelToStraus7SetSetLinearLoadCaseCombination(aw, mid, femModel))
-                        return false;
-
-                    femModel.St7NonLinearGeometryActive = nonLinearGeometry;
-                    femModel.St7SolverType = Straus7SolverTypes.Linear;
-
-                    break;
-
-                case Straus7SolverTypes.NonLinear:
-
-                    if (!ConvertModelToStraus7SetNonLinearSolverSetup(aw, mid, false, nonLinearGeometry, false))
-                        return false;
-
-                    femModel.St7NonLinearGeometryActive = nonLinearGeometry;
-                    femModel.St7SolverType = Straus7SolverTypes.NonLinear;
-
-                    break;
-
-                default:
-                    throw new NotSupportedException();
-            }
-
-            return true;
+            
         }
 
         protected bool ConvertModelToStraus7SetBrickProperties(ISt7ApiService aw, int mid, FemModelWrapper femModel)
@@ -161,7 +182,7 @@ namespace GPC.Checkers.Glasses.Converters
                     throw new NotSupportedException($"Property type: {property} not supported");
                 }
 
-                _st7BrickPropertyMap.Add(propertyName, st7PropId);
+                _brickPropertyMap.Add(propertyName, st7PropId);
             }
 
             return true;
@@ -169,17 +190,17 @@ namespace GPC.Checkers.Glasses.Converters
 
 
         /// <summary>
-        /// Add each stage in <see cref="FemModel._stages"/> to st7 and update <see cref="_st7StageMap"/>
+        /// Add each stage in <see cref="FemModel._stages"/> to st7 and update <see cref="_stageMap"/>
         /// </summary>
         /// <remarks>This method does not turn off elements (groups for straus) at certain stage</remarks>
         protected virtual bool ConvertModelToStraus7SetStages(ISt7ApiService aw, int mid, FemModelWrapper femModel)
         {
-            int st7StageId = _st7StageMap.Values.DefaultIfEmpty(0).Max();
+            int st7StageId = _stageMap.Values.DefaultIfEmpty(0).Max();
 
             foreach (Model.FEM.Stage stage in femModel.GetStages())
             {
                 aw.AddStage(mid, stage.Name, new int[] { stage.Morph ? St7ApiConst.btTrue : St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
-                _st7StageMap.Add(stage.Id, ++st7StageId);
+                _stageMap.Add(stage.Id, ++st7StageId);
 
                 using (var stagePropertyEnum = femModel.GetStagePropertyEnumerator(stage.Id))
                 {
@@ -193,7 +214,7 @@ namespace GPC.Checkers.Glasses.Converters
 
                             if (brick.Property.Name != propertyOverload.Name)
                             {
-                                aw.St7SetElementPropertySwitch(mid, St7ApiConst.tyBRICK, _st7BrickMap[current.Key.Id], _st7BrickPropertyMap[propertyOverload.Name], _st7StageMap[stage.Id]);
+                                aw.St7SetElementPropertySwitch(mid, St7ApiConst.tyBRICK, _brickMap[current.Key.Id], _brickPropertyMap[propertyOverload.Name], _stageMap[stage.Id]);
                             }
                         }
                         else if (current.Key is Plate plate)
@@ -202,7 +223,7 @@ namespace GPC.Checkers.Glasses.Converters
 
                             if (plate.Property.Name != propertyOverload.Name)
                             {
-                                aw.St7SetElementPropertySwitch(mid, St7ApiConst.tyPLATE, _st7PlateMap[current.Key.Id], _st7PlatePropertyMap[propertyOverload.Name], _st7StageMap[stage.Id]);
+                                aw.St7SetElementPropertySwitch(mid, St7ApiConst.tyPLATE, _plateMap[current.Key.Id], _platePropertyMap[propertyOverload.Name], _stageMap[stage.Id]);
                             }
                         }
                         else
@@ -219,28 +240,28 @@ namespace GPC.Checkers.Glasses.Converters
 
 
         /// <summary>
-        /// This method set also the map <see cref="_st7NLACombinationMap"/>
+        /// This method set also the map <see cref="_nLACombinationMap"/>
         /// </summary>
         protected virtual bool ConvertModelToStraus7SetCombination(ISt7ApiService aw, int mid, FemModelWrapper femModel)
         {
 
             int progressiveID = 1;
-            foreach (Model.FEM.Stage stage in femModel.GetStages().OrderBy(i => _st7StageMap[i.Id]))
+            foreach (Model.FEM.Stage stage in femModel.GetStages().OrderBy(i => _stageMap[i.Id]))
             {
                 int comboIndex = 1;
 
-                if (_st7StageMap.ContainsKey(stage.Id))
+                if (_stageMap.ContainsKey(stage.Id))
                 {
                     foreach (var combo in femModel.GetStageCombinations(stage.Id))
                     {
-                        aw.AddNLAIncrement(mid, _st7StageMap[stage.Id], combo.Name);
+                        aw.AddNLAIncrement(mid, _stageMap[stage.Id], combo.Name);
 
 
                         foreach (var (loadcase, coefficient) in combo.GetLoadCaseCoefficientsTuple())
-                            aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stage.Id], comboIndex, _st7LoadCaseMap[loadcase.Name], coefficient);
+                            aw.SetNLALoadIncrementFactor(mid, _stageMap[stage.Id], comboIndex, _loadCaseMap[loadcase.Name], coefficient);
 
 
-                        _st7NLACombinationMap[combo.Name] = (_st7StageMap[stage.Id], comboIndex, progressiveID);
+                        _nLACombinationMap[combo.Name] = (_stageMap[stage.Id], comboIndex, progressiveID);
 
 
                         comboIndex++;
@@ -286,7 +307,7 @@ namespace GPC.Checkers.Glasses.Converters
         {
             foreach (var lcName in femModel.GetLoadCaseNames())
             {
-                aw.EnableLSALoadCase(mid, _st7LoadCaseMap[lcName], 1);
+                aw.EnableLSALoadCase(mid, _loadCaseMap[lcName], 1);
             }
 
             return true;
@@ -294,7 +315,7 @@ namespace GPC.Checkers.Glasses.Converters
 
 
         /// <summary>
-        /// Set the non linear options and if, <paramref name="stagedAnalysis"/> is <see langword="True"/>, enable each stage in the <see cref="_st7StageMap"/>.
+        /// Set the non linear options and if, <paramref name="stagedAnalysis"/> is <see langword="True"/>, enable each stage in the <see cref="_stageMap"/>.
         /// </summary>
         /// <param name="aw"></param>
         /// <param name="mid"></param>
@@ -307,7 +328,7 @@ namespace GPC.Checkers.Glasses.Converters
         {
             if (stagedAnalysis)
             {
-                foreach (var stageId in _st7StageMap)
+                foreach (var stageId in _stageMap)
                 {
                     aw.EnableNLAStage(mid, stageId.Value);
                 }
@@ -338,7 +359,7 @@ namespace GPC.Checkers.Glasses.Converters
                     {
                         if (femModel.LoadCaseExist(loadcase.Name))
                         {
-                            if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _st7LoadCaseMap[loadcase.Name], 1, combo[loadcase]))
+                            if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _loadCaseMap[loadcase.Name], 1, combo[loadcase]))
                             {
                                 added = true;
                             }
@@ -347,7 +368,7 @@ namespace GPC.Checkers.Glasses.Converters
 
                     if (added)
                     {
-                        _st7LSACombinationMap.Add(combo.Name, st7CId);
+                        _lSACombinationMap.Add(combo.Name, st7CId);
                     }
                     else
                     {
@@ -367,8 +388,8 @@ namespace GPC.Checkers.Glasses.Converters
         /// </summary>
         /// <param name="aw"></param>
         /// <param name="mid"></param>
-        /// <remarks>Lenght of <see cref="_st7StageMap"/> must be the same of _st7LoadCaseMap lenght </remarks>
-        /// <exception cref="ArgumentException">If lenght of <see cref="_st7StageMap"/> is different than _st7LoadCaseMap</exception>
+        /// <remarks>Lenght of <see cref="_stageMap"/> must be the same of _st7LoadCaseMap lenght </remarks>
+        /// <exception cref="ArgumentException">If lenght of <see cref="_stageMap"/> is different than _st7LoadCaseMap</exception>
         private void ConvertModelToStraus7SetNonLinearSolverSetupForLinearAnalysis(ISt7ApiService aw, int mid)
         {
             aw.SetSolverNonlinearMaterial(mid, false);
@@ -376,16 +397,16 @@ namespace GPC.Checkers.Glasses.Converters
 
             aw.SetNLAStagedAnalysis(mid, true);
 
-            if (_st7StageMap.Keys.Count != _st7LoadCaseMap.Keys.Count)
+            if (_stageMap.Keys.Count != _loadCaseMap.Keys.Count)
                 throw new ArgumentException();
 
-            var femStageIds = _st7StageMap.Keys.ToArray();
-            var loadCases = _st7LoadCaseMap.Keys.ToArray();
+            var femStageIds = _stageMap.Keys.ToArray();
+            var loadCases = _loadCaseMap.Keys.ToArray();
 
-            for (int i = 0; i < _st7LoadCaseMap.Count; i++)
+            for (int i = 0; i < _loadCaseMap.Count; i++)
             {
-                aw.AddNLAIncrement(mid, _st7StageMap[femStageIds[i]], loadCases[i]);
-                aw.SetNLALoadIncrementFactor(mid, _st7StageMap[femStageIds[i]], 1, _st7LoadCaseMap[loadCases[i]], 1);
+                aw.AddNLAIncrement(mid, _stageMap[femStageIds[i]], loadCases[i]);
+                aw.SetNLALoadIncrementFactor(mid, _stageMap[femStageIds[i]], 1, _loadCaseMap[loadCases[i]], 1);
             }
         }
     }

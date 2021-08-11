@@ -42,7 +42,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
-                                                                    Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                                                    Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                                                     new Prototype.LaminatedEqThicknessParameters());
             p1.MeshOptions.MeshSize = 40;
 
@@ -117,7 +117,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                                                Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, 
+                                                                Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, 
                                                                 Prototype.LaminatedAnalysisTypes.MultiElement, new Prototype.LaminatedEqThicknessParameters());
             p1.MeshOptions.MeshSize = 40;
 
@@ -161,10 +161,10 @@ namespace GlassTests
             model.PerformChecks();
 
 
-#if DEBUG
-            model.GlassSurfaces.First().Checker.FemModel.ExportSt7PlateUserDefinedCustomResultFile(base.GetOutputFolder(), base.GetTestName() + "_PlateContour", cmb1);
-            model.GlassSurfaces.First().Checker.FemModel.ExportSt7NodeUserDefinedCustomResultFile(base.GetFilePathInOutputFolder(base.GetTestName() + "_NodeContour", "txt"), cmb1);
-#endif
+//#if DEBUG
+//            model.GlassSurfaces.First().Checker.FemModel.ExportSt7PlateUserDefinedCustomResultFile(base.GetOutputFolder(), base.GetTestName() + "_PlateContour", cmb1);
+//            model.GlassSurfaces.First().Checker.FemModel.ExportSt7NodeUserDefinedCustomResultFile(base.GetFilePathInOutputFolder(base.GetTestName() + "_NodeContour", "txt"), cmb1);
+//#endif
 
             var gs1WorstDisplacementsCmb1 = GetWorstDisplacementResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb1));
             var gs1WorstStressesCmb1 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(cmb1));
@@ -201,7 +201,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
-                                                Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                                Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                                 new Prototype.LaminatedEqThicknessParameters());
 
             p1.MeshOptions.MeshSize = 40;
@@ -276,7 +276,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
-                                                                    Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                                                    Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                                                     new Prototype.LaminatedEqThicknessParameters());
             p1.MeshOptions.MeshSize = 40;
 
@@ -343,7 +343,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
-                                                                    Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                                                    Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                                                     new Prototype.LaminatedEqThicknessParameters());
             p1.MeshOptions.MeshSize = 40;
 
@@ -411,7 +411,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
-                                                                    Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                                                    Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                                                     new Prototype.LaminatedEqThicknessParameters());
             p1.MeshOptions.MeshSize = 40;
 

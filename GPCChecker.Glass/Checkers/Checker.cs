@@ -661,15 +661,15 @@ namespace GPC.Checkers.Glasses.Checkers
             if (_femModel == null)
                 throw new ApplicationException($"FemModel is null. {nameof(FemModelSetup)} should be called before calling this method");
 
-            if (_glassSurface.Prototype.SolverType == Prototype.SolverTypes.Straus7)
-            {
-                Converters.FemModelConverter converter = new Converters.FemModelConverter();
+            _femModel.SetSolver(_glassSurface.Prototype.SolverType);
 
-                if (!converter.FromModelToStraus7(_femModel, _folderPath, _femModel.Name))
+
+            if (_glassSurface.Prototype.SolverType == Prototype.Solvers.Straus7)
+            {
+                if (!_femModel.ExportToSt7(_folderPath, _femModel.Name))
                 {
                     throw new St7ApiWrapper.Straus7Exception("Unable to export");
                 }
-
             }
 
             _femModel.Solve(); // Lancia solver e legge risultati

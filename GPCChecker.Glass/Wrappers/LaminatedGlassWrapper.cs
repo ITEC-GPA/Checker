@@ -890,12 +890,13 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             femModel.AddCombinations(combinations);
 
-            Converters.FemModelConverter converter = new Converters.FemModelConverter();
-            converter.FromModelToStraus7(femModel, System.IO.Path.GetTempPath(), femModel.Name); // TODO: rimuovere e passare a solutore interno
 
             //femModel.SaveFemModelToSt7(System.IO.Path.GetTempPath()); // TODO: rimuovere e passare a solutore interno
 
+            femModel.ExportToSt7(System.IO.Path.GetTempPath(), femModel.Name);
+            femModel.SetSolver(Models.Prototype.Solvers.Straus7);
             femModel.Solve();
+
 
             double flexularRigidity = material.E * Math.Pow(plateThickness, 3.0) / (12.0 * (1.0 - Math.Pow(material.Ni, 2.0)));
 

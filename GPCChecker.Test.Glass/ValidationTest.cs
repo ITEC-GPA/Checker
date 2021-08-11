@@ -46,7 +46,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement, 
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement, 
                                         new Prototype.LaminatedEqThicknessParameters());
 
             p1.MeshOptions.MeshSize = 50;
@@ -178,7 +178,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
                                         majorSide, minorSide));
 
@@ -248,7 +248,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularThreeSidesSimplySupported,
                                         majorSide, minorSide));
 
@@ -320,7 +320,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped,
                                         majorSide, minorSide));
 
@@ -393,7 +393,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
                                         majorSide, minorSide));
 
@@ -466,7 +466,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
                                         majorSide, minorSide));
 
@@ -537,7 +537,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
                                         majorSide, minorSide));
 
@@ -608,7 +608,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
                                         majorSide, minorSide));
 
@@ -680,7 +680,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
                                         majorSide, minorSide));
 
@@ -752,7 +752,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
                                         majorSide, minorSide));
 
@@ -825,7 +825,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                        Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
                                         majorSide, minorSide));
 

@@ -30,7 +30,7 @@ namespace GPC.Checkers.Glasses.FemModels
 
         private string _st7FilePath;
         private string _st7ResultFilePath;
-        private Prototype.SolverTypes _solverType;
+        private Prototype.Solvers _solver;
 
 
         /// <summary>
@@ -41,52 +41,52 @@ namespace GPC.Checkers.Glasses.FemModels
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and St7ComboId in the Linear loadcase combination table  ;
         /// </summary>
-        private readonly Dictionary<string, int> _st7LSACombinationMap;
+        private Dictionary<string, int> _st7LSACombinationMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and Stage id - Stage increment id;
         /// </summary>
-        private readonly Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)> _st7NLACombinationMap;
+        private Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)> _st7NLACombinationMap;
 
-        /// <summary>
-        /// Map between <see cref="Model.FEM.FemModel._loadCases"/> St7 loadcase id;
-        /// </summary>
-        private readonly Dictionary<string, int> _st7LoadCaseMap;
+        ///// <summary>
+        ///// Map between <see cref="Model.FEM.FemModel._loadCases"/> St7 loadcase id;
+        ///// </summary>
+        //private readonly Dictionary<string, int> _st7LoadCaseMap;
 
-        /// <summary>
-        /// Map between <see cref="Model.FEM.FemModel._freedomCases"/> St7 fredomcase id;
-        /// </summary>
-        private readonly Dictionary<string, int> _st7FreedomCaseMap;
+        ///// <summary>
+        ///// Map between <see cref="Model.FEM.FemModel._freedomCases"/> St7 fredomcase id;
+        ///// </summary>
+        //private readonly Dictionary<string, int> _st7FreedomCaseMap;
 
-        /// <summary>
-        /// Map between <see cref="Model.FEM.FemModel._plateProperties"/> St7 platepropertyID;
-        /// </summary>
-        private readonly Dictionary<PlateProperty, int> _st7PlatePropertyMap;
+        ///// <summary>
+        ///// Map between <see cref="Model.FEM.FemModel._plateProperties"/> St7 platepropertyID;
+        ///// </summary>
+        //private readonly Dictionary<PlateProperty, int> _st7PlatePropertyMap;
 
-        /// <summary>
-        /// Map between <see cref="Model.FEM.FemModel._brickProperties"/> St7 brickpropertyID;
-        /// </summary>
-        private readonly Dictionary<BrickProperty, int> _st7BrickPropertyMap;
+        ///// <summary>
+        ///// Map between <see cref="Model.FEM.FemModel._brickProperties"/> St7 brickpropertyID;
+        ///// </summary>
+        //private readonly Dictionary<BrickProperty, int> _st7BrickPropertyMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.Node"/> id and straus7 node ID
         /// </summary>
-        private readonly Dictionary<int, int> _st7NodeMap;
+        private Dictionary<int, int> _st7NodeMap;
 
         /// <summary>
         /// Map between <see cref="Plate"/> id and straus7 plate ID
         /// </summary>
-        private readonly Dictionary<int, int> _st7PlateMap;
+        private Dictionary<int, int> _st7PlateMap;
 
         /// <summary>
         /// Map between <see cref="Brick"/> id and straus7 brick ID
         /// </summary>
-        private readonly Dictionary<int, int> _st7BrickMap;
+        private Dictionary<int, int> _st7BrickMap;
 
-        /// <summary>
-        /// Map between <see cref="Model.FEM.Stage"/> id and straus7 stage ID
-        /// </summary>
-        private readonly Dictionary<int, int> _st7StageMap;
+        ///// <summary>
+        ///// Map between <see cref="Model.FEM.Stage"/> id and straus7 stage ID
+        ///// </summary>
+        //private readonly Dictionary<int, int> _st7StageMap;
 
 
         private Converters.FemModelConverter.Straus7SolverTypes _st7SolverType;
@@ -114,21 +114,21 @@ namespace GPC.Checkers.Glasses.FemModels
 
             _stageCombinationsSplittedMap = new Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>();
 
-            _st7LSACombinationMap = new Dictionary<string, int>();
-            _st7NLACombinationMap = new Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>();
-            _st7LoadCaseMap = new Dictionary<string, int>();
-            _st7FreedomCaseMap = new Dictionary<string, int>();
-            _st7PlatePropertyMap = new Dictionary<PlateProperty, int>(new ModelObjectNameEqualityComparer());
-            _st7BrickPropertyMap = new Dictionary<BrickProperty, int>(new ModelObjectNameEqualityComparer());
+            //_st7LSACombinationMap = new Dictionary<string, int>();
+            //_st7NLACombinationMap = new Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>();
+            //_st7LoadCaseMap = new Dictionary<string, int>();
+            //_st7FreedomCaseMap = new Dictionary<string, int>();
+            //_st7PlatePropertyMap = new Dictionary<PlateProperty, int>(new ModelObjectNameEqualityComparer());
+            //_st7BrickPropertyMap = new Dictionary<BrickProperty, int>(new ModelObjectNameEqualityComparer());
 
-            _st7NodeMap = new Dictionary<int, int>();
-            _st7PlateMap = new Dictionary<int, int>();
-            _st7BrickMap = new Dictionary<int, int>();
-            _st7StageMap = new Dictionary<int, int>();
+            //_st7NodeMap = new Dictionary<int, int>();
+            //_st7PlateMap = new Dictionary<int, int>();
+            //_st7BrickMap = new Dictionary<int, int>();
+            //_st7StageMap = new Dictionary<int, int>();
 
             // valori di default nel caso non vengano settati
 
-            _solverType = Prototype.SolverTypes.GPCSolver;
+            _solver = Prototype.Solvers.GPCSolver;
 
             _st7NonLinearGeometryActive = false;
             _st7SolverType = Converters.FemModelConverter.Straus7SolverTypes.Linear;
@@ -139,21 +139,21 @@ namespace GPC.Checkers.Glasses.FemModels
             : base(info, context)
         {
             _st7ServerIp = (string)info.GetValue("ServerIp", typeof(string));
-            _stageCombinationsSplittedMap = (Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>)info.GetValue("StageCombinationsSplittedMap", typeof(Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>));
-            _st7LSACombinationMap = (Dictionary<string, int>)info.GetValue("LSACombinationMap", typeof(Dictionary<string, int>));
-            _st7NLACombinationMap = (Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>)info.GetValue("NLACombinationMap", 
-                                    typeof(Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>));
-            _st7LoadCaseMap = (Dictionary<string, int>)info.GetValue("LoadCaseMap", typeof(Dictionary<string, int>));
-            _st7FreedomCaseMap = (Dictionary<string, int>)info.GetValue("FreedomCaseMap", typeof(Dictionary<string, int>));
-            _st7PlatePropertyMap = (Dictionary<PlateProperty, int>)info.GetValue("PlatePropertyMap", typeof(Dictionary<PlateProperty, int>));
-            _st7BrickPropertyMap = (Dictionary<BrickProperty, int>)info.GetValue("BrickPropertyMap", typeof(Dictionary<BrickProperty, int>));
+            //_stageCombinationsSplittedMap = (Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>)info.GetValue("StageCombinationsSplittedMap", typeof(Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>));
+            //_st7LSACombinationMap = (Dictionary<string, int>)info.GetValue("LSACombinationMap", typeof(Dictionary<string, int>));
+            //_st7NLACombinationMap = (Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>)info.GetValue("NLACombinationMap", 
+            //                        typeof(Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>));
+            //_st7LoadCaseMap = (Dictionary<string, int>)info.GetValue("LoadCaseMap", typeof(Dictionary<string, int>));
+            //_st7FreedomCaseMap = (Dictionary<string, int>)info.GetValue("FreedomCaseMap", typeof(Dictionary<string, int>));
+            //_st7PlatePropertyMap = (Dictionary<PlateProperty, int>)info.GetValue("PlatePropertyMap", typeof(Dictionary<PlateProperty, int>));
+            //_st7BrickPropertyMap = (Dictionary<BrickProperty, int>)info.GetValue("BrickPropertyMap", typeof(Dictionary<BrickProperty, int>));
 
-            _st7NodeMap = (Dictionary<int, int>)info.GetValue("NodeMap", typeof(Dictionary<int, int>));
-            _st7PlateMap = (Dictionary<int, int>)info.GetValue("PlateMap", typeof(Dictionary<int, int>));
-            _st7BrickMap = (Dictionary<int, int>)info.GetValue("BrickMap", typeof(Dictionary<int, int>));
-            _st7StageMap = (Dictionary<int, int>)info.GetValue("StageMap", typeof(Dictionary<int, int>));
+            //_st7NodeMap = (Dictionary<int, int>)info.GetValue("NodeMap", typeof(Dictionary<int, int>));
+            //_st7PlateMap = (Dictionary<int, int>)info.GetValue("PlateMap", typeof(Dictionary<int, int>));
+            //_st7BrickMap = (Dictionary<int, int>)info.GetValue("BrickMap", typeof(Dictionary<int, int>));
+            //_st7StageMap = (Dictionary<int, int>)info.GetValue("StageMap", typeof(Dictionary<int, int>));
 
-            _solverType = (Prototype.SolverTypes)info.GetValue("SolverType", typeof(Prototype.SolverTypes));
+            _solver = (Prototype.Solvers)info.GetValue("SolverType", typeof(Prototype.Solvers));
             _st7NonLinearGeometryActive = (bool)info.GetValue("NonLinearGeometryActive", typeof(bool));
         }
 
@@ -162,18 +162,18 @@ namespace GPC.Checkers.Glasses.FemModels
         {
             base.GetObjectData(info, context);
             info.AddValue("ServerIp", _st7ServerIp);
-            info.AddValue("StageCombinationsSplittedMap", _stageCombinationsSplittedMap);
-            info.AddValue("LSACombinationMap", _st7LSACombinationMap);
-            info.AddValue("NLACombinationMap", _st7NLACombinationMap);
-            info.AddValue("LoadCaseMap", _st7LoadCaseMap);
-            info.AddValue("FreedomCaseMap", _st7FreedomCaseMap);
-            info.AddValue("PlatePropertyMap", _st7PlatePropertyMap);
-            info.AddValue("BrickPropertyMap", _st7BrickPropertyMap);
-            info.AddValue("NodeMap", _st7NodeMap);
-            info.AddValue("PlateMap", _st7PlateMap);
-            info.AddValue("BrickMap", _st7BrickMap);
-            info.AddValue("StageMap", _st7StageMap);
-            info.AddValue("SolverType", _solverType);
+            //info.AddValue("StageCombinationsSplittedMap", _stageCombinationsSplittedMap);
+            //info.AddValue("LSACombinationMap", _st7LSACombinationMap);
+            //info.AddValue("NLACombinationMap", _st7NLACombinationMap);
+            //info.AddValue("LoadCaseMap", _st7LoadCaseMap);
+            //info.AddValue("FreedomCaseMap", _st7FreedomCaseMap);
+            //info.AddValue("PlatePropertyMap", _st7PlatePropertyMap);
+            //info.AddValue("BrickPropertyMap", _st7BrickPropertyMap);
+            //info.AddValue("NodeMap", _st7NodeMap);
+            //info.AddValue("PlateMap", _st7PlateMap);
+            //info.AddValue("BrickMap", _st7BrickMap);
+            //info.AddValue("StageMap", _st7StageMap);
+            //info.AddValue("SolverType", _solverType);
             info.AddValue("NonLinearGeometryActive", _st7NonLinearGeometryActive);
         }
 
@@ -293,7 +293,7 @@ namespace GPC.Checkers.Glasses.FemModels
 
         public override void Solve()
         {
-            if (_solverType == Prototype.SolverTypes.Straus7)
+            if (_solver == Prototype.Solvers.Straus7)
             {
                 var status = RunSt7Solver();
 
@@ -366,15 +366,46 @@ namespace GPC.Checkers.Glasses.FemModels
 
         #endregion
 
+        #region Internal methods
+
+
+        internal void SetSolver(Prototype.Solvers solver)
+        {
+            _solver = solver;
+        }
+
+        #endregion
+
 
         #region STRAUS7
 
-        public void SetSt7FilePath(string filePath)
+        public bool ExportToSt7(string folderPath, string fileName)
         {
-            _st7FilePath = filePath;
+            Converters.FemModelConverter converter = new Converters.FemModelConverter();
+
+            if (!converter.FromModelToStraus7(this, folderPath, fileName))
+            {
+                return false;
+            }
+
+            _st7FilePath = converter.OutputFilePath;
+
+            _st7NodeMap = converter.NodeMap;
+            _st7PlateMap = converter.PlateMap;
+            _st7BrickMap = converter.BrickMap;
+
+            _st7LSACombinationMap = converter.LSACombinationMap;
+            _st7NLACombinationMap = converter.NSACombinationMap;
+
+
+            return true;
         }
 
+
         #region STRAUS7 - PRIVATE METHODS
+
+
+
 
 
         private static bool ConnectService(string ip, out ISt7ApiService ro, out TcpChannel channel)
@@ -601,7 +632,7 @@ namespace GPC.Checkers.Glasses.FemModels
                                                                                      plateResults[np * numColumns + 2],
                                                                                      plateResults[np * numColumns + 3],
                                                                                      plateResults[np * numColumns + 4],
-                                                                                     plateResults[np * numColumns + 5], 
+                                                                                     plateResults[np * numColumns + 5],
                                                                                      _st7PlateMap[plate.Id].ToString());
 
                                 rs.CalculatePrincipalStressFullMethod();
@@ -732,7 +763,7 @@ namespace GPC.Checkers.Glasses.FemModels
                         else
                             err = aw.GetSolverErrorString(p.ExitCode);
 
-                        throw new Exception($"St7 solver error {err}");
+                        throw new Exception($"St7 solver error: {err}");
                     }
                 }
                 catch (Exception e)
@@ -749,107 +780,107 @@ namespace GPC.Checkers.Glasses.FemModels
 #if DEBUG
         #region STRAUS7 - DEBUG INTERNAL METHODS
 
-        internal bool ExportSt7PlateUserDefinedCustomResultFile(string folderPath, string fileName, Combination combination)
-        {
-            if (!Directory.Exists(folderPath))
-                return false;
+        //internal bool ExportSt7PlateUserDefinedCustomResultFile(string folderPath, string fileName, Combination combination)
+        //{
+        //    if (!Directory.Exists(folderPath))
+        //        return false;
 
-            string fileZminus = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Lower"), "txt");
-            string fileZmid = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Mid"), "txt");
-            string fileZplus = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Upper"), "txt");
+        //    string fileZminus = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Lower"), "txt");
+        //    string fileZmid = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Mid"), "txt");
+        //    string fileZplus = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Upper"), "txt");
 
-            using (StreamWriter swMinus = File.CreateText(fileZminus))
-            using (StreamWriter swMid = File.CreateText(fileZmid))
-            using (StreamWriter swPlus = File.CreateText(fileZplus))
-            {
-                swMinus.WriteLine($"{combination.Name} My User Generated Gauss Point File");
-                swMid.WriteLine($"{combination.Name} My User Generated Gauss Point File");
-                swPlus.WriteLine($"{combination.Name} My User Generated Gauss Point File");
+        //    using (StreamWriter swMinus = File.CreateText(fileZminus))
+        //    using (StreamWriter swMid = File.CreateText(fileZmid))
+        //    using (StreamWriter swPlus = File.CreateText(fileZplus))
+        //    {
+        //        swMinus.WriteLine($"{combination.Name} My User Generated Gauss Point File");
+        //        swMid.WriteLine($"{combination.Name} My User Generated Gauss Point File");
+        //        swPlus.WriteLine($"{combination.Name} My User Generated Gauss Point File");
 
-                IEnumerator<FiniteElement> enumerator = GetElementsEnumerator();
+        //        IEnumerator<FiniteElement> enumerator = GetElementsEnumerator();
 
-                NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;
+        //        NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;
 
-                using (enumerator)
-                {
-                    while (enumerator.MoveNext())
-                    {
-                        var element = enumerator.Current;
+        //        using (enumerator)
+        //        {
+        //            while (enumerator.MoveNext())
+        //            {
+        //                var element = enumerator.Current;
 
-                        if (element is Plate plate)
-                        {
-                            PlateResult plateResult = (PlateResult)element.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault();
+        //                if (element is Plate plate)
+        //                {
+        //                    PlateResult plateResult = (PlateResult)element.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault();
 
-                            swMinus.Write($"{_st7PlateMap[element.Id]} ");
-                            swMid.Write($"{_st7PlateMap[element.Id]} ");
-                            swPlus.Write($"{_st7PlateMap[element.Id]} ");
-
-
-                            (ResultType[] lowerFace, ResultType[] midFace, ResultType[] upperFace) faceResults = plateResult.GetFaceResults();
-
-                            foreach (ResultType result in faceResults.lowerFace)
-                            {
-                                if (result is ResultStress rs)
-                                {
-                                    swMinus.Write($"{rs.S11.ToString("N5", nfi)} ");
-                                }
-                            }
-
-                            foreach (ResultType result in faceResults.midFace)
-                            {
-                                if (result is ResultStress rs)
-                                {
-                                    swMid.Write($"{rs.S11.ToString("N5", nfi)} ");
-                                }
-                            }
-
-                            foreach (ResultType result in faceResults.upperFace)
-                            {
-                                if (result is ResultStress rs)
-                                {
-                                    swPlus.Write($"{rs.S11.ToString("N5", nfi)} ");
-                                }
-                            }
-
-                            swMinus.Write("\n");
-                            swMid.Write("\n");
-                            swPlus.Write("\n");
-                        }
-                    }
-                }
-            }
-
-            return true;
-        }
+        //                    swMinus.Write($"{_st7PlateMap[element.Id]} ");
+        //                    swMid.Write($"{_st7PlateMap[element.Id]} ");
+        //                    swPlus.Write($"{_st7PlateMap[element.Id]} ");
 
 
-        internal void ExportSt7NodeUserDefinedCustomResultFile(string filePath, Combination combination)
-        {
+        //                    (ResultType[] lowerFace, ResultType[] midFace, ResultType[] upperFace) faceResults = plateResult.GetFaceResults();
 
-            using (StreamWriter sw = File.CreateText(filePath))
-            {
-                sw.WriteLine($"{combination.Name} My User Generated Node Contour File");
+        //                    foreach (ResultType result in faceResults.lowerFace)
+        //                    {
+        //                        if (result is ResultStress rs)
+        //                        {
+        //                            swMinus.Write($"{rs.S11.ToString("N5", nfi)} ");
+        //                        }
+        //                    }
 
-                IEnumerator<Model.FEM.Node> enumerator = GetNodesEnumerator();
+        //                    foreach (ResultType result in faceResults.midFace)
+        //                    {
+        //                        if (result is ResultStress rs)
+        //                        {
+        //                            swMid.Write($"{rs.S11.ToString("N5", nfi)} ");
+        //                        }
+        //                    }
 
-                //NumberFormatInfo nfi = new NumberFormatInfo();
-                //nfi.NumberDecimalSeparator = ",";
-                NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;
+        //                    foreach (ResultType result in faceResults.upperFace)
+        //                    {
+        //                        if (result is ResultStress rs)
+        //                        {
+        //                            swPlus.Write($"{rs.S11.ToString("N5", nfi)} ");
+        //                        }
+        //                    }
 
-                using (enumerator)
-                {
-                    while (enumerator.MoveNext())
-                    {
-                        var node = enumerator.Current;
+        //                    swMinus.Write("\n");
+        //                    swMid.Write("\n");
+        //                    swPlus.Write("\n");
+        //                }
+        //            }
+        //        }
+        //    }
 
-                        if (node.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault().Result is ResultDisplacement rd)
-                        {
-                            sw.WriteLine($"{_st7NodeMap[node.Id]} {rd.D3.ToString("N5", nfi)}");
-                        }
-                    }
-                }
-            }
-        }
+        //    return true;
+        //}
+
+
+        //internal void ExportSt7NodeUserDefinedCustomResultFile(string filePath, Combination combination)
+        //{
+
+        //    using (StreamWriter sw = File.CreateText(filePath))
+        //    {
+        //        sw.WriteLine($"{combination.Name} My User Generated Node Contour File");
+
+        //        IEnumerator<Model.FEM.Node> enumerator = GetNodesEnumerator();
+
+        //        //NumberFormatInfo nfi = new NumberFormatInfo();
+        //        //nfi.NumberDecimalSeparator = ",";
+        //        NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;
+
+        //        using (enumerator)
+        //        {
+        //            while (enumerator.MoveNext())
+        //            {
+        //                var node = enumerator.Current;
+
+        //                if (node.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault().Result is ResultDisplacement rd)
+        //                {
+        //                    sw.WriteLine($"{_st7NodeMap[node.Id]} {rd.D3.ToString("N5", nfi)}");
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
         #endregion  
 #endif
