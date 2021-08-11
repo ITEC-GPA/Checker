@@ -530,7 +530,7 @@ namespace GPC.Checkers.Glasses.FemModels
                     if (fileOpened)
                         resultFileOpened = aw.OpenResultFile(mid, _st7ResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
 
-                    if (fileOpened && resultFileOpened)
+                    if (resultFileOpened)
                     {
                         try
                         {       
@@ -547,7 +547,7 @@ namespace GPC.Checkers.Glasses.FemModels
                                 {                                   
                                     // combination è stata splittata in questi stageID
 
-                                    List<int> comboIdSplitted = _stageCombinationsSplittedMap[combination.Name].stageIds;
+                                    //List<int> comboIdSplitted = _stageCombinationsSplittedMap[combination.Name].stageIds;
 
                                     List<string> comboFictitiousName = _stageCombinationsSplittedMap[combination.Name].stageCombinationsNames;
 
