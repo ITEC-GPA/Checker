@@ -274,6 +274,7 @@ namespace GPC.Checkers.Glasses.Checkers
 
                 // Aggiunta delle mesh al femModel
                 Dictionary<int, int>[] packageNodesNewIndexMap = new Dictionary<int, int>[glassPackage.Count()];
+
                 for (int i = 0; i < glassPackage.Length; i++)
                 //Parallel.For(0, glassPackage.Length, (i) =>
                 {
