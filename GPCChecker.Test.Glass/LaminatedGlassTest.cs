@@ -753,6 +753,7 @@ namespace GlassTests
             Console.WriteLine($"G interlayer lcPressure: {interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature)}");
             Console.WriteLine($"G interlayer lcPointLoad: {interlayers[0].Material.GetShearModule(lcPointLoad.LoadDuration, lcPointLoad.Temperature)}");
 
+
             Console.WriteLine($"Tw1: {tw1}");
             Console.WriteLine($"Ts11: {ts11}");
             Console.WriteLine($"Ts21: {ts21}");
