@@ -66,9 +66,10 @@ namespace GlassTests
 
             SelfWeightLoad loadSw = new SelfWeightLoad(lcSw, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
             NormalAreaLoad loadWp = new NormalAreaLoad( - 1.2 / 1000, s1, lcWp);
-            LineLoad loadLl = new LineLoad(model.Options.GetGravityVector() * 0.8, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(0, 500, 0), new Point3d(1000, 500, 0)), lcLl, CoordinateSystem.Global);
-            //LineLoad loadLl = new LineLoad(model.Options.GetGravityVector() * 0.8, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(0, 50, 0), new Point3d(200, 50, 0)), lcLl, CoordinateSystem.Global);
-
+            
+            LineLoad loadLl = new LineLoad(model.Options.GetGravityVector() * 0.8, model.Options.GetGravityVector() * 0, 
+                              new Line3d(new Point3d(0, 500, 0), new Point3d(1000, 500, 0)), lcLl, CoordinateSystem.Global);
+            
             // Combinazioni
             Combination combo1 = new Combination("Cmb1");
             combo1.AddLoadCaseCoefficient(lcSw, 1);
@@ -99,6 +100,7 @@ namespace GlassTests
                             new LineRestrain(i, new FreedomCase("fc1"), CoordinateSystem.Global, 
                             new List<DofRestrain> { new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ) }))
                             .Cast<GeometryRestrain>().ToList());
+
 
             gs1.AddRestrain(new PointRestrain(s1.Fill[0], new FreedomCase("fc1"), new List<DofRestrain> { 
                                                                                   new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ), 
@@ -202,9 +204,9 @@ namespace GlassTests
 
             lgw.CalculateEquivalentThicknesses();
 
-            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
 
             double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
@@ -275,9 +277,9 @@ namespace GlassTests
             lgw.CalculateEquivalentThicknesses();
 
 
-            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
 
             double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
@@ -348,9 +350,9 @@ namespace GlassTests
 
             lgw.CalculateEquivalentThicknesses();
 
-            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
 
             double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
@@ -419,9 +421,9 @@ namespace GlassTests
 
             lgw.CalculateEquivalentThicknesses();
 
-            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
 
             double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
@@ -492,9 +494,9 @@ namespace GlassTests
 
             lgw.CalculateEquivalentThicknesses();
 
-            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
 
             double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
@@ -563,9 +565,9 @@ namespace GlassTests
 
             lgw.CalculateEquivalentThicknesses();
 
-            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
 
             double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
@@ -635,9 +637,9 @@ namespace GlassTests
 
             lgw.CalculateEquivalentThicknesses();
 
-            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
 
             double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
@@ -706,9 +708,9 @@ namespace GlassTests
 
             lgw.CalculateEquivalentThicknesses();
 
-            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
 
             double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
@@ -780,9 +782,9 @@ namespace GlassTests
 
             lgw.CalculateEquivalentThicknesses();
 
-            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
 
             double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
@@ -851,9 +853,9 @@ namespace GlassTests
 
             lgw.CalculateEquivalentThicknesses();
 
-            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.Equals(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts1 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double ts2 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
 
             double shearModule = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
 
