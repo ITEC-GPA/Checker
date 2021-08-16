@@ -775,5 +775,84 @@ namespace GlassTests
             Assert.AreEqual(7.60, ts12, 0.1, ts12.ToString());
             Assert.AreEqual(7.60, ts22, 0.1, ts22.ToString());
         }
+
+
+
+
+
+        [TestMethod]
+        [TestCategory("NonLinear")]
+        [TestCategory("MissingAssert")]
+        [TestCategory("Layers: 2")]
+        public void LaminatedGlass7()
+        {
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(200, 500, 0));
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg2", 8, GetGlassMaterialAstm());
+
+            Interlayer intr1 = new Interlayer("Int1", 0.76, GetInterlayerMaterialPVBStiff());
+
+            LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2 }, new Interlayer[] { intr1 });
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis,
+                Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                              new Prototype.LaminatedEqThicknessParameters());
+
+            p1.MeshOptions.MeshSize = 20;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+
+            // Load
+            LoadCase lcSw = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
+            LoadCase lcWp = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+          
+            SelfWeightLoad swl = new SelfWeightLoad(lcSw, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+            NormalAreaLoad nal2 = new NormalAreaLoad(-0.002, s1, lcWp);
+
+            // Combinazioni
+            Combination combo1 = new Combination("Cmb1");
+            combo1.AddLoadCaseCoefficient(lcSw, 1);
+
+            Combination combo2 = new Combination("Cmb2");
+            combo2.AddLoadCaseCoefficient(lcSw, 1);
+            combo2.AddLoadCaseCoefficient(lcWp, 0.6);
+
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            gs1.AddLoad(swl);
+            gs1.AddLoad(nal2);
+
+            gs1.AddRestrains(s1.Fill.Explode().Select(i =>
+                            new LineRestrain(i, new FreedomCase("fc1"), CoordinateSystem.Global,
+                            new List<DofRestrain> { new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ) }))
+                            .Cast<GeometryRestrain>().ToList());
+
+
+            gs1.AddRestrain(new PointRestrain(s1.Fill[0], new FreedomCase("fc1"), new List<DofRestrain> {
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ),
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DX),
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DY)}));
+
+            gs1.AddRestrain(new PointRestrain(s1.Fill[1], new FreedomCase("fc1"), new List<DofRestrain> {
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DZ),
+                                                                                  new DofRestrain(GPC.Model.FEM.Solver.DOF.DY)}));
+
+
+            model.AddCombination(combo1);
+            model.AddCombination(combo2);
+
+            // Model
+            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+
+            model.PerformChecks();
+
+
+        }
     }
 }
