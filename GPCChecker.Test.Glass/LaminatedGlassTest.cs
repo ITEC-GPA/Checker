@@ -65,9 +65,9 @@ namespace GlassTests
             LoadCase lcWp = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
             LoadCase lcLl = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
 
-            NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lcCSD);
-            NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lcWp);
-            NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lcLl);
+            NormalAreaLoad nal1 = new NormalAreaLoad(0.001, s1, lcCSD);
+            NormalAreaLoad nal2 = new NormalAreaLoad(0.002, s1, lcWp);
+            NormalAreaLoad nal3 = new NormalAreaLoad(0.003, s1, lcLl);
             SelfWeightLoad swl = new SelfWeightLoad(lcSw, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
             LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, 
@@ -169,9 +169,9 @@ namespace GlassTests
             LoadCase lcWp = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
             LoadCase lcLl = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
 
-            NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lcCSD);
-            NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lcWp);
-            NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lcLl);
+            NormalAreaLoad nal1 = new NormalAreaLoad(0.001, s1, lcCSD);
+            NormalAreaLoad nal2 = new NormalAreaLoad(0.002, s1, lcWp);
+            NormalAreaLoad nal3 = new NormalAreaLoad(0.003, s1, lcLl);
             SelfWeightLoad swl = new SelfWeightLoad(lcSw, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
             LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(40, 450, 0), new Point3d(150, 200, 0)), lcLl, CoordinateSystem.Global);
@@ -266,9 +266,9 @@ namespace GlassTests
             LoadCase lcWp = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
             LoadCase lcLl = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
 
-            NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lcCSD);
-            NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lcWp);
-            NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lcLl);
+            NormalAreaLoad nal1 = new NormalAreaLoad(0.001, s1, lcCSD);
+            NormalAreaLoad nal2 = new NormalAreaLoad(0.002, s1, lcWp);
+            NormalAreaLoad nal3 = new NormalAreaLoad(0.003, s1, lcLl);
 
             LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(40, 450, 0), new Point3d(150, 200, 0)), lcLl, CoordinateSystem.Global);
 
@@ -357,9 +357,9 @@ namespace GlassTests
             LoadCase lcWp = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
             LoadCase lcLl = new LoadCase("Live", 5 * 60, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
 
-            NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lcCSD);
-            NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lcWp);
-            NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lcLl);
+            NormalAreaLoad nal1 = new NormalAreaLoad(0.001, s1, lcCSD);
+            NormalAreaLoad nal2 = new NormalAreaLoad(0.002, s1, lcWp);
+            NormalAreaLoad nal3 = new NormalAreaLoad(0.003, s1, lcLl);
             SelfWeightLoad swl = new SelfWeightLoad(lcSw, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
             LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(40, 450, 0), new Point3d(150, 200, 0)), lcLl, CoordinateSystem.Global);
@@ -465,9 +465,9 @@ namespace GlassTests
                 lcLl
             };
 
-            NormalAreaLoad nal1 = new NormalAreaLoad(1, s1, lcCSD);
-            NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lcWp);
-            NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lcLl);
+            NormalAreaLoad nal1 = new NormalAreaLoad(0.001, s1, lcCSD);
+            NormalAreaLoad nal2 = new NormalAreaLoad(0.002, s1, lcWp);
+            NormalAreaLoad nal3 = new NormalAreaLoad(0.003, s1, lcLl);
             SelfWeightLoad swl = new SelfWeightLoad(lcSw, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
             LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(40, 450, 0), new Point3d(150, 200, 0)), lcLl, CoordinateSystem.Global);
@@ -573,9 +573,9 @@ namespace GlassTests
 
 
             Shape loadShape = GetRectangularShape(new Point3d(minorSide / 2.0 - loadWidth / 2.0, majorSide / 2.0 - loadWidth / 2.0, 0), new Vector3d(loadWidth, loadWidth, 0));
-            NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure);
-            NormalAreaLoad punctualLoadWp1 = new NormalAreaLoad(-1, loadShape, lcPressure2);
-            NormalAreaLoad punctualLoadWp2 = new NormalAreaLoad(-1, loadShape, lcPointLoad);
+            NormalAreaLoad loadWp = new NormalAreaLoad(-1 / 1000, s1, lcPressure);
+            NormalAreaLoad punctualLoadWp1 = new NormalAreaLoad(-1 / 1000, loadShape, lcPressure2);
+            NormalAreaLoad punctualLoadWp2 = new NormalAreaLoad(-1 / 1000, loadShape, lcPointLoad);
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
@@ -710,9 +710,9 @@ namespace GlassTests
 
             var shap = loadShapeParallel == s1;
 
-            NormalAreaLoad loadWp = new NormalAreaLoad(-1, s1, lcPressure, "WholeSurface");
-            NormalAreaLoad punctualLoadWp1 = new NormalAreaLoad(-1, loadShapeParallel, lcPressure2, "ConcentratedParallel");
-            NormalAreaLoad punctualLoadWp2 = new NormalAreaLoad(-1, loadShapeNotParallel, lcPointLoad, "ConcentratedNotParallel");
+            NormalAreaLoad loadWp = new NormalAreaLoad(-1/1000, s1, lcPressure, "WholeSurface");
+            NormalAreaLoad punctualLoadWp1 = new NormalAreaLoad(-1/1000, loadShapeParallel, lcPressure2, "ConcentratedParallel");
+            NormalAreaLoad punctualLoadWp2 = new NormalAreaLoad(-1/1000, loadShapeNotParallel, lcPointLoad, "ConcentratedNotParallel");
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
@@ -810,9 +810,11 @@ namespace GlassTests
             // Load
             LoadCase lcSw = new LoadCase("Sw", 50 * 24 * 60 * 60, 50, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight);
             LoadCase lcWp = new LoadCase("Wind", 3, 40, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
-          
+            LoadCase lcWp2 = new LoadCase("Wind2", 3, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
             SelfWeightLoad swl = new SelfWeightLoad(lcSw, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
             NormalAreaLoad nal2 = new NormalAreaLoad(-0.002, s1, lcWp);
+            NormalAreaLoad nal3 = new NormalAreaLoad(-0.003, s1, lcWp2);
 
             // Combinazioni
             Combination combo1 = new Combination("Cmb1");
@@ -822,11 +824,16 @@ namespace GlassTests
             combo2.AddLoadCaseCoefficient(lcSw, 1);
             combo2.AddLoadCaseCoefficient(lcWp, 0.6);
 
+            Combination combo3 = new Combination("Cmb3");
+            combo3.AddLoadCaseCoefficient(lcSw, 1);
+            combo3.AddLoadCaseCoefficient(lcWp2, 0.6);
+
 
             // Surface
             GlassSurface gs1 = new GlassSurface(p1, s1);
             gs1.AddLoad(swl);
             gs1.AddLoad(nal2);
+            gs1.AddLoad(nal3);
 
             gs1.AddRestrains(s1.Fill.Explode().Select(i =>
                             new LineRestrain(i, new FreedomCase("fc1"), CoordinateSystem.Global,
@@ -846,6 +853,7 @@ namespace GlassTests
 
             model.AddCombination(combo1);
             model.AddCombination(combo2);
+            model.AddCombination(combo3);
 
             // Model
             Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
