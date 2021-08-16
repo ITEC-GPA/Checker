@@ -540,54 +540,63 @@ namespace GPC.Checkers.Glasses.Checkers
 
                             List<Combination> matchedCombinations = combinationsToProcess
                                                 .Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo, questa lista contiene tutte le combo che hanno gli stessi LT e stessi coeff della combo di partenza
-
-                            Stage stage1 = femModel.AddStage($"Stage {index++} LT", Model.FEM.FemModel.AnalysisTypes.Linear);
+                            
+                            Stage stage1 = femModel.AddStage($"Stage {index++} LT", Model.FEM.FemModel.AnalysisTypes.NonLinear);
 
                             var ltCombination = (Combination)firstCombo.CloneEmpty();
                             ltCombination.AddLoadCaseCoefficients(longTermLoadCaseCoefficients);
 
                             stage1.AddCombination(ltCombination);
 
+
+                            Stage stage2 = null;
                             var stCombinations = new List<Combination>();
                             for (int n = 0; n < matchedCombinations.Count; n++)
                             {
-                                var c = (Combination)matchedCombinations[n].Clone();
-                                c.RemoveLoadCaseCoefficients(firstCombo.GetLoadCaseCoefficientsTuple(missingLoadCases)
-                                                .Select(i => ((MMLoadCaseBase loadCase, double coefficient))i)
-                                                .ToArray());
-                                c.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
+                                var matchedCombo = (Combination)matchedCombinations[n].Clone();
 
-                                if (c.LoadCaseCount > 0) 
+                                matchedCombo.RemoveLoadCaseCoefficients(firstCombo.GetLoadCaseCoefficientsTuple(missingLoadCases)
+                                                                        .Select(i => ((MMLoadCaseBase loadCase, double coefficient))i)
+                                                                        .ToArray());                   // tiro via la parte non nel modello
+                                matchedCombo.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients); // tiro via la parte LT
+
+
+                                if (matchedCombo.LoadCaseCount > 0)                                    // va creato un altro stage per la parte rimanente
                                 {
-                                    stCombinations.Add(c);
+                                    stCombinations.Add(matchedCombo);
+
+                                    if (stage2 is null)
+                                    {
+                                        stage2 = femModel.AddStage($"Stage {index++} ST", Model.FEM.FemModel.AnalysisTypes.NonLinear, true);
+
+                                        var lcLTLowerG = longTermLoadCasesFiltered.GetLowerGvalueLoadCase(intMat);
+                                        var lcSTLowerG = stCombinations.SelectMany(i => i.GetIGlassLoadCase()).Distinct().GetLowerGvalueLoadCase(intMat);
+
+                                        for (int i = 0; i < glassPackage.Length; i++)
+                                        {
+                                            if (glassPackage[i] is Interlayer)
+                                            {
+                                                stage1.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][lcLTLowerG]);
+                                                stage2.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][lcSTLowerG]);
+                                            }
+                                            else
+                                            {
+                                                stage1.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
+                                                stage2.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
+                                            }
+                                        }
+                                    }
+
+                                    stage2.AddCombination(matchedCombo);
+                                    femModel.AddStageCombinationSplittedMap(matchedCombo.Name, new[] { stage1.Id, stage2.Id }, new[] { ltCombination.Name, matchedCombo.Name });
                                 }
+                                else
+                                {
+                                    femModel.AddStageCombinationSplittedMap(matchedCombo.Name, new[] { stage1.Id}, new[] { ltCombination.Name,});
+                                }
+
                             }
 
-                            if (stCombinations.Count > 0)
-                            {
-                                // se combo ST è vuota, vuol dire che tutte i loadcase della combo in esame sono LT
-                                // non creo stage 2.
-
-                                Stage stage2 = femModel.AddStage($"Stage {index++} ST", Model.FEM.FemModel.AnalysisTypes.Linear, true);
-                                stage2.AddCombinations(stCombinations);
-
-                                var lcLTLowerG = longTermLoadCasesFiltered.GetLowerGvalueLoadCase(intMat);
-                                var lcSTLowerG = stCombinations.SelectMany(i => i.GetIGlassLoadCase()).Distinct().GetLowerGvalueLoadCase(intMat);
-
-                                for (int i = 0; i < glassPackage.Length; i++)
-                                {
-                                    if (glassPackage[i] is Interlayer)
-                                    {
-                                        stage1.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][lcLTLowerG]);
-                                        stage2.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][lcSTLowerG]);
-                                    }
-                                    else
-                                    {
-                                        stage1.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
-                                        stage2.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
-                                    }
-                                }
-                            }
 
                             combinationsToProcess = combinationsToProcess.Except(matchedCombinations).ToList();
                         }
@@ -634,6 +643,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                     stage2.AddFiniteElements(elementIndexes[i].volumesId, glassLayerPropertyNameMap[i]);
                             }
                         }
+
                     }
                 }
                 else
