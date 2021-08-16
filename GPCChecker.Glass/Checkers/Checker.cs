@@ -446,14 +446,14 @@ namespace GPC.Checkers.Glasses.Checkers
                     // O(nlc * n^2)
                     // Ciclo i loadcase unici
 
-                    Dictionary<Combination, (List<int> stageId, List<Combination> comboFictituous)> comboStageIdMap = new Dictionary<Combination, (List<int>, List<Combination>)>();
+                    Dictionary<Combination, (List<int> stageId, List<Combination> comboFictituous)> comboStageIdMap 
+                                            = new Dictionary<Combination, (List<int>, List<Combination>)>();
 
-                    var loadCases = combinations
-                        .SelectMany(i => i.GetLoadCases())
-                        .Select(i => i as MMLoadCaseBase)
-                        .Where(i => i != null)
-                        .Distinct()
-                        .ToArray();
+                    var loadCases = combinations.SelectMany(i => i.GetLoadCases())
+                                                .Select(i => i as MMLoadCaseBase)
+                                                .Where(i => i != null)
+                                                .Distinct()
+                                                .ToArray();
 
                     //foreach (var loadCase in combinations.SelectMany(i => i.GetLoadCases()).Select(i => i as MMLoadCaseBase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
                     Parallel.For(0, loadCases.Length, (n) =>
@@ -498,7 +498,7 @@ namespace GPC.Checkers.Glasses.Checkers
                     // Stage lineari per cambiare proprietà all'interlayer
                     // va creato uno stage per ogni loadcase
 
-                    femModel.AnalysisType = (Model.FEM.FemModel.AnalysisTypes)analysisType;
+                    femModel.AnalysisType = (FemModel.AnalysisTypes)analysisType;
 
                     List<Combination> combinationsToProcess = combinations.ToList();
 
@@ -534,12 +534,12 @@ namespace GPC.Checkers.Glasses.Checkers
                         if (longTermLoadCasesFiltered.Count() > 0)
                         {
                             var longTermLoadCaseCoefficients = firstCombo
-                                .GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered)
-                                .Select(i => ((MMLoadCaseBase loadCase, double coefficient))i)
-                                .ToArray();
+                                                               .GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered)
+                                                               .Select(i => ((MMLoadCaseBase loadCase, double coefficient))i)
+                                                               .ToArray();
 
                             List<Combination> matchedCombinations = combinationsToProcess
-                                .Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo
+                                                .Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo, questa lista contiene tutte le combo che hanno gli stessi LT e stessi coeff della combo di partenza
 
                             Stage stage1 = femModel.AddStage($"Stage {index++} LT", Model.FEM.FemModel.AnalysisTypes.Linear);
 
@@ -549,12 +549,12 @@ namespace GPC.Checkers.Glasses.Checkers
                             stage1.AddCombination(ltCombination);
 
                             var stCombinations = new List<Combination>();
-                            for (int n = 0; n < stCombinations.Count; n++)
+                            for (int n = 0; n < matchedCombinations.Count; n++)
                             {
-                                var c = (Combination)stCombinations[n].Clone();
+                                var c = (Combination)matchedCombinations[n].Clone();
                                 c.RemoveLoadCaseCoefficients(firstCombo.GetLoadCaseCoefficientsTuple(missingLoadCases)
-                                    .Select(i => ((MMLoadCaseBase loadCase, double coefficient))i)
-                                    .ToArray());
+                                                .Select(i => ((MMLoadCaseBase loadCase, double coefficient))i)
+                                                .ToArray());
                                 c.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
 
                                 if (c.LoadCaseCount > 0) 
