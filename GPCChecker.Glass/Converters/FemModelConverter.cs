@@ -80,9 +80,11 @@ namespace GPC.Checkers.Glasses.Converters
                 // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
                 aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1);
 
+                bool stagedAnalysis = false;
 
                 if (femModel.GetStages().Length > 0)
                 {
+                    stagedAnalysis = true;
                     if (!ConvertModelToStraus7SetStages(aw, mid, femModelWrapper)) // crea gli stages, senza combo. Non spegne elementi
                         return false;
 
@@ -103,12 +105,12 @@ namespace GPC.Checkers.Glasses.Converters
 
                         femModelWrapper.St7NonLinearGeometryActive = nonLinearGeometry;
                         femModelWrapper.St7SolverType = Straus7SolverTypes.Linear;
-
+                        
                         break;
 
                     case Straus7SolverTypes.NonLinear:
 
-                        if (!ConvertModelToStraus7SetNonLinearSolverSetup(aw, mid, false, nonLinearGeometry, false))
+                        if (!ConvertModelToStraus7SetNonLinearSolverSetup(aw, mid, false, nonLinearGeometry, stagedAnalysis))
                             return false;
 
                         femModelWrapper.St7NonLinearGeometryActive = nonLinearGeometry;
@@ -321,17 +323,16 @@ namespace GPC.Checkers.Glasses.Converters
         /// <param name="nonLinearGeometry"></param>
         /// <param name="stagedAnalysis"></param>
         /// <returns></returns>
-        private bool ConvertModelToStraus7SetNonLinearSolverSetup(ISt7ApiService aw, int mid, bool nonLinearMaterial, 
-                                                                    bool nonLinearGeometry, bool stagedAnalysis)
+        private bool ConvertModelToStraus7SetNonLinearSolverSetup(ISt7ApiService aw, int mid, bool nonLinearMaterial, bool nonLinearGeometry, bool stagedAnalysis)
         {
             if (stagedAnalysis)
             {
-                aw.SetNLAStagedAnalysis(mid, stagedAnalysis);
                 foreach (var stageId in _stageMap)
                 {
                     aw.EnableNLAStage(mid, stageId.Value);
                 }
             }
+
             return aw.SetSolverNonlinearMaterial(mid, nonLinearMaterial) 
                    && aw.SetSolverNonlinearGeometry(mid, nonLinearGeometry) 
                    && aw.SetNLAStagedAnalysis(mid, stagedAnalysis);
