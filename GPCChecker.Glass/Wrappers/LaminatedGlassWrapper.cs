@@ -397,8 +397,8 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     // Creo e assegno mappa - meshcarichi,id al wrapper
 
-                    Mesh externalMesh = GetExternalGlassMesh();
-                    Mesh internalMesh = GetInternalGlassMesh();
+                    Mesh externalMesh = GetGlassMeshExternal();
+                    Mesh internalMesh = GetGlassMeshInternal();
 
                     _meshGeometryRestrainVertices = new List<KeyValuePair<Mesh, Dictionary<GeometryRestrain, int[]>>>() 
                     { 

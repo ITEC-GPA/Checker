@@ -198,18 +198,25 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        public Mesh GetInternalGlassMesh()
+        public Mesh GetGlassMeshInternal()
         {
-            if (_meshes == null)
-                throw new ArgumentNullException();
-            return _meshes.Last();
+            return Meshes.Last();
         }
 
-        public Mesh GetExternalGlassMesh()
+        /// <summary>
+        /// return the mesh at index 
+        /// </summary>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public Mesh GetGlassMesh(int index)
         {
-            if (_meshes == null)
-                throw new ArgumentNullException();
-            return _meshes.First();
+            return Meshes[index];
+        }
+
+
+        public Mesh GetGlassMeshExternal()
+        {
+            return Meshes.First();
         }
 
 
