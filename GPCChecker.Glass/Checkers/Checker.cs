@@ -1,5 +1,5 @@
 ﻿using GPC.Checkers.Glasses.Extensions;
-using GPC.Checkers.Glasses.FemModel;
+using GPC.Checkers.Glasses.FemModels;
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.LoadCases;
 using GPC.Checkers.Glasses.Loads;
@@ -91,7 +91,7 @@ namespace GPC.Checkers.Glasses.Checkers
             {
                 MonolithicGlassWrapper wrapper = new MonolithicGlassWrapper(_glassSurface, mg);
 
-                _femModel = BuildMonolithicGlass(femModelName, wrapper, mg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, _combinations);
+                _femModel = BuildMonolithicGlassModel(femModelName, wrapper, mg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, _combinations);
 
                 return true;
             }
@@ -99,7 +99,8 @@ namespace GPC.Checkers.Glasses.Checkers
             {
                 LaminatedGlassWrapper wrapper = new LaminatedGlassWrapper(_glassSurface, lg);
 
-                _femModel = BuildLaminatedGlass(femModelName, wrapper, lg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, _glassSurface.Prototype.LaminatedAnalysisType, _combinations);
+                _femModel = BuildLaminatedGlassModel(femModelName, wrapper, lg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, 
+                                                                                _glassSurface.Prototype.LaminatedAnalysisType, _combinations);
 
                 return true;
             }
@@ -141,7 +142,7 @@ namespace GPC.Checkers.Glasses.Checkers
             }
         }
 
-        private FemModelWrapper BuildMonolithicGlass(string femModelName, MonolithicGlassWrapper wrapper, MonolithicGlass mg, IEnumerable<IGlassLoad> loads, 
+        private FemModelWrapper BuildMonolithicGlassModel(string femModelName, MonolithicGlassWrapper wrapper, MonolithicGlass mg, IEnumerable<IGlassLoad> loads, 
             Prototype.AnalysisTypes analysisType, IEnumerable<Combination> combinations)
         {
             // Creo modello
@@ -199,10 +200,15 @@ namespace GPC.Checkers.Glasses.Checkers
                 // STRAUS: MONOSTAGE, INCREMENTI COME COMBINAZIONI NON LINEARI
 
                 femModel.AnalysisType = (Model.FEM.FemModel.AnalysisTypes)analysisType;
-                femModel.AddCombinations(combinations);
-
+                
                 Stage stage = femModel.AddStageAsCopyOfModel("Stage1", femModel.AnalysisType);
-                stage.AddCombinations(combinations);
+                bool ret = stage.AddCombinations(combinations);
+
+                foreach (var combo in combinations)
+                {
+                    femModel.AddStageCombinationSplittedMap(combo.Name, new[] { stage.Id }, new[] { combo.Name });
+                }
+
             }
             else
             {
@@ -213,7 +219,8 @@ namespace GPC.Checkers.Glasses.Checkers
         }
 
 
-        private FemModelWrapper BuildLaminatedGlass(string femModelName, LaminatedGlassWrapper wrapper,  LaminatedGlass lg, IEnumerable<IGlassLoad> loads, 
+        private FemModelWrapper BuildLaminatedGlassModel(string femModelName, LaminatedGlassWrapper wrapper,  
+                                                        LaminatedGlass lg, IEnumerable<IGlassLoad> loads, 
             Prototype.AnalysisTypes analysisType, Prototype.LaminatedAnalysisTypes laminatedAnalysisType, IEnumerable<Combination> combinations)
         {
             // Creo modello
@@ -272,6 +279,7 @@ namespace GPC.Checkers.Glasses.Checkers
 
                 // Aggiunta delle mesh al femModel
                 Dictionary<int, int>[] packageNodesNewIndexMap = new Dictionary<int, int>[glassPackage.Count()];
+
                 for (int i = 0; i < glassPackage.Length; i++)
                 //Parallel.For(0, glassPackage.Length, (i) =>
                 {
@@ -443,14 +451,14 @@ namespace GPC.Checkers.Glasses.Checkers
                     // O(nlc * n^2)
                     // Ciclo i loadcase unici
 
-                    Dictionary<Combination, (List<int> stageId, List<Combination> comboFictituous)> comboStageIdMap = new Dictionary<Combination, (List<int>, List<Combination>)>();
+                    Dictionary<Combination, (List<int> stageId, List<Combination> comboFictituous)> comboStageIdMap 
+                                            = new Dictionary<Combination, (List<int>, List<Combination>)>();
 
-                    var loadCases = combinations
-                        .SelectMany(i => i.GetLoadCases())
-                        .Select(i => i as MMLoadCaseBase)
-                        .Where(i => i != null)
-                        .Distinct()
-                        .ToArray();
+                    var loadCases = combinations.SelectMany(i => i.GetLoadCases())
+                                                .Select(i => i as MMLoadCaseBase)
+                                                .Where(i => i != null)
+                                                .Distinct()
+                                                .ToArray();
 
                     //foreach (var loadCase in combinations.SelectMany(i => i.GetLoadCases()).Select(i => i as MMLoadCaseBase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
                     Parallel.For(0, loadCases.Length, (n) =>
@@ -495,7 +503,7 @@ namespace GPC.Checkers.Glasses.Checkers
                     // Stage lineari per cambiare proprietà all'interlayer
                     // va creato uno stage per ogni loadcase
 
-                    femModel.AnalysisType = (Model.FEM.FemModel.AnalysisTypes)analysisType;
+                    femModel.AnalysisType = (FemModel.AnalysisTypes)analysisType;
 
                     List<Combination> combinationsToProcess = combinations.ToList();
 
@@ -531,60 +539,69 @@ namespace GPC.Checkers.Glasses.Checkers
                         if (longTermLoadCasesFiltered.Count() > 0)
                         {
                             var longTermLoadCaseCoefficients = firstCombo
-                                .GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered)
-                                .Select(i => ((MMLoadCaseBase loadCase, double coefficient))i)
-                                .ToArray();
+                                                               .GetLoadCaseCoefficientsTuple(longTermLoadCasesFiltered)
+                                                               .Select(i => ((MMLoadCaseBase loadCase, double coefficient))i)
+                                                               .ToArray();
 
                             List<Combination> matchedCombinations = combinationsToProcess
-                                .Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo
-
-                            Stage stage1 = femModel.AddStage($"Stage {index++} LT", Model.FEM.FemModel.AnalysisTypes.Linear);
+                                                .Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo, questa lista contiene tutte le combo che hanno gli stessi LT e stessi coeff della combo di partenza
+                            
+                            Stage stage1 = femModel.AddStage($"Stage {index++} LT", Model.FEM.FemModel.AnalysisTypes.NonLinear);
 
                             var ltCombination = (Combination)firstCombo.CloneEmpty();
                             ltCombination.AddLoadCaseCoefficients(longTermLoadCaseCoefficients);
 
                             stage1.AddCombination(ltCombination);
 
+
+                            Stage stage2 = null;
                             var stCombinations = new List<Combination>();
-                            for (int n = 0; n < stCombinations.Count; n++)
+                            for (int n = 0; n < matchedCombinations.Count; n++)
                             {
-                                var c = (Combination)stCombinations[n].Clone();
-                                c.RemoveLoadCaseCoefficients(firstCombo.GetLoadCaseCoefficientsTuple(missingLoadCases)
-                                    .Select(i => ((MMLoadCaseBase loadCase, double coefficient))i)
-                                    .ToArray());
-                                c.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients);
+                                var matchedCombo = (Combination)matchedCombinations[n].Clone();
 
-                                if (c.LoadCaseCount > 0) 
+                                matchedCombo.RemoveLoadCaseCoefficients(firstCombo.GetLoadCaseCoefficientsTuple(missingLoadCases)
+                                                                        .Select(i => ((MMLoadCaseBase loadCase, double coefficient))i)
+                                                                        .ToArray());                   // tiro via la parte non nel modello
+                                matchedCombo.RemoveLoadCaseCoefficients(longTermLoadCaseCoefficients); // tiro via la parte LT
+
+
+                                if (matchedCombo.LoadCaseCount > 0)                                    // va creato un altro stage per la parte rimanente
                                 {
-                                    stCombinations.Add(c);
+                                    stCombinations.Add(matchedCombo);
+
+                                    if (stage2 is null)
+                                    {
+                                        stage2 = femModel.AddStage($"Stage {index++} ST", Model.FEM.FemModel.AnalysisTypes.NonLinear, true);
+
+                                        var lcLTLowerG = longTermLoadCasesFiltered.GetLowerGvalueLoadCase(intMat);
+                                        var lcSTLowerG = stCombinations.SelectMany(i => i.GetIGlassLoadCase()).Distinct().GetLowerGvalueLoadCase(intMat);
+
+                                        for (int i = 0; i < glassPackage.Length; i++)
+                                        {
+                                            if (glassPackage[i] is Interlayer)
+                                            {
+                                                stage1.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][lcLTLowerG]);
+                                                stage2.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][lcSTLowerG]);
+                                            }
+                                            else
+                                            {
+                                                stage1.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
+                                                stage2.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
+                                            }
+                                        }
+                                    }
+
+                                    stage2.AddCombination(matchedCombo);
+                                    femModel.AddStageCombinationSplittedMap(matchedCombo.Name, new[] { stage1.Id, stage2.Id }, new[] { ltCombination.Name, matchedCombo.Name });
                                 }
+                                else
+                                {
+                                    femModel.AddStageCombinationSplittedMap(matchedCombo.Name, new[] { stage1.Id}, new[] { ltCombination.Name,});
+                                }
+
                             }
 
-                            if (stCombinations.Count > 0)
-                            {
-                                // se combo ST è vuota, vuol dire che tutte i loadcase della combo in esame sono LT
-                                // non creo stage 2.
-
-                                Stage stage2 = femModel.AddStage($"Stage {index++} ST", Model.FEM.FemModel.AnalysisTypes.Linear, true);
-                                stage2.AddCombinations(stCombinations);
-
-                                var lcLTLowerG = longTermLoadCasesFiltered.GetLowerGvalueLoadCase(intMat);
-                                var lcSTLowerG = stCombinations.SelectMany(i => i.GetIGlassLoadCase()).Distinct().GetLowerGvalueLoadCase(intMat);
-
-                                for (int i = 0; i < glassPackage.Length; i++)
-                                {
-                                    if (glassPackage[i] is Interlayer)
-                                    {
-                                        stage1.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][lcLTLowerG]);
-                                        stage2.AddFiniteElements(elementIndexes[i].volumesId, interlayerLoadCasePropertyNameMap[i][lcSTLowerG]);
-                                    }
-                                    else
-                                    {
-                                        stage1.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
-                                        stage2.AddFiniteElements(elementIndexes[i].platesId, glassLayerPropertyNameMap[i]);
-                                    }
-                                }
-                            }
 
                             combinationsToProcess = combinationsToProcess.Except(matchedCombinations).ToList();
                         }
@@ -631,6 +648,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                     stage2.AddFiniteElements(elementIndexes[i].volumesId, glassLayerPropertyNameMap[i]);
                             }
                         }
+
                     }
                 }
                 else
@@ -660,29 +678,14 @@ namespace GPC.Checkers.Glasses.Checkers
             if (_femModel == null)
                 throw new ApplicationException($"FemModel is null. {nameof(FemModelSetup)} should be called before calling this method");
 
-            if (_glassSurface.Prototype.SolverType == Prototype.SolverTypes.Straus7)
+            _femModel.SetSolver(_glassSurface.Prototype.SolverType);
+
+
+            if (_glassSurface.Prototype.SolverType == Prototype.Solvers.Straus7)
             {
-                // STRAUS7
-                GlassWrapper glassWrapper;
-                if (_glassSurface.Prototype.Glass is MonolithicGlass mg)
+                if (!_femModel.ExportToSt7(_folderPath, _femModel.Name))
                 {
-                    _femModel.SaveFemModelToSt7(_folderPath); // Esporta modello in st7
-                }
-                else if (_glassSurface.Prototype.Glass is LaminatedGlass lg)
-                {
-                    _femModel.SaveFemModelToSt7(_folderPath);
-                }
-                else if (_glassSurface.Prototype.Glass is DoubleInsulatingGlass dgu)
-                {
-                    glassWrapper = new DoubleInsulatingGlassWrapper(_glassSurface, dgu);
-                }
-                else if (_glassSurface.Prototype.Glass is TripleInsulatingGlass tgu)
-                {
-                    glassWrapper = new TripleInsulatingGlassWrapper(_glassSurface, tgu);
-                }
-                else
-                {
-                    throw new NotSupportedException();
+                    throw new St7ApiWrapper.Straus7Exception("Unable to export");
                 }
             }
 
@@ -747,29 +750,26 @@ namespace GPC.Checkers.Glasses.Checkers
         /// <inheritdoc cref="Model.FEM.FemModel.AddModelAcceleration(string)"/>
         private void ModelGravitySetUp(FemModelWrapper femModel, Loads.SelfWeightLoad load)
         {
-            var accelerationModel = femModel.AddModelAcceleration(load.LoadCase.Name);
+            var gravityAttribute = femModel.AddModelGravityAttribute(load.LoadCase.Name);
 
-            accelerationModel.CoordinateSystem = Geometry.CoordinateSystem.Global;
-
-            int gravityDirection = Math.Sign(load.GravityVector * Geometry.CoordinateSystem.Global.V1);
-
-            switch (_options.GravityAxis)
+            if (load.GravityVector == GPC.Geometry.CoordinateSystem.Global.V1)
             {
-                case ModelOptions.GravityAxes.X:
-                    accelerationModel.A1 = gravityDirection * load.Acceleration;
-                    break;
-
-                case ModelOptions.GravityAxes.Y:
-                    accelerationModel.A2 = gravityDirection * load.Acceleration;
-                    break;
-
-                case ModelOptions.GravityAxes.Z:
-                    accelerationModel.A3 = gravityDirection * load.Acceleration;
-                    break;
-
-                default:
-                    throw new ArgumentException();
+                gravityAttribute.SetGravityX(load.Acceleration);
             }
+            else if (load.GravityVector == GPC.Geometry.CoordinateSystem.Global.V2)
+            {
+                gravityAttribute.SetGravityY(load.Acceleration);
+            }
+            else if (load.GravityVector == GPC.Geometry.CoordinateSystem.Global.V3)
+            {
+                gravityAttribute.SetGravityZ(load.Acceleration);
+
+            }
+            else
+            {
+                throw new ArgumentException();
+            }
+
         }
 
 

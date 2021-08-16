@@ -31,8 +31,8 @@ namespace GPC.Checkers.Glasses.Loads
 
 
 
-        public SelfWeightLoad(IGlassLoadCase loadCase, Vector3d gravityVector, double acceleration) 
-            : base((Model.LoadCases.LoadCase)loadCase, gravityVector, acceleration)
+        public SelfWeightLoad(IGlassLoadCase loadCase, double acceleration) 
+            : base((Model.LoadCases.LoadCase)loadCase, acceleration)
         {
 
         }

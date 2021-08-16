@@ -90,13 +90,15 @@ namespace GPC.Checkers.Glasses.Models
             ASTME1300 = 2
         }
 
+
         [TypeConverter(typeof(EnumDescriptionTypeConverter))]
-        public enum SolverTypes
+        public enum Solvers
         {
             [Description("GPC")]
             GPCSolver,
             Straus7
         }
+
 
         [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum LaminatedAnalysisTypes
@@ -118,7 +120,7 @@ namespace GPC.Checkers.Glasses.Models
         private readonly AnalysisTypes _analysisType;
         private readonly CheckMethods _checkMethod;
         private readonly Standards _standard;
-        private readonly SolverTypes _solverType;
+        private readonly Solvers _solverType;
         private readonly LaminatedAnalysisTypes _laminatedAnalysisType;
         private readonly LaminatedEqThicknessParameters _laminatedEqThicknessParameters;
         private readonly Geometry.Meshes.Mesh.GenerateOptions _meshOptions;
@@ -149,7 +151,7 @@ namespace GPC.Checkers.Glasses.Models
 
         public Standards Standard => _standard;
 
-        public SolverTypes SolverType => _solverType;
+        public Solvers SolverType => _solverType;
 
         public Polygon3d Polygon
         {
@@ -166,7 +168,7 @@ namespace GPC.Checkers.Glasses.Models
         #endregion
 
         public Prototype(string name, Glass glass, Polygon3d polygon, List<IParametricRestrain> restrains, IEnumerable<Combination> combinations, Standards standard,
-            AnalysisTypes analysisType, CheckMethods checkMethod, SolverTypes solverType, LaminatedAnalysisTypes laminatedAnalysisType,
+            AnalysisTypes analysisType, CheckMethods checkMethod, Solvers solverType, LaminatedAnalysisTypes laminatedAnalysisType,
             LaminatedEqThicknessParameters laminatedEqThicknessParameters)
             : base(name)
         {
@@ -191,7 +193,7 @@ namespace GPC.Checkers.Glasses.Models
         }
 
 
-        public Prototype(string name, Glass glass, Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, SolverTypes solverType, 
+        public Prototype(string name, Glass glass, Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, Solvers solverType, 
             LaminatedAnalysisTypes laminatedAnalysisType, LaminatedEqThicknessParameters laminatedEqThicknessParameters)
             : this(name, glass, null, null, null, standard, analysisType, checkMethod, solverType, laminatedAnalysisType, laminatedEqThicknessParameters)
         {
@@ -206,7 +208,7 @@ namespace GPC.Checkers.Glasses.Models
             _checkMethod = (CheckMethods)info.GetValue("CheckMethod", typeof(CheckMethods));
             _laminatedEqThicknessParameters = (LaminatedEqThicknessParameters)info.GetValue("LaminatedEqThicknessParameters", typeof(LaminatedEqThicknessParameters));
             _standard = (Standards)info.GetValue("Standard", typeof(Standards));      
-            _solverType = (SolverTypes)info.GetValue("SolverType", typeof(SolverTypes));
+            _solverType = (Solvers)info.GetValue("SolverType", typeof(Solvers));
             _laminatedAnalysisType = (LaminatedAnalysisTypes)info.GetValue("LaminatedAnalysisType", typeof(LaminatedAnalysisTypes));
             _glass = (Glass)info.GetValue("Glass", typeof(Glass));
             _polygon = (Polygon3d)info.GetValue("Polygon", typeof(Polygon3d));
@@ -222,7 +224,7 @@ namespace GPC.Checkers.Glasses.Models
             info.AddValue("CheckMethod", _checkMethod, typeof(CheckMethods));
             info.AddValue("LaminatedEqThicknessParameters", _laminatedEqThicknessParameters, typeof(LaminatedEqThicknessParameters));
             info.AddValue("Standard", _standard, typeof(Standards));
-            info.AddValue("SolverType", _solverType, typeof(SolverTypes));
+            info.AddValue("SolverType", _solverType, typeof(Solvers));
             info.AddValue("Glass", _glass, typeof(Glass));
             info.AddValue("Polygon", _polygon, typeof(Polygon3d));
             info.AddValue("Restraints", _restrains, typeof(List<IParametricRestrain>));
@@ -309,7 +311,7 @@ namespace GPC.Checkers.Glasses.Models
                 hashCode = hashCode * -17 + EqualityComparer<CheckMethods>.Default.GetHashCode(_checkMethod);
                 hashCode = hashCode * -17 + EqualityComparer<LaminatedEqThicknessParameters>.Default.GetHashCode(_laminatedEqThicknessParameters);
                 hashCode = hashCode * -17 + EqualityComparer<Standards>.Default.GetHashCode(_standard);
-                hashCode = hashCode * -17 + EqualityComparer<SolverTypes>.Default.GetHashCode(_solverType);
+                hashCode = hashCode * -17 + EqualityComparer<Solvers>.Default.GetHashCode(_solverType);
                 hashCode = hashCode * -17 + EqualityComparer<LaminatedAnalysisTypes>.Default.GetHashCode(_laminatedAnalysisType);
                 hashCode = hashCode * -17 + EqualityComparer<Glass>.Default.GetHashCode(_glass);
                 hashCode = hashCode * -17 + EqualityComparer<Polygon3d>.Default.GetHashCode(_polygon);

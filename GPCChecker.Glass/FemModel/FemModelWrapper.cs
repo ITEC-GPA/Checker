@@ -20,22 +20,17 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Serialization;
 
-namespace GPC.Checkers.Glasses.FemModel
+namespace GPC.Checkers.Glasses.FemModels
 {
     [Serializable]
     public class FemModelWrapper : Model.FEM.FemModel, ISerializable
     {
-        public enum Straus7SolverTypes
-        {
-            Linear,
-            NonLinear
-        }
 
         private readonly string _st7ServerIp;
-        private string _saveFolderPath;
+
         private string _st7FilePath;
         private string _st7ResultFilePath;
-        private Prototype.SolverTypes _solverType;
+        private Prototype.Solvers _solver;
 
 
         /// <summary>
@@ -46,56 +41,60 @@ namespace GPC.Checkers.Glasses.FemModel
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and St7ComboId in the Linear loadcase combination table  ;
         /// </summary>
-        private readonly Dictionary<string, int> _st7LSACombinationMap;
+        private Dictionary<string, int> _st7LSACombinationMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.FemModel._combinations"/> id and Stage id - Stage increment id;
         /// </summary>
-        private readonly Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)> _st7NLACombinationMap;
+        private Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)> _st7NLACombinationMap;
 
-        /// <summary>
-        /// Map between <see cref="Model.FEM.FemModel._loadCases"/> St7 loadcase id;
-        /// </summary>
-        private readonly Dictionary<string, int> _st7LoadCaseMap;
+        ///// <summary>
+        ///// Map between <see cref="Model.FEM.FemModel._loadCases"/> St7 loadcase id;
+        ///// </summary>
+        //private readonly Dictionary<string, int> _st7LoadCaseMap;
 
-        /// <summary>
-        /// Map between <see cref="Model.FEM.FemModel._freedomCases"/> St7 fredomcase id;
-        /// </summary>
-        private readonly Dictionary<string, int> _st7FreedomCaseMap;
+        ///// <summary>
+        ///// Map between <see cref="Model.FEM.FemModel._freedomCases"/> St7 fredomcase id;
+        ///// </summary>
+        //private readonly Dictionary<string, int> _st7FreedomCaseMap;
 
-        /// <summary>
-        /// Map between <see cref="Model.FEM.FemModel._plateProperties"/> St7 platepropertyID;
-        /// </summary>
-        private readonly Dictionary<PlateProperty, int> _st7PlatePropertyMap;
+        ///// <summary>
+        ///// Map between <see cref="Model.FEM.FemModel._plateProperties"/> St7 platepropertyID;
+        ///// </summary>
+        //private readonly Dictionary<PlateProperty, int> _st7PlatePropertyMap;
 
-        /// <summary>
-        /// Map between <see cref="Model.FEM.FemModel._brickProperties"/> St7 brickpropertyID;
-        /// </summary>
-        private readonly Dictionary<BrickProperty, int> _st7BrickPropertyMap;
+        ///// <summary>
+        ///// Map between <see cref="Model.FEM.FemModel._brickProperties"/> St7 brickpropertyID;
+        ///// </summary>
+        //private readonly Dictionary<BrickProperty, int> _st7BrickPropertyMap;
 
         /// <summary>
         /// Map between <see cref="Model.FEM.Node"/> id and straus7 node ID
         /// </summary>
-        private readonly Dictionary<int, int> _st7NodeMap;
+        private Dictionary<int, int> _st7NodeMap;
 
         /// <summary>
         /// Map between <see cref="Plate"/> id and straus7 plate ID
         /// </summary>
-        private readonly Dictionary<int, int> _st7PlateMap;
+        private Dictionary<int, int> _st7PlateMap;
 
         /// <summary>
         /// Map between <see cref="Brick"/> id and straus7 brick ID
         /// </summary>
-        private readonly Dictionary<int, int> _st7BrickMap;
+        private Dictionary<int, int> _st7BrickMap;
 
-        /// <summary>
-        /// Map between <see cref="Model.FEM.Stage"/> id and straus7 stage ID
-        /// </summary>
-        private readonly Dictionary<int, int> _st7StageMap;
+        ///// <summary>
+        ///// Map between <see cref="Model.FEM.Stage"/> id and straus7 stage ID
+        ///// </summary>
+        //private readonly Dictionary<int, int> _st7StageMap;
 
 
-        private Straus7SolverTypes _st7SolverType;
+        private Converters.FemModelConverter.Straus7SolverTypes _st7SolverType;
         private bool _st7NonLinearGeometryActive;
+
+
+        internal Converters.FemModelConverter.Straus7SolverTypes St7SolverType { get { return _st7SolverType; } set { _st7SolverType = value; } }
+        internal bool St7NonLinearGeometryActive { get { return _st7NonLinearGeometryActive; } set { _st7NonLinearGeometryActive = value; } }
 
 
         public override AnalysisTypes AnalysisType { get => base.AnalysisType; set => base.AnalysisType = value; }
@@ -107,6 +106,7 @@ namespace GPC.Checkers.Glasses.FemModel
 
         }
 
+
         public FemModelWrapper(string name)
             : base(name)
         {
@@ -114,21 +114,24 @@ namespace GPC.Checkers.Glasses.FemModel
 
             _stageCombinationsSplittedMap = new Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>();
 
-            _st7LSACombinationMap = new Dictionary<string, int>();
-            _st7NLACombinationMap = new Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>();
-            _st7LoadCaseMap = new Dictionary<string, int>();
-            _st7FreedomCaseMap = new Dictionary<string, int>();
-            _st7PlatePropertyMap = new Dictionary<PlateProperty, int>(new ModelObjectNameEqualityComparer());
-            _st7BrickPropertyMap = new Dictionary<BrickProperty, int>(new ModelObjectNameEqualityComparer());
+            //_st7LSACombinationMap = new Dictionary<string, int>();
+            //_st7NLACombinationMap = new Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>();
+            //_st7LoadCaseMap = new Dictionary<string, int>();
+            //_st7FreedomCaseMap = new Dictionary<string, int>();
+            //_st7PlatePropertyMap = new Dictionary<PlateProperty, int>(new ModelObjectNameEqualityComparer());
+            //_st7BrickPropertyMap = new Dictionary<BrickProperty, int>(new ModelObjectNameEqualityComparer());
 
-            _st7NodeMap = new Dictionary<int, int>();
-            _st7PlateMap = new Dictionary<int, int>();
-            _st7BrickMap = new Dictionary<int, int>();
-            _st7StageMap = new Dictionary<int, int>();
+            //_st7NodeMap = new Dictionary<int, int>();
+            //_st7PlateMap = new Dictionary<int, int>();
+            //_st7BrickMap = new Dictionary<int, int>();
+            //_st7StageMap = new Dictionary<int, int>();
 
-            _solverType = Prototype.SolverTypes.GPCSolver;
+            // valori di default nel caso non vengano settati
+
+            _solver = Prototype.Solvers.GPCSolver;
 
             _st7NonLinearGeometryActive = false;
+            _st7SolverType = Converters.FemModelConverter.Straus7SolverTypes.Linear;
         }
 
 
@@ -136,21 +139,21 @@ namespace GPC.Checkers.Glasses.FemModel
             : base(info, context)
         {
             _st7ServerIp = (string)info.GetValue("ServerIp", typeof(string));
-            _stageCombinationsSplittedMap = (Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>)info.GetValue("StageCombinationsSplittedMap", typeof(Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>));
-            _st7LSACombinationMap = (Dictionary<string, int>)info.GetValue("LSACombinationMap", typeof(Dictionary<string, int>));
-            _st7NLACombinationMap = (Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>)info.GetValue("NLACombinationMap", 
-                                    typeof(Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>));
-            _st7LoadCaseMap = (Dictionary<string, int>)info.GetValue("LoadCaseMap", typeof(Dictionary<string, int>));
-            _st7FreedomCaseMap = (Dictionary<string, int>)info.GetValue("FreedomCaseMap", typeof(Dictionary<string, int>));
-            _st7PlatePropertyMap = (Dictionary<PlateProperty, int>)info.GetValue("PlatePropertyMap", typeof(Dictionary<PlateProperty, int>));
-            _st7BrickPropertyMap = (Dictionary<BrickProperty, int>)info.GetValue("BrickPropertyMap", typeof(Dictionary<BrickProperty, int>));
+            //_stageCombinationsSplittedMap = (Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>)info.GetValue("StageCombinationsSplittedMap", typeof(Dictionary<string, (List<int> stageIds, List<string> stageCombinationsNames)>));
+            //_st7LSACombinationMap = (Dictionary<string, int>)info.GetValue("LSACombinationMap", typeof(Dictionary<string, int>));
+            //_st7NLACombinationMap = (Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>)info.GetValue("NLACombinationMap", 
+            //                        typeof(Dictionary<string, (int stageId, int stageIncrementId, int progressiveIncrementId)>));
+            //_st7LoadCaseMap = (Dictionary<string, int>)info.GetValue("LoadCaseMap", typeof(Dictionary<string, int>));
+            //_st7FreedomCaseMap = (Dictionary<string, int>)info.GetValue("FreedomCaseMap", typeof(Dictionary<string, int>));
+            //_st7PlatePropertyMap = (Dictionary<PlateProperty, int>)info.GetValue("PlatePropertyMap", typeof(Dictionary<PlateProperty, int>));
+            //_st7BrickPropertyMap = (Dictionary<BrickProperty, int>)info.GetValue("BrickPropertyMap", typeof(Dictionary<BrickProperty, int>));
 
-            _st7NodeMap = (Dictionary<int, int>)info.GetValue("NodeMap", typeof(Dictionary<int, int>));
-            _st7PlateMap = (Dictionary<int, int>)info.GetValue("PlateMap", typeof(Dictionary<int, int>));
-            _st7BrickMap = (Dictionary<int, int>)info.GetValue("BrickMap", typeof(Dictionary<int, int>));
-            _st7StageMap = (Dictionary<int, int>)info.GetValue("StageMap", typeof(Dictionary<int, int>));
+            //_st7NodeMap = (Dictionary<int, int>)info.GetValue("NodeMap", typeof(Dictionary<int, int>));
+            //_st7PlateMap = (Dictionary<int, int>)info.GetValue("PlateMap", typeof(Dictionary<int, int>));
+            //_st7BrickMap = (Dictionary<int, int>)info.GetValue("BrickMap", typeof(Dictionary<int, int>));
+            //_st7StageMap = (Dictionary<int, int>)info.GetValue("StageMap", typeof(Dictionary<int, int>));
 
-            _solverType = (Prototype.SolverTypes)info.GetValue("SolverType", typeof(Prototype.SolverTypes));
+            _solver = (Prototype.Solvers)info.GetValue("SolverType", typeof(Prototype.Solvers));
             _st7NonLinearGeometryActive = (bool)info.GetValue("NonLinearGeometryActive", typeof(bool));
         }
 
@@ -159,18 +162,18 @@ namespace GPC.Checkers.Glasses.FemModel
         {
             base.GetObjectData(info, context);
             info.AddValue("ServerIp", _st7ServerIp);
-            info.AddValue("StageCombinationsSplittedMap", _stageCombinationsSplittedMap);
-            info.AddValue("LSACombinationMap", _st7LSACombinationMap);
-            info.AddValue("NLACombinationMap", _st7NLACombinationMap);
-            info.AddValue("LoadCaseMap", _st7LoadCaseMap);
-            info.AddValue("FreedomCaseMap", _st7FreedomCaseMap);
-            info.AddValue("PlatePropertyMap", _st7PlatePropertyMap);
-            info.AddValue("BrickPropertyMap", _st7BrickPropertyMap);
-            info.AddValue("NodeMap", _st7NodeMap);
-            info.AddValue("PlateMap", _st7PlateMap);
-            info.AddValue("BrickMap", _st7BrickMap);
-            info.AddValue("StageMap", _st7StageMap);
-            info.AddValue("SolverType", _solverType);
+            //info.AddValue("StageCombinationsSplittedMap", _stageCombinationsSplittedMap);
+            //info.AddValue("LSACombinationMap", _st7LSACombinationMap);
+            //info.AddValue("NLACombinationMap", _st7NLACombinationMap);
+            //info.AddValue("LoadCaseMap", _st7LoadCaseMap);
+            //info.AddValue("FreedomCaseMap", _st7FreedomCaseMap);
+            //info.AddValue("PlatePropertyMap", _st7PlatePropertyMap);
+            //info.AddValue("BrickPropertyMap", _st7BrickPropertyMap);
+            //info.AddValue("NodeMap", _st7NodeMap);
+            //info.AddValue("PlateMap", _st7PlateMap);
+            //info.AddValue("BrickMap", _st7BrickMap);
+            //info.AddValue("StageMap", _st7StageMap);
+            //info.AddValue("SolverType", _solverType);
             info.AddValue("NonLinearGeometryActive", _st7NonLinearGeometryActive);
         }
 
@@ -237,23 +240,6 @@ namespace GPC.Checkers.Glasses.FemModel
 
         #endregion
 
-
-
-        public override void Solve()
-        {
-            if (_solverType == Prototype.SolverTypes.Straus7)
-            {
-                var status = RunSt7Solver();
-
-                if (status)
-                    ReadSt7Result();
-            }
-            else
-                base.Solve();
-
-        }
-
-
         public void GenerateRigidLinks(IEnumerable<int> node1Ids, IEnumerable<int> node2Ids)
         {
             int count = node1Ids.Count();
@@ -302,6 +288,21 @@ namespace GPC.Checkers.Glasses.FemModel
                 if (node1!= null && node2 != null)
                     AddCostrain(new Model.FEM.Costrains.RigidLink(node1, node2));
             }
+        }
+
+
+        public override void Solve()
+        {
+            if (_solver == Prototype.Solvers.Straus7)
+            {
+                var status = RunSt7Solver();
+
+                if (status)
+                    ReadSt7Result();
+            }
+            else
+                base.Solve();
+
         }
 
 
@@ -365,88 +366,47 @@ namespace GPC.Checkers.Glasses.FemModel
 
         #endregion
 
-
-        #region STRAUS7
-
-
-        #region STRAUS7 - PUBLIC METHODS
+        #region Internal methods
 
 
-        /// <param name="saveFolderPath">Folder path where to save the results</param>
-        public void SaveFemModelToSt7(string saveFolderPath)
+        internal void SetSolver(Prototype.Solvers solver)
         {
-            if (string.IsNullOrEmpty(saveFolderPath) || string.IsNullOrWhiteSpace(saveFolderPath))
-                throw new DirectoryNotFoundException();
-
-            DirectoryInfo d = Directory.CreateDirectory(saveFolderPath);
-
-            _saveFolderPath = d.FullName;
-
-            if (ConnectService(_st7ServerIp, out ISt7ApiService aw, out TcpChannel channel))
-            {
-                _solverType = Prototype.SolverTypes.Straus7; // setto il solutore in Straus7
-
-                int mid = 0;
-                bool closed = false;
-                try
-                {
-                    bool status = CreateSt7Model(aw, _saveFolderPath, out mid, out List<string> warnings, out List<string> errors);
-
-                    if (status)
-                        status = aw.SaveFile(mid);
-
-                    if (status)
-                    {
-                        status = aw.CloseFile(mid);
-                        closed = true;
-                    }
-
-                    if (!status)
-                        throw new Exception($"St7 Error: {aw.GetLastErrorString()}");
-                }
-                finally
-                {
-                    if (!closed)
-                        aw.CloseFile(mid);
-                }
-            }
-            else
-            {
-                throw new Exception($"Unable to connect to Apiservice through ip: {_st7ServerIp}");
-            }
-
-            if (channel != null)
-                ChannelServices.UnregisterChannel(channel);
+            _solver = solver;
         }
 
         #endregion
 
 
+        #region STRAUS7
+
+        public bool ExportToSt7(string folderPath, string fileName)
+        {
+            Converters.FemModelConverter converter = new Converters.FemModelConverter();
+
+            if (!converter.FromModelToStraus7(this, folderPath, fileName))
+            {
+                return false;
+            }
+
+            _st7FilePath = converter.OutputFilePath;
+
+            _st7NodeMap = converter.NodeMap;
+            _st7PlateMap = converter.PlateMap;
+            _st7BrickMap = converter.BrickMap;
+
+            _st7LSACombinationMap = converter.LSACombinationMap;
+            _st7NLACombinationMap = converter.NSACombinationMap;
+
+
+            return true;
+        }
+
+
         #region STRAUS7 - PRIVATE METHODS
 
-        private Straus7SolverTypes GetSt7SolverType(out bool nonLinearGeometry)
-        {
-            switch (AnalysisType)
-            {
-                case AnalysisTypes.Linear:
-                    if (_stages.Count() > 0)
-                    {
-                        nonLinearGeometry = false;
-                        return Straus7SolverTypes.NonLinear;
-                    }
-                    else
-                    {
-                        nonLinearGeometry = false;
-                        return Straus7SolverTypes.Linear;
-                    }
-                case AnalysisTypes.NonLinear:
-                    nonLinearGeometry = true;
-                    return Straus7SolverTypes.NonLinear;
 
-                default:
-                    throw new NotImplementedException();
-            }
-        }
+
+
 
         private static bool ConnectService(string ip, out ISt7ApiService ro, out TcpChannel channel)
         {
@@ -471,242 +431,9 @@ namespace GPC.Checkers.Glasses.FemModel
             }
         }
 
-        /// <summary>
-        /// Export this FemModel to a new St7 File
-        /// </summary>
-        /// <param name="aw"></param>
-        /// <param name="saveFolderPath">Folder where to save the St7 model</param>
-        /// <param name="mid"></param>
-        /// <param name="warnings"></param>
-        /// <param name="errors"></param>
-        /// <returns></returns>
-        private bool CreateSt7Model(ISt7ApiService aw, string saveFolderPath, out int mid, out List<string> warnings, out List<string> errors)
-        {
-            warnings = new List<string>();
-            errors = new List<string>();
-            mid = 0;
 
-            string scratchPath = Path.GetTempPath();
-            _st7FilePath = Path.ChangeExtension(Path.Combine(saveFolderPath, Name), "St7");
-
-            // Create a new model
-            if (!aw.NewFile(_st7FilePath, scratchPath, ref mid))
-                throw new Straus7Exception("Failed to create new model");
-
-            // Units
-            int[] st7Units = new int[St7ApiConst.kLastUnit];
-            st7Units[St7ApiConst.ipLENGTHU] = St7ApiConst.luMILLIMETRE;
-            st7Units[St7ApiConst.ipFORCEU] = St7ApiConst.fuNEWTON;
-            st7Units[St7ApiConst.ipSTRESSU] = St7ApiConst.suMEGAPASCAL;
-            st7Units[St7ApiConst.ipMASSU] = St7ApiConst.muTONNE;
-            st7Units[St7ApiConst.ipTEMPERU] = St7ApiConst.tuCELSIUS;
-            st7Units[St7ApiConst.ipENERGYU] = St7ApiConst.euJOULE;
-
-            if (!aw.SetUnits(mid, st7Units))
-                throw new Straus7Exception("Failed to set the units");
-
-
-            // Setup loadcases
-            St7SetLoadCase(aw, mid);
-
-
-            #region Geometry
-
-            // Nodes
-            int st7NodeIndex = 0;
-            foreach (var node in _nodes)
-            {
-                st7NodeIndex++;
-                _st7NodeMap.Add(node.Id, st7NodeIndex);
-
-                aw.SetNodeXYZ(mid, st7NodeIndex, node.Position.X, node.Position.Y, node.Position.Z);
-
-
-                foreach (var attribute in node.AttributesFreedomCase)
-                {
-                    if (attribute is NodeRestrainAttribute nra)
-                    {
-                        St7SetNodeRestrain(aw, mid, st7NodeIndex, 1, 1, nra.Restrains);
-                    }
-                    else if (attribute is NodeStiffnessAttribute nsa)
-                    {
-                        St7SetNodeRestrain(aw, mid, st7NodeIndex, 1, 1, nsa.Stiffnesses);
-                    }
-                }
-
-                // Carichi
-                foreach (var attribute in node.AttributesLoadCase)
-                {
-                    if (attribute is NodeForceAttribute pgfa)
-                    {
-                        var lc = _loadCases.GetElementByName(pgfa.LoadCaseName);
-
-                        St7SetNodeGlobalLoad(aw, mid, st7NodeIndex, _st7LoadCaseMap[pgfa.LoadCaseName], pgfa);
-                    }
-                    else
-                        throw new NotSupportedException("Point attribute not supported");
-                }
-            }
-
-            St7SetPlateProperties(aw, mid);
-            St7SetBrickProperties(aw, mid);
-
-            int glassGroupId = 0;
-            aw.NewChildGroup(mid, 1, "Glass " + "1", ref glassGroupId);
-
-            // Plate
-            // Brick
-            int st7PlateIndex = 0;
-            int st7BrickIndex = 0;
-            foreach (var element in _elements)
-            {
-                if (element is Plate plate)
-                {
-                    st7PlateIndex++;
-                    _st7PlateMap.Add(plate.Id, st7PlateIndex);
-
-                    int[] st7ConnectivityArray;
-                    if (plate.IsQuad)
-                    {
-                        var st7FaceConnection = plate.GetNodesID();
-                        st7ConnectivityArray = new int[5];
-                        st7ConnectivityArray[0] = 4;
-                        st7ConnectivityArray[1] = _st7NodeMap[st7FaceConnection[0]];
-                        st7ConnectivityArray[2] = _st7NodeMap[st7FaceConnection[1]];
-                        st7ConnectivityArray[3] = _st7NodeMap[st7FaceConnection[2]];
-                        st7ConnectivityArray[4] = _st7NodeMap[st7FaceConnection[3]];
-                    }
-                    else
-                    {
-                        var st7FaceConnection = plate.GetNodesID();
-                        st7ConnectivityArray = new int[4];
-                        st7ConnectivityArray[0] = 3;
-                        st7ConnectivityArray[1] = _st7NodeMap[st7FaceConnection[0]];
-                        st7ConnectivityArray[2] = _st7NodeMap[st7FaceConnection[1]];
-                        st7ConnectivityArray[3] = _st7NodeMap[st7FaceConnection[2]];
-                    }
-
-                    var property = _plateProperties.GetElementByName(plate.Property.Name);
-
-                    int propNum = _st7PlatePropertyMap[property];
-
-                    aw.SetElementConnection(mid, St7ApiConst.tyPLATE, st7PlateIndex, propNum, st7ConnectivityArray);
-                    aw.SetEntityGroup(mid, St7ApiConst.tyPLATE, st7PlateIndex, glassGroupId);
-
-                    foreach (var attribute in plate.AttributesLoadCase)
-                    {
-                        if (attribute is PlatePressureAttribute pgpa)
-                        {
-                            St7SetPlateGlobalPressure(aw, mid, st7PlateIndex, _st7LoadCaseMap[pgpa.LoadCaseName], pgpa);
-                        }
-                        else if (attribute is PlateNormalPressureAttribute pnpa)
-                        {
-                            St7SetPlateNormalPressure(aw, mid, st7PlateIndex, _st7LoadCaseMap[pnpa.LoadCaseName], pnpa);
-                        }
-                        else
-                            throw new NotSupportedException("Point attribute not supported");
-                    }
-                }
-                else if (element is Brick brick)
-                {
-
-                    st7BrickIndex++;
-                    _st7BrickMap.Add(brick.Id, st7BrickIndex);
-
-                    int[] st7ConnectivityArray;
-                    if (brick.IsQuadrangular)
-                    {
-                        var st7FaceConnection = brick.GetNodesID();
-                        st7ConnectivityArray = new int[9];
-                        st7ConnectivityArray[0] = 8;
-                        st7ConnectivityArray[1] = _st7NodeMap[st7FaceConnection[0]];
-                        st7ConnectivityArray[2] = _st7NodeMap[st7FaceConnection[1]];
-                        st7ConnectivityArray[3] = _st7NodeMap[st7FaceConnection[2]];
-                        st7ConnectivityArray[4] = _st7NodeMap[st7FaceConnection[3]];
-                        st7ConnectivityArray[5] = _st7NodeMap[st7FaceConnection[4]];
-                        st7ConnectivityArray[6] = _st7NodeMap[st7FaceConnection[5]];
-                        st7ConnectivityArray[7] = _st7NodeMap[st7FaceConnection[6]];
-                        st7ConnectivityArray[8] = _st7NodeMap[st7FaceConnection[7]];
-                    }
-                    else
-                    {
-                        var st7FaceConnection = brick.GetNodesID();
-                        st7ConnectivityArray = new int[7];
-                        st7ConnectivityArray[0] = 6;
-                        st7ConnectivityArray[1] = _st7NodeMap[st7FaceConnection[0]];
-                        st7ConnectivityArray[2] = _st7NodeMap[st7FaceConnection[1]];
-                        st7ConnectivityArray[3] = _st7NodeMap[st7FaceConnection[2]];
-                        st7ConnectivityArray[4] = _st7NodeMap[st7FaceConnection[3]];
-                        st7ConnectivityArray[5] = _st7NodeMap[st7FaceConnection[4]];
-                        st7ConnectivityArray[6] = _st7NodeMap[st7FaceConnection[5]];
-                    }
-
-                    var property = _brickProperties.GetElementByName(brick.Property.Name);
-
-                    int propNum = _st7BrickPropertyMap[property];
-
-                    aw.SetElementConnection(mid, St7ApiConst.tyBRICK, st7BrickIndex, propNum, st7ConnectivityArray);
-                    aw.SetEntityGroup(mid, St7ApiConst.tyBRICK, st7BrickIndex, glassGroupId);
-                }
-
-            }
-
-            // Links
-            int st7LinkIndex = 0;
-            foreach (var link in _costrains)
-            {
-                if (link is Model.FEM.Costrains.RigidLink rl)
-                {
-                    st7LinkIndex++;
-                    aw.SetRigidLink(mid, st7LinkIndex, 1, St7ApiConst.rgPlaneXYZ, new int[] { 2, rl.StartNode.Id, rl.EndNode.Id });
-                }
-                else
-                    throw new NotImplementedException();
-            }
-
-
-            #endregion
-
-
-            // Setup solver
-            aw.SetSolverDefaultsInteger(mid, St7ApiConst.spStaticAutoStepping, 1); // 1 Static sub-stepping option; 0, 1, 2 or 3 for None, Load Scaling, Displacement Scaling or Displacement Control(Arc Length), respectively.
-
-            // TODO: gestire eccezioni e salvare file 
-
-
-            if (_stages.Count > 0)
-            {
-                St7SetStages(aw, mid); // crea gli stages, senza combo. Non spegne elementi
-
-                St7SetStagesCombination(aw, mid);
-            }
-
-            switch (GetSt7SolverType(out bool nonLinearGeometry))
-            {
-                case Straus7SolverTypes.Linear:
-                    St7LinearSolverSetup(aw, mid);
-                    St7SetLinearLoadCaseCombination(aw, mid);
-
-                    _st7NonLinearGeometryActive = nonLinearGeometry;
-                    _st7SolverType = Straus7SolverTypes.Linear;
-                    break;
-                    
-                case Straus7SolverTypes.NonLinear:
-                    St7NonLinearSolverSetup(aw, mid, false, nonLinearGeometry, false);
-                    _st7NonLinearGeometryActive = nonLinearGeometry;
-                    _st7SolverType = Straus7SolverTypes.NonLinear;
-                    
-                    break;
-
-                default:
-                    throw new NotSupportedException();
-            }
-
-            return true;
-        }
-
-
-        /// <remarks><see cref="SaveFemModelToSt7(string)"/> must be called before calling this method</remarks>
+        /// <remarks><see cref="Converters.FemModelConverter"/> 
+        /// must be called before calling this method</remarks>
         private bool RunSt7Solver()
         {
 
@@ -803,24 +530,24 @@ namespace GPC.Checkers.Glasses.FemModel
                     if (fileOpened)
                         resultFileOpened = aw.OpenResultFile(mid, _st7ResultFilePath, string.Empty, Convert.ToByte(true), ref numPrimary, ref numSecondary);
 
-                    if (fileOpened && resultFileOpened)
+                    if (resultFileOpened)
                     {
                         try
                         {       
                             foreach (Combination combination in _combinations)
                             {
-                                if (_st7SolverType == Straus7SolverTypes.Linear)
+                                if (_st7SolverType == Converters.FemModelConverter.Straus7SolverTypes.Linear)
                                 {
                                     int comboId = _st7LSACombinationMap[combination.Name] + numPrimary;
 
                                     St7ReadElementResults(aw, mid, new List<int> { comboId }, combination);
                                     St7ReadNodeResults(aw, mid, new List<int> { comboId }, combination);
                                 }
-                                else if (_st7SolverType == Straus7SolverTypes.NonLinear)
+                                else if (_st7SolverType == Converters.FemModelConverter.Straus7SolverTypes.NonLinear)
                                 {                                   
                                     // combination è stata splittata in questi stageID
 
-                                    List<int> comboIdSplitted = _stageCombinationsSplittedMap[combination.Name].stageIds;
+                                    //List<int> comboIdSplitted = _stageCombinationsSplittedMap[combination.Name].stageIds;
 
                                     List<string> comboFictitiousName = _stageCombinationsSplittedMap[combination.Name].stageCombinationsNames;
 
@@ -905,7 +632,7 @@ namespace GPC.Checkers.Glasses.FemModel
                                                                                      plateResults[np * numColumns + 2],
                                                                                      plateResults[np * numColumns + 3],
                                                                                      plateResults[np * numColumns + 4],
-                                                                                     plateResults[np * numColumns + 5], 
+                                                                                     plateResults[np * numColumns + 5],
                                                                                      _st7PlateMap[plate.Id].ToString());
 
                                 rs.CalculatePrincipalStressFullMethod();
@@ -929,7 +656,6 @@ namespace GPC.Checkers.Glasses.FemModel
             }
 
         }
-
 
         private void St7ReadNodeResults(ISt7ApiService aw, int mid, List<int> incrementIds, Combination combination)
         {
@@ -956,416 +682,6 @@ namespace GPC.Checkers.Glasses.FemModel
                 node.AddResult(new NodeResult(combination, CoordinateSystem.Global, rd)); 
             }
 
-        }
-
-
-
-        /// <summary>
-        /// Add each stage in <see cref="Model.FEM.FemModel._stages"/> to st7 and update <see cref="_st7StageMap"/>
-        /// </summary>
-        /// <remarks>This method does not turn off elements (groups for straus) at certain stage</remarks>
-        private void St7SetStages(ISt7ApiService aw, int mid)
-        {
-            int st7StageId = _st7StageMap.Values.DefaultIfEmpty(0).Max();
-
-            foreach (Model.FEM.Stage stage in _stages)
-            {
-                aw.AddStage(mid, stage.Name, new int[] { stage.Morph ? St7ApiConst.btTrue : St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
-                _st7StageMap.Add(stage.Id, ++st7StageId);
-
-                using (var stagePropertyEnum = GetStagePropertyEnumerator(stage.Id))
-                {
-                    while (stagePropertyEnum.MoveNext())
-                    {
-                        var current = stagePropertyEnum.Current;
-
-                        if (current.Key is Brick brick)
-                        {
-                            BrickProperty propertyOverload = GetBrickProperty(current.Value.PropertyName);
-
-                            if (brick.Property.Name != propertyOverload.Name)
-                            {
-                                aw.St7SetElementPropertySwitch(mid, St7ApiConst.tyBRICK, _st7BrickMap[current.Key.Id], _st7BrickPropertyMap[propertyOverload], _st7StageMap[stage.Id]);
-                            }
-                        }
-                        else if (current.Key is Plate plate)
-                        {
-                            PlateProperty propertyOverload = GetPlateProperty(current.Value.PropertyName);
-
-                            if (plate.Property.Name != propertyOverload.Name)
-                            {
-                                aw.St7SetElementPropertySwitch(mid, St7ApiConst.tyPLATE, _st7PlateMap[current.Key.Id], _st7PlatePropertyMap[propertyOverload], _st7StageMap[stage.Id]);
-                            }
-                        }
-                        else
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                }
-
-            }
-
-        }
-
-
-        /// <summary>
-        /// This method set also the map <see cref="_st7NLACombinationMap"/>
-        /// </summary>
-        private void St7SetStagesCombination(ISt7ApiService aw, int mid)
-        {
-
-            int progressiveID = 1;
-            foreach (Model.FEM.Stage stage in _stages.OrderBy(i => _st7StageMap[i.Id]))
-            {
-                int comboIndex = 1;
-
-                if (_st7StageMap.ContainsKey(stage.Id))
-                {
-                    foreach (var combo in GetStageCombinations(stage.Id))
-                    {
-                        aw.AddNLAIncrement(mid, _st7StageMap[stage.Id], combo.Name);
-                        
-
-                        foreach (var (loadcase, coefficient) in combo.GetLoadCaseCoefficientsTuple())
-                            aw.SetNLALoadIncrementFactor(mid, _st7StageMap[stage.Id], comboIndex, _st7LoadCaseMap[loadcase.Name], coefficient);
-
-
-                        _st7NLACombinationMap[combo.Name] = (_st7StageMap[stage.Id], comboIndex, progressiveID); 
-
-
-                        comboIndex++;
-                        progressiveID++;
-                    }
-                }
-            }
-
-        }
-
-        private void St7StageAnalysisSetup(ISt7ApiService aw, int mid, int stageIndex, bool morph, bool moveFixedNodes, bool rotateCluster)
-        {
-            aw.SetStageData(mid, stageIndex, new[] { morph ? St7ApiConst.btTrue : St7ApiConst.btFalse,
-                                                     moveFixedNodes ? St7ApiConst.btTrue : St7ApiConst.btFalse,
-                                                     rotateCluster ? St7ApiConst.btTrue : St7ApiConst.btFalse });
-        }
-
-        private void St7SetPlateProperties(ISt7ApiService aw, int mid)
-        {
-
-            int _bufferId = 0;
-            int st7PropId = 0;
-            foreach (var property in _plateProperties)
-            {
-                st7PropId++;
-
-                if ((st7PropId - _bufferId) != 1)
-                    throw new NotSupportedException("Plate properties not in order");
-                _bufferId = st7PropId;
-
-                if (property is MonolithicGlassProperty || property is PlateProperty)
-                {
-                    var mgp = (PlateProperty)property;
-
-                    if (mgp.Material is Model.FEM.Materials.IsotropicFemMaterial iso)
-                    {
-                        aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeIsotropic, mgp.Name);
-                        aw.SetPlateIsotropicMaterial(mid, st7PropId, iso.E, iso.Ni, iso.Density, 0, 0, 0, 0, 0);
-                    }
-                    else if (mgp.Material is Model.FEM.Materials.OrthotropicFemMaterial orto)
-                    {
-                        aw.NewPlateProperty(mid, st7PropId, St7ApiConst.kPlateTypePlateShell, St7ApiConst.kMaterialTypeOrthotropic, mgp.Name);
-                        aw.SetPlateOrthotropicMaterial(mid, st7PropId, new[] { orto.E1, orto.E2, orto.E3, orto.G12, orto.G23, orto.G31, orto.Ni12, orto.Ni23, orto.Ni31, orto.Density, orto.Alpha1, orto.Alpha2, orto.Alpha3 });
-                    }
-                    else
-                        throw new NotImplementedException();
-
-                    aw.SetPlateThickness(mid, st7PropId, new double[] { mgp.MembraneThickness, mgp.BendingThickness });
-                }
-                else
-                {
-                    throw new NotSupportedException($"Property type: {property} not supported");
-                }
-
-                _st7PlatePropertyMap.Add(property, st7PropId);
-            }
-
-        }
-
-        private void St7SetBrickProperties(ISt7ApiService aw, int mid)
-        {
-
-            int _bufferId = 0;
-            int st7PropId = 0;
-            foreach (var property in _brickProperties)
-            {
-                st7PropId++;
-
-                if ((st7PropId - _bufferId) != 1)
-                    throw new NotSupportedException("Brick properties not in order");
-                _bufferId = st7PropId;
-
-                if (property is InterlayerBrickProperty inp)
-                {
-
-                    if (inp.Material is Model.FEM.Materials.IsotropicFemMaterial iso)
-                    {
-                        aw.NewBrickProperty(mid, st7PropId, St7ApiConst.kMaterialTypeIsotropic, inp.Name);
-                        double[] doubles = new double[8];
-                        doubles[0] = iso.E;
-                        doubles[1] = iso.Ni;
-                        doubles[2] = iso.Density;
-                        doubles[3] = iso.Alpha;
-                        doubles[4] = 0;
-                        doubles[5] = 0;
-                        doubles[6] = 0;
-                        doubles[7] = 0;
-
-                        aw.SetBrickIsotropicMaterial(mid, st7PropId, doubles);
-
-                        if (!ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction)
-                            aw.SetBrickAddBubbleFunction(mid, st7PropId, false);
-                    }
-                    else if (inp.Material is Model.FEM.Materials.OrthotropicFemMaterial orto)
-                    {
-                        aw.NewBrickProperty(mid, st7PropId, St7ApiConst.kMaterialTypeOrthotropic, inp.Name);
-
-                        aw.SetBrickOrthotropicMaterial(mid, st7PropId, new[] { orto.E1, orto.E2, orto.E3, orto.G12, orto.G23, orto.G31, orto.Ni12, orto.Ni23, orto.Ni31,
-                                                                               orto.Density, orto.Alpha1, orto.Alpha2, orto.Alpha3, 0, 0, 0, 0, 0, 0 });
-
-                        if (!ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction)
-                            aw.SetBrickAddBubbleFunction(mid, st7PropId, false);
-                    }
-                    else
-                        throw new NotImplementedException();
-
-
-                }
-                else
-                {
-                    throw new NotSupportedException($"Property type: {property} not supported");
-                }
-
-                _st7BrickPropertyMap.Add(property, st7PropId);
-            }
-
-        }
-
-
-        /// <summary>
-        /// This method creates the loadCases from the LoadCase list
-        /// </summary>
-        private void St7SetLoadCase(ISt7ApiService aw, int mid)
-        {
-            if (!(_loadCases.Count > 0))
-                return;
-
-            int st7LoadCaseId = 0;
-            foreach (var loadCase in _loadCases)
-            {
-                st7LoadCaseId++;
-                if (st7LoadCaseId != 1)
-                {
-                    if (!aw.NewLoadCase(mid, loadCase.Name))
-                        throw new Straus7Exception($"Unable lo add loadCase {loadCase.Name}");
-                }
-                else
-                {
-                    aw.SetLoadCaseName(mid, st7LoadCaseId, loadCase.Name);
-                }
-
-
-                if ((loadCase is LoadCase) && (loadCase as LoadCase).LoadCaseType == LoadCase.LoadCaseTypes.SelfWeight)
-                {
-                    aw.SetLoadCaseType(mid, st7LoadCaseId, St7ApiConst.kGravity);
-                    aw.SetLoadCaseGravityDir(mid, st7LoadCaseId, 3);
-                    var doubles = new double[13];
-                    doubles[4] = 0;
-                    doubles[5] = 0;
-                    doubles[6] = -9806.65; //mm/s2
-                    aw.SetLoadCaseDefaults(mid, st7LoadCaseId, doubles);
-                    aw.SetLoadCaseMassOption(mid, st7LoadCaseId, true, false);
-                }
-                else
-                    aw.SetLoadCaseType(mid, st7LoadCaseId, St7ApiConst.kNoInertia);
-
-                _st7LoadCaseMap.Add(loadCase.Name, st7LoadCaseId);
-            }
-
-        }
-
-
-        /// <summary>
-        /// Set up the linear load case combination table
-        /// </summary>
-        private void St7SetLinearLoadCaseCombination(ISt7ApiService aw, int mid)
-        {
-            int st7CId = 0;
-
-            foreach (var combo in _combinations)
-            {
-                var lcTuples = combo.GetLoadCaseCoefficientsTuple();
-
-                if (aw.AddLSACombination(mid, combo.Name))
-                {
-                    st7CId++;
-                    bool added = false;
-
-                    foreach (var (loadcase, coefficient) in lcTuples)
-                    {
-                        if (_loadCases.ContainsName(loadcase.Name))
-                        {
-                            if (aw.SetLSACombinationFactor(mid, St7ApiConst.ltLoadCase, st7CId, _st7LoadCaseMap[loadcase.Name], 1, combo[loadcase]))
-                            {
-                                added = true;
-                            }
-                        }
-                    }
-
-                    if (added)
-                    {
-                        _st7LSACombinationMap.Add(combo.Name, st7CId);
-                    }
-                    else
-                    {
-                        aw.DeleteLSACombination(mid, st7CId);
-                        st7CId--;
-                    }
-                }
-
-            }
-        }
-
-
-        /// <summary>
-        /// Set a node external restrain or imposed displacement
-        /// </summary>
-        /// <returns></returns>
-        private bool St7SetNodeRestrain(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, int ucsId, List<DofRestrain> restrains)
-        {
-            int[] status = new int[6];
-
-            double[] imposedDisplacement = new double[6];
-
-            foreach (var restrain in restrains)
-            {
-                if (restrain.Dof == Model.FEM.Solver.DOF.DX)
-                {
-                    status[0] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
-                    imposedDisplacement[0] = restrain.ImposedDisplacement;
-                }
-                else if (restrain.Dof == Model.FEM.Solver.DOF.DY)
-                {
-                    status[1] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
-                    imposedDisplacement[1] = restrain.ImposedDisplacement;
-                }
-                else if (restrain.Dof == Model.FEM.Solver.DOF.DZ)
-                {
-                    status[2] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
-                    imposedDisplacement[2] = restrain.ImposedDisplacement;
-                }
-                else if (restrain.Dof == Model.FEM.Solver.DOF.RX)
-                {
-                    status[3] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
-                    imposedDisplacement[3] = restrain.ImposedDisplacement;
-                }
-                else if (restrain.Dof == Model.FEM.Solver.DOF.RY)
-                {
-                    status[4] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
-                    imposedDisplacement[4] = restrain.ImposedDisplacement;
-                }
-                else if (restrain.Dof == Model.FEM.Solver.DOF.RZ)
-                {
-                    status[5] = restrain.IsRestrained || restrain.ImposedDisplacement != 0 ? St7ApiConst.btTrue : St7ApiConst.btFalse;
-                    imposedDisplacement[5] = restrain.ImposedDisplacement;
-                }
-                else
-                    throw new NotSupportedException();
-            }
-
-            return aw.SetNodeRestraint(mid, nodeNumber, caseNumber, ucsId, status, imposedDisplacement);
-        }
-
-        private bool St7SetNodeGlobalLoad(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, NodeForceAttribute pgfa)
-        {
-            return aw.SetNodeForce(mid, nodeNumber, caseNumber, pgfa.F1, pgfa.F2, pgfa.F3) && aw.SetNodeMoment(mid, nodeNumber, caseNumber, pgfa.M1, pgfa.M2, pgfa.M3);
-        }
-
-        private bool St7SetNodeLocalLoad(ISt7ApiService aw, int mid, int nodeNumber, int caseNumber, NodeForceAttribute gpl)
-        {
-            throw new NotImplementedException();
-        }
-
-        private bool St7SetPlateGlobalPressure(ISt7ApiService aw, int mid, int plateNumber, int caseNumber, PlatePressureAttribute gpl)
-        {
-            return aw.SetPlateGlobalPressure(mid, plateNumber, St7ApiConst.btFalse, caseNumber, gpl.P1, gpl.P2, gpl.P3);
-        }
-
-        private bool St7SetPlateNormalPressure(ISt7ApiService aw, int mid, int plateNumber, int caseNumber, PlateNormalPressureAttribute pnp)
-        {
-            return aw.SetPlateNormalPressure(mid, plateNumber, caseNumber, pnp.Pressure);
-        }
-
-
-        /// <summary>
-        /// Set up the linear solver, activating each loadcase in the <see cref="GPC.Model.FEM.FemModel._loadCases"/> list
-        /// </summary>
-        private bool St7LinearSolverSetup(ISt7ApiService aw, int mid)
-        {
-            foreach (var lcName in _loadCases.GetNames())
-            {
-                aw.EnableLSALoadCase(mid, _st7LoadCaseMap[lcName], 1);
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Set the non linear options and if, <paramref name="stagedAnalysis"/> is <see langword="True"/>, enable each stage in the <see cref="_st7StageMap"/>.
-        /// </summary>
-        /// <param name="aw"></param>
-        /// <param name="mid"></param>
-        /// <param name="nonLinearMaterial"></param>
-        /// <param name="nonLinearGeometry"></param>
-        /// <param name="stagedAnalysis"></param>
-        /// <returns></returns>
-        private bool St7NonLinearSolverSetup(ISt7ApiService aw, int mid, bool nonLinearMaterial, bool nonLinearGeometry, bool stagedAnalysis)
-        {
-            if (stagedAnalysis)
-            {
-                foreach (var stageId in _st7StageMap)
-                {
-                    aw.EnableNLAStage(mid, stageId.Value);
-                }
-            }
-
-            return aw.SetSolverNonlinearMaterial(mid, nonLinearMaterial) && aw.SetSolverNonlinearGeometry(mid, nonLinearGeometry) && aw.SetNLAStagedAnalysis(mid, stagedAnalysis);
-        }
-
-        /// <summary>
-        /// This method set the non linear solver, turning off the nonlinearity and activating one loadcase for each stage.
-        /// </summary>
-        /// <param name="aw"></param>
-        /// <param name="mid"></param>
-        /// <remarks>Lenght of <see cref="_st7StageMap"/> must be the same of <see cref="_st7LoadCaseMap"/> lenght </remarks>
-        /// <exception cref="ArgumentException">If lenght of <see cref="_st7StageMap"/> is different than <see cref="_st7LoadCaseMap"/></exception>
-        private void St7NonLinearSolverSetupForLinearAnalysis(ISt7ApiService aw, int mid)
-        {
-            aw.SetSolverNonlinearMaterial(mid, false);
-            aw.SetSolverNonlinearGeometry(mid, false);
-
-            aw.SetNLAStagedAnalysis(mid, true);
-
-            if (_st7StageMap.Keys.Count != _st7LoadCaseMap.Keys.Count)
-                throw new ArgumentException();
-
-            var femStageIds = _st7StageMap.Keys.ToArray();
-            var loadCases = _st7LoadCaseMap.Keys.ToArray();
-
-            for (int i = 0; i < _st7LoadCaseMap.Count; i++)
-            {
-                aw.AddNLAIncrement(mid, _st7StageMap[femStageIds[i]], loadCases[i]);
-                aw.SetNLALoadIncrementFactor(mid, _st7StageMap[femStageIds[i]], 1, _st7LoadCaseMap[loadCases[i]], 1);
-            }
         }
 
         private bool St7RunLinearSolver(ISt7ApiService aw, string filePath)
@@ -1447,7 +763,7 @@ namespace GPC.Checkers.Glasses.FemModel
                         else
                             err = aw.GetSolverErrorString(p.ExitCode);
 
-                        throw new Exception($"St7 solver error {err}");
+                        throw new Exception($"St7 solver error: {err}");
                     }
                 }
                 catch (Exception e)
@@ -1457,113 +773,114 @@ namespace GPC.Checkers.Glasses.FemModel
             }
         }
 
+
         #endregion
 
 
 #if DEBUG
         #region STRAUS7 - DEBUG INTERNAL METHODS
 
-        internal bool ExportSt7PlateUserDefinedCustomResultFile(string folderPath, string fileName, Combination combination)
-        {
-            if (!Directory.Exists(folderPath))
-                return false;
+        //internal bool ExportSt7PlateUserDefinedCustomResultFile(string folderPath, string fileName, Combination combination)
+        //{
+        //    if (!Directory.Exists(folderPath))
+        //        return false;
 
-            string fileZminus = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Lower"), "txt");
-            string fileZmid = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Mid"), "txt");
-            string fileZplus = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Upper"), "txt");
+        //    string fileZminus = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Lower"), "txt");
+        //    string fileZmid = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Mid"), "txt");
+        //    string fileZplus = Path.ChangeExtension(Path.Combine(folderPath, fileName + "_Upper"), "txt");
 
-            using (StreamWriter swMinus = File.CreateText(fileZminus))
-            using (StreamWriter swMid = File.CreateText(fileZmid))
-            using (StreamWriter swPlus = File.CreateText(fileZplus))
-            {
-                swMinus.WriteLine($"{combination.Name} My User Generated Gauss Point File");
-                swMid.WriteLine($"{combination.Name} My User Generated Gauss Point File");
-                swPlus.WriteLine($"{combination.Name} My User Generated Gauss Point File");
+        //    using (StreamWriter swMinus = File.CreateText(fileZminus))
+        //    using (StreamWriter swMid = File.CreateText(fileZmid))
+        //    using (StreamWriter swPlus = File.CreateText(fileZplus))
+        //    {
+        //        swMinus.WriteLine($"{combination.Name} My User Generated Gauss Point File");
+        //        swMid.WriteLine($"{combination.Name} My User Generated Gauss Point File");
+        //        swPlus.WriteLine($"{combination.Name} My User Generated Gauss Point File");
 
-                IEnumerator<FiniteElement> enumerator = GetElementsEnumerator();
+        //        IEnumerator<FiniteElement> enumerator = GetElementsEnumerator();
 
-                NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;
+        //        NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;
 
-                using (enumerator)
-                {
-                    while (enumerator.MoveNext())
-                    {
-                        var element = enumerator.Current;
+        //        using (enumerator)
+        //        {
+        //            while (enumerator.MoveNext())
+        //            {
+        //                var element = enumerator.Current;
 
-                        if (element is Plate plate)
-                        {
-                            PlateResult plateResult = (PlateResult)element.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault();
+        //                if (element is Plate plate)
+        //                {
+        //                    PlateResult plateResult = (PlateResult)element.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault();
 
-                            swMinus.Write($"{_st7PlateMap[element.Id]} ");
-                            swMid.Write($"{_st7PlateMap[element.Id]} ");
-                            swPlus.Write($"{_st7PlateMap[element.Id]} ");
-
-
-                            (ResultType[] lowerFace, ResultType[] midFace, ResultType[] upperFace) faceResults = plateResult.GetFaceResults();
-
-                            foreach (ResultType result in faceResults.lowerFace)
-                            {
-                                if (result is ResultStress rs)
-                                {
-                                    swMinus.Write($"{rs.S11.ToString("N5", nfi)} ");
-                                }
-                            }
-
-                            foreach (ResultType result in faceResults.midFace)
-                            {
-                                if (result is ResultStress rs)
-                                {
-                                    swMid.Write($"{rs.S11.ToString("N5", nfi)} ");
-                                }
-                            }
-
-                            foreach (ResultType result in faceResults.upperFace)
-                            {
-                                if (result is ResultStress rs)
-                                {
-                                    swPlus.Write($"{rs.S11.ToString("N5", nfi)} ");
-                                }
-                            }
-
-                            swMinus.Write("\n");
-                            swMid.Write("\n");
-                            swPlus.Write("\n");
-                        }
-                    }
-                }
-            }
-
-            return true;
-        }
+        //                    swMinus.Write($"{_st7PlateMap[element.Id]} ");
+        //                    swMid.Write($"{_st7PlateMap[element.Id]} ");
+        //                    swPlus.Write($"{_st7PlateMap[element.Id]} ");
 
 
-        internal void ExportSt7NodeUserDefinedCustomResultFile(string filePath, Combination combination)
-        {
+        //                    (ResultType[] lowerFace, ResultType[] midFace, ResultType[] upperFace) faceResults = plateResult.GetFaceResults();
 
-            using (StreamWriter sw = File.CreateText(filePath))
-            {
-                sw.WriteLine($"{combination.Name} My User Generated Node Contour File");
+        //                    foreach (ResultType result in faceResults.lowerFace)
+        //                    {
+        //                        if (result is ResultStress rs)
+        //                        {
+        //                            swMinus.Write($"{rs.S11.ToString("N5", nfi)} ");
+        //                        }
+        //                    }
 
-                IEnumerator<Model.FEM.Node> enumerator = GetNodesEnumerator();
+        //                    foreach (ResultType result in faceResults.midFace)
+        //                    {
+        //                        if (result is ResultStress rs)
+        //                        {
+        //                            swMid.Write($"{rs.S11.ToString("N5", nfi)} ");
+        //                        }
+        //                    }
 
-                //NumberFormatInfo nfi = new NumberFormatInfo();
-                //nfi.NumberDecimalSeparator = ",";
-                NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;
+        //                    foreach (ResultType result in faceResults.upperFace)
+        //                    {
+        //                        if (result is ResultStress rs)
+        //                        {
+        //                            swPlus.Write($"{rs.S11.ToString("N5", nfi)} ");
+        //                        }
+        //                    }
 
-                using (enumerator)
-                {
-                    while (enumerator.MoveNext())
-                    {
-                        var node = enumerator.Current;
+        //                    swMinus.Write("\n");
+        //                    swMid.Write("\n");
+        //                    swPlus.Write("\n");
+        //                }
+        //            }
+        //        }
+        //    }
 
-                        if (node.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault().Result is ResultDisplacement rd)
-                        {
-                            sw.WriteLine($"{_st7NodeMap[node.Id]} {rd.D3.ToString("N5", nfi)}");
-                        }
-                    }
-                }
-            }
-        }
+        //    return true;
+        //}
+
+
+        //internal void ExportSt7NodeUserDefinedCustomResultFile(string filePath, Combination combination)
+        //{
+
+        //    using (StreamWriter sw = File.CreateText(filePath))
+        //    {
+        //        sw.WriteLine($"{combination.Name} My User Generated Node Contour File");
+
+        //        IEnumerator<Model.FEM.Node> enumerator = GetNodesEnumerator();
+
+        //        //NumberFormatInfo nfi = new NumberFormatInfo();
+        //        //nfi.NumberDecimalSeparator = ",";
+        //        NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;
+
+        //        using (enumerator)
+        //        {
+        //            while (enumerator.MoveNext())
+        //            {
+        //                var node = enumerator.Current;
+
+        //                if (node.Results.Where(i => i.Case.Equals(combination)).SingleOrDefault().Result is ResultDisplacement rd)
+        //                {
+        //                    sw.WriteLine($"{_st7NodeMap[node.Id]} {rd.D3.ToString("N5", nfi)}");
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
         #endregion  
 #endif

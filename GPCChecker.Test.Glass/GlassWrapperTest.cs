@@ -39,7 +39,7 @@ namespace GlassTests
             LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2, mg3, mg4 }, new Interlayer[] { intr1, intr2, intr3 });
 
             Prototype p = new Prototype("", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                              Prototype.CheckMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement, new Prototype.LaminatedEqThicknessParameters());
+                              Prototype.CheckMethods.ASTME1300, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement, new Prototype.LaminatedEqThicknessParameters());
 
             GlassSurface gs = new GlassSurface(p, s1);
 
@@ -78,7 +78,7 @@ namespace GlassTests
             LaminatedGlass lg1 = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2}, new Interlayer[] { intr1 });
 
             Prototype p = new Prototype("", lg1, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                              Prototype.CheckMethods.ASTME1300, Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                              Prototype.CheckMethods.ASTME1300, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                               new Prototype.LaminatedEqThicknessParameters());
             
             p.MeshOptions.MeshSize = 250;

@@ -505,7 +505,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                                                 .Distinct(new LoadDurationTemperatureAndGeometryEqualityComparer()).Cast<IGlassLoad>().ToList();
 
 
-            if (loadsToProcess.Count() == 0)
+           if (loadsToProcess.Count() == 0)
                 return false;
 
             // Calcola lo spessore equivalente per i casi supportati, altrimenti usa eet numerico
@@ -833,14 +833,18 @@ namespace GPC.Checkers.Glasses.Wrappers
             Parallel.ForEach(Enumerable.Range(0, loads.Count()), action);
 
 
-            _thicknessesStress[0] = new Dictionary<EquivalentThicknessParameters, double>();
-            _thicknessesStress[1] = new Dictionary<EquivalentThicknessParameters, double>();
+            if (_thicknessesStress[0] == null)
+                _thicknessesStress[0] = new Dictionary<EquivalentThicknessParameters, double>();
+
+            if (_thicknessesStress[1] == null)
+                _thicknessesStress[1] = new Dictionary<EquivalentThicknessParameters, double>();
+
             for (int i = 0; i < loads.Length; i++)
             {
                 EquivalentThicknessParameters parameters = new EquivalentThicknessParameters(loads[i].GlassLoadCase.LoadDuration,
                                                                                              loads[i].GlassLoadCase.Temperature,
                                                                                              loads[i].GetGeometryBase(), loads[i].LoadRestrainCondition);
-
+                
                 _thicknessesW[parameters] = twBuffer[loads[i]];
                 _thicknessesStress[0][parameters] = tSigma1Buffer[loads[i]];
                 _thicknessesStress[1][parameters] = tSigma2Buffer[loads[i]];
@@ -860,7 +864,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             LaminatedGlass glass = (LaminatedGlass)Glass;
 
 
-            FemModel.FemModelWrapper femModel = new FemModel.FemModelWrapper("EETNumerical")
+            FemModels.FemModelWrapper femModel = new FemModels.FemModelWrapper("EETNumerical")
             {
                 AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear
             };
@@ -890,9 +894,13 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             femModel.AddCombinations(combinations);
 
-            femModel.SaveFemModelToSt7(System.IO.Path.GetTempPath()); // TODO: rimuovere e passare a solutore interno
 
+            //femModel.SaveFemModelToSt7(System.IO.Path.GetTempPath()); // TODO: rimuovere e passare a solutore interno
+
+            femModel.ExportToSt7(System.IO.Path.GetTempPath(), femModel.Name);
+            femModel.SetSolver(Models.Prototype.Solvers.Straus7);
             femModel.Solve();
+
 
             double flexularRigidity = material.E * Math.Pow(plateThickness, 3.0) / (12.0 * (1.0 - Math.Pow(material.Ni, 2.0)));
 
@@ -1236,8 +1244,10 @@ namespace GPC.Checkers.Glasses.Wrappers
                 RestrainCondition = restrainCondition;
             }
 
-            public bool Equals(double loadDuration, double temperature, GeometryBase loadGeometry, GlassSurface.LoadRestrainCondition restrainCondition)
+
+            public bool EqualsParameters(double loadDuration, double temperature, GeometryBase loadGeometry, GlassSurface.LoadRestrainCondition restrainCondition)
             {
+
                 return     LoadDuration == loadDuration
                         && Temperature == temperature
                         && LoadGeometry == loadGeometry

@@ -59,8 +59,9 @@ namespace GPC.Checkers.Glasses.Models
         /// <returns> The gravity vector</returns>
         public Vector3d GetGravityVector()
         {
-            int sign = GetGravitySign();
-            return new Vector3d(sign * (GravityAxis == GravityAxes.X ? 1 : 0), sign * (GravityAxis == GravityAxes.Y ? 1 : 0), sign * (GravityAxis == GravityAxes.Z ? 1 : 0));
+            return new Vector3d(GravityAxis == GravityAxes.X ? 1 : 0, 
+                                GravityAxis == GravityAxes.Y ? 1 : 0, 
+                                GravityAxis == GravityAxes.Z ? 1 : 0);
         }
     }
 }
