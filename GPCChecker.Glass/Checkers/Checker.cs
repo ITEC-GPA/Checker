@@ -200,10 +200,15 @@ namespace GPC.Checkers.Glasses.Checkers
                 // STRAUS: MONOSTAGE, INCREMENTI COME COMBINAZIONI NON LINEARI
 
                 femModel.AnalysisType = (Model.FEM.FemModel.AnalysisTypes)analysisType;
-                femModel.AddCombinations(combinations);
-
+                
                 Stage stage = femModel.AddStageAsCopyOfModel("Stage1", femModel.AnalysisType);
-                stage.AddCombinations(combinations);
+                bool ret = stage.AddCombinations(combinations);
+
+                foreach (var combo in combinations)
+                {
+                    femModel.AddStageCombinationSplittedMap(combo.Name, new[] { stage.Id }, new[] { combo.Name });
+                }
+
             }
             else
             {
