@@ -91,7 +91,7 @@ namespace GPC.Checkers.Glasses.Checkers
             {
                 MonolithicGlassWrapper wrapper = new MonolithicGlassWrapper(_glassSurface, mg);
 
-                _femModel = BuildMonolithicGlassModel(femModelName, wrapper, mg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, _combinations);
+                _femModel = BuildMonolithicGlassModel(femModelName, wrapper, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, _combinations);
 
                 return true;
             }
@@ -99,8 +99,8 @@ namespace GPC.Checkers.Glasses.Checkers
             {
                 LaminatedGlassWrapper wrapper = new LaminatedGlassWrapper(_glassSurface, lg);
 
-                _femModel = BuildLaminatedGlassModel(femModelName, wrapper, lg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, 
-                                                                                _glassSurface.Prototype.LaminatedAnalysisType, _combinations);
+                _femModel = BuildLaminatedGlassModel(femModelName, wrapper, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, 
+                                                                            _glassSurface.Prototype.LaminatedAnalysisType, _combinations);
 
                 return true;
             }
@@ -142,14 +142,15 @@ namespace GPC.Checkers.Glasses.Checkers
             }
         }
 
-        private FemModelWrapper BuildMonolithicGlassModel(string femModelName, MonolithicGlassWrapper wrapper, MonolithicGlass mg, IEnumerable<IGlassLoad> loads, 
+
+        private FemModelWrapper BuildMonolithicGlassModel(string femModelName, MonolithicGlassWrapper wrapper, IEnumerable<IGlassLoad> loads, 
             Prototype.AnalysisTypes analysisType, IEnumerable<Combination> combinations)
         {
             // Creo modello
-            FemModelWrapper femModel = new FemModelWrapper(femModelName);            
+            FemModelWrapper femModel = new FemModelWrapper(femModelName);
 
             //MonolithicGlassWrapper wrapper = new MonolithicGlassWrapper(_glassSurface, mg);
-            
+
             wrapper.AddExternalFaceLoads(loads);
 
             if (loads.OfType<Loads.SelfWeightLoad>().Count() > 0)
@@ -164,7 +165,7 @@ namespace GPC.Checkers.Glasses.Checkers
             string groupName = $"GlassLayer0";
             femModel.AddGroup(groupName);
 
-            MonolithicGlassProperty pp = new MonolithicGlassProperty(mg, "mg");
+            MonolithicGlassProperty pp = new MonolithicGlassProperty((MonolithicGlass)wrapper.Glass, "mg");
 
             Mesh meshExternal = wrapper.GetGlassMeshExternal();
 
@@ -219,8 +220,7 @@ namespace GPC.Checkers.Glasses.Checkers
         }
 
 
-        private FemModelWrapper BuildLaminatedGlassModel(string femModelName, LaminatedGlassWrapper wrapper,  
-                                                        LaminatedGlass lg, IEnumerable<IGlassLoad> loads, 
+        private FemModelWrapper BuildLaminatedGlassModel(string femModelName, LaminatedGlassWrapper wrapper,IEnumerable<IGlassLoad> loads, 
             Prototype.AnalysisTypes analysisType, Prototype.LaminatedAnalysisTypes laminatedAnalysisType, IEnumerable<Combination> combinations)
         {
             // Creo modello
@@ -265,7 +265,7 @@ namespace GPC.Checkers.Glasses.Checkers
 
                 List<IGlassLoadCase> loadCasesUnique = loads.Select(i => i.LoadCase as IGlassLoadCase).Where(i => i != null).Distinct().ToList();
 
-                IGlassPackage[] glassPackage = lg.GetGlassPackage();
+                IGlassPackage[] glassPackage = ((LaminatedGlass)wrapper.Glass).GetGlassPackage();
 
                 // Associazione fra l'indice del layer e l'indice degli elementi plate volumi e nodi
                 (int[] nodesId, int[] platesId, int[] volumesId)[] elementIndexes = new (int[] nodesId, int[] platesId, int[] volumesId)[glassPackage.Count()];

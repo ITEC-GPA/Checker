@@ -14,7 +14,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         protected GlassSurface _glassSurface;
         protected Glass _glass;
 
-        protected virtual Glass Glass => _glass;
+        public Glass Glass => _glass;
 
 
 
