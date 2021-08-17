@@ -44,12 +44,11 @@ namespace GlassTests
 
             var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, Prototype.Standards.EN16612) ;
 
-            Assert.AreEqual(0.827, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.0001);
-            Assert.AreEqual(0.173, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.0001);
+            Assert.AreEqual(0.827, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
+            Assert.AreEqual(0.173, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
 
-            Assert.AreEqual(0.259, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.0001);
-            Assert.AreEqual(1.241, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.0001);
-
+            Assert.AreEqual(1.199, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
+            Assert.AreEqual(0.301, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
 
         }
     }

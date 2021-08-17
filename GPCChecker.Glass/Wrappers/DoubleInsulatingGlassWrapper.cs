@@ -136,7 +136,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                 else if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.Internal)
                 {
                     externalPanelLoad = new NormalAreaLoad((1.0 - fi) * delta1 * load.Pressure, _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                GlassPanelWrapper.GlassPanelPositions.External, load.LoadRestrainCondition);
+                                                    GlassPanelWrapper.GlassPanelPositions.External, load.LoadRestrainCondition);
                     internalPanelLoad = new NormalAreaLoad(load.Pressure * (delta2 + fi * delta1), _glassSurface.Shape, load.GlassLoadCase, load.Name,
                                                     GlassPanelWrapper.GlassPanelPositions.Internal, load.LoadRestrainCondition);
 
