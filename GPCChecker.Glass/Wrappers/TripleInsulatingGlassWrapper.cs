@@ -57,7 +57,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        public override List<IGlassLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard)
+        internal override List<IGlassLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard)
         {
             throw new NotImplementedException();
         }

@@ -21,7 +21,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         public abstract override bool GenerateMesh();
 
 
-        public abstract List<IGlassLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard);
+        internal abstract List<IGlassLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard);
 
     }
 }
