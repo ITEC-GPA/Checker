@@ -6,6 +6,7 @@ using GPC.Geometry.Meshes;
 using GPC.Geometry;
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Model.Glasses;
+using GPC.Checkers.Glasses.Loads;
 
 namespace GPC.Checkers.Glasses.Wrappers
 {
@@ -53,6 +54,12 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             //this._meshes = meshes;
             return false;
+        }
+
+
+        public override List<IGlassLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard)
+        {
+            throw new NotImplementedException();
         }
     }
 }

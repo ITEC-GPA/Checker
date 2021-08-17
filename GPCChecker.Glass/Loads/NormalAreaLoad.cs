@@ -18,10 +18,11 @@ namespace GPC.Checkers.Glasses.Loads
         private readonly GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
         private readonly GlassSurface.LoadRestrainCondition _loadRestrainCondition;
 
+
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
         public GlassSurface.LoadRestrainCondition LoadRestrainCondition => _loadRestrainCondition;
-
         public IGlassLoadCase GlassLoadCase => (IGlassLoadCase)base.LoadCase;
+
 
         public NormalAreaLoad(double pressure, Shape shape, IGlassLoadCase loadCase, 
                               GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External,
