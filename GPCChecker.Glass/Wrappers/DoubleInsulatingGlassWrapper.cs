@@ -1,4 +1,4 @@
-
+﻿
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.Loads;
 using GPC.Model.Glasses;
@@ -167,6 +167,93 @@ namespace GPC.Checkers.Glasses.Wrappers
             return (externalPanelLoad, internalPanelLoad);
         }
         
+
+        protected async Task<(IGlassLoad external, IGlassLoad _internal)> GetBAMLoadSharing(IGlassLoad load, bool compressibleGas)
+        {
+
+            // h1: ext
+            // h2: int
+
+            NormalAreaLoad externalPanelLoad = null;
+            NormalAreaLoad internalPanelLoad = null;
+
+            //await Task.Run(() =>
+            //{
+
+            //    FemModels.FemModelWrapper femModel = new FemModels.FemModelWrapper("BAMNumerical")
+            //    {
+            //        AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear
+            //    };
+
+            //    IsotropicFemMaterial material = new IsotropicFemMaterial(GetMinimumElasticModulus(), GetMinimumPoissonRatio(), 0, GetMaximumDensity());
+
+            //    double plateThickness = 1;
+            //    PlateProperty property = new PlateProperty(material, plateThickness, plateThickness, "p1");
+
+            //    femModel.AddProperty(property);
+
+            //    femModel.AddLoadCase(load.LoadCase);
+
+            //    var lcUniformPressure = new LoadCases.LoadCase("UniformPressure", 1, 10, Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            //    // dimensione mesh di default 2% del massimo lato della bbox. Alla Straus
+            //    var bbboxSize = _glassSurface.Shape.ToLocal().GetBoundingBox().Size;
+            //    femModel.AddShape(_glassSurface.Shape, "p1",
+            //                      new Mesh.GenerateOptions() { MeshSize = Math.Max(bbboxSize.X, bbboxSize.Y) * 0.02 },
+            //                      new List<Load>() { new Loads.NormalAreaLoad(1, _glassSurface.Shape, lcUniformPressure), load },
+            //                      _glassSurface.Shape.Fill.Explode().Select(i =>
+            //                            new LineRestrain(i, new FreedomCase("fc1"), _glassSurface.Shape.GetCoordinateSystem(),
+            //                            new List<DofRestrain> { new DofRestrain(Model.FEM.Solver.DOF.DZ) })).Cast<GeometryRestrain>().ToList());
+
+
+            //    var combinations = new List<Combination>
+            //    {
+            //        new Combination($"Load {0}")
+            //    };
+
+            //    combinations[0].AddLoadCaseCoefficient(load.LoadCase, 1);
+
+            //    femModel.AddCombinations(combinations);
+
+            //    femModel.ExportToSt7(System.IO.Path.GetTempPath(), femModel.Name);
+            //    femModel.SetSolver(Models.Prototype.Solvers.Straus7);
+            //    femModel.Solve();
+
+            //    Model.FEM.FiniteElements.FiniteElement[] elements = femModel.GetElements();
+
+            //    double num = 0;
+
+            //    double h1Cube = Math.Pow(OuterGlassPanelWrapper.GetDeformationThickness(load), 3);
+            //    double h2Cube = Math.Pow(InnerGlassPanelWrapper.GetDeformationThickness(load), 3);
+
+            //    //for (int e = 0; e < elements.Length; e++)
+            //    //{
+            //    //    if (elements[e] is Model.FEM.FiniteElements.Plate plate)
+            //    //    {
+            //    //        var elementArea = plate.GetArea();
+
+            //    //        IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault(j => j == combinations[0]).Result)
+            //    //                                        .Cast<ResultDisplacement>(); // TODO: cambiare in containsLoadCase
+
+            //    //        if (resultDisplacement is null)
+            //    //            throw new ArgumentNullException();
+
+            //    //        var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
+
+            //    //        if (plate.AttributesLoadCase.Where(i => i is Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+            //    //        {
+            //    //            num += mean.D3 * flexularRigidity * elementArea * ((Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+            //    //        }
+            //    //    }
+            //    //}
+
+
+            //});
+
+            return (externalPanelLoad, internalPanelLoad);
+        }
+
+
         /// <summary>
         /// ref EN 16612 B.3
         /// </summary>

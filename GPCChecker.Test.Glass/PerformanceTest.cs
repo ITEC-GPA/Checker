@@ -72,9 +72,10 @@ namespace GlassTests
             NormalAreaLoad nal2 = new NormalAreaLoad(2, gs1.Shape, lcWp);
             NormalAreaLoad nal3 = new NormalAreaLoad(3, gs1.Shape, lcLl);
 
-            SelfWeightLoad swl = new SelfWeightLoad(lcSw, model.Options.GetGravitySign() * model.Options.GetGravitySign()*GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
-            LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0,
-                new Line3d(new Point3d(50, 0, 1000), new Point3d(950, 0, 1000)), lcLl, CoordinateSystem.Global);
+            SelfWeightLoad swl = new SelfWeightLoad(lcSw, ModelAnalysisOptions.Instance.GetGravitySign() * 
+                                                          ModelAnalysisOptions.Instance.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+            LineLoad lll = new LineLoad(ModelAnalysisOptions.Instance.GetGravityVector() * 1, ModelAnalysisOptions.Instance.GetGravityVector() * 0,
+                           new Line3d(new Point3d(50, 0, 1000), new Point3d(950, 0, 1000)), lcLl, CoordinateSystem.Global);
 
             gs1.AddLoad(nal1);
             gs1.AddLoad(nal2);
@@ -212,9 +213,9 @@ namespace GlassTests
             NormalAreaLoad nal2 = new NormalAreaLoad(2, gs1.Shape, lcWp);
             NormalAreaLoad nal3 = new NormalAreaLoad(3, gs1.Shape, lcLl);
 
-            SelfWeightLoad swl = new SelfWeightLoad(lcSw, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+            SelfWeightLoad swl = new SelfWeightLoad(lcSw, ModelAnalysisOptions.Instance.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
-            LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0,
+            LineLoad lll = new LineLoad(ModelAnalysisOptions.Instance.GetGravityVector() * 1, ModelAnalysisOptions.Instance.GetGravityVector() * 0,
                 new Line3d(new Point3d(50, 0, 1000), new Point3d(950, 0, 1000)), lcLl, CoordinateSystem.Global);
 
             gs1.AddLoad(nal1);
@@ -387,7 +388,9 @@ namespace GlassTests
                 NormalAreaLoad nal2 = new NormalAreaLoad(2, s1, lcWp);
                 NormalAreaLoad nal3 = new NormalAreaLoad(3, s1, lcLl);
 
-                LineLoad lll = new LineLoad(model.Options.GetGravityVector() * 1, model.Options.GetGravityVector() * 0, new Line3d(new Point3d(40, 450, 0), new Point3d(150, 200, 0)), lcLl, CoordinateSystem.Global);
+                LineLoad lll = new LineLoad(ModelAnalysisOptions.Instance.GetGravityVector() * 1, 
+                                            ModelAnalysisOptions.Instance.GetGravityVector() * 0, 
+                                            new Line3d(new Point3d(40, 450, 0), new Point3d(150, 200, 0)), lcLl, CoordinateSystem.Global);
 
                 // Combinazioni
                 Combination combo1 = new Combination("Cmb1");

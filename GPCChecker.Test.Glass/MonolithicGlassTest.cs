@@ -293,7 +293,7 @@ namespace GlassTests
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
             LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 600, 0), new Point3d(800, 600, 0)), lc2);
-            SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+            SelfWeightLoad swl = new SelfWeightLoad(lc0, ModelAnalysisOptions.Instance.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
             gs1.AddLoad(s1ll);
             gs1.AddLoad(s1GalLc1);
@@ -360,7 +360,7 @@ namespace GlassTests
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
             LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 600, 0), new Point3d(800, 600, 0)), lc2);
-            SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+            SelfWeightLoad swl = new SelfWeightLoad(lc0, ModelAnalysisOptions.Instance.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
             gs1.AddLoad(s1ll);
             gs1.AddLoad(s1GalLc1);
@@ -428,7 +428,7 @@ namespace GlassTests
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
             LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 600, 0), new Point3d(800, 600, 0)), lc2);
-            SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+            SelfWeightLoad swl = new SelfWeightLoad(lc0, ModelAnalysisOptions.Instance.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
             gs1.AddLoad(s1ll);
             gs1.AddLoad(s1GalLc1);

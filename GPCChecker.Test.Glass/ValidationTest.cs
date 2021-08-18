@@ -64,10 +64,11 @@ namespace GlassTests
                 lcLl
             };
 
-            SelfWeightLoad loadSw = new SelfWeightLoad(lcSw, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+            SelfWeightLoad loadSw = new SelfWeightLoad(lcSw, ModelAnalysisOptions.Instance.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
             NormalAreaLoad loadWp = new NormalAreaLoad( - 1.2 / 1000, s1, lcWp);
             
-            LineLoad loadLl = new LineLoad(model.Options.GetGravityVector() * 0.8 * model.Options.GetGravitySign(), model.Options.GetGravityVector() * 0 * model.Options.GetGravitySign(),
+            LineLoad loadLl = new LineLoad(ModelAnalysisOptions.Instance.GetGravityVector() * 0.8 * ModelAnalysisOptions.Instance.GetGravitySign(), 
+                                          ModelAnalysisOptions.Instance.GetGravityVector() * 0 * ModelAnalysisOptions.Instance.GetGravitySign(),
                               new Line3d(new Point3d(0, 500, 0), new Point3d(1000, 500, 0)), lcLl, CoordinateSystem.Global);
             
             // Combinazioni

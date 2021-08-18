@@ -861,7 +861,10 @@ namespace GPC.Checkers.Glasses.Wrappers
                 throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessParameter} does support only one interlayer.");
 
 
-            LaminatedGlass glass = (LaminatedGlass)Glass;
+            List<IGlassLoad> lineLoads = loads.Where(i => i.GetType() == typeof(Loads.LineLoad) && i.GetType() == typeof(Loads.LineLoad)).ToList();
+            List<IGlassLoad> pointLoads = loads.Where(i => i.GetType() == typeof(Loads.PointLoad) && i.GetType() == typeof(Loads.PointLoad)).ToList();
+
+
 
 
             FemModels.FemModelWrapper femModel = new FemModels.FemModelWrapper("EETNumerical")
