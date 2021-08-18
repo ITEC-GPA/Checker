@@ -89,15 +89,7 @@ namespace GPC.Checkers.Glasses.Models
                 return false;
             }
 
-#if DEBUG
-            if (checker.FemModelSetup(_outputFolder, femModelNameSuffix))
-#else
-            if (checker.FemModelSetup(_outputFolder))
-#endif
-                glassSurface.Checker = checker;
-            else
-                return false;
-
+            glassSurface.Checker = checker;
 
             _glassSurfaces.Add(glassSurface);
 
