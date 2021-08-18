@@ -99,8 +99,8 @@ namespace GPC.Checkers.Glasses.Checkers
             {
                 LaminatedGlassWrapper wrapper = new LaminatedGlassWrapper(_glassSurface, lg);
 
-                _femModel = BuildLaminatedGlassModel(femModelName, wrapper, lg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, 
-                                                                                _glassSurface.Prototype.LaminatedAnalysisType, _combinations);
+                _femModel = BuildLaminatedGlass(femModelName, wrapper, lg, _glassSurface.GetLoads(), _glassSurface.Prototype.AnalysisType, 
+                    _glassSurface.Prototype.LaminatedAnalysisType, _combinations);
 
                 return true;
             }
