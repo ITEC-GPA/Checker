@@ -290,7 +290,9 @@ namespace GPC.Checkers.Glasses.FemModels
             }
         }
 
-
+        /// <summary>
+        /// Run the solver and read the results in case of straus7 solver
+        /// </summary>
         public override void Solve()
         {
             if (_solver == Prototype.Solvers.Straus7)

@@ -6,6 +6,14 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using GPC.Model.FEM.Materials;
+using GPC.Model.FEM.Properties;
+using GPC.Geometry.Meshes;
+using GPC.Model.Combinations;
+using GPC.Model.Restrains;
+using GPC.Model.FreedomCases;
+using GPC.Geometry;
+using GPC.Model.Results;
 
 namespace GPC.Checkers.Glasses.Wrappers
 {
@@ -45,9 +53,20 @@ namespace GPC.Checkers.Glasses.Wrappers
                     if (load is NormalAreaLoad rnal)
                     {
                         // Normativa
-                        tasks.Add(GetEN16612PressureSharing(rnal));
-
-                        continue;
+                        if (standard == Models.Prototype.Standards.EN16612)
+                        {
+                            tasks.Add(GetEN16612PressureSharing(rnal));
+                            continue;
+                        }
+                        else if (standard == Models.Prototype.Standards.ASTME1300)
+                        {
+                            throw new NotImplementedException();;
+                            continue;
+                        }
+                        else
+                        {
+                            // passiamo agli altri metodi senza lanciare errori
+                        }
                     }
                 }
                 
@@ -87,7 +106,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             {
                 double h1Cube = 0;
                 double h2Cube = 0;
-                double minPoisson = Math.Min(InnerGlassPanelWrapper.GetPoissonRatio(), OuterGlassPanelWrapper.GetPoissonRatio());
+                double minPoisson = GetMinimumPoissonRatio();
 
                 if (OuterGlassPanelWrapper is MonolithicGlassWrapper omgw)
                 {
