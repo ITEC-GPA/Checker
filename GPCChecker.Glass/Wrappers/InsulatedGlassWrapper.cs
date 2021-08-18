@@ -14,7 +14,6 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         }
 
-
         protected abstract void SetUpWrappers();
 
 
@@ -22,6 +21,17 @@ namespace GPC.Checkers.Glasses.Wrappers
 
 
         internal abstract List<IGlassLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard);
+
+
+        public abstract double GetMinimumElasticModulus();
+
+        public abstract double GetMinimumPoissonRatio();
+
+        public abstract double GetSelfWeightPerUnitArea();
+
+        public abstract double GetSelfWeightTotal();
+
+        public abstract double GetMaximumDensity();
 
     }
 }

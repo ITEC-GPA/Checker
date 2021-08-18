@@ -1,4 +1,4 @@
-﻿
+
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.Loads;
 using GPC.Model.Glasses;
@@ -199,5 +199,30 @@ namespace GPC.Checkers.Glasses.Wrappers
             return false;
         }
 
+
+        public override double GetMinimumElasticModulus()
+        {
+            return Math.Min(OuterGlassPanelWrapper.GetElasticModulus(), InnerGlassPanelWrapper.GetElasticModulus());
+        }
+
+        public override double GetMinimumPoissonRatio()
+        {
+            return Math.Min(OuterGlassPanelWrapper.GetPoissonRatio(), InnerGlassPanelWrapper.GetPoissonRatio());
+        }
+
+        public override double GetSelfWeightPerUnitArea()
+        {
+            return OuterGlassPanelWrapper.GetSelfWeightPerUnitArea() + InnerGlassPanelWrapper.GetSelfWeightPerUnitArea();
+        }
+
+        public override double GetSelfWeightTotal()
+        {
+            return OuterGlassPanelWrapper.GetSelfWeightTotal() + InnerGlassPanelWrapper.GetSelfWeightTotal();
+        }
+
+        public override double GetMaximumDensity()
+        {
+            return Math.Max(OuterGlassPanelWrapper.GetDensity(), InnerGlassPanelWrapper.GetDensity());
+        }
     }
 }
