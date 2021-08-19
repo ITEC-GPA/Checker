@@ -41,9 +41,10 @@ namespace GlassTests
             MonolithicGlass mg = new MonolithicGlass("Mg1", 8, GetGlassMaterialAstm());
 
             // Prototype
-            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
+            Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, 
+                                                                    Prototype.CheckMethods.DominantLoad,
                                                                     Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
-                                                                    new Prototype.LaminatedEqThicknessParameters());
+                                                                    new Prototype.LaminatedEqThicknessParameters(), null);
             p1.MeshOptions.MeshSize = 40;
 
             // Surface
@@ -118,7 +119,7 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                                                 Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, 
-                                                                Prototype.LaminatedAnalysisTypes.MultiElement, new Prototype.LaminatedEqThicknessParameters());
+                                                                Prototype.LaminatedAnalysisTypes.MultiElement, new Prototype.LaminatedEqThicknessParameters(), null);
             p1.MeshOptions.MeshSize = 40;
 
             // Surface
@@ -202,7 +203,7 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
                                                 Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
-                                                new Prototype.LaminatedEqThicknessParameters());
+                                                new Prototype.LaminatedEqThicknessParameters(), null);
 
             p1.MeshOptions.MeshSize = 40;
 
@@ -277,7 +278,7 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
                                                                     Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
-                                                                    new Prototype.LaminatedEqThicknessParameters());
+                                                                    new Prototype.LaminatedEqThicknessParameters(), null);
             p1.MeshOptions.MeshSize = 40;
 
             // Surface
@@ -344,7 +345,7 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
                                                                     Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
-                                                                    new Prototype.LaminatedEqThicknessParameters());
+                                                                    new Prototype.LaminatedEqThicknessParameters(), null);
             p1.MeshOptions.MeshSize = 40;
 
             // Surface
@@ -412,7 +413,7 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
                                                                     Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
-                                                                    new Prototype.LaminatedEqThicknessParameters());
+                                                                    new Prototype.LaminatedEqThicknessParameters(), null);
             p1.MeshOptions.MeshSize = 40;
 
             // Surface

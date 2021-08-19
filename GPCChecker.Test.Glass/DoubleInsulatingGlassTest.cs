@@ -29,7 +29,7 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", dgu, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
-                                        new Prototype.LaminatedEqThicknessParameters());
+                                        new Prototype.LaminatedEqThicknessParameters(), null);
 
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);

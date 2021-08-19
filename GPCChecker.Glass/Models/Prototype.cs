@@ -123,8 +123,7 @@ namespace GPC.Checkers.Glasses.Models
         private readonly Solvers _solverType;
         private readonly LaminatedAnalysisTypes _laminatedAnalysisType;
         private readonly LaminatedEqThicknessParameters _laminatedEqThicknessParameters;
-        private readonly Geometry.Meshes.Mesh.GenerateOptions _meshOptions;
-
+        private readonly ModelOptions _options;
 
         // Proprietà vetro
         private readonly Glass _glass;
@@ -164,7 +163,9 @@ namespace GPC.Checkers.Glasses.Models
 
         public UniqueNameCollection<Combination> Combinations => _combinations;
 
-        public Geometry.Meshes.Mesh.GenerateOptions MeshOptions => _meshOptions;
+        public Geometry.Meshes.Mesh.GenerateOptions MeshOptions => _options.MeshOptions;
+        public ModelOptions ModelOptions => _options;
+
 
         #endregion
 
@@ -172,7 +173,8 @@ namespace GPC.Checkers.Glasses.Models
                             IEnumerable<Combination> combinations, Standards standard,
                             AnalysisTypes analysisType, CheckMethods checkMethod, 
                             Solvers solverType, LaminatedAnalysisTypes laminatedAnalysisType,
-                            LaminatedEqThicknessParameters laminatedEqThicknessParameters)
+                            LaminatedEqThicknessParameters laminatedEqThicknessParameters, 
+                            ModelOptions modelOptions)
             : base(name)
         {
             _standard = standard;
@@ -191,17 +193,16 @@ namespace GPC.Checkers.Glasses.Models
             _combinations = new UniqueNameCollection<Combination>();
             _combinations.AddRange(combinations);
 
-            _meshOptions = new Geometry.Meshes.Mesh.GenerateOptions();
+            _options = modelOptions ?? new ModelOptions();
 
-
-            _laminatedEqThicknessParameters = laminatedEqThicknessParameters ?? throw new ArgumentNullException(nameof(laminatedEqThicknessParameters));
+            _laminatedEqThicknessParameters = laminatedEqThicknessParameters ?? new LaminatedEqThicknessParameters();
         }
 
 
         public Prototype(string name, Glass glass, Standards standard, AnalysisTypes analysisType, 
                         CheckMethods checkMethod, Solvers solverType, LaminatedAnalysisTypes laminatedAnalysisType, 
                         LaminatedEqThicknessParameters laminatedEqThicknessParameters)
-            : this(name, glass, null, null, null, standard, analysisType, checkMethod, solverType, laminatedAnalysisType, laminatedEqThicknessParameters)
+            : this(name, glass, null, null, null, standard, analysisType, checkMethod, solverType, laminatedAnalysisType, laminatedEqThicknessParameters, null)
         {
 
         }

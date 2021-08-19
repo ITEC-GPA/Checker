@@ -47,7 +47,7 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", lg1, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement, 
-                                        new Prototype.LaminatedEqThicknessParameters());
+                                        new Prototype.LaminatedEqThicknessParameters(), null);
 
             p1.MeshOptions.MeshSize = 50;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -183,8 +183,9 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
-                                        new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
-                                        majorSide, minorSide));
+                                        new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, 
+                                        Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
+                                        majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -254,7 +255,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularThreeSidesSimplySupported,
-                                        majorSide, minorSide));
+                                        majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -326,7 +327,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped,
-                                        majorSide, minorSide));
+                                        majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -399,7 +400,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
-                                        majorSide, minorSide));
+                                        majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -472,7 +473,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
-                                        majorSide, minorSide));
+                                        majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -543,7 +544,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
-                                        majorSide, minorSide));
+                                        majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -614,7 +615,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
-                                        majorSide, minorSide));
+                                        majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -686,7 +687,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
-                                        majorSide, minorSide));
+                                        majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -758,7 +759,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
-                                        majorSide, minorSide));
+                                        majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -836,7 +837,7 @@ namespace GlassTests
                                             Prototype.LaminatedEqThicknessMethods.EET, 
                                             Prototype.LaminatedEqThicknessBoundaryConditions.Other,
                                             majorSide, 
-                                            minorSide));
+                                            minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
@@ -844,9 +845,11 @@ namespace GlassTests
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
-            Shape loadShape = GetRectangularShape(new Point3d(0, loadHeight - loadWidth / 2.0, 0), new Vector3d(minorSide, loadWidth, 0));
+            //Shape loadShape = GetRectangularShape(new Point3d(0, loadHeight - loadWidth / 2.0, 0), new Vector3d(minorSide, loadWidth, 0));
 
-            LineLoad loadWp = new LineLoad(new Vector3d(0, 0, -1), new Vector3d(0, 0, 0), new Line3d(new Point3d(0, loadHeight, 0), new Point3d(minorSide, loadHeight, 0)), lcPressure, s1.GetCoordinateSystem());
+            LineLoad loadWp = new LineLoad(new Vector3d(0, 0, -1), new Vector3d(0, 0, 0), 
+                              new Line3d(new Point3d(0, loadHeight, 0), 
+                              new Point3d(minorSide- 40, loadHeight, 0)), lcPressure, s1.GetCoordinateSystem());
 
 
             // Surface
@@ -908,7 +911,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
-                                        majorSide, minorSide));
+                                        majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
             p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
