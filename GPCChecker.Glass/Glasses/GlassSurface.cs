@@ -208,26 +208,29 @@ namespace GPC.Checkers.Glasses.Glasses
 
         public override int GetHashCode()
         {
-            int hashCode = 23;
-            hashCode = hashCode * -17 + base.GetHashCode();
-            hashCode = hashCode * -17 + EqualityComparer<Prototype>.Default.GetHashCode(_prototype);
-
-            foreach (var el in _loads)
+            unchecked
             {
-                hashCode += 17 * el.GetHashCode();
-            }
+                int hashCode = 23;
+                hashCode = hashCode * -17 + base.GetHashCode();
+                hashCode = hashCode * -17 + EqualityComparer<Prototype>.Default.GetHashCode(_prototype);
 
-            foreach (var el in _restrains)
-            {
-                hashCode += 17 * EqualityComparer<GeometryRestrain>.Default.GetHashCode(el);
-            }
+                foreach (var el in _loads)
+                {
+                    hashCode += 17 * el.GetHashCode();
+                }
 
-            foreach (var el in _parametricLoads)
-            {
-                hashCode += + 17 * EqualityComparer<IParametricLoad>.Default.GetHashCode(el);
-            }
+                foreach (var el in _restrains)
+                {
+                    hashCode += 17 * EqualityComparer<GeometryRestrain>.Default.GetHashCode(el);
+                }
 
-            return hashCode;
+                foreach (var el in _parametricLoads)
+                {
+                    hashCode += +17 * EqualityComparer<IParametricLoad>.Default.GetHashCode(el);
+                }
+
+                return hashCode; 
+            }
         }
 
         public static bool operator ==(GlassSurface obj1, GlassSurface obj2)

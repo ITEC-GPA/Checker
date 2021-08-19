@@ -60,8 +60,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                         }
                         else if (standard == Models.Prototype.Standards.ASTME1300)
                         {
-                            throw new NotImplementedException();;
-                            continue;
+                            throw new NotImplementedException();
                         }
                         else
                         {

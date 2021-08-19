@@ -125,6 +125,7 @@ namespace GPC.Checkers.Glasses.Models
         private readonly LaminatedEqThicknessParameters _laminatedEqThicknessParameters;
         private readonly Geometry.Meshes.Mesh.GenerateOptions _meshOptions;
 
+
         // Proprietà vetro
         private readonly Glass _glass;
 
@@ -167,9 +168,11 @@ namespace GPC.Checkers.Glasses.Models
 
         #endregion
 
-        public Prototype(string name, Glass glass, Polygon3d polygon, List<IParametricRestrain> restrains, IEnumerable<Combination> combinations, Standards standard,
-            AnalysisTypes analysisType, CheckMethods checkMethod, Solvers solverType, LaminatedAnalysisTypes laminatedAnalysisType,
-            LaminatedEqThicknessParameters laminatedEqThicknessParameters)
+        public Prototype(string name, Glass glass, Polygon3d polygon, List<IParametricRestrain> restrains, 
+                            IEnumerable<Combination> combinations, Standards standard,
+                            AnalysisTypes analysisType, CheckMethods checkMethod, 
+                            Solvers solverType, LaminatedAnalysisTypes laminatedAnalysisType,
+                            LaminatedEqThicknessParameters laminatedEqThicknessParameters)
             : base(name)
         {
             _standard = standard;
@@ -187,14 +190,17 @@ namespace GPC.Checkers.Glasses.Models
 
             _combinations = new UniqueNameCollection<Combination>();
             _combinations.AddRange(combinations);
+
             _meshOptions = new Geometry.Meshes.Mesh.GenerateOptions();
+
 
             _laminatedEqThicknessParameters = laminatedEqThicknessParameters ?? throw new ArgumentNullException(nameof(laminatedEqThicknessParameters));
         }
 
 
-        public Prototype(string name, Glass glass, Standards standard, AnalysisTypes analysisType, CheckMethods checkMethod, Solvers solverType, 
-            LaminatedAnalysisTypes laminatedAnalysisType, LaminatedEqThicknessParameters laminatedEqThicknessParameters)
+        public Prototype(string name, Glass glass, Standards standard, AnalysisTypes analysisType, 
+                        CheckMethods checkMethod, Solvers solverType, LaminatedAnalysisTypes laminatedAnalysisType, 
+                        LaminatedEqThicknessParameters laminatedEqThicknessParameters)
             : this(name, glass, null, null, null, standard, analysisType, checkMethod, solverType, laminatedAnalysisType, laminatedEqThicknessParameters)
         {
 
