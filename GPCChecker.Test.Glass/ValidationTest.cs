@@ -121,7 +121,9 @@ namespace GlassTests
             model.AddCombination(combo5);
 
             // Start analysis
-            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+            Assert.IsTrue(model.AddSurface(gs1), "Add Surface failed");
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
+
 
             model.PerformChecks();
 
@@ -849,7 +851,7 @@ namespace GlassTests
 
             LineLoad loadWp = new LineLoad(new Vector3d(0, 0, -1), new Vector3d(0, 0, 0), 
                               new Line3d(new Point3d(0, loadHeight, 0), 
-                              new Point3d(minorSide- 40, loadHeight, 0)), lcPressure, s1.GetCoordinateSystem());
+                              new Point3d(minorSide, loadHeight, 0)), lcPressure, s1.GetCoordinateSystem());
 
 
             // Surface

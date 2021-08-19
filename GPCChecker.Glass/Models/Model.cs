@@ -65,11 +65,7 @@ namespace GPC.Checkers.Glasses.Models
 
         #region Public methods
 
-
-        /// <summary>
-        /// Internal method to allow to use a custom <paramref name="femModelNameSuffix"/> in test enviroment
-        /// </summary>
-        internal bool AddSurface(GlassSurface glassSurface, string femModelNameSuffix = "")
+        internal bool AddSurface(GlassSurface glassSurface)
         {
             Checker checker;
             if (glassSurface.Prototype.Standard == Prototype.Standards.EN16612)
@@ -93,21 +89,24 @@ namespace GPC.Checkers.Glasses.Models
         }
 
 
-#if !DEBUG
-        /// <summary>
-        /// Add a surface to the model. Create the <see cref="Checker"/> and call <see cref="Checker.FemModelSetup(string)"/>
-        /// </summary>  
-#endif
-        public bool AddSurface(GlassSurface glassSurface)
-        {
-            return AddSurface(glassSurface, string.Empty);
-        }
-
         public bool RemoveSurface(GlassSurface glassSurface)
         {
             return _glassSurfaces.Remove(glassSurface);
         }
 
+        public bool FemModelsSetup(string fileNamePrefix = "")
+        {
+            bool ret = false;
+
+            foreach (var glassSurface in _glassSurfaces)
+            {
+                ret = glassSurface.FemModelSetup(_outputFolder, fileNamePrefix);
+                if (!ret)
+                    return false;
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Add a combination to the model

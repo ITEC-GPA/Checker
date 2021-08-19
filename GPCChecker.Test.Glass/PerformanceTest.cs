@@ -156,7 +156,8 @@ namespace GlassTests
                 model.AddCombination(cmb1);
                 model.AddCombination(cmb2);
 
-                model.AddSurface(gs1, base.GetTestName());
+                model.AddSurface(gs1);
+                Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
             });
 
             var timeSpan = TimeSpan.FromMilliseconds(GPC.Utilities.Time.MeasureTime.FunctionExecutionTime(2, action, true));
@@ -329,7 +330,8 @@ namespace GlassTests
                 model.AddCombination(combo3);
                 model.AddCombination(combo4);
 
-                model.AddSurface(gs1, base.GetTestName());
+                model.AddSurface(gs1);
+                Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
 
             });
 
@@ -434,7 +436,8 @@ namespace GlassTests
                 model.AddCombination(combo3);
                 model.AddCombination(combo4);
 
-                model.AddSurface(gs1, base.GetTestName());
+                model.AddSurface(gs1);
+                Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
 
             });
 

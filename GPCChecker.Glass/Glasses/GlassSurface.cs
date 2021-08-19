@@ -80,6 +80,11 @@ namespace GPC.Checkers.Glasses.Glasses
             throw new NotSupportedException();
         }
 
+        public bool FemModelSetup(string folderPath, string fileNamePrefix = "")
+        {
+            return _checker.FemModelSetup(folderPath, fileNamePrefix);
+        }
+
 
         public bool IsPlanar()
         {

@@ -76,7 +76,9 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.AddSurface(gs1, base.GetTestName());
+            model.AddSurface(gs1);
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
+
             model.PerformChecks();
 
             var worstDisplacementsCmb1 = GetWorstDisplacementResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb1));
@@ -156,9 +158,10 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.AddSurface(gs1, base.GetTestName());
-            model.AddSurface(gs2, base.GetTestName());
+            model.AddSurface(gs1);
+            model.AddSurface(gs2);
 
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
             model.PerformChecks();
 
 
@@ -239,7 +242,8 @@ namespace GlassTests
             Console.WriteLine($"{cmb1.Name}: {cmb1}");
             Console.WriteLine($"{cmb2.Name}: {cmb2}");
 
-            model.AddSurface(gs1, base.GetTestName());
+            model.AddSurface(gs1);
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
             model.PerformChecks();
 
 
@@ -315,7 +319,8 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.AddSurface(gs1, base.GetTestName());
+            model.AddSurface(gs1);
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
             model.PerformChecks();
 
 
@@ -382,7 +387,8 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.AddSurface(gs1, base.GetTestName());
+            model.AddSurface(gs1);
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
             model.PerformChecks();
 
 
@@ -450,7 +456,8 @@ namespace GlassTests
             model.AddCombination(cmb1);
             model.AddCombination(cmb2);
 
-            model.AddSurface(gs1, base.GetTestName());
+            model.AddSurface(gs1);
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
             model.PerformChecks();
 
 

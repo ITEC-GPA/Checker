@@ -124,7 +124,8 @@ namespace GlassTests
             model.AddCombination(combo4);
 
             // Model
-            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+            Assert.IsTrue(model.AddSurface(gs1), "Add Surface failed");
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
 
             model.PerformChecks();
 
@@ -222,7 +223,8 @@ namespace GlassTests
             model.AddCombination(combo4);
 
             // Model
-            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+            Assert.IsTrue(model.AddSurface(gs1), "Add Surface failed");
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
 
 
             model.PerformChecks();
@@ -319,7 +321,8 @@ namespace GlassTests
             model.AddCombination(combo4);
 
             // Model
-            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+            Assert.IsTrue(model.AddSurface(gs1), "Add Surface failed");
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
 
 
             model.PerformChecks();
@@ -412,7 +415,8 @@ namespace GlassTests
             model.AddCombination(combo4);
 
             // Model
-            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+            Assert.IsTrue(model.AddSurface(gs1), "Add Surface failed");
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
 
             model.PerformChecks();
 
@@ -535,7 +539,8 @@ namespace GlassTests
             model.AddCombination(combo4);
 
             // Model
-            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+            Assert.IsTrue(model.AddSurface(gs1), "Add Surface failed");
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
 
 
             model.PerformChecks();
@@ -867,7 +872,8 @@ namespace GlassTests
             model.AddCombination(combo3);
 
             // Model
-            Assert.IsTrue(model.AddSurface(gs1, base.GetTestName()), "Add Surface failed");
+            Assert.IsTrue(model.AddSurface(gs1), "Add Surface failed");
+            Assert.IsTrue(model.FemModelsSetup(base.GetTestName()), "Fem model setup failed");
 
             model.PerformChecks();
 
