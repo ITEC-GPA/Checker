@@ -861,11 +861,29 @@ namespace GPC.Checkers.Glasses.Wrappers
             if (((LaminatedGlass)Glass).InterlayerCount > 1)
                 throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessParameter} does support only one interlayer.");
 
+            
+            var lineLoads = loads.Where(i => i.GetType() == typeof(Loads.LineLoad) && i.GetType() == typeof(Loads.LineLoad))
+                                         .Select(i => 
+                                         ((Loads.LineLoad)i).ConvertToNormalAreaLoad(_glassSurface.Shape.GetPlane(), 
+                                         _glassSurface.Checker.Options.LineLoadWidthEqThickness)).ToList();
 
-            List<IGlassLoad> lineLoads = loads.Where(i => i.GetType() == typeof(Loads.LineLoad) && i.GetType() == typeof(Loads.LineLoad)).ToList();
-            List<IGlassLoad> pointLoads = loads.Where(i => i.GetType() == typeof(Loads.PointLoad) && i.GetType() == typeof(Loads.PointLoad)).ToList();
+
+            var pointLoads = loads.Where(i => i.GetType() == typeof(Loads.PointLoad) && i.GetType() == typeof(Loads.PointLoad))
+                                         .Select(i =>
+                                         ((Loads.LineLoad)i).ConvertToNormalAreaLoad(_glassSurface.Shape.GetPlane(),
+                                         _glassSurface.Checker.Options.PointLoadWidthEqThickness)).ToList(); ;
+
+            List<Model.Loads.NormalAreaLoad> normalAreaLoads = new List<Model.Loads.NormalAreaLoad>();
+
+            if (lineLoads != null)
+                normalAreaLoads.AddRange(lineLoads);
+
+            if (pointLoads != null)
+                normalAreaLoads.AddRange(pointLoads);
 
 
+
+                                _glassSurface.Shape.Fill.Explode().Select(j => (GeometryBase)j).ToList());
 
 
             FemModels.FemModelWrapper femModel = new FemModels.FemModelWrapper("EETNumerical")
@@ -884,25 +902,27 @@ namespace GPC.Checkers.Glasses.Wrappers
             // dimensione mesh di default 2% del massimo lato della bbox. Alla Straus
             var bbboxSize = _glassSurface.Shape.ToLocal().GetBoundingBox().Size;
             femModel.AddShape(_glassSurface.Shape, "p1",
-                              new Mesh.GenerateOptions() { MeshSize = Math.Max(bbboxSize.X, bbboxSize.Y) * 0.02 },
-                              loads.Cast<Load>().ToList(), _glassSurface.GetRestrains());
+                              new Mesh.GenerateOptions() { MeshSize = Math.Max(bbboxSize.X, bbboxSize.Y) * 0.01, 
+                                                           Transfinite = true, 
+                                                           Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads, 
+                                                           HealShapes = true
+                                                        },
+                              normalAreaLoads.Cast<Load>().ToList(), _glassSurface.GetRestrains());
 
-            loads.ForEach(i => femModel.AddLoadCase(i.LoadCase));
+            normalAreaLoads.ForEach(i => femModel.AddLoadCase(i.LoadCase));
 
             var combinations = new List<Combination>();
-            for (int i = 0; i < loads.Count(); i++)
+            for (int i = 0; i < normalAreaLoads.Count(); i++)
             {
                 combinations.Add(new Combination($"Load {i}"));
-                combinations[i].AddLoadCaseCoefficient(loads[i].LoadCase, 1);
+                combinations[i].AddLoadCaseCoefficient(normalAreaLoads[i].LoadCase, 1);
             }
 
             femModel.AddCombinations(combinations);
 
 
-            //femModel.SaveFemModelToSt7(System.IO.Path.GetTempPath()); // TODO: rimuovere e passare a solutore interno
-
             femModel.ExportToSt7(System.IO.Path.GetTempPath(), femModel.Name);
-            femModel.SetSolver(Models.Prototype.Solvers.Straus7);
+            femModel.SetSolver(Models.Prototype.Solvers.Straus7);   // TODO: rimuovere e passare a solutore interno
             femModel.Solve();
 
 
@@ -923,7 +943,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                         var elementArea = plate.GetArea();
 
                         IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault(j =>
-                                                    ((Combination)j.Case).ContainsLoadCases(new[] { (Model.LoadCases.LoadCaseBase)loads[loadIndex].LoadCase })).Result)
+                                                    ((Combination)j.Case).ContainsLoadCases(new[] { (Model.LoadCases.LoadCaseBase)normalAreaLoads[loadIndex].LoadCase })).Result)
                                                         .Cast<ResultDisplacement>(); // TODO: cambiare in containsLoadCase
 
                         if (resultDisplacement is null)
@@ -947,7 +967,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                     psiValues.Add((loads[loadIndex], num / den));
             });
 
-            Parallel.ForEach(Enumerable.Range(0, loads.Count()), action);
+            Parallel.ForEach(Enumerable.Range(0, normalAreaLoads.Count()), action);
 
 
             return psiValues.ToArray();
