@@ -36,17 +36,6 @@ namespace GPC.Checkers.Glasses.Loads
         }
 
 
-        public AreaLoad(double p1, double p2, double p3, Shape shape, IGlassLoadCase loadCase, CoordinateSystem coordinateSystem, 
-                        GlassPanelWrapper.GlassPanelPositions glassPanelPositions = GlassPanelWrapper.GlassPanelPositions.External,
-                        GlassSurface.LoadRestrainCondition loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface) 
-            : base(p1, p2, p3, shape, (LoadCaseBase)loadCase, coordinateSystem)
-        {
-            _glassPanelPositions = glassPanelPositions;
-            _loadRestrainCondition = loadRestrainCondition;
-        }
-
-
-
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))
