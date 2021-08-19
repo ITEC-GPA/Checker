@@ -200,7 +200,9 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         public Mesh GetGlassMeshInternal()
         {
-            return Meshes.Last();
+            if (_meshes == null)
+                throw new ArgumentNullException();
+            return _meshes.Last();
         }
 
         /// <summary>
@@ -210,13 +212,17 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// <exception cref="KeyNotFoundException"></exception>
         public Mesh GetGlassMesh(int index)
         {
-            return Meshes[index];
+            if (_meshes == null)
+                throw new ArgumentNullException();
+            return _meshes[index];
         }
 
 
         public Mesh GetGlassMeshExternal()
         {
-            return Meshes.First();
+            if (_meshes == null)
+                throw new ArgumentNullException();
+            return _meshes.First();
         }
 
 

@@ -242,8 +242,8 @@ namespace GPC.Checkers.Glasses.FemModels
 
         public void GenerateRigidLinks(IEnumerable<int> node1Ids, IEnumerable<int> node2Ids)
         {
-            int count = node1Ids.Count();
-            if (count != node2Ids.Count())
+
+            if (node1Ids.Count() != node2Ids.Count())
                 throw new ArgumentException();
 
             //var nodeIdMap = _nodes.GetElementIdMap();
@@ -275,7 +275,8 @@ namespace GPC.Checkers.Glasses.FemModels
 
             IEnumerator<int> en1 = node1Ids.GetEnumerator();
             IEnumerator<int> en2 = node2Ids.GetEnumerator();
-            for (int i = 0; i < count; i++)
+
+            for (int i = 0; i < node1Ids.Count(); i++)
             {
                 en1.MoveNext();
                 var id1 = en1.Current;

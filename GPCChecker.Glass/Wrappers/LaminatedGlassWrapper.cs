@@ -368,7 +368,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                             if (j == INTERLAYER_DISCRETIZATION - 1 && vertexIdMap != null)
                             {
-                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto più distante dell'interlyaer
+                                plane.Move(normal * thickness / INTERLAYER_DISCRETIZATION); // sposto il piano dello spessore per spostarmi nel punto piï¿½ distante dell'interlyaer
 
                                 // primo strato di brick
                                 if (vertexIdMap != null)
@@ -381,7 +381,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                                 }
                                 else
                                 {
-                                    // se è nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
+                                    // se ï¿½ nullo siamo nel caso di INTERLAYER_DISCRETIZATION == 1
                                     upperVertices = volumeMesh.Vertices
                                         .Where(k => plane.SquareDistanceToPlane(k.Point) < Utilities.Maths.ErrorPropagation.DefaultProductSquareTolerance(GeometryBase.GetDefaultTolerance()))
                                         .Select(k => k.Id);
@@ -515,7 +515,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     SetEquivalentThicknessEET(GetPsiEETNumerical(loadsToProcess));
 
-                    return true; // già processati tutti con il numerico, ritorna
+                    return true; // giï¿½ processati tutti con il numerico, ritorna
 
                 case Models.Prototype.LaminatedEqThicknessBoundaryConditions.RectangularOneSideClamped:
 
@@ -604,7 +604,8 @@ namespace GPC.Checkers.Glasses.Wrappers
                     if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.EET)
                     {
                         // PRESSIONE UNIFORME
-                        List<IGlassLoad> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad) && i.GetGeometryBase().Equals(_glassSurface.Shape)).ToList();
+                        List<IGlassLoad> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad) 
+                                                        && i.GetGeometryBase().Equals(_glassSurface.Shape)).ToList();
                         if (areaLoads.Count() > 0)
                         {
                             // FROM THE EFFECTIVE THICKNESS OF LAMINATED GLASS PLATES Laura Galuppi and Gianni Royer-Carfagni
@@ -740,7 +741,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                 a = _glassSurface.Shape.Fill.Explode().Select(i => i.GetLength()).Min(); // in casi regolari funziona,
                                                                                          // in casi irregolari non tanto bene
                                                                                          // es. un poligono di 5 lati con uno dei lati molto piccolo
-                                                                                         // andrebbe fatto un metodo per capire qual è "smallest dimension of bending of the laminate plate"
+                                                                                         // andrebbe fatto un metodo per capire qual ï¿½ "smallest dimension of bending of the laminate plate"
             }
             else
             {
@@ -829,7 +830,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             });
 
 
-            // TODO: valutare se tenere parallel più for o solo for a livello prestazionale
+            // TODO: valutare se tenere parallel piï¿½ for o solo for a livello prestazionale
             Parallel.ForEach(Enumerable.Range(0, loads.Count()), action);
 
 
@@ -941,7 +942,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                 }
 
                 if (den == 0)
-                    psiValues.Add((loads[loadIndex], double.MaxValue)); // se c'è qualcosa che non va (den == 0) allora diamo un psi grande che corrisponde ad eta 0 cioè layerered limit
+                    psiValues.Add((loads[loadIndex], double.MaxValue)); // se c'ï¿½ qualcosa che non va (den == 0) allora diamo un psi grande che corrisponde ad eta 0 cioï¿½ layerered limit
                 else
                     psiValues.Add((loads[loadIndex], num / den));
             });
@@ -1155,7 +1156,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                             // un loadPerimeterLine deve essere parallelo ad almeno ad lato di glassPerimeter
                             if (Math.Abs(Math.Abs(vp.DotProduct(vs)) - 1.00) < GeometryBase.GetDefaultTolerance())
                             {
-                                // se entra allora il lato è parallelo al glassperimeter[i]
+                                // se entra allora il lato ï¿½ parallelo al glassperimeter[i]
                                 isParallel = true;
                                 break;
                             }
@@ -1163,7 +1164,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                         if (!isParallel)
                         {
-                            // se entra qua allora il lato non è parallelo a nessuno
+                            // se entra qua allora il lato non ï¿½ parallelo a nessuno
                             isShapeLoadParallel = false;
                             break;
                         }
@@ -1180,13 +1181,13 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                         if (glassPerimeter[0].GetLength() > glassPerimeter[1].GetLength())
                         {
-                            // primo lato è il più grande
+                            // primo lato ï¿½ il piï¿½ grande
                             xi = glassPerimeter[0].DistanceTo(loadCenter);
                             eta = glassPerimeter[1].DistanceTo(loadCenter);
                         }
                         else
                         {
-                            // primo lato è il più piccolo
+                            // primo lato ï¿½ il piï¿½ piccolo
                             eta = glassPerimeter[0].DistanceTo(loadCenter);
                             xi = glassPerimeter[1].DistanceTo(loadCenter);
                         }
@@ -1196,7 +1197,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                         Action<int> ACoefficientAction = new Action<int>((m) =>
                         {
-                            // double[,] non è threadsafe ma ogni thread scrive su un punto diverso.
+                            // double[,] non ï¿½ threadsafe ma ogni thread scrive su un punto diverso.
                             for (int n = 1; n <= 10; n++)
                             {
                                 ACoefficients[m - 1, n - 1] = GetEETFourSideAmnCoefficient(xi, eta, u, v, eqThicknessParameters.A, eqThicknessParameters.B, m, n);
