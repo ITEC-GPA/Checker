@@ -14,7 +14,7 @@ namespace GPC.Checkers.Glasses.Models
         #region Variables
 
         protected string _outputFolder;
-        protected List<GlassSurface> _glassSurfaces;
+        protected UniqueIdCollection<GlassSurface> _glassSurfaces;
         protected UniqueNameCollection<Combination> _combinations;
         protected ModelOptions _options;
 
@@ -35,18 +35,18 @@ namespace GPC.Checkers.Glasses.Models
         #region Public constructors
 
         public Model(string outputFolder)
-            : this(new List<GlassSurface>(), new List<Combination>(), outputFolder)
+            : this(new UniqueIdCollection<GlassSurface>(), new List<Combination>(), outputFolder)
         {
         }
 
-        public Model(List<GlassSurface> glassSurfaces, string outputFolder)
+        public Model(UniqueIdCollection<GlassSurface> glassSurfaces, string outputFolder)
             : this(glassSurfaces, new List<Combination>(), outputFolder)
         {
         }
 
-        public Model(List<GlassSurface> glassSurfaces, IEnumerable<Combination> combinations, string outputFolder)
+        public Model(UniqueIdCollection<GlassSurface> glassSurfaces, IEnumerable<Combination> combinations, string outputFolder)
         {
-            _glassSurfaces = glassSurfaces ?? new List<GlassSurface>();
+            _glassSurfaces = glassSurfaces ?? new UniqueIdCollection<GlassSurface>();
 
             _combinations = new UniqueNameCollection<Combination>();
 
@@ -89,15 +89,7 @@ namespace GPC.Checkers.Glasses.Models
                 return false;
             }
 
-#if DEBUG
-            if (checker.FemModelSetup(_outputFolder, femModelNameSuffix))
-#else
-            if (checker.FemModelSetup(_outputFolder))
-#endif
-                glassSurface.Checker = checker;
-            else
-                return false;
-
+            glassSurface.Checker = checker;
 
             _glassSurfaces.Add(glassSurface);
 
@@ -179,10 +171,14 @@ namespace GPC.Checkers.Glasses.Models
         /// <remarks> <see cref="RebuildAllCheckers"/> Must be called before calling this method</remarks>
         public void PerformChecks()
         {
-            // TODO: glass, cambiare facendo in modo che se il checker non è stato creato lo crei lui, cosi da farlo andare avanti in qualsiasi caso.
-            //foreach (var surface in _glassSurfaces)
-            for (int i = 0; i < _glassSurfaces.Count; i++)
-                _glassSurfaces[i].Checker.PerformCheck();
+            using (var gse = _glassSurfaces.GetEnumerator())
+            {
+                while (gse.MoveNext())
+                {
+                    gse.Current.Checker.PerformCheck();
+                }
+            }
+
         }
 
 

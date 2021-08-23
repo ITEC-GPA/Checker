@@ -42,7 +42,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
-                                                                    Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                                                    Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                                                     new Prototype.LaminatedEqThicknessParameters());
             p1.MeshOptions.MeshSize = 40;
 
@@ -117,7 +117,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
-                                                                Prototype.CheckMethods.DominantLoad, Prototype.SolverTypes.Straus7, 
+                                                                Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, 
                                                                 Prototype.LaminatedAnalysisTypes.MultiElement, new Prototype.LaminatedEqThicknessParameters());
             p1.MeshOptions.MeshSize = 40;
 
@@ -161,10 +161,10 @@ namespace GlassTests
             model.PerformChecks();
 
 
-#if DEBUG
-            model.GlassSurfaces.First().Checker.FemModel.ExportSt7PlateUserDefinedCustomResultFile(base.GetOutputFolder(), base.GetTestName() + "_PlateContour", cmb1);
-            model.GlassSurfaces.First().Checker.FemModel.ExportSt7NodeUserDefinedCustomResultFile(base.GetFilePathInOutputFolder(base.GetTestName() + "_NodeContour", "txt"), cmb1);
-#endif
+//#if DEBUG
+//            model.GlassSurfaces.First().Checker.FemModel.ExportSt7PlateUserDefinedCustomResultFile(base.GetOutputFolder(), base.GetTestName() + "_PlateContour", cmb1);
+//            model.GlassSurfaces.First().Checker.FemModel.ExportSt7NodeUserDefinedCustomResultFile(base.GetFilePathInOutputFolder(base.GetTestName() + "_NodeContour", "txt"), cmb1);
+//#endif
 
             var gs1WorstDisplacementsCmb1 = GetWorstDisplacementResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationNodeDisplacementResult(cmb1));
             var gs1WorstStressesCmb1 = GetWorstStressResults(model.GlassSurfaces.FirstOrDefault().Checker.GetCombinationPlateStressResult(cmb1));
@@ -201,7 +201,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
-                                                Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                                Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                                 new Prototype.LaminatedEqThicknessParameters());
 
             p1.MeshOptions.MeshSize = 40;
@@ -276,7 +276,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
-                                                                    Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                                                    Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                                                     new Prototype.LaminatedEqThicknessParameters());
             p1.MeshOptions.MeshSize = 40;
 
@@ -293,7 +293,7 @@ namespace GlassTests
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
             LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 600, 0), new Point3d(800, 600, 0)), lc2);
-            SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravityVector(), GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+            SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
             gs1.AddLoad(s1ll);
             gs1.AddLoad(s1GalLc1);
@@ -343,7 +343,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
-                                                                    Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                                                    Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                                                     new Prototype.LaminatedEqThicknessParameters());
             p1.MeshOptions.MeshSize = 40;
 
@@ -360,7 +360,7 @@ namespace GlassTests
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
             LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 600, 0), new Point3d(800, 600, 0)), lc2);
-            SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravityVector(), GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+            SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
             gs1.AddLoad(s1ll);
             gs1.AddLoad(s1GalLc1);
@@ -411,7 +411,7 @@ namespace GlassTests
 
             // Prototype
             Prototype p1 = new Prototype("p1", mg, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.NonLinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
-                                                                    Prototype.SolverTypes.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                                                    Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                                                     new Prototype.LaminatedEqThicknessParameters());
             p1.MeshOptions.MeshSize = 40;
 
@@ -428,7 +428,7 @@ namespace GlassTests
             // Loads
             AreaLoad s1GalLc1 = new AreaLoad(0, 0, 0.001, s1, lc1);
             LineLoad s1ll = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 600, 0), new Point3d(800, 600, 0)), lc2);
-            SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravityVector(), GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
+            SelfWeightLoad swl = new SelfWeightLoad(lc0, model.Options.GetGravitySign() * GPC.Utilities.Constants.Constants.GRAVITYACCELERATION);
 
             gs1.AddLoad(s1ll);
             gs1.AddLoad(s1GalLc1);

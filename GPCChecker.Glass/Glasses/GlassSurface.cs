@@ -81,6 +81,42 @@ namespace GPC.Checkers.Glasses.Glasses
         }
 
 
+        public bool IsPlanar()
+        {
+            return true; // TODO: modificare una volta aggiunto il supporto alle goemetrie 3d
+        }
+
+
+        /// <returns><see langword="True"/> if glass is rectangular. <see langword="False"/> if otherwise or not planar.</returns>
+        public bool IsRectangular()
+        {
+            if (!IsPlanar())
+                return false;
+
+            var fill = (Polygon3d)Shape.Fill.Clone();
+            fill.RemoveAlignedPoints();
+            fill.RemoveDuplicatedPoints();
+
+            var border = fill.Explode();
+
+            if (border.Count != 4)
+                return false;
+
+            for (int i = 0; i < border.Count - 1; i++)
+            {
+                var v1 = border[i].ToVector();
+                v1.Unitize();
+                var v2 = border[i + 1].ToVector();
+                v2.Unitize();
+
+                if (Math.Abs(v1.DotProduct(v2)) > GeometryBase.GetDefaultAngularTolerance())
+                    return false;
+            }
+
+            return true;
+        }
+
+
         /// <summary>
         /// Add a load to the surface
         /// </summary>
@@ -147,6 +183,7 @@ namespace GPC.Checkers.Glasses.Glasses
             // TODO: implementare conversione restrain parametrici
             return _restrains.ToList(); // shallow copy
         } 
+
 
         #endregion
 
