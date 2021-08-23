@@ -883,9 +883,6 @@ namespace GPC.Checkers.Glasses.Wrappers
 
 
 
-                                _glassSurface.Shape.Fill.Explode().Select(j => (GeometryBase)j).ToList());
-
-
             FemModels.FemModelWrapper femModel = new FemModels.FemModelWrapper("EETNumerical")
             {
                 AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear
