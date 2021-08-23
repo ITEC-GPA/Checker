@@ -899,7 +899,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             // dimensione mesh di default 2% del massimo lato della bbox. Alla Straus
             var bbboxSize = _glassSurface.Shape.ToLocal().GetBoundingBox().Size;
             femModel.AddShape(_glassSurface.Shape, "p1",
-                              new Mesh.GenerateOptions() { MeshSize = Math.Max(bbboxSize.X, bbboxSize.Y) * 0.01, 
+                              new Mesh.GenerateOptions() { MeshSize = Math.Max(bbboxSize.X, bbboxSize.Y) * 0.02, 
                                                            Transfinite = true, 
                                                            Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads, 
                                                            HealShapes = true

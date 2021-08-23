@@ -879,9 +879,9 @@ namespace GlassTests
 
             Assert.AreEqual(0.23333, shearModule, 0.001, shearModule.ToString()); // valore di G su cui sono tarati gli expected value sotto
 
-            Assert.AreEqual(6.80, tw, 0.1, tw.ToString());
-            Assert.AreEqual(7.66, ts1, 0.1, ts1.ToString());
-            Assert.AreEqual(7.66, ts2, 0.1, ts2.ToString());
+            Assert.AreEqual(6.80, tw, 0.2, tw.ToString());
+            Assert.AreEqual(7.66, ts1, 0.2, ts1.ToString());
+            Assert.AreEqual(7.66, ts2, 0.2, ts2.ToString());
 
 
         }
