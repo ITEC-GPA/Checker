@@ -79,12 +79,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CopSuos2011Test.cs" />
-    <Compile Include="EN1993p11Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SteelResistanceTest.cs" />
     <Compile Include="SteelInstabilityTest.cs" />
     <Compile Include="SteelClassificationTest.cs" />
-    <Compile Include="Class4Test.cs" />
+    <Compile Include="ECPlateTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

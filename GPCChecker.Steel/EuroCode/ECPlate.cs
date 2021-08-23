@@ -30,9 +30,7 @@
 //                _plates.Add(Web);
 //                _plates.Add(TopLeft);
 //                _plates.Add(TopRight);
-//            }
-//            else if (typeSect == typeof(SectionRHS))
-//            {
+//            } else if (typeSect == typeof(SectionRHS)) {
 //                SectionRHS sec = (SectionRHS)sect;
 //                ECPlate top = new ECPlate(sec.Plates[0], sec.TWebLeft, sec.TWebRight);
 //                ECPlate bottom = new ECPlate(sec.Plates[1], sec.TWebLeft, sec.TWebRight);
@@ -44,8 +42,7 @@
 //                _plates.Add(bottom);
 //                _plates.Add(web1);
 //                _plates.Add(web2);
-//            }
-//            else
+//            } else 
 //            {
 //                throw new Exception("Section 4 of this type not yet supported");
 //            }
@@ -130,8 +127,7 @@
 
 //        public double Weff2
 //        {
-//            get
-//            {
+//            get {
 //                double Jeff2 = J2eff;
 //                double yg = CentroidEff.Y;
 //                double yMax = yg;
@@ -143,7 +139,7 @@
 //                    if (_plates[i].FirstPointActive != null)
 //                    {
 //                        if (_plates[i].isHorizontal) { } else { halfT = 0; }
-
+                        
 //                        yMax = Math.Max(yMax, _plates[i].FirstPointActive.Y + halfT);
 //                        yMax = Math.Max(yMax, _plates[i].FirstPointActive.Y - halfT);
 
@@ -152,7 +148,7 @@
 //                    }
 //                    if (_plates[i].LastPointActive != null)
 //                    {
-//                        if (_plates[i].isHorizontal) { } else { halfT = 0; }
+//                        if (_plates[i].isHorizontal) { }  else { halfT = 0; }
 
 //                        yMax = Math.Max(yMax, _plates[i].LastPointActive.Y + halfT);
 //                        yMax = Math.Max(yMax, _plates[i].LastPointActive.Y - halfT);
@@ -275,10 +271,9 @@
 //            }
 //        }
 
-//        public ECPlate(Plate p, double removeLengthSide1, double removeLengthSide2) 
-//            : this(p.Thickness, p.InitialPoint, p.EndPoint, p.Fyk, p.GetTypePlate, removeLengthSide1, removeLengthSide2)
+//        public ECPlate(Plate p, double removeLengthSide1, double removeLengthSide2) : this(p.Thickness, p.InitialPoint, p.EndPoint, p.Fyk, p.GetTypePlate, removeLengthSide1, removeLengthSide2)
 //        {
-
+            
 //        }
 
 //        protected Point2d[] CentroidsEff
@@ -427,7 +422,7 @@
 
 //        public double B => _B;
 
-//        public double T => _t;
+//        public double T => _t;        
 
 //        public bool isVertical
 //        {
@@ -437,8 +432,7 @@
 //                if (delta.X == 0 && Math.Abs(delta.Y) > 0) //vertical
 //                {
 //                    return true;
-//                }
-//                else
+//                } else
 //                {
 //                    return false;
 //                }
@@ -521,7 +515,7 @@
 //                    }
 //                    else
 //                    {
-//                        throw new Exception("sigma0 = " + sigma0 + " sigmaX = " + sigmaX + " psi = " + psi + " out of range - outer plate - tension / less tension near attached point");
+//                        throw new Exception("sigma0 = " + sigma0 + " sigmaX = " +sigmaX+ " psi = " + psi +" out of range - outer plate - tension / less tension near attached point");
 //                    }
 //                }
 //                else //tension near attached point
@@ -776,33 +770,28 @@
 //                if (_removeLengthSide1 == 0)
 //                {
 //                    return _initialPoint;
-//                }
-//                else
+//                } else
 //                {
 //                    //calc coordinates
 //                    var delta = _endPoint - _initialPoint;
 //                    if (delta.X == 0 && delta.Y > 0) //vertical
 //                    {
 //                        return new Point2d(_initialPoint.X, _initialPoint.Y + _removeLengthSide1);
-//                    }
-//                    else if (delta.X == 0 && delta.Y < 0) //vertical
+//                    } else if (delta.X == 0 && delta.Y < 0) //vertical
 //                    {
 //                        return new Point2d(_initialPoint.X, _initialPoint.Y - _removeLengthSide1);
-//                    }
-//                    else if (delta.X > 0 && delta.Y == 0) //horiz
+//                    } else if (delta.X > 0 && delta.Y == 0) //horiz
 //                    {
 //                        return new Point2d(_initialPoint.X + _removeLengthSide1, _initialPoint.Y);
-//                    }
-//                    else if (delta.X < 0 && delta.Y == 0) //horiz
+//                    } else if (delta.X < 0 && delta.Y == 0) //horiz
 //                    {
 //                        return new Point2d(_initialPoint.X - _removeLengthSide1, _initialPoint.Y);
 //                    }
-//                    else
-//                    { //obliqual
+//                    else { //obliqual
 //                        double angle = Math.Atan(delta.Y / delta.X);
-
+                        
 //                        return new Point2d(_initialPoint.X + _removeLengthSide1 * Math.Cos(angle), _initialPoint.Y + _removeLengthSide1 * Math.Sin(angle));
-//                    }
+//                    } 
 //                }
 //            }
 //        }
@@ -843,12 +832,10 @@
 //                    {
 //                        return _pInitialEff2;
 //                    }
-//                }
-//                else if (_pFinalEff1 != null)
+//                } else if (_pFinalEff1 != null)
 //                {
 //                    return _pFinalEff1;
-//                }
-//                else
+//                } else
 //                {
 //                    throw new Exception("point?");
 //                }
