@@ -68,6 +68,7 @@
     <Compile Include="Checkers\Cop2011Checker.cs" />
     <Compile Include="Checkers\EuroCodeChecker.cs" />
     <Compile Include="EuroCode\Annex.cs" />
+    <Compile Include="EuroCode\ECClass4ThinWallSection.cs" />
     <Compile Include="EuroCode\EuroCodeBeamChecker.cs" />
     <Compile Include="EuroCode\ECPlate.cs" />
     <Compile Include="PanelsStability\Class4SectionDefinitions.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Results\BeamStationResults.cs" />
     <Compile Include="Results\Cop2011BeamStationResults.cs" />
+    <Compile Include="Results\EN1993p11BeamStationResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="Microsoft.Office.Core">
