@@ -521,7 +521,13 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.EET)
                     {
-                        List<IGlassLoad> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad) && i.GetGeometryBase().Equals(_glassSurface.Shape)).ToList();
+                        List<IGlassLoad> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad) 
+                                                                && i.GetGeometryBase().Equals(_glassSurface.Shape)).ToList();
+
+
+                        areaLoads.AddRange(areaLoads.Where(i => i.GetType() == typeof(Loads.AreaLoad)).Select(i =>
+                                              ((Loads.AreaLoad)i).ConvertToNormalAreaLoad().Shape.Equals(_glassSurface.Shape)).Cast<IGlassLoad>().ToList());
+
 
                         if (areaLoads.Count() > 0)
                         {
@@ -537,7 +543,11 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                     if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.EET)
                     {
-                        List<IGlassLoad> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad) && i.GetGeometryBase().Equals(_glassSurface.Shape)).ToList();
+                        List<IGlassLoad> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad) 
+                                                                && i.GetGeometryBase().Equals(_glassSurface.Shape)).ToList();
+
+                        areaLoads.AddRange(areaLoads.Where(i => i.GetType() == typeof(Loads.AreaLoad)).Select(i =>
+                                              ((Loads.AreaLoad)i).ConvertToNormalAreaLoad().Shape.Equals(_glassSurface.Shape)).Cast<IGlassLoad>().ToList());
 
                         if (areaLoads.Count() > 0)
                         {
@@ -575,7 +585,12 @@ namespace GPC.Checkers.Glasses.Wrappers
                     }
                     else if (eqThicknessMethod == Models.Prototype.LaminatedEqThicknessMethods.ASTME1300)
                     {
-                        List<IGlassLoad> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad) && i.GetGeometryBase().Equals(_glassSurface.Shape)).ToList();
+                        List<IGlassLoad> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad) 
+                                                                && i.GetGeometryBase().Equals(_glassSurface.Shape)).ToList();
+
+
+                        areaLoads.AddRange(areaLoads.Where(i => i.GetType() == typeof(Loads.AreaLoad)).Select(i =>
+                                              ((Loads.AreaLoad)i).ConvertToNormalAreaLoad().Shape.Equals(_glassSurface.Shape)).Cast<IGlassLoad>().ToList());
 
                         SetEquivalentThicknessASTM(areaLoads, eqThicknessParameters.A);
 
@@ -605,7 +620,13 @@ namespace GPC.Checkers.Glasses.Wrappers
                     {
                         // PRESSIONE UNIFORME
                         List<IGlassLoad> areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad) 
-                                                        && i.GetGeometryBase().Equals(_glassSurface.Shape)).ToList();
+                                                            && i.GetGeometryBase().Equals(_glassSurface.Shape)).ToList();
+
+
+                        areaLoads.AddRange(areaLoads.Where(i => i.GetType() == typeof(Loads.AreaLoad)).Select(i =>
+                                              ((Loads.AreaLoad)i).ConvertToNormalAreaLoad().Shape.Equals(_glassSurface.Shape)).Cast<IGlassLoad>().ToList());
+
+
                         if (areaLoads.Count() > 0)
                         {
                             // FROM THE EFFECTIVE THICKNESS OF LAMINATED GLASS PLATES Laura Galuppi and Gianni Royer-Carfagni
@@ -617,12 +638,16 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                             SetEquivalentThicknessEET(areaLoads.Select(i => (i, psi)).ToArray());
                             areaLoads.ForEach(i => loadsToProcess.Remove(i));
+
+                            areaLoads.Clear();
                         }
 
                         // PRESSIONE CONCENTRATA
-                        areaLoads.Clear();
 
-                        areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad)).ToList();
+                        areaLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad)).ToList(); // area load non processati prima, cioè quelli che non hanno geometria coincidente con area
+
+                        areaLoads.AddRange(loadsToProcess.Where(i => i.GetType() == typeof(Loads.AreaLoad)).ToList()); // area load non processati prima, cioè quelli che non hanno geometria coincidente con area
+
                         List<IGlassLoad> lineLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.LineLoad) && i.GetType() == typeof(Loads.LineLoad)).ToList();
                         List<IGlassLoad> pointLoads = loadsToProcess.Where(i => i.GetType() == typeof(Loads.PointLoad) && i.GetType() == typeof(Loads.PointLoad)).ToList();
 
@@ -861,19 +886,36 @@ namespace GPC.Checkers.Glasses.Wrappers
             if (((LaminatedGlass)Glass).InterlayerCount > 1)
                 throw new NotSupportedException($"{_glassSurface.Prototype.LaminatedEqThicknessParameter} does support only one interlayer.");
 
-            
-            var lineLoads = loads.Where(i => i.GetType() == typeof(Loads.LineLoad) && i.GetType() == typeof(Loads.LineLoad))
+            var surfacePlane = _glassSurface.Shape.GetPlane();
+
+
+            // Lista carichi da esportare nel fem
+            List<Model.Loads.NormalAreaLoad> normalAreaLoads = new List<Model.Loads.NormalAreaLoad>();
+
+            // aggiungo carichi che sono già normalAreaLoads
+            normalAreaLoads.AddRange(loads.Where(i => i.GetType() == typeof(Loads.NormalAreaLoad)).Select(i => (Loads.NormalAreaLoad)i));
+
+
+            // converto le area load
+            var areaLoads = loads.Where(i => i.GetType() == typeof(Loads.AreaLoad))
+                                         .Select(i =>
+                                         ((Loads.AreaLoad)i).ConvertToNormalAreaLoad()).ToList();
+
+            // converto i line load
+            var lineLoads = loads.Where(i => i.GetType() == typeof(Loads.LineLoad))
                                          .Select(i => 
-                                         ((Loads.LineLoad)i).ConvertToNormalAreaLoad(_glassSurface.Shape.GetPlane(), 
+                                         ((Loads.LineLoad)i).ConvertToNormalAreaLoad(surfacePlane, 
                                          _glassSurface.Checker.Options.LineLoadWidthEqThickness)).ToList();
 
-
-            var pointLoads = loads.Where(i => i.GetType() == typeof(Loads.PointLoad) && i.GetType() == typeof(Loads.PointLoad))
+            // converto i point load
+            var pointLoads = loads.Where(i => i.GetType() == typeof(Loads.PointLoad))
                                          .Select(i =>
-                                         ((Loads.LineLoad)i).ConvertToNormalAreaLoad(_glassSurface.Shape.GetPlane(),
-                                         _glassSurface.Checker.Options.PointLoadWidthEqThickness)).ToList(); ;
+                                         ((Loads.LineLoad)i).ConvertToNormalAreaLoad(surfacePlane,
+                                         _glassSurface.Checker.Options.PointLoadWidthEqThickness)).ToList();
 
-            List<Model.Loads.NormalAreaLoad> normalAreaLoads = new List<Model.Loads.NormalAreaLoad>();
+
+            if (areaLoads != null)
+                normalAreaLoads.AddRange(areaLoads);
 
             if (lineLoads != null)
                 normalAreaLoads.AddRange(lineLoads);
