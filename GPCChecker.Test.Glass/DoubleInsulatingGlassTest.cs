@@ -19,6 +19,7 @@ namespace GlassTests
         [TestCategory("BAM")]
         [TestCategory("EN16612")]
         [TestCategory("Monolithic")]
+        [TestCategory("Pressure")]
         public void LoadSharing1()
         {
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 3000, 0));
@@ -45,7 +46,7 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
 
-            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard) ;
+            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard, false) ;
 
             // CARICO SU LASTRA ESTERNA
             Assert.AreEqual(0.827 - 1, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.01);
@@ -66,6 +67,7 @@ namespace GlassTests
         [TestCategory("BAM")]
         [TestCategory("ASTME1300")]
         [TestCategory("Monolithic")]
+        [TestCategory("Pressure")]
         public void LoadSharing2()
         {
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 3000, 0));
@@ -92,7 +94,7 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
 
-            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard);
+            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard, false);
 
             // CARICO SU LASTRA ESTERNA
             Assert.AreEqual(0.827 - 1, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.01);
@@ -114,6 +116,7 @@ namespace GlassTests
         [TestCategory("BAM")]
         [TestCategory("Numerical")]
         [TestCategory("Monolithic")]
+        [TestCategory("Pressure")]
         public void LoadSharing3()
         {
             RunApiServer();
@@ -143,7 +146,7 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
 
-            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard);
+            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard, false);
             
 
             // CARICO SU LASTRA ESTERNA

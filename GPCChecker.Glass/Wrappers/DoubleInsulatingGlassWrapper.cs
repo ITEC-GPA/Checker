@@ -36,13 +36,14 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-
+        /// <inheritdoc cref="InsulatedGlassWrapper.GetLoadSharing(IEnumerable{IGlassLoad}, Models.Prototype.Standards, bool, double)"/>>
         /// <returns>
         /// An array of loads. 
         /// First index: External slab load. 
         /// Second index: Internal slab load.
         /// </returns>
-        internal override List<NormalAreaLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard)
+        internal override List<NormalAreaLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard, 
+                                                        bool compressibleGas, double cavitySealingPressure = 0.1)
         {
             List<IGlassLoad> loadsToProcess = loads.ToList(); // shallow copy
 
@@ -53,9 +54,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             if (_glassSurface.IsRectangular())
             {
-
                 List<NormalAreaLoad> normalAreaLoads = loadsToProcess.Where(i => i.GetType() == typeof(NormalAreaLoad)).Select(i => (NormalAreaLoad)i).ToList();
-
 
                 foreach (var nal in normalAreaLoads)
                 {
@@ -78,6 +77,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                         redistributionPressure[1].Add(bufferLoads._internal);
 
                         loadsToProcess.Remove(nal);
+                        continue;
                     }
                     else
                     {
@@ -86,17 +86,15 @@ namespace GPC.Checkers.Glasses.Wrappers
                 }
             }
 
-
+            // se rimangono carichi non processati si procede con il numerico
             if (loadsToProcess.Count > 0)
             {
-                foreach(var rediLoads in GetBAMNumericalRedistributionPressure(loadsToProcess, false, 1))
+                foreach(var rediLoads in GetBAMNumericalRedistributionPressure(loadsToProcess, compressibleGas, cavitySealingPressure))
                 {
                     redistributionPressure[0].Add(rediLoads.external);
                     redistributionPressure[1].Add(rediLoads._internal);
                 }                
             }
-
-
 
             return redistributionPressure;
         }

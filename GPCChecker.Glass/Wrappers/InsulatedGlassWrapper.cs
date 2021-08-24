@@ -20,7 +20,12 @@ namespace GPC.Checkers.Glasses.Wrappers
         public abstract override bool GenerateMesh();
 
 
-        internal abstract List<NormalAreaLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard);
+        /// <param name="loads"></param>
+        /// <param name="standard"></param>
+        /// <param name="compressibleGas"></param>
+        /// <param name="cavitySealingPressure">default value is the atmosferic pressure [MPa] </param>
+        internal abstract List<NormalAreaLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard, 
+                                                                bool compressibleGas, double cavitySealingPressure = 0.1 );
 
 
         public abstract double GetMinimumElasticModulus();

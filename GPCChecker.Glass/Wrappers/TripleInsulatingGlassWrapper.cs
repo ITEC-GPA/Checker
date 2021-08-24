@@ -57,7 +57,15 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        internal override List<NormalAreaLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard)
+        /// <inheritdoc cref="InsulatedGlassWrapper.GetLoadSharing(IEnumerable{IGlassLoad}, Models.Prototype.Standards, bool, double)"/>>
+        /// <returns>
+        /// An array of loads. 
+        /// First index: External slab load. 
+        /// Second index: Central slab load.
+        /// Third index: Internal slab load.
+        /// </returns>
+        internal override List<NormalAreaLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard, 
+                                                                bool compressibleGas, double cavitySealingPressure = 0.1)
         {
             throw new NotImplementedException();
         }
