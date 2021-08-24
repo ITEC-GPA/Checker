@@ -16,6 +16,9 @@ namespace GlassTests
     public class DoubleInsulatingGlassTest : GlassTestBase
     {
         [TestMethod]
+        [TestCategory("BAM")]
+        [TestCategory("EN16612")]
+        [TestCategory("Monolithic")]
         public void LoadSharing1()
         {
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 3000, 0));
@@ -42,24 +45,81 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
 
-            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, Prototype.Standards.EN16612) ;
+            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard) ;
 
-            Assert.AreEqual(0.827, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
-            Assert.AreEqual(0.173, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
+            // CARICO SU LASTRA ESTERNA
+            Assert.AreEqual(0.827 - 1, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.01);
+            Assert.AreEqual(0.827, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure
+                                     + loadWp1.Pressure, 0.01);
+            Assert.AreEqual(0.173, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.01);
 
-            Assert.AreEqual(1.199, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
-            Assert.AreEqual(0.301, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
+
+            // CARICO SU LASTRA INTERNA
+            Assert.AreEqual(1.199, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.05);
+            Assert.AreEqual(-1.199, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.05);
+            Assert.AreEqual(0.301, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure
+                                     + loadWp2.Pressure, 0.05);
+        }
+
+
+        [TestMethod]
+        [TestCategory("BAM")]
+        [TestCategory("ASTME1300")]
+        [TestCategory("Monolithic")]
+        public void LoadSharing2()
+        {
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 3000, 0));
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 10, GetGlassMaterialAstm());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg2", 6, GetGlassMaterialAstm());
+            AirChamber airChamber = new AirChamber("Ac", 15);
+
+            DoubleInsulatingGlass dgu = new DoubleInsulatingGlass("Dgu", mg1, mg2, airChamber);
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", dgu, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters(), null);
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            NormalAreaLoad loadWp1 = new NormalAreaLoad(1.0, s1, lcPressure, "wp1", GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.External);
+            NormalAreaLoad loadWp2 = new NormalAreaLoad(1.5, s1, lcPressure, "wp2", GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.Internal);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+
+            GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
+
+            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard);
+
+            // CARICO SU LASTRA ESTERNA
+            Assert.AreEqual(0.827 - 1, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.01);
+            Assert.AreEqual(0.827, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure
+                                        + loadWp1.Pressure, 0.01);
+            Assert.AreEqual(0.173, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.01);
+
+
+            // CARICO SU LASTRA INTERNA
+            Assert.AreEqual(1.199,  loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.05);
+            Assert.AreEqual(-1.199, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.05);
+            Assert.AreEqual(0.301,  loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure
+                                         + loadWp2.Pressure, 0.05);
 
         }
 
 
         [TestMethod]
-        public void LoadSharing2()
+        [TestCategory("BAM")]
+        [TestCategory("Numerical")]
+        [TestCategory("Monolithic")]
+        public void LoadSharing3()
         {
             RunApiServer();
 
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 3000, 0));
-            s1.Fill[0].Move(new Vector3d(50, 0, 0));
+            s1.Fill[0].Move(new Vector3d(1, 0, 0));
 
             MonolithicGlass mg1 = new MonolithicGlass("Mg1", 10, GetGlassMaterialAstm());
             MonolithicGlass mg2 = new MonolithicGlass("Mg2", 6, GetGlassMaterialAstm());
@@ -83,13 +143,21 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
 
-            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, Prototype.Standards.EN16612);
+            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard);
+            
 
-            Assert.AreEqual(0.827, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
-            Assert.AreEqual(0.173, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
+            // CARICO SU LASTRA ESTERNA
+            Assert.AreEqual(0.827 - 1, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.01);
+            Assert.AreEqual(0.827, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure
+                                     + loadWp1.Pressure, 0.01);
+            Assert.AreEqual(0.173, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.01);
 
-            Assert.AreEqual(1.199, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
-            Assert.AreEqual(0.301, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
+            
+            // CARICO SU LASTRA INTERNA
+            Assert.AreEqual(1.199, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.05);
+            Assert.AreEqual(-1.199, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.05);
+            Assert.AreEqual(0.301, loadSharing[1].Where(i => ((NormalAreaLoad)i).Name == "wp2").Cast<NormalAreaLoad>().FirstOrDefault().Pressure
+                                     + loadWp2.Pressure, 0.05);
 
         }
     }

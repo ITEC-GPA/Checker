@@ -989,7 +989,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                         IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault(j =>
                                                     ((Combination)j.Case).ContainsLoadCases(new[] { (Model.LoadCases.LoadCaseBase)normalAreaLoads[loadIndex].LoadCase })).Result)
-                                                        .Cast<ResultDisplacement>(); // TODO: cambiare in containsLoadCase
+                                                        .Cast<ResultDisplacement>(); 
 
                         if (resultDisplacement is null)
                             throw new ArgumentNullException();
