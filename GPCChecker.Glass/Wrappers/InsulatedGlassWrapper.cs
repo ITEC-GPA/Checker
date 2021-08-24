@@ -20,7 +20,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         public abstract override bool GenerateMesh();
 
 
-        internal abstract List<IGlassLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard);
+        internal abstract List<NormalAreaLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard);
 
 
         public abstract double GetMinimumElasticModulus();

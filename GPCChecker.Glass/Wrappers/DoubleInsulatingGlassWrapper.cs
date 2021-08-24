@@ -36,13 +36,13 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        internal override List<IGlassLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard)
+        internal override List<NormalAreaLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard)
         {
             List<IGlassLoad> loadsToProcess = loads.ToList(); // shallow copy
 
-            List<IGlassLoad>[] redistributedLoads = new List<IGlassLoad>[2];
-            redistributedLoads[0] = new List<IGlassLoad>(); // External
-            redistributedLoads[1] = new List<IGlassLoad>(); // Internal
+            List<NormalAreaLoad>[] redistributionPressure = new List<NormalAreaLoad>[2];
+            redistributionPressure[0] = new List<NormalAreaLoad>(); // External
+            redistributionPressure[1] = new List<NormalAreaLoad>(); // Internal
 
 
             if (_glassSurface.IsRectangular())
@@ -57,8 +57,8 @@ namespace GPC.Checkers.Glasses.Wrappers
                     {
                         var bufferLoads = GetEN16612PressureSharing(nal);
 
-                        redistributedLoads[0].Add(bufferLoads.external);
-                        redistributedLoads[1].Add(bufferLoads._internal);
+                        redistributionPressure[0].Add(bufferLoads.external);
+                        redistributionPressure[1].Add(bufferLoads._internal);
 
                         loadsToProcess.Remove(nal);
                         continue;
@@ -77,23 +77,24 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             if (loadsToProcess.Count > 0)
             {
-                var bufferLoads = GetBAMNumericalLoadSharing(loadsToProcess, true);
-
-                redistributedLoads[0].Add(bufferLoads.external);
-                redistributedLoads[1].Add(bufferLoads._internal);
-                
+                foreach(var rediLoads in GetBAMNumericalLoadSharing(loadsToProcess, true, 1))
+                {
+                    redistributionPressure[0].Add(rediLoads.external);
+                    redistributionPressure[1].Add(rediLoads._internal);
+                }                
             }
 
 
 
-            return redistributedLoads;
+            return redistributionPressure;
         }
+
 
         /// <summary>
         /// Load sharing procedure according to EN16612 C1. 
         /// This algorithm is valid only for rectangular shapes
         /// </summary>
-        protected (IGlassLoad external, IGlassLoad _internal) GetEN16612PressureSharing(NormalAreaLoad load)
+        protected (NormalAreaLoad external, NormalAreaLoad _internal) GetEN16612PressureSharing(NormalAreaLoad load)
         {
             // h1: ext
             // h2: int
@@ -162,16 +163,22 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
         
 
-        protected (IGlassLoad external, IGlassLoad _internal) GetBAMNumericalLoadSharing(List<IGlassLoad> loads, bool compressibleGas)
+        protected (NormalAreaLoad external, NormalAreaLoad _internal)[] GetBAMNumericalLoadSharing(List<IGlassLoad> loads, bool compressibleGas, double cavitySealingPressure)
         {
 
             // h1: ext
             // h2: int
 
-            var surfacePlane = _glassSurface.Shape.GetPlane();
+            if (compressibleGas && cavitySealingPressure <= 0)
+                throw new ArgumentException("cavitySealingPressure <= 0");
 
+            (NormalAreaLoad external, NormalAreaLoad _internal)[] redistributionPressure = new (NormalAreaLoad external, NormalAreaLoad _internal)[loads.Count];
             List<Model.Loads.NormalAreaLoad> normalAreaLoads = new List<Model.Loads.NormalAreaLoad>();
 
+
+            var surfacePlane = _glassSurface.Shape.GetPlane();
+
+            // Converto i carichi in pressioni normali
             for (int i = 0; i < loads.Count; i++)
             {
                 if (loads[i] is NormalAreaLoad)
@@ -186,7 +193,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                     normalAreaLoads.Add(pl.ConvertToNormalAreaLoad(surfacePlane, _glassSurface.Checker.Options.LineLoadWidthEqThickness));
                 else if (loads[i] is SelfWeightLoad swl)
                 {
-                    var vect = swl.GravityVector * swl.Acceleration; // TODO: cambiare prop
+                    var vect = swl.GravityVector * swl.Acceleration; // TODO: cambiare prop swl
 
                     normalAreaLoads.Add(new NormalAreaLoad(vect.DotProduct(surfacePlane.Normal), _glassSurface.Shape, loads[i].GlassLoadCase));
 
@@ -194,12 +201,9 @@ namespace GPC.Checkers.Glasses.Wrappers
                 else
                     throw new NotImplementedException();
             }
+            
 
-
-            NormalAreaLoad externalPanelLoad = null;
-            NormalAreaLoad internalPanelLoad = null;
-
-
+            // CREAZIONE MODELLO
             FemModels.FemModelWrapper femModel = new FemModels.FemModelWrapper("BAMNumerical")
             {
                 AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear
@@ -242,14 +246,11 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             Model.FEM.FiniteElements.FiniteElement[] elements = femModel.GetElements();
 
-            double num = 0;
-
             double h1Cube = Math.Pow(OuterGlassPanelWrapper.GetDeformationThickness((IGlassLoad)loadToFem[0]), 3.0); // TODO: sistemare load
             double h2Cube = Math.Pow(InnerGlassPanelWrapper.GetDeformationThickness((IGlassLoad)loadToFem[0]), 3.0);
-
-
+            
+            // CALCOLO DEL COEFFICIENTE PSI NUMERICO
             Dictionary<Model.FEM.FiniteElements.Plate, double> psiCoefficient = new Dictionary<Model.FEM.FiniteElements.Plate, double>();
-
 
             for (int e = 0; e < elements.Length; e++)
             {
@@ -265,40 +266,53 @@ namespace GPC.Checkers.Glasses.Wrappers
                 }
             }
 
+            // CALCOLO DELLA DELTA P
+            double meanPsiIntegral = psiCoefficient.Select(j => j.Key.GetArea() * j.Value).Sum();
+            double[] num = new double[loads.Count];
+            double[] den = new double[loads.Count];
+            double doubleFlexuarStiffness = 0;
+            double[] deltaP = new double[loads.Count];
+
+            if (compressibleGas)
+            {
+                double area = Area;
+                double cavityVolume = AirThickness * area;
+                doubleFlexuarStiffness = GetMinimumElasticModulus() / (12.0 * (1.0 - Math.Pow(GetMinimumPoissonRatio(), 2.0))) 
+                                                   * h1Cube * h2Cube * cavityVolume / Math.Pow(area, 3.0) / cavitySealingPressure;
+            }
 
             for (int i = 0; i < loads.Count; i++)
             {
-                // se area load non serve valutare tutti elementi
-
-                // se 
-
-
-            }
-
-
-            for (int e = 0; e < elements.Length; e++)
-            {
-                if (elements[e] is Model.FEM.FiniteElements.Plate plate)
-                {
-                    var elementArea = plate.GetArea();
-
-                    IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results.FirstOrDefault(j => j == combinations[0]).Result)
-                                                    .Cast<ResultDisplacement>(); // TODO: cambiare in containsLoadCase
-
-                    if (resultDisplacement is null)
-                        throw new ArgumentNullException();
-
-                    var mean = ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray());
-
-                    if (plate.AttributesLoadCase.Where(i => i is Model.FEM.Attributes.PlateNormalPressureAttribute).SingleOrDefault() != null)
+                // basta calcolare l'integrale del coefficinete psi
+                if (loads[i] is NormalAreaLoad nal)
+                {                   
+                    if (nal.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.External)
                     {
-                        num += mean.D3 * elementArea * ((Model.FEM.Attributes.PlateNormalPressureAttribute)plate.AttributesLoadCase.FirstOrDefault()).Pressure;
+                        // carico è f2
+                        num[i] = nal.Pressure * h2Cube * meanPsiIntegral;
                     }
+                    else
+                    {
+                        // carico è f1
+                        num[i] = nal.Pressure * h1Cube;
+                    }
+
+                    den[i] = (h1Cube + h2Cube) * meanPsiIntegral + doubleFlexuarStiffness;
                 }
+                // se carico 
+
+
+                if (den[i] == 0)
+                    throw new ArithmeticException();
+
+                deltaP[i] = num[i] / den[i];
+
+                redistributionPressure[i].external = new NormalAreaLoad(deltaP[i], _glassSurface.Shape, loads[i].GlassLoadCase, GlassPanelWrapper.GlassPanelPositions.External);
+                redistributionPressure[i]._internal = new NormalAreaLoad(deltaP[i], _glassSurface.Shape, loads[i].GlassLoadCase, GlassPanelWrapper.GlassPanelPositions.Internal);
             }
 
 
-            return (externalPanelLoad, internalPanelLoad);
+            return redistributionPressure;
         }
 
 

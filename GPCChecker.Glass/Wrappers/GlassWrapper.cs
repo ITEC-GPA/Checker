@@ -16,6 +16,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         public Glass Glass => _glass;
 
+        public double Area => _glassSurface.Shape.GetArea();
 
 
         protected GlassWrapper(GlassSurface glassSurface, Glass glass)
@@ -35,5 +36,6 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// </summary>
         /// <returns>The normal vector unitized</returns>
         public Vector3d GetNormalVector() => _glassSurface.Shape.GetNormalVector();
+
     }
 }
