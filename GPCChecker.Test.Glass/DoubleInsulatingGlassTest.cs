@@ -56,6 +56,8 @@ namespace GlassTests
         [TestMethod]
         public void LoadSharing2()
         {
+            RunApiServer();
+
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 3000, 0));
             s1.Fill[0].Move(new Vector3d(50, 0, 0));
 

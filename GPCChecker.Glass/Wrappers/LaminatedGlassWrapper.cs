@@ -878,6 +878,12 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         }
 
+
+        /// <summary>
+        /// Calculate the Psi of EET method with the numerical procedure. Ref. THE EFFECTIVE THICKNESS OF LAMINATED GLASS PLATES
+        /// </summary>
+        /// <param name="loads"></param>
+        /// <returns></returns>
         protected (IGlassLoad load, double psi)[] GetPsiEETNumerical(List<IGlassLoad> loads)
         {
             if (((LaminatedGlass)Glass).GlassLayerCount > 2)
