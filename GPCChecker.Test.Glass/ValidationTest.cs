@@ -160,6 +160,8 @@ namespace GlassTests
         }
 
 
+        #region EET
+
 
         [TestMethod]
         [TestCategory("V-EQT-EET1")]
@@ -167,7 +169,6 @@ namespace GlassTests
         [TestCategory("Uniform Pressure load")]
         public void EQTEET1()
         {
-            RunApiServer();
 
             Model model = new Model(base.GetOutputFolder());
 
@@ -185,7 +186,7 @@ namespace GlassTests
             // Prototype
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
-                                        new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, 
+                                        new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET,
                                         Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
                                         majorSide, minorSide), null);
 
@@ -310,7 +311,6 @@ namespace GlassTests
         [TestCategory("Uniform Pressure load")]
         public void EQTEET3()
         {
-            RunApiServer();
 
             Model model = new Model(base.GetOutputFolder());
 
@@ -344,7 +344,7 @@ namespace GlassTests
 
             // vincolo su un lati
             gs1.AddRestrain((GeometryRestrain)LineRestrain.GetAllFixed(
-                             s1.Fill.Explode().Where(i => i.GetLength() < majorSide).FirstOrDefault(), 
+                             s1.Fill.Explode().Where(i => i.GetLength() < majorSide).FirstOrDefault(),
                              new FreedomCase("fc1"), CoordinateSystem.Global));
 
 
@@ -382,7 +382,6 @@ namespace GlassTests
         [TestCategory("Punctual load")]
         public void EQTEET4()
         {
-            RunApiServer();
 
             Model model = new Model(base.GetOutputFolder());
 
@@ -455,7 +454,6 @@ namespace GlassTests
         [TestCategory("Punctual load")]
         public void EQTEET5()
         {
-            RunApiServer();
 
             Model model = new Model(base.GetOutputFolder());
 
@@ -524,10 +522,8 @@ namespace GlassTests
         [TestCategory("Layers: 2")]
         [TestCategory("Punctual load")]
         [TestCategory("NormalAreaLoad")]
-        public void EQTEET6()
+        public void EQTEET6_1()
         {
-            RunApiServer();
-
             Model model = new Model(base.GetOutputFolder());
 
             double majorSide = 1000;
@@ -595,9 +591,8 @@ namespace GlassTests
         [TestCategory("Layers: 2")]
         [TestCategory("Punctual load")]
         [TestCategory("PointLoad")]
-        public void EQTEET6bis()
+        public void EQTEET6_2()
         {
-            RunApiServer();
 
             Model model = new Model(base.GetOutputFolder());
 
@@ -668,7 +663,6 @@ namespace GlassTests
         [TestCategory("NormalAreaLoad")]
         public void EQTEET7_1()
         {
-            RunApiServer();
 
             Model model = new Model(base.GetOutputFolder());
 
@@ -740,7 +734,6 @@ namespace GlassTests
         [TestCategory("LineLoad")]
         public void EQTEET7_2()
         {
-            RunApiServer();
 
             Model model = new Model(base.GetOutputFolder());
 
@@ -771,7 +764,7 @@ namespace GlassTests
 
             Shape loadShape = GetRectangularShape(new Point3d(0, loadHeight - loadWidth / 2.0, 0), new Vector3d(minorSide, loadWidth, 0));
 
-            LineLoad loadWp = new LineLoad(new Vector3d(0,0,-1), new Vector3d(0, 0,0), new Line3d(new Point3d(0, loadHeight, 0), new Point3d(minorSide, loadHeight, 0)), lcPressure, s1.GetCoordinateSystem());
+            LineLoad loadWp = new LineLoad(new Vector3d(0, 0, -1), new Vector3d(0, 0, 0), new Line3d(new Point3d(0, loadHeight, 0), new Point3d(minorSide, loadHeight, 0)), lcPressure, s1.GetCoordinateSystem());
 
 
             // Surface
@@ -836,9 +829,9 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(
-                                            Prototype.LaminatedEqThicknessMethods.EET, 
+                                            Prototype.LaminatedEqThicknessMethods.EET,
                                             Prototype.LaminatedEqThicknessBoundaryConditions.Other,
-                                            majorSide, 
+                                            majorSide,
                                             minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
@@ -849,8 +842,8 @@ namespace GlassTests
 
             //Shape loadShape = GetRectangularShape(new Point3d(0, loadHeight - loadWidth / 2.0, 0), new Vector3d(minorSide, loadWidth, 0));
 
-            LineLoad loadWp = new LineLoad(new Vector3d(0, 0, -1), new Vector3d(0, 0, 0), 
-                              new Line3d(new Point3d(0, loadHeight, 0), 
+            LineLoad loadWp = new LineLoad(new Vector3d(0, 0, -1), new Vector3d(0, 0, 0),
+                              new Line3d(new Point3d(0, loadHeight, 0),
                               new Point3d(minorSide, loadHeight, 0)), lcPressure, s1.GetCoordinateSystem());
 
 
@@ -952,7 +945,7 @@ namespace GlassTests
 
             Assert.AreEqual(0.23333, shearModule, 0.001, shearModule.ToString()); // valore di G su cui sono tarati gli expected value sotto
 
-            Assert.AreEqual(6.80, tw,  0.2, tw.ToString());
+            Assert.AreEqual(6.80, tw, 0.2, tw.ToString());
             Assert.AreEqual(7.66, ts1, 0.2, ts1.ToString());
             Assert.AreEqual(7.66, ts2, 0.2, ts2.ToString());
 
@@ -966,7 +959,6 @@ namespace GlassTests
         [TestCategory("Linear load")]
         public void EQTEET8()
         {
-            RunApiServer();
 
             Model model = new Model(base.GetOutputFolder());
 
@@ -1027,10 +1019,54 @@ namespace GlassTests
             Assert.AreEqual(7.61, ts1, 0.1, ts1.ToString());
             Assert.AreEqual(7.61, ts2, 0.1, ts2.ToString());
 
+        } 
+        #endregion
+
+
+        #region BAM
+
+        [TestMethod]
+        [TestCategory("V-BAM-DGU1")]
+        [TestCategory("Uniform pressure")]
+        public void BAMDGU1()
+        {
+
+            Model model = new Model(base.GetOutputFolder());
+
+            double majorSide = 2500;
+            double minorSide = 1000;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 10, GetGlassMaterialEn16612());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg1", 10, GetGlassMaterialEn16612());
+            AirChamber airChamber = new AirChamber("Ac", 15);
+
+            DoubleInsulatingGlass dgu = new DoubleInsulatingGlass("Dgu", mg1, mg2, airChamber);
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", dgu, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters(), null);
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            NormalAreaLoad loadWp = new NormalAreaLoad(3, s1, lcPressure, "wp1", GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.External);
+
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+
+            GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
+
+            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { loadWp }, p1.Standard, false);
+
+
+            Assert.AreEqual(-1.5, loadSharing[0].Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
+            Assert.AreEqual(1.5, loadSharing[1].Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.001);
         }
 
 
-
-
+        #endregion
     }
 }

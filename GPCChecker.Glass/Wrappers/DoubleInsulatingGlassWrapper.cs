@@ -37,13 +37,13 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        /// <inheritdoc cref="InsulatedGlassWrapper.GetLoadSharing(IEnumerable{IGlassLoad}, Models.Prototype.Standards, bool, double)"/>>
+        /// <inheritdoc cref="InsulatedGlassWrapper.GetRedistributionPressures(IEnumerable{IGlassLoad}, Models.Prototype.Standards, bool, double)"/>>
         /// <returns>
         /// An array of loads. 
         /// First index: External slab load. 
         /// Second index: Internal slab load.
         /// </returns>
-        internal override List<NormalAreaLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard, 
+        internal override List<NormalAreaLoad>[] GetRedistributionPressures(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard, 
                                                         bool compressibleGas, double cavitySealingPressure = 0.1)
         {
             List<IGlassLoad> loadsToProcess = loads.ToList(); // shallow copy
@@ -90,7 +90,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             // se rimangono carichi non processati si procede con il numerico
             if (loadsToProcess.Count > 0)
             {
-                foreach(var rediLoads in GetBAMNumericalRedistributionPressure(loadsToProcess, compressibleGas, cavitySealingPressure))
+                foreach(var rediLoads in GetBAMNumericalRedistributionPressures(loadsToProcess, compressibleGas, cavitySealingPressure))
                 {
                     redistributionPressure[0].Add(rediLoads.external);
                     redistributionPressure[1].Add(rediLoads._internal);
@@ -245,7 +245,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        protected (NormalAreaLoad external, NormalAreaLoad _internal)[] GetBAMNumericalRedistributionPressure(List<IGlassLoad> loads, bool compressibleGas, 
+        protected (NormalAreaLoad external, NormalAreaLoad _internal)[] GetBAMNumericalRedistributionPressures(List<IGlassLoad> loads, bool compressibleGas, 
                                                         double cavitySealingPressure)
         {
 

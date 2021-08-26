@@ -46,7 +46,7 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
 
-            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard, false) ;
+            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard, false) ;
 
             // CARICO SU LASTRA ESTERNA
             Assert.AreEqual(0.827 - 1, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.01);
@@ -94,7 +94,7 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
 
-            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard, false);
+            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard, false);
 
             // CARICO SU LASTRA ESTERNA
             Assert.AreEqual(0.827 - 1, loadSharing[0].Where(i => ((NormalAreaLoad)i).Name == "wp1").Cast<NormalAreaLoad>().FirstOrDefault().Pressure, 0.01);
@@ -146,7 +146,7 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
 
-            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard, false);
+            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { loadWp1, loadWp2 }, p1.Standard, false);
             
 
             // CARICO SU LASTRA ESTERNA
@@ -204,7 +204,7 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
 
-            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { lineLoad1, lineLoad2 }, p1.Standard, false);
+            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { lineLoad1, lineLoad2 }, p1.Standard, false);
 
             // confronto con tabelle paper Laura: Pratical design dgus
             double phiL = 0.0072001; // alfa = 0.5, lambda = 0.33
@@ -262,7 +262,7 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
 
-            var loadSharing = dguw.GetLoadSharing(new List<IGlassLoad>() { load1, load2 }, p1.Standard, false);
+            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { load1, load2 }, p1.Standard, false);
 
 
             double phiP = 0.00112493; // alfa = 0.5, lambda = 0.33
