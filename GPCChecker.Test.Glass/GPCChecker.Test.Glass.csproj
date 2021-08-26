@@ -50,11 +50,11 @@
     <Reference Include="GPCConverters.Straus7, Version=1.0.0.3, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCConverters.Straus7.1.0.0.3\lib\net472\GPCConverters.Straus7.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=1.0.11.2, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCGeometry.1.0.11.2\lib\net472\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=1.0.11.5, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCGeometry.1.0.11.5\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.1.0.21, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.1.0.21\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.1.0.22, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.1.0.22\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.7, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.7\lib\net472\GPCTestUtilities.dll</HintPath>
