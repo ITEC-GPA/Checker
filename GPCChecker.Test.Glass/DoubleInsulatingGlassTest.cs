@@ -210,15 +210,19 @@ namespace GlassTests
             double phiL = 0.0072001; // alfa = 0.5, lambda = 0.33
             double phiA = 0.0053523;
 
-            double deltaP1 = (1 / mg1.Thickness * phiL) / ((1 / mg1.Thickness + 1 / mg2.Thickness) * phiA) * lineLoad1.F3 * lineLoad1.Line.GetLength() / s1.GetArea();
-            double deltaP2 = (1 / mg1.Thickness * phiL) / ((1 / mg1.Thickness + 1 / mg2.Thickness) * phiA) * lineLoad2.F3 * lineLoad2.Line.GetLength() / s1.GetArea();
+            double d1 = mg1.Material.E * Math.Pow(mg1.Thickness, 3) / (12 * (1 - 0.23 * 0.23));
+            double d2 = mg2.Material.E * Math.Pow(mg2.Thickness, 3) / (12 * (1 - 0.23 * 0.23));
+
+
+            double deltaP1 = (1 / d1 * phiL) / ((1 / d1 + 1 / d2) * phiA) * lineLoad1.F3 * lineLoad1.Line.GetLength() / s1.GetArea();
+            double deltaP2 = (1 / d2 * phiL) / ((1 / d1 + 1 / d2) * phiA) * lineLoad2.F3 * lineLoad2.Line.GetLength() / s1.GetArea();
 
             // CARICO SU LASTRA ESTERNA
-            Assert.AreEqual(deltaP1, loadSharing[0].FirstOrDefault().Pressure, 0.01);
-            Assert.AreEqual(deltaP1, loadSharing[1].FirstOrDefault().Pressure, 0.01);
+            Assert.AreEqual(deltaP1, loadSharing[0].FirstOrDefault().Pressure, 0.00000001);
+            Assert.AreEqual(deltaP1, loadSharing[1].FirstOrDefault().Pressure, 0.00000001);
 
-            Assert.AreEqual(deltaP2, loadSharing[0].LastOrDefault().Pressure, 0.01);
-            Assert.AreEqual(deltaP2, loadSharing[1].LastOrDefault().Pressure, 0.01);
+            Assert.AreEqual(deltaP2, loadSharing[0].LastOrDefault().Pressure, 0.00000001);
+            Assert.AreEqual(deltaP2, loadSharing[1].LastOrDefault().Pressure, 0.00000001);
 
 
         }
