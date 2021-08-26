@@ -1093,7 +1093,7 @@ namespace SteelTests
             double expBendingCapacity2 = 312.6;          //KN
             double expBendingWR = 0.644;
             double expBuckWR = 0.438;
-            double expWR = 1.154;        // LateralTorsionalBuck
+            double expWR = 1.42;        // LateralTorsionalBuck
 
             Assert.AreEqual(sectionClassComp, Cop2011Checker.SectionClass.Class3);
             Assert.AreEqual(sectionClassBend, Cop2011Checker.SectionClass.Class1);
@@ -1128,6 +1128,32 @@ namespace SteelTests
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
             cop2011Checker.PerformCheck();
+        }
+
+        [TestMethod]
+        public void InteractionSectionHTest5()
+        {
+            double h = 203.2;         // Steel_CoP_2011_commentary E6.12.2 
+            double b = 203.2;
+            double t = 11;
+            double tw = 7.2;
+            double length = 2996;
+
+            LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
+            SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 355, 510, 7850);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-79.4 * 1000, 0, 0, 0, -18.36 * 1000000, 1.9 * 1000000, CoordinateSystem.Global) };
+            ResultStation[] resultStations = new ResultStation[1] { new ResultStation(1, length / 2.0, length) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
+            SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
+            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
+                                                        Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 4, 1, 1, 1, 4, 1, 1, 1, 1);
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
+            StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
+
+            Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
+            cop2011Checker.PerformCheck();
+
+            double wr = cop2011Checker.Cop2011BeamStationResults[0].WorkingRatio;
         }
 
         [TestMethod]
@@ -1383,6 +1409,174 @@ namespace SteelTests
             Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
                                                                                     1, 1, 1, 1, 1, 1, 1, 1, 1);
             BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults) ;
+            StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
+
+            Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
+            cop2011Checker.PerformCheck();
+
+            double bendCap1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity / 1000;
+            double bendCap2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity / 1000;
+
+            Assert.IsTrue(bendCap1 > 0.0);
+            Assert.IsTrue(bendCap2 > 0.0);
+        }
+
+        [TestMethod]
+        public void BendingMomentSectionCHSTest2()
+        {
+            double t = 12;
+            double d = 400;
+
+            LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
+            SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-1000 * 1000, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global) };
+            ResultStation[] resultStations = new ResultStation[] { new ResultStation(1, 0.0, 5000) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
+            SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(d, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
+            Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
+            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
+                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1);
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
+            StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
+
+            Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
+            cop2011Checker.PerformCheck();
+
+            double bendCap1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity / 1000;
+            double bendCap2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity / 1000;
+
+            Assert.IsTrue(bendCap1 > 0.0);
+            Assert.IsTrue(bendCap2 > 0.0);
+        }
+
+        [TestMethod]
+        public void BendingMomentSectionCHSTest3()
+        {
+            double t = 12;
+            double d = 400;
+
+            LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
+            SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(1000 * 1000, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global) };
+            ResultStation[] resultStations = new ResultStation[] { new ResultStation(1, 0.0, 5000) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
+            SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(d, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
+            Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
+            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
+                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1);
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
+            StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
+
+            Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
+            cop2011Checker.PerformCheck();
+
+            double bendCap1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity / 1000;
+            double bendCap2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity / 1000;
+
+            Assert.IsTrue(bendCap1 > 0.0);
+            Assert.IsTrue(bendCap2 > 0.0);
+        }
+
+        [TestMethod]
+        public void BendingMomentSectionCHSTest4()
+        {
+            double t = 12;
+            double d = 400;
+
+            LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
+            SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(1000 * 1000, 500 * 1000, 500 * 1000, 0, 500 * 1000000, 500 * 1000000, CoordinateSystem.Global) };
+            ResultStation[] resultStations = new ResultStation[] { new ResultStation(1, 0.0, 5000) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
+            SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(d, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
+            Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
+            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
+                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1);
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
+            StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
+
+            Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
+            cop2011Checker.PerformCheck();
+
+            double bendCap1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity / 1000;
+            double bendCap2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity / 1000;
+
+            Assert.IsTrue(bendCap1 > 0.0);
+            Assert.IsTrue(bendCap2 > 0.0);
+        }
+
+        [TestMethod]
+        public void BendingMomentSectionCHSTest5()
+        {
+            double t = 12;
+            double d = 400;
+
+            LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
+            SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(1000 * 1000, 500 * 1000, 500 * 1000, 0, -500 * 1000000, -500 * 1000000, CoordinateSystem.Global) };
+            ResultStation[] resultStations = new ResultStation[] { new ResultStation(1, 0.0, 5000) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
+            SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(d, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
+            Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
+            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
+                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1);
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
+            StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
+
+            Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
+            cop2011Checker.PerformCheck();
+
+            double bendCap1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity / 1000;
+            double bendCap2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity / 1000;
+
+            Assert.IsTrue(bendCap1 > 0.0);
+            Assert.IsTrue(bendCap2 > 0.0);
+        }
+
+        [TestMethod]
+        public void BendingMomentSectionCHSTest6()
+        {
+            double t = 12;
+            double d = 400;
+
+            LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
+            SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-1000 * 1000, 500 * 1000, 500 * 1000, 0, 500 * 1000000, 500 * 1000000, CoordinateSystem.Global) };
+            ResultStation[] resultStations = new ResultStation[] { new ResultStation(1, 0.0, 5000) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
+            SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(d, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
+            Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
+            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
+                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1);
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
+            StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
+
+            Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
+            cop2011Checker.PerformCheck();
+
+            double bendCap1 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment1Capacity / 1000;
+            double bendCap2 = cop2011Checker.Cop2011BeamStationResults[0].BendingMoment2Capacity / 1000;
+
+            Assert.IsTrue(bendCap1 > 0.0);
+            Assert.IsTrue(bendCap2 > 0.0);
+        }
+
+        [TestMethod]
+        public void BendingMomentSectionCHSTest7()
+        {
+            double t = 12;
+            double d = 400;
+
+            LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
+            SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-1000 * 1000, 500 * 1000, 500 * 1000, 0, -500 * 1000000, -500 * 1000000, CoordinateSystem.Global) };
+            ResultStation[] resultStations = new ResultStation[] { new ResultStation(1, 0.0, 5000) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
+            SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[] { new SteelSectionCHS(d, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished) };
+            Cop2011Checker.Cop2011Options.SteelClasses steelClasses = Cop2011Checker.Cop2011Options.SteelClasses.Class1;
+            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(steelClasses, Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
+                                                                                    1, 1, 1, 1, 1, 1, 1, 1, 1);
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
             StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
             Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);

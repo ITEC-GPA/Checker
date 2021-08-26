@@ -173,7 +173,7 @@ namespace GPC.Checkers.Steel.Checkers
                         // equazione 8.81 cap. 8.9.2
                         if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
                         {
-                            double result = Math.Min(resultBeamForces[i].N, 0) / axialBuck2Rd[i] +
+                            double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(axialBuck1Rd[i], axialBuck2Rd[i])) +
                                  Math.Abs(CalculateMLTForLatTorsBuckling() * resultBeamForces[i].M1 / latTorsRd[i]) +
                                  Math.Abs(_options.UniformMomentFactorm2 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
 
