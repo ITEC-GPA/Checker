@@ -305,7 +305,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             femModel.AddProperty(property);
 
-            LoadCases.LoadCase lcUniformPressure = new LoadCases.LoadCase("UniformPressure", 1, 10, Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+            LoadCase lcUniformPressure = new LoadCase(Guid.NewGuid().ToString(), 1, 10, Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
             // dimensione mesh di default 2% del massimo lato della bbox. Alla Straus
             var bbboxSize = _glassSurface.Shape.ToLocal().GetBoundingBox().Size;

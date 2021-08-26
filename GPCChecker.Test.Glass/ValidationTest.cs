@@ -1067,6 +1067,107 @@ namespace GlassTests
         }
 
 
+
+        [TestMethod]
+        [TestCategory("V-BAM-DGU2")]
+        [TestCategory("Uniform pressure")]
+        public void BAMDGU2()
+        {
+
+            Model model = new Model(base.GetOutputFolder());
+
+            double majorSide = 2500;
+            double minorSide = 1000;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 6, GetGlassMaterialEn16612());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg1", 15, GetGlassMaterialEn16612());
+            AirChamber airChamber = new AirChamber("Ac", 15);
+
+            DoubleInsulatingGlass dgu = new DoubleInsulatingGlass("Dgu", mg1, mg2, airChamber);
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", dgu, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters(), null);
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            NormalAreaLoad loadWp1 = new NormalAreaLoad(3, s1, lcPressure, "wp1", GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.External);
+            NormalAreaLoad loadWp2 = new NormalAreaLoad(2, s1, lcPressure, "wp2", GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.Internal);
+            NormalAreaLoad loadWp3 = new NormalAreaLoad(-2, s1, lcPressure, "wp2", GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.Internal);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+
+            GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
+
+            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { loadWp1, loadWp2, loadWp3 }, p1.Standard, false);
+
+
+            Assert.AreEqual(-2.819, loadSharing[0].Cast<NormalAreaLoad>().ToList()[0].Pressure, 0.001);
+            Assert.AreEqual(+2.819, loadSharing[1].Cast<NormalAreaLoad>().ToList()[0].Pressure, 0.001);
+
+            Assert.AreEqual(+0.1203, loadSharing[0].Cast<NormalAreaLoad>().ToList()[1].Pressure, 0.001);
+            Assert.AreEqual(-0.1203, loadSharing[1].Cast<NormalAreaLoad>().ToList()[1].Pressure, 0.001);
+
+            Assert.AreEqual(-0.1203, loadSharing[0].Cast<NormalAreaLoad>().ToList()[2].Pressure, 0.001);
+            Assert.AreEqual(+0.1203, loadSharing[1].Cast<NormalAreaLoad>().ToList()[2].Pressure, 0.001);
+        }
+
+
+
+        [TestMethod]
+        [TestCategory("V-BAM-DGU3")]
+        [TestCategory("Uniform pressure")]
+        public void BAMDGU3()
+        {
+
+            RunApiServer();
+
+            Model model = new Model(base.GetOutputFolder());
+
+            double majorSide = 2500;
+            double minorSide = 1000;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 6, GetGlassMaterialEn16612());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg1", 15, GetGlassMaterialEn16612());
+            AirChamber airChamber = new AirChamber("Ac", 15);
+
+            DoubleInsulatingGlass dgu = new DoubleInsulatingGlass("Dgu", mg1, mg2, airChamber);
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", dgu, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters(), null);
+
+            // Load
+            LoadCase loadCase = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            LineLoad load1 = new LineLoad(0, 0, 2.0, 0, 0, 0, new Line3d(new Point3d(0, 400, 0), new Point3d(minorSide, 400, 0)),
+                                    loadCase, GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.External);
+            LineLoad load2 = new LineLoad(0, 0, 1.5, 0, 0, 0, new Line3d(new Point3d(0, 400, 0), new Point3d(minorSide, 400, 0)),
+                                    loadCase, GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.Internal);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            model.AddSurface(gs1);
+
+
+            GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
+
+            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { load1, load2 }, p1.Standard, false);
+
+
+            Assert.AreEqual(-0.0010435, loadSharing[0].Cast<NormalAreaLoad>().ToList()[0].Pressure, 0.001);
+            Assert.AreEqual(+0.0010435, loadSharing[1].Cast<NormalAreaLoad>().ToList()[0].Pressure, 0.001);
+
+            Assert.AreEqual(+0.000050, loadSharing[0].Cast<NormalAreaLoad>().ToList()[1].Pressure, 0.001);
+            Assert.AreEqual(-0.000050, loadSharing[1].Cast<NormalAreaLoad>().ToList()[1].Pressure, 0.001);
+        }
+
         #endregion
     }
 }
