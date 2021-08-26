@@ -26,7 +26,7 @@ namespace GPC.Checkers.Glasses.Loads
 
         public IGlassLoadCase GlassLoadCase => (IGlassLoadCase)base.LoadCase;
 
-
+        /// <inheritdoc cref="GPC.Model.Loads.LineLoad.LineLoad(Vector3d, Vector3d, Line3d, LoadCaseBase, CoordinateSystem)"/>
         public LineLoad(Vector3d force, Vector3d moment, Line3d line, IGlassLoadCase loadCase, CoordinateSystem cSys, 
                         GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External,
                         GlassSurface.LoadRestrainCondition loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface ) 
@@ -36,6 +36,7 @@ namespace GPC.Checkers.Glasses.Loads
             _loadRestrainCondition = loadRestrainCondition;
         }
 
+        /// <inheritdoc cref="GPC.Model.Loads.LineLoad.LineLoad(double, double, double, double, double, double, Line3d, LoadCaseBase)"/>
         public LineLoad(double f1, double f2, double f3, double m1, double m2, double m3, Line3d line, IGlassLoadCase loadCase,
                         GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External,
                         GlassSurface.LoadRestrainCondition loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface) 
@@ -45,6 +46,8 @@ namespace GPC.Checkers.Glasses.Loads
             _loadRestrainCondition = loadRestrainCondition;
         }
 
+
+        /// <inheritdoc cref="GPC.Model.Loads.LineLoad.LineLoad(double, double, double, double, double, double, Line3d, LoadCaseBase, CoordinateSystem)"/>
         public LineLoad(double f1, double f2, double f3, double m1, double m2, double m3, Line3d line, IGlassLoadCase loadCase, CoordinateSystem coordinateSystem, 
                         GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External,
                         GlassSurface.LoadRestrainCondition loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface) 
