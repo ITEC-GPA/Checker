@@ -29,6 +29,8 @@ namespace GPC.Checkers.Steel.Checkers
         protected readonly Standard _standard;
         protected readonly Options _options;
 
+        protected List<string> _errorLog;
+
         #endregion
 
 
@@ -57,7 +59,7 @@ namespace GPC.Checkers.Steel.Checkers
         public Checker(BeamCheckerAttributes beamCheckerAttributes, Options options, Standard standard, string name = "")
             : this(beamCheckerAttributes, options, standard, Model.ModelObjectId.IDUNASSIGNED, name)
         {
-
+            _errorLog = new List<string>();
         }
 
         public Checker(BeamCheckerAttributes beamCheckerAttributes, Options options, Standard standard, int id, string name = "") 
@@ -77,7 +79,7 @@ namespace GPC.Checkers.Steel.Checkers
             _options = options;
 
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
-
+            _errorLog = new List<string>();
         }
 
         protected Checker(SerializationInfo info, StreamingContext context) : base(info, context)
@@ -95,6 +97,11 @@ namespace GPC.Checkers.Steel.Checkers
         public abstract void PerformCheck();
 
         #endregion
+
+        public List<string> GetErrorLog()
+        {
+            return _errorLog;
+        }
 
         public double GetLenghtAxialBuckling1()
         {
@@ -140,22 +147,19 @@ namespace GPC.Checkers.Steel.Checkers
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             // TODO: implementare 
-            throw new NotImplementedException();
-            base.GetObjectData(info, context);
+            throw new NotImplementedException();            
         }
 
         public override bool Equals(object obj)
         {
             // TODO: implementare 
             throw new NotImplementedException();
-            return base.Equals(obj);
         }
 
         public override int GetHashCode()
         {
             // TODO: implementare 
             throw new NotImplementedException();
-            return base.GetHashCode();
         }
 
         public abstract class Options

@@ -17,7 +17,6 @@ namespace GPC.Checkers.Steel.Checkers
 {
     public class Cop2011Checker : Checker
     {
-
         #region Public enum
 
         public enum SectionClass
@@ -57,13 +56,12 @@ namespace GPC.Checkers.Steel.Checkers
             : base(attributes, options, standard)
         {
             _py = GetPy(attributes.Sections.Select(i => i.SteelMaterial.Fyk).Min(), attributes.Sections.Select(i => i.SteelMaterial.Fu).Min());
-            _epsilon = Math.Sqrt(275 / _py);        //value of Epsilon for section classification
-
+            _epsilon = Math.Sqrt(275 / _py);        //value of Epsilon for section classification            
         }
 
 
         public override void PerformCheck()
-        {   
+        {
             _beamStationResults = PerformCheck(_beamCheckersAttributes.Sections, _beamCheckersAttributes.Results);
         }
 
@@ -92,7 +90,6 @@ namespace GPC.Checkers.Steel.Checkers
 
                 if (steelSection.Length != resultBeamForces.Count() || steelSection.Length != beamResult[k].Points.Length)
                     throw new ArgumentException();
-
 
                 SectionClass[] axialCompSectionClass = new SectionClass[steelSection.Length];
                 SectionClass[] bendingCompSectionClass = new SectionClass[steelSection.Length];
@@ -125,157 +122,165 @@ namespace GPC.Checkers.Steel.Checkers
 
                 for (int i = 0; i < steelSection.Length; i++)
                 {
-                    stationResults[i + k * steelSection.Length] = new Cop2011BeamStationResults(steelSection[i], resultBeamForces[i], 
-                                                                      (ResultStation)beamResult[k].Points[i], 
-                                                                      beamResult[k].Case, (StandardCopSuos2011)_standard, (Cop2011Options)_options, BeamName);
-
-                    axialCompSectionClass[i] = CalculateSectionClassDueToCompression(resultBeamForces[i], steelSection[i]);
-                    bendingCompSectionClass[i] = CalculateSectionClassDueToBending(resultBeamForces[i], steelSection[i]);
-
-                    axialTensionRd[i] = CalculateAxialTensionCapacity(steelSection[i]);
-                    axialTensionWR[i] = GetWorkingRatio(Math.Max(resultBeamForces[i].N, 0), axialTensionRd[i]);
-
-                    axialCompressionRd[i] = CalculateAxialCompression(steelSection[i]);
-                    axialCompressionWR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialCompressionRd[i]);
-
-                    shear1Rd[i] = CalculateShear1Capacity(resultBeamForces[i], steelSection[i]);
-                    shear1WR[i] = GetWorkingRatio(Math.Abs(resultBeamForces[i].V1), shear1Rd[i]);
-
-                    shear2Rd[i] = CalculateShear2Capacity(resultBeamForces[i], steelSection[i]);
-                    shear2WR[i] = GetWorkingRatio(Math.Abs(resultBeamForces[i].V2), shear2Rd[i]);
-
-                    axialBuck1Rd[i] = CalculateAxialBucklingCapacity1Axis(axialCompSectionClass[i], steelSection[i]);
-
-                    if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
-                        axialBuck1WR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialBuck1Rd[i]);
-                    else
-                        axialBuck1WR[i] = 0.001;
-
-                    axialBuck2Rd[i] = CalculateAxialBucklingCapacity2Axis(axialCompSectionClass[i], steelSection[i]);
-                    if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
-                        axialBuck2WR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialBuck2Rd[i]);
-                    else
-                        axialBuck2WR[i] = 0.001;
-
-                    bending1Rd[i] = CalculateBendingMoment1Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i]);
-                    bending1WR[i] = GetWorkingRatio(resultBeamForces[i].M1, bending1Rd[i]);
-
-                    bending2Rd[i] = CalculateBendingMoment2Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i]);
-                    bending2WR[i] = GetWorkingRatio(resultBeamForces[i].M2, bending2Rd[i]);
-
-                    latTorsRd[i] = CalculateLateralTorsionalBucklingMomentCapacity(bendingCompSectionClass[i], steelSection[i]);
-
-                    // equazione 8.81 cap. 8.9.2
-                    if (IsNecessaryTheLatTorsBucklingCheck(bendingCompSectionClass[i], steelSection[i]))
+                    try
                     {
-                        latTorsWR[i] = GetWorkingRatio(CalculateMLTForLatTorsBuckling() * resultBeamForces[i].M1, latTorsRd[i]);
+                        stationResults[i + k * steelSection.Length] = new Cop2011BeamStationResults(steelSection[i], resultBeamForces[i],
+                                                                          (ResultStation)beamResult[k].Points[i],
+                                                                          beamResult[k].Case, (StandardCopSuos2011)_standard, (Cop2011Options)_options, BeamName);
+
+                        axialCompSectionClass[i] = CalculateSectionClassDueToCompression(resultBeamForces[i], steelSection[i]);
+                        bendingCompSectionClass[i] = CalculateSectionClassDueToBending(resultBeamForces[i], steelSection[i]);
+
+                        axialTensionRd[i] = CalculateAxialTensionCapacity(steelSection[i]);
+                        axialTensionWR[i] = GetWorkingRatio(Math.Max(resultBeamForces[i].N, 0), axialTensionRd[i]);
+
+                        axialCompressionRd[i] = CalculateAxialCompression(steelSection[i]);
+                        axialCompressionWR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialCompressionRd[i]);
+
+                        shear1Rd[i] = CalculateShear1Capacity(resultBeamForces[i], steelSection[i]);
+                        shear1WR[i] = GetWorkingRatio(Math.Abs(resultBeamForces[i].V1), shear1Rd[i]);
+
+                        shear2Rd[i] = CalculateShear2Capacity(resultBeamForces[i], steelSection[i]);
+                        shear2WR[i] = GetWorkingRatio(Math.Abs(resultBeamForces[i].V2), shear2Rd[i]);
+
+                        axialBuck1Rd[i] = CalculateAxialBucklingCapacity1Axis(axialCompSectionClass[i], steelSection[i]);
+
+                        if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
+                            axialBuck1WR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialBuck1Rd[i]);
+                        else
+                            axialBuck1WR[i] = 0.001;
+
+                        axialBuck2Rd[i] = CalculateAxialBucklingCapacity2Axis(axialCompSectionClass[i], steelSection[i]);
+                        if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
+                            axialBuck2WR[i] = GetWorkingRatio(Math.Min(resultBeamForces[i].N, 0), axialBuck2Rd[i]);
+                        else
+                            axialBuck2WR[i] = 0.001;
+
+                        bending1Rd[i] = CalculateBendingMoment1Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i]);
+                        bending1WR[i] = GetWorkingRatio(resultBeamForces[i].M1, bending1Rd[i]);
+
+                        bending2Rd[i] = CalculateBendingMoment2Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i]);
+                        bending2WR[i] = GetWorkingRatio(resultBeamForces[i].M2, bending2Rd[i]);
+
+                        latTorsRd[i] = CalculateLateralTorsionalBucklingMomentCapacity(bendingCompSectionClass[i], steelSection[i]);
 
                         // equazione 8.81 cap. 8.9.2
-                        if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
+                        if (IsNecessaryTheLatTorsBucklingCheck(bendingCompSectionClass[i], steelSection[i]))
                         {
-                            double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(axialBuck1Rd[i], axialBuck2Rd[i])) +
-                                 Math.Abs(CalculateMLTForLatTorsBuckling() * resultBeamForces[i].M1 / latTorsRd[i]) +
-                                 Math.Abs(_options.UniformMomentFactorm2 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
+                            latTorsWR[i] = GetWorkingRatio(CalculateMLTForLatTorsBuckling() * resultBeamForces[i].M1, latTorsRd[i]);
 
-                            if (result < 0.001)
-                                interaction881WR[i] = 0.001;
+                            // equazione 8.81 cap. 8.9.2
+                            if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
+                            {
+                                double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(axialBuck1Rd[i], axialBuck2Rd[i])) +
+                                     Math.Abs(CalculateMLTForLatTorsBuckling() * resultBeamForces[i].M1 / latTorsRd[i]) +
+                                     Math.Abs(_options.UniformMomentFactorm2 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
+
+                                if (result < 0.001)
+                                    interaction881WR[i] = 0.001;
+                                else
+                                    interaction881WR[i] = result;
+                            }
                             else
-                                interaction881WR[i] = result;
+                                interaction881WR[i] = 0.001;
                         }
                         else
                             interaction881WR[i] = 0.001;
-                    }
-                    else
-                        interaction881WR[i] = 0.001;
 
-                    // equazione 8.78 cap. 8.9.2
-                    if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)      // compressione
-                    {
-                        SectionClass sectionClass = SetWorstClass(axialCompSectionClass[i], bendingCompSectionClass[i]);
-                        if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
+                        // equazione 8.78 cap. 8.9.2
+                        if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)      // compressione
                         {
-                            double result = Math.Abs(resultBeamForces[i].N / axialCompressionRd[i]) +
-                                 Math.Abs(resultBeamForces[i].M1 / CalculateBendingMoment1Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i])) +
-                                 Math.Abs(resultBeamForces[i].M2 / CalculateBendingMoment2Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i]));
+                            SectionClass sectionClass = SetWorstClass(axialCompSectionClass[i], bendingCompSectionClass[i]);
+                            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
+                            {
+                                double result = Math.Abs(resultBeamForces[i].N / axialCompressionRd[i]) +
+                                     Math.Abs(resultBeamForces[i].M1 / CalculateBendingMoment1Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i])) +
+                                     Math.Abs(resultBeamForces[i].M2 / CalculateBendingMoment2Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i]));
+
+                                if (result < 0.001)
+                                    interaction878WR[i] = 0.001;
+                                else
+                                    interaction878WR[i] = result;
+                            }
+                            else
+                                interaction878WR[i] = 0.001;     //TODO: implementare CalculateInteractionWR per classe 4
+                        }
+                        else
+                        {
+                            double result = Math.Abs(resultBeamForces[i].N / axialTensionRd[i]) +
+                                     Math.Abs(resultBeamForces[i].M1 / CalculateBendingMoment1Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i])) +
+                                     Math.Abs(resultBeamForces[i].M2 / CalculateBendingMoment2Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i]));
 
                             if (result < 0.001)
                                 interaction878WR[i] = 0.001;
                             else
                                 interaction878WR[i] = result;
                         }
+
+
+                        // equazione 8.79 cap. 8.9.2
+                        if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
+                        {
+                            double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(axialBuck1Rd[i], axialBuck2Rd[i])) +
+                                Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
+                                Math.Abs(_options.UniformMomentFactorm2 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
+
+                            if (result < 0.001)
+                                interaction879WR[i] = 0.001;
+                            else
+                                interaction879WR[i] = result;
+                        }
                         else
-                            interaction878WR[i] = 0.001;     //TODO: implementare CalculateInteractionWR per classe 4
-                    }
-                    else
-                    {
-                        double result = Math.Abs(resultBeamForces[i].N / axialTensionRd[i]) +
-                                 Math.Abs(resultBeamForces[i].M1 / CalculateBendingMoment1Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i])) +
-                                 Math.Abs(resultBeamForces[i].M2 / CalculateBendingMoment2Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i]));
-
-                        if (result < 0.001)
-                            interaction878WR[i] = 0.001;
-                        else
-                            interaction878WR[i] = result;
-                    }
-
-
-                    // equazione 8.79 cap. 8.9.2
-                    if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
-                    {
-                        double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(axialBuck1Rd[i], axialBuck2Rd[i])) +
-                            Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) + 
-                            Math.Abs(_options.UniformMomentFactorm2 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
-
-                        if (result < 0.001)
                             interaction879WR[i] = 0.001;
+
+
+                        // equazione 8.80 cap. 8.9.2
+                        if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
+                        {
+                            // <= Pc segnato cap 8.9.2
+                            double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(CalculateAxialBucklingCapacity1AxisForInteraction(axialCompSectionClass[i], steelSection[i]),
+                                                                                                    CalculateAxialBucklingCapacity2AxisForInteraction(axialCompSectionClass[i], steelSection[i]))) +
+                                            Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
+                                            Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
+
+                            if (result < 0.001)
+                                interaction880WR[i] = 0.001;
+                            else
+                                interaction880WR[i] = result;
+                        }
                         else
-                            interaction879WR[i] = result;
-                    }
-                    else
-                        interaction879WR[i] = 0.001;
-
-
-                    // equazione 8.80 cap. 8.9.2
-                    if (((Section)steelSection[i]).GetMinSigma(resultBeamForces[i].N, resultBeamForces[i].M1, resultBeamForces[i].M2) < 0.0)
-                    {
-                        // <= Pc segnato cap 8.9.2
-                        double result = Math.Abs(Math.Min(resultBeamForces[i].N, 0) / Math.Min(CalculateAxialBucklingCapacity1AxisForInteraction(axialCompSectionClass[i], steelSection[i]),
-                                                                                                CalculateAxialBucklingCapacity2AxisForInteraction(axialCompSectionClass[i], steelSection[i]))) +
-                                        Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
-                                        Math.Abs(_options.UniformMomentFactorm1 * resultBeamForces[i].M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
-
-                        if (result < 0.001)
                             interaction880WR[i] = 0.001;
-                        else
-                            interaction880WR[i] = result;
+
+
+                        stationResults[i + k * steelSection.Length].SetCapacity(axialTensionRd[i], axialCompressionRd[i], axialBuck1Rd[i], axialBuck2Rd[i], shear1Rd[i], shear2Rd[i], bending1Rd[i], bending2Rd[i], latTorsRd[i]);
+
+                        stationResults[i + k * steelSection.Length].SetWorkingRatio(axialTensionWR[i], axialCompressionWR[i], axialBuck1WR[i], axialBuck2WR[i], shear1WR[i], shear2WR[i], bending1WR[i], bending2WR[i], latTorsWR[i],
+                                                          interaction878WR[i], interaction879WR[i], interaction880WR[i], interaction881WR[i]);
+
+                        stationResults[i + k * steelSection.Length].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
+
+                        stationResults[i + k * steelSection.Length].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
+
+                        stationResults[i + k * steelSection.Length].SetPy(_py, _epsilon);
+
+                        stationResults[i + k * steelSection.Length].SetResultsForReportAxialBuckling(GetBucklingCurveXXAxis(steelSection[i]), GetBucklingCurveYYAxis(steelSection[i]),
+                            CalculateLambdaAxialBuckling1Axis(steelSection[i]), CalculateLambdaAxialBuckling2Axis(steelSection[i]),
+                            CalculatePeForAxialBuckling1Axis(steelSection[i]), CalculatePeForAxialBuckling2Axis(steelSection[i]),
+                            CalculatePhiforAxialBuckling1Axis(steelSection[i]), CalculatePhiforAxialBuckling2Axis(steelSection[i]),
+                            CalculatePCompression1Axis(steelSection[i]), CalculatePCompression2Axis(steelSection[i]), CalculateLambda0ForAxialBuckling(steelSection[i]),
+                            CalculateNForAxialBuckling1Axis(steelSection[i]), CalculateNForAxialBuckling2Axis(steelSection[i]));
+
+                        stationResults[i + k * steelSection.Length].SetResultsForReportLTB(CalculateLambdaLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculateLambdaL0ForLatTorsBucklingBS5950(steelSection[i].SteelMaterial.E),
+                            CalculatePeForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculatePhiLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]),
+                            CalculatePbForLatTorsBuckling(bendingCompSectionClass[i], steelSection[i]));
+
+                        stationResults[i + k * steelSection.Length].SetResultForReportShear(GetShearAreaXaxis(steelSection[i]), GetShearAreaYaxis(steelSection[i]));
                     }
-                    else
-                        interaction880WR[i] = 0.001;
-
-
-                    stationResults[i + k * steelSection.Length].SetCapacity(axialTensionRd[i], axialCompressionRd[i], axialBuck1Rd[i], axialBuck2Rd[i], shear1Rd[i], shear2Rd[i], bending1Rd[i], bending2Rd[i], latTorsRd[i]);
-
-                    stationResults[i + k * steelSection.Length].SetWorkingRatio(axialTensionWR[i], axialCompressionWR[i], axialBuck1WR[i], axialBuck2WR[i], shear1WR[i], shear2WR[i], bending1WR[i], bending2WR[i], latTorsWR[i],
-                                                      interaction878WR[i], interaction879WR[i], interaction880WR[i], interaction881WR[i]);
-
-                    stationResults[i + k * steelSection.Length].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
-
-                    stationResults[i + k * steelSection.Length].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
-
-                    stationResults[i + k * steelSection.Length].SetPy(_py, _epsilon);
-
-                    stationResults[i + k * steelSection.Length].SetResultsForReportAxialBuckling(GetBucklingCurveXXAxis(steelSection[i]), GetBucklingCurveYYAxis(steelSection[i]),
-                        CalculateLambdaAxialBuckling1Axis(steelSection[i]), CalculateLambdaAxialBuckling2Axis(steelSection[i]),
-                        CalculatePeForAxialBuckling1Axis(steelSection[i]), CalculatePeForAxialBuckling2Axis(steelSection[i]),
-                        CalculatePhiforAxialBuckling1Axis(steelSection[i]), CalculatePhiforAxialBuckling2Axis(steelSection[i]),
-                        CalculatePCompression1Axis(steelSection[i]), CalculatePCompression2Axis(steelSection[i]), CalculateLambda0ForAxialBuckling(steelSection[i]),
-                        CalculateNForAxialBuckling1Axis(steelSection[i]), CalculateNForAxialBuckling2Axis(steelSection[i]));
-
-                    stationResults[i + k * steelSection.Length].SetResultsForReportLTB(CalculateLambdaLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculateLambdaL0ForLatTorsBucklingBS5950(steelSection[i].SteelMaterial.E),
-                        CalculatePeForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculatePhiLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]),
-                        CalculatePbForLatTorsBuckling(bendingCompSectionClass[i], steelSection[i]));
-
-                    stationResults[i + k * steelSection.Length].SetResultForReportShear(GetShearAreaXaxis(steelSection[i]), GetShearAreaYaxis(steelSection[i]));
+                    catch (Exception e)
+                    {
+                        _errorLog.Add($"Fail check of beam {BeamName}, station {(ResultStation)beamResult[k].Points[i]}, combination {beamResult[k].Case}. \n" +
+                            $"Error: {e.Message}");
+                    }
                 }
             }
 
@@ -1009,7 +1014,7 @@ namespace GPC.Checkers.Steel.Checkers
             else if (sectionClass == SectionClass.Class3)
                 return CalculatePbForLatTorsBuckling(sectionClass, section) * ((Section)section).Wel1;
             else
-                throw new NotImplementedException("CalculateBucklingMomentCapacity: not implemented Section Class 4");
+                throw new NotImplementedException("Calculate Lateral-Torsional Buckling Moment Capacity: not implemented Section Class 4");
         }
 
         private double CalculatePbForLatTorsBuckling(SectionClass sectionClass, ISteelSection section)
@@ -1396,7 +1401,7 @@ namespace GPC.Checkers.Steel.Checkers
                     return SectionClass.Class4;
             }
             else
-                throw new NotImplementedException("CalculateSectionClassException: not implemented Section for GetClassCompressedOuterFlangeBending");
+                throw new NotImplementedException("Calculate Section Class Exception: not implemented Section for GetClassCompressedOuterFlangeBending");
         }
 
         /// <summary>
