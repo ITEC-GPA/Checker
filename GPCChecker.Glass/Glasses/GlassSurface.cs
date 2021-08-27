@@ -85,6 +85,12 @@ namespace GPC.Checkers.Glasses.Glasses
             return _checker.FemModelSetup(folderPath, fileNamePrefix);
         }
 
+        #region Geometry
+
+        public double GetArea()
+        {
+            return Shape.GetArea();
+        }
 
         public bool IsPlanar()
         {
@@ -121,6 +127,10 @@ namespace GPC.Checkers.Glasses.Glasses
             return true;
         }
 
+        #endregion
+
+
+        #region Attributes
 
         /// <summary>
         /// Add a load to the surface
@@ -139,8 +149,7 @@ namespace GPC.Checkers.Glasses.Glasses
         public void AddParametricLoad(IParametricLoad load)
         {
             _parametricLoads.Add(load);
-        } 
-
+        }
 
         /// <summary>
         /// Add a specific restrain to this surface
@@ -187,7 +196,8 @@ namespace GPC.Checkers.Glasses.Glasses
         {
             // TODO: implementare conversione restrain parametrici
             return _restrains.ToList(); // shallow copy
-        } 
+        }  
+        #endregion
 
 
         #endregion
