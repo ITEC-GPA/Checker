@@ -44,7 +44,7 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// First index: External slab load. 
         /// Second index: Internal slab load.
         /// </returns>
-        internal override List<NormalAreaLoad>[] GetRedistributionPressures(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard, 
+        internal override List<NormalAreaLoad>[] GetRedistributionPressures(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard,
                                                         bool compressibleGas, double cavitySealingPressure = 0.1)
         {
             List<IGlassLoad> loadsToProcess = loads.ToList(); // shallow copy
@@ -54,39 +54,71 @@ namespace GPC.Checkers.Glasses.Wrappers
             redistributionPressure[1] = new List<NormalAreaLoad>(); // Internal
 
 
-            if (_glassSurface.IsRectangular() && !compressibleGas)
+            if (_glassSurface.IsRectangular())
             {
-                List<NormalAreaLoad> normalAreaLoads = loadsToProcess.Where(i => i.GetType() == typeof(NormalAreaLoad)).Select(i => (NormalAreaLoad)i).ToList();
-
-                foreach (var nal in normalAreaLoads)
+                if (!compressibleGas)
                 {
-                    // Normativa
-                    if (standard == Models.Prototype.Standards.EN16612)
+                    List<NormalAreaLoad> normalAreaLoads = loadsToProcess.Where(i => i.GetType() == typeof(NormalAreaLoad)).Select(i => (NormalAreaLoad)i).ToList();
+
+                    foreach (var nal in normalAreaLoads)
                     {
-                        var bufferLoads = GetEN16612RedistributionPressure(nal);
+                        // Normativa
+                        if (standard == Models.Prototype.Standards.EN16612)
+                        {
+                            var bufferLoads = GetEN16612RedistributionPressure(nal);
 
-                        redistributionPressure[0].Add(bufferLoads.external);
-                        redistributionPressure[1].Add(bufferLoads._internal);
+                            redistributionPressure[0].Add(bufferLoads.external);
+                            redistributionPressure[1].Add(bufferLoads._internal);
 
-                        loadsToProcess.Remove(nal);
-                        continue;
-                    }
-                    else if (standard == Models.Prototype.Standards.ASTME1300)
-                    {
-                        var bufferLoads = GetASTME1300RedistributionPressure(nal);
+                            loadsToProcess.Remove(nal);
+                            continue;
+                        }
+                        else if (standard == Models.Prototype.Standards.ASTME1300)
+                        {
+                            var bufferLoads = GetASTME1300RedistributionPressure(nal);
 
-                        redistributionPressure[0].Add(bufferLoads.external);
-                        redistributionPressure[1].Add(bufferLoads._internal);
+                            redistributionPressure[0].Add(bufferLoads.external);
+                            redistributionPressure[1].Add(bufferLoads._internal);
 
-                        loadsToProcess.Remove(nal);
-                        continue;
-                    }
-                    else
-                    {
-                        // passiamo ad altri metodi senza lanciare errori
+                            loadsToProcess.Remove(nal);
+                            continue;
+                        }
+                        else
+                        {
+                            // passiamo ad altri metodi senza lanciare errori
+                        }
                     }
                 }
+                else
+                {
+                    // si usa metodo galuppi da articolo: Pratical expression bam...
+
+                    List<NormalAreaLoad> normalAreaLoads = loadsToProcess.Where(i => i.GetType() == typeof(NormalAreaLoad)).Select(i => (NormalAreaLoad)i).ToList();
+
+                    foreach (var nal in normalAreaLoads)
+                    {
+                        if (nal.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.External)
+                        {
+                            var bufferLoads = GetBAMLoadSharingPressureRectangularTheoretical(nal,
+                                                                                         OuterGlassPanelWrapper.GetDeformationThickness(nal),
+                                                                                         InnerGlassPanelWrapper.GetDeformationThickness(nal),
+                                                                                         GetMinimumElasticModulus(), GetMinimumPoissonRatio(),
+                                                                                         nal.Pressure,
+                                                                                         AirThickness * _glassSurface.GetArea(),
+                                                                                         _glassSurface.GetArea(),
+                                                                                         cavitySealingPressure);
+
+                            redistributionPressure[0].Add(bufferLoads.external);
+                            redistributionPressure[1].Add(bufferLoads._internal);
+
+                            loadsToProcess.Remove(nal);
+                        }
+                    }
+                }
+
             }
+            
+
 
             // se rimangono carichi non processati si procede con il numerico
             if (loadsToProcess.Count > 0)
@@ -461,6 +493,84 @@ namespace GPC.Checkers.Glasses.Wrappers
 
 
             return redistributionPressure;
+        }
+
+
+        /// <summary>
+        /// Get the PhiA coefficient according to formula 3.10 Pratical expression bam
+        /// </summary>
+        /// <param name="maxSize"></param>
+        /// <param name="minSize"></param>
+        /// <returns></returns>
+        private double GetBAMPhiATheoretical(double maxSize, double minSize)
+        {
+            if (minSize > maxSize)
+                throw new ArgumentException();
+
+            double a = 0;
+            double lambda2 = Math.Pow(minSize / maxSize, 2);
+
+            for (int m = 0; m < 17; m++)
+            {
+                if (m % 2 != 0)
+                {
+                    double m2 = Math.Pow(m, 2);
+                    for (int n = 0; n < 17; n++)
+                    {
+                        if (n % 2 != 0)
+                        {
+                            a += 1.0 / (m2 * Math.Pow(n, 2) * Math.Pow(m2 + Math.Pow(n, 2) * lambda2, 2));
+                        }
+                    }
+                }
+            }
+
+            return a * 64 * lambda2 / Math.Pow(Math.PI, 8);
+        }
+
+
+        /// <summary>
+        /// Get the deltaP due to pressure from theoretical approach for rectangular surfaces. Formula 2.3 Pratical expression bam
+        /// </summary>
+        private (NormalAreaLoad external, NormalAreaLoad _internal) GetBAMLoadSharingPressureRectangularTheoretical(NormalAreaLoad load, 
+                                                                       double h1, double h2, double E, double ni, double pressure, 
+                                                                       double v0, double area, double p0)
+        {
+
+
+            double phiA = GetBAMPhiATheoretical(_glassSurface.Shape.Fill.Explode().Select(i => i.GetLength()).Max(),
+                                                _glassSurface.Shape.Fill.Explode().Select(i => i.GetLength()).Min());
+
+
+            double d1 = E * Math.Pow(h1, 3) / (12.0 * (1 - ni * ni));
+            double d2 = E * Math.Pow(h2, 3) / (12.0 * (1 - ni * ni));
+
+            double deltaP = 1.0 / d1 * phiA / ((1.0 / d1 + 1.0 / d2) * phiA + v0 / Math.Pow(area, 3) / p0) * pressure;
+
+
+            NormalAreaLoad externalPanelLoad = null;
+            NormalAreaLoad internalPanelLoad = null;
+
+            if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.External)
+            {
+                externalPanelLoad = new NormalAreaLoad(-deltaP, _glassSurface.Shape, load.GlassLoadCase, load.Name,
+                                                        GlassPanelWrapper.GlassPanelPositions.External, load.LoadRestrainCondition);
+
+                internalPanelLoad = new NormalAreaLoad(deltaP, _glassSurface.Shape, load.GlassLoadCase, load.Name,
+                                                        GlassPanelWrapper.GlassPanelPositions.Internal, load.LoadRestrainCondition);
+            }
+            else if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.Internal)
+            {
+                externalPanelLoad = new NormalAreaLoad(+deltaP, _glassSurface.Shape, load.GlassLoadCase, load.Name,
+                                                        GlassPanelWrapper.GlassPanelPositions.External, load.LoadRestrainCondition);
+
+                internalPanelLoad = new NormalAreaLoad(-deltaP, _glassSurface.Shape, load.GlassLoadCase, load.Name,
+                                                        GlassPanelWrapper.GlassPanelPositions.Internal, load.LoadRestrainCondition);
+            }
+            else
+                throw new NotSupportedException();
+
+            return (externalPanelLoad, internalPanelLoad);
         }
 
 
