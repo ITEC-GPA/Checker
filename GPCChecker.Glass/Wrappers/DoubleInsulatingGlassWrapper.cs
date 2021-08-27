@@ -15,6 +15,7 @@ using GPC.Model.FreedomCases;
 using GPC.Geometry;
 using GPC.Model.Results;
 using GPC.Checkers.Glasses.LoadCases;
+using System.Threading;
 
 namespace GPC.Checkers.Glasses.Wrappers
 {
@@ -53,7 +54,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             redistributionPressure[1] = new List<NormalAreaLoad>(); // Internal
 
 
-            if (_glassSurface.IsRectangular())
+            if (_glassSurface.IsRectangular() && !compressibleGas)
             {
                 List<NormalAreaLoad> normalAreaLoads = loadsToProcess.Where(i => i.GetType() == typeof(NormalAreaLoad)).Select(i => (NormalAreaLoad)i).ToList();
 
@@ -82,7 +83,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                     }
                     else
                     {
-                        // passiamo agli altri metodi senza lanciare errori
+                        // passiamo ad altri metodi senza lanciare errori
                     }
                 }
             }
@@ -341,15 +342,17 @@ namespace GPC.Checkers.Glasses.Wrappers
             
             // CALCOLO DEL COEFFICIENTE PSI NUMERICO
 
-            double meanPsiIntegral = 0; // integrale di Psi su tutta l'area del vetro
+            double[] meanPsiIntegrals = new double[elements.Length]; // integrale di Psi su tutta l'area del vetro
 
-            Dictionary<string, double> loadPsiCoefficientIntegralLoadCase = new Dictionary<string, double>(); // per ogni loadcase, integrale di carico * psi
+            Dictionary<string, double>[] loadPsiCoefficientIntegralLoadCaseElements = new Dictionary<string, double>[elements.Length]; // per ogni loadcase, integrale di carico * psi
 
-
-            for (int e = 0; e < elements.Length; e++)
+            // calcolo integrale in parallelo dato che ci sono delle ricerce da fare ad ogni ciclo
+            Parallel.For(0, elements.Length, (n) =>
             {
-                if (elements[e] is Model.FEM.FiniteElements.Plate plate)
+                if (elements[n] is Model.FEM.FiniteElements.Plate plate)
                 {
+                    loadPsiCoefficientIntegralLoadCaseElements[n] = new Dictionary<string, double>();
+
                     IEnumerable<ResultDisplacement> resultDisplacement = plate.Nodes.Select(i => i.Results
                                                                         .FirstOrDefault(j => (Combination)j.Case == combinations[0]).Result)
                                                                         .Cast<ResultDisplacement>();
@@ -357,24 +360,44 @@ namespace GPC.Checkers.Glasses.Wrappers
                     if (resultDisplacement is null)
                         throw new ArgumentNullException();
 
+                    // Integrale di psi su tutta l'area
                     double plateIntegral = plate.GetArea() + ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray()).D3;
-                    meanPsiIntegral += plateIntegral;
+                    meanPsiIntegrals[n] = plateIntegral;
 
-                    foreach(var attribute in plate.AttributesLoadCase.Skip(0))
+                    foreach (var attribute in plate.AttributesLoadCase.Where(i => i.LoadCaseName != lcUniformPressure.Name))
                     {
+                        // non considero il primo che è la pressione uniforme
                         if (attribute is Model.FEM.Attributes.PlateNormalPressureAttribute pnal)
                         {
-                            if (loadPsiCoefficientIntegralLoadCase.ContainsKey(pnal.LoadCaseName))
+                            if (loadPsiCoefficientIntegralLoadCaseElements[n].ContainsKey(pnal.LoadCaseName))
                             {
-                                loadPsiCoefficientIntegralLoadCase[pnal.LoadCaseName] += pnal.Pressure * plateIntegral;
+                                loadPsiCoefficientIntegralLoadCaseElements[n][pnal.LoadCaseName] += pnal.Pressure * plateIntegral;
                             }
                             else
-                                loadPsiCoefficientIntegralLoadCase[pnal.LoadCaseName] = pnal.Pressure * plateIntegral;
+                                loadPsiCoefficientIntegralLoadCaseElements[n][pnal.LoadCaseName] = pnal.Pressure * plateIntegral;
                         }
                     }
+                }
+            });
 
+            double meanPsiIntegral = meanPsiIntegrals.Sum();
+
+
+            // sommo tutto, da riscrivere con linq
+            var loadPsiCoefficientIntegralLoadCase = new Dictionary<string, double>();
+            for (int i = 0; i < loadPsiCoefficientIntegralLoadCaseElements.Length; i++)
+            {
+                foreach (var loadCaseName in loadPsiCoefficientIntegralLoadCaseElements[i].Keys.Distinct())
+                {
+                    if (loadPsiCoefficientIntegralLoadCase.ContainsKey(loadCaseName))
+                    {
+                        loadPsiCoefficientIntegralLoadCase[loadCaseName] += loadPsiCoefficientIntegralLoadCaseElements[i][loadCaseName];
+                    }
+                    else
+                        loadPsiCoefficientIntegralLoadCase[loadCaseName] = loadPsiCoefficientIntegralLoadCaseElements[i][loadCaseName];
                 }
             }
+
 
             // CALCOLO DELLA DELTA P
             double num = 0;
@@ -393,10 +416,10 @@ namespace GPC.Checkers.Glasses.Wrappers
             den = (h1Cube + h2Cube) * meanPsiIntegral + flexuarStiffnessStar;
 
             for (int i = 0; i < loads.Count; i++)
-            {
-                // basta calcolare l'integrale del coefficinete psi
+            {                
                 if (loads[i] is NormalAreaLoad nal)
                 {
+                    // basta calcolare l'integrale del coefficinete psi
                     if (nal.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.External)
                     {
                         // carico è f1
