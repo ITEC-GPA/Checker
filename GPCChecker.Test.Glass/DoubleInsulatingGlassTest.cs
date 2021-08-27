@@ -330,8 +330,8 @@ namespace GlassTests
             var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { lineLoad1 }, p1.Standard, false);
 
             // confronto con tabelle paper Laura: Pratical design dgus
-            double phiL = 0.0072001; // alfa = 0.5, lambda = 0.33
-            double phiA = 0.0053523;
+            double phiL = 0.000838475; // alfa = 0.5, lambda = 0.33
+            double phiA = 0.000621820;
 
             double d1 = mg1.Material.E * Math.Pow(mg1.Thickness, 3) / (12.0 * (1 - 0.23 * 0.23));
             double d2 = mg2.Material.E * Math.Pow(mg2.Thickness, 3) / (12.0 * (1 - 0.23 * 0.23));
