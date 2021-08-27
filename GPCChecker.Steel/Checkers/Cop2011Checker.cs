@@ -817,29 +817,44 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         private double CalculateShearReductionDueToTorsion(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            if (resultBeamForces.T > 1)
+            if (Math.Abs(resultBeamForces.T) > 1)
             {
                 if (section is SteelSectionH)
                 {
-                    double sigmaStVenant = resultBeamForces.T / section.Jt;
-                    return Math.Sqrt(1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3)))));
+                    double sigmaStVenant = Math.Abs(resultBeamForces.T) / section.Jt;
+                    double reduction = Math.Sqrt(1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3)))));
+                    reduction = Math.Min(reduction, 1.0);
+                    reduction = Math.Max(reduction, 0.0);
+                    return reduction;
                 }
                 else if (section is SteelSectionC)
                 {
-                    double sigmaStVenant = resultBeamForces.T / section.Jt;
+                    double sigmaStVenant = Math.Abs(resultBeamForces.T) / section.Jt;
                     double sigmaWarp = resultBeamForces.T / section.Jw;
-                    return Math.Sqrt(1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))))) - (sigmaWarp / (1.25 * (Py / Math.Sqrt(3))));
+                    double reduction = Math.Sqrt(1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))))) - (sigmaWarp / (1.25 * (Py / Math.Sqrt(3))));
+                    reduction = Math.Min(reduction, 1.0);
+                    reduction = Math.Max(reduction, 0.0);
+                    return reduction;
                 }
                 else if (section is SteelSectionCHS sectionCHS)
                 {
-                    double sigmaStVenant = resultBeamForces.T / (2.0 * sectionCHS.Area * sectionCHS.Thickness);
-                    return 1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))));
+                    double omega = Math.PI * Math.Pow((sectionCHS.Diameter / 2.0 - sectionCHS.Thickness / 2.0), 2);
+                    double sigmaStVenant = Math.Abs(resultBeamForces.T) / (2.0 * omega * sectionCHS.Thickness);
+                    double reduction = 1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))));
+                    reduction = Math.Min(reduction, 1.0);
+                    reduction = Math.Max(reduction, 0.0);
+                    return reduction;
                 }
                 else if (section is SteelSectionRHS sectionRHS)
                 {
-                    double sigmaStVenant = resultBeamForces.T / (2.0 * sectionRHS.Area *
+                    double omega = Math.PI * Math.Pow((sectionRHS.Height - sectionRHS.ThicknessTop - sectionRHS.ThicknessBottom) *
+                        (sectionRHS.Base - sectionRHS.ThicknessWebLeft - sectionRHS.ThicknessWebRight), 2);
+                    double sigmaStVenant = Math.Abs(resultBeamForces.T) / (2.0 * omega *
                         (sectionRHS.ThicknessBottom + sectionRHS.ThicknessTop + sectionRHS.ThicknessWebRight + sectionRHS.ThicknessWebLeft) / 4);
-                    return 1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))));
+                    double reduction = 1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))));
+                    reduction = Math.Min(reduction, 1.0);
+                    reduction = Math.Max(reduction, 0.0);
+                    return reduction;
                 }
                 else
                     throw new NotImplementedException("Not implemented section for Torsional moment");
