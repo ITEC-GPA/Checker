@@ -15,6 +15,111 @@ namespace GlassTests
     [TestClass]
     public class DoubleInsulatingGlassTest : GlassTestBase
     {
+
+        private double GetLoadSharingPressureTheoretical(double phiA, double h1, double h2, double E, double ni, double pressure)
+        {
+            double d1 = E * Math.Pow(h1, 3) / (12.0 * (1 - ni * ni));
+            double d2 = E * Math.Pow(h2, 3) / (12.0 * (1 - ni * ni));
+
+            return 1.0 / d1 * phiA / ((1.0 / d1 + 1.0 / d2) * phiA) * pressure;
+        }
+
+        private double GetLoadSharingLineLoadTheoretical(double phiA, double phiL, double h1, double h2, double E, double ni, double load, double lineLenght, double area)
+        {
+            double d1 = E * Math.Pow(h1, 3) / (12.0 * (1 - ni * ni));
+            double d2 = E * Math.Pow(h2, 3) / (12.0 * (1 - ni * ni));
+
+            return 1.0 / d1 * phiL / ((1.0 / d1 + 1.0 / d2) * phiA) * load * lineLenght / area;
+        }
+
+        private double GetLoadSharingPointLoadTheoretical(double phiA, double phiP, double h1, double h2, double E, double ni, double load, double area)
+        {
+            double d1 = E * Math.Pow(h1, 3) / (12.0 * (1 - ni * ni));
+            double d2 = E * Math.Pow(h2, 3) / (12.0 * (1 - ni * ni));
+
+            return 1.0 / d1 * phiP / ((1.0 / d1 + 1.0 / d2) * phiA) * load / area;
+        }
+
+        private double GetPhiATheoretical(double maxSize, double minSize)
+        {
+            double lamda = minSize / maxSize;
+
+            double a = 0;
+            double lambda2 = Math.Pow(lamda, 2);
+
+            for (int m = 0; m < 17; m++)
+            {
+                if (m % 2 != 0)
+                {
+                    double m2 = Math.Pow(m, 2);
+                    for (int n = 0; n < 17; n++)
+                    {
+                        if (n % 2 != 0)
+                        {
+                            a += 1 /
+                                (m2 * Math.Pow(n, 2) * Math.Pow(m2 + Math.Pow(n, 2) * lambda2, 2));
+                        }
+                    }
+                }
+            }
+
+            return a * 64 * lambda2 / Math.Pow(Math.PI, 8);
+        }
+
+        private double GetPhiLTheoretical(double maxSize, double minSize, double loadHeight)
+        {
+            double lamda = minSize / maxSize;
+            double alfa = loadHeight / maxSize;
+
+            double a = 0;
+            double lambda2 = Math.Pow(lamda, 2);
+            for (int m = 0; m < 17; m++)
+            {
+                if (m % 2 != 0)
+                {
+                    double m2 = Math.Pow(m, 2);
+                    for (int n = 0; n < 17; n++)
+                    {
+                        if (n % 2 != 0)
+                        {
+                            a += Math.Sin(alfa * Math.PI * n) / 
+                                (m2 * n * Math.Pow(m2 + Math.Pow(n, 2) * lambda2, 2) );
+                        }
+                    }
+                }                
+            }
+
+            return a * 32 * lambda2 / Math.Pow(Math.PI, 7);
+        }
+
+
+        private double GetPhiPTheoretical(double maxSize, double minSize, double loadHeight)
+        {
+            double lamda = minSize / maxSize;
+            double alfa = loadHeight / maxSize;
+
+            double a = 0;
+            double lambda2 = Math.Pow(lamda, 2);
+            for (int m = 0; m < 17; m++)
+            {
+                if (m % 2 != 0)
+                {
+                    double m2 = Math.Pow(m, 2);
+                    for (int n = 0; n < 17; n++)
+                    {
+                        if (n % 2 != 0)
+                        {
+                            a += Math.Sin(alfa * Math.PI * n) * Math.Pow(-1, m - 1) /
+                                (m * n * Math.Pow(m2 + Math.Pow(n, 2) * lambda2, 2));
+                        }
+                    }
+                }
+            }
+
+            return a * 16 * lambda2 / Math.Pow(Math.PI, 6);
+        }
+
+
         [TestMethod]
         [TestCategory("BAM")]
         [TestCategory("EN16612")]
@@ -207,22 +312,29 @@ namespace GlassTests
             var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { lineLoad1, lineLoad2 }, p1.Standard, false);
 
             // confronto con tabelle paper Laura: Pratical design dgus
-            double phiL = 0.0072001; // alfa = 0.5, lambda = 0.33
-            double phiA = 0.0053523;
+            double phiL = GetPhiLTheoretical(3000, 1000, 500);
+            double phiA = GetPhiATheoretical(3000, 1000);
 
-            double d1 = mg1.Material.E * Math.Pow(mg1.Thickness, 3) / (12.0 * (1 - 0.23 * 0.23));
-            double d2 = mg2.Material.E * Math.Pow(mg2.Thickness, 3) / (12.0 * (1 - 0.23 * 0.23));
+            var deltaPExpected1 = GetLoadSharingLineLoadTheoretical(phiA, phiL, mg1.Thickness, mg2.Thickness,
+                                                                    mg1.GetElasticModulus(), mg1.GetPoissonRatios(),
+                                                                    lineLoad1.F3, lineLoad1.Line.GetLength(), gs1.GetArea());
 
-            double deltaP1 = (1 / d1 * phiL) / ((1 / d1 + 1 / d2) * phiA) * lineLoad1.F3 * lineLoad1.Line.GetLength() / s1.GetArea();
-            double deltaP2 = (1 / d2 * phiL) / ((1 / d1 + 1 / d2) * phiA) * lineLoad2.F3 * lineLoad2.Line.GetLength() / s1.GetArea();
+            var deltaPExpected2 = GetLoadSharingLineLoadTheoretical(phiA, phiL, mg2.Thickness, mg1.Thickness,
+                                                                    mg1.GetElasticModulus(), mg1.GetPoissonRatios(),
+                                                                    lineLoad2.F3, lineLoad1.Line.GetLength(), gs1.GetArea());
 
+            Console.WriteLine($"PhiL: {phiL} ");
+            Console.WriteLine($"PhiA: {phiA} ");
+
+            Console.WriteLine($"Numerical DeltaP: {loadSharing[0].FirstOrDefault().Pressure} ");
+            Console.WriteLine($"Expected DeltaP: {deltaPExpected1} ");
 
             // CARICO SU LASTRA ESTERNA
-            Assert.AreEqual(deltaP1, loadSharing[0].FirstOrDefault().Pressure, 0.00000001);
-            Assert.AreEqual(deltaP1, loadSharing[1].FirstOrDefault().Pressure, 0.00000001);
+            Assert.AreEqual(-deltaPExpected1, loadSharing[0].FirstOrDefault().Pressure, Math.Abs(deltaPExpected1 * 0.001));
+            Assert.AreEqual(deltaPExpected1, loadSharing[1].FirstOrDefault().Pressure, Math.Abs(deltaPExpected1 * 0.001));
 
-            Assert.AreEqual(deltaP2, loadSharing[0].LastOrDefault().Pressure, 0.00000001);
-            Assert.AreEqual(deltaP2, loadSharing[1].LastOrDefault().Pressure, 0.00000001);
+            Assert.AreEqual(+deltaPExpected2, loadSharing[0].LastOrDefault().Pressure, Math.Abs(deltaPExpected2 * 0.001));
+            Assert.AreEqual(-deltaPExpected2, loadSharing[1].LastOrDefault().Pressure, Math.Abs(deltaPExpected2 * 0.001));
 
 
         }
@@ -269,21 +381,26 @@ namespace GlassTests
             var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { load1, load2 }, p1.Standard, false);
 
 
-            double phiP = 0.00112493; // alfa = 0.5, lambda = 0.33
-            double phiA = 0.0053523;
+            // confronto con tabelle paper Laura: Pratical design dgus
+            double phiP = GetPhiPTheoretical(3000, 1000, 500);
+            double phiA = GetPhiATheoretical(3000, 1000);
 
-            double d1 = mg1.Material.E * Math.Pow(mg1.Thickness, 3) / (12 * (1 - 0.23 * 0.23));
-            double d2 = mg2.Material.E * Math.Pow(mg2.Thickness, 3) / (12 * (1 - 0.23 * 0.23));
 
-            double deltaP1 = (1 / mg1.Thickness * phiP) / ((1 / mg1.Thickness + 1 / mg2.Thickness) * phiA) * load1.F3 / s1.GetArea();
-            double deltaP2 = (1 / mg1.Thickness * phiP) / ((1 / mg1.Thickness + 1 / mg2.Thickness) * phiA) * load2.F3 / s1.GetArea();
+            var deltaPExpected1 = GetLoadSharingPointLoadTheoretical(phiA, phiP, mg1.Thickness, mg2.Thickness,
+                                                                    mg1.GetElasticModulus(), mg1.GetPoissonRatios(),
+                                                                    load1.F3, gs1.GetArea());
+
+            var deltaPExpected2 = GetLoadSharingPointLoadTheoretical(phiA, phiP, mg2.Thickness, mg1.Thickness,
+                                                                    mg1.GetElasticModulus(), mg1.GetPoissonRatios(),
+                                                                    load2.F3, gs1.GetArea());
+
 
             // CARICO SU LASTRA ESTERNA
-            Assert.AreEqual(deltaP1, loadSharing[0].FirstOrDefault().Pressure, 0.000001);
-            Assert.AreEqual(deltaP1, loadSharing[1].FirstOrDefault().Pressure, 0.000001);
+            Assert.AreEqual(-deltaPExpected1, loadSharing[0].FirstOrDefault().Pressure, 0.000001);
+            Assert.AreEqual(+deltaPExpected1, loadSharing[1].FirstOrDefault().Pressure, 0.000001);
 
-            Assert.AreEqual(deltaP2, loadSharing[0].LastOrDefault().Pressure, 0.000001);
-            Assert.AreEqual(deltaP2, loadSharing[1].LastOrDefault().Pressure, 0.000001);
+            Assert.AreEqual(deltaPExpected2, loadSharing[0].LastOrDefault().Pressure, 0.000001);
+            Assert.AreEqual(-deltaPExpected2, loadSharing[1].LastOrDefault().Pressure, 0.000001);
 
 
         }
@@ -316,7 +433,7 @@ namespace GlassTests
             // Load
             LoadCase lcLineLoad = new LoadCase("Live", EN16612LoadDurations.LIVE, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
 
-            LineLoad lineLoad1 = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 500, 0), new Point3d(1000, 500, 0)),
+            LineLoad lineLoad1 = new LineLoad(0, 0, 10, 0, 0, 0, new Line3d(new Point3d(0, 500, 0), new Point3d(1000, 500, 0)),
                                     lcLineLoad, GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.External);
 
 
@@ -330,21 +447,23 @@ namespace GlassTests
             var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { lineLoad1 }, p1.Standard, false);
 
             // confronto con tabelle paper Laura: Pratical design dgus
-            double phiL = 0.000838475; // alfa = 0.5, lambda = 0.33
-            double phiA = 0.000621820;
+            double phiL = GetPhiLTheoretical(3000, 1000, 500);
+            double phiA = GetPhiATheoretical(3000, 1000);
 
-            double d1 = mg1.Material.E * Math.Pow(mg1.Thickness, 3) / (12.0 * (1 - 0.23 * 0.23));
-            double d2 = mg2.Material.E * Math.Pow(mg2.Thickness, 3) / (12.0 * (1 - 0.23 * 0.23));
+            var deltaPExpected = GetLoadSharingLineLoadTheoretical(phiA, phiL, mg1.Thickness, mg2.Thickness, 
+                                                                    mg1.GetElasticModulus(), mg1.GetPoissonRatios(), 
+                                                                    lineLoad1.F3, lineLoad1.Line.GetLength(), gs1.GetArea());
 
-            double deltaP1 = (1 / d1 * phiL) / ((1 / d1 + 1 / d2) * phiA) * lineLoad1.F3 * lineLoad1.Line.GetLength() / s1.GetArea();
+            Console.WriteLine($"PhiL: {phiL} ");
+            Console.WriteLine($"PhiA: {phiA} ");
 
             Console.WriteLine($"Numerical DeltaP: {loadSharing[0].FirstOrDefault().Pressure} ");
-            Console.WriteLine($"Expected DeltaP: {deltaP1} ");
+            Console.WriteLine($"Expected DeltaP: {deltaPExpected} ");
 
 
             // CARICO SU LASTRA ESTERNA
-            Assert.AreEqual(deltaP1, loadSharing[0].FirstOrDefault().Pressure, 0.00000001);
-            Assert.AreEqual(deltaP1, loadSharing[1].FirstOrDefault().Pressure, 0.00000001);
+            Assert.AreEqual(-deltaPExpected, loadSharing[0].FirstOrDefault().Pressure, Math.Abs(deltaPExpected * 0.001));
+            Assert.AreEqual(deltaPExpected, loadSharing[1].FirstOrDefault().Pressure, Math.Abs(deltaPExpected * 0.001));
 
 
         }
