@@ -131,6 +131,9 @@ namespace GPC.Checkers.Steel.Checkers
                         axialCompSectionClass[i] = CalculateSectionClassDueToCompression(resultBeamForces[i], steelSection[i]);
                         bendingCompSectionClass[i] = CalculateSectionClassDueToBending(resultBeamForces[i], steelSection[i]);
 
+                        stationResults[i + k * steelSection.Length].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
+                        stationResults[i + k * steelSection.Length].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
+
                         axialTensionRd[i] = CalculateAxialTensionCapacity(steelSection[i]);
                         axialTensionWR[i] = GetWorkingRatio(Math.Max(resultBeamForces[i].N, 0), axialTensionRd[i]);
 
@@ -256,11 +259,7 @@ namespace GPC.Checkers.Steel.Checkers
 
                         stationResults[i + k * steelSection.Length].SetWorkingRatio(axialTensionWR[i], axialCompressionWR[i], axialBuck1WR[i], axialBuck2WR[i], shear1WR[i], shear2WR[i], bending1WR[i], bending2WR[i], latTorsWR[i],
                                                           interaction878WR[i], interaction879WR[i], interaction880WR[i], interaction881WR[i]);
-
-                        stationResults[i + k * steelSection.Length].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
-
-                        stationResults[i + k * steelSection.Length].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
-
+                        
                         stationResults[i + k * steelSection.Length].SetPy(_py, _epsilon);
 
                         stationResults[i + k * steelSection.Length].SetResultsForReportAxialBuckling(GetBucklingCurveXXAxis(steelSection[i]), GetBucklingCurveYYAxis(steelSection[i]),
