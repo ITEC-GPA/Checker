@@ -278,7 +278,9 @@ namespace GPC.Checkers.Steel.Checkers
                     }
                     catch (Exception e)
                     {
-                        _errorLog.Add($"Fail check of beam {BeamName}, station {(ResultStation)beamResult[k].Points[i]}, combination {beamResult[k].Case}. \n" +
+                        _errorLog.Add($"Fail check beam {BeamName}, \n " +
+                            $"station {((ResultStation)beamResult[k].Points[i]).DistanceFromStartPoint} mm from start point, \n" +
+                            $"combination {beamResult[k].Case.Name}. \n" +
                             $"Error: {e.Message}");
                     }
                 }
