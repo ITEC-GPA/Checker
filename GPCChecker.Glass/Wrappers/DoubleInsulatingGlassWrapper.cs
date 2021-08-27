@@ -361,7 +361,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                         throw new ArgumentNullException();
 
                     // Integrale di psi su tutta l'area
-                    double plateIntegral = plate.GetArea() + ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray()).D3;
+                    double plateIntegral = plate.GetArea() * ResultDisplacement.GetArithmeticMean(resultDisplacement.ToArray()).D3;
                     meanPsiIntegrals[n] = plateIntegral;
 
                     foreach (var attribute in plate.AttributesLoadCase.Where(i => i.LoadCaseName != lcUniformPressure.Name))

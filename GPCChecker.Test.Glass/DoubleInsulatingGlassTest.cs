@@ -287,5 +287,66 @@ namespace GlassTests
 
 
         }
+
+
+
+
+        [TestMethod]
+        [TestCategory("BAM")]
+        [TestCategory("Numerical")]
+        [TestCategory("Monolithic")]
+        [TestCategory("LineLoad")]
+        public void LoadSharing6()
+        {
+            RunApiServer();
+
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(1000, 3000, 0));
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 6, GetGlassMaterialAstm());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg2", 6, GetGlassMaterialAstm());
+            AirChamber airChamber = new AirChamber("Ac", 15);
+
+            DoubleInsulatingGlass dgu = new DoubleInsulatingGlass("Dgu", mg1, mg2, airChamber);
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", dgu, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters(), null);
+
+            // Load
+            LoadCase lcLineLoad = new LoadCase("Live", EN16612LoadDurations.LIVE, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.LiveLoad);
+
+            LineLoad lineLoad1 = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, 500, 0), new Point3d(1000, 500, 0)),
+                                    lcLineLoad, GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.External);
+
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            Model model = new Model(base.GetOutputFolder());
+            model.AddSurface(gs1);
+
+            GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
+
+            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { lineLoad1 }, p1.Standard, false);
+
+            // confronto con tabelle paper Laura: Pratical design dgus
+            double phiL = 0.0072001; // alfa = 0.5, lambda = 0.33
+            double phiA = 0.0053523;
+
+            double d1 = mg1.Material.E * Math.Pow(mg1.Thickness, 3) / (12.0 * (1 - 0.23 * 0.23));
+            double d2 = mg2.Material.E * Math.Pow(mg2.Thickness, 3) / (12.0 * (1 - 0.23 * 0.23));
+
+            double deltaP1 = (1 / d1 * phiL) / ((1 / d1 + 1 / d2) * phiA) * lineLoad1.F3 * lineLoad1.Line.GetLength() / s1.GetArea();
+
+            Console.WriteLine($"Numerical DeltaP: {loadSharing[0].FirstOrDefault().Pressure} ");
+            Console.WriteLine($"Expected DeltaP: {deltaP1} ");
+
+
+            // CARICO SU LASTRA ESTERNA
+            Assert.AreEqual(deltaP1, loadSharing[0].FirstOrDefault().Pressure, 0.00000001);
+            Assert.AreEqual(deltaP1, loadSharing[1].FirstOrDefault().Pressure, 0.00000001);
+
+
+        }
     }
 }
