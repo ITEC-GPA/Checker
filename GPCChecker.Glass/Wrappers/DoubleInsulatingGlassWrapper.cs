@@ -1,4 +1,4 @@
-﻿
+
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.Loads;
 using GPC.Model.Glasses;
@@ -368,9 +368,6 @@ namespace GPC.Checkers.Glasses.Wrappers
             femModel.Solve();
 
             Model.FEM.FiniteElements.FiniteElement[] elements = femModel.GetElements();
-
-            double h1Cube = Math.Pow(OuterGlassPanelWrapper.GetDeformationThickness((IGlassLoad)loadToFem[0]), 3.0); // TODO: sistemare load
-            double h2Cube = Math.Pow(InnerGlassPanelWrapper.GetDeformationThickness((IGlassLoad)loadToFem[0]), 3.0);
             
             // CALCOLO DEL COEFFICIENTE PSI NUMERICO
 
@@ -399,6 +396,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                     foreach (var attribute in plate.AttributesLoadCase.Where(i => i.LoadCaseName != lcUniformPressure.Name))
                     {
                         // non considero il primo che è la pressione uniforme
+
                         if (attribute is Model.FEM.Attributes.PlateNormalPressureAttribute pnal)
                         {
                             if (loadPsiCoefficientIntegralLoadCaseElements[n].ContainsKey(pnal.LoadCaseName))
@@ -437,18 +435,21 @@ namespace GPC.Checkers.Glasses.Wrappers
             double deltaP = 0;
             double flexuarStiffnessStar = 0;
 
-            if (compressibleGas)
-            {
-                double area = Area;
-                double cavityVolume = AirThickness * area;
-                flexuarStiffnessStar = GetMinimumElasticModulus() / (12.0 * (1.0 - Math.Pow(GetMinimumPoissonRatio(), 2.0))) 
-                                        * h1Cube * h2Cube * cavityVolume / Math.Pow(area, 3.0) / cavitySealingPressure;
-            }
-
-            den = (h1Cube + h2Cube) * meanPsiIntegral + flexuarStiffnessStar;
-
             for (int i = 0; i < loads.Count; i++)
-            {                
+            {
+                double h1Cube = Math.Pow(OuterGlassPanelWrapper.GetDeformationThickness(loads[i]), 3.0);
+                double h2Cube = Math.Pow(InnerGlassPanelWrapper.GetDeformationThickness(loads[i]), 3.0);
+
+                if (compressibleGas)
+                {
+                    double area = Area;
+                    double cavityVolume = AirThickness * area;
+                    flexuarStiffnessStar = GetMinimumElasticModulus() / (12.0 * (1.0 - Math.Pow(GetMinimumPoissonRatio(), 2.0)))
+                                            * h1Cube * h2Cube * cavityVolume / Math.Pow(area, 3.0) / cavitySealingPressure;
+                }
+
+                den = (h1Cube + h2Cube) * meanPsiIntegral + flexuarStiffnessStar;
+
                 if (loads[i] is NormalAreaLoad nal)
                 {
                     // basta calcolare l'integrale del coefficinete psi
@@ -478,14 +479,14 @@ namespace GPC.Checkers.Glasses.Wrappers
                 }
                 else
                     throw new NotImplementedException();
-                
+
 
                 if (den == 0)
                     throw new ArithmeticException("Bam delta p divide by zero");
 
                 deltaP = num / den;
 
-                redistributionPressure[i].external = new NormalAreaLoad(-deltaP, _glassSurface.Shape, loads[i].GlassLoadCase, loads[i].Name, 
+                redistributionPressure[i].external = new NormalAreaLoad(-deltaP, _glassSurface.Shape, loads[i].GlassLoadCase, loads[i].Name,
                                                     GlassPanelWrapper.GlassPanelPositions.External);
                 redistributionPressure[i]._internal = new NormalAreaLoad(deltaP, _glassSurface.Shape, loads[i].GlassLoadCase, loads[i].Name,
                                                     GlassPanelWrapper.GlassPanelPositions.Internal);
