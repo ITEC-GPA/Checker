@@ -83,7 +83,6 @@ namespace GPC.Checkers.Steel.Checkers
         {
             Cop2011BeamStationResults[] stationResults = new Cop2011BeamStationResults[steelSection.Length * beamResult.Length];
 
-
             for (int k = 0; k < beamResult.Length; k++)
             {
                 ResultBeamForces[] resultBeamForces = beamResult[k].Results.Cast<ResultBeamForces>().ToArray();
@@ -165,7 +164,7 @@ namespace GPC.Checkers.Steel.Checkers
                         bending2Rd[i] = CalculateBendingMoment2Capacity(resultBeamForces[i], bendingCompSectionClass[i], steelSection[i]);
                         bending2WR[i] = GetWorkingRatio(resultBeamForces[i].M2, bending2Rd[i]);
 
-                        latTorsRd[i] = CalculateLateralTorsionalBucklingMomentCapacity(bendingCompSectionClass[i], steelSection[i]);
+                        latTorsRd[i] =  Math.Min(CalculateLateralTorsionalBucklingMomentCapacity(bendingCompSectionClass[i], steelSection[i]), bending1Rd[i]);
 
                         // equazione 8.81 cap. 8.9.2
                         if (IsNecessaryTheLatTorsBucklingCheck(bendingCompSectionClass[i], steelSection[i]))
@@ -838,7 +837,7 @@ namespace GPC.Checkers.Steel.Checkers
                 }
                 else if (section is SteelSectionCHS sectionCHS)
                 {
-                    double omega = Math.PI * Math.Pow((sectionCHS.Diameter / 2.0 - sectionCHS.Thickness / 2.0), 2);
+                    double omega = Math.PI * Math.Pow((sectionCHS.Diameter / 2.0 - sectionCHS.Thickness / 2.0), 2.0);
                     double sigmaStVenant = Math.Abs(resultBeamForces.T) / (2.0 * omega * sectionCHS.Thickness);
                     double reduction = 1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))));
                     reduction = Math.Min(reduction, 1.0);
@@ -848,9 +847,9 @@ namespace GPC.Checkers.Steel.Checkers
                 else if (section is SteelSectionRHS sectionRHS)
                 {
                     double omega = Math.PI * Math.Pow((sectionRHS.Height - sectionRHS.ThicknessTop - sectionRHS.ThicknessBottom) *
-                        (sectionRHS.Base - sectionRHS.ThicknessWebLeft - sectionRHS.ThicknessWebRight), 2);
+                        (sectionRHS.Base - sectionRHS.ThicknessWebLeft - sectionRHS.ThicknessWebRight), 2.0);
                     double sigmaStVenant = Math.Abs(resultBeamForces.T) / (2.0 * omega *
-                        (sectionRHS.ThicknessBottom + sectionRHS.ThicknessTop + sectionRHS.ThicknessWebRight + sectionRHS.ThicknessWebLeft) / 4);
+                        (sectionRHS.ThicknessBottom + sectionRHS.ThicknessTop + sectionRHS.ThicknessWebRight + sectionRHS.ThicknessWebLeft) / 4.0);
                     double reduction = 1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))));
                     reduction = Math.Min(reduction, 1.0);
                     reduction = Math.Max(reduction, 0.0);
@@ -1034,7 +1033,7 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         private double CalculatePbForLatTorsBuckling(SectionClass sectionClass, ISteelSection section)
-        {            
+        {
             return Math.Min((CalculatePeForLatTorsBuckling(section, sectionClass) * Py) / (CalculatePhiLTForLatTorsBuckling(section, sectionClass) +
                 Math.Pow(Math.Pow(CalculatePhiLTForLatTorsBuckling(section, sectionClass), 2) - CalculatePeForLatTorsBuckling(section, sectionClass) * Py, 0.5)), Py);
         }
@@ -1094,41 +1093,41 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 double lambda = CalculateLambdaForLatTorsBuckling(section);
 
-                if (sectionRHS.Height / sectionRHS.Base < 1.25 || sectionRHS.Base / sectionRHS.Height < 1.25)
-                    if (lambda < 770 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 1.25 && sectionRHS.Base / sectionRHS.Height <= 1.25)
+                    if (lambda <= 770 * Math.Pow(Epsilon, 2))
                         return false;
-                if (sectionRHS.Height / sectionRHS.Base < 1.33 || sectionRHS.Base / sectionRHS.Height < 1.33)
-                    if (lambda < 670 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 1.33 && sectionRHS.Base / sectionRHS.Height <= 1.33)
+                    if (lambda <= 670 * Math.Pow(Epsilon, 2))
                         return false;
-                if (sectionRHS.Height / sectionRHS.Base < 1.40 || sectionRHS.Base / sectionRHS.Height < 1.40)
-                    if (lambda < 580 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 1.40 && sectionRHS.Base / sectionRHS.Height <= 1.40)
+                    if (lambda <= 580 * Math.Pow(Epsilon, 2))
                         return false;
-                if (sectionRHS.Height / sectionRHS.Base < 1.44 || sectionRHS.Base / sectionRHS.Height < 1.44)
-                    if (lambda < 550 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 1.44 && sectionRHS.Base / sectionRHS.Height <= 1.44)
+                    if (lambda <= 550 * Math.Pow(Epsilon, 2))
                         return false;
-                if (sectionRHS.Height / sectionRHS.Base < 1.50 || sectionRHS.Base / sectionRHS.Height < 1.50)
-                    if (lambda < 515 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 1.50 && sectionRHS.Base / sectionRHS.Height <= 1.50)
+                    if (lambda <= 515 * Math.Pow(Epsilon, 2))
                         return false;
-                if (sectionRHS.Height / sectionRHS.Base < 1.67 || sectionRHS.Base / sectionRHS.Height < 1.67)
-                    if (lambda < 435 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 1.67 && sectionRHS.Base / sectionRHS.Height <= 1.67)
+                    if (lambda <= 435 * Math.Pow(Epsilon, 2))
                         return false;
-                if (sectionRHS.Height / sectionRHS.Base < 1.75 || sectionRHS.Base / sectionRHS.Height < 1.75)
-                    if (lambda < 410 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 1.75 && sectionRHS.Base / sectionRHS.Height <= 1.75)
+                    if (lambda <= 410 * Math.Pow(Epsilon, 2))
                         return false;
-                if (sectionRHS.Height / sectionRHS.Base < 1.80 || sectionRHS.Base / sectionRHS.Height < 1.80)
-                    if (lambda < 395 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 1.80 && sectionRHS.Base / sectionRHS.Height <= 1.80)
+                    if (lambda <= 395 * Math.Pow(Epsilon, 2))
                         return false;
-                if (sectionRHS.Height / sectionRHS.Base < 2.00 || sectionRHS.Base / sectionRHS.Height < 2.0)
-                    if (lambda < 340 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 2.00 && sectionRHS.Base / sectionRHS.Height <= 2.00)
+                    if (lambda <= 340 * Math.Pow(Epsilon, 2))
                         return false;
-                if (sectionRHS.Height / sectionRHS.Base < 2.50 || sectionRHS.Base / sectionRHS.Height < 2.5)
-                    if (lambda < 275 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 2.50 && sectionRHS.Base / sectionRHS.Height <= 2.5)
+                    if (lambda <= 275 * Math.Pow(Epsilon, 2))
                         return false;
-                if (sectionRHS.Height / sectionRHS.Base < 3.00 || sectionRHS.Base / sectionRHS.Height < 3.0)
-                    if (lambda < 225 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 3.00 && sectionRHS.Base / sectionRHS.Height <= 3.0)
+                    if (lambda <= 225 * Math.Pow(Epsilon, 2))
                         return false;
-                if (sectionRHS.Height / sectionRHS.Base < 4.00 || sectionRHS.Base / sectionRHS.Height < 4.0)
-                    if (lambda < 170 * Epsilon)
+                if (sectionRHS.Height / sectionRHS.Base <= 4.00 && sectionRHS.Base / sectionRHS.Height <= 4.0)
+                    if (lambda <= 170 * Math.Pow(Epsilon, 2))
                         return false;
             }
             else if (section is SectionH || section is SectionC)
@@ -1212,9 +1211,8 @@ namespace GPC.Checkers.Steel.Checkers
 
             if (section is SectionCHS || section is SectionRHS)
             {
-                double gammab = Math.Max((1 - (section.J11 / section.J22)) * (1 - (section.Jt / (2.6 * section.J22))), 0.0);
-                double phiB = Math.Sqrt((Math.Pow(section.Wpl2, 2) * gammab) /(section.Area * section.Jt));
-
+                double gammab = Math.Max((1 - (section.J22 / section.J11)) * (1 - (section.Jt / (2.6 * section.J11))), 0.0);
+                double phiB = Math.Sqrt((Math.Pow(section.Wpl1, 2) * gammab) /(section.Area * section.Jt));
                 return Math.Max(2.25 * Math.Sqrt(bw * gammab * CalculateLambdaForLatTorsBuckling(section) * phiB), 1.0);
             }
             else
