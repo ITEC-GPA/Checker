@@ -898,8 +898,8 @@ namespace GPC.Checkers.Steel.Checkers
 
         private double CalculateBendingMoment1Capacity(ResultBeamForces resultBeamForces, SectionClass sectionClass, ISteelSection section)
         {
-            if ((resultBeamForces.V2 < 0.6 * CalculateShear2Capacity(resultBeamForces, section) && resultBeamForces.T < 1) ||
-                (resultBeamForces.V2 < 0.5 * CalculateShear2Capacity(resultBeamForces, section) && resultBeamForces.T > 1))   // low shear condition
+            if ((Math.Abs(resultBeamForces.V2) < 0.6 * CalculateShear2Capacity(resultBeamForces, section)) ||
+                (Math.Abs(resultBeamForces.V2) < 0.5 * CalculateShear2Capacity(resultBeamForces, section)))   // low shear condition
             {
                 if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
                     return Math.Min(Py * section.Wpl1, 1.2 * Py * section.Wel1);
@@ -952,8 +952,8 @@ namespace GPC.Checkers.Steel.Checkers
 
         private double CalculateBendingMoment2Capacity(ResultBeamForces resultBeamForces, SectionClass sectionClass, ISteelSection section)
         {
-            if ((resultBeamForces.V1 < 0.6 * CalculateShear1Capacity(resultBeamForces, section) && resultBeamForces.T < 1) ||
-                (resultBeamForces.V1 < 0.5 * CalculateShear1Capacity(resultBeamForces, section) && resultBeamForces.T > 1))   // low shear condition
+            if ((Math.Abs(resultBeamForces.V1) < 0.6 * CalculateShear1Capacity(resultBeamForces, section)) ||
+                (Math.Abs(resultBeamForces.V1) < 0.5 * CalculateShear1Capacity(resultBeamForces, section)))   // low shear condition
             {
                 if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
                     return Math.Min(Py * ((Section)section).Wpl2, 1.2 * Py * ((Section)section).Wel2);
@@ -1034,7 +1034,7 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         private double CalculatePbForLatTorsBuckling(SectionClass sectionClass, ISteelSection section)
-        {
+        {            
             return Math.Min((CalculatePeForLatTorsBuckling(section, sectionClass) * Py) / (CalculatePhiLTForLatTorsBuckling(section, sectionClass) +
                 Math.Pow(Math.Pow(CalculatePhiLTForLatTorsBuckling(section, sectionClass), 2) - CalculatePeForLatTorsBuckling(section, sectionClass) * Py, 0.5)), Py);
         }
@@ -1043,7 +1043,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// BS5950 B.2.2
         /// </summary>
         private double CalculatePeForLatTorsBuckling(ISteelSection section, SectionClass sectionClass)
-        {
+        {            
             return (Math.Pow(Math.PI, 2) * section.SteelMaterial.E) / Math.Pow(CalculateLambdaLTForLatTorsBuckling(section, sectionClass), 2);
         }
 
@@ -1212,10 +1212,10 @@ namespace GPC.Checkers.Steel.Checkers
 
             if (section is SectionCHS || section is SectionRHS)
             {
-                double gammab = (1 - (section.J11 / section.J22)) * (1 - (section.Jt / (2.6 * section.J22)));
-                double phiB = Math.Sqrt((Math.Pow(section.Wpl1, 2) * gammab) /(section.Area * section.Jt));
+                double gammab = Math.Max((1 - (section.J11 / section.J22)) * (1 - (section.Jt / (2.6 * section.J22))), 0.0);
+                double phiB = Math.Sqrt((Math.Pow(section.Wpl2, 2) * gammab) /(section.Area * section.Jt));
 
-                return Math.Max(2.25 * Math.Sqrt(bw * gammab * phiB), 1);
+                return Math.Max(2.25 * Math.Sqrt(bw * gammab * CalculateLambdaForLatTorsBuckling(section) * phiB), 1.0);
             }
             else
             {
