@@ -19,10 +19,8 @@ namespace GPC.Checkers.Glasses.Loads
     {
 
         private readonly GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
-        private readonly GlassSurface.LoadRestrainCondition _loadRestrainCondition;
 
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
-        public GlassSurface.LoadRestrainCondition LoadRestrainCondition => _loadRestrainCondition;
         public IGlassLoadCase GlassLoadCase => (IGlassLoadCase)base.LoadCase;
 
 
@@ -30,7 +28,6 @@ namespace GPC.Checkers.Glasses.Loads
                                     GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External) 
             : base(force, moment, point, (LoadCaseBase)loadCase, cSys)
         {
-            _loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface;
             _glassPanelPositions = glassPanelPosition;
         }
 
@@ -38,7 +35,6 @@ namespace GPC.Checkers.Glasses.Loads
                                     GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External) 
             : base(f1, f2, f3, m1, m2, m3, point, (LoadCaseBase)loadCase)
         {
-            _loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface;
             _glassPanelPositions = glassPanelPosition;
         }
 
@@ -48,7 +44,6 @@ namespace GPC.Checkers.Glasses.Loads
                                 GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External) 
             : base(f1, f2, f3, m1, m2, m3, point, (LoadCaseBase)loadCase, coordinateSystem)
         {
-            _loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface;
             _glassPanelPositions = glassPanelPosition;
         }
 
@@ -65,7 +60,6 @@ namespace GPC.Checkers.Glasses.Loads
 
             return obj is ParametricPointLoad load &&
                    _glassPanelPositions == load._glassPanelPositions &&
-                   _loadRestrainCondition == load._loadRestrainCondition &&
                    base.Equals(obj);
         }
 
@@ -77,7 +71,6 @@ namespace GPC.Checkers.Glasses.Loads
                 int hashCode = -23;
                 hashCode = hashCode * -17 + base.GetHashCode();
                 hashCode = hashCode * -17 + _glassPanelPositions.GetHashCode();
-                hashCode = hashCode * -17 + _loadRestrainCondition.GetHashCode();
                 return hashCode;
             }
         }

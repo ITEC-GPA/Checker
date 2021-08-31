@@ -20,10 +20,8 @@ namespace GPC.Checkers.Glasses.Loads
     {
 
         private readonly GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
-        private readonly GlassSurface.LoadRestrainCondition _loadRestrainCondition;
 
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
-        public GlassSurface.LoadRestrainCondition LoadRestrainCondition => _loadRestrainCondition;
 
         public IGlassLoadCase GlassLoadCase => (IGlassLoadCase)base.LoadCase;
 
@@ -42,7 +40,6 @@ namespace GPC.Checkers.Glasses.Loads
             : base(f1, f2, f3, m1, m2, m3, line, (LoadCaseBase)loadCase)
         {
             _glassPanelPositions = glassPanelPosition;
-            _loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface;
         }
 
 
@@ -62,7 +59,6 @@ namespace GPC.Checkers.Glasses.Loads
             : base(f1, f2, f3, m1, m2, m3, line, (LoadCaseBase)loadCase, coordinateSystem)
         {
             _glassPanelPositions = glassPanelPosition;
-            _loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface;
         }
 
 
@@ -72,7 +68,6 @@ namespace GPC.Checkers.Glasses.Loads
             : base(force, moment, line, (LoadCaseBase)loadCase, cSys)
         {
             _glassPanelPositions = glassPanelPosition;
-            _loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface;
         }
 
         
@@ -90,7 +85,6 @@ namespace GPC.Checkers.Glasses.Loads
 
             return obj is ParametricLineLoad load &&
                    _glassPanelPositions == load._glassPanelPositions &&
-                   _loadRestrainCondition == load._loadRestrainCondition &&
                    base.Equals(obj);
         }
 
@@ -102,7 +96,6 @@ namespace GPC.Checkers.Glasses.Loads
                 int hashCode = -23;
                 hashCode = hashCode * -17 + base.GetHashCode();
                 hashCode = hashCode * -17 + _glassPanelPositions.GetHashCode();
-                hashCode = hashCode * -17 + _loadRestrainCondition.GetHashCode();
                 return hashCode;
             }
         }
