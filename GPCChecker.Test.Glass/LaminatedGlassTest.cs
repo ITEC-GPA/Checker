@@ -606,37 +606,21 @@ namespace GlassTests
             lgw.CalculateEquivalentThicknesses();
 
 
-            double tw1 = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, 
-                                                                                     loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
 
-
-            double ts11 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, 
-                                                                                    loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-
-            double ts21 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature,
-                                                                                    loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw1 = lgw.ThicknessesW.FirstOrDefault(i => i.Key == loadWp.GlassLoadCase).Value;
+            double ts11 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key == loadWp.GlassLoadCase).Value;
+            double ts21 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key == loadWp.GlassLoadCase).Value;
 
 
 
-            double tw2 = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(punctualLoadWp1.GlassLoadCase.LoadDuration,
-                                                                                     punctualLoadWp1.GlassLoadCase.Temperature, punctualLoadWp1.GetGeometry(), punctualLoadWp1.LoadRestrainCondition)).Value;
-
-            double ts12 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(punctualLoadWp1.GlassLoadCase.LoadDuration, punctualLoadWp1.GlassLoadCase.Temperature,
-                                                                                     punctualLoadWp1.GetGeometry(), punctualLoadWp1.LoadRestrainCondition)).Value;
-
-            double ts22 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(punctualLoadWp1.GlassLoadCase.LoadDuration, punctualLoadWp1.GlassLoadCase.Temperature,
-                                                                                     punctualLoadWp1.GetGeometry(), punctualLoadWp1.LoadRestrainCondition)).Value;
+            double tw2 = lgw.ThicknessesW.FirstOrDefault(i => i.Key == punctualLoadWp1.GlassLoadCase).Value;
+            double ts12 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key == punctualLoadWp1.GlassLoadCase).Value;
+            double ts22 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key == punctualLoadWp1.GlassLoadCase).Value;
 
 
-
-            double tw3 = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(punctualLoadWp2.GlassLoadCase.LoadDuration,
-                                                                                     punctualLoadWp2.GlassLoadCase.Temperature, punctualLoadWp2.GetGeometry(), punctualLoadWp2.LoadRestrainCondition)).Value;
-
-            double ts13 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(punctualLoadWp2.GlassLoadCase.LoadDuration, punctualLoadWp2.GlassLoadCase.Temperature,
-                                                                                     punctualLoadWp2.GetGeometry(), punctualLoadWp2.LoadRestrainCondition)).Value;
-
-            double ts23 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(punctualLoadWp2.GlassLoadCase.LoadDuration, punctualLoadWp2.GlassLoadCase.Temperature,
-                                                                                     punctualLoadWp2.GetGeometry(), punctualLoadWp2.LoadRestrainCondition)).Value;
+            double tw3 = lgw.ThicknessesW.FirstOrDefault(i => i.Key == punctualLoadWp2.GlassLoadCase).Value;
+            double ts13 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key == punctualLoadWp2.GlassLoadCase).Value;
+            double ts23 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key == punctualLoadWp2.GlassLoadCase).Value;
 
 
 
@@ -743,23 +727,13 @@ namespace GlassTests
             lgw.CalculateEquivalentThicknesses();
 
 
-            double tw1 = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature, loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
+            double tw1 = lgw.ThicknessesW.FirstOrDefault(i => i.Key == loadWp.GlassLoadCase).Value;
+            double ts11 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key == loadWp.GlassLoadCase).Value;
+            double ts21 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key == loadWp.GlassLoadCase).Value;
 
-            double ts11 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature,
-                                                                                     loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-
-            double ts21 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(loadWp.GlassLoadCase.LoadDuration, loadWp.GlassLoadCase.Temperature,
-                                                                                     loadWp.GetGeometry(), loadWp.LoadRestrainCondition)).Value;
-
-
-            double tw2 = lgw.ThicknessesW.FirstOrDefault(i => i.Key.EqualsParameters(punctualLoadWp1.GlassLoadCase.LoadDuration,
-                                                                                     punctualLoadWp1.GlassLoadCase.Temperature, punctualLoadWp1.GetGeometry(), punctualLoadWp1.LoadRestrainCondition)).Value;
-
-            double ts12 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key.EqualsParameters(punctualLoadWp1.GlassLoadCase.LoadDuration, punctualLoadWp1.GlassLoadCase.Temperature,
-                                                                                     punctualLoadWp1.GetGeometry(), punctualLoadWp1.LoadRestrainCondition)).Value;
-
-            double ts22 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key.EqualsParameters(punctualLoadWp1.GlassLoadCase.LoadDuration, punctualLoadWp1.GlassLoadCase.Temperature,
-                                                                                     punctualLoadWp1.GetGeometry(), punctualLoadWp1.LoadRestrainCondition)).Value;
+            double tw2 = lgw.ThicknessesW.FirstOrDefault(i => i.Key == punctualLoadWp1.GlassLoadCase).Value;
+            double ts12 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key == punctualLoadWp1.GlassLoadCase).Value;
+            double ts22 = lgw.ThicknessesStress[1].FirstOrDefault(i => i.Key == punctualLoadWp1.GlassLoadCase).Value;
 
 
             double shearModule1 = interlayers[0].Material.GetShearModule(lcPressure.LoadDuration, lcPressure.Temperature);
