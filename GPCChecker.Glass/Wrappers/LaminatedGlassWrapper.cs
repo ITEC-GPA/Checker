@@ -77,7 +77,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             var loadcase = load.GlassLoadCase;
 
             EquivalentThicknessParameters parameters = 
-                new EquivalentThicknessParameters(loadcase.LoadDuration, loadcase.Temperature, load.GetGeometryBase(), load.LoadRestrainCondition);
+                new EquivalentThicknessParameters(loadcase.LoadDuration, loadcase.Temperature, load.GetGeometryBase(), loadcase.LoadRestrainCondition);
 
             if (_thicknessesW.ContainsKey(parameters))
             {
@@ -104,7 +104,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             var loadcase = load.GlassLoadCase;
 
             EquivalentThicknessParameters parameters = 
-                new EquivalentThicknessParameters(loadcase.LoadDuration, loadcase.Temperature, load.GetGeometryBase(), load.LoadRestrainCondition);
+                new EquivalentThicknessParameters(loadcase.LoadDuration, loadcase.Temperature, load.GetGeometryBase(), loadcase.LoadRestrainCondition);
 
             for (int i = 0; i < _thicknessesStress.Length; i++)
             {
@@ -792,7 +792,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                 double hw = Math.Pow(hs1Square + hs2Square + 12.0 * lambda * Is, 1.0 / 3.0);
 
                 EquivalentThicknessParameters parameters = new EquivalentThicknessParameters(loadCase.LoadDuration,
-                                                            loadCase.Temperature, loads[i].GetGeometryBase(), loads[i].LoadRestrainCondition);
+                                                            loadCase.Temperature, loads[i].GetGeometryBase(), loadCase.LoadRestrainCondition);
 
                 _thicknessesW[parameters] = hw;
                 _thicknessesStress[0][parameters] = Math.Sqrt(Math.Pow(hw, 3.0) / (h1 + 2.0 * lambda * hs2));
@@ -869,7 +869,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             {
                 EquivalentThicknessParameters parameters = new EquivalentThicknessParameters(loads[i].GlassLoadCase.LoadDuration,
                                                                                              loads[i].GlassLoadCase.Temperature,
-                                                                                             loads[i].GetGeometryBase(), loads[i].LoadRestrainCondition);
+                                                                                             loads[i].GetGeometryBase(), loads[i].GlassLoadCase.LoadRestrainCondition);
                 
                 _thicknessesW[parameters] = twBuffer[loads[i]];
                 _thicknessesStress[0][parameters] = tSigma1Buffer[loads[i]];

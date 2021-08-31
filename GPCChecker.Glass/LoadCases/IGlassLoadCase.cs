@@ -1,4 +1,7 @@
 ﻿
+using GPC.Checkers.Glasses.Glasses;
+
+
 namespace GPC.Checkers.Glasses.LoadCases
 {
     public interface IGlassLoadCase
@@ -9,5 +12,6 @@ namespace GPC.Checkers.Glasses.LoadCases
 
         double Temperature { get; }
 
+        GlassSurface.LoadRestrainCondition LoadRestrainCondition { get; }
     }
 }
