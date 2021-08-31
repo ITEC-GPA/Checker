@@ -505,7 +505,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                                                 .Distinct(new LoadDurationTemperatureAndGeometryEqualityComparer()).Cast<IGlassLoad>().ToList();
 
 
-           if (loadsToProcess.Count() == 0)
+            if (loadsToProcess.Count() == 0)
                 return false;
 
             // Calcola lo spessore equivalente per i casi supportati, altrimenti usa eet numerico
@@ -951,7 +951,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                                                            Transfinite = true, 
                                                            Algorithm = Mesh.GenerateOptions.MeshAlgorithm.FrontalDelaunayForQuads, 
                                                            HealShapes = true
-                                                        },
+                                                         },
                               normalAreaLoads.Cast<Load>().ToList(), _glassSurface.GetRestrains());
 
             normalAreaLoads.ForEach(i => femModel.AddLoadCase(i.LoadCase));

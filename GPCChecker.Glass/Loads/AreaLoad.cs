@@ -41,10 +41,9 @@ namespace GPC.Checkers.Glasses.Loads
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return obj is AreaLoad load &&
-                   _glassPanelPositions == load._glassPanelPositions &&
-                   _loadRestrainCondition == load._loadRestrainCondition &&
-                   base.Equals(obj);
+            return obj is AreaLoad load && _glassPanelPositions == load._glassPanelPositions &&
+                                           _loadRestrainCondition == load._loadRestrainCondition &&
+                                           base.Equals(obj);
         }
 
 

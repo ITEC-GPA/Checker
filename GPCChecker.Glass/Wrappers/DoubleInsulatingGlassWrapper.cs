@@ -1,4 +1,4 @@
-
+﻿
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.Loads;
 using GPC.Model.Glasses;
@@ -278,6 +278,10 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
+        /// <param name="loads"></param>
+        /// <param name="compressibleGas"></param>
+        /// <param name="cavitySealingPressure"></param>
+        /// <returns>The redistribution pressures for each unique loadCase</returns>
         protected (NormalAreaLoad external, NormalAreaLoad _internal)[] GetBAMNumericalRedistributionPressures(List<IGlassLoad> loads, bool compressibleGas, 
                                                         double cavitySealingPressure)
         {
@@ -290,12 +294,15 @@ namespace GPC.Checkers.Glasses.Wrappers
             // 3) risolvo solo la combo con pressione uniforme
             // 4) calcolo l'integrale di phi su tutta l'area
             // 5) sfrutto gli attributi del modello per calcolare l'integrale della forza per phi
-
+            // 6) ritorno la pressione per ridistribzione per ogni loadcase unico. Può esistere il caso in cui i carichi arrivino nello stesso loadcase, in quel caso la pressione di ridistribuzione è unica e fa riferimento alla somma degli effetti
 
             if (compressibleGas && cavitySealingPressure <= 0)
                 throw new ArgumentException("cavitySealingPressure <= 0");
 
-            (NormalAreaLoad external, NormalAreaLoad _internal)[] redistributionPressure = new (NormalAreaLoad external, NormalAreaLoad _internal)[loads.Count];
+            List<Model.LoadCases.LoadCaseBase> distinctLoadCase = loads.Select(i => i.LoadCase).Distinct().ToList();
+
+            (NormalAreaLoad external, NormalAreaLoad _internal)[] redistributionPressure = new (NormalAreaLoad external, NormalAreaLoad _internal)[distinctLoadCase.Count()];
+
             List<Model.Loads.NormalAreaLoad> normalAreaLoads = new List<Model.Loads.NormalAreaLoad>();
 
 
@@ -342,6 +349,12 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             // dimensione mesh di default 2% del massimo lato della bbox. Alla Straus
             var bbboxSize = _glassSurface.Shape.ToLocal().GetBoundingBox().Size;
+
+
+            //#region debug
+            //bbboxSize = new Point3d(150 / 0.02, 150 / 0.02, 0) ;
+            //#endregion
+
 
             var loadToFem = new List<Model.Loads.Load>();
             loadToFem.Add(new NormalAreaLoad(1, _glassSurface.Shape, lcUniformPressure));
@@ -434,6 +447,14 @@ namespace GPC.Checkers.Glasses.Wrappers
             double den = 0;
             double deltaP = 0;
             double flexuarStiffnessStar = 0;
+
+            //for (int i = 0; i < distinctLoadCase.Count(); i++)
+            //{
+            //    double h1Cube = Math.Pow(OuterGlassPanelWrapper.GetDeformationThickness(loads[i]), 3.0);
+            //    double h2Cube = Math.Pow(InnerGlassPanelWrapper.GetDeformationThickness(loads[i]), 3.0);
+
+            //}
+
 
             for (int i = 0; i < loads.Count; i++)
             {

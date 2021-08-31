@@ -12,6 +12,7 @@ namespace GPC.Checkers.Glasses.Loads
 {
     public interface IGlassLoad
     {
+
         string Name { get; } 
 
         GlassPanelWrapper.GlassPanelPositions GlassPanelPosition { get; }
