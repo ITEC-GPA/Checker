@@ -44,5 +44,21 @@ namespace GPC.Checkers.Glasses.Loads
             _glassPanelPositions = glassPanelPosition;
         }
 
+
+        public override Model.Loads.AreaLoad ConvertToAreaLoad(Plane referencePlane, double width)
+        {
+            Model.Loads.AreaLoad al = base.ConvertToAreaLoad(referencePlane, width);
+
+            return new GPC.Checkers.Glasses.Loads.AreaLoad(al.P1, al.P2, al.P3, al.Shape, GlassLoadCase, GlassPanelPosition);
+        }
+
+        public override Model.Loads.NormalAreaLoad ConvertToNormalAreaLoad(Plane referencePlane, double width)
+        {
+            var nl = base.ConvertToNormalAreaLoad(referencePlane, width);
+
+            return new GPC.Checkers.Glasses.Loads.NormalAreaLoad(nl.Pressure, nl.Shape, GlassLoadCase, GlassPanelPosition);
+        }
+
+
     }
 }

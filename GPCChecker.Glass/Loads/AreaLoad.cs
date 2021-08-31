@@ -52,6 +52,13 @@ namespace GPC.Checkers.Glasses.Loads
             }
         }
 
+        public override Model.Loads.NormalAreaLoad ConvertToNormalAreaLoad()
+        {
+            var nl = base.ConvertToNormalAreaLoad();
+
+            return new GPC.Checkers.Glasses.Loads.NormalAreaLoad(nl.Pressure, nl.Shape, GlassLoadCase, GlassPanelPosition);
+        }
+
 
         public static bool operator ==(AreaLoad obj1, AreaLoad obj2)
         {
