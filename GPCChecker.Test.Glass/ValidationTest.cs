@@ -1035,11 +1035,11 @@ namespace GlassTests
 
             double majorSide = 2000;
             double minorSide = 1000;
-            double loadHeight = 500;
+            double loadHeight = 1000;
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
 
-            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 5, GetGlassMaterialEn16612());
-            MonolithicGlass mg2 = new MonolithicGlass("Mg1", 5, GetGlassMaterialEn16612());
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 6, GetGlassMaterialEn16612());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg1", 6, GetGlassMaterialEn16612());
 
             Interlayer[] interlayers = new Interlayer[] { new Interlayer("int1", 0.76, GetInterlayerMaterial()) };
 
@@ -1049,7 +1049,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, 
-                                        Prototype.LaminatedEqThicknessBoundaryConditions.Other,
+                                        Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
                                         majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
@@ -1075,7 +1075,7 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.LaminatedGlassWrapper lgw = new GPC.Checkers.Glasses.Wrappers.LaminatedGlassWrapper(gs1, lg);
             lgw.AddExternalFaceLoad(load1);
-            //lgw.AddExternalFaceLoad(load2);
+            lgw.AddExternalFaceLoad(load2);
 
             lgw.CalculateEquivalentThicknesses();
 
@@ -1094,9 +1094,9 @@ namespace GlassTests
 
             Assert.AreEqual(0.23333, shearModule, 0.001, shearModule.ToString()); // valore di G su cui sono tarati gli expected value sotto
 
-            Assert.AreEqual(6.772, tw,  0.01, tw.ToString());
-            Assert.AreEqual(7.619, ts1, 0.01, ts1.ToString());
-            Assert.AreEqual(7.619, ts2, 0.01, ts2.ToString());
+            Assert.AreEqual(8.276, tw,  0.01, tw.ToString());
+            Assert.AreEqual(9.300, ts1, 0.01, ts1.ToString());
+            Assert.AreEqual(9.300, ts2, 0.01, ts2.ToString());
 
         }
 
