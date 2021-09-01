@@ -1033,8 +1033,8 @@ namespace GlassTests
 
             Model model = new Model(base.GetOutputFolder());
 
-            double majorSide = 1000;
-            double minorSide = 800;
+            double majorSide = 2000;
+            double minorSide = 1000;
             double loadHeight = 500;
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
 
@@ -1049,7 +1049,7 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
                                         Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
                                         new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET, 
-                                        Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
+                                        Prototype.LaminatedEqThicknessBoundaryConditions.Other,
                                         majorSide, minorSide), null);
 
             p1.MeshOptions.MeshSize = 25;
@@ -1066,7 +1066,7 @@ namespace GlassTests
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
             LineLoad load1 = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, loadHeight + loadWidth, 0), new Point3d(minorSide, loadHeight + loadWidth, 0)), lcPressure);
-            //LineLoad load2 = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, loadHeight - loadWidth, 0), new Point3d(minorSide, loadHeight - loadWidth, 0)), lcPressure);
+            LineLoad load2 = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, loadHeight - loadWidth, 0), new Point3d(minorSide, loadHeight - loadWidth, 0)), lcPressure);
 
             // Surface
 
@@ -1104,7 +1104,7 @@ namespace GlassTests
         [TestMethod]
         [TestCategory("V-EQT-EET10")]
         [TestCategory("Layers: 2")]
-        [TestCategory("Double Linear load")]
+        [TestCategory("Linear load")]
         public void EQTEET10()
         {
             RunApiServer();
@@ -1144,7 +1144,6 @@ namespace GlassTests
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
             LineLoad load1 = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, loadHeight, 0), new Point3d(minorSide, loadHeight, 0)), lcPressure);
-            //LineLoad load2 = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, loadHeight - loadWidth, 0), new Point3d(minorSide, loadHeight - loadWidth, 0)), lcPressure);
 
             // Surface
 
@@ -1172,9 +1171,9 @@ namespace GlassTests
 
             Assert.AreEqual(0.23333, shearModule, 0.001, shearModule.ToString()); // valore di G su cui sono tarati gli expected value sotto
 
-            Assert.AreEqual(7.769, tw, 0.01, tw.ToString());
-            Assert.AreEqual(8.731, ts1, 0.01, ts1.ToString());
-            Assert.AreEqual(8.731, ts2, 0.01, ts2.ToString());
+            Assert.AreEqual(8.322, tw, 0.001, tw.ToString());
+            Assert.AreEqual(9.350, ts1, 0.001, ts1.ToString());            
+            Assert.AreEqual(9.350, ts2, 0.001, ts2.ToString());
 
         }
 

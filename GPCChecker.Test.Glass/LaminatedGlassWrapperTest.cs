@@ -371,14 +371,16 @@ namespace GlassTests
 
 
         [TestMethod]
-        public void EquivalentThicknessEETPsiCoefficient()
+        public void EquivalentThicknessEETPsiCoefficient1()
         {
 
             Model model = new Model(base.GetOutputFolder());
 
-            double majorSide = 1000;
-            double minorSide = 2000;
-            double loadHeight = 350 / 2.0;
+            double majorSide = 2000;
+            double minorSide = 1000;
+            double loadHeight = 350/2.0;
+            double loadWidth = 350;
+
             Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
 
             MonolithicGlass mg1 = new MonolithicGlass("Mg1", 6, GetGlassMaterialEn16612());
@@ -404,7 +406,9 @@ namespace GlassTests
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
-            LineLoad load1 = new LineLoad(0, 0, 1, 0, 0, 0, new Line3d(new Point3d(0, loadHeight, 0), new Point3d(minorSide, loadHeight, 0)), lcPressure);
+            Shape loadShape = GetRectangularShape(new Point3d(0, loadHeight - loadWidth / 2.0, 0), new Vector3d(minorSide, loadWidth, 0));
+
+            NormalAreaLoad load1 = new NormalAreaLoad(-1, loadShape, lcPressure);
 
             LaminatedGlassWrapperMock lgw = new LaminatedGlassWrapperMock(gs1, lg);
 
@@ -417,12 +421,67 @@ namespace GlassTests
 
             Task.WaitAll(new[] { task });
 
-            double expected = 0.000060224;
+            double expected = 0.000016454;
             Assert.AreEqual(expected, task.Result.Item2, expected / 1000);
 
         }
 
 
+        [TestMethod]
+        public void EquivalentThicknessEETPsiCoefficient2()
+        {
+
+            Model model = new Model(base.GetOutputFolder());
+
+            double majorSide = 2000;
+            double minorSide = 1000;
+            double loadHeight = 350 / 2.0;
+            double loadWidth = 350;
+
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(majorSide, minorSide, 0));
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 6, GetGlassMaterialEn16612());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg1", 6, GetGlassMaterialEn16612());
+
+            Interlayer[] interlayers = new Interlayer[] { new Interlayer("int1", 0.76, GetInterlayerMaterial()) };
+
+            LaminatedGlass lg = new LaminatedGlass("Lg1", new MonolithicGlass[] { mg1, mg2 }, interlayers);
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", lg, null, null, null, Prototype.Standards.EN16612, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                                        Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
+                                        new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET,
+                                        Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
+                                        Math.Max(majorSide, minorSide), Math.Min(majorSide, minorSide)), null);
+
+            p1.MeshOptions.MeshSize = 25;
+            p1.MeshOptions.Algorithm = Mesh.GenerateOptions.MeshAlgorithm.PackingOfParallelograms;
+
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            model.AddSurface(gs1);
+
+            // Load
+            LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            Shape loadShape = GetRectangularShape(new Point3d(0, loadHeight - loadWidth / 2.0, 0), new Vector3d(majorSide, loadWidth, 0));
+
+            NormalAreaLoad load1 = new NormalAreaLoad(-1, loadShape, lcPressure);
+
+            LaminatedGlassWrapperMock lgw = new LaminatedGlassWrapperMock(gs1, lg);
+
+            var parameters = new Prototype.LaminatedEqThicknessParameters(Prototype.LaminatedEqThicknessMethods.EET,
+                                                                          Prototype.LaminatedEqThicknessBoundaryConditions.RectangularFourSidesSimplySupported,
+                                                                          Math.Max(majorSide, minorSide),
+                                                                          Math.Min(majorSide, minorSide));
+
+            var task = lgw.GetEETFourSidePsiConcentratedLoadMockAsync(load1, parameters);
+
+            Task.WaitAll(new[] { task });
+
+            double expected = 0.000014387;
+            Assert.AreEqual(expected, task.Result.Item2, expected / 1000);
+
+        }
         #endregion
 
 
