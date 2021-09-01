@@ -13,7 +13,7 @@ using System.Collections.Generic;
 namespace GlassTests
 {
     [TestClass]
-    public class GlassWrapperTest : GlassTestBase
+    public class LaminatedGlassWrapperTest : GlassTestBase
     {
 
 
