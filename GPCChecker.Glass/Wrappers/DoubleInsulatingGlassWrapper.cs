@@ -190,18 +190,18 @@ namespace GPC.Checkers.Glasses.Wrappers
             if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.External)
             {
                 externalPanelLoad = new NormalAreaLoad(-load.Pressure * delta2 * (1 - fi), _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.External, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.External);
 
                 internalPanelLoad = new NormalAreaLoad(load.Pressure * delta2 * (1 - fi), _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.Internal, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.Internal);
             }
             else if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.Internal)
             {
                 externalPanelLoad = new NormalAreaLoad(+load.Pressure * delta1 * (1 - fi), _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.External, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.External);
 
                 internalPanelLoad = new NormalAreaLoad(-load.Pressure * delta1 * (1 - fi), _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.Internal, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.Internal);
             }
             else
                 throw new NotSupportedException();
@@ -262,16 +262,16 @@ namespace GPC.Checkers.Glasses.Wrappers
             if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.External)
             {
                 externalPanelLoad = new NormalAreaLoad(load.Pressure * lsf1 - load.Pressure, _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.External, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.External);
                 internalPanelLoad = new NormalAreaLoad(load.Pressure * lsf2, _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.Internal, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.Internal);
             }
             else if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.Internal)
             {
                 externalPanelLoad = new NormalAreaLoad(load.Pressure * lsf1, _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.External, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.External);
                 internalPanelLoad = new NormalAreaLoad(load.Pressure * lsf2 - load.Pressure, _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.Internal, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.Internal);
             }
 
             return (externalPanelLoad, internalPanelLoad);
@@ -576,18 +576,18 @@ namespace GPC.Checkers.Glasses.Wrappers
             if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.External)
             {
                 externalPanelLoad = new NormalAreaLoad(-deltaP, _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.External, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.External);
 
                 internalPanelLoad = new NormalAreaLoad(deltaP, _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.Internal, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.Internal);
             }
             else if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.Internal)
             {
                 externalPanelLoad = new NormalAreaLoad(+deltaP, _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.External, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.External);
 
                 internalPanelLoad = new NormalAreaLoad(-deltaP, _glassSurface.Shape, load.GlassLoadCase, load.Name,
-                                                        GlassPanelWrapper.GlassPanelPositions.Internal, load.LoadRestrainCondition);
+                                                        GlassPanelWrapper.GlassPanelPositions.Internal);
             }
             else
                 throw new NotSupportedException();

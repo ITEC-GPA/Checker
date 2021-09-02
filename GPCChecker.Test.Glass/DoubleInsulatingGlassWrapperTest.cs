@@ -13,7 +13,7 @@ using System.Collections.Generic;
 namespace GlassTests
 {
     [TestClass]
-    public class DoubleInsulatingGlassTest : GlassTestBase
+    public class DoubleInsulatingGlassWrapperTest : GlassTestBase
     {
 
         private double GetLoadSharingPressureTheoretical(double phiA, double h1, double h2, double E, double ni, double pressure)
