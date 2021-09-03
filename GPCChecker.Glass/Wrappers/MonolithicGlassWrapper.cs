@@ -27,24 +27,23 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// <returns>Glass thickness for deformation analysis</returns>
         public double GetDeformationThickness()
         {
-            return (Glass as MonolithicGlass).Thickness;
+            return ((MonolithicGlass)Glass).Thickness;
         }
 
-
-        public override double GetDeformationThickness(IGlassLoad load)
+        public override double GetDeformationThickness(string loadCaseName)
         {
-            return (Glass as MonolithicGlass).Thickness;
+            return ((MonolithicGlass)Glass).Thickness;
         }
 
         /// <returns>Glass thickness for stress analysis</returns>
         public double GetStressThickness()
         {
-            return (Glass as MonolithicGlass).Thickness;
+            return ((MonolithicGlass)Glass).Thickness;
         }
 
-        public override double[] GetStressThickness(IGlassLoad load)
+        public override double[] GetStressThickness(string loadCaseName)
         {
-            return new[] { (Glass as MonolithicGlass).Thickness };
+            return new[] { ((MonolithicGlass)Glass).Thickness };
         }
 
         public override double GetTotalThickness()
@@ -61,16 +60,16 @@ namespace GPC.Checkers.Glasses.Wrappers
         {
             return ((MonolithicGlass)Glass).GetPoissonRatios();
         }
-
+        
+        /// <inheritdoc cref="GlassPanelWrapper.GetSelfWeightPerUnitArea()"/>
         public override double GetSelfWeightPerUnitArea()
         {
-            // mm * T/mm3 => T / mm2
             return ((MonolithicGlass)Glass).GetSelfWeightPerUnitArea();
         }
 
+        /// <inheritdoc cref="GlassPanelWrapper.GetSelfWeightTotal()"/>
         public override double GetSelfWeightTotal()
         {
-            // mm2 * mm * T/mm3 => T
             return _glassSurface.Shape.GetArea() * GetSelfWeightPerUnitArea();
         }
 
