@@ -633,5 +633,86 @@ namespace GlassTests
             Assert.AreEqual(+deltaPExpected, loadSharing[1].FirstOrDefault().Pressure, Math.Abs(deltaPExpected * 0.001));
 
         }
+
+
+
+        [TestMethod]
+        [TestCategory("BAM")]
+        [TestCategory("Numerical")]
+        [TestCategory("Monolithic")]
+        [TestCategory("LineLoad")]
+        public void LoadSharing9()
+        {
+            RunApiServer();
+
+
+            /*
+             * Stesso carico di segno opposto in due lastre diverse
+             */
+            Model model = new Model(base.GetOutputFolder());
+
+            double minorSide = 1000;
+            double majorSide = 2500;
+            double loadHeight = 2500 / 2.0 - 50;
+            Shape s1 = GetRectangularShape(new Point3d(0, 0, 0), new Vector3d(minorSide, majorSide, 0));
+
+            MonolithicGlass mg1 = new MonolithicGlass("Mg1", 6, GetGlassMaterialEn16612());
+            MonolithicGlass mg2 = new MonolithicGlass("Mg1", 6, GetGlassMaterialEn16612());
+            AirChamber airChamber = new AirChamber("Ac", 15);
+
+            DoubleInsulatingGlass dgu = new DoubleInsulatingGlass("Dgu", mg1, mg2, airChamber);
+
+            // Prototype
+            Prototype p1 = new Prototype("p1", dgu, null, null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis,
+                                                                      Prototype.CheckMethods.DominantLoad, Prototype.Solvers.Straus7,
+                                                                      Prototype.LaminatedAnalysisTypes.MultiElement,
+                                                                      new Prototype.LaminatedEqThicknessParameters(), null);
+            p1.MeshOptions.MeshSize = 150;
+
+            // Load
+            LoadCase loadCase1 = new LoadCase("Wind1", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
+
+            LineLoad load1 = new LineLoad(0, 0, 1.5, 0, 0, 0, new Line3d(new Point3d(0, loadHeight, 0), new Point3d(minorSide, loadHeight, 0)), loadCase1,
+                                                            GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.External);
+            LineLoad load2 = new LineLoad(0, 0, -load1.F3, 0, 0, 0, load1.Line, load1.GlassLoadCase,
+                                                            GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.Internal);
+
+            // Surface
+            GlassSurface gs1 = new GlassSurface(p1, s1);
+            model.AddSurface(gs1);
+
+
+            GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
+
+            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { load1, load2 }, p1.Standard, false);
+
+            Assert.IsTrue(loadSharing.Count() == 2);
+
+
+            // confronto con tabelle paper Laura: Pratical design dgus
+            // CARICO 1
+            // viene rimpiazzato dal due in quanto stesso lc
+            double phiL = GetPhiLTheoretical(majorSide, minorSide, loadHeight);
+            double phiA = GetPhiATheoretical(majorSide, minorSide);
+
+            var deltaPExpected1 = GetLoadSharingLineLoadTheoretical(phiA, phiL, mg1.Thickness, mg2.Thickness, mg1.GetElasticModulus(), mg1.GetPoissonRatios(),
+                                                                               load1.F3, load1.Line.GetLength(), gs1.GetArea());
+
+            var deltaPExpected2 = GetLoadSharingLineLoadTheoretical(phiA, phiL, mg2.Thickness, mg1.Thickness, mg2.GetElasticModulus(), mg2.GetPoissonRatios(),
+                                                                               load2.F3, load2.Line.GetLength(), gs1.GetArea());
+
+
+            Console.WriteLine($"PhiL: {phiL} ");
+            Console.WriteLine($"PhiA: {phiA} ");
+
+            Console.WriteLine($"Numerical DeltaP: {loadSharing[0].FirstOrDefault().Pressure} ");
+            Console.WriteLine($"Expected1 DeltaP: {deltaPExpected1} ");
+            Console.WriteLine($"Expected2 DeltaP: {deltaPExpected2} ");
+
+
+            Assert.AreEqual(-deltaPExpected1- deltaPExpected2, loadSharing[0].FirstOrDefault().Pressure, Math.Abs((deltaPExpected1 - deltaPExpected2) * 0.001));
+            Assert.AreEqual(+deltaPExpected1 - deltaPExpected2, loadSharing[1].FirstOrDefault().Pressure, Math.Abs((deltaPExpected1 - deltaPExpected2) * 0.001));
+
+        }
     }
 }

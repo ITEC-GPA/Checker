@@ -1,4 +1,4 @@
-﻿
+
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Checkers.Glasses.Loads;
 using GPC.Model.Glasses;
@@ -40,7 +40,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         /// <inheritdoc cref="InsulatedGlassWrapper.GetRedistributionPressures(IEnumerable{IGlassLoad}, Models.Prototype.Standards, bool, double)"/>>
         /// <returns>
-        /// An array of loads. 
+        /// An array of loads. Each load correspond to a different loadcase
         /// First index: External slab load. 
         /// Second index: Internal slab load.
         /// </returns>
@@ -367,11 +367,6 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             if (glassLoadCaseNormalAreaLoadMapInternal != null)
                 loadToFemInternal.AddRange(glassLoadCaseNormalAreaLoadMapInternal.SelectMany(i => i.Value).ToList());
-
-            //.Where(i => i.Value.Count() > 1 ||
-            //                          (i.Value.Count() == 1 && i.Value.OfType<NormalAreaLoad>().Select(j => j.Shape.Equals(_glassSurface.Shape)).Count() > 0))
-            //                          .SelectMany(i => i.Value)
-            //                          .ToList()
 
 
             // dimensione mesh di default 2% del massimo lato della bbox. Alla Straus

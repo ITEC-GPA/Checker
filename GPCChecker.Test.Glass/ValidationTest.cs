@@ -1094,9 +1094,9 @@ namespace GlassTests
 
             Assert.AreEqual(0.23333, shearModule, 0.001, shearModule.ToString()); // valore di G su cui sono tarati gli expected value sotto
 
-            Assert.AreEqual(8.276, tw,  0.01, tw.ToString());
-            Assert.AreEqual(9.300, ts1, 0.01, ts1.ToString());
-            Assert.AreEqual(9.300, ts2, 0.01, ts2.ToString());
+            Assert.AreEqual(8.312, tw, 8.312 * 0.01, tw.ToString());
+            Assert.AreEqual(9.339, ts1, 9.339 * 0.01, ts1.ToString());
+            Assert.AreEqual(9.339, ts2, 9.339 * 0.01, ts2.ToString());
 
         }
 
@@ -1280,12 +1280,7 @@ namespace GlassTests
         [TestCategory("Uniform pressure")]
         public void BAMDGU3()
         {
-            /*
-             * Carico due rimpiazza il carico uno in quanto lc è lo stesso
-             *  
-             */
-
-
+            
             RunApiServer();
 
             Model model = new Model(base.GetOutputFolder());
@@ -1311,7 +1306,7 @@ namespace GlassTests
 
             LineLoad load1 = new LineLoad(0, 0, 2.0, 0, 0, 0, new Line3d(new Point3d(0, loadHeight, 0), new Point3d(minorSide, loadHeight, 0)), loadCase, 
                                                             GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.External);
-            LineLoad load2 = new LineLoad(0, 0, 1.5, 0, 0, 0, new Line3d(new Point3d(0, loadHeight, 0), new Point3d(minorSide, loadHeight, 0)), loadCase, 
+            LineLoad load2 = new LineLoad(0, 0, 1.5, 0, 0, 0, load1.Line, loadCase, 
                                                             GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.Internal);
 
             // Surface
@@ -1321,14 +1316,14 @@ namespace GlassTests
 
             GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper dguw = new GPC.Checkers.Glasses.Wrappers.DoubleInsulatingGlassWrapper(gs1, dgu);
 
-            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { load1, load2 }, p1.Standard, false);
+            var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { load1 , load2}, p1.Standard, false);
 
-            double expectedLoad1 = 0.0003012;
+            double expectedLoad1 = 0.0000858;
 
-            Assert.IsTrue(loadSharing[0].Count == 2, loadSharing[0].Count.ToString());
+            Assert.IsTrue(loadSharing[0].Count == 1, loadSharing[0].Count.ToString());
 
-            Assert.AreEqual(-expectedLoad1, loadSharing[0].Cast<NormalAreaLoad>().ToList()[0].Pressure, expectedLoad1 * 0.001);
-            Assert.AreEqual(+expectedLoad1, loadSharing[1].Cast<NormalAreaLoad>().ToList()[0].Pressure, expectedLoad1 * 0.001);
+            Assert.AreEqual(-expectedLoad1, loadSharing[0].Cast<NormalAreaLoad>().ToList()[0].Pressure, expectedLoad1 * 0.05);
+            Assert.AreEqual(+expectedLoad1, loadSharing[1].Cast<NormalAreaLoad>().ToList()[0].Pressure, expectedLoad1 * 0.05);
 
         }
 
