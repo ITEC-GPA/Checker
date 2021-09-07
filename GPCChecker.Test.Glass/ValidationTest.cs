@@ -1277,7 +1277,7 @@ namespace GlassTests
 
         [TestMethod]
         [TestCategory("V-BAM-DGU3")]
-        [TestCategory("Uniform pressure")]
+        [TestCategory("Double line load")]
         public void BAMDGU3()
         {
             
