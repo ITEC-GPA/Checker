@@ -24,7 +24,7 @@ namespace GPC.Checkers.Glasses.Loads
 
         public NormalAreaLoad(double pressure, Shape shape, IGlassLoadCase loadCase, 
                               GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External)
-            : base(pressure, shape, (LoadCaseBase)loadCase)
+            : base(Convert.ToDouble(pressure), shape, (LoadCaseBase)loadCase)
         {
             _glassPanelPositions = glassPanelPosition;
         }

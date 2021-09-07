@@ -377,17 +377,15 @@ namespace GlassTests
                                                            new Point3d(0, loadHeight3, 0) });
 
 
-            NormalAreaLoad punctualLoadWp1 = new NormalAreaLoad(-1, loadShape1, lcPressure, "l1");
+            NormalAreaLoad punctualLoadWp1 = new NormalAreaLoad(-1.0, loadShape1, lcPressure, "l1");
             lgw.AddExternalFaceLoad(punctualLoadWp1);
 
-            NormalAreaLoad punctualLoadWp2 = new NormalAreaLoad(-10 / 1000.0, loadShape2, lcPressure, "Load2");
+            NormalAreaLoad punctualLoadWp2 = new NormalAreaLoad(-1.0, loadShape2, lcPressure, "Load2");
             lgw.AddExternalFaceLoad(punctualLoadWp2);
 
             lgw.CalculateEquivalentThicknesses();
 
-
             Assert.IsTrue(lgw.ThicknessesW.Count() == 1);
-
 
             double tw1 = lgw.ThicknessesW.FirstOrDefault(i => i.Key == punctualLoadWp1.GlassLoadCase.Name).Value;
             double ts11 = lgw.ThicknessesStress[0].FirstOrDefault(i => i.Key == punctualLoadWp1.GlassLoadCase.Name).Value;
@@ -404,9 +402,9 @@ namespace GlassTests
 
             Assert.AreEqual(0.23333, shearModule1, 0.001, shearModule1.ToString()); // valore di G su cui sono tarati gli expected value sotto
 
-            Assert.AreEqual(7.057, tw1, 0.01, tw1.ToString());
-            Assert.AreEqual(7.932, ts11, 0.01, ts11.ToString());
-            Assert.AreEqual(7.932, ts21, 0.01, ts21.ToString());
+            Assert.AreEqual(7.134, tw1, 0.01, tw1.ToString());
+            Assert.AreEqual(8.013, ts11, 0.01, ts11.ToString());
+            Assert.AreEqual(8.013, ts21, 0.01, ts21.ToString());
         }
 
 

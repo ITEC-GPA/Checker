@@ -181,6 +181,9 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                 double fi = 1.0 / (1.0 + Math.Pow(minDimension / aStar, 4.0));
 
+                if (!redistributionPressures.ContainsKey(load.GlassLoadCase))
+                    redistributionPressures[load.GlassLoadCase] = 0;
+
                 if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.External)
                 {
                     redistributionPressures[load.GlassLoadCase] += delta2 * (1 - fi);
@@ -218,6 +221,9 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                 double lsf1 = h1Cube / (h1Cube + h2Cube);
                 double lsf2 = h2Cube / (h1Cube + h2Cube);
+
+                if (!redistributionPressures.ContainsKey(load.GlassLoadCase))
+                    redistributionPressures[load.GlassLoadCase] = 0;
 
                 if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.External)
                 {

@@ -1251,8 +1251,8 @@ namespace GlassTests
             // Load
             LoadCase lcPressure = new LoadCase("Wind", EN16612LoadDurations.WIND, 30, GPC.Model.LoadCases.LoadCase.LoadCaseTypes.WindPressure);
 
-            NormalAreaLoad loadWp1 = new NormalAreaLoad(3, s1, lcPressure, "wp1", GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.External);
-            NormalAreaLoad loadWp2 = new NormalAreaLoad(2, s1, lcPressure, "wp2", GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.Internal);
+            NormalAreaLoad loadWp1 = new NormalAreaLoad(+3, s1, lcPressure, "wp1", GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.External);
+            NormalAreaLoad loadWp2 = new NormalAreaLoad(+2, s1, lcPressure, "wp2", GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.Internal);
             NormalAreaLoad loadWp3 = new NormalAreaLoad(-2, s1, lcPressure, "wp2", GPC.Checkers.Glasses.Wrappers.GlassPanelWrapper.GlassPanelPositions.Internal);
 
             // Surface
@@ -1262,15 +1262,10 @@ namespace GlassTests
 
             var loadSharing = dguw.GetRedistributionPressures(new List<IGlassLoad>() { loadWp1, loadWp2, loadWp3 }, p1.Standard, false);
 
-
+            Assert.IsTrue(loadSharing[0].Count == 1);
+            
             Assert.AreEqual(-2.819, loadSharing[0].Cast<NormalAreaLoad>().ToList()[0].Pressure, 0.001);
             Assert.AreEqual(+2.819, loadSharing[1].Cast<NormalAreaLoad>().ToList()[0].Pressure, 0.001);
-
-            Assert.AreEqual(+0.1203, loadSharing[0].Cast<NormalAreaLoad>().ToList()[1].Pressure, 0.001);
-            Assert.AreEqual(-0.1203, loadSharing[1].Cast<NormalAreaLoad>().ToList()[1].Pressure, 0.001);
-
-            Assert.AreEqual(-0.1203, loadSharing[0].Cast<NormalAreaLoad>().ToList()[2].Pressure, 0.001);
-            Assert.AreEqual(+0.1203, loadSharing[1].Cast<NormalAreaLoad>().ToList()[2].Pressure, 0.001);
         }
 
 
