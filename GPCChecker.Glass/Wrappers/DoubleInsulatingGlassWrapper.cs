@@ -62,39 +62,56 @@ namespace GPC.Checkers.Glasses.Wrappers
             {
                 if (!compressibleGas)
                 {
+
+                    /*
+                     *              int
+                     *              _______________________
+                     *                       ˄
+                     *       ˄               | DeltaP positivo per teoria
+                     *       |z       
+                     *                       | DeltaP Positivo per teoria
+                     *              _________˅_____________
+                     *              ext
+                     */
+
+                    // si cambia segno a lastra esterna in quanto è inversa alla normale
+
                     List<NormalAreaLoad> normalAreaLoads = loadsToProcess.Where(i => i.GetType() == typeof(NormalAreaLoad)).Select(i => (NormalAreaLoad)i).ToList();
-                    
-                    if (standard == Models.Prototype.Standards.EN16612)
-                    {
-                        
-                        foreach (KeyValuePair<IGlassLoadCase, double> nal in GetEN16612RedistributionPressure(normalAreaLoads))
-                        {
-                            redistributionPressure[0].Add(new NormalAreaLoad(-nal.Value, _glassSurface.Shape, nal.Key, GlassPanelWrapper.GlassPanelPositions.External));
-                            redistributionPressure[1].Add(new NormalAreaLoad(+nal.Value, _glassSurface.Shape, nal.Key, GlassPanelWrapper.GlassPanelPositions.Internal));
-                        }
 
-                        foreach (var item in normalAreaLoads)
-                        {
-                            loadsToProcess.Remove(item);
-                        }
-                    }
-                    else if (standard == Models.Prototype.Standards.ASTME1300)
+                    if (normalAreaLoads.Count != 0)
                     {
-
-                        foreach (KeyValuePair<IGlassLoadCase, double> nal in GetASTME1300RedistributionPressure(normalAreaLoads))
+                        if (standard == Models.Prototype.Standards.EN16612)
                         {
-                            redistributionPressure[0].Add(new NormalAreaLoad(-nal.Value, _glassSurface.Shape, nal.Key, GlassPanelWrapper.GlassPanelPositions.External));
-                            redistributionPressure[1].Add(new NormalAreaLoad(+nal.Value, _glassSurface.Shape, nal.Key, GlassPanelWrapper.GlassPanelPositions.Internal));
-                        }
 
-                        foreach (var item in normalAreaLoads)
-                        {
-                            loadsToProcess.Remove(item);
+                            foreach (KeyValuePair<IGlassLoadCase, double> nal in GetEN16612RedistributionPressure(normalAreaLoads))
+                            {
+                                redistributionPressure[0].Add(new NormalAreaLoad(-nal.Value, _glassSurface.Shape, nal.Key, GlassPanelWrapper.GlassPanelPositions.External));
+                                redistributionPressure[1].Add(new NormalAreaLoad(+nal.Value, _glassSurface.Shape, nal.Key, GlassPanelWrapper.GlassPanelPositions.Internal));
+                            }
+
+                            foreach (var item in normalAreaLoads)
+                            {
+                                loadsToProcess.Remove(item);
+                            }
                         }
-                    }
-                    else
-                    {
-                        // passiamo ad altri metodi senza lanciare errori
+                        else if (standard == Models.Prototype.Standards.ASTME1300)
+                        {
+
+                            foreach (KeyValuePair<IGlassLoadCase, double> nal in GetASTME1300RedistributionPressure(normalAreaLoads))
+                            {
+                                redistributionPressure[0].Add(new NormalAreaLoad(-nal.Value, _glassSurface.Shape, nal.Key, GlassPanelWrapper.GlassPanelPositions.External));
+                                redistributionPressure[1].Add(new NormalAreaLoad(+nal.Value, _glassSurface.Shape, nal.Key, GlassPanelWrapper.GlassPanelPositions.Internal));
+                            }
+
+                            foreach (var item in normalAreaLoads)
+                            {
+                                loadsToProcess.Remove(item);
+                            }
+                        }
+                        else
+                        {
+                            // passiamo ad altri metodi senza lanciare errori
+                        } 
                     }
 
 
@@ -186,11 +203,11 @@ namespace GPC.Checkers.Glasses.Wrappers
 
                 if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.External)
                 {
-                    redistributionPressures[load.GlassLoadCase] += delta2 * (1 - fi);
+                    redistributionPressures[load.GlassLoadCase] += delta2 * (1 - fi) * load.Pressure;
                 }
                 else if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.Internal)
                 {
-                    redistributionPressures[load.GlassLoadCase] += delta1 * (1 - fi);
+                    redistributionPressures[load.GlassLoadCase] += - delta1 * (1 - fi) * load.Pressure;
                 }
                 else
                     throw new NotSupportedException();
@@ -231,7 +248,7 @@ namespace GPC.Checkers.Glasses.Wrappers
                 }
                 else if (load.GlassPanelPosition == GlassPanelWrapper.GlassPanelPositions.Internal)
                 {
-                    redistributionPressures[load.GlassLoadCase] += load.Pressure * lsf1;
+                    redistributionPressures[load.GlassLoadCase] += - load.Pressure * lsf1;
                 }
                 else
                     throw new NotSupportedException();
@@ -385,9 +402,9 @@ namespace GPC.Checkers.Glasses.Wrappers
                 throw new ArithmeticException("Internal and External psi internal are different");
             }
 
-            System.Diagnostics.Debug.WriteLine($"EXT:{taskExt.Result.psiAreaIntegral} " +
-                                               $"INT:{taskInt.Result.psiAreaIntegral} " +
-                                               $"{Math.Abs(taskExt.Result.psiAreaIntegral) - Math.Abs(taskInt.Result.psiAreaIntegral)}");
+            //System.Diagnostics.Debug.WriteLine($"EXT:{taskExt.Result.psiAreaIntegral} " +
+            //                                   $"INT:{taskInt.Result.psiAreaIntegral} " +
+            //                                   $"{Math.Abs(taskExt.Result.psiAreaIntegral) - Math.Abs(taskInt.Result.psiAreaIntegral)}");
 
             // CALCOLO DELLA DELTA P
 
