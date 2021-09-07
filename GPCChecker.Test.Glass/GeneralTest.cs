@@ -27,11 +27,11 @@ namespace GlassTests
             Prototype p1 = new Prototype("p1", mg, new Polygon3d(), null, null, Prototype.Standards.ASTME1300, 
                                         Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
                                         Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement, 
-                                        new Prototype.LaminatedEqThicknessParameters());
+                                        new Prototype.LaminatedEqThicknessParameters(), null);
 
             Prototype p2 = new Prototype("p1", mg, new Polygon3d(), null, null, Prototype.Standards.ASTME1300, Prototype.AnalysisTypes.LinearStaticAnalysis, Prototype.CheckMethods.DominantLoad,
                                             Prototype.Solvers.Straus7, Prototype.LaminatedAnalysisTypes.MultiElement,
-                                            new Prototype.LaminatedEqThicknessParameters());
+                                            new Prototype.LaminatedEqThicknessParameters(), null);
 
             Assert.IsTrue(p1 == p2);
         }

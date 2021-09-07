@@ -14,14 +14,29 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         }
 
-
         protected abstract void SetUpWrappers();
 
 
         public abstract override bool GenerateMesh();
 
 
-        internal abstract List<IGlassLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard);
+        /// <param name="loads"></param>
+        /// <param name="standard"></param>
+        /// <param name="compressibleGas"></param>
+        /// <param name="cavitySealingPressure">default value is the atmosferic pressure [MPa] </param>
+        internal abstract List<NormalAreaLoad>[] GetRedistributionPressures(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard, 
+                                                                bool compressibleGas, double cavitySealingPressure = 0.1 );
+
+
+        public abstract double GetMinimumElasticModulus();
+
+        public abstract double GetMinimumPoissonRatio();
+
+        public abstract double GetSelfWeightPerUnitArea();
+
+        public abstract double GetSelfWeightTotal();
+
+        public abstract double GetMaximumDensity();
 
     }
 }

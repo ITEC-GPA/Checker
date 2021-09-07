@@ -16,7 +16,6 @@ namespace GPC.Checkers.Glasses.Models
         protected string _outputFolder;
         protected UniqueIdCollection<GlassSurface> _glassSurfaces;
         protected UniqueNameCollection<Combination> _combinations;
-        protected ModelOptions _options;
 
         #endregion
 
@@ -25,8 +24,6 @@ namespace GPC.Checkers.Glasses.Models
         public string OutputFolder => _outputFolder;
 
         public IEnumerable<GlassSurface> GlassSurfaces => _glassSurfaces;
-
-        public ModelOptions Options => _options;
 
         public IEnumerable<Combination> Combinations => _combinations;
 
@@ -62,27 +59,22 @@ namespace GPC.Checkers.Glasses.Models
             else
                 throw new ArgumentNullException("Output folder cannot be null or empty");
 
-            _options = new ModelOptions();
         }
 
         #endregion
 
         #region Public methods
 
-
-        /// <summary>
-        /// Internal method to allow to use a custom <paramref name="femModelNameSuffix"/> in test enviroment
-        /// </summary>
-        internal bool AddSurface(GlassSurface glassSurface, string femModelNameSuffix = "")
+        internal bool AddSurface(GlassSurface glassSurface)
         {
             Checker checker;
             if (glassSurface.Prototype.Standard == Prototype.Standards.EN16612)
             {
-                checker = new EN16612Checker(glassSurface, MergeCombinations(_combinations, glassSurface.Prototype.Combinations), _options);
+                checker = new EN16612Checker(glassSurface, MergeCombinations(_combinations, glassSurface.Prototype.Combinations), glassSurface.Prototype.ModelOptions);
             }
             else if (glassSurface.Prototype.Standard == Prototype.Standards.ASTME1300)
             {
-                checker = new AstmChecker(glassSurface, MergeCombinations(_combinations, glassSurface.Prototype.Combinations), _options);
+                checker = new AstmChecker(glassSurface, MergeCombinations(_combinations, glassSurface.Prototype.Combinations), glassSurface.Prototype.ModelOptions);
             }
             else
             {
@@ -97,21 +89,24 @@ namespace GPC.Checkers.Glasses.Models
         }
 
 
-#if !DEBUG
-        /// <summary>
-        /// Add a surface to the model. Create the <see cref="Checker"/> and call <see cref="Checker.FemModelSetup(string)"/>
-        /// </summary>  
-#endif
-        public bool AddSurface(GlassSurface glassSurface)
-        {
-            return AddSurface(glassSurface, string.Empty);
-        }
-
         public bool RemoveSurface(GlassSurface glassSurface)
         {
             return _glassSurfaces.Remove(glassSurface);
         }
 
+        public bool FemModelsSetup(string fileNamePrefix = "")
+        {
+            bool ret = false;
+
+            foreach (var glassSurface in _glassSurfaces)
+            {
+                ret = glassSurface.FemModelSetup(_outputFolder, fileNamePrefix);
+                if (!ret)
+                    return false;
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Add a combination to the model
@@ -136,17 +131,17 @@ namespace GPC.Checkers.Glasses.Models
         /// </summary>
         public void RebuildAllCheckers()
         {
-            foreach (var surface in _glassSurfaces)
+            foreach (var glassSurface in _glassSurfaces)
             {
                 Checker checker = null;
 
-                if (surface.Prototype.Standard == Prototype.Standards.EN16612)
+                if (glassSurface.Prototype.Standard == Prototype.Standards.EN16612)
                 {
-                    checker = new EN16612Checker(surface, MergeCombinations(_combinations, surface.Prototype.Combinations), _options);
+                    checker = new EN16612Checker(glassSurface, MergeCombinations(_combinations, glassSurface.Prototype.Combinations), glassSurface.Prototype.ModelOptions);
                 }
-                else if (surface.Prototype.Standard == Prototype.Standards.ASTME1300)
+                else if (glassSurface.Prototype.Standard == Prototype.Standards.ASTME1300)
                 {
-                    checker = new AstmChecker(surface, MergeCombinations(_combinations, surface.Prototype.Combinations), _options);
+                    checker = new AstmChecker(glassSurface, MergeCombinations(_combinations, glassSurface.Prototype.Combinations), glassSurface.Prototype.ModelOptions);
                 }
                 else
                 {
@@ -155,7 +150,7 @@ namespace GPC.Checkers.Glasses.Models
 
                 if (checker.FemModelSetup(_outputFolder))
                 {
-                    surface.Checker = checker;
+                    glassSurface.Checker = checker;
                 }
                 else
                 {

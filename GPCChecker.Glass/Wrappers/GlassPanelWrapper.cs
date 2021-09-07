@@ -118,10 +118,10 @@ namespace GPC.Checkers.Glasses.Wrappers
 
 
         /// <returns>Glass thickness for deformation analysis</returns>
-        public abstract double GetDeformationThickness(IGlassLoad load);
+        public abstract double GetDeformationThickness(string loadCaseName);
 
         /// <returns>Glass thickness for stress analysis</returns>
-        public abstract double[] GetStressThickness(IGlassLoad load);
+        public abstract double[] GetStressThickness(string loadCaseName);
 
 
         /// <returns>Total thickness of the glass package included interlayer</returns>
@@ -131,8 +131,10 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         public abstract double GetPoissonRatio();
 
+        /// <returns>Weight divided per area. [L * M / L^3]  T / mm2</returns>
         public abstract double GetSelfWeightPerUnitArea();
 
+        /// <returns>Total weight. [M]</returns>
         public abstract double GetSelfWeightTotal();
 
         public abstract double GetDensity();
@@ -200,7 +202,9 @@ namespace GPC.Checkers.Glasses.Wrappers
 
         public Mesh GetGlassMeshInternal()
         {
-            return Meshes.Last();
+            if (_meshes == null)
+                throw new ArgumentNullException();
+            return _meshes.Last();
         }
 
         /// <summary>
@@ -210,13 +214,17 @@ namespace GPC.Checkers.Glasses.Wrappers
         /// <exception cref="KeyNotFoundException"></exception>
         public Mesh GetGlassMesh(int index)
         {
-            return Meshes[index];
+            if (_meshes == null)
+                throw new ArgumentNullException();
+            return _meshes[index];
         }
 
 
         public Mesh GetGlassMeshExternal()
         {
-            return Meshes.First();
+            if (_meshes == null)
+                throw new ArgumentNullException();
+            return _meshes.First();
         }
 
 

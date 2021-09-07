@@ -16,28 +16,23 @@ namespace GPC.Checkers.Glasses.Loads
     {
 
         private readonly GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
-        private readonly GlassSurface.LoadRestrainCondition _loadRestrainCondition;
 
 
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
-        public GlassSurface.LoadRestrainCondition LoadRestrainCondition => _loadRestrainCondition;
         public IGlassLoadCase GlassLoadCase => (IGlassLoadCase)base.LoadCase;
 
 
         public NormalAreaLoad(double pressure, Shape shape, IGlassLoadCase loadCase, 
-                              GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External,
-                              GlassSurface.LoadRestrainCondition loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface)
-            : base(pressure, shape, (LoadCaseBase)loadCase)
+                              GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External)
+            : base(Convert.ToDouble(pressure), shape, (LoadCaseBase)loadCase)
         {
             _glassPanelPositions = glassPanelPosition;
-            _loadRestrainCondition = loadRestrainCondition;
         }
 
         internal NormalAreaLoad(double pressure, Shape shape, IGlassLoadCase loadCase,
                                 string name,
-                                GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External,
-                                GlassSurface.LoadRestrainCondition loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface)
-                : this(pressure, shape, loadCase, glassPanelPosition, loadRestrainCondition)
+                                GlassPanelWrapper.GlassPanelPositions glassPanelPosition = GlassPanelWrapper.GlassPanelPositions.External)
+                : this(pressure, shape, loadCase, glassPanelPosition)
         {
             _name = name;
         }
@@ -49,7 +44,6 @@ namespace GPC.Checkers.Glasses.Loads
 
             return obj is NormalAreaLoad load &&
                    _glassPanelPositions == load._glassPanelPositions &&
-                   _loadRestrainCondition == load._loadRestrainCondition &&
                    base.Equals(obj);
         }
 
@@ -61,7 +55,6 @@ namespace GPC.Checkers.Glasses.Loads
                 int hashCode = -23;
                 hashCode = hashCode * -17 + base.GetHashCode();
                 hashCode = hashCode * -17 + _glassPanelPositions.GetHashCode();
-                hashCode = hashCode * -17 + _loadRestrainCondition.GetHashCode();
                 return hashCode;
             }
         }

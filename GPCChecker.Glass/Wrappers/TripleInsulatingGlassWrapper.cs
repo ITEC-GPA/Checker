@@ -57,9 +57,48 @@ namespace GPC.Checkers.Glasses.Wrappers
         }
 
 
-        internal override List<IGlassLoad>[] GetLoadSharing(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard)
+        /// <inheritdoc cref="InsulatedGlassWrapper.GetRedistributionPressures(IEnumerable{IGlassLoad}, Models.Prototype.Standards, bool, double)"/>>
+        /// <returns>
+        /// An array of loads. 
+        /// First index: External slab load. 
+        /// Second index: Central slab load.
+        /// Third index: Internal slab load.
+        /// </returns>
+        internal override List<NormalAreaLoad>[] GetRedistributionPressures(IEnumerable<IGlassLoad> loads, Models.Prototype.Standards standard, 
+                                                                bool compressibleGas, double cavitySealingPressure = 0.1)
         {
             throw new NotImplementedException();
+        }
+
+
+        public override double GetMinimumElasticModulus()
+        {
+            return Math.Min(Math.Min(_outerGlassPanelWrapper.GetElasticModulus(), 
+                                     _centerGlassPanelWrapper.GetElasticModulus()), _innerGlassPanelWrapper.GetElasticModulus());
+        }
+
+        public override double GetMinimumPoissonRatio()
+        {
+            return Math.Min(Math.Min(_outerGlassPanelWrapper.GetPoissonRatio(),
+                                     _centerGlassPanelWrapper.GetPoissonRatio()), _innerGlassPanelWrapper.GetPoissonRatio());
+        }
+
+        public override double GetSelfWeightPerUnitArea()
+        {
+            return _outerGlassPanelWrapper.GetSelfWeightPerUnitArea() + _centerGlassPanelWrapper.GetSelfWeightPerUnitArea() 
+                                                                      + _innerGlassPanelWrapper.GetSelfWeightPerUnitArea();
+        }
+
+        public override double GetSelfWeightTotal()
+        {
+            return _outerGlassPanelWrapper.GetSelfWeightTotal() + _centerGlassPanelWrapper.GetSelfWeightTotal() 
+                                                                + _innerGlassPanelWrapper.GetSelfWeightTotal();
+        }
+
+        public override double GetMaximumDensity()
+        {
+            return Math.Max(Math.Max(_outerGlassPanelWrapper.GetDensity(), _centerGlassPanelWrapper.GetDensity()),
+                                     _innerGlassPanelWrapper.GetDensity());
         }
     }
 }
