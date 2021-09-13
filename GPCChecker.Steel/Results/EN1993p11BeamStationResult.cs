@@ -98,7 +98,7 @@ namespace GPC.Checkers.Steel.Results
         protected double _shearArea2;
 
         protected double _cmX0;
-        protected double _cmy0;
+        protected double _cmY0;
 
         protected double _mux;
         protected double _muy;
@@ -194,7 +194,6 @@ namespace GPC.Checkers.Steel.Results
         /// </summary>
         public double CrossSectionInteraction => _crossSectionInteraction;
 
-
         /// <summary>
         /// Buckling interaction working ration about 1-principal axis §6.3.3
         /// </summary>
@@ -204,7 +203,12 @@ namespace GPC.Checkers.Steel.Results
         /// Buckling interaction working ration about 2-principal axis §6.3.3
         /// </summary>
         public double BucklingInteraction2Axis => _bucklingInteraction2Axis;
-                                       
+
+        /// <summary>
+        /// Flexural-Torsional Interaction working ratio §Annex A
+        /// </summary>
+        public double FlexuralTorsionalInteraction => _flexuralTorsionalInteraction;
+
         /// <summary>
         /// The max working ratio 
         /// </summary>
@@ -298,15 +302,35 @@ namespace GPC.Checkers.Steel.Results
         /// </summary>
         public double Epsilon => _epsilon;
 
+        public double ChiAxialBuckling1 => _chiAxialBuckling1;
+        public double PhiAxialBuckling1 => _phiAxialBuckling1;
+        public double LambdaSignedAxialBuckling1 => _lambdaSignedAxialBuckling1;
+        public double AlphaAxialBuckling1 => _alphaAxialBuckling1;
+        public double NCr1 => _nCr1;
+
         /// <summary>
         /// Buckling curve about 1principal axis for axial buckling check (Chapter 8.7.6)
         /// </summary>
         public EN1993p11Checker.EN1993p11Options.AxialBuckingCurves BuckingCurve1 => _axialBuckingCurves1;
 
+        public double ChiAxialBuckling2 => _chiAxialBuckling2;
+        public double PhiAxialBuckling2 => _phiAxialBuckling2;
+        public double LambdaSignedAxialBuckling2 => _lambdaSignedAxialBuckling2;
+        public double AlphaAxialBuckling2 => _alphaAxialBuckling2;
+        public double NCr2 => _nCr2;
+
         /// <summary>
         /// Buckling curve about 2-principal axis for axial buckling check (Chapter 8.7.6)
         /// </summary>
         public EN1993p11Checker.EN1993p11Options.AxialBuckingCurves BuckingCurve2 => _axialBuckingCurves2;
+
+        public double ChiLTBuckling =>_chiLTBuckling;
+        public double PhiLTBuckling => _phiLTBuckling;
+        public double LambdaSignedLTBuckling => _lambdaSignedLTBuckling;
+        public double Lambda0LTBuckling => _lambda0LTBuckling;
+        public double AlphaLTBuckling => _alphaLTBuckling;
+        public double MCr => _mCr;
+        public EN1993p11Checker.EN1993p11Options.LateralTorsionalBuckingCurves LateraltorsionalBucklingCurve => _lateraltorsionalBucklingCurve;
 
         /// <summary>
         /// Lambda about 1-principal axis for axial buckling check
@@ -332,6 +356,43 @@ namespace GPC.Checkers.Steel.Results
         /// Shear area about 2-principal axis (Chapter 8.2.1)
         /// </summary>
         public double ShearArea2 => _shearArea2;
+
+        public double CmX0 => _cmX0;
+        public double CmY0 => _cmY0;
+                      
+        public double Mux => _mux;
+        public double Muy => _muy;
+                       
+        public double Wx => _wx;
+        public double Wy => _wy;
+                      
+        public double Cmx => _cmx;
+        public double Cmy => _cmy;
+        public double CmLT => _cmLT;
+                       
+        public double ALT => _aLT;
+        public double BLT => _bLT;
+        public double CLT => _cLT;
+        public double DLT => _dLT;
+        public double ELT => _eLT;
+        public double Cxx => _cxx;
+        public double Cxy => _cxy;
+        public double Cyx => _cyx;
+        public double Cyy => _cyy;
+                      
+        public double EpsilonX => _epsilonx;
+        
+        public double Kxx => _kxx;
+        public double Kxy => _kxy;
+        public double Kyx => _kyx;
+        public double Kyy => _kyy;
+                      
+        public double KwInteraction => _kwInteraction;
+        public double KywInteraction => _kywInteraction;
+        public double KAlphaInteraction  => _kAlphaInteraction;
+
+        public double NcrTorsional => _NcrTorsional;
+        public double NcrFlexuralTorsional => _NcrFlexuralTorsional;
 
         #endregion
 
@@ -446,11 +507,11 @@ namespace GPC.Checkers.Steel.Results
         }
 
         internal void SetResultForReportInteractionCoefficient(double cmX0, double cmy0, double mux, double muy, double wx, double wy, double cmx, double cmy, double cmLT,
-            double aLT, double bLT, double cLT, double dLT, double eLT, double cxx, double cxy, double cyx, double cyy, double epsilonx,
+            double bLT, double cLT, double dLT, double eLT, double cxx, double cxy, double cyx, double cyy, double epsilonx,
             double kxx, double kxy, double kyx,double kyy, double kwInteraction, double kywInteraction, double kAlphaInteraction)
         {                                                   
             _cmX0 = cmX0;                                   
-            _cmy0 = cmy0;
+            _cmY0 = cmy0;
 
             _mux = mux;
             _muy = muy;
@@ -462,7 +523,6 @@ namespace GPC.Checkers.Steel.Results
             _cmy = cmy;
             _cmLT = cmLT;
 
-            _aLT = aLT;
             _bLT = bLT;
             _cLT = cLT;
             _dLT = dLT;
@@ -488,7 +548,8 @@ namespace GPC.Checkers.Steel.Results
         {
             List<double> workingRatioList = new List<double>() { _axialTensionWorkingRatio, _axialCompressionWorkingRatio, _axialBuckling1WorkingRatio, 
                                                                 _axialBuckling2WorkingRatio, _shear1WorkingRatio, _shear2WorkingRatio, _bendingMoment1WorkingRatio, 
-                                                                _bendingMoment2WorkingRatio, _torsionalMomentWorkingRatio, _lateraTorsionalBucklingWorkingRatio};
+                                                                _bendingMoment2WorkingRatio, _torsionalMomentWorkingRatio, _lateraTorsionalBucklingWorkingRatio,
+                                                                _bucklingInteraction1Axis, _bucklingInteraction2Axis, _flexuralTorsionalInteraction, _crossSectionInteraction};
 
             return workingRatioList.Max();
         }
