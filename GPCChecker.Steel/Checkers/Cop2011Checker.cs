@@ -131,7 +131,7 @@ namespace GPC.Checkers.Steel.Checkers
                         bendingCompSectionClass[i] = CalculateSectionClassDueToBending(resultBeamForces[i], steelSection[i]);
 
                         stationResults[i + k * steelSection.Length].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
-                        stationResults[i + k * steelSection.Length].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
+                        stationResults[i + k * steelSection.Length].SetBucklingLenght(GetLengthAxialBuckling1(), GetLengthAxialBuckling2(), GetLengthLatTorsBuckling());
 
                         axialTensionRd[i] = CalculateAxialTensionCapacity(steelSection[i]);
                         axialTensionWR[i] = GetWorkingRatio(Math.Max(resultBeamForces[i].N, 0), axialTensionRd[i]);

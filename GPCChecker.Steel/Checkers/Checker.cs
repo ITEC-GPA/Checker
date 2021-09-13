@@ -103,7 +103,7 @@ namespace GPC.Checkers.Steel.Checkers
             return _errorLog;
         }
 
-        public double GetLenghtAxialBuckling1()
+        public double GetLengthAxialBuckling1()
         {
             return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck1 * CheckerOptions.EffectiveLengthFactorAxialBuck1;
         }
