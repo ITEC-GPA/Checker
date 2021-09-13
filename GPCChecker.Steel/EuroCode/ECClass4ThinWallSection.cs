@@ -27,9 +27,8 @@ namespace GPC.Checkers.Steel.EuroCode
         protected double _weff2;          
 
         protected Point2d _shearCenterEff;
-        protected Point2d _centroidEff;      
-
-        List<ECThinWall> _plates = new List<ECThinWall>();
+        protected Point2d _centroidEff;
+        protected readonly List<ECThinWall> _plates = new List<ECThinWall>();
 
         protected Section _section;
         protected ResultBeamForces _forces;
@@ -201,7 +200,7 @@ namespace GPC.Checkers.Steel.EuroCode
 
                 if (_plates[i].FirstPointActive != null)
                 {
-                    if (_plates[i].isVertical) { } else { halfT = 0; }
+                    if (_plates[i].IsVertical) { } else { halfT = 0; }
 
                     xMax = Math.Max(xMax, _plates[i].FirstPointActive.X + halfT);
                     xMax = Math.Max(xMax, _plates[i].FirstPointActive.X - halfT);
@@ -211,7 +210,7 @@ namespace GPC.Checkers.Steel.EuroCode
                 }
                 if (_plates[i].LastPointActive != null)
                 {
-                    if (_plates[i].isVertical) { } else { halfT = 0; }
+                    if (_plates[i].IsVertical) { } else { halfT = 0; }
 
                     xMax = Math.Max(xMax, _plates[i].LastPointActive.X + halfT);
                     xMax = Math.Max(xMax, _plates[i].LastPointActive.X - halfT);
@@ -234,7 +233,7 @@ namespace GPC.Checkers.Steel.EuroCode
 
                 if (_plates[i].FirstPointActive != null)
                 {
-                    if (_plates[i].isHorizontal) { } else { halfT = 0; }
+                    if (_plates[i].IsHorizontal) { } else { halfT = 0; }
 
                     yMax = Math.Max(yMax, _plates[i].FirstPointActive.Y + halfT);
                     yMax = Math.Max(yMax, _plates[i].FirstPointActive.Y - halfT);
@@ -244,7 +243,7 @@ namespace GPC.Checkers.Steel.EuroCode
                 }
                 if (_plates[i].LastPointActive != null)
                 {
-                    if (_plates[i].isHorizontal) { } else { halfT = 0; }
+                    if (_plates[i].IsHorizontal) { } else { halfT = 0; }
 
                     yMax = Math.Max(yMax, _plates[i].LastPointActive.Y + halfT);
                     yMax = Math.Max(yMax, _plates[i].LastPointActive.Y - halfT);
@@ -474,7 +473,7 @@ namespace GPC.Checkers.Steel.EuroCode
 
             public double T => _t;
 
-            public bool isVertical
+            public bool IsVertical
             {
                 get
                 {
@@ -490,7 +489,7 @@ namespace GPC.Checkers.Steel.EuroCode
                 }
             }
 
-            public bool isHorizontal
+            public bool IsHorizontal
             {
                 get
                 {

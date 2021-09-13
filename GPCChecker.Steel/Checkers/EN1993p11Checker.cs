@@ -1171,7 +1171,7 @@ namespace GPC.Checkers.Steel.Checkers
                 else if (section is SteelSectionT steelSectionT)
                     return (section.Wpl1 - CalculateRhoForMomentAndShearInteraction2(resultBeamForces, section) *
                         Math.Pow(GetShearArea2(section), 2) / (4 * (steelSectionT.ThicknessWeb))) * Fy / GammaM0;
-                else if (section is SteelSectionCHS sectionCHS)
+                else if (section is SteelSectionCHS)
                     return (1 - CalculateRhoForMomentAndShearInteraction2(resultBeamForces, section)) * CalculateMcRd1(sectionClass, section);
             }
 
@@ -1364,7 +1364,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected double GetLambdaSignedLTB(ISteelSection section, double Mcr)
         {
-            if (section is SteelSectionC sectionC)
+            if (section is SteelSectionC)
             {
                 double lambdaLT = Math.Pow(section.Wpl1 * Fy / Mcr, 0.5);
                 double lambdaT;
@@ -1985,7 +1985,7 @@ namespace GPC.Checkers.Steel.Checkers
             }
             else if (y0 == 0 && x0 == 0)
             {
-                return NcrTF = NcrT;
+                return NcrT;
             }
             else
             {
@@ -2169,12 +2169,10 @@ namespace GPC.Checkers.Steel.Checkers
             double lambdaSigned = GetLambdaSignedLTB(section, Mcr);
             double phi = GetPhiForBuckling(alpha, lambdaSigned, EN1993P11.BetaForLateralTorsionalBuckling, EN1993P11.LambdaLT0ForLateralTorsionalBuckling);
             double chiMod = GetChiLTmod(phi, lambdaSigned, EN1993P11.BetaForLateralTorsionalBuckling, GetFactorFForLTB(kc, lambdaSigned));
-
-            double ncrt = GetNcrT(section);
+                        
             double ncr1 = GetNcrEuler(GetLengthAxialBuckling1(), section.J11);
             double ncr2 = GetNcrEuler(GetLengthAxialBuckling2(), section.J22);
-            double ncrtf = GetNcrTF(section, ncr1, ncr2, ncrt);
-
+            
             double lambda1 = GetLambdaSigned(sectionClass, section, ncr1);
             double lambda2 = GetLambdaSigned(sectionClass, section, ncr2);
             double lambdaMax = Math.Max(lambda1, lambda2);
