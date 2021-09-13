@@ -208,7 +208,7 @@ namespace GPC.Checkers.Steel.Checkers
                     else
                         latTorsWR[i] = GetWorkingRatio(resultBeamForces[i].M1, latTorsRd[i]);
 
-                    #region cross section resistence §EC3 6.2.1
+                    #region Cross section resistence §EC3 6.2.1
 
                     if (sectionClass[i] == SectionClass.Class1 || sectionClass[i] == SectionClass.Class2)
                     {
@@ -294,9 +294,11 @@ namespace GPC.Checkers.Steel.Checkers
 
                     CalculateCoefficientsForInteraction(steelSection[i], sectionClass[i], resultBeamForces[i], options.LoadCondition,
                         options.SupportCondition, options.LateralSupportCondition, options.LateralWarpingCondition, options.LoadApplicationPoint, options.Psi1Axis,
+                        out double epsilony,
                         out double bLT, out double cLT, out double dLT, out double eLT,
                         out double cxx, out double cxy, out double cyx, out double cyy,
-                        out double cmx, out double cmy, out double cmLT, out double mux, out double muy, out double wx, out double wy);
+                        out double cmx, out double cmy, out double cmLT, out double mux, 
+                        out double muy, out double wx, out double wy);
 
                     CalculateKCoefficientForInteraction(steelSection[i], sectionClass[i], resultBeamForces[i], options.LoadCondition,
                         options.SupportCondition, options.LateralSupportCondition, options.LateralWarpingCondition, options.LoadApplicationPoint, options.Psi1Axis,
@@ -305,35 +307,32 @@ namespace GPC.Checkers.Steel.Checkers
                     double chiX;
                     double lambdaSegnato1 = GetLambdaSigned(sectionClass[i], steelSection[i], ncr1);
 
+                    EN1993p11Options.AxialBuckingCurves buckingCurve1 = GetBucklingCurve1Axis(steelSection[i]);
+                    double alpha1 = GetImperfectionFactorBucklingCurve(buckingCurve1);
+
+                    double phi1 = GetPhiForBuckling(alpha1, lambdaSegnato1);
+                    chiX = GetChi(phi1, lambdaSegnato1);
+
                     if (lambdaSegnato1 <= 0.2)
                         chiX = 1.0;
-                    else
-                    {
-                        EN1993p11Options.AxialBuckingCurves buckingCurve = GetBucklingCurve1Axis(steelSection[i]);
-                        double alpha1 = GetImperfectionFactorBucklingCurve(buckingCurve);
-
-                        double phi1 = GetPhiForBuckling(alpha1, lambdaSegnato1);
-                        chiX = GetChi(phi1, lambdaSegnato1);
-
-                        stationResults[i + k * steelSection.Length].SetResultsForReportAxialBuckling1Axis(chiX, phi1, lambdaSegnato1, alpha1, ncr1, buckingCurve);
-                    }
+                    
+                    stationResults[i + k * steelSection.Length].SetResultsForReportAxialBuckling1Axis(chiX, phi1, lambdaSegnato1, alpha1, ncr1, buckingCurve1);
+                    
 
                     double chiY;
                     double lambdaSegnato2 = GetLambdaSigned(sectionClass[i], steelSection[i], ncr2);
 
+                    EN1993p11Options.AxialBuckingCurves buckingCurve2 = GetBucklingCurve2Axis(steelSection[i]);
+                    double alpha2 = GetImperfectionFactorBucklingCurve(buckingCurve2);
+
+                    double phi2 = GetPhiForBuckling(alpha2, lambdaSegnato2);
+                    chiY = GetChi(phi2, lambdaSegnato2);
+
                     if (lambdaSegnato2 <= 0.2)
                         chiY = 1.0;
-                    else
-                    {
-                        EN1993p11Options.AxialBuckingCurves buckingCurve = GetBucklingCurve2Axis(steelSection[i]);
-                        double alpha2 = GetImperfectionFactorBucklingCurve(buckingCurve);
-
-                        double phi2 = GetPhiForBuckling(alpha2, lambdaSegnato2);
-                        chiY = GetChi(phi2, lambdaSegnato2);
-                        stationResults[i + k * steelSection.Length].SetResultsForReportAxialBuckling2Axis(chiY, phi2, lambdaSegnato2, alpha2, ncr2, buckingCurve);
-                    }
-
-
+                                        
+                    stationResults[i + k * steelSection.Length].SetResultsForReportAxialBuckling2Axis(chiY, phi2, lambdaSegnato2, alpha2, ncr2, buckingCurve2);
+                    
 
                     double axialcompRk;
                     if (sectionClass[i] != SectionClass.Class4)
@@ -398,7 +397,7 @@ namespace GPC.Checkers.Steel.Checkers
 
                     #region Tension resistence interaction §EC3 6.3.3
 
-                    if (resultBeamForces[i].N > 0.0)
+                    if (resultBeamForces[i].N >= 0.0)
                     {
                         if (sectionClass[i] != SectionClass.Class4)
                         {  
@@ -427,9 +426,11 @@ namespace GPC.Checkers.Steel.Checkers
                         cmy * (resultBeamForces[i].M2 + resultBeamForces[i].T)/(bending2Rk/GammaM1) +
                         kw * kyw*kAlpha*MwEd/(bending2Rk/2*GammaM1);
 
-                    #endregion
+					#endregion
 
-                    stationResults[i + k * steelSection.Length].SetClasses(sectionClass[i], axialCompSectionClass[i], bendingCompSectionClass[i]);
+					#region Report
+
+					stationResults[i + k * steelSection.Length].SetClasses(sectionClass[i], axialCompSectionClass[i], bendingCompSectionClass[i]);
 
                     stationResults[i + k * steelSection.Length].SetCapacity(axialTensionRd[i], axialCompressionRd[i], axialBuck1Rd[i], axialBuck2Rd[i], shear1Rd[i], shear2Rd[i], 
                         bending1Rd[i], bending2Rd[i], latTorsRd[i]);
@@ -440,10 +441,16 @@ namespace GPC.Checkers.Steel.Checkers
                     stationResults[i + k * steelSection.Length].SetBucklingLenght(GetLengthAxialBuckling1(), GetLengthAxialBuckling2(),
                         GetLengthLatTorsBuckling(), GetLengthCriticalMoment1(), GetLengthCriticalMoment2());
 
+
                     stationResults[i + k * steelSection.Length].SetResultsForReportLateralTorsionalBuckling(chiLT, phiLT, lambdaSignedLTB, lambdaSignedLTB0, alphaLTB, Mcr, 
                         GetLateralTorsionalBucklingCurve(steelSection[i]), ncrt, ncrtf);
-                }
-            }
+
+                    stationResults[i + k * steelSection.Length].SetResultForReportInteractionCoefficient(cmx, cmy, mux, muy, wx, wy, cyx, cyy, cmLT, bLT, cLT, dLT, eLT, 
+                        cxx, cxy, cyx, cyy, epsilony, kxx, kxy, kyx, kyy, kw, kyw, kAlpha);
+
+					#endregion
+				}
+			}
 
             return stationResults;
         }
@@ -481,22 +488,22 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Axial Buckling
 
-        private double CalculateAxialBucklingCapacity1Axis(double nEd, SectionClass sectionClass, ISteelSection section)
+        protected double CalculateAxialBucklingCapacity1Axis(double nEd, SectionClass sectionClass, ISteelSection section)
         {
             if (Math.Abs(nEd) / GetNcrEuler(GetLengthAxialBuckling1(), section.J11) <= 0.04)
                 return CalculateAxialCompressionCapacity(sectionClass, section);
 
             else                
-                return CalculateNbRd1(section, sectionClass);   //TODO: implementare CalculateAxialBucklingCapacity1Axis
+                return CalculateNbRd1(section, sectionClass);   
         }
 
-        private double CalculateAxialBucklingCapacity2Axis(double nEd, SectionClass sectionClass, ISteelSection section)
+        protected double CalculateAxialBucklingCapacity2Axis(double nEd, SectionClass sectionClass, ISteelSection section)
         {
             if (Math.Abs(nEd) / GetNcrEuler(GetLengthAxialBuckling2(), section.J22) <= 0.04)
                 return CalculateAxialCompressionCapacity(sectionClass, section);
 
             else
-                return CalculateNbRd2(section, sectionClass);   //TODO: implementare CalculateAxialBucklingCapacity2Axis
+                return CalculateNbRd2(section, sectionClass);   
         }
 
         /// <summary>
@@ -1590,7 +1597,7 @@ namespace GPC.Checkers.Steel.Checkers
                                 double zi = sectionT.Height - (2.0 * j + 1.0) / (2.0 * nyFlange) * sectionT.ThicknessFlange - sectionT.Centroid.Y;
                                 double yi = -sectionT.LenghtFlange / 2.0 + (2.0 * i + 1.0) / (2.0 * nxFlange) * sectionT.LenghtFlange;
 
-                                integral = integral + (yi * yi + zi * zi) * zi * Ai;
+                                integral += (yi * yi + zi * zi) * zi * Ai;
                             }
                         }
 
@@ -1602,7 +1609,7 @@ namespace GPC.Checkers.Steel.Checkers
                                 double zi = (2.0 * j + 1.0) / (2.0 * nyWeb) * (sectionT.HeightWeb) - sectionT.Centroid.Y;
                                 double yi = -sectionT.ThicknessWeb / 2.0 + (2.0 * i + 1.0) * sectionT.ThicknessWeb / (2.0 * nxWeb);
 
-                                integral = integral + (yi * yi + zi * zi) * zi * Ai;
+                                integral += (yi * yi + zi * zi) * zi * Ai;
                             }
                         }
                         zj = (sectionT.ShearCenter.Y - sectionT.Centroid.Y) - 0.5 * integral / sectionT.J11;
@@ -2070,7 +2077,7 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         protected void CalculateCmFactorsForInteraction(ISteelSection section, SectionClass sectionClass, ResultBeamForces forces,
-            EN1993p11Options.LoadConditions loadCondition, EN1993p11Options.SupportConditions supportCondition, double? psi,
+            EN1993p11Options.LoadConditions loadCondition, EN1993p11Options.SupportConditions supportCondition, double? psi, out double epsilony,
             out double cmx, out double cmy, out double cmLT, out double mux, out double muy, out double wx, out double wy, out double Mcr0,
             EN1993p11Options.LateralSupportConditions lateralSupportCondition = EN1993p11Options.LateralSupportConditions.HingesAtEnds,
                 EN1993p11Options.LateralWarpingConditions lateralWarpingCondition = EN1993p11Options.LateralWarpingConditions.HingesAtEnds,
@@ -2106,6 +2113,8 @@ namespace GPC.Checkers.Steel.Checkers
             mux = GetMu(forces.N, ncr1, chi1);
             muy = GetMu(forces.N, ncr2, chi2);
 
+            epsilony = CalculateEpsilonyForInteraction(sectionClass, forces, section);
+
             if (lambdaSignedLTB0 <= lambda0limit)
             {
                 cmx = GetCMi0(loadCondition, supportCondition, psi, null, null, forces.N, ncr1);
@@ -2116,8 +2125,7 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 double cmx0 = GetCMi0(loadCondition, supportCondition, psi, null, null, forces.N, ncr1);
                 double alphaLT = CalculateAlphaLTForInteraction(section);
-                double epsilony = CalculateEpsilonyForInteraction(sectionClass, forces, section);
-
+                
                 cmx = cmx0 + (1.0 - cmx0) * Math.Sqrt(epsilony) * alphaLT / (1.0 + Math.Sqrt(epsilony) * alphaLT); 
 
                 cmy = GetCMi0(loadCondition, supportCondition, psi, null, null, forces.N, ncr2);
@@ -2140,17 +2148,21 @@ namespace GPC.Checkers.Steel.Checkers
         protected void CalculateCoefficientsForInteraction(ISteelSection section, SectionClass sectionClass, ResultBeamForces forces,
             EN1993p11Options.LoadConditions loadCondition, EN1993p11Options.SupportConditions supportCondition,
             EN1993p11Options.LateralSupportConditions lateralCondition, EN1993p11Options.LateralWarpingConditions warpingCondition, EN1993p11Options.LoadApplicationPoints loadApplicationPoint,
-            double? psi, out double bLT, out double cLT, out double dLT, out double eLT,
+            double? psi, out double epsilony, out double bLT, out double cLT, out double dLT, out double eLT,
             out double cxx, out double cxy, out double cyx, out double cyy,
             out double cmx, out double cmy, out double cmLT, out double mux, out double muy, out double wx, out double wy)
         {
-            CalculateCmFactorsForInteraction(section, sectionClass, forces, loadCondition, supportCondition, psi, 
+            CalculateCmFactorsForInteraction(section, sectionClass, forces, loadCondition, supportCondition, psi, out epsilony,
                 out cmx, out cmy, out cmLT, out mux, out muy, out wx, out wy, out double Mcr0, lateralCondition, warpingCondition, loadApplicationPoint);
 
             double mrd1 = CalculateBendingMoment1Capacity(forces, sectionClass, section);
             double mrd2 = CalculateBendingMoment2Capacity(forces, sectionClass, section);
 
-            double alpha = GetImperfectionFactorLTMod(section);
+            double alpha;
+            if (section is SteelSectionH)
+                alpha = GetImperfectionFactorLTMod(section);
+            else
+                alpha = GetImperfectionFactorLT(section);
             double kc = Getkc(supportCondition, loadCondition, psi);
 
             double Mcr = CalculateMcr(section, forces, GetLengthCriticalMoment1(), supportCondition, loadCondition, lateralCondition, warpingCondition, psi, loadApplicationPoint);
@@ -2192,7 +2204,7 @@ namespace GPC.Checkers.Steel.Checkers
             EN1993p11Options.LateralSupportConditions lateralCondition, EN1993p11Options.LateralWarpingConditions warpingCondition, EN1993p11Options.LoadApplicationPoints loadApplicationPoints, double? psi, out double kxx, out double kxy, out double kyx, out double kyy)
         {
             CalculateCoefficientsForInteraction(section, sectionClass, forces, loadCondition, supportCondition,
-                lateralCondition, warpingCondition, loadApplicationPoints, psi, out double bLT, out double cLT, out double dLT, out double eLT,
+                lateralCondition, warpingCondition, loadApplicationPoints, psi, out double epsilony, out double bLT, out double cLT, out double dLT, out double eLT,
                 out double cxx, out double cxy, out double cyx, out double cyy,
                 out double cmx, out double cmy, out double cmLT, out double mux, out double muy, out double wx, out double wy);
 
