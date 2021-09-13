@@ -80,6 +80,17 @@ namespace GPC.Checkers.Glasses.Glasses
             throw new NotSupportedException();
         }
 
+        public bool FemModelSetup(string folderPath, string fileNamePrefix = "")
+        {
+            return _checker.FemModelSetup(folderPath, fileNamePrefix);
+        }
+
+        #region Geometry
+
+        public double GetArea()
+        {
+            return Shape.GetArea();
+        }
 
         public bool IsPlanar()
         {
@@ -116,6 +127,10 @@ namespace GPC.Checkers.Glasses.Glasses
             return true;
         }
 
+        #endregion
+
+
+        #region Attributes
 
         /// <summary>
         /// Add a load to the surface
@@ -134,8 +149,7 @@ namespace GPC.Checkers.Glasses.Glasses
         public void AddParametricLoad(IParametricLoad load)
         {
             _parametricLoads.Add(load);
-        } 
-
+        }
 
         /// <summary>
         /// Add a specific restrain to this surface
@@ -182,7 +196,8 @@ namespace GPC.Checkers.Glasses.Glasses
         {
             // TODO: implementare conversione restrain parametrici
             return _restrains.ToList(); // shallow copy
-        } 
+        }  
+        #endregion
 
 
         #endregion
@@ -208,26 +223,29 @@ namespace GPC.Checkers.Glasses.Glasses
 
         public override int GetHashCode()
         {
-            int hashCode = 23;
-            hashCode = hashCode * -17 + base.GetHashCode();
-            hashCode = hashCode * -17 + EqualityComparer<Prototype>.Default.GetHashCode(_prototype);
-
-            foreach (var el in _loads)
+            unchecked
             {
-                hashCode += 17 * el.GetHashCode();
-            }
+                int hashCode = 23;
+                hashCode = hashCode * -17 + base.GetHashCode();
+                hashCode = hashCode * -17 + EqualityComparer<Prototype>.Default.GetHashCode(_prototype);
 
-            foreach (var el in _restrains)
-            {
-                hashCode += 17 * EqualityComparer<GeometryRestrain>.Default.GetHashCode(el);
-            }
+                foreach (var el in _loads)
+                {
+                    hashCode += 17 * el.GetHashCode();
+                }
 
-            foreach (var el in _parametricLoads)
-            {
-                hashCode += + 17 * EqualityComparer<IParametricLoad>.Default.GetHashCode(el);
-            }
+                foreach (var el in _restrains)
+                {
+                    hashCode += 17 * EqualityComparer<GeometryRestrain>.Default.GetHashCode(el);
+                }
 
-            return hashCode;
+                foreach (var el in _parametricLoads)
+                {
+                    hashCode += +17 * EqualityComparer<IParametricLoad>.Default.GetHashCode(el);
+                }
+
+                return hashCode; 
+            }
         }
 
         public static bool operator ==(GlassSurface obj1, GlassSurface obj2)

@@ -779,15 +779,15 @@ namespace GPC.Checkers.Glasses.Checkers
         {
             var gravityAttribute = femModel.AddModelGravityAttribute(load.LoadCase.Name);
 
-            if (load.GravityVector == GPC.Geometry.CoordinateSystem.Global.V1)
+            if (load.GravityAxis == GPC.Geometry.CoordinateSystem.Global.V1)
             {
                 gravityAttribute.SetGravityX(load.Acceleration);
             }
-            else if (load.GravityVector == GPC.Geometry.CoordinateSystem.Global.V2)
+            else if (load.GravityAxis == GPC.Geometry.CoordinateSystem.Global.V2)
             {
                 gravityAttribute.SetGravityY(load.Acceleration);
             }
-            else if (load.GravityVector == GPC.Geometry.CoordinateSystem.Global.V3)
+            else if (load.GravityAxis == GPC.Geometry.CoordinateSystem.Global.V3)
             {
                 gravityAttribute.SetGravityZ(load.Acceleration);
 

@@ -13,8 +13,8 @@ namespace GPC.Checkers.Glasses.Loads
 {
     public class SelfWeightLoad : Model.Loads.SelfWeightLoad, IGlassLoad
     {
-        private GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
 
+        private GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
 
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition
         {
@@ -25,11 +25,7 @@ namespace GPC.Checkers.Glasses.Loads
             }
         }
 
-        public GlassSurface.LoadRestrainCondition LoadRestrainCondition => GlassSurface.LoadRestrainCondition.AsSurface;
-
         public IGlassLoadCase GlassLoadCase => (IGlassLoadCase)base.LoadCase;
-
-
 
         public SelfWeightLoad(IGlassLoadCase loadCase, double acceleration) 
             : base((Model.LoadCases.LoadCase)loadCase, acceleration)

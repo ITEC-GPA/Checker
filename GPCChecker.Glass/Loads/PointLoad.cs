@@ -16,10 +16,8 @@ namespace GPC.Checkers.Glasses.Loads
     {
         
         private readonly GlassPanelWrapper.GlassPanelPositions _glassPanelPositions;
-        private readonly GlassSurface.LoadRestrainCondition _loadRestrainCondition;
 
         public GlassPanelWrapper.GlassPanelPositions GlassPanelPosition => _glassPanelPositions;
-        public GlassSurface.LoadRestrainCondition LoadRestrainCondition => _loadRestrainCondition;
 
         public IGlassLoadCase GlassLoadCase => (IGlassLoadCase)base.LoadCase;
 
@@ -29,7 +27,6 @@ namespace GPC.Checkers.Glasses.Loads
             : base(force, moment, point, (LoadCaseBase)loadCase, cSys)
         {
             _glassPanelPositions = glassPanelPosition;
-            _loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface;
         }
 
         public PointLoad(double f1, double f2, double f3, double m1, double m2, double m3, Point3d point, IGlassLoadCase loadCase, 
@@ -45,8 +42,23 @@ namespace GPC.Checkers.Glasses.Loads
             : base(f1, f2, f3, m1, m2, m3, point, (LoadCaseBase)loadCase, coordinateSystem)
         {
             _glassPanelPositions = glassPanelPosition;
-            _loadRestrainCondition = GlassSurface.LoadRestrainCondition.AsSurface;
         }
+
+
+        public override Model.Loads.AreaLoad ConvertToAreaLoad(Plane referencePlane, double width)
+        {
+            Model.Loads.AreaLoad al = base.ConvertToAreaLoad(referencePlane, width);
+
+            return new GPC.Checkers.Glasses.Loads.AreaLoad(al.P1, al.P2, al.P3, al.Shape, GlassLoadCase, GlassPanelPosition);
+        }
+
+        public override Model.Loads.NormalAreaLoad ConvertToNormalAreaLoad(Plane referencePlane, double width)
+        {
+            var nl = base.ConvertToNormalAreaLoad(referencePlane, width);
+
+            return new GPC.Checkers.Glasses.Loads.NormalAreaLoad(nl.Pressure, nl.Shape, GlassLoadCase, GlassPanelPosition);
+        }
+
 
     }
 }

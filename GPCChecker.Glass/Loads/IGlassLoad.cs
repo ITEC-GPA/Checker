@@ -13,9 +13,9 @@ namespace GPC.Checkers.Glasses.Loads
     public interface IGlassLoad
     {
 
-        GlassPanelWrapper.GlassPanelPositions GlassPanelPosition { get; }
+        string Name { get; } 
 
-        GlassSurface.LoadRestrainCondition LoadRestrainCondition { get; }
+        GlassPanelWrapper.GlassPanelPositions GlassPanelPosition { get; }
 
         IGlassLoadCase GlassLoadCase { get; }
 
