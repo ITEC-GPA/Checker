@@ -1,46 +1,41 @@
-﻿using System;
+﻿using GPC.Checkers.ReinforcedConcrete.Checkers;
+using GPC.Model.LoadCases;
+using GPC.Model.Results;
+using GPC.Model.Sections.Concrete;
+using GPC.Model.Standards;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using GPC.Model.Results;
-using GPC.Model.Sections;
-using GPC.Model.Standards;
-using GPC.Model.LoadCases;
-using GPC.Model.Sections.Steel;
-using System.Runtime.Serialization;
-using GPC.Checkers.ReinforcedConcrete.Checkers;
-using GPC.Model.Sections.Concrete;
 
 namespace GPC.Checkers.ReinforcedConcrete.Results
-{    
-    
+{
     /// <summary>
-    /// This class contains the result of a check performed on a beam station with a given ILoadCase
+    /// This class contains the result of a check performed on a plate station with a given ILoadCase
     /// </summary>
     [Serializable]
-    public abstract class BeamStationResults : Model.ModelObject, ISerializable
+    public abstract class PlateStationResults : Model.ModelObject, ISerializable
     {
-
         #region Variables
 
         protected readonly IConcreteSection _section;
-        protected readonly ResultBeamForces _forces;
+        protected readonly ResultPlateForces _forces;
         protected readonly ResultStation _station;
         protected readonly ILoadCase _case;
 
         protected readonly Standard _standard;
-        protected readonly BeamChecker.BeamCheckerOptions _options;
+        protected readonly PlateChecker.PlateCheckerOptions _options;
 
         #endregion
-
 
         #region Properties
 
         /// <summary>
-        /// The <see cref="ResultBeamForces"/> to check
+        /// The <see cref="ResultPlateForces"/> to check
         /// </summary>
-        public ResultBeamForces ResultBeamForce => _forces;
+        public ResultPlateForces ResultPlateForce => _forces;
 
         /// <summary>
         /// The <see cref="ResultStation"/> to check
@@ -65,15 +60,14 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
         /// <summary>
         /// The options to perform the check.
         /// </summary>
-        public BeamChecker.BeamCheckerOptions CheckerOptions => _options;
+        public PlateChecker.PlateCheckerOptions CheckerOptions => _options;
 
         #endregion
 
-
         #region Constructor
 
-        internal BeamStationResults(IConcreteSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, Standard standard, 
-                                    BeamChecker.BeamCheckerOptions checkerOptions, string name = "")
+        internal PlateStationResults(IConcreteSection section, ResultPlateForces forces, ResultStation station, 
+            ILoadCase Case, Standard standard, PlateChecker.PlateCheckerOptions checkerOptions, string name = "")
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
             _forces = forces ?? throw new ArgumentNullException(nameof(forces));
@@ -85,18 +79,17 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
             _name = name;
         }
 
-        internal BeamStationResults(SerializationInfo info, StreamingContext context) : base(info, context)
+        internal PlateStationResults(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             _section = (IConcreteSection)info.GetValue("Section", typeof(IConcreteSection));
-            _forces = (ResultBeamForces)info.GetValue("ResultBeamForces", typeof(ResultBeamForces));
+            _forces = (ResultPlateForces)info.GetValue("ResultPlateForces", typeof(ResultPlateForces));
             _station = (ResultStation)info.GetValue("ResultStation", typeof(ResultStation));
             _case = (ILoadCase)info.GetValue("ILoadCase", typeof(ILoadCase));
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
-            _options = (BeamChecker.BeamCheckerOptions)info.GetValue("CheckerOptions", typeof(BeamChecker.BeamCheckerOptions));
+            _options = (PlateChecker.PlateCheckerOptions)info.GetValue("CheckerOptions", typeof(PlateChecker.PlateCheckerOptions));
         }
 
         #endregion
-
 
         #region Public abstract method
 
@@ -104,18 +97,17 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
         #endregion
 
-
         #region Public override method
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
             info.AddValue("Section", _section, typeof(IConcreteSection));
-            info.AddValue("ResultBeamForces", _forces, typeof(ResultBeamForces));
+            info.AddValue("ResultPlateForces", _forces, typeof(ResultPlateForces));
             info.AddValue("ResultStation", _station, typeof(ResultStation));
             info.AddValue("ILoadCase", _case, typeof(ILoadCase));
             info.AddValue("Standard", _standard, typeof(Standard));
-            info.AddValue("CheckerOptions", _options, typeof(BeamChecker.BeamCheckerOptions));
+            info.AddValue("CheckerOptions", _options, typeof(PlateChecker.PlateCheckerOptions));
         }
 
         public override bool Equals(object obj)
@@ -123,7 +115,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return (obj is BeamStationResults objCasted) && _section.Equals(objCasted._section) 
+            return (obj is PlateStationResults objCasted) && _section.Equals(objCasted._section)
                                                          && _forces.Equals(objCasted._forces)
                                                          && _station.Equals(objCasted._station)
                                                          && _case.Equals(objCasted._case)

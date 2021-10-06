@@ -10,9 +10,9 @@ using GPC.Checkers.ReinforcedConcrete.Results;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 
-namespace GPC.Checkers.RC.Checkers
+namespace GPC.Checkers.ReinforcedConcrete.Checkers
 {
-	public class EN1992p11Checker : Checker
+	public class EN1992p11BeamChecker : BeamChecker
 	{
         #region Properties
 
@@ -25,7 +25,7 @@ namespace GPC.Checkers.RC.Checkers
         #endregion
 
 
-        public EN1992p11Checker(BeamCheckerAttributes attributes, EN1992p11Options options, StandardEN1992p11 standardEN1992P11)
+        public EN1992p11BeamChecker(BeamCheckerAttributes attributes, EN1992p11Options options, StandardEN1992p11 standardEN1992P11)
             : base(attributes, options, standardEN1992P11)
         {         
         }
@@ -55,7 +55,7 @@ namespace GPC.Checkers.RC.Checkers
 
 
 
-        public class EN1992p11Options : Options
+        public class EN1992p11Options : BeamCheckerOptions
 		{
 
 		}

@@ -20,7 +20,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
     /// </summary>
 
     [Serializable]
-    public class EN1992p11BeamStationResult : BeamStationResults, ISerializable
+    public class EN1992p11PlateStationResult : PlateStationResults, ISerializable
     {
         #region Variables
 
@@ -36,15 +36,15 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
         #region Constructor
 
-        protected EN1992p11BeamStationResult(IConcreteSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case,
-            EN1992p11BeamChecker.EN1992p11Options checkerOptions, StandardEN1992p11 standard, string name = "") 
+        protected EN1992p11PlateStationResult(IConcreteSection section, ResultPlateForces forces, ResultStation station, ILoadCase Case,
+            EN1992p11PlateChecker.EN1992p11Options checkerOptions, StandardEN1992p11 standard, string name = "") 
             : this(section, forces, station, Case, standard, checkerOptions, name)
         {
 
         }
 
-        internal EN1992p11BeamStationResult(IConcreteSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, 
-            StandardEN1992p11 standard, EN1992p11BeamChecker.EN1992p11Options checkerOptions, string name = "") 
+        internal EN1992p11PlateStationResult(IConcreteSection section, ResultPlateForces forces, ResultStation station, ILoadCase Case, 
+            StandardEN1992p11 standard, EN1992p11PlateChecker.EN1992p11Options checkerOptions, string name = "") 
             : base(section, forces, station, Case, standard, checkerOptions, name)
         {
 

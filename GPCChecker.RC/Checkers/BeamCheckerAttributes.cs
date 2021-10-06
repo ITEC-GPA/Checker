@@ -15,7 +15,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
     /// </summary>
     
     [Serializable]
-    public class BeamCheckerAttributes : Model.ModelObject, ISerializable
+    public class BeamCheckerAttributes : Model.ModelObject, ISerializable //, ICheckerAttribute
     {
 
         #region Variables
