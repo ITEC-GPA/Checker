@@ -20,26 +20,17 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
     [Serializable]
     public abstract class PlateChecker : Checker, ISerializable
     {
-        #region Variables
-
-        protected readonly PlateCheckerAttributes _plateCheckersAttributes;
-
-        protected PlateStationResults[] _plateStationResults;
-
-        #endregion
-
-
         #region Properties
 
-        public PlateCheckerAttributes PlateCheckerAttribute => _plateCheckersAttributes;
+        public PlateCheckerAttributes PlateCheckerAttribute => (PlateCheckerAttributes)_checkerAttributes;
 
-        public PlateStationResults[] PlateStationResult => _plateStationResults; 
+        public PlateStationResults[] PlateStationResult => (PlateStationResults[])_checkerStationResult; 
 
         public PlateCheckerOptions PlateCheckerOption => (PlateCheckerOptions)_options;
 
         public ILoadCase[] LoadCases => GetLoadCases();
 
-        public string PlateName => _plateCheckersAttributes.Name;
+        public string PlateName => PlateCheckerAttribute.Name;
 
 
         #endregion
@@ -54,20 +45,14 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
         }
 
         public PlateChecker(PlateCheckerAttributes plateCheckerAttributes, PlateCheckerOptions options, Standard standard, int id, string name = "") 
-            : base(options, standard, id, name)
+            : base(plateCheckerAttributes, options, standard, id, name)
         {
-            if (plateCheckerAttributes is null)
-            {
-                throw new ArgumentNullException(nameof(plateCheckerAttributes));
-            }
 
-            _plateCheckersAttributes = plateCheckerAttributes;
         }
 
         protected PlateChecker(SerializationInfo info, StreamingContext context) : base(info, context)
         {
-            _plateCheckersAttributes = (PlateCheckerAttributes)info.GetValue("PlateCheckerAttributes", typeof(PlateCheckerAttributes));
-            _plateStationResults = (PlateStationResults[])info.GetValue("PlateStationResults", typeof(PlateStationResults[]));
+            
         }
 
 
@@ -87,14 +72,12 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
         /// <returns>The unique ILoadCases array</returns>
         protected ILoadCase[] GetLoadCases()
         {
-            return _plateCheckersAttributes.Results.Select(i => i.Case).Distinct().ToArray();
+            return PlateCheckerAttribute.Results.Select(i => i.Case).Distinct().ToArray();
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue("PlateCheckerAttributes", _plateCheckersAttributes, typeof(PlateCheckerAttributes));
-            info.AddValue("BeamStationResults", _plateStationResults, typeof(BeamStationResults[]));
         }
 
         public override bool Equals(object obj)

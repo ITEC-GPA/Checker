@@ -20,28 +20,19 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
     [Serializable]
     public abstract class BeamChecker : Checker, ISerializable
     {
-        #region Variables
-
-        protected readonly BeamCheckerAttributes _beamCheckersAttributes;
-
-        protected BeamStationResults[] _beamStationResults;
-
-        #endregion
-
-
         #region Properties
 
-        public BeamCheckerAttributes BeamCheckersAttribute => _beamCheckersAttributes;
+        public BeamCheckerAttributes BeamCheckersAttribute => (BeamCheckerAttributes)_checkerAttributes;
 
         public BeamCheckerOptions BeamCheckerOption => (BeamCheckerOptions)_options;
 
-        public BeamStationResults[] BeamStationCheckerResults => _beamStationResults; 
+        public BeamStationResults[] BeamStationCheckerResults => (BeamStationResults[])_checkerStationResult; 
 
-        public double BeamLength => _beamCheckersAttributes.Length;
+        public double BeamLength => BeamCheckersAttribute.Length;
 
         public ILoadCase[] LoadCases => GetLoadCases();
 
-        public string BeamName => _beamCheckersAttributes.Name;
+        public string BeamName => BeamCheckersAttribute.Name;
 
         #endregion
 
@@ -55,21 +46,15 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
         }
 
         public BeamChecker(BeamCheckerAttributes beamCheckerAttributes, BeamCheckerOptions options, Standard standard, int id, string name = "") 
-            : base(options, standard, id, name)
+            : base(beamCheckerAttributes, options, standard, id, name)
         {
-            if (beamCheckerAttributes is null)
-            {
-                throw new ArgumentNullException(nameof(beamCheckerAttributes));
-            }
 
-            _beamCheckersAttributes = beamCheckerAttributes;
         }
 
         protected BeamChecker(SerializationInfo info, StreamingContext context) 
             : base(info, context)
         {
-            _beamCheckersAttributes = (BeamCheckerAttributes)info.GetValue("BeamCheckerAttributes", typeof(BeamCheckerAttributes));
-            _beamStationResults = (BeamStationResults[])info.GetValue("BeamStationResults", typeof(BeamStationResults[]));
+            
         }
 
         #endregion
@@ -113,14 +98,12 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
         /// <returns>The unique ILoadCases array</returns>
         protected ILoadCase[] GetLoadCases()
         {
-            return _beamCheckersAttributes.Results.Select(i => i.Case).Distinct().ToArray();
+            return BeamCheckersAttribute.Results.Select(i => i.Case).Distinct().ToArray();
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue("BeamCheckerAttributes", _beamCheckersAttributes, typeof(BeamCheckerAttributes));
-            info.AddValue("BeamStationResults", _beamStationResults, typeof(BeamStationResults[]));
         }
 
         public override bool Equals(object obj)
@@ -128,9 +111,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return (obj is BeamChecker objCasted) && _beamCheckersAttributes.Equals(objCasted.BeamCheckersAttribute)
-                                                    && _beamStationResults.SequenceEqual(objCasted.BeamStationCheckerResults)
-                                                    && base.Equals(objCasted);
+            return (obj is BeamChecker objCasted) && base.Equals(objCasted);
         }
 
         public override int GetHashCode()
@@ -139,14 +120,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
             {
                 int hashCode = 23;
                 hashCode = hashCode * -17 + base.GetHashCode();
-                
-                hashCode = hashCode * -17 + _beamCheckersAttributes.GetHashCode();
-                
-                for (int i = 0; i < _beamStationResults.Length; i++)
-                {
-                    hashCode = hashCode * -17 + _beamStationResults[i].GetHashCode();
-                }
-
+                              
                 return hashCode;
             }
         }

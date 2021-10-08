@@ -34,14 +34,14 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
 
         public override void PerformCheck()
         {
-            _plateStationResults = PerformCheck(_plateCheckersAttributes.Sections, _plateCheckersAttributes.Results, (EN1992p11Options)_options);
+            _plateStationResults = PerformCheck(_plateCheckersAttributes.Sections, PlateCheckerAttribute.PlateResult, (EN1992p11Options)_options);
         }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _plateStationResults = PerformCheck(_plateCheckersAttributes.Sections, _plateCheckersAttributes.Results, (EN1992p11Options)_options);
+                _plateStationResults = PerformCheck(_plateCheckersAttributes.Sections, PlateCheckerAttribute.PlateResult, (EN1992p11Options)_options);
             });
         }
 

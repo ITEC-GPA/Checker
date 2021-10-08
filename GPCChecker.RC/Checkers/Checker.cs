@@ -24,6 +24,8 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
 
         protected readonly Standard _standard;
         protected readonly Options _options;
+        protected CheckerStationResult[] _checkerStationResult;
+        protected readonly CheckerAttribute _checkerAttributes;
 
         protected List<string> _errorLog;
 
@@ -36,27 +38,26 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
 
         public Options CheckerOptions => _options;
 
+        public CheckerStationResult[] StationResults => _checkerStationResult;
+
+        public CheckerAttribute CheckerAttribute => _checkerAttributes;
+
         #endregion
 
 
         #region Constructor
 
-        public Checker(Options options, Standard standard, string name = "")
-            : this(options, standard, Model.ModelObjectId.IDUNASSIGNED, name)
+        public Checker(CheckerAttribute checkerAttribute, Options options, Standard standard, string name = "")
+            : this(checkerAttribute, options, standard, Model.ModelObjectId.IDUNASSIGNED, name)
         {
             _errorLog = new List<string>();
         }
 
-        public Checker(Options options, Standard standard, int id, string name = "")
+        public Checker(CheckerAttribute checkerAttribute, Options options, Standard standard, int id, string name = "")
             : base(id, name)
-        {
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            _options = options;
-
+        {            
+            _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
             _errorLog = new List<string>();
         }
@@ -66,6 +67,8 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
         {
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
             _options = (Options)info.GetValue("CheckerOptions", typeof(Options));
+            _checkerStationResult = (CheckerStationResult[])info.GetValue("CheckerStationResult", typeof(CheckerStationResult[]));
+            _checkerAttributes = (CheckerAttribute)info.GetValue("CheckerAttribute", typeof(CheckerAttribute[]));
         }
 
 
@@ -103,6 +106,8 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
             base.GetObjectData(info, context);
             info.AddValue("Standard", _standard, typeof(Standard));
             info.AddValue("CheckerOptions", _options, typeof(Options));
+            info.AddValue("CheckerStationResult", _checkerStationResult, typeof(CheckerStationResult[]));
+            info.AddValue("CheckerAttribute", _checkerAttributes, typeof(CheckerAttribute));
         }
 
         public override bool Equals(object obj)

@@ -1,25 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using GPC.Model.Results;
-using GPC.Model.Sections;
 using GPC.Model.Standards;
 using GPC.Model.LoadCases;
-using GPC.Model.Sections.Steel;
 using System.Runtime.Serialization;
-using GPC.Geometry;
 using GPC.Model.Sections.Concrete;
 using GPC.Checkers.ReinforcedConcrete.Checkers;
 
 namespace GPC.Checkers.ReinforcedConcrete.Results
 {
-    /// <summary>
-    /// This class contains the result of a check performed on a beam station with a given ILoadCase
-    /// </summary>
+	/// <summary>
+	/// This class contains the result of a check performed on a beam station with a given ILoadCase
+	/// </summary>
 
-    [Serializable]
+	[Serializable]
     public class EN1992p11PlateStationResult : PlateStationResults, ISerializable
     {
         #region Variables
