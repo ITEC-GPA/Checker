@@ -18,9 +18,9 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
 
         public StandardEN1992p11 EN1992P11 => (StandardEN1992p11)_standard;
 
-        public ConcreteMaterialEN1992 Material => (ConcreteMaterialEN1992)_plateCheckersAttributes.Sections.FirstOrDefault().ConcreteMaterial;
+        public ConcreteMaterialEN1992 Material => (ConcreteMaterialEN1992)_checkerAttributes.Sections.FirstOrDefault().ConcreteMaterial;
 
-        public EN1992p11BeamStationResult[] EN1993p11BeamStationResults => _plateStationResults.Cast<EN1992p11BeamStationResult>().ToArray();
+        public EN1992p11BeamStationResult[] EN1993p11BeamStationResults => _checkerStationResult.Cast<EN1992p11BeamStationResult>().ToArray();
 
         #endregion
 
@@ -34,14 +34,14 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
 
         public override void PerformCheck()
         {
-            _plateStationResults = PerformCheck(_plateCheckersAttributes.Sections, PlateCheckerAttribute.PlateResult, (EN1992p11Options)_options);
+            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, PlateCheckerAttribute.PlateResult, (EN1992p11Options)_options);
         }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _plateStationResults = PerformCheck(_plateCheckersAttributes.Sections, PlateCheckerAttribute.PlateResult, (EN1992p11Options)_options);
+                _checkerStationResult = PerformCheck(_checkerAttributes.Sections, PlateCheckerAttribute.PlateResult, (EN1992p11Options)_options);
             });
         }
 

@@ -32,15 +32,15 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
         #region Constructor
 
         protected EN1992p11BeamStationResult(IConcreteSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case,
-            EN1992p11BeamChecker.EN1992p11Options checkerOptions, StandardEN1992p11 standard, string name = "") 
-            : this(section, forces, station, Case, standard, checkerOptions, name)
+            EN1992p11BeamChecker.EN1992p11Options checkerOptions, StandardEN1992p11 standard, string name = "", int id = IDUNASSIGNED) 
+            : this(section, forces, station, Case, standard, checkerOptions, name, id)
         {
 
         }
 
         internal EN1992p11BeamStationResult(IConcreteSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, 
-            StandardEN1992p11 standard, EN1992p11BeamChecker.EN1992p11Options checkerOptions, string name = "") 
-            : base(section, forces, station, Case, standard, checkerOptions, name)
+            StandardEN1992p11 standard, EN1992p11BeamChecker.EN1992p11Options checkerOptions, string name = "", int id = IDUNASSIGNED) 
+            : base(section, forces, station, Case, standard, checkerOptions, name, id)
         {
 
         }

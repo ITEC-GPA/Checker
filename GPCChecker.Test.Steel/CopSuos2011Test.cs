@@ -139,6 +139,35 @@ namespace SteelTests
         }
 
         [TestMethod]
+        public void ClassificationSectionHTest6()
+        {
+            // 254x102x22
+            double h = 140; // Steel_CoP_2011_commentary E7.9 
+            double b = 140;
+            double t = 12;
+            double tw = 7;
+            double length = 3000;
+
+            LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
+            SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 10000, 0, CoordinateSystem.Global) };
+            ResultStation[] resultStations = new ResultStation[1] { new ResultStation(1, length / 2.0, length) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultBeamForces, resultStations, CoordinateSystem.Global) };
+            SteelSectionH steelSectionH = new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled);
+            Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
+
+            BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH, beamResults);
+
+            StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
+
+            Cop2011Checker cop2011Checker = new Cop2011Checker(cop2011BeamCheckerOptions, options, standardCopSuos2011);
+            cop2011Checker.PerformCheck();
+            Cop2011Checker.SectionClass sectionClass = cop2011Checker.Cop2011BeamStationResults[0].BendingCompressionClass;
+
+            Assert.AreEqual(sectionClass, Cop2011Checker.SectionClass.Class1);
+        }
+
+        [TestMethod]
         public void ClassificationSectionHTest2()
         {
             // 254x102x22

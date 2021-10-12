@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 
 namespace GPC.Checkers.ReinforcedConcrete
 {
-	public class CheckerAttribute : Model.ModelObject
+	public abstract class CheckerAttribute : Model.ModelObject
 	{
 		#region Variables
 

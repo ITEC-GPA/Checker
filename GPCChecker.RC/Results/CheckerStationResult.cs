@@ -8,7 +8,7 @@ using GPC.Model.Sections.Concrete;
 namespace GPC.Checkers.ReinforcedConcrete.Results
 {
 	[Serializable]
-	public abstract class CheckerStationResult : Model.ModelObject, ISerializable
+	public abstract class CheckerStationResult : Model.ModelObjectId, ISerializable
 	{
         #region Variables
 
@@ -18,7 +18,6 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
         protected readonly Standard _standard;
         
-
         #endregion
 
         #region Properties
@@ -47,16 +46,17 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
         #region Constructor
 
-        internal CheckerStationResult(IConcreteSection section, IResultLocation station, ILoadCase Case, Standard standard, string name = "")
+        internal CheckerStationResult(IConcreteSection section, IResultLocation station, ILoadCase Case, Standard standard, string name = "", int id = IDUNASSIGNED)
+            :base(id, name)
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
             _location = station ?? throw new ArgumentNullException(nameof(station));
             _case = Case ?? throw new ArgumentNullException(nameof(Case));
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));            
-            _name = name;
         }
 
-        internal CheckerStationResult(SerializationInfo info, StreamingContext context) : base(info, context)
+        internal CheckerStationResult(SerializationInfo info, StreamingContext context) 
+            : base(info, context)
         {
             _section = (IConcreteSection)info.GetValue("Section", typeof(IConcreteSection));
             _location = (IResultLocation)info.GetValue("ResultStation", typeof(IResultLocation));

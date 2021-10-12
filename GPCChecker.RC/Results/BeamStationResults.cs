@@ -41,8 +41,8 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
         #region Constructor
 
         internal BeamStationResults(IConcreteSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, Standard standard, 
-                                    BeamChecker.BeamCheckerOptions checkerOptions, string name = "")
-            : base(section, station, Case, standard, name)
+                                    BeamChecker.BeamCheckerOptions checkerOptions, string name = "", int id = IDUNASSIGNED)
+            : base(section, station, Case, standard, name, id)
         {
             _forces = forces ?? throw new ArgumentNullException(nameof(forces));
             _options = checkerOptions ?? throw new ArgumentNullException(nameof(checkerOptions));
