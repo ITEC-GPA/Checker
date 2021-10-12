@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver;
 using GPC.Model.Results;
 
 namespace GPC.Checkers.ReinforcedConcrete.Results
@@ -63,20 +64,12 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
 			public class FailureDomainPoint
 			{
-				public enum FailureIndices
-				{
-					Iz1,
-					Iz2,
-					Iz3,
-					Iz4,
-					Iz5,
-					Iz6
-				}
+
 
 				private readonly double _nRd;
 				private readonly double _mxRd;
 				private readonly double _myRd;
-				private readonly FailureIndices _failureIndex;
+				private readonly ConcreteSectionSolver.FailureIndices _failureIndex;
 				private readonly double _teta;
 				private readonly double _eta;
 
@@ -104,7 +97,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 				/// 5) Epsilon sup: EpsilonConcrete = EpsilonCu /// Epsilon inf: EpsilonSteel = 0 -> EpsilonConcrete = 0
 				/// 6) Epsilon sup: EpsilonConcrete = EpsilonCy /// Epsilon inf: EpsilonConcrete = EpsilonCy
 				/// </summary>
-				public FailureIndices FailureIndex => _failureIndex;
+				public ConcreteSectionSolver.FailureIndices FailureIndex => _failureIndex;
 
 				/// <summary>
 				/// The angle between the strain plane and the plane of section
@@ -122,7 +115,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 				public double Eta => _eta;
 
 
-				internal FailureDomainPoint(double nRd, double mxRd, double myRd, FailureIndices failureIndex, double teta, double eta)
+				internal FailureDomainPoint(double nRd, double mxRd, double myRd, ConcreteSectionSolver.FailureIndices failureIndex, double teta, double eta)
 				{
 					_nRd = nRd;
 					_mxRd = mxRd;
@@ -139,7 +132,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 					_myRd = (double)info.GetValue("MyRd", typeof(double));
 					_teta = (double)info.GetValue("Angle", typeof(double));
 					_eta = (double)info.GetValue("Eta", typeof(double));
-					_failureIndex = (FailureIndices)info.GetValue("FailureIndex", typeof(FailureIndices));
+					_failureIndex = (ConcreteSectionSolver.FailureIndices)info.GetValue("FailureIndex", typeof(ConcreteSectionSolver.FailureIndices));
 				}
 
 
@@ -150,7 +143,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 					info.AddValue("MyRd", _myRd, typeof(double));
 					info.AddValue("Angle", _teta, typeof(double));
 					info.AddValue("Eta", _eta, typeof(double));
-					info.AddValue("FailureIndex", _failureIndex, typeof(FailureIndices));
+					info.AddValue("FailureIndex", _failureIndex, typeof(ConcreteSectionSolver.FailureIndices));
 				}
 			}
 		}

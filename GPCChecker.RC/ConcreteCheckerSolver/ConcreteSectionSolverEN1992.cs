@@ -17,8 +17,6 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		public StandardEN1992p11 EN1992P11 => _standard;
 
-		public ConcreteMaterialEN1992 ConcreteMaterial => (ConcreteMaterialEN1992)_concreteSection.ConcreteMaterial;
-
 		/// <summary>
 		/// Design compressive strength for persistent design
 		/// </summary>
@@ -41,7 +39,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		protected virtual double CalculateFcd()
 		{
-			if (ConcreteMaterial.StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.StressBlock)
+			if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.StressBlock)
 			{
 				double eta;
 				if (ConcreteMaterial.Fck <= 50.0)
@@ -59,21 +57,21 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		protected override double CalculateSigmaC(double strain)
 		{
-			if (ConcreteMaterial.StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.ParabolaRectangle)
+			if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.ParabolaRectangle)
 			{
 				if (strain >= ConcreteMaterial.EpsilonY)
 					return Fcd;
 				else
-					return Fcd * (1 - Math.Pow(1 - strain / ConcreteMaterial.EpsilonY, ConcreteMaterial.CalculateN()));
+					return Fcd * (1 - Math.Pow(1 - strain / ConcreteMaterial.EpsilonY, ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
 			}
-			else if (ConcreteMaterial.StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.Bilinear)
+			else if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.Bilinear)
 			{
 				if (strain >= ConcreteMaterial.EpsilonY)
 					return Fcd;
 				else
 					return 0.0;
 			}
-			else if (ConcreteMaterial.StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.StressBlock)
+			else if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.StressBlock)
 			{
 				if (strain >= ConcreteMaterial.EpsilonY)
 					return Fcd;
