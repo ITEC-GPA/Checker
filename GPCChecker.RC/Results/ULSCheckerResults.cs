@@ -52,11 +52,11 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 			public FailureDomain(FailureDomainPoint[][] domainPoints)
 			{
 				_domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
-				_domainGeometry = CalculateLevelCurves();
+				//_domainGeometry = CalculateLevelCurves();
 			}
 
 
-			protected FailureDomainPoint[][] CalculateLevelCurves(int numberOfDivision = 100)
+			protected FailureDomainPoint[][] CalculateLevelCurves()
 			{
 				//TODO: implementare interpolazione
 				throw new Exception();
@@ -64,8 +64,6 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
 			public class FailureDomainPoint
 			{
-
-
 				private readonly double _nRd;
 				private readonly double _mxRd;
 				private readonly double _myRd;
