@@ -17,18 +17,12 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
     {
         #region Variables
 
-        protected readonly ResultBeamForces _forces;
         protected readonly BeamChecker.BeamCheckerOptions _options;
 
         #endregion
 
 
         #region Properties
-
-        /// <summary>
-        /// The <see cref="ResultBeamForces"/> to check
-        /// </summary>
-        public ResultBeamForces ResultBeamForce => _forces;
 
         /// <summary>
         /// The options to perform the check.
@@ -40,17 +34,16 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
         #region Constructor
 
-        internal BeamStationResults(IConcreteSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, Standard standard, 
-                                    BeamChecker.BeamCheckerOptions checkerOptions, string name = "", int id = IDUNASSIGNED)
-            : base(section, station, Case, standard, name, id)
+        internal BeamStationResults(IConcreteSection section, ResultStation station, ResultBeamForces[] forces, ILoadCase[] Case, Standard standard, 
+                                    ULSCheckerResults uLSCheckerResults, SLSCheckerResults[] sLSCheckerResults, BeamChecker.BeamCheckerOptions checkerOptions,
+                                    string name = "", int id = IDUNASSIGNED)
+            : base(section, station, forces, Case, standard, uLSCheckerResults, sLSCheckerResults, name, id)
         {
-            _forces = forces ?? throw new ArgumentNullException(nameof(forces));
             _options = checkerOptions ?? throw new ArgumentNullException(nameof(checkerOptions));
         }
 
         internal BeamStationResults(SerializationInfo info, StreamingContext context) : base(info, context)
         {
-            _forces = (ResultBeamForces)info.GetValue("ResultBeamForces", typeof(ResultBeamForces));
             _options = (BeamChecker.BeamCheckerOptions)info.GetValue("CheckerOptions", typeof(BeamChecker.BeamCheckerOptions));
         }
 
@@ -62,7 +55,6 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue("ResultBeamForces", _forces, typeof(ResultBeamForces));
             info.AddValue("CheckerOptions", _options, typeof(BeamChecker.BeamCheckerOptions));
         }
 
@@ -71,8 +63,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return (obj is BeamStationResults objCasted) && _forces.Equals(objCasted._forces)
-                                                         && _options.Equals(objCasted._case)
+            return (obj is BeamStationResults objCasted) && _options.Equals(objCasted._case)
                                                          && base.Equals(objCasted);
         }
 
@@ -82,12 +73,6 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
             {
                 int hashCode = 23;
                 hashCode = hashCode * -17 + base.GetHashCode();
-                hashCode = hashCode * -17 + _section.GetHashCode();
-                hashCode = hashCode * -17 + _forces.GetHashCode();
-                hashCode = hashCode * -17 + _location.GetHashCode();
-                hashCode = hashCode * -17 + _case.GetHashCode();
-                hashCode = hashCode * -17 + _standard.GetHashCode();
-                hashCode = hashCode * -17 + _options.GetHashCode();
                 hashCode = hashCode * -17 + _options.GetHashCode();
 
                 return hashCode;

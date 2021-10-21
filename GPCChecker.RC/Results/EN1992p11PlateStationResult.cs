@@ -31,26 +31,19 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
         #region Constructor
 
-        protected EN1992p11PlateStationResult(IConcreteSection section, ResultPlateForces forces, ResultStation station, ILoadCase Case,
-            EN1992p11PlateChecker.EN1992p11Options checkerOptions, StandardEN1992p11 standard, string name = "", int id = IDUNASSIGNED)
-            : this(section, forces, station, Case, standard, checkerOptions, name, id)
-        {
+		public EN1992p11PlateStationResult(IConcreteSection section, ResultPlateForces[] forces, ResultStation station, ILoadCase[] Case,
+            StandardEN1992p11 standard, ULSCheckerResults uLSCheckerResults, SLSCheckerResults[] sLSCheckerResults, 
+            EN1992p11PlateChecker.EN1992p11Options checkerOptions, string name = "", int id = -1) 
+            : base(section, forces, station, Case, standard, uLSCheckerResults, sLSCheckerResults, checkerOptions, name, id)
+		{
+		}
 
-        }
-
-        internal EN1992p11PlateStationResult(IConcreteSection section, ResultPlateForces forces, ResultStation station, ILoadCase Case, 
-            StandardEN1992p11 standard, EN1992p11PlateChecker.EN1992p11Options checkerOptions, string name = "", int id = IDUNASSIGNED) 
-            : base(section, forces, station, Case, standard, checkerOptions, name, id)
-        {
-
-        }
-
-        #endregion
+		#endregion
 
 
-        #region Public Method
+		#region Public Method
 
-        internal void SetCapacity()
+		internal void SetCapacity()
         {
 
         }

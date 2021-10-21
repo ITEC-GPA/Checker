@@ -9,25 +9,27 @@ using GPC.Geometry;
 
 namespace GPC.Checkers.ReinforcedConcrete.Results
 {
-	public class SLSCheckerResults
-	{		
-		protected List<ResultType> _forces;
-		protected IConcreteSection _section;
+	public class SLSCheckerResults : CheckerResultType
+	{
+		protected readonly ResultType _force;
+		protected readonly StrainPlane _strainPlane;
 		protected double _workingRatio;
 
 		//TODO: aggiungere tassi di lavoro necessari
 
-		public List<ResultType> Forces => _forces;
+		public ResultType Force => _force;
 
-		public IConcreteSection Section => _section;
+		public StrainPlane StrainPlane => _strainPlane;
 
-		public SLSCheckerResults(List<ResultType> forces)
+
+		public SLSCheckerResults(IConcreteSection section, ResultType force, StrainPlane strainPlane, int id = IDUNASSIGNED)
+			: base(section, id)
 		{
-			foreach (ResultType resultType in forces)
-				if (resultType.GetType() != typeof(ResultBeamForces) && resultType.GetType() != typeof(ResultPlateForces))
+				if (force.GetType() != typeof(ResultBeamForces) && force.GetType() != typeof(ResultPlateForces))
 					throw new ArgumentException("Result must be ResultBeamForces or ResultPlateForces");
 
-			_forces = forces ?? throw new ArgumentNullException(nameof(forces));
+			_force = force ?? throw new ArgumentNullException(nameof(force));
+			_strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
 		}
 
 

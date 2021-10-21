@@ -16,17 +16,11 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
     {
         #region Variables
 
-        protected readonly ResultPlateForces _forces;
         protected readonly PlateChecker.PlateCheckerOptions _options;
 
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// The <see cref="ResultPlateForces"/> to check
-        /// </summary>
-        public ResultPlateForces ResultPlateForce => _forces;
 
         /// <summary>
         /// The options to perform the check.
@@ -37,17 +31,16 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
         #region Constructor
 
-        internal PlateStationResults(IConcreteSection section, ResultPlateForces forces, ResultStation station, 
-            ILoadCase Case, Standard standard, PlateChecker.PlateCheckerOptions checkerOptions, string name = "", int id = IDUNASSIGNED)
-            : base(section, station, Case, standard, name, id)
+        internal PlateStationResults(IConcreteSection section, ResultPlateForces[] forces, ResultStation station, ILoadCase[] Case, 
+            Standard standard, ULSCheckerResults uLSCheckerResults, SLSCheckerResults[] sLSCheckerResults, 
+            PlateChecker.PlateCheckerOptions checkerOptions, string name = "", int id = IDUNASSIGNED)
+            : base(section, station, forces, Case, standard, uLSCheckerResults, sLSCheckerResults, name, id)
         {
-            _forces = forces ?? throw new ArgumentNullException(nameof(forces));
             _options = checkerOptions ?? throw new ArgumentNullException(nameof(checkerOptions));
         }
 
         internal PlateStationResults(SerializationInfo info, StreamingContext context) : base(info, context)
         {
-            _forces = (ResultPlateForces)info.GetValue("ResultPlateForces", typeof(ResultPlateForces));
             _options = (PlateChecker.PlateCheckerOptions)info.GetValue("CheckerOptions", typeof(PlateChecker.PlateCheckerOptions));
         }
 
@@ -59,7 +52,6 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue("ResultPlateForces", _forces, typeof(ResultPlateForces));
             info.AddValue("CheckerOptions", _options, typeof(PlateChecker.PlateCheckerOptions));
         }
 
@@ -68,9 +60,8 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return (obj is PlateStationResults objCasted) && _forces.Equals(objCasted._forces)
-                                                        && _options.Equals(objCasted._case)
-                                                        && base.Equals(objCasted);
+            return (obj is PlateStationResults objCasted)  && _options.Equals(objCasted._case)
+                                                           && base.Equals(objCasted);
         }
 
         public override int GetHashCode()
@@ -79,7 +70,6 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
             {
                 int hashCode = 23;
                 hashCode = hashCode * -17 + base.GetHashCode();
-                hashCode = hashCode * -17 + _forces.GetHashCode();
                 hashCode = hashCode * -17 + _options.GetHashCode();
 
                 return hashCode;
