@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Checkers.ReinforcedConcrete.Results;
 using GPC.Geometry;
+using GPC.Geometry.Meshes;
 using GPC.Model.Materials;
+using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Sections.Concrete;
 
 namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
@@ -29,6 +32,8 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		public RebarMaterial[] SteelMaterial => (RebarMaterial[])_concreteSection.Rebars.Select(i => i.RebarMaterial);
 
+		public Mesh Mesh => _concreteSection.Mesh;
+
 		public ConcreteSectionSolver(IConcreteSection section)
 		{
 			_concreteSection = section;
@@ -44,17 +49,29 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		}
 
-		public virtual StrainPlane[] CalculateAllDesignStrainPlanes(double teta, int subdivision)
+		/// <summary>
+		/// Calculate the strain planes for angle <paramref name="teta"/>
+		/// </summary>
+		/// <param name="teta">The angle of rotation of the axis</param>
+		/// <param name="zoneSubdivision">Number of subdivision for each failure zone</param>
+		/// <returns></returns>
+		public virtual StrainPlane[] CalculateAllDesignStrainPlanes(double teta, int[] zoneSubdivision)
 		{
-			StrainPlane[] strainPlanes = new StrainPlane[6 * subdivision];
+			if (zoneSubdivision.Length != 6)
+				throw new ArgumentException("Subdivision must have 6 elements");
+
+			StrainPlane[] strainPlanes = new StrainPlane[zoneSubdivision.Sum() + 6];
 			double cosTeta = Math.Cos(teta);
 			double sinTeta = Math.Sin(teta);
+			int subIndex = 0;
 
 			// per ogni indice di campo - 1
 			for (int i = 0; i < 6; i++)
 			{
 				if (i == 0)   // campo 1
 				{
+					int subdivision = zoneSubdivision[i] + 1;
+
 					double dminSteel = double.MaxValue;
 					double dmaxSteel = double.MinValue;
 					double dmaxConcrete = double.MinValue;
@@ -64,7 +81,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 					for (int r = 0; r < ConcreteSection.Rebars.Count(); r++)
 					{
-						double w1 = ConcreteSection.Rebars[r].Position.Y * cosTeta - ConcreteSection.Rebars[r].Position.X * sinTeta;
+						double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
 						if (w1 <= dminSteel)
 						{
 							dminSteel = w1;
@@ -80,25 +97,26 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 					for (int c = 0; c < ConcreteSection.Shape.Fill.Count; c++)
 					{
-						double w1 = ConcreteSection.Shape.Fill[c].Y * cosTeta - ConcreteSection.Shape.Fill[c].X * sinTeta;
+						double w1 = (ConcreteSection.Shape.Fill[c].Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Shape.Fill[c].X - ConcreteSection.Centroid.X) * sinTeta;
 
 						if (w1 >= dmaxConcrete)
 							dmaxConcrete = w1;
 					}
 
 					double chiSx = 0;   // valore curvatura estremo Sx del campo i-esimo
-					double chiDx = ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonU / (dmaxSteel - dminSteel); // valore curvatura estremo Dx del campo i-esimo
-
-					double deltaEta = (chiSx - chiDx) / subdivision;
+					double chiDx = ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonU / (dmaxConcrete - dminSteel); // valore curvatura estremo Dx del campo i-esimo
 
 					for (int j = 0; j < subdivision; j++)
 					{
-						double chi = chiSx + (subdivision * deltaEta) * (chiDx - chiSx);
-						strainPlanes[i * subdivision + j] = new StrainPlane(rebarPosition, teta, chi, ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonU, FailureIndices.Iz1);
+						double chi = chiSx + j * (chiDx - chiSx) / subdivision;
+						strainPlanes[subIndex] = new StrainPlane(rebarPosition, teta, chi, ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonU);
+						subIndex++;
 					}
 				}
 				else if (i == 1)
 				{
+					int subdivision = zoneSubdivision[i] + 1;
+
 					double dminSteel = double.MaxValue;
 					double dmaxConcrete = double.MinValue;
 
@@ -107,7 +125,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 					for (int r = 0; r < ConcreteSection.Rebars.Count(); r++)
 					{
-						double w1 = ConcreteSection.Rebars[r].Position.Y * cosTeta - ConcreteSection.Rebars[r].Position.X * sinTeta;
+						double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
 						if (w1 <= dminSteel)
 						{
 							dminSteel = w1;
@@ -118,7 +136,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 					for (int c = 0; c < ConcreteSection.Shape.Fill.Count; c++)
 					{
-						double w1 = ConcreteSection.Shape.Fill[c].Y * cosTeta - ConcreteSection.Shape.Fill[c].X * sinTeta;
+						double w1 = (ConcreteSection.Shape.Fill[c].Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Shape.Fill[c].X - ConcreteSection.Centroid.X) * sinTeta;
 
 						if (w1 >= dmaxConcrete)
 							dmaxConcrete = w1;
@@ -127,18 +145,19 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 					//TODO: implementare con armature lineari
 
 					double chiSx = ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonU / (dmaxConcrete - dminSteel);   // valore curvatura estremo Sx del campo i-esimo
-					double chiDx = ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonU + ConcreteSection.ConcreteMaterial.EpsilonU / (dmaxConcrete - dminSteel); // valore curvatura estremo Dx del campo i-esimo
-
-					double deltaEta = (chiSx - chiDx) / subdivision;
+					double chiDx = (ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonU + ConcreteSection.ConcreteMaterial.EpsilonU) / (dmaxConcrete - dminSteel); // valore curvatura estremo Dx del campo i-esimo
 
 					for (int j = 0; j < subdivision; j++)
 					{
-						double chi = chiSx + (subdivision * deltaEta) * (chiDx - chiSx);
-						strainPlanes[i * subdivision + j] = new StrainPlane(strainPlaneCenter, teta, chi, ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonU, FailureIndices.Iz2);
+						double chi = chiSx + j * (chiDx - chiSx) / subdivision;
+						strainPlanes[subIndex] = new StrainPlane(strainPlaneCenter, teta, chi, ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonU);
+						subIndex++;
 					}
 				}
 				else if (i == 2)
 				{
+					int subdivision = zoneSubdivision[i] + 1;
+
 					double dminSteel = double.MaxValue;
 					double dmaxConcrete = double.MinValue;
 
@@ -147,7 +166,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 					for (int r = 0; r < ConcreteSection.Rebars.Count(); r++)
 					{
-						double w1 = ConcreteSection.Rebars[r].Position.Y * cosTeta - ConcreteSection.Rebars[r].Position.X * sinTeta;
+						double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
 						if (w1 <= dminSteel)
 						{
 							dminSteel = w1;
@@ -157,7 +176,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 					for (int c = 0; c < ConcreteSection.Shape.Fill.Count; c++)
 					{
-						double w1 = ConcreteSection.Shape.Fill[c].Y * cosTeta - ConcreteSection.Shape.Fill[c].X * sinTeta;
+						double w1 = (ConcreteSection.Shape.Fill[c].Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Shape.Fill[c].X - ConcreteSection.Centroid.X) * sinTeta;
 
 						if (w1 >= dmaxConcrete)
 						{
@@ -168,19 +187,20 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 					//TODO: implementare con armature lineari
 
-					double chiSx = ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonU + ConcreteSection.ConcreteMaterial.EpsilonU / (dmaxConcrete - dminSteel);   // valore curvatura estremo Sx del campo i-esimo
-					double chiDx = ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonY + ConcreteSection.ConcreteMaterial.EpsilonU / (dmaxConcrete - dminSteel); // valore curvatura estremo Dx del campo i-esimo
-
-					double deltaEta = (chiSx - chiDx) / subdivision;
+					double chiSx = (ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonU + ConcreteSection.ConcreteMaterial.EpsilonU) / (dmaxConcrete - dminSteel);   // valore curvatura estremo Sx del campo i-esimo
+					double chiDx = (ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonY + ConcreteSection.ConcreteMaterial.EpsilonU) / (dmaxConcrete - dminSteel); // valore curvatura estremo Dx del campo i-esimo
 
 					for (int j = 0; j < subdivision; j++)
 					{
-						double chi = chiSx + (subdivision * deltaEta) * (chiDx - chiSx);
-						strainPlanes[i * subdivision + j] = new StrainPlane(strainPlaneCenter, teta, chi, ConcreteSection.ConcreteMaterial.EpsilonU, FailureIndices.Iz3);
+						double chi = chiSx + j * (chiDx - chiSx) / subdivision;
+						strainPlanes[subIndex] = new StrainPlane(strainPlaneCenter, teta, chi, ConcreteSection.ConcreteMaterial.EpsilonU);
+						subIndex++;
 					}
 				}
 				else if (i == 3)
 				{
+					int subdivision = zoneSubdivision[i] + 1;
+
 					double dminSteel = double.MaxValue;
 					double dmaxConcrete = double.MinValue;
 
@@ -189,7 +209,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 					for (int r = 0; r < ConcreteSection.Rebars.Count(); r++)
 					{
-						double w1 = ConcreteSection.Rebars[r].Position.Y * cosTeta - ConcreteSection.Rebars[r].Position.X * sinTeta;
+						double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
 						if (w1 <= dminSteel)
 						{
 							dminSteel = w1;
@@ -199,7 +219,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 					for (int c = 0; c < ConcreteSection.Shape.Fill.Count; c++)
 					{
-						double w1 = ConcreteSection.Shape.Fill[c].Y * cosTeta - ConcreteSection.Shape.Fill[c].X * sinTeta;
+						double w1 = (ConcreteSection.Shape.Fill[c].Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Shape.Fill[c].X - ConcreteSection.Centroid.X) * sinTeta;
 
 						if (w1 >= dmaxConcrete)
 						{
@@ -210,28 +230,29 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 					//TODO: implementare con armature lineari
 
-					double chiSx = ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonY + ConcreteSection.ConcreteMaterial.EpsilonU / (dmaxConcrete - dminSteel);   // valore curvatura estremo Sx del campo i-esimo
+					double chiSx = (ConcreteSection.Rebars[rebarIndex].RebarMaterial.EpsilonY + ConcreteSection.ConcreteMaterial.EpsilonU) / (dmaxConcrete - dminSteel);   // valore curvatura estremo Sx del campo i-esimo
 					double chiDx = ConcreteSection.ConcreteMaterial.EpsilonU / (dmaxConcrete - dminSteel); // valore curvatura estremo Dx del campo i-esimo
-
-					double deltaEta = (chiSx - chiDx) / subdivision;
 
 					for (int j = 0; j < subdivision; j++)
 					{
-						double chi = chiSx + (subdivision * deltaEta) * (chiDx - chiSx);
-						strainPlanes[i * subdivision + j] = new StrainPlane(strainPlaneCenter, teta, chi, ConcreteSection.ConcreteMaterial.EpsilonU, FailureIndices.Iz4);
+						double chi = chiSx + j * (chiDx - chiSx) / subdivision;
+						strainPlanes[subIndex] = new StrainPlane(strainPlaneCenter, teta, chi, ConcreteSection.ConcreteMaterial.EpsilonU);
+						subIndex++;
 					}
 				}
 				else if (i == 4)
 				{
+					int subdivision = zoneSubdivision[i] + 1;
+
 					double dminSteel = double.MaxValue;
 					double dmaxConcrete = double.MinValue;
-					double dminConcrete = double.MinValue;
+					double dminConcrete = double.MaxValue;
 
 					Point2d strainPlaneCenter = new Point2d(double.MaxValue, double.MaxValue);
 
 					for (int r = 0; r < ConcreteSection.Rebars.Count(); r++)
 					{
-						double w1 = ConcreteSection.Rebars[r].Position.Y * cosTeta - ConcreteSection.Rebars[r].Position.X * sinTeta;
+						double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
 
 						if (w1 <= dminSteel)
 							dminSteel = w1;
@@ -239,7 +260,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 					for (int c = 0; c < ConcreteSection.Shape.Fill.Count; c++)
 					{
-						double w1 = ConcreteSection.Shape.Fill[c].Y * cosTeta - ConcreteSection.Shape.Fill[c].X * sinTeta;
+						double w1 = (ConcreteSection.Shape.Fill[c].Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Shape.Fill[c].X - ConcreteSection.Centroid.X) * sinTeta;
 
 						if (w1 >= dmaxConcrete)
 						{
@@ -255,22 +276,23 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 					double chiSx = ConcreteSection.ConcreteMaterial.EpsilonU / (dmaxConcrete - dminSteel);   // valore curvatura estremo Sx del campo i-esimo
 					double chiDx = ConcreteSection.ConcreteMaterial.EpsilonU / (dmaxConcrete - dminConcrete); // valore curvatura estremo Dx del campo i-esimo
 
-					double deltaEta = (chiSx - chiDx) / subdivision;
-
 					for (int j = 0; j < subdivision; j++)
 					{
-						double chi = chiSx + (subdivision * deltaEta) * (chiDx - chiSx);
-						strainPlanes[i * subdivision + j] = new StrainPlane(strainPlaneCenter, teta, chi, ConcreteSection.ConcreteMaterial.EpsilonU, FailureIndices.Iz5);
+						double chi = chiSx + j * (chiDx - chiSx) / subdivision;
+						strainPlanes[subIndex] = new StrainPlane(strainPlaneCenter, teta, chi, ConcreteSection.ConcreteMaterial.EpsilonU);
+						subIndex++;
 					}
 				}
 				else if (i == 5)
 				{
+					int subdivision = zoneSubdivision[i] + 1;
+
 					double dmaxConcrete = double.MinValue;
-					double dminConcrete = double.MinValue;
+					double dminConcrete = double.MaxValue;
 
 					for (int c = 0; c < ConcreteSection.Shape.Fill.Count; c++)
 					{
-						double w1 = ConcreteSection.Shape.Fill[c].Y * cosTeta - ConcreteSection.Shape.Fill[c].X * sinTeta;
+						double w1 = (ConcreteSection.Shape.Fill[c].Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Shape.Fill[c].X - ConcreteSection.Centroid.X) * sinTeta;
 
 						if (w1 >= dmaxConcrete)
 							dmaxConcrete = w1;
@@ -279,18 +301,17 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 							dminConcrete = w1;
 					}
 
-					Point2d strainPlaneCenter = new Point2d(dmaxConcrete - (3.0 / 7.0) * (dmaxConcrete - dmaxConcrete - dminConcrete) * (-sinTeta),
-						dmaxConcrete - (3.0 / 7.0) * (dmaxConcrete - dmaxConcrete - dminConcrete) * (cosTeta));
+					Point2d strainPlaneCenter = new Point2d((dmaxConcrete - (3.0 / 7.0) * (dmaxConcrete - dminConcrete)) * (-sinTeta) + ConcreteSection.Centroid.X,
+						(dmaxConcrete - (3.0 / 7.0) * (dmaxConcrete - dmaxConcrete - dminConcrete)) * (cosTeta) + ConcreteSection.Centroid.Y);
 
 					double chiSx = ConcreteSection.ConcreteMaterial.EpsilonU / (dmaxConcrete - dminConcrete);   // valore curvatura estremo Sx del campo i-esimo
 					double chiDx = 0.0; // valore curvatura estremo Dx del campo i-esimo
-
-					double deltaEta = (chiSx - chiDx) / subdivision;
-
+										
 					for (int j = 0; j < subdivision; j++)
 					{
-						double chi = chiSx + (subdivision * deltaEta) * (chiDx - chiSx);
-						strainPlanes[i * subdivision + j] = new StrainPlane(strainPlaneCenter, teta, chi, ConcreteSection.ConcreteMaterial.EpsilonY, FailureIndices.Iz6);
+						double chi = chiSx + j * (chiDx - chiSx) / subdivision;
+						strainPlanes[subIndex] = new StrainPlane(strainPlaneCenter, teta, chi, ConcreteSection.ConcreteMaterial.EpsilonY);
+						subIndex++;
 					}
 				}
 				else
@@ -303,131 +324,173 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		protected abstract double CalculateSigmaC(double strain);
 
-		protected abstract double CalculateSigmaS(double strain);
+		protected abstract double CalculateSigmaS(ReinforcedConcreteRebar rebar, double strain);
 
-		protected virtual double CalculateIntegralCostantStressTriangleConcrete(Point2d p1, Point2d p2, Point2d p3, double sigma)
-		{
-			double area = 0.5 * ((p3.Y + p1.Y) * (p3.X - p1.X) - (p3.Y + p2.Y) * (p3.X - p2.X) - (p2.Y + p1.Y) * (p2.X - p1.X));
-			return area * sigma;
-		}
 
-		protected virtual double CalculateIntegralVeriableStressTriangleConcrete(Point2d p1, Point2d p2, Point2d p3, StrainPlane strainPlane)
-		{
-			double resultant = 0.0;
-			double[] weight = new double[] { -0.56250, 0.52083333333333, 0.52083333333333, 0.52083333333333 };
-
-			double area = 0.5 * ((p3.Y + p1.Y) * (p3.X - p1.X) - (p3.Y + p2.Y) * (p3.X - p2.X) - (p2.Y + p1.Y) * (p2.X - p1.X));
-
-			// primo punto semplice
-			Point2d point1NC = new Point2d(p1.X + (p2.X - p1.X) / 3 + (p3.X - p1.X) / 3, p1.Y + (p2.Y - p1.Y) / 3 + (p3.Y - p1.Y) / 3);
-			double point1Strain = CalculateStrain(strainPlane, point1NC);
-			double sigmaCPoint1 = CalculateSigmaC(point1Strain);
-
-			resultant += sigmaCPoint1 * (weight[0]);
-
-			// secondo punto semplice
-			Point2d point2NC = new Point2d(p1.X + (p2.X - p1.X) / 5 + (p3.X - p1.X) / 5, p1.Y + (p2.Y - p1.Y) / 5 + (p3.Y - p1.Y) / 5);
-			double point2Strain = CalculateStrain(strainPlane, point2NC);
-			double sigmaCPoint2 = CalculateSigmaC(point2Strain);
-
-			resultant += sigmaCPoint2 * (weight[1]);
-
-			// terzo punto semplice
-			Point2d point3NC = new Point2d(p1.X + 3 * (p2.X - p1.X) / 5 + (p3.X - p1.X) / 5, p1.Y + 3 * (p2.Y - p1.Y) / 5 + (p3.Y - p1.Y) / 5);
-			double point3Strain = CalculateStrain(strainPlane, point3NC);
-			double sigmaCPoint3 = CalculateSigmaC(point3Strain);
-
-			resultant += sigmaCPoint3 * (weight[2]);
-
-			// quarto punto semplice
-			Point2d point4NC = new Point2d(p1.X + (p2.X - p1.X) / 5 + 3 * (p3.X - p1.X) / 5, p1.Y + (p2.Y - p1.Y) / 5 + 3 * (p3.Y - p1.Y) / 5);
-			double point4Strain = CalculateStrain(strainPlane, point4NC);
-			double sigmaCPoint4 = CalculateSigmaC(point4Strain);
-
-			resultant += sigmaCPoint4 * (weight[3]);
-
-			return resultant * area;
-		}
-
-		protected virtual double CalculateIntegralVariableStressLineConcrete(Point2d p1, Point2d p2, double thickness, StrainPlane strainPlane)
-		{
-			double resultant = 0.0;
-			double[] weight = new double[] { 0.5555555555, 0.8888888888, 0.5555555555 };
-
-			// primo punto semplice
-			Point2d point1NC = new Point2d(p1.X + (p2.X - p1.X) * (1 - 0.77459) / 2.0, p1.Y + (p2.Y - p1.Y) * (1 - 0.77459) / 2.0);
-			double point1Strain = CalculateStrain(strainPlane, point1NC);
-			double sigmaCPoint1 = CalculateSigmaC(point1Strain);
-
-			resultant += sigmaCPoint1 * (weight[0]);
-
-			// secondo punto semplice
-			Point2d point2NC = new Point2d((p2.X - p1.X) / 2.0, (p2.Y - p1.Y) / 2.0);
-			double point2Strain = CalculateStrain(strainPlane, point2NC);
-			double sigmaCPoint2 = CalculateSigmaC(point2Strain);
-
-			resultant += sigmaCPoint2 * (weight[1]);
-
-			// primo punto semplice
-			Point2d point3NC = new Point2d(p1.X + (p2.X - p1.X) * (1 + 0.77459) / 2.0, p1.Y + (p2.Y - p1.Y) * (1 + 0.77459) / 2.0);
-			double point3Strain = CalculateStrain(strainPlane, point3NC);
-			double sigmaCPoint3 = CalculateSigmaC(point3Strain);
-
-			resultant += sigmaCPoint3 * (weight[2]);
-
-			return resultant * thickness * p1.DistanceTo(p2);
-		}
-
-		protected virtual double CalculateIntegralCostantStressLine(Point2d p1, Point2d p2, double thickness, double sigma)
-		{
-			return p1.DistanceTo(p2) * thickness * sigma;
-		}
+		
+		//protected virtual double CalculateSteelStressLine(Point3d p1, Point3d p2, double thickness, StrainPlane strainPlane)
+		//{
+		//	return GaussIntegration.IntegrationLineLinearShapeFunction(GetSteelStressFunction(strainPlane), new Point3d[] { p1, p2 }, 32) * thickness;
+		//}
 
 		/// <summary>
 		/// Return the strain value of the <paramref name="pointToTest"/>
 		/// </summary>
-		protected double CalculateStrain(StrainPlane strainPlane, Point2d pointToTest)
+		protected double CalculateStrain(StrainPlane strainPlane, Point3d pointToTest)
 		{
-			return strainPlane.EpsilonCenterOfStrainPlane - strainPlane.Chi * ((pointToTest.Y - strainPlane.CenterOfStrainPlane.Y) * Math.Cos(strainPlane.Teta) -
-				(pointToTest.X - strainPlane.CenterOfStrainPlane.X) * Math.Sin(strainPlane.Teta));
+			return strainPlane.StrainReferencePoint - strainPlane.Chi * ((pointToTest.Y - strainPlane.ReferecePoint.Y) * Math.Cos(strainPlane.Teta) -
+				(pointToTest.X - strainPlane.ReferecePoint.X) * Math.Sin(strainPlane.Teta));
 		}
 
+		/// <summary>
+		/// Calculate stress result for <paramref name="face"/>
+		/// </summary>
+		/// <param name="face">The domain of integration</param>
+		/// <param name="strainPlane">The strain plane</param>
+		/// <returns></returns>
+		protected virtual double CalculateConcreteStress(MeshFace face, StrainPlane strainPlane)
+		{
+			double area = Mesh.GetFaceArea(face);
+			Point3d[] points = Mesh.GetFacePoints(face);
+
+			if (face.IsTriangle)			
+				return GaussIntegration.IntegrationTriangularLinearShapeFunction(GetConcreteStressFunction(strainPlane), points, 79);
+			
+			else if (face.IsQuad)			
+				return GaussIntegration.IntegrationQuadrilateralLinearShapeFunction(GetConcreteStressFunction(strainPlane), points, 400);
+			
+			else
+				throw new ArgumentException();
+		}
 
 		/// <summary>
-		/// The strain plane - epsilon(x,y) = epsilon0 - chi * ((-sin(teta)*x + cos(teta)*y)
+		/// 
 		/// </summary>
-		public struct StrainPlane
+		/// <param name="strainPlane"></param>
+		/// <param name="deltaN"></param>
+		/// <param name="deltaMx"></param>
+		/// <param name="deltaMy"></param>
+		protected virtual void CalculateSolidStress(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
 		{
-			public StrainPlane(Point2d centerOfStrainPlane, double teta, double chi, double epsilonCenterOfStrainPlane, FailureIndices failureIndice)
+			deltaN = 0;
+			deltaMx = 0;
+			deltaMy = 0;
+
+			for (int i = 1; i <= Mesh.FacesCount; i++)
 			{
-				CenterOfStrainPlane = centerOfStrainPlane;
-				Teta = teta;
-				Chi = chi;
-				EpsilonCenterOfStrainPlane = epsilonCenterOfStrainPlane;
-				FailureIndice = failureIndice;
+				CalculateStressResultant(Mesh.Faces[i], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
+
+				deltaN += deltaNBuffer;
+				deltaMx += deltaMxBuffer;
+				deltaMy += deltaMyBuffer;
+			}
+		}
+
+		protected virtual void CalculateRebarIntegration(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+		{
+			deltaN = 0;
+			deltaMx = 0;
+			deltaMy = 0;
+
+			for (int i = 0; i < ConcreteSection.Rebars.Length; i++)
+			{
+				double sigma = CalculateSigmaS(ConcreteSection.Rebars[i], CalculateStrain(strainPlane, ConcreteSection.Rebars[i].Position));
+
+				//if (sigma < 0)
+				//	sigma += CalculateSigmaC(sigma);
+
+				deltaN = sigma * ConcreteSection.Rebars[i].Area;
+				deltaMx = sigma * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
+				deltaMy = sigma * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
+			}
+		}
+
+		Func<double, double, double> GetConcreteStressFunction(StrainPlane strainPlane)
+		{
+			return (x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0)));
+		}
+
+		Func<double, double, double> GetSteelStressFunction(ReinforcedConcreteRebar rebar, StrainPlane strainPlane)
+		{
+			return (x, y) => CalculateSigmaS(rebar, CalculateStrain(strainPlane, new Point3d(x, y, 0)));
+		}
+
+		//Func<double, double, double> GetSteelStressFunction(ReinforcedConcreteRebar rebar, StrainPlane strainPlane)
+		//{
+		//	return (x, y) => CalculateSigmaS(rebar, CalculateStrain(strainPlane, new Point3d(x, y, 0)));
+		//}
+
+		public virtual Point3d[] ExportToGmsh(FailureDomain failureDomain)
+		{
+			GmshNet.Gmsh.Initialize();
+			int horizontal = failureDomain.DomainPoints.GetUpperBound(0);
+			List<Point3d> points = new List<Point3d>();
+
+			for (int i = 0; i < horizontal; i++)
+			{
+				int vertical = failureDomain.DomainPoints[i].GetUpperBound(0);
+
+				for (int j = 0; j < vertical; j++)
+				{
+					GmshNet.Gmsh.Model.Occ.AddPoint(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+						failureDomain.DomainPoints[i][j].MyRd / 1000000,
+						failureDomain.DomainPoints[i][j].NRd / 1000 / 10);
+
+					points.Add(new Point3d(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+						failureDomain.DomainPoints[i][j].MyRd / 1000000,
+						failureDomain.DomainPoints[i][j].NRd / 1000 / 10));
+				}
 			}
 
-			/// <summary>
-			/// The point where is set <see cref="EpsilonCenterOfStrainPlane"/>
-			/// </summary>
-			public Point2d CenterOfStrainPlane { get; }
+			GmshNet.Gmsh.Model.Occ.Synchronize();
+			GmshNet.Gmsh.Fltk.Run();
+			GmshNet.Gmsh.Finalize();
 
-			/// <summary>
-			/// The angle of rotation of the strain plane respect the X-axis
-			/// </summary>
-			public double Teta { get; }
+			return points.ToArray();
+		}
 
-			/// <summary>
-			/// The curvature of the strain plane
-			/// </summary>
-			public double Chi { get; }
+		public virtual FailureDomain CalculateFailureDomain(int horizontalNumberOfDivision, int[] verticalNumberOfDivision)
+		{
+			if (horizontalNumberOfDivision < 2 || verticalNumberOfDivision.Sum() < 6)
+				throw new ArgumentException();
 
-			/// <summary>
-			/// The value of the strain in the <see cref="CenterOfStrainPlane"/>
-			/// </summary>
-			public double EpsilonCenterOfStrainPlane { get; }
+			double deltaTeta = Math.PI / horizontalNumberOfDivision;
+			FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[horizontalNumberOfDivision][];
 
-			public FailureIndices FailureIndice { get; }
+			for (int i = 0; i < horizontalNumberOfDivision; i++)
+			{
+				StrainPlane[] strainPlanes = CalculateAllDesignStrainPlanes((i * deltaTeta), verticalNumberOfDivision);
+				domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes.Length];
+
+				for (int j = 0; j < strainPlanes.Length; j++)
+				{
+					domainPoints[i][j] = CalculatePlasticResistance(strainPlanes[j], out double _, out double _, out double _);
+				}
+			}
+
+			return new FailureDomain(domainPoints);
+		}
+
+		protected virtual FailureDomain.FailureDomainPoint CalculatePlasticResistance(StrainPlane strainPlane, out double N, out double Mx, out double My)
+		{
+			CalculateSolidStress(strainPlane, out double deltaNConcrete, out double deltaMxConcrete, out double deltaMyConcrete);
+			CalculateRebarIntegration(strainPlane, out double deltaNRebar, out double deltaMxRebar, out double deltaMyRebar);
+
+			N = deltaNConcrete + deltaNRebar;
+			Mx = deltaMxConcrete + deltaMxRebar;
+			My = deltaMyConcrete + deltaMyRebar;
+
+			return new FailureDomain.FailureDomainPoint(N, Mx, My, FailureIndices.Iz1, strainPlane);
+		}
+
+		protected virtual void CalculateStressResultant(MeshFace face, StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+		{
+			Point3d faceCentroid = Mesh.GetFaceCentroid(face);
+			double concreteStress = CalculateConcreteStress(face, strainPlane);
+
+			deltaN = concreteStress;
+			deltaMx = - concreteStress * (faceCentroid.Y - ConcreteSection.Centroid.Y);
+			deltaMy = + concreteStress * (faceCentroid.X - ConcreteSection.Centroid.X);			
 		}
 	}
 }
