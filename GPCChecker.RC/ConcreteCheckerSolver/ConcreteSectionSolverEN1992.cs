@@ -59,32 +59,39 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		{
 			if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.ParabolaRectangle)
 			{
-				if (strain >= ConcreteMaterial.EpsilonY)
-					return Fcd;
-				else
-					return Fcd * (1 - Math.Pow(1 - strain / ConcreteMaterial.EpsilonY, ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
-			}
-			else if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.Bilinear)
-			{
-				if (strain >= ConcreteMaterial.EpsilonY)
-					return Fcd;
-				else
+				if (strain > 0.0)
 					return 0.0;
+				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonY)
+					return -Fcd;
+				else
+					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain) / ConcreteMaterial.EpsilonY, ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
 			}
 			else if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.StressBlock)
 			{
-				if (strain >= ConcreteMaterial.EpsilonY)
-					return Fcd;
+				if (strain > 0.0)
+					return 0.0;
+				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonY)
+					return -Fcd;
 				else
-					return Fcd * strain / ConcreteMaterial.EpsilonY;
+					return 0.0;
+			}
+			else if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.Bilinear)
+			{
+				if (strain > 0.0)
+					return 0.0;
+				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonY)
+					return -Fcd;
+				else
+					return -Fcd * Math.Abs(strain) / ConcreteMaterial.EpsilonY;
 			}
 			else
 				throw new ArgumentException("");
 		}
 
-		protected override double CalculateSigmaS(double strain)
+		protected override double CalculateSigmaS(ReinforcedConcreteRebar rebar, double strain)
 		{
-			throw new NotImplementedException();
+			return rebar.RebarMaterial.CalculateSigma(strain) / EN1992P11.GammaS;
 		}
+
 	}
 }
