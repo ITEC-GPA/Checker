@@ -16,7 +16,7 @@ namespace ConcreteTests
         [TestMethod]
         public void StrainPlaneTest()
         {
-            double rebarDiameter = 8;
+            double rebarDiameter = 18;
 
             // sezione rettangolare 300x500
             Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
@@ -36,17 +36,18 @@ namespace ConcreteTests
 
             ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new GPC.Model.Standards.StandardEN1992p11());
 
-            int[] subd = new int[] { 3, 1, 3, 1, 1, 1 };
-            FailureDomain failureDomain = solver.CalculateFailureDomain(4, subd);
+            int[] subd = new int[] { 1, 2, 25, 10, 1, 4};
+
+            FailureDomain failureDomain = solver.CalculateFailureDomain(64, subd);
             Point3d[] points = solver.ExportToGmsh(failureDomain);
 
-            for (int i = 0; i < failureDomain.DomainPoints[0].Length; i++)
-                for (int j = 0; j < failureDomain.DomainPoints[1].Length; j++)
-                    Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd)}, " +
-                                    $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd)}, " +
-                                    $"{Math.Round(failureDomain.DomainPoints[i][j].NRd)}");
-            
+    //        for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
+				//for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
+				//	Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd)}, " +
+				//					  $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd)}, " +
+				//					  $"{Math.Round(failureDomain.DomainPoints[i][j].NRd)}");
 
-        }
+
+		}
 	}
 }

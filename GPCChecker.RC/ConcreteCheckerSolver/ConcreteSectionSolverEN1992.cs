@@ -13,14 +13,44 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 {
 	public class ConcreteSectionSolverEN1992 : ConcreteSectionSolver
 	{
+		#region Variables
+
 		protected StandardEN1992p11 _standard;
 
+		#endregion
+
+		#region Properties
+
 		public StandardEN1992p11 EN1992P11 => _standard;
+
+		public ConcreteMaterialEN1992 ConcreteMaterialEN1992 => (ConcreteMaterialEN1992)_concreteSection.ConcreteMaterial;
 
 		/// <summary>
 		/// Design compressive strength for persistent design
 		/// </summary>
 		public double Fcd => CalculateFcd();
+
+		/// <summary>
+		/// Design compressive strength for accidental design
+		/// </summary>
+		public double FcdAccidental => EN1992P11.AlphaCC * ConcreteMaterialEN1992.Fck / EN1992P11.GammaCAccidental;
+
+		/// <summary>
+		/// Design tensile strength for persistent design
+		/// </summary>
+		public double Fctd => EN1992P11.AlphaCT * ConcreteMaterialEN1992.Fctk05 / EN1992P11.GammaC;
+
+		/// <summary>
+		/// Design tensile strength for accidental design
+		/// </summary>
+		public double FctdAccidental => EN1992P11.AlphaCT * ConcreteMaterialEN1992.Fctk05 / EN1992P11.GammaCAccidental;
+
+		/// <summary>
+		/// Modulus of elasticity value for ultimate limit state calculations
+		/// </summary>
+		public double ECd => ConcreteMaterialEN1992.E / EN1992P11.GammaCE;
+
+		#endregion
 
 		#region Constructors
 
@@ -61,16 +91,16 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			{
 				if (strain > 0.0)
 					return 0.0;
-				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonY)
+				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonCompressionY)
 					return -Fcd;
 				else
-					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain) / ConcreteMaterial.EpsilonY, ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
+					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain) / ConcreteMaterial.EpsilonCompressionY, ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
 			}
 			else if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.StressBlock)
 			{
 				if (strain > 0.0)
 					return 0.0;
-				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonY)
+				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonCompressionY)
 					return -Fcd;
 				else
 					return 0.0;
@@ -79,10 +109,10 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			{
 				if (strain > 0.0)
 					return 0.0;
-				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonY)
+				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonCompressionY)
 					return -Fcd;
 				else
-					return -Fcd * Math.Abs(strain) / ConcreteMaterial.EpsilonY;
+					return -Fcd * Math.Abs(strain) / ConcreteMaterial.EpsilonCompressionY;
 			}
 			else
 				throw new ArgumentException("");
@@ -90,8 +120,50 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		protected override double CalculateSigmaS(ReinforcedConcreteRebar rebar, double strain)
 		{
-			return rebar.RebarMaterial.CalculateSigma(strain) / EN1992P11.GammaS;
+			if(strain < 0)
+				return rebar.RebarMaterial.CalculateSigma(strain) / EN1992P11.GammaS;
+			else
+				return rebar.RebarMaterial.CalculateSigma(strain) / EN1992P11.GammaS;
 		}
 
+		protected override double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar)
+		{
+			return rebar.RebarMaterial.EpsilonU * 0.9;
+		}
+
+		protected override double CalculateUltimateStrainSteel(int rebar)
+		{
+			return ConcreteSection.Rebars[rebar].RebarMaterial.EpsilonU * 0.9;
+		}
+
+		protected override double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar)
+		{
+			return rebar.RebarMaterial.EpsilonY;
+		}
+
+		protected override double CalculateYeldingStrainSteel(int rebar)
+		{
+			return ConcreteSection.Rebars[rebar].RebarMaterial.EpsilonY;
+		}
+
+		protected override double CalculateUltimateStrainConcreteCompression()
+		{
+			return ConcreteSection.ConcreteMaterial.EpsilonCompressionU;
+		}
+
+		protected override double CalculateYeldingStrainConcreteCompression()
+		{
+			return ConcreteSection.ConcreteMaterial.EpsilonCompressionY;
+		}
+
+		protected override double CalculateLimitStrainCostantCompression()
+		{
+			return - 0.002;
+		}
+
+		protected override double CalculateUltimateStrainConcreteTension()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
