@@ -31,7 +31,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 			throw new Exception();
 		}
 
-		public class FailureDomainPoint
+		public class FailureDomainPoint 
 		{
 			private readonly Point3d _point;
 			private readonly ConcreteSectionSolver.FailureIndices _failureIndex;

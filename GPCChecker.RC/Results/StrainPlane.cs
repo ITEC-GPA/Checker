@@ -1,17 +1,15 @@
 ﻿using GPC.Geometry;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+using GPC.Model;
 
 namespace GPC.Checkers.ReinforcedConcrete.Results
 {
 	/// <summary>
 	/// The strain plane - epsilon(x,y) = epsilon0 - chi * ((-sin(teta)*x + cos(teta)*y)
 	/// </summary>
-	public class StrainPlane
+	public class StrainPlane : ModelObjectId
 	{
 		protected readonly Point3d _referencePoint;
 		protected readonly double _teta;
@@ -21,7 +19,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 		/// <summary>
 		/// The point where is set <see cref="StrainReferencePoint"/>
 		/// </summary>
-		public Point2d ReferecePoint => _referencePoint;
+		public Point3d ReferencePoint => _referencePoint;
 
 		/// <summary>
 		/// The angle between the strain plane and the plane of section
@@ -34,11 +32,13 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 		public double Chi => _chi;
 
 		/// <summary>
-		/// The value of the strain in the <see cref="ReferecePoint"/>
+		/// The value of the strain in the <see cref="ReferencePoint"/>
 		/// </summary>
 		public double StrainReferencePoint => _strainReferencePoint;
 
-		public StrainPlane(Point3d centerOfStrainPlane, double teta, double chi, double epsilonCenterOfStrainPlane)
+
+		public StrainPlane(Point3d centerOfStrainPlane, double teta, double chi, double epsilonCenterOfStrainPlane, int id = IDUNASSIGNED, string name = "")
+			:base(id, name)
 		{
 			_referencePoint = centerOfStrainPlane;
 			_teta = teta;
@@ -47,12 +47,14 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 		}
 
 		public StrainPlane(SerializationInfo info, StreamingContext context)
+			:base(info, context)
 		{
 			_referencePoint = (Point3d)info.GetValue("ReferecePoint", typeof(Point3d));
 			_teta = info.GetDouble("Teta");
 			_chi = info.GetDouble("Chi");
 			_strainReferencePoint = info.GetDouble("StrainReferencePoint");			
 		}
+
 
 		public override bool Equals(object obj)
 		{
@@ -73,8 +75,9 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 			return hashCode;
 		}
 
-		public void GetObjectData(SerializationInfo info, StreamingContext context)
+		public override void GetObjectData(SerializationInfo info, StreamingContext context)
 		{
+			base.GetObjectData(info, context);
 			info.AddValue("ReferecePoint", _referencePoint, typeof(Point3d));
 			info.AddValue("Teta", _teta, typeof(double));
 			info.AddValue("Chi", _chi, typeof(double));
