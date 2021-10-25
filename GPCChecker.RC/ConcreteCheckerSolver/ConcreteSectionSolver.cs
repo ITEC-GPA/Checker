@@ -22,6 +22,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			Iz4 = 4,
 			Iz5 = 5,
 			Iz6 = 6,
+			Iz7 = 7,
 		}
 
 		protected  IConcreteSection _concreteSection;
@@ -41,6 +42,30 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 
 
+
+		public virtual FailureDomain CalculateFailureDomain(int horizontalNumberOfDivision, int[] verticalNumberOfDivision)
+		{
+			horizontalNumberOfDivision++;
+
+			if (horizontalNumberOfDivision < 2 || verticalNumberOfDivision.Sum() < 6)
+				throw new ArgumentException();
+
+			double deltaTeta = 2 * Math.PI / horizontalNumberOfDivision;
+			FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[horizontalNumberOfDivision][];
+
+			Parallel.For(0, horizontalNumberOfDivision, (i) =>
+			{
+				(StrainPlane, FailureIndices)[] strainPlanes = CalculateAllDesignStrainPlanes((i * deltaTeta), verticalNumberOfDivision);
+				domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes.Length];
+
+				Parallel.For(0, strainPlanes.Length, (j) =>
+				{
+					domainPoints[i][j] = CalculatePlasticResistance(strainPlanes[j], out double _, out double _, out double _);
+				});
+			});
+
+			return new FailureDomain(domainPoints);
+		}
 
 
 		protected abstract double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar);
@@ -274,7 +299,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <param name="deltaN">The axial force resultant</param>
 		/// <param name="deltaMx">The bending moment about X-axis resultant</param>
 		/// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-		protected virtual void CalculateSolidStress(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+		protected virtual void CalculateConcreteStressResultant(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
 		{
 			double[] deltaNArray = new double[Mesh.FacesCount];
 			double[] deltaMxArray = new double[Mesh.FacesCount];
@@ -346,41 +371,16 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		}
 
 
-
-		public virtual FailureDomain CalculateFailureDomain(int horizontalNumberOfDivision, int[] verticalNumberOfDivision)
+		protected virtual FailureDomain.FailureDomainPoint CalculatePlasticResistance((StrainPlane, FailureIndices) strainPlane, out double N, out double Mx, out double My)
 		{
-			horizontalNumberOfDivision++;
-
-			if (horizontalNumberOfDivision < 2 || verticalNumberOfDivision.Sum() < 6)
-				throw new ArgumentException();
-
-			double deltaTeta = 2 * Math.PI / horizontalNumberOfDivision;
-			FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[horizontalNumberOfDivision][];
-
-			Parallel.For(0, horizontalNumberOfDivision, (i) =>
-			{
-				StrainPlane[] strainPlanes = CalculateAllDesignStrainPlanes((i * deltaTeta), verticalNumberOfDivision);
-				domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes.Length];
-
-				Parallel.For(0, strainPlanes.Length, (j) =>
-				{
-					domainPoints[i][j] = CalculatePlasticResistance(strainPlanes[j], out double _, out double _, out double _);
-				});
-			});
-
-			return new FailureDomain(domainPoints);
-		}
-
-		protected virtual FailureDomain.FailureDomainPoint CalculatePlasticResistance(StrainPlane strainPlane, out double N, out double Mx, out double My)
-		{
-			CalculateSolidStress(strainPlane, out double deltaNConcrete, out double deltaMxConcrete, out double deltaMyConcrete);
-			CalculateRebarsIntegration(strainPlane, out double deltaNRebar, out double deltaMxRebar, out double deltaMyRebar);
+			CalculateConcreteStressResultant(strainPlane.Item1, out double deltaNConcrete, out double deltaMxConcrete, out double deltaMyConcrete);
+			CalculateRebarsIntegration(strainPlane.Item1, out double deltaNRebar, out double deltaMxRebar, out double deltaMyRebar);
 
 			N = deltaNConcrete + deltaNRebar;
 			Mx = deltaMxConcrete + deltaMxRebar;
 			My = deltaMyConcrete + deltaMyRebar;
 
-			return new FailureDomain.FailureDomainPoint(N, Mx, My, FailureIndices.Iz1, strainPlane);
+			return new FailureDomain.FailureDomainPoint(N, Mx, My, strainPlane.Item2, strainPlane.Item1);
 		}
 
 		protected virtual void CalculateStressResultant(MeshFace face, StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
