@@ -273,26 +273,6 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		}
 
 		/// <summary>
-		/// Calculate stress resultant for input <paramref name="face"/>
-		/// </summary>
-		/// <param name="face">The domain of integration</param>
-		/// <param name="strainPlane">The strain plane</param>
-		/// <returns></returns>
-		protected virtual double CalculateConcreteStress(MeshFace face, StrainPlane strainPlane)
-		{
-			Point3d[] points = Mesh.GetFacePoints(face);
-
-			if (face.IsTriangle)			
-				return GaussIntegration.IntegrationTriangularLinearShapeFunction(GetConcreteStressFunction(strainPlane), points, 33);
-			
-			else if (face.IsQuad)			
-				return GaussIntegration.IntegrationQuadrilateralLinearShapeFunction(GetConcreteStressFunction(strainPlane), points, 49);
-			
-			else
-				throw new ArgumentException();
-		}
-
-		/// <summary>
 		/// Calculate the stress resultant of the concrete part
 		/// </summary>
 		/// <param name="strainPlane">The strain plane</param>
@@ -360,16 +340,15 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			deltaMy = deltaMyArray.Sum();
 		}
 
-		Func<double, double, double> GetConcreteStressFunction(StrainPlane strainPlane)
-		{
-			return (x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0)));
-		}
-
-		Func<double, double, double> GetSteelStressFunction(ReinforcedConcreteRebar rebar, StrainPlane strainPlane)
-		{
-			return (x, y) => CalculateSigmaS(rebar, CalculateStrain(strainPlane, new Point3d(x, y, 0)));
-		}
-
+		/// <summary>
+		/// Calculate the <see cref="FailureDomain.FailureDomainPoint"/> respect the strain plane <paramref name="strainPlane"/>
+		/// </summary>
+		/// <param name="strainPlane"></param>
+		/// <param name="N"></param>
+		/// <param name="Mx"></param>
+		/// <param name="My"></param>
+		/// <returns></returns>
+		protected virtual FailureDomain.FailureDomainPoint CalculatePlasticResistance((StrainPlane, FailureIndices) strainPlane)
 
 		protected virtual FailureDomain.FailureDomainPoint CalculatePlasticResistance((StrainPlane, FailureIndices) strainPlane, out double N, out double Mx, out double My)
 		{
@@ -383,20 +362,38 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			return new FailureDomain.FailureDomainPoint(N, Mx, My, strainPlane.Item2, strainPlane.Item1);
 		}
 
-		protected virtual void CalculateStressResultant(MeshFace face, StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+		/// <summary>
+		/// Calculate the resultants of face <paramref name="face"/>
+		/// </summary>
+		/// <param name="face"></param>
+		/// <param name="strainPlane"></param>
+		/// <param name="deltaN"></param>
+		/// <param name="deltaMx"></param>
+		/// <param name="deltaMy"></param>
+		protected virtual void CalculateFaceStressResultant(MeshFace face, StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
 		{
-			Point3d faceCentroid = Mesh.GetFaceCentroid(face);
-			double concreteStress = CalculateConcreteStress(face, strainPlane);
+			Point3d[] points = Mesh.GetFacePoints(face);
 
-			deltaN = concreteStress;
-			deltaMx = + concreteStress * (faceCentroid.Y - ConcreteSection.Centroid.Y);
-			deltaMy = + concreteStress * (faceCentroid.X - ConcreteSection.Centroid.X);			
+			if (face.IsTriangle)
+			{
+				deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), points, 33);
+				deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+					(y - ConcreteSection.Centroid.Y), points, 33);
+				deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+					(x - ConcreteSection.Centroid.X), points, 33);
+			}
+
+			else if (face.IsQuad)
+			{
+				deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), points, 49);
+				deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+					(y - ConcreteSection.Centroid.Y), points, 49);
+				deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+					(x - ConcreteSection.Centroid.X), points, 49);
+			}
+			else
+				throw new Exception();
+	
 		}
-
-
-		//protected virtual double CalculateSteelStressLine(Point3d p1, Point3d p2, double thickness, StrainPlane strainPlane)
-		//{
-		//	return GaussIntegration.IntegrationLineLinearShapeFunction(GetSteelStressFunction(strainPlane), new Point3d[] { p1, p2 }, 32) * thickness;
-		//}
 	}
 }
