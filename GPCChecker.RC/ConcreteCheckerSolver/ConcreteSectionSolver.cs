@@ -31,31 +31,34 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		public ConcreteMaterial ConcreteMaterial => _concreteSection.ConcreteMaterial;
 
-		public RebarMaterial[] SteelMaterial => (RebarMaterial[])_concreteSection.Rebars.Select(i => i.RebarMaterial);
-
-		public Mesh Mesh => _concreteSection.Mesh;
+		#region Public Constructor
 
 		public ConcreteSectionSolver(IConcreteSection section)
 		{
 			_concreteSection = section;
 		}
 
+		#endregion
 
-
-
-		public virtual FailureDomain CalculateFailureDomain(int horizontalNumberOfDivision, int[] verticalNumberOfDivision)
+		/// <summary>
+		/// Calculate the failure domain <see cref="FailureDomain"/> of the section
+		/// </summary>
+		/// <param name="momentsDiscretizations">Number of discretizations of X-axis and Y-axis (moment around Z-axis)</param>
+		/// <param name="normalDiscretizations">Number of discretizations of Z-axis (axial force)</param>
+		/// <returns></returns>
+		public virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, int[] normalDiscretizations)
 		{
-			horizontalNumberOfDivision++;
+			momentsDiscretizations++;
 
-			if (horizontalNumberOfDivision < 2 || verticalNumberOfDivision.Sum() < 6)
+			if (momentsDiscretizations < 2 || normalDiscretizations.Sum() < 7)
 				throw new ArgumentException();
 
-			double deltaTeta = 2 * Math.PI / horizontalNumberOfDivision;
-			FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[horizontalNumberOfDivision][];
+			double deltaTeta = 2 * Math.PI / momentsDiscretizations;
+			FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[momentsDiscretizations][];
 
-			Parallel.For(0, horizontalNumberOfDivision, (i) =>
+			Parallel.For(0, momentsDiscretizations, (i) =>
 			{
-				(StrainPlane, FailureIndices)[] strainPlanes = CalculateAllDesignStrainPlanes((i * deltaTeta), verticalNumberOfDivision);
+				(StrainPlane, FailureIndices)[] strainPlanes = CalculateAllDesignStrainPlanes((i * deltaTeta), normalDiscretizations);
 				domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes.Length];
 
 				Parallel.For(0, strainPlanes.Length, (j) =>
@@ -67,6 +70,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			return new FailureDomain(domainPoints);
 		}
 
+		#region Abstract Method
 
 		protected abstract double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar);
 		protected abstract double CalculateYeldingStrainSteel(int rebar);
@@ -79,7 +83,9 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		protected abstract double CalculateSigmaC(double strain);
 		protected abstract double CalculateSigmaS(ReinforcedConcreteRebar rebar, double strain);
 
+		#endregion
 
+		#region Protected Method
 
 		/// <summary>
 		/// Calculate the strain planes for angle <paramref name="teta"/>
@@ -281,13 +287,13 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <param name="deltaMy">The bending moment about Y-axis resultant</param>
 		protected virtual void CalculateConcreteStressResultant(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
 		{
-			double[] deltaNArray = new double[Mesh.FacesCount];
-			double[] deltaMxArray = new double[Mesh.FacesCount];
-			double[] deltaMyArray = new double[Mesh.FacesCount];
+			double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
+			double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
+			double[] deltaMyArray = new double[ConcreteSection.Mesh.FacesCount];
 
-			Parallel.For(0, Mesh.FacesCount, (i) =>
+			Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
 			{
-				CalculateFaceStressResultant(Mesh.Faces[i + 1], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
+				CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
 
 				deltaNArray[i] = deltaNBuffer;
 				deltaMxArray[i] = deltaMxBuffer;
@@ -354,7 +360,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			CalculateRebarsIntegration(strainPlane.Item1, out double deltaNRebar, out double deltaMxRebar, out double deltaMyRebar);
 
 			double N = deltaNConcrete + deltaNRebar;
-			double Mx = deltaMxConcrete + deltaMxRebar;
+			double Mx = - (deltaMxConcrete + deltaMxRebar);
 			double My = deltaMyConcrete + deltaMyRebar;
 
 			return new FailureDomain.FailureDomainPoint(N, Mx, My, strainPlane.Item2, strainPlane.Item1);
@@ -370,7 +376,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <param name="deltaMy"></param>
 		protected virtual void CalculateFaceStressResultant(MeshFace face, StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
 		{
-			Point3d[] points = Mesh.GetFacePoints(face);
+			Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
 
 			if (face.IsTriangle)
 			{
@@ -393,5 +399,21 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				throw new Exception();
 	
 		}
+
+		public override bool Equals(object obj)
+		{
+			return obj is ConcreteSectionSolver solver &&
+				   EqualityComparer<IConcreteSection>.Default.Equals(_concreteSection, solver._concreteSection);
+		}
+
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				return 23 + EqualityComparer<IConcreteSection>.Default.GetHashCode(_concreteSection);
+			}			
+		}
+
+		#endregion
 	}
 }
