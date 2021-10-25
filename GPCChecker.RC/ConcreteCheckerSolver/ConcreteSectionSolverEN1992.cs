@@ -69,7 +69,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		protected virtual double CalculateFcd()
 		{
-			if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.StressBlock)
+			if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock)
 			{
 				double eta;
 				if (ConcreteMaterial.Fck <= 50.0)
@@ -87,7 +87,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		protected override double CalculateSigmaC(double strain)
 		{
-			if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.ParabolaRectangle)
+			if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle)
 			{
 				if (strain > 0.0)
 					return 0.0;
@@ -96,7 +96,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				else
 					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain) / ConcreteMaterial.EpsilonCompressionY, ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
 			}
-			else if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.StressBlock)
+			else if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock)
 			{
 				if (strain > 0.0)
 					return 0.0;
@@ -105,7 +105,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				else
 					return 0.0;
 			}
-			else if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.StressStrainDiagrams.Bilinear)
+			else if (((ConcreteMaterialEN1992)ConcreteMaterial).StressStrainDiagram == ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear)
 			{
 				if (strain > 0.0)
 					return 0.0;
