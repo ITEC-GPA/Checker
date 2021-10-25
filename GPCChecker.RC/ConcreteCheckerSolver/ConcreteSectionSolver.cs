@@ -60,7 +60,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 				Parallel.For(0, strainPlanes.Length, (j) =>
 				{
-					domainPoints[i][j] = CalculatePlasticResistance(strainPlanes[j], out double _, out double _, out double _);
+					domainPoints[i][j] = CalculatePlasticResistance(strainPlanes[j]);
 				});
 			});
 
@@ -287,7 +287,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 			Parallel.For(0, Mesh.FacesCount, (i) =>
 			{
-				CalculateStressResultant(Mesh.Faces[i + 1], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
+				CalculateFaceStressResultant(Mesh.Faces[i + 1], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
 
 				deltaNArray[i] = deltaNBuffer;
 				deltaMxArray[i] = deltaMxBuffer;
@@ -349,15 +349,13 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <param name="My"></param>
 		/// <returns></returns>
 		protected virtual FailureDomain.FailureDomainPoint CalculatePlasticResistance((StrainPlane, FailureIndices) strainPlane)
-
-		protected virtual FailureDomain.FailureDomainPoint CalculatePlasticResistance((StrainPlane, FailureIndices) strainPlane, out double N, out double Mx, out double My)
 		{
 			CalculateConcreteStressResultant(strainPlane.Item1, out double deltaNConcrete, out double deltaMxConcrete, out double deltaMyConcrete);
 			CalculateRebarsIntegration(strainPlane.Item1, out double deltaNRebar, out double deltaMxRebar, out double deltaMyRebar);
 
-			N = deltaNConcrete + deltaNRebar;
-			Mx = deltaMxConcrete + deltaMxRebar;
-			My = deltaMyConcrete + deltaMyRebar;
+			double N = deltaNConcrete + deltaNRebar;
+			double Mx = deltaMxConcrete + deltaMxRebar;
+			double My = deltaMyConcrete + deltaMyRebar;
 
 			return new FailureDomain.FailureDomainPoint(N, Mx, My, strainPlane.Item2, strainPlane.Item1);
 		}
