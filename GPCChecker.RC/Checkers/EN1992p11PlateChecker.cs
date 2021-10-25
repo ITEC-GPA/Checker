@@ -31,24 +31,26 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
         }
 
 
-
-        public override void PerformCheck()
+        public override void SLSPerformCheck()
         {
-            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, PlateCheckerAttribute.PlateResult, (EN1992p11Options)_options);
+            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, PlateCheckerAttribute.SLSPlateResults, (EN1992p11Options)_options);
         }
 
-        public async void PerformCheckAsync()
+        public override void ULSPerformCheck()
         {
-            await Task.Run(() =>
-            {
-                _checkerStationResult = PerformCheck(_checkerAttributes.Sections, PlateCheckerAttribute.PlateResult, (EN1992p11Options)_options);
-            });
+            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, PlateCheckerAttribute.ULSPlateResults, (EN1992p11Options)_options);
         }
 
-        /// <param name="steelSection">section of each station</param>
-        /// <param name="plateResults">result for each station and loadcase</param>
-        /// <returns></returns>
-        protected EN1992p11PlateStationResult[] PerformCheck(IConcreteSection[] steelSection, PlateResult[] plateResults, EN1992p11Options options)
+		public override void PerformCheck()
+		{
+			base.PerformCheck();
+		}
+
+
+		/// <param name="steelSection">section of each station</param>
+		/// <param name="plateResults">result for each station and loadcase</param>
+		/// <returns></returns>
+		protected EN1992p11PlateStationResult[] PerformCheck(IConcreteSection[] steelSection, PlateResult[] plateResults, EN1992p11Options options)
 		{
             throw new NotImplementedException();
 		}

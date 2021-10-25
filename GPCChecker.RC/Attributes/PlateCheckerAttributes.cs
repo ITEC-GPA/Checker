@@ -15,19 +15,21 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
 
         #region Properties
 
-        public PlateResult[] PlateResult => (PlateResult[])_results;
+        public PlateResult[] ULSPlateResults => (PlateResult[])_uLSresults;
+
+        public PlateResult[] SLSPlateResults => (PlateResult[])_sLSresults;
 
         #endregion
 
 
-        public PlateCheckerAttributes(IConcreteSection section, PlateResult[] beamResults, string name = "")
-            : base(section, beamResults, name)
+        public PlateCheckerAttributes(IConcreteSection section, PlateResult[] slsBeamResults, PlateResult[] ulsBeamResults, string name = "")
+            : base(section, slsBeamResults, ulsBeamResults, name)
         {
 
         }
 
-        public PlateCheckerAttributes(IConcreteSection[] sections, PlateResult[] plateResults, string name = "")
-            : base(sections, plateResults, name)
+        public PlateCheckerAttributes(IConcreteSection[] sections, PlateResult[] slsBeamResults, PlateResult[] ulsBeamResults, string name = "")
+            : base(sections, slsBeamResults, ulsBeamResults, name)
         {
 
         }

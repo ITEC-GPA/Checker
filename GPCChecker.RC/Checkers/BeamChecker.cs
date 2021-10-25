@@ -98,7 +98,12 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
         /// <returns>The unique ILoadCases array</returns>
         protected ILoadCase[] GetLoadCases()
         {
-            return BeamCheckersAttribute.Results.Select(i => i.Case).Distinct().ToArray();
+            List<ILoadCase> list = new List<ILoadCase>();
+
+            list.AddRange(BeamCheckersAttribute.ULSBeamResults.Select(i => i.Case).Distinct());
+            list.AddRange(BeamCheckersAttribute.SLSBeamResults.Select(i => i.Case).Distinct());
+
+            return list.ToArray();
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)

@@ -34,14 +34,14 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
 
         public override void PerformCheck()
         {
-            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, BeamCheckersAttribute.BeamResults, (EN1992p11Options)_options);
+            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, BeamCheckersAttribute.SLSBeamResults, (EN1992p11Options)_options);
         }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _checkerStationResult = PerformCheck(_checkerAttributes.Sections, BeamCheckersAttribute.BeamResults, (EN1992p11Options)_options);
+                _checkerStationResult = PerformCheck(_checkerAttributes.Sections, BeamCheckersAttribute.SLSBeamResults, (EN1992p11Options)_options);
             });
         }
 
@@ -53,9 +53,17 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
             throw new NotImplementedException();
 		}
 
+		public override void ULSPerformCheck()
+		{
+			throw new NotImplementedException();
+		}
 
+		public override void SLSPerformCheck()
+		{
+			throw new NotImplementedException();
+		}
 
-        public class EN1992p11Options : BeamCheckerOptions
+		public class EN1992p11Options : BeamCheckerOptions
 		{
 
 		}

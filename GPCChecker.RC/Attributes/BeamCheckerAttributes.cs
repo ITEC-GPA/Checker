@@ -16,31 +16,62 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
 
         #region Properties
 
-        public BeamResult[] BeamResults => (BeamResult[])_results;
+        public BeamResult[] ULSBeamResults => (BeamResult[])_sLSresults;
 
-        public double Length => BeamResults.First().Length;
+        public BeamResult[] SLSBeamResults => (BeamResult[])_sLSresults;
+
+        public double Length => SLSBeamResults.First().Length;
 
         #endregion
 
 
-        public BeamCheckerAttributes(IConcreteSection section, BeamResult[] beamResults, string name = "")
-            : base(section, beamResults, name)
+        public BeamCheckerAttributes(IConcreteSection section, BeamResult[] slsbeamResults, BeamResult[] ulsbeamResults, string name = "")
+            : base(section, slsbeamResults, ulsbeamResults, name)
         {
+			if (section is null)
+			{
+				throw new ArgumentNullException(nameof(section));
+			}
 
-        }
+			if (slsbeamResults is null)
+			{
+				throw new ArgumentNullException(nameof(slsbeamResults));
+			}
 
-        public BeamCheckerAttributes(IConcreteSection[] sections, BeamResult[] beamResults, string name = "") 
-            : base(sections, beamResults, name)
+			if (ulsbeamResults is null)
+			{
+				throw new ArgumentNullException(nameof(ulsbeamResults));
+			}
+
+			if (string.IsNullOrEmpty(name))
+			{
+				throw new ArgumentException($"'{nameof(name)}' cannot be null or empty.", nameof(name));
+			}
+		}
+
+        public BeamCheckerAttributes(IConcreteSection[] sections, BeamResult[] slsbeamResults, BeamResult[] ulsbeamResults, string name = "")
+            : base(sections, slsbeamResults, ulsbeamResults, name)
         {
-                        
-            if (beamResults.Select(i => i.Length).Distinct().Count() > 1)
-            {
-                throw new ArgumentException("Different beam result lenght");
-            }
+			if (sections is null)
+			{
+				throw new ArgumentNullException(nameof(sections));
+			}
 
-            if (sections.Length != beamResults.First().Points.Length)
-                throw new ArgumentException("Sections number different than station number");
-        }
+			if (slsbeamResults is null)
+			{
+				throw new ArgumentNullException(nameof(slsbeamResults));
+			}
+
+			if (ulsbeamResults is null)
+			{
+				throw new ArgumentNullException(nameof(ulsbeamResults));
+			}
+
+			if (string.IsNullOrEmpty(name))
+			{
+				throw new ArgumentException($"'{nameof(name)}' cannot be null or empty.", nameof(name));
+			}
+		}
 
         public BeamCheckerAttributes(SerializationInfo info, StreamingContext context) 
             : base(info, context)

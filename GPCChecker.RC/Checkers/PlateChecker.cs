@@ -68,11 +68,16 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
 
         #endregion
 
-       
+
         /// <returns>The unique ILoadCases array</returns>
         protected ILoadCase[] GetLoadCases()
         {
-            return PlateCheckerAttribute.Results.Select(i => i.Case).Distinct().ToArray();
+            List<ILoadCase> list = new List<ILoadCase>();
+
+            list.AddRange(PlateCheckerAttribute.ULSPlateResults.Select(i => i.Case).Distinct());
+            list.AddRange(PlateCheckerAttribute.SLSPlateResults.Select(i => i.Case).Distinct());
+
+            return list.ToArray();
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)

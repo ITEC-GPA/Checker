@@ -79,6 +79,10 @@ namespace GPC.Checkers.ReinforcedConcrete.Checkers
 
         public abstract void PerformCheck();
 
+        public abstract void ULSPerformCheck();
+
+        public abstract void SLSPerformCheck();
+
         #endregion
 
         public List<string> GetErrorLog()
