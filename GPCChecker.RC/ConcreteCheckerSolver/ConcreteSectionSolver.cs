@@ -25,7 +25,8 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			Iz7 = 7,
 		}
 
-		protected  IConcreteSection _concreteSection;
+		protected IConcreteSection _concreteSection;
+		protected List<string> _log;
 
 		public IConcreteSection ConcreteSection => _concreteSection;
 
@@ -36,6 +37,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		public ConcreteSectionSolver(IConcreteSection section)
 		{
 			_concreteSection = section;
+			_log = new List<string>();
 		}
 
 		#endregion
@@ -58,16 +60,33 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			double deltaTeta = 2 * Math.PI / momentsDiscretizations;
 			FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[momentsDiscretizations][];
 
-			Parallel.For(0, momentsDiscretizations, (i) =>
+			try
 			{
-				(StrainPlane, FailureIndices)[] strainPlanes = CalculateAllDesignStrainPlanes((i * deltaTeta), normalDiscretizations);
-				domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes.Length];
-
-				Parallel.For(0, strainPlanes.Length, (j) =>
+				for (int i = 0; i < momentsDiscretizations; i++)
+				//Parallel.For(0, momentsDiscretizations, (i) =>
 				{
-					domainPoints[i][j] = CalculatePlasticResistance(strainPlanes[j]);
-				});
-			});
+					(StrainPlane, FailureIndices)[] strainPlanes = CalculateAllDesignStrainPlanes((i * deltaTeta), normalDiscretizations);					
+					domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes.Length];
+
+					for (int j = 0; j < strainPlanes.Length; j++)
+					//Parallel.For(0, strainPlanes.Length, (j) =>
+					{
+						try
+						{
+							domainPoints[i][j] = CalculatePlasticResistance(strainPlanes[j]);
+							_log.Add($"Aggiunto punto {i}-{j}");
+						}
+						catch (Exception e)
+						{
+							_log.Add($"Fail to calculate domain point {i}-{j}" + e.InnerException);
+						}
+					}//);					
+				}//);
+			}
+			catch (Exception e)
+			{
+				_log.Add($"Fail to calculate domain points" + e.InnerException);
+			}
 
 			return new FailureDomain(domainPoints);
 		}
