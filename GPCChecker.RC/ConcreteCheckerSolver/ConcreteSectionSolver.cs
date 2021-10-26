@@ -47,10 +47,35 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <summary>
 		/// Calculate the failure domain <see cref="FailureDomain"/> of the section
 		/// </summary>
+		public FailureDomain CalculateFailureDomain()
+		{
+			return CalculateFailureDomain(ConcreteSectionSolverOptions.Instance.MomentsDiscretizations, ConcreteSectionSolverOptions.Instance.AxialForceDiscretizations);
+		}
+
+		#region Abstract Method
+
+		protected abstract double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar);
+		protected abstract double CalculateYeldingStrainSteel(int rebar);
+		protected abstract double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar);
+		protected abstract double CalculateUltimateStrainSteel(int rebar);
+		protected abstract double CalculateUltimateStrainConcreteCompression();
+		protected abstract double CalculateYeldingStrainConcreteCompression();
+		protected abstract double CalculateLimitStrainCostantCompression();
+		protected abstract double CalculateUltimateStrainConcreteTension();
+		protected abstract double CalculateSigmaC(double strain);
+		protected abstract double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain);
+
+		#endregion
+
+		#region Protected Method
+
+		/// <summary>
+		/// Calculate the failure domain <see cref="FailureDomain"/> of the section
+		/// </summary>
 		/// <param name="momentsDiscretizations">Number of discretizations of X-axis and Y-axis (moment around Z-axis)</param>
 		/// <param name="normalDiscretizations">Number of discretizations of Z-axis (axial force)</param>
 		/// <returns></returns>
-		public virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, int[] normalDiscretizations)
+		protected virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, int[] normalDiscretizations)
 		{
 			if (momentsDiscretizations < 2 || normalDiscretizations.Sum() < 7)
 				throw new ArgumentException();
@@ -65,7 +90,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				for (int i = 0; i < momentsDiscretizations; i++)
 				//Parallel.For(0, momentsDiscretizations, (i) =>
 				{
-					(StrainPlane, FailureIndices)[] strainPlanes = CalculateAllDesignStrainPlanes((i * deltaTeta), normalDiscretizations);					
+					(StrainPlane, FailureIndices)[] strainPlanes = CalculateAllDesignStrainPlanes((i * deltaTeta), normalDiscretizations);
 					domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes.Length];
 
 					for (int j = 0; j < strainPlanes.Length; j++)
@@ -90,23 +115,6 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 			return new FailureDomain(domainPoints);
 		}
-
-		#region Abstract Method
-
-		protected abstract double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar);
-		protected abstract double CalculateYeldingStrainSteel(int rebar);
-		protected abstract double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar);
-		protected abstract double CalculateUltimateStrainSteel(int rebar);
-		protected abstract double CalculateUltimateStrainConcreteCompression();
-		protected abstract double CalculateYeldingStrainConcreteCompression();
-		protected abstract double CalculateLimitStrainCostantCompression();
-		protected abstract double CalculateUltimateStrainConcreteTension();
-		protected abstract double CalculateSigmaC(double strain);
-		protected abstract double CalculateSigmaS(ReinforcedConcreteRebar rebar, double strain);
-
-		#endregion
-
-		#region Protected Method
 
 		/// <summary>
 		/// Calculate the strain planes for angle <paramref name="teta"/>
@@ -413,7 +421,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
 			{
 				double strain = CalculateStrain(strainPlane, ConcreteSection.Rebars[i].Position);
-				double sigmaS = CalculateSigmaS(ConcreteSection.Rebars[i], strain);
+				double sigmaS = CalculateStressSteel(ConcreteSection.Rebars[i], strain);
 				double sigmaC = CalculateSigmaC(strain);
 
 				deltaNArray[i] = sigmaS * ConcreteSection.Rebars[i].Area - sigmaC * ConcreteSection.Rebars[i].Area;

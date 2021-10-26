@@ -74,7 +74,7 @@ namespace ConcreteTests
 			GmshNet.Gmsh.Finalize();
 		}
 
-		private bool CommonAssertsEN(ReinforcedConcreteSection section, StandardEN1992p11 standard, FailureDomain failureDomain)
+		private bool CommonAssertsModelCode(ReinforcedConcreteSection section, StandardModelCode2010 standard, FailureDomain failureDomain)
 		{
 			List<Point3d> failureDomainPoints = new List<Point3d>();
 			BoundingBox3d boundingBox3D = new BoundingBox3d();
@@ -148,11 +148,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
-			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, standard);
+			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, standard);
 
-            int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4};
-
-            FailureDomain failureDomain = solver.CalculateFailureDomain(64, subd);
+            FailureDomain failureDomain = solver.CalculateFailureDomain();
             ExportToGmsh(failureDomain);
 
 			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
@@ -230,11 +228,9 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 
-			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
+			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, new StandardEN1992p11());
 
-			int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4 };
-
-			FailureDomain failureDomain = solver.CalculateFailureDomain(64, subd);
+			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ExportToGmsh(failureDomain);
 
 			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
@@ -315,11 +311,9 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 
-			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
+			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, new StandardEN1992p11());
 
-			int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4 };
-
-			FailureDomain failureDomain = solver.CalculateFailureDomain(64, subd);
+			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ExportToGmsh(failureDomain);
 
 			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
@@ -408,11 +402,9 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 
-			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
+			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, new StandardEN1992p11());
 
-			int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4 };
-
-			FailureDomain failureDomain = solver.CalculateFailureDomain(64, subd);
+			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ExportToGmsh(failureDomain);
 
 			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
@@ -493,11 +485,9 @@ namespace ConcreteTests
 			ConcreteSectionCircular section = new ConcreteSectionCircular(sectionDiameter, 
 				new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle), rebars);
 
-			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
+			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, new StandardEN1992p11());
 
-			int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4 };
-
-			FailureDomain failureDomain = solver.CalculateFailureDomain(32, subd);
+			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ExportToGmsh(failureDomain);
 
 			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
@@ -558,15 +548,13 @@ namespace ConcreteTests
 			double concreteCover = 50;
 			int numberOfRebars = 32;
 
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, RebarMaterial.B450C);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
 			ConcreteSectionCHS section = new ConcreteSectionCHS(diameterExternal, thickness, ConcreteMaterialEN1992.C25_30, concreteCover, numberOfRebars, rebar);
 
-			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
+			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, new StandardNTC2018Concrete());
 
-			int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4 };
-
-			FailureDomain failureDomain = solver.CalculateFailureDomain(32, subd);
-			ExportToGmsh(section);
+			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			// ExportToGmsh(section);
 			ExportToGmsh(failureDomain);
 
 			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
