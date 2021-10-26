@@ -44,6 +44,36 @@ namespace ConcreteTests
 			return points.ToArray();
 		}
 
+		private void ExportToGmsh(IConcreteSection section)
+		{
+			GmshNet.Gmsh.Initialize();
+
+			for (int i = 0; i < section.Shape.Fill.Count; i++)
+			{
+				GmshNet.Gmsh.Model.Occ.AddPoint(section.Shape.Fill[i].X, section.Shape.Fill[i].Y, section.Shape.Fill[i].Z);
+			}
+
+			if (section.Shape.HasHoles)
+			{
+				for (int i = 0; i < section.Shape.Holes.Length; i++)
+				{
+					for (int j = 0; j < section.Shape.Holes[i].Count; j++)
+					{
+						GmshNet.Gmsh.Model.Occ.AddPoint(section.Shape.Holes[i][j].X, section.Shape.Holes[i][j].Y, section.Shape.Holes[i][j].Z);
+					}
+				}
+			}
+
+			for (int i = 0; i < section.Rebars.Length; i++)
+			{
+				GmshNet.Gmsh.Model.Occ.AddPoint(section.Rebars[i].Position.X, section.Rebars[i].Position.Y, section.Rebars[i].Position.Z);
+			}
+
+			GmshNet.Gmsh.Model.Occ.Synchronize();
+			GmshNet.Gmsh.Fltk.Run();
+			GmshNet.Gmsh.Finalize();
+		}
+
 		private bool CommonAssertsEN(ReinforcedConcreteSection section, StandardEN1992p11 standard, FailureDomain failureDomain)
 		{
 			List<Point3d> failureDomainPoints = new List<Point3d>();
@@ -98,7 +128,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-        public void FailureDomainTest1()
+        public void FailureDomainRectangularSectionTest1()
         {
             double rebarDiameter = 18;
 
@@ -120,16 +150,16 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, standard);
 
-            int[] subd = new int[] { 1, 1, 2, 50, 2, 1, 4};
+            int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4};
 
             FailureDomain failureDomain = solver.CalculateFailureDomain(64, subd);
             ExportToGmsh(failureDomain);
 
 			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
-				for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
-					Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd)}, " +
-									  $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd)}, " +
-									  $"{Math.Round(failureDomain.DomainPoints[i][j].NRd)}");
+				for (int j = 0; j < failureDomain.DomainPoints[i].Length; j++)
+					Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd, 3)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd, 3)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].NRd, 3)}");
 
 			//Assert.IsTrue(CommonAssertsEN(section, standard, failureDomain));
 
@@ -177,7 +207,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void FailureDomainTest2()
+		public void FailureDomainRectangularSectionTest2()
 		{
 			double rebarDiameter = 26;
 
@@ -202,7 +232,7 @@ namespace ConcreteTests
 
 			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
 
-			int[] subd = new int[] { 1, 1, 2, 50, 2, 1, 4 };
+			int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4 };
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain(64, subd);
 			ExportToGmsh(failureDomain);
@@ -256,9 +286,8 @@ namespace ConcreteTests
 			*/
 		}
 
-
 		[TestMethod]
-		public void FailureDomainTest3()
+		public void FailureDomainRectangularSectionTest3()
 		{
 			double rebarDiameter = 18;
 
@@ -288,7 +317,7 @@ namespace ConcreteTests
 
 			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
 
-			int[] subd = new int[] { 1, 1, 2, 50, 2, 1, 4 };
+			int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4 };
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain(64, subd);
 			ExportToGmsh(failureDomain);
@@ -343,7 +372,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void FailureDomainTest4()
+		public void FailureDomainRectangularSectionTest4()
 		{
 			double rebarDiameter = 26;
 
@@ -381,7 +410,7 @@ namespace ConcreteTests
 
 			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
 
-			int[] subd = new int[] { 1, 1, 2, 50, 2, 1, 4 };
+			int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4 };
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain(64, subd);
 			ExportToGmsh(failureDomain);
@@ -435,7 +464,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void FailureDomainTest5()
+		public void FailureDomainCircularSectionTest1()
 		{
 			// sezione circolare diametro 500
 			double rebarDiameter = 16;
@@ -466,9 +495,9 @@ namespace ConcreteTests
 
 			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
 
-			int[] subd = new int[] { 1, 1, 1, 10, 1, 1, 1 };
+			int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4 };
 
-			FailureDomain failureDomain = solver.CalculateFailureDomain(8, subd);
+			FailureDomain failureDomain = solver.CalculateFailureDomain(32, subd);
 			ExportToGmsh(failureDomain);
 
 			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
@@ -517,6 +546,75 @@ namespace ConcreteTests
 				-1258.81	5.21e-014	0			0
 				-1258.81	5.21e-014	0			0
 				-1258.81	5.21e-014	0			0
+			*/
+		}
+
+		[TestMethod]
+		public void FailureDomainCHSSectionTest1()
+		{
+			double rebarDiameter = 26;
+			double diameterExternal = 1000;
+			double thickness = 100;
+			double concreteCover = 50;
+			int numberOfRebars = 32;
+
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, RebarMaterial.B450C);
+			ConcreteSectionCHS section = new ConcreteSectionCHS(diameterExternal, thickness, ConcreteMaterialEN1992.C25_30, concreteCover, numberOfRebars, rebar);
+
+			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
+
+			int[] subd = new int[] { 1, 1, 1, 50, 2, 1, 4 };
+
+			FailureDomain failureDomain = solver.CalculateFailureDomain(32, subd);
+			ExportToGmsh(section);
+			ExportToGmsh(failureDomain);
+
+			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
+				for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
+					Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].NRd)}");
+
+			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+				NRd			MRd			C3			C4
+				-6648.08	-8.94e-014	0			0
+				-6648.08	-8.94e-014	0			0
+				-6648.08	-8.94e-014	0			0
+				-6648.08	-8.94e-014	0			0
+				-6631.33	8.24822		0			0
+				-6514.99	62.2599		0			0
+				-6096.85	249.778		0			0
+				-5476.35	520.861		0			0
+				-4308.15	1009.75		0			0
+				-1593.06	1926.89		0			0
+				-739.734	2119.45		0			0
+				569.251		2298.39		0			0
+				3195.96		2169.78		0			0
+				4565.66		1864.64		0			0
+				5996.74		1520.36		0			0
+				7665.2		1043.25		0			0
+				8887.74		612.691		0			0
+				9907.84		257.905		0			0
+				10647		8.94e-014	0			0
+				10647		1.49e-013	0			0
+				9907.84		-257.905	0			0
+				8887.74		-612.691	0			0
+				7665.2		-1043.25	0			0
+				5996.74		-1520.36	0			0
+				4565.66		-1864.64	0			0
+				3195.96		-2169.78	0			0
+				569.251		-2298.39	0			0
+				-739.734	-2119.45	0			0
+				-1593.06	-1926.89	0			0
+				-4308.15	-1009.75	0			0
+				-5476.35	-520.861	0			0
+				-6096.85	-249.778	0			0
+				-6514.99	-62.2599	0			0
+				-6631.33	-8.24822	0			0
+				-6648.08	-1.49e-013	0			0
+				-6648.08	-1.49e-013	0			0
+				-6648.08	-1.49e-013	0			0
+				-6648.08	-1.49e-013	0			0
 			*/
 		}
 	}
