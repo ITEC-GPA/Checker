@@ -70,7 +70,7 @@
     <Compile Include="OldCheckerCode\RCCheckingSection.cs" />
     <Compile Include="OldCheckerCode\RCSection.cs" />
     <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolver.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverEN1992.cs" />
+    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverModelCode2010.cs" />
     <Compile Include="OldCheckerCode\RCChecker.cs" />
     <Compile Include="OldCheckerCode\RCChecker.Viviani.cs" />
     <Compile Include="OldCheckerCode\RCFailureDomain.cs" />
