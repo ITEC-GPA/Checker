@@ -52,12 +52,12 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <returns></returns>
 		public virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, int[] normalDiscretizations)
 		{
-			momentsDiscretizations++;
-
 			if (momentsDiscretizations < 2 || normalDiscretizations.Sum() < 7)
 				throw new ArgumentException();
 
-			double deltaTeta = 2 * Math.PI / momentsDiscretizations;
+			double deltaTeta = 2 * Math.PI / (momentsDiscretizations);
+			momentsDiscretizations++;
+
 			FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[momentsDiscretizations][];
 
 			try
@@ -300,6 +300,34 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		}
 
 		/// <summary>
+		/// Calculate the <see cref="FailureDomain.FailureDomainPoint"/> respect the strain plane <paramref name="strainPlane"/>
+		/// </summary>
+		/// <param name="strainPlane"></param>
+		/// <param name="N"></param>
+		/// <param name="Mx"></param>
+		/// <param name="My"></param>
+		/// <returns></returns>
+		protected virtual FailureDomain.FailureDomainPoint CalculatePlasticResistance((StrainPlane, FailureIndices) strainPlane)
+		{
+			try
+			{
+				CalculateConcreteStressResultant(strainPlane.Item1, out double deltaNConcrete, out double deltaMxConcrete, out double deltaMyConcrete);
+				CalculateRebarsIntegration(strainPlane.Item1, out double deltaNRebar, out double deltaMxRebar, out double deltaMyRebar);
+
+				double N = deltaNConcrete + deltaNRebar;
+				double Mx = -(deltaMxConcrete + deltaMxRebar);
+				double My = deltaMyConcrete + deltaMyRebar;
+
+				return new FailureDomain.FailureDomainPoint(N, Mx, My, strainPlane.Item2, strainPlane.Item1);
+			}
+			catch (Exception e)
+			{
+				_log.Add($"Fail" + e.InnerException);
+			}
+			return new FailureDomain.FailureDomainPoint(0, 0, 0, FailureIndices.Iz1, strainPlane.Item1);
+		}
+
+		/// <summary>
 		/// Calculate the stress resultant of the concrete part
 		/// </summary>
 		/// <param name="strainPlane">The strain plane</param>
@@ -312,79 +340,26 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
 			double[] deltaMyArray = new double[ConcreteSection.Mesh.FacesCount];
 
-			Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
+			try
 			{
-				CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
+				Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
+				{
+					CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
 
-				deltaNArray[i] = deltaNBuffer;
-				deltaMxArray[i] = deltaMxBuffer;
-				deltaMyArray[i] = deltaMyBuffer;
-			});
+					deltaNArray[i] = deltaNBuffer;
+					deltaMxArray[i] = deltaMxBuffer;
+					deltaMyArray[i] = deltaMyBuffer;
+				});
+			}
+			catch (Exception e)
+			{
+				_log.Add($"Fail" + e.InnerException);
+			}
+
 
 			deltaN = deltaNArray.Sum();
 			deltaMx = deltaMxArray.Sum();
 			deltaMy = deltaMyArray.Sum();
-		}
-
-		/// <summary>
-		/// Calculate the resultant of all the rebars
-		/// </summary>
-		/// <param name="strainPlane">The strain plane</param>
-		/// <param name="deltaN">The axial force resultant</param>
-		/// <param name="deltaMx">The bending moment about X-axis resultant</param>
-		/// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-		protected virtual void CalculateRebarsIntegration(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
-		{
-			double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
-			double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
-			double[] deltaMyArray = new double[ConcreteSection.Rebars.Length];
-
-			Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
-			{
-				double sigma = CalculateSigmaS(ConcreteSection.Rebars[i], CalculateStrain(strainPlane, ConcreteSection.Rebars[i].Position));
-
-				if (sigma < 0)
-				{
-					deltaNArray[i] = sigma * ConcreteSection.Rebars[i].Area - sigma / ConcreteSection.CalculateN(ConcreteSection.Rebars[i]) * ConcreteSection.Rebars[i].Area;
-					deltaMxArray[i] = sigma * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y) -
-						sigma / ConcreteSection.CalculateN(ConcreteSection.Rebars[i]) * ConcreteSection.Rebars[i].Area *
-						(ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
-					deltaMyArray[i] = sigma * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X) -
-						sigma / ConcreteSection.CalculateN(ConcreteSection.Rebars[i]) * ConcreteSection.Rebars[i].Area *
-						(ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
-				}
-
-				else
-				{
-					deltaNArray[i] = sigma * ConcreteSection.Rebars[i].Area;
-					deltaMxArray[i] = sigma * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
-					deltaMyArray[i] = sigma * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
-				}
-			});
-
-			deltaN = deltaNArray.Sum();
-			deltaMx = deltaMxArray.Sum();
-			deltaMy = deltaMyArray.Sum();
-		}
-
-		/// <summary>
-		/// Calculate the <see cref="FailureDomain.FailureDomainPoint"/> respect the strain plane <paramref name="strainPlane"/>
-		/// </summary>
-		/// <param name="strainPlane"></param>
-		/// <param name="N"></param>
-		/// <param name="Mx"></param>
-		/// <param name="My"></param>
-		/// <returns></returns>
-		protected virtual FailureDomain.FailureDomainPoint CalculatePlasticResistance((StrainPlane, FailureIndices) strainPlane)
-		{
-			CalculateConcreteStressResultant(strainPlane.Item1, out double deltaNConcrete, out double deltaMxConcrete, out double deltaMyConcrete);
-			CalculateRebarsIntegration(strainPlane.Item1, out double deltaNRebar, out double deltaMxRebar, out double deltaMyRebar);
-
-			double N = deltaNConcrete + deltaNRebar;
-			double Mx = - (deltaMxConcrete + deltaMxRebar);
-			double My = deltaMyConcrete + deltaMyRebar;
-
-			return new FailureDomain.FailureDomainPoint(N, Mx, My, strainPlane.Item2, strainPlane.Item1);
 		}
 
 		/// <summary>
@@ -420,6 +395,37 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			}
 			else
 				throw new Exception();
+		}
+
+		/// <summary>
+		/// Calculate the resultant of all the rebars
+		/// </summary>
+		/// <param name="strainPlane">The strain plane</param>
+		/// <param name="deltaN">The axial force resultant</param>
+		/// <param name="deltaMx">The bending moment about X-axis resultant</param>
+		/// <param name="deltaMy">The bending moment about Y-axis resultant</param>
+		protected virtual void CalculateRebarsIntegration(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+		{
+			double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
+			double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
+			double[] deltaMyArray = new double[ConcreteSection.Rebars.Length];
+
+			Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
+			{
+				double strain = CalculateStrain(strainPlane, ConcreteSection.Rebars[i].Position);
+				double sigmaS = CalculateSigmaS(ConcreteSection.Rebars[i], strain);
+				double sigmaC = CalculateSigmaC(strain);
+
+				deltaNArray[i] = sigmaS * ConcreteSection.Rebars[i].Area - sigmaC * ConcreteSection.Rebars[i].Area;
+				deltaMxArray[i] = sigmaS * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y) -
+					sigmaC * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
+				deltaMyArray[i] = sigmaS * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X) -
+					sigmaC * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
+			});
+
+			deltaN = deltaNArray.Sum();
+			deltaMx = deltaMxArray.Sum();
+			deltaMy = deltaMyArray.Sum();
 		}
 
 		#endregion
