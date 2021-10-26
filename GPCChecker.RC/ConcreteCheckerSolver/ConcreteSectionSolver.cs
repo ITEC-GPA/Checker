@@ -40,6 +40,8 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		#endregion
 
+		#region Solver
+
 		/// <summary>
 		/// Calculate the failure domain <see cref="FailureDomain"/> of the section
 		/// </summary>
@@ -272,7 +274,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <summary>
 		/// Return the strain value of the <paramref name="pointToTest"/>
 		/// </summary>
-		protected double CalculateStrain(StrainPlane strainPlane, Point3d pointToTest)
+		protected virtual double CalculateStrain(StrainPlane strainPlane, Point3d pointToTest)
 		{
 			return strainPlane.StrainReferencePoint - strainPlane.Chi * ((pointToTest.Y - strainPlane.ReferencePoint.Y) * Math.Cos(strainPlane.Teta) -
 				(pointToTest.X - strainPlane.ReferencePoint.X) * Math.Sin(strainPlane.Teta));
@@ -380,25 +382,32 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 			if (face.IsTriangle)
 			{
-				deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), points, 33);
+				deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), 
+					points, 79);
 				deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(y - ConcreteSection.Centroid.Y), points, 33);
+					(y - ConcreteSection.Centroid.Y), points, 79);
 				deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(x - ConcreteSection.Centroid.X), points, 33);
+					(x - ConcreteSection.Centroid.X), points, 79);
 			}
 
 			else if (face.IsQuad)
 			{
-				deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), points, 49);
+				deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), 
+					points, 121);
 				deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(y - ConcreteSection.Centroid.Y), points, 49);
+					(y - ConcreteSection.Centroid.Y), points, 121);
 				deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(x - ConcreteSection.Centroid.X), points, 49);
+					(x - ConcreteSection.Centroid.X), points, 121);
 			}
 			else
 				throw new Exception();
-	
 		}
+
+		#endregion
+
+		#endregion
+
+		#region Public override methods
 
 		public override bool Equals(object obj)
 		{
@@ -411,7 +420,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			unchecked
 			{
 				return 23 + EqualityComparer<IConcreteSection>.Default.GetHashCode(_concreteSection);
-			}			
+			}
 		}
 
 		#endregion

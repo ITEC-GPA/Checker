@@ -59,7 +59,7 @@ namespace ConcreteTests
 			}
 
 			// valore per campo di deformazione 6 (epsilon 0.2% costante)
-			double pureCompressionAxialForce = section.Shape.GetArea() * section.ConcreteMaterial.Fck * standard.AlphaCC / standard.GammaC;
+			double pureCompressionAxialForce = section.ShapeEx.GetArea() * section.ConcreteMaterial.Fck * standard.AlphaCC / standard.GammaC;
 			double pureCompressionMomentX = 0;
 			double pureCompressionMomentY = 0;
 
@@ -341,5 +341,217 @@ namespace ConcreteTests
 				-1192.68	149.085		0			0
 			*/
 		}
+
+		[TestMethod]
+		public void FailureDomainTest4()
+		{
+			double rebarDiameter = 26;
+
+			// sezione rettangolare 300x500
+			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
+																	new Point3d(300, 0, 0),
+																	new Point3d(300, 500, 0),
+																	new Point3d(0, 500, 0), }));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50,70,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(100, 70, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(150, 70, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(200, 70, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 70, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(100, 450, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(150, 450, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(200, 450, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50,430,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(100, 430, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(150, 430, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(200, 430, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 430, 0)),};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+
+			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
+
+			int[] subd = new int[] { 1, 1, 2, 50, 2, 1, 4 };
+
+			FailureDomain failureDomain = solver.CalculateFailureDomain(64, subd);
+			ExportToGmsh(failureDomain);
+
+			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
+				for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
+					Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].NRd)}");
+
+			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+				NRd			MRd			C3			C4
+				-4155.61	0			0			0
+				-4155.61	0			0			0
+				-4155.61	0			0			0
+				-4155.61	0			0			0
+				-4127.59	6.91482		0			0
+				-4072.16	20.3592		0			0
+				-4017.19	33.3038		0			0
+				-3966.78	44.7995		0			0
+				-2704.73	295.308		0			0
+				403.698		877.967		0			0
+				808.584		944.084		0			0
+				1190.26		991.959		0			0
+				1916.42		998.635		0			0
+				3007.94		843.881		0			0
+				4214.5		668.766		0			0
+				5620.33		440.858		0			0
+				6584.38		262.073		0			0
+				7386.54		112.195		0			0
+				7980.61		0			0			0
+				7980.61		0			0			0
+				7386.54		-112.195	0			0
+				6584.38		-262.073	0			0
+				5620.33		-440.858	0			0
+				4214.5		-668.766	0			0
+				3007.94		-843.881	0			0
+				1916.42		-998.635	0			0
+				1190.26		-991.959	0			0
+				808.584		-944.084	0			0
+				403.698		-877.967	0			0
+				-2704.73	-295.308	0			0
+				-3966.78	-44.7995	0			0
+				-4017.19	-33.3038	0			0
+				-4072.16	-20.3592	0			0
+				-4127.59	-6.91482	0			0
+				-4155.61	0			0			0
+				-4155.61	0			0			0
+				-4155.61	0			0			0
+			*/
+		}
+
+		[TestMethod]
+		public void FailureDomainTest5()
+		{
+			// sezione circolare diametro 500
+			double rebarDiameter = 16;
+			double sectionDiameter = 500;
+
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(450, 250, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(434.77591, 326.536678, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(391.421355, 391.421357, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(326.536686, 434.775907, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(173.463322, 434.77591, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(108.578643, 391.421355, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(65.224093, 326.536686, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(65.22409, 173.463322, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(108.578645, 108.578643, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(173.463314, 65.224093, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250.0, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(326.536678, 65.22409, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(391.421357, 108.578645, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(434.775907, 173.463314, 0)) };
+
+
+			ConcreteSectionCircular section = new ConcreteSectionCircular(sectionDiameter, 
+				new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle), rebars);
+
+			ConcreteSectionSolverEN1992 solver = new ConcreteSectionSolverEN1992(section, new StandardEN1992p11());
+
+			int[] subd = new int[] { 1, 1, 1, 10, 1, 1, 1 };
+
+			FailureDomain failureDomain = solver.CalculateFailureDomain(8, subd);
+			ExportToGmsh(failureDomain);
+
+			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
+				for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
+					Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].NRd)}");
+
+			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+				NRd			MRd			C3			C4
+				-1258.81	4.84e-014	0			0
+				-1258.81	4.84e-014	0			0
+				-1258.81	4.84e-014	0			0
+				-1258.81	4.84e-014	0			0
+				-1251.8		1.72729		0			0
+				-1230.47	6.88051		0			0
+				-1200.35	13.9574		0			0
+				-1166.33	21.7031		0			0
+				-947.661	66.0554		0			0
+				14.6662		233.636		0			0
+				427.718		287.822		0			0
+				1083.72		350.511		0			0
+				2479.81		388.665		0			0
+				3208.22		357.463		0			0
+				4100.23		295.198		0			0
+				5147.35		172.755		0			0
+				5689.17		88.0575		0			0
+				6064.06		29.8863		0			0
+				6256.29		-4.84e-014	0			0
+				6256.29		-5.21e-014	0			0
+				6064.06		-29.8863	0			0
+				5689.17		-88.0575	0			0
+				5147.35		-172.755	0			0
+				4100.23		-295.198	0			0
+				3208.22		-357.463	0			0
+				2479.81		-388.665	0			0
+				1083.72		-350.511	0			0
+				427.718		-287.822	0			0
+				14.6662		-233.636	0			0
+				-947.661	-66.0554	0			0
+				-1166.33	-21.7031	0			0
+				-1200.35	-13.9574	0			0
+				-1230.47	-6.88051	0			0
+				-1251.8		-1.72729	0			0
+				-1258.81	5.21e-014	0			0
+				-1258.81	5.21e-014	0			0
+				-1258.81	5.21e-014	0			0
+				-1258.81	5.21e-014	0			0
+			*/
+		}
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
