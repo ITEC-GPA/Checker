@@ -424,11 +424,9 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				double sigmaS = CalculateStressSteel(ConcreteSection.Rebars[i], strain);
 				double sigmaC = CalculateSigmaC(strain);
 
-				deltaNArray[i] = sigmaS * ConcreteSection.Rebars[i].Area - sigmaC * ConcreteSection.Rebars[i].Area;
-				deltaMxArray[i] = sigmaS * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y) -
-					sigmaC * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
-				deltaMyArray[i] = sigmaS * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X) -
-					sigmaC * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
+				deltaNArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area;
+				deltaMxArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
+				deltaMyArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
 			});
 
 			deltaN = deltaNArray.Sum();
