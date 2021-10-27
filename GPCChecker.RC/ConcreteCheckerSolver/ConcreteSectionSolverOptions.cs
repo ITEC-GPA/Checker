@@ -38,7 +38,7 @@
 
         private ConcreteSectionSolverOptions()
         {
-            AxialForceDiscretizations = new int[]{ 1, 1, 1, 25, 2, 1, 4 };
+            AxialForceDiscretizations = new int[]{ 1, 1, 1, 30, 2, 1, 4 };
             MomentsDiscretizations = 32;
         }
     }    

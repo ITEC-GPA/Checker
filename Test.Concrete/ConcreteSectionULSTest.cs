@@ -456,6 +456,161 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		public void FailureDomainRectangularSectionPrestressedTest1()
+		{
+			double rebarDiameter = 20;
+			double rebarDiameterPrestress = 20;
+
+			// sezione rettangolare 300x500
+			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
+																	new Point3d(300, 0, 0),
+																	new Point3d(300, 500, 0),
+																	new Point3d(0, 500, 0), }));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial(200000, 1620, 1800));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),																				
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
+																				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 1, 0.007045)};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, new StandardNTC2018Concrete());
+
+			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			ExportToGmsh(failureDomain);
+
+			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
+				for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
+					Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].NRd)}");
+
+			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+				NRd			MRd			C3			C4
+				-933.899	66.3639		0			0
+				-933.899	66.3639		0			0
+				-933.899	66.3639		0			0
+				-933.899	66.3639		0			0
+				-905.882	73.2787		0			0
+				-850.452	86.7231		0			0
+				-795.487	99.6677		0			0
+				-745.072	111.163		0			0
+				-407.98		180.471		0			0
+				271.13		308.835		0			0
+				449.766		334.227		0			0
+				747.837		367.052		0			0
+				1388.85		390.363		0			0
+				1821.5		361.728		0			0
+				2369.18		312.73		0			0
+				3116.14		210.941		0			0
+				3617.17		120.777		0			0
+				3956.3		59.5186		0			0
+				4128.07		28.26		0			0
+				4128.07		28.26		0			0
+				4000.26		-1.42864	0			0
+				3705.09		-61.1167	0			0
+				3248.02		-149.711	0			0
+				2533.25		-243.453	0			0
+				2017.76		-284.403	0			0
+				1617.29		-304.991	0			0
+				981.689		-269.402	0			0
+				645.392		-230.843	0			0
+				428.53		-199.717	0			0
+				-407.98		-47.7433	0			0
+				-745.072	21.5644		0			0
+				-795.487	33.0601		0			0
+				-850.452	46.0048		0			0
+				-905.882	59.4491		0			0
+				-933.899	66.3639		0			0
+				-933.899	66.3639		0			0
+				-933.899	66.3639		0			0
+				-933.899	66.3639		0			0
+			*/
+		}
+
+		[TestMethod]
+		public void FailureDomainRectangularSectionPrestressedTest2()
+		{
+			double rebarDiameter = 20;
+			double rebarDiameterPrestress = 20;
+
+			// sezione rettangolare 300x500
+			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
+																	new Point3d(300, 0, 0),
+																	new Point3d(300, 500, 0),
+																	new Point3d(0, 500, 0), }));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial(200000, 1620, 1800));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
+																				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 1, 0.007045),
+																				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 400, 0), 2, 0.007045)};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, new StandardNTC2018Concrete());
+
+			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			ExportToGmsh(failureDomain);
+
+			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
+				for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
+					Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd)}, " +
+									  $"{Math.Round(failureDomain.DomainPoints[i][j].NRd)}");
+
+			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+				NRd			MRd			C3			C4
+				-1376.33	0			0			0
+				-1376.33	0			0			0
+				-1376.33	0			0			0
+				-1376.33	0			0			0
+				-1348.31	6.91482		0			0
+				-1292.88	20.3592		0			0
+				-1237.91	33.3038		0			0
+				-1187.5		44.7995		0			0
+				-850.406	114.107		0			0
+				-139.496	247.241		0			0
+				77.3662		278.367		0			0
+				413.663		316.926		0			0
+				1049.27		352.515		0			0
+				1449.73		331.927		0			0
+				1969.1		290.397		0			0
+				2726.78		190.217		0			0
+				3211.06		97.5407		0			0
+				3533.44		33.7706		0			0
+				3688.47		0			0			0
+				3688.47		0			0			0
+				3533.44		-33.7706	0			0
+				3211.06		-97.5407	0			0
+				2726.78		-190.217	0			0
+				1969.1		-290.397	0			0
+				1449.73		-331.927	0			0
+				1049.27		-352.515	0			0
+				413.663		-316.926	0			0
+				77.3662		-278.367	0			0
+				-139.496	-247.241	0			0
+				-850.406	-114.107	0			0
+				-1187.5		-44.7995	0			0
+				-1237.91	-33.3038	0			0
+				-1292.88	-20.3592	0			0
+				-1348.31	-6.91482	0			0
+				-1376.33	0			0			0
+				-1376.33	0			0			0
+				-1376.33	0			0			0
+				-1376.33	0			0			0
+			*/
+		}
+
+		[TestMethod]
 		public void FailureDomainCircularSectionTest1()
 		{
 			// sezione circolare diametro 500
