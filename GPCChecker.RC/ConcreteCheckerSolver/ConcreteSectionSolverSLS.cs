@@ -77,42 +77,13 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 			do
 			{
-				if (Math.Abs(ex - exExt) > tolerance || Math.Abs(ey - eyExt) > tolerance)
-				{
-					do
-					{
-						CalculatePlaneIncrements(N, Mx, My, forces.N, forces.M1, forces.M2, out double deltaTeta, out Point3d deltaReferencePoint);
-						teta += deltaTeta;
-						referencePoint += deltaReferencePoint;
-						id++;
 
-						// piano di nuovo tentativo. non più baricentrico e ruotato di teta;
-						strainPlane = new StrainPlane(referencePoint, teta, chi, strainReferencePoint, id);
+				
 
-						CalculateForces(strainPlane, out N, out Mx, out My);
 
-						// eccentricità di nuovo tentativo
-						ex = CalculateEccentricity(Mx, N);
-						ey = CalculateEccentricity(My, N);
 
-					} while (Math.Abs(ex - exExt) > tolerance || Math.Abs(ey - eyExt) > tolerance);
-				}
 
-				// abbiamo trovato il teta di inclinazione e la posizione dell'asse neutro. dobbiamo trovare adesso la curvatura chi
-				if (Math.Abs(N - forces.N) > tolerance)
-				{
-					do
-					{
-						chi += CalculateChiIncrement();
-						id++;
 
-						// piano di nuovo tentativo. baricentrico e ruotato di teta;
-						strainPlane = new StrainPlane(referencePoint, teta, chi, strainReferencePoint, id);
-
-						CalculateForces(strainPlane, out N, out Mx, out My);
-
-					} while (Math.Abs(N - forces.N) > tolerance);
-				}
 			} while (Math.Abs(N - forces.N) > tolerance && Math.Abs(Mx - forces.M1) > tolerance && Math.Abs(My - forces.M2) > tolerance);
 
 			return new StrainPlane(referencePoint, teta, chi, strainReferencePoint, id);
@@ -127,21 +98,58 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				return double.MaxValue;
 		}
 
-		protected void CalculatePlaneIncrements(double N, double Mx, double My, double NExt, double MxExt, double MyExt, out double deltaTeta, out Point3d deltaReferencePoint)
+
+		protected void CalculateIncrement(StrainPlane inputStrainPlane)
 		{
-			double tetaInterno = Math.Atan2(My, Mx);
-			double tetaEsterno = Math.Atan2(MxExt, MyExt);
+			double deltaTeta = 1.0;
+			double deltaChi = 0.0001;
+			double deltaStrain = 0.001;
 
-			deltaTeta = tetaEsterno - tetaInterno;
+			// derivate parziali rispetto a teta
+			StrainPlane strainPlanePlusdTeta = new StrainPlane(ConcreteSection.Centroid, inputStrainPlane.Teta + deltaTeta, inputStrainPlane.Chi, 
+				inputStrainPlane.StrainReferencePoint);
+			StrainPlane strainPlaneMinusdTeta = new StrainPlane(ConcreteSection.Centroid, inputStrainPlane.Teta - deltaTeta, inputStrainPlane.Chi,
+				inputStrainPlane.StrainReferencePoint);
 
-			deltaReferencePoint = new Point3d(N / (ConcreteSection.Area * ConcreteMaterial.E) * CalculateEccentricity(Mx, N), 
-				N / (ConcreteSection.Area * ConcreteMaterial.E) * CalculateEccentricity(My, N), 0);
+			CalculateForces(strainPlanePlusdTeta, out double NPlusdTeta, out double MxPlusdTeta, out double MyPlusdTeta);
+			CalculateForces(strainPlaneMinusdTeta, out double NMinusdTeta, out double MxMinusdTeta, out double MyMinusdTeta);
+
+			double dNdTeta = (NPlusdTeta - NMinusdTeta) / (2.0 * deltaTeta);
+			double dMxdTeta = (MxPlusdTeta - MxMinusdTeta) / (2.0 * deltaTeta);
+			double dMydTeta = (MyPlusdTeta - MyMinusdTeta) / (2.0 * deltaTeta);
+
+			// derivate parziali rispetto a Chi
+			StrainPlane strainPlanePlusdChi = new StrainPlane(ConcreteSection.Centroid, inputStrainPlane.Teta, inputStrainPlane.Chi + deltaChi, 
+				inputStrainPlane.StrainReferencePoint);
+			StrainPlane strainPlaneMinusChi = new StrainPlane(ConcreteSection.Centroid, inputStrainPlane.Teta, inputStrainPlane.Chi - deltaChi,
+				inputStrainPlane.StrainReferencePoint);
+
+			CalculateForces(strainPlanePlusdChi, out double NPlusdChi, out double MxPlusdChi, out double MyPlusdChi);
+			CalculateForces(strainPlaneMinusChi, out double NMinusdChi, out double MxMinusdChi, out double MyMinusdChi);
+
+			double dNdChi = (NPlusdChi - NMinusdChi) / (2.0 * deltaChi);
+			double dMxdChi = (MxPlusdChi - MxMinusdChi) / (2.0 * deltaChi);
+			double dMydChi = (MyPlusdChi - MyMinusdChi) / (2.0 * deltaChi);
+
+			// derivate parziali rispetto a epsilon
+			StrainPlane strainPlanePlusStrain = new StrainPlane(ConcreteSection.Centroid, inputStrainPlane.Teta, inputStrainPlane.Chi, 
+				inputStrainPlane.StrainReferencePoint + deltaStrain);
+			StrainPlane strainPlaneMinusStrain = new StrainPlane(ConcreteSection.Centroid, inputStrainPlane.Teta, inputStrainPlane.Chi,
+				inputStrainPlane.StrainReferencePoint - deltaStrain);
+
+			CalculateForces(strainPlanePlusStrain, out double NPlusdStrain, out double MxPlusdStrain, out double MyPlusdStrain);
+			CalculateForces(strainPlaneMinusStrain, out double NMinusdStrain, out double MxMinusdStrain, out double MyMinusdStrain);
+
+			double dNdStrain = (NPlusdStrain - NMinusdStrain) / (2.0 * deltaStrain);
+			double dMxdStrain = (MxPlusdStrain - MxMinusdStrain) / (2.0 * deltaStrain);
+			double dMydStrain = (MyPlusdStrain - MyMinusdStrain) / (2.0 * deltaStrain);
+
+
+
 		}
 
-		protected double CalculateChiIncrement()
-		{
-			return 0.0001;
-		}
+
+
 
 
 		#endregion

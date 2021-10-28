@@ -177,7 +177,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// </summary>
 		/// <param name="strainPlane"></param>
 		/// <returns></returns>
-		protected virtual void CalculateForces(StrainPlane strainPlane, out double Nrd, out double MxRd, out double MyRd)
+		protected virtual void CalculateForces(StrainPlane strainPlane, out double N, out double Mx, out double My)
 		{
 			double deltaNConcrete = 0;
 			double deltaMxConcrete = 0;
@@ -196,9 +196,9 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				_log.Add($"Fail" + e.InnerException);
 			}
 
-			Nrd = deltaNConcrete + deltaNRebar;
-			MxRd = -(deltaMxConcrete + deltaMxRebar);
-			MyRd = deltaMyConcrete + deltaMyRebar;
+			N = deltaNConcrete + deltaNRebar;
+			Mx = -(deltaMxConcrete + deltaMxRebar);
+			My = deltaMyConcrete + deltaMyRebar;
 		}
 
 		#endregion
