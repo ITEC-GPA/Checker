@@ -36,7 +36,7 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
-			ResultBeamForces forces = new ResultBeamForces(0, 0, 0, 0, 10 * 1000000, 10 * 1000000, CoordinateSystem.Global);
+			ResultBeamForces forces = new ResultBeamForces(0, 0, 0, 0, 10 * 1000000, 0 * 1000000, CoordinateSystem.Global);
 
 			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
 			StrainPlane plane = solver.CalculateStrainPlane();
