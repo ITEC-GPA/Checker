@@ -98,26 +98,26 @@
     <Compile Include="ConcreteSectionSLSTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\GPCChecker.RC\GPCChecker.ReinforcedConcrete.csproj">
       <Project>{17392b09-9681-4820-b9c9-26d5d2362390}</Project>
       <Name>GPCChecker.ReinforcedConcrete</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
+    <Error Condition="!Exists('..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets'))" />
+    <Error Condition="!Exists('..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets'))" />
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.props'))" />
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.targets'))" />
-    <Error Condition="!Exists('..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets'))" />
-    <Error Condition="!Exists('..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets'))" />
   </Target>
-  <Import Project="..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.targets')" />
   <Import Project="..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets" Condition="Exists('..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets')" />
-  <Import Project="..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets')" />
+  <Import Project="..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.targets')" />
 </Project>
