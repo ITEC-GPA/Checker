@@ -66,11 +66,14 @@
     <Compile Include="Checkers\BeamChecker.cs" />
     <Compile Include="Checkers\EN1992p11BeamChecker.cs" />
     <Compile Include="Attributes\PlateCheckerAttributes.cs" />
+    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolver.cs" />
     <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverOptions.cs" />
+    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverSLS.cs" />
+    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverSLSModelCode2010.cs" />
     <Compile Include="OldCheckerCode\RCCheckingSection.cs" />
     <Compile Include="OldCheckerCode\RCSection.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolver.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverModelCode2010.cs" />
+    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverULS.cs" />
+    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverULSModelCode2010.cs" />
     <Compile Include="OldCheckerCode\RCChecker.cs" />
     <Compile Include="OldCheckerCode\RCChecker.Viviani.cs" />
     <Compile Include="OldCheckerCode\RCFailureDomain.cs" />
