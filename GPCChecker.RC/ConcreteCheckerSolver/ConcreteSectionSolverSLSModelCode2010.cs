@@ -83,27 +83,27 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		{
 			if (ConcreteMaterialModelCode2010.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.ParabolaRectangle)
 			{
-				if (strain > 0.0)
+				if (strain >= 0.0)
 					return 0.0;
-				if (Math.Abs(strain) >= ConcreteMaterial.StrainCompressionY)
+				else if (strain <= ConcreteMaterial.StrainCompressionY)
 					return -Fcd;
 				else
 					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain) / ConcreteMaterial.StrainCompressionY, ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
 			}
 			else if (ConcreteMaterialModelCode2010.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
 			{
-				if (strain > 0.0)
+				if (strain >= 0.0)
 					return 0.0;
-				if (Math.Abs(strain) >= ConcreteMaterial.StrainCompressionY)
+				if (strain <= ConcreteMaterial.StrainCompressionY)
 					return -Fcd;
 				else
 					return 0.0;
 			}
 			else if (ConcreteMaterialModelCode2010.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear)
 			{
-				if (strain > 0.0)
+				if (strain >= 0.0)
 					return 0.0;
-				if (Math.Abs(strain) >= ConcreteMaterial.StrainCompressionY)
+				else if (strain <= ConcreteMaterial.StrainCompressionY)
 					return -Fcd;
 				else
 					return -Fcd * Math.Abs(strain) / ConcreteMaterial.StrainCompressionY;
