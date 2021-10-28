@@ -11,7 +11,7 @@ using GPC.Geometry.Meshes;
 
 namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 {
-	public class ConcreteSectionSolverModelCode2010 : ConcreteSectionSolver
+	public class ConcreteSectionSolverULSModelCode2010 : ConcreteSectionSolverULS
 	{
 		#region Variables
 
@@ -54,7 +54,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		#region Constructors
 
-		public ConcreteSectionSolverModelCode2010(IConcreteSection concreteSection, StandardModelCode2010 standard)
+		public ConcreteSectionSolverULSModelCode2010(IConcreteSection concreteSection, StandardModelCode2010 standard)
 			:base(concreteSection)
 		{
 			if(concreteSection.ConcreteMaterial is ConcreteMaterialEN1992)

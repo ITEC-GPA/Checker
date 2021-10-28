@@ -200,7 +200,7 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
-			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, standard);
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
 
             FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ShowDomainPoints(failureDomain);
@@ -275,7 +275,7 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
-			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, standard);
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ShowDomainPoints(failureDomain);
@@ -355,7 +355,7 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
-			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, standard);
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ShowDomainPoints(failureDomain);
@@ -443,7 +443,7 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
-			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section,standard);
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section,standard);
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ShowDomainPoints(failureDomain);
@@ -517,7 +517,7 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
-			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, standard);
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ShowDomainPoints(failureDomain);
@@ -593,7 +593,7 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
-			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, standard);
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ShowDomainPoints(failureDomain);
@@ -674,7 +674,7 @@ namespace ConcreteTests
 			ConcreteSectionCircular section = new ConcreteSectionCircular(sectionDiameter, 
 				new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle), rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
-			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, standard);
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ShowDomainPoints(failureDomain);
@@ -737,7 +737,7 @@ namespace ConcreteTests
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
 			ConcreteSectionCHS section = new ConcreteSectionCHS(diameterExternal, thickness, ConcreteMaterialEN1992.C25_30, concreteCover, numberOfRebars, rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
-			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, standard);
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ShowDomainPoints(failureDomain);
@@ -826,7 +826,7 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
-			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, standard);			
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);			
 			FailureDomain failureDomain = solver.CalculateFailureDomain();
 
 			ShowDomainPoints(failureDomain);
@@ -911,7 +911,7 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
-			ConcreteSectionSolverModelCode2010 solver = new ConcreteSectionSolverModelCode2010(section, standard);
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
 			FailureDomain failureDomain = solver.CalculateFailureDomain();
 
 			ShowDomainPoints(failureDomain);
@@ -963,37 +963,3 @@ namespace ConcreteTests
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
