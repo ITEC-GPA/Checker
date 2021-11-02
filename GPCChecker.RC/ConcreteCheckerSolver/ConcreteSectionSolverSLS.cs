@@ -164,9 +164,9 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 			Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
-			deltaTeta = 0.1 * results[0, 0];
-			deltaChi = 0.1 * results[1, 0];
-			deltaStrainRefPoint = 0.1 * results[2, 0];
+			deltaTeta = results[0, 0];
+			deltaChi = results[1, 0];
+			deltaStrainRefPoint = results[2, 0];
 		}
 
 		#endregion

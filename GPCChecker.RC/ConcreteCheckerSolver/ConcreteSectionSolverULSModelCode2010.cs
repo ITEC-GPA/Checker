@@ -91,16 +91,16 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			{
 				if (strain >= 0.0)
 					return 0.0;
-				if (Math.Abs(strain) >= ConcreteMaterial.StrainCompressionY)
+				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonCy)
 					return -Fcd;
 				else
-					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain) / ConcreteMaterial.StrainCompressionY, ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
+					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain) / ConcreteMaterial.EpsilonCy, ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
 			}
 			else if (ConcreteMaterialModelCode2010.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
 			{
 				if (strain >= 0.0)
 					return 0.0;
-				if (Math.Abs(strain) >= ConcreteMaterial.StrainCompressionY)
+				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonCy)
 					return -Fcd;
 				else
 					return 0.0;
@@ -109,10 +109,10 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			{
 				if (strain >= 0.0)
 					return 0.0;
-				if (Math.Abs(strain) >= ConcreteMaterial.StrainCompressionY)
+				if (Math.Abs(strain) >= ConcreteMaterial.EpsilonCy)
 					return -Fcd;
 				else
-					return -Fcd * Math.Abs(strain) / ConcreteMaterial.StrainCompressionY;
+					return -Fcd * Math.Abs(strain) / ConcreteMaterial.EpsilonCy;
 			}
 			else
 				throw new ArgumentException("");
@@ -128,12 +128,12 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		protected override double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar)
 		{
-			return rebar.RebarMaterial.EpsilonU * 0.9;
+			return rebar.RebarMaterial.EpsilonU * ModelCode2010.SteelCoefficientStrainTraction;
 		}
 
 		protected override double CalculateUltimateStrainSteel(int rebar)
 		{
-			return ConcreteSection.Rebars[rebar].RebarMaterial.EpsilonU * 0.9;
+			return ConcreteSection.Rebars[rebar].RebarMaterial.EpsilonU * ModelCode2010.SteelCoefficientStrainTraction;
 		}
 
 		protected override double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar)
@@ -148,12 +148,12 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		protected override double CalculateUltimateStrainConcreteCompression()
 		{
-			return ConcreteSection.ConcreteMaterial.StrainCompressionU;
+			return ConcreteSection.ConcreteMaterial.EpsilonCu;
 		}
 
 		protected override double CalculateYeldingStrainConcreteCompression()
 		{
-			return ConcreteSection.ConcreteMaterial.StrainCompressionY;
+			return ConcreteSection.ConcreteMaterial.EpsilonCy;
 		}
 
 		protected override double CalculateLimitStrainCostantCompression()
