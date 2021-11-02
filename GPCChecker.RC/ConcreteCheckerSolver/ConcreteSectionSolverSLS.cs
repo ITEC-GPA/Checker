@@ -70,7 +70,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 			if (Math.Abs(N - forces.N) > tolerance || Math.Abs(Mx - forces.M1) > tolerance || Math.Abs(My - forces.M2) > tolerance)
 			{
-				chi += 1.0e-11;
+				chi += 1.0e-10;
 				strainPlane = new StrainPlane(referencePoint, teta, chi, strainReferencePoint, id);
 
 				CalculateForces(strainPlane, out N, out Mx, out My);
@@ -79,13 +79,13 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				{
 					Vector3d vector = new Vector3d(forces.M1 - Mx, forces.M2 - My, forces.N - N);
 
-					CalculateIncrement(strainPlane, vector, out double deltaTeta, out double deltaChi, out double deltaVerticalDisplacement);
+					CalculateIncrement(strainPlane, vector, out double deltaTeta, out double deltaChi, out double deltaStrainRefPoint);
 
 					// piano di nuovo tentativo
 					id++;
 					teta += deltaTeta;
 					chi += deltaChi;
-					referencePoint += new Point3d(0, deltaVerticalDisplacement, 0);
+					strainReferencePoint += deltaStrainRefPoint;
 					strainPlane = new StrainPlane(referencePoint, teta, chi, strainReferencePoint, id);
 
 					CalculateForces(strainPlane, out N, out Mx, out My);
@@ -96,11 +96,11 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		}
 
 
-		protected void CalculateIncrement(StrainPlane inputStrainPlane, Vector3d vector, out double deltaTeta, out double deltaChi, out double deltaVerticalDisplacement)
+		protected void CalculateIncrement(StrainPlane inputStrainPlane, Vector3d vector, out double deltaTeta, out double deltaChi, out double deltaStrainRefPoint)
 		{
 			double dTeta = Math.PI / 90.0;
-			double dChi = 1.0e-14;
-			double dDisplacement = 1.0;
+			double dChi = 1.0e-11;
+			double dStrain = 0.00001;
 
 			// derivate parziali rispetto a teta
 			StrainPlane strainPlanePlusdTeta = new StrainPlane(inputStrainPlane.ReferencePoint, inputStrainPlane.Teta + dTeta, inputStrainPlane.Chi, 
@@ -129,79 +129,44 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			double dMydChi = (MyPlusdChi - MyMinusdChi) / (2.0 * dChi);
 
 			// derivate parziali rispetto a epsilon
-			StrainPlane strainPlanePlusDispl = new StrainPlane(inputStrainPlane.ReferencePoint + new Point3d(0, dDisplacement, 0), inputStrainPlane.Teta, inputStrainPlane.Chi, 
-				inputStrainPlane.StrainReferencePoint);
-			StrainPlane strainPlaneMinusDispl = new StrainPlane(inputStrainPlane.ReferencePoint - new Point3d(0, dDisplacement, 0), inputStrainPlane.Teta, inputStrainPlane.Chi,
-				inputStrainPlane.StrainReferencePoint);
+			StrainPlane strainPlanePlusStrain = new StrainPlane(inputStrainPlane.ReferencePoint, inputStrainPlane.Teta, inputStrainPlane.Chi,
+				inputStrainPlane.StrainReferencePoint + dStrain);
+			StrainPlane strainPlaneMinusStrain = new StrainPlane(inputStrainPlane.ReferencePoint, inputStrainPlane.Teta, inputStrainPlane.Chi,
+				inputStrainPlane.StrainReferencePoint - dStrain);
 
-			CalculateForces(strainPlanePlusDispl, out double NPlusdDispl, out double MxPlusdDispl, out double MyPlusdDispl);
-			CalculateForces(strainPlaneMinusDispl, out double NMinusdDispl, out double MxMinusdDispl, out double MyMinusdDispl);
+			CalculateForces(strainPlanePlusStrain, out double NPlusdStrain, out double MxPlusdStrain, out double MyPlusdStrain);
+			CalculateForces(strainPlaneMinusStrain, out double NMinusdStrain, out double MxMinusdStrain, out double MyMinusdStrain);
 
-			double dNdDispl = (NPlusdDispl - NMinusdDispl) / (2.0 * dDisplacement);
-			double dMxdDispl = (MxPlusdDispl - MxMinusdDispl) / (2.0 * dDisplacement);
-			double dMydDispl = (MyPlusdDispl - MyMinusdDispl) / (2.0 * dDisplacement);
+			double dNdStrain = (NPlusdStrain - NMinusdStrain) / (2.0 * dStrain);
+			double dMxdStrain = (MxPlusdStrain - MxMinusdStrain) / (2.0 * dStrain);
+			double dMydStrain = (MyPlusdStrain - MyMinusdStrain) / (2.0 * dStrain);
 
-			Matrix<double> tetaNumeratore = Matrix<double>.Build.Dense(3,3);
 
-			tetaNumeratore[0, 0] = dNdChi;
-			tetaNumeratore[1, 0] = dMxdChi;
-			tetaNumeratore[2, 0] = dMydChi;
+			Matrix<double> partialDerivatives = Matrix<double>.Build.Dense(3, 3);
 
-			tetaNumeratore[0, 1] = dNdDispl;
-			tetaNumeratore[1, 1] = dMxdDispl;
-			tetaNumeratore[2, 1] = dMydDispl;
+			partialDerivatives[0, 0] = dNdTeta;
+			partialDerivatives[1, 0] = dMxdTeta;
+			partialDerivatives[2, 0] = dMydTeta;
 
-			tetaNumeratore[0, 2] = -vector.Z;
-			tetaNumeratore[1, 2] = -vector.X;
-			tetaNumeratore[2, 2] = -vector.Y;
+			partialDerivatives[0, 1] = dNdChi;
+			partialDerivatives[1, 1] = dMxdChi;
+			partialDerivatives[2, 1] = dMydChi;
 
-			Matrix<double> chiNumeratore = Matrix<double>.Build.Dense(3, 3);
+			partialDerivatives[0, 2] = dNdStrain;
+			partialDerivatives[1, 2] = dMxdStrain;
+			partialDerivatives[2, 2] = dMydStrain;
 
-			chiNumeratore[0, 0] = dNdTeta;
-			chiNumeratore[1, 0] = dMxdTeta;
-			chiNumeratore[2, 0] = dMydTeta;
 
-			chiNumeratore[0, 1] = dNdDispl;
-			chiNumeratore[1, 1] = dMxdDispl;
-			chiNumeratore[2, 1] = dMydDispl;
+			Matrix<double> inputVector = Matrix<double>.Build.Dense(3, 1);
+			inputVector[0, 0] = vector.Z;
+			inputVector[1, 0] = vector.X;
+			inputVector[2, 0] = vector.Y;
 
-			chiNumeratore[0, 2] = -vector.Z;
-			chiNumeratore[1, 2] = -vector.X;
-			chiNumeratore[2, 2] = -vector.Y;
+			Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
-			Matrix<double> strainNumeratore = Matrix<double>.Build.Dense(3, 3);
-
-			strainNumeratore[0, 0] = dNdTeta;
-			strainNumeratore[1, 0] = dMxdTeta;
-			strainNumeratore[2, 0] = dMydTeta;
-
-			strainNumeratore[0, 1] = dNdChi;
-			strainNumeratore[1, 1] = dMxdChi;
-			strainNumeratore[2, 1] = dMydChi;
-
-			strainNumeratore[0, 2] = -vector.Z;
-			strainNumeratore[1, 2] = -vector.X;
-			strainNumeratore[2, 2] = -vector.Y;
-
-			Matrix<double> denominatoreMatrix = Matrix<double>.Build.Dense(3, 3);
-
-			denominatoreMatrix[0, 0] = dNdTeta;
-			denominatoreMatrix[1, 0] = dMxdTeta;
-			denominatoreMatrix[2, 0] = dMydTeta;
-
-			denominatoreMatrix[0, 1] = dNdChi;
-			denominatoreMatrix[1, 1] = dMxdChi;
-			denominatoreMatrix[2, 1] = dMydChi;
-
-			denominatoreMatrix[0, 2] = dNdDispl;
-			denominatoreMatrix[1, 2] = dMxdDispl;
-			denominatoreMatrix[2, 2] = dMydDispl;
-
-			double denominatore = denominatoreMatrix.Determinant();
-
-			deltaTeta = tetaNumeratore.Determinant() / denominatore;
-			deltaChi = chiNumeratore.Determinant() / denominatore;
-			deltaVerticalDisplacement = strainNumeratore.Determinant() / denominatore;
+			deltaTeta = 0.1 * results[0, 0];
+			deltaChi = 0.1 * results[1, 0];
+			deltaStrainRefPoint = 0.1 * results[2, 0];
 		}
 
 		#endregion

@@ -201,6 +201,59 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			My = deltaMyConcrete + deltaMyRebar;
 		}
 
+		protected virtual void CalculateRelativeDistance(double teta, out int dMinRebarIndex, out int dMaxRebarIndex, out int dMinVertexIndex, out int dMaxVertexIndex)
+		{
+			double cosTeta = Math.Cos(teta);
+			double sinTeta = Math.Sin(teta);
+
+			double dminSteel = double.MaxValue;
+			double dmaxSteel = double.MinValue;
+			double dmaxConcrete = double.MinValue;
+			double dminConcrete = double.MaxValue;
+
+			dMinRebarIndex = -1;
+			dMaxRebarIndex = -1;
+			dMaxVertexIndex = -1;
+			dMinVertexIndex = -1;
+
+			for (int r = 0; r < ConcreteSection.Rebars.Count(); r++)
+			{
+				double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta -
+					(ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
+				if (w1 <= dminSteel)
+				{
+					dminSteel = w1;
+					dMinRebarIndex = r;
+				}
+
+				if (w1 >= dmaxSteel)
+				{
+					dmaxSteel = w1;
+					dMaxRebarIndex = r;
+				}					
+			}
+
+			//TODO: implementare con armature lineari
+
+			for (int c = 0; c < ConcreteSection.Shape.Fill.Count; c++)
+			{
+				double w1 = (ConcreteSection.Shape.Fill[c].Y - ConcreteSection.Centroid.Y) * cosTeta -
+					(ConcreteSection.Shape.Fill[c].X - ConcreteSection.Centroid.X) * sinTeta;
+
+				if (w1 >= dmaxConcrete)
+				{
+					dMaxVertexIndex = c;
+					dmaxConcrete = w1;
+				}
+
+				if (w1 <= dminConcrete)
+				{
+					dminConcrete = w1;
+					dMinVertexIndex = c;
+				}
+			}
+		}
+
 		#endregion
 
 		#region Public override methods

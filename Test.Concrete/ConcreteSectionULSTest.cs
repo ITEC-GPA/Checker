@@ -521,7 +521,7 @@ namespace ConcreteTests
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ShowDomainPoints(failureDomain);
-			// ExportToGmsh(failureDomain);
+			ExportToGmsh(failureDomain);
 
 			Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 
