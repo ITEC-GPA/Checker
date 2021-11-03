@@ -15,6 +15,43 @@ namespace ConcreteTests
 	[TestClass]
 	public class ConcreteSectionSLSTest
 	{
+		protected virtual void CalculateAdimensionalForces(IConcreteSection section, ResultBeamForces forces, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
+		{
+			BoundingBox3d bBox = section.Shape.GetBoundingBox();
+			double h = bBox.Size.Y;
+			double b = bBox.Size.X;
+
+			adimAxialForce = forces.N / (b * h * section.ConcreteMaterial.Fck);
+			adimBendingMomentX = forces.M1 / (b * h * h * section.ConcreteMaterial.Fck);
+			adimBendingMomentY = forces.M2 / (b * b * h * section.ConcreteMaterial.Fck);
+		}
+
+		protected virtual void CalculateAdimensionalForces(IConcreteSection section, double N, double Mx, double My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
+		{
+			BoundingBox3d bBox = section.Shape.GetBoundingBox();
+			double h = bBox.Size.Y;
+			double b = bBox.Size.X;
+
+			adimAxialForce = N / (b * h * section.ConcreteMaterial.Fck);
+			adimBendingMomentX = Mx / (b * h * h * section.ConcreteMaterial.Fck);
+			adimBendingMomentY = My / (b * b * h * section.ConcreteMaterial.Fck);
+		}
+
+		protected bool CommonAssert(IConcreteSection section, ResultBeamForces forces, StrainPlane strainPlane, StandardModelCode2010 standard, double tolerance = 1e-5)
+		{
+			CalculateAdimensionalForces(section, forces, out double adimExternalAxialForce, out double adimExternalendingMomentX, out double adimExternalBendingMomentY);
+			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
+
+			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
+			CalculateAdimensionalForces(section, N, Mx, My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY);
+			if (Math.Abs(adimAxialForce - adimExternalAxialForce) > tolerance ||
+				Math.Abs(adimBendingMomentX - adimExternalendingMomentX) > tolerance ||
+				Math.Abs(adimBendingMomentY - adimExternalBendingMomentY) > tolerance)
+				return false;
+
+			return true;
+		}
+
 		[TestMethod]
 		public void SezioneRettangolareTest1()
 		{
@@ -36,11 +73,12 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
-			ResultBeamForces forces = new ResultBeamForces(0, 0, 0, 0, 10 * 1000000, 0 * 1000000, CoordinateSystem.Global);
+			ResultBeamForces forces = new ResultBeamForces(100 *  1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, CoordinateSystem.Global);
 
 			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
-			StrainPlane plane = solver.CalculateStrainPlane();
+			StrainPlane strainPlane = solver.CalculateStrainPlane();
 
+			Assert.IsTrue(CommonAssert(section, forces, strainPlane, standard));
 		}
 	}
 }
