@@ -204,7 +204,7 @@ namespace ConcreteTests
 
             FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ShowDomainPoints(failureDomain);
-			// ExportToGmsh(failureDomain);
+			ExportToGmsh(failureDomain);
 			
 			Assert.IsTrue(CommonAssertsModelCode (section, standard, failureDomain));
 
@@ -249,6 +249,102 @@ namespace ConcreteTests
 				-398.343	0			0			0
 				-398.343	0			0			0
 			*/
+		}
+
+		[TestMethod]
+		public void StrainPlaneRectangularSectionTest1()
+		{
+			double rebarDiameter = 18;
+			double tolerance = 5;     // tolleranza percentuale
+
+			// sezione rettangolare 300x500
+			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
+																	new Point3d(300, 0, 0),
+																	new Point3d(300, 500, 0),
+																	new Point3d(0, 500, 0), }));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
+
+			StrainPlane strainPlane = new StrainPlane(0.0, 0.0, section.Centroid, -0.0002);
+			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
+
+			Assert.IsTrue(Math.Abs(Mx) < tolerance);
+			Assert.IsTrue(Math.Abs(My) < tolerance);
+			Assert.IsTrue(Math.Abs((Math.Abs(N) - 440000) / N) * 100< tolerance);	// 440 kN calcolato con VCA
+		}
+
+		[TestMethod]
+		public void StrainPlaneRectangularSectionTest2()
+		{
+			double rebarDiameter = 18;
+			double tolerance = 5;		// tolleranza percentuale
+
+			// sezione rettangolare 300x500
+			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
+																	new Point3d(300, 0, 0),
+																	new Point3d(300, 500, 0),
+																	new Point3d(0, 500, 0), }));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
+
+			StrainPlane strainPlane = new StrainPlane(0.0, 0.0, section.Centroid, -0.0004539);
+			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
+
+			Assert.IsTrue(Math.Abs(Mx) < tolerance);
+			Assert.IsTrue(Math.Abs(My) < tolerance);
+			Assert.IsTrue(Math.Abs((Math.Abs(N) - 1000000) / N) * 100 < tolerance); // 1000 kN calcolato con VCA
+		}
+
+		[TestMethod]
+		public void StrainPlaneRectangularSectionTest3()
+		{
+			double rebarDiameter = 18;
+			double tolerance = 5;     // tolleranza percentuale
+
+			// sezione rettangolare 300x500
+			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
+																	new Point3d(300, 0, 0),
+																	new Point3d(300, 500, 0),
+																	new Point3d(0, 500, 0), }));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
+
+			StrainPlane strainPlane = new StrainPlane(0.0, 0.0000036072, section.Centroid, 0.00048156);
+			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
+
+			Assert.IsTrue(Math.Abs((Math.Abs(Mx) - 50000000) / Mx) * 100 < tolerance);
+			Assert.IsTrue(Math.Abs(My) < tolerance);
+			Assert.IsTrue(Math.Abs(N) < tolerance); // 1000 kN calcolato con VCA
 		}
 
 		[TestMethod]

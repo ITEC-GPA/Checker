@@ -80,5 +80,96 @@ namespace ConcreteTests
 
 			Assert.IsTrue(CommonAssert(section, forces, strainPlane, standard));
 		}
+
+		[TestMethod]
+		public void SezioneRettangolareTest2()
+		{
+			double rebarDiameter = 18;
+
+			// sezione rettangolare 300x500
+			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
+																	new Point3d(300, 0, 0),
+																	new Point3d(300, 500, 0),
+																	new Point3d(0, 500, 0), }));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+			ResultBeamForces forces = new ResultBeamForces(100 * 1000, 0, 0, 0, 0 * 1000000, 10 * 1000000, CoordinateSystem.Global);
+
+			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
+			StrainPlane strainPlane = solver.CalculateStrainPlane();
+
+			Assert.IsTrue(CommonAssert(section, forces, strainPlane, standard));
+		}
+
+		[TestMethod]
+		public void SezioneQuadrataTest1()
+		{
+			double rebarDiameter = 18;
+
+			// sezione rettangolare 300x500
+			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
+																	new Point3d(300, 0, 0),
+																	new Point3d(300, 300, 0),
+																	new Point3d(0, 300, 0), }));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250,0))};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+			ResultBeamForces forces = new ResultBeamForces(100 * 1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, CoordinateSystem.Global);
+
+			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
+			StrainPlane strainPlane = solver.CalculateStrainPlane();
+
+			Assert.IsTrue(CommonAssert(section, forces, strainPlane, standard));
+		}
+
+		[TestMethod]
+		public void SezioneRettangolareTest3()
+		{
+			double rebarDiameter = 18;
+			double height = 800;
+			double width = 400;
+			// sezione rettangolare 300x500
+			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
+																	new Point3d(width, 0, 0),
+																	new Point3d(width, height, 0),
+																	new Point3d(0, height, 0), }));
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(300, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(50,750,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(200,750,0)),
+																				new ReinforcedConcreteRebar(rebar, new Point3d(350,750,0))};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+			ResultBeamForces forces = new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, CoordinateSystem.Global);
+
+			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
+			StrainPlane strainPlane = solver.CalculateStrainPlane();
+
+			Assert.IsTrue(CommonAssert(section, forces, strainPlane, standard));
+		}
 	}
 }
