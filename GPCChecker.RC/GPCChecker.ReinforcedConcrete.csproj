@@ -78,6 +78,7 @@
     <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverOptions.cs" />
     <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverSLS.cs" />
     <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverSLSModelCode2010.cs" />
+    <Compile Include="ConcreteCheckerSolver\ConcreteSolverHelper.cs" />
     <Compile Include="OldCheckerCode\RCCheckingSection.cs" />
     <Compile Include="OldCheckerCode\RCSection.cs" />
     <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverULS.cs" />
