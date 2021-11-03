@@ -29,7 +29,7 @@
         /// <summary>
         /// Rapresent the discretization of the axial force in the solver
         /// </summary>
-        public int[] AxialForceDiscretizations { get; set; }
+        public (ConcreteSectionSolverULS.FailureIndices, int)[] AxialForceDiscretizations { get; set; }
 
         /// <summary>
         /// Rapresent the discretization of the moments around the axial force axis
@@ -38,7 +38,14 @@
 
         private ConcreteSectionSolverOptions()
         {
-            AxialForceDiscretizations = new int[]{ 1, 1, 1, 30, 2, 1, 4 };
+            AxialForceDiscretizations = new (ConcreteSectionSolverULS.FailureIndices, int)[] { (ConcreteSectionSolverULS.FailureIndices.Iz1, 1),
+                (ConcreteSectionSolverULS.FailureIndices.Iz2, 1),
+                (ConcreteSectionSolverULS.FailureIndices.Iz3, 1),
+                (ConcreteSectionSolverULS.FailureIndices.Iz4, 30),
+                (ConcreteSectionSolverULS.FailureIndices.Iz5, 2),
+                (ConcreteSectionSolverULS.FailureIndices.Iz6, 1),
+                (ConcreteSectionSolverULS.FailureIndices.Iz7, 4) };
+
             MomentsDiscretizations = 32;
         }
     }    

@@ -61,9 +61,9 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <param name="momentsDiscretizations">Number of discretizations of X-axis and Y-axis (moment around Z-axis)</param>
 		/// <param name="normalDiscretizations">Number of discretizations of Z-axis (axial force)</param>
 		/// <returns></returns>
-		protected virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, int[] normalDiscretizations)
+		protected virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, (ConcreteSectionSolverULS.FailureIndices, int)[] normalDiscretizations)
 		{
-			if (momentsDiscretizations < 2 || normalDiscretizations.Sum() < 7)
+			if (momentsDiscretizations < 2 || normalDiscretizations.Select(i => i.Item2).Sum() < 7)
 				throw new ArgumentException();
 
 			double deltaTeta = 2 * Math.PI / (momentsDiscretizations);
@@ -108,12 +108,12 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <param name="teta">The angle of rotation of the axis</param>
 		/// <param name="zoneSubdivision">Number of subdivision for each failure zone</param>
 		/// <returns></returns>
-		protected virtual (StrainPlane, FailureIndices)[] CalculateAllDesignStrainPlanes(double teta, int[] zoneSubdivision)
+		protected virtual (StrainPlane, FailureIndices)[] CalculateAllDesignStrainPlanes(double teta, (ConcreteSectionSolverULS.FailureIndices, int)[] zoneSubdivision)
 		{
 			if (zoneSubdivision.Length != 7)
 				throw new ArgumentException("Subdivision must have 6 elements");
 
-			(StrainPlane, FailureIndices)[] strainPlanes = new (StrainPlane, FailureIndices)[zoneSubdivision.Sum() + 7 + 1];
+			(StrainPlane, FailureIndices)[] strainPlanes = new (StrainPlane, FailureIndices)[zoneSubdivision.Select(i => i.Item2).Sum() + 7 + 1];
 			double cosTeta = Math.Cos(teta);
 			double sinTeta = Math.Sin(teta);
 			int subIndex = 0;
@@ -166,7 +166,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			{
 				if (i == 0)   // campo 1
 				{
-					int subdivision = zoneSubdivision[i] + 1;
+					int subdivision = zoneSubdivision[i].Item2 + 1;
 
 					double chiSx = 0;   // valore curvatura estremo Sx del campo i-esimo
 					double chiDx = CalculateUltimateStrainSteel(dMinRebarIndex) / (dmaxConcrete - dminSteel); // valore curvatura estremo Dx del campo i-esimo
@@ -181,7 +181,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				}
 				else if (i == 1)
 				{
-					int subdivision = zoneSubdivision[i] + 1;
+					int subdivision = zoneSubdivision[i].Item2 + 1;
 
 					double chiSx = CalculateUltimateStrainSteel(dMinRebarIndex) / (dmaxConcrete - dminSteel);   // valore curvatura estremo Sx del campo i-esimo
 					double chiDx = (CalculateUltimateStrainSteel(dMinRebarIndex) + Math.Abs(CalculateYeldingStrainConcreteCompression())) / 
@@ -197,7 +197,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				}
 				else if (i == 2)
 				{
-					int subdivision = zoneSubdivision[i] + 1;
+					int subdivision = zoneSubdivision[i].Item2 + 1;
 
 					double chiSx = (CalculateUltimateStrainSteel(dMinRebarIndex) + Math.Abs(CalculateYeldingStrainConcreteCompression())) / 
 						(dmaxConcrete - dminSteel);   // valore curvatura estremo Sx del campo i-esimo
@@ -214,7 +214,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				}
 				else if (i == 3)
 				{
-					int subdivision = zoneSubdivision[i] + 1;
+					int subdivision = zoneSubdivision[i].Item2 + 1;
 
 					double chiSx = (CalculateUltimateStrainSteel(dMinRebarIndex) + Math.Abs(CalculateUltimateStrainConcreteCompression())) / 
 						(dmaxConcrete - dminSteel);   // valore curvatura estremo Sx del campo i-esimo
@@ -230,7 +230,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				}
 				else if (i == 4)
 				{
-					int subdivision = zoneSubdivision[i] + 1;
+					int subdivision = zoneSubdivision[i].Item2 + 1;
 
 					double chiSx = (CalculateYeldingStrainSteel(dMinRebarIndex) + Math.Abs(CalculateUltimateStrainConcreteCompression())) / 
 						(dmaxConcrete - dminSteel);   // valore curvatura estremo Sx del campo i-esimo
@@ -246,7 +246,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				}
 				else if (i == 5)
 				{
-					int subdivision = zoneSubdivision[i] + 1;
+					int subdivision = zoneSubdivision[i].Item2 + 1;
 
 					double chiSx = Math.Abs(CalculateUltimateStrainConcreteCompression()) / (dmaxConcrete - dminSteel);   // valore curvatura estremo Sx del campo i-esimo
 					double chiDx = Math.Abs(CalculateUltimateStrainConcreteCompression()) / (dmaxConcrete - dminConcrete); // valore curvatura estremo Dx del campo i-esimo
@@ -261,7 +261,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				}
 				else if (i == 6)
 				{
-					int subdivision = zoneSubdivision[i] + 1;
+					int subdivision = zoneSubdivision[i].Item2 + 1;
 
 					Point2d strainPlaneCenter = new Point2d((dmaxConcrete - (3.0 / 7.0) * (dmaxConcrete - dminConcrete)) * (-sinTeta) + ConcreteSection.Centroid.X,
 						(dmaxConcrete - (3.0 / 7.0) * (dmaxConcrete - dmaxConcrete - dminConcrete)) * (cosTeta) + ConcreteSection.Centroid.Y);
