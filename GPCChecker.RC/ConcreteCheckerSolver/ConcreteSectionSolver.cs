@@ -277,6 +277,22 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			adimBendingMomentY = My / (b * b * h * ConcreteSection.ConcreteMaterial.Fck);
 		}
 
+		protected virtual ResultBeamForces CalculateExternalForces(ResultBeamForces forces, Point3d distanceFromCentroid)
+		{
+			double N = forces.N;
+			double Mx = forces.M1 + N * distanceFromCentroid.Y;
+			double My = forces.M2 + N * distanceFromCentroid.X;
+
+			return new ResultBeamForces(N, forces.V1, forces.V2, forces.T, Mx, My, forces.CoordinateSystem);
+		}
+
+		protected virtual void CalculateExternalForces(double inputN, double inputMx, double inputMy, Point3d distanceFromCentroid, out double N, out double Mx, out double My)
+		{
+			N = inputN;
+			Mx = inputMx + N * distanceFromCentroid.Y;
+			My = inputMy + N * distanceFromCentroid.X;
+		}
+
 		#endregion
 
 		#region Public override methods

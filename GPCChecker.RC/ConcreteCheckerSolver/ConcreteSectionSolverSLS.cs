@@ -54,6 +54,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		protected StrainPlane CalculateStrainPlane(ResultBeamForces forces, double tolerance = 1e-5)
 		{
+			forces = CalculateExternalForces(forces, ConcreteSectionSolverOptions.Instance.DistanceFromCentroid);			
 			CalculateAdimensionalForces(forces, out double adimExternalAxialForce, out double adimExternalendingMomentX, out double adimExternalBendingMomentY);
 
 			// Valori di primo tentativo

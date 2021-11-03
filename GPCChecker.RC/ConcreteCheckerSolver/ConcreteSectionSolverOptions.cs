@@ -1,4 +1,6 @@
-﻿namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
+﻿using GPC.Geometry;
+
+namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 {
     // https://csharpindepth.com/articles/singleton
 
@@ -36,6 +38,10 @@
         /// </summary>
         public int MomentsDiscretizations { get; set; }
 
+        public double SLSconvergenceTolerance { get; set; }
+
+        public Point3d DistanceFromCentroid { get; set; }
+
         private ConcreteSectionSolverOptions()
         {
             AxialForceDiscretizations = new (ConcreteSectionSolverULS.FailureIndices, int)[] { (ConcreteSectionSolverULS.FailureIndices.Iz1, 1),
@@ -47,6 +53,10 @@
                 (ConcreteSectionSolverULS.FailureIndices.Iz7, 4) };
 
             MomentsDiscretizations = 32;
+
+            SLSconvergenceTolerance = 1e-5;
+
+            DistanceFromCentroid = new Point3d(0, 0, 0);
         }
     }    
 }

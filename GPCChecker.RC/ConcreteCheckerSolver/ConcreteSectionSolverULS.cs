@@ -303,6 +303,8 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				double Mx = -(deltaMxConcrete + deltaMxRebar);
 				double My = deltaMyConcrete + deltaMyRebar;
 
+				CalculateExternalForces(N, Mx, My, ConcreteSectionSolverOptions.Instance.DistanceFromCentroid, out N, out Mx, out My);
+
 				return new FailureDomain.FailureDomainPoint(N, Mx, My, strainPlane.Item2, strainPlane.Item1);
 			}
 			catch (Exception e)
