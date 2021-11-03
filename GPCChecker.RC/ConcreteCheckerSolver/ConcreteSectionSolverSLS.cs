@@ -49,108 +49,123 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		public StrainPlane CalculateStrainPlane()
 		{
-			return CalculateStrainPlane((ResultBeamForces)Forces);
+			return CalculateStrainPlane((ResultBeamForces)Forces, 10);
 		}
 
-		protected StrainPlane CalculateStrainPlane(ResultBeamForces forces)
+		protected StrainPlane CalculateStrainPlane(ResultBeamForces forces, double tolerance = 1e-5)
 		{
-			double tolerance = 0.0001;
+			CalculateAdimensionalForces(forces, out double adimExternalAxialForce, out double adimExternalendingMomentX, out double adimExternalBendingMomentY);
 
 			// Valori di primo tentativo
-			double teta = 0.0;
 			Point3d referencePoint = ConcreteSection.Centroid;
-			double chi = 0;	// 1e-12;
-			double strainReferencePoint = 0;	//= -1e-8;
+			double chiX = 0;	
+			double chiY = 0;	
+			double strainReferencePoint = 0;	
 			int id = 1;
 
 			// piano di primo tentativo. baricentrico e ruotato di teta = 0;
-			StrainPlane strainPlane = new StrainPlane(referencePoint, teta, chi, strainReferencePoint, id);
-
+			StrainPlane strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 			CalculateForces(strainPlane, out double N, out double Mx, out double My);
 
-			if (Math.Abs(N - forces.N) > tolerance || Math.Abs(Mx - forces.M1) > tolerance || Math.Abs(My - forces.M2) > tolerance)
+			CalculateAdimensionalForces(N, Mx, My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY);
+
+			if (Math.Abs(adimAxialForce - adimExternalAxialForce) > tolerance || 
+				Math.Abs(adimBendingMomentX - adimExternalendingMomentX) > tolerance || 
+				Math.Abs(adimBendingMomentY - adimExternalBendingMomentY) > tolerance)
 			{
-				chi += 1.0e-10;
-				strainPlane = new StrainPlane(referencePoint, teta, chi, strainReferencePoint, id);
-
-				CalculateForces(strainPlane, out N, out Mx, out My);
-
 				do
 				{
 					Vector3d vector = new Vector3d(forces.M1 - Mx, forces.M2 - My, forces.N - N);
+					double deltaChiX = 0;
+					double deltaChiY = 0;
+					double deltaEpsilon0 = 0;
 
-					CalculateIncrement(strainPlane, vector, out double deltaTeta, out double deltaChi, out double deltaStrainRefPoint);
+					try
+					{
+						CalculateIncrement(strainPlane, vector, out deltaChiX, out deltaChiY, out deltaEpsilon0);
+					}
+					catch
+					{
+						_log.Add("Fail to calculate increment");
+					}
 
 					// piano di nuovo tentativo
 					id++;
-					teta += deltaTeta;
-					chi += deltaChi;
-					strainReferencePoint += deltaStrainRefPoint;
-					strainPlane = new StrainPlane(referencePoint, teta, chi, strainReferencePoint, id);
+					chiX += deltaChiX;
+					chiY += deltaChiY;
+					strainReferencePoint += deltaEpsilon0;
+					strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
 					CalculateForces(strainPlane, out N, out Mx, out My);
 
-				} while (Math.Abs(N - forces.N) > tolerance || Math.Abs(Mx - forces.M1) > tolerance || Math.Abs(My - forces.M2) > tolerance);
+					CalculateAdimensionalForces(N, Mx, My, out adimAxialForce, out adimBendingMomentX, out adimBendingMomentY);
+
+				} while (Math.Abs(adimAxialForce - adimExternalAxialForce) > tolerance ||
+						Math.Abs(adimBendingMomentX - adimExternalendingMomentX) > tolerance ||
+						Math.Abs(adimBendingMomentY - adimExternalBendingMomentY) > tolerance);
 			}
 			return strainPlane;
 		}
 
 
-		protected void CalculateIncrement(StrainPlane inputStrainPlane, Vector3d vector, out double deltaTeta, out double deltaChi, out double deltaStrainRefPoint)
+		protected void CalculateIncrement(StrainPlane inputStrainPlane, Vector3d vector, out double deltaChiX, out double deltaChiY, out double deltaStrainRefPoint)
 		{
-			double dTeta = Math.PI / 90.0;
-			double dChi = 1.0e-11;
-			double dStrain = 0.00001;
+			double deltaChiLimit = 0.00004 / 1000;
+			double dC = 0.1;
 
-			// derivate parziali rispetto a teta
-			StrainPlane strainPlanePlusdTeta = new StrainPlane(inputStrainPlane.ReferencePoint, inputStrainPlane.Teta + dTeta, inputStrainPlane.Chi, 
-				inputStrainPlane.StrainReferencePoint);
-			StrainPlane strainPlaneMinusdTeta = new StrainPlane(inputStrainPlane.ReferencePoint, inputStrainPlane.Teta - dTeta, inputStrainPlane.Chi,
-				inputStrainPlane.StrainReferencePoint);
+			double dChiX = dC * deltaChiLimit;
+			double dChiY = dC * deltaChiLimit;
 
-			CalculateForces(strainPlanePlusdTeta, out double NPlusdTeta, out double MxPlusdTeta, out double MyPlusdTeta);
-			CalculateForces(strainPlaneMinusdTeta, out double NMinusdTeta, out double MxMinusdTeta, out double MyMinusdTeta);
+			double deltaStrainLimit = 0.002 / 1000;
+			double dS = 0.1;
+			double dStrain = dS * deltaStrainLimit;
 
-			double dNdTeta = (NPlusdTeta - NMinusdTeta) / (2.0 * dTeta);
-			double dMxdTeta = (MxPlusdTeta - MxMinusdTeta) / (2.0 * dTeta);
-			double dMydTeta = (MyPlusdTeta - MyMinusdTeta) / (2.0 * dTeta);
 
-			// derivate parziali rispetto a Chi
-			StrainPlane strainPlanePlusdChi = new StrainPlane(inputStrainPlane.ReferencePoint, inputStrainPlane.Teta, inputStrainPlane.Chi + dChi, 
-				inputStrainPlane.StrainReferencePoint);
-			StrainPlane strainPlaneMinusChi = new StrainPlane(inputStrainPlane.ReferencePoint, inputStrainPlane.Teta, inputStrainPlane.Chi - dChi,
-				inputStrainPlane.StrainReferencePoint);
+			// derivate parziali rispetto a ChiX
+			StrainPlane strainPlanePlusdChiX = new StrainPlane(inputStrainPlane.ChiX + dChiX, inputStrainPlane.ChiY, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
+			StrainPlane strainPlaneMinusChiX = new StrainPlane(inputStrainPlane.ChiX - dChiX, inputStrainPlane.ChiY, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
 
-			CalculateForces(strainPlanePlusdChi, out double NPlusdChi, out double MxPlusdChi, out double MyPlusdChi);
-			CalculateForces(strainPlaneMinusChi, out double NMinusdChi, out double MxMinusdChi, out double MyMinusdChi);
+			CalculateForces(strainPlanePlusdChiX, out double NPlusdChiX, out double MxPlusdChiX, out double MyPlusdChiX);
+			CalculateForces(strainPlaneMinusChiX, out double NMinusdChiX, out double MxMinusdChiX, out double MyMinusdChiX);
 
-			double dNdChi = (NPlusdChi - NMinusdChi) / (2.0 * dChi);
-			double dMxdChi = (MxPlusdChi - MxMinusdChi) / (2.0 * dChi);
-			double dMydChi = (MyPlusdChi - MyMinusdChi) / (2.0 * dChi);
+			double dNdChiX = (NPlusdChiX - NMinusdChiX) / (2.0 * dC);
+			double dMxdChiX = (MxPlusdChiX - MxMinusdChiX) / (2.0 * dC);
+			double dMydChiX = (MyPlusdChiX - MyMinusdChiX) / (2.0 * dC);
+
+
+			// derivate parziali rispetto a ChiY
+			StrainPlane strainPlanePlusdChiY = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY + dChiY, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
+			StrainPlane strainPlaneMinusChiY = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY - dChiY, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
+
+			CalculateForces(strainPlanePlusdChiY, out double NPlusdChiY, out double MxPlusdChiY, out double MyPlusdChiY);
+			CalculateForces(strainPlaneMinusChiY, out double NMinusdChiY, out double MxMinusdChiY, out double MyMinusdChiY);
+
+			double dNdChiY = (NPlusdChiY - NMinusdChiY) / (2.0 * dC);
+			double dMxdChiY = (MxPlusdChiY - MxMinusdChiY) / (2.0 * dC);
+			double dMydChiY = (MyPlusdChiY - MyMinusdChiY) / (2.0 * dC);
+
 
 			// derivate parziali rispetto a epsilon
-			StrainPlane strainPlanePlusStrain = new StrainPlane(inputStrainPlane.ReferencePoint, inputStrainPlane.Teta, inputStrainPlane.Chi,
-				inputStrainPlane.StrainReferencePoint + dStrain);
-			StrainPlane strainPlaneMinusStrain = new StrainPlane(inputStrainPlane.ReferencePoint, inputStrainPlane.Teta, inputStrainPlane.Chi,
-				inputStrainPlane.StrainReferencePoint - dStrain);
+			StrainPlane strainPlanePlusStrain = new StrainPlane(0.0, 0.0, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint + dStrain);
+			StrainPlane strainPlaneMinusStrain = new StrainPlane(0.0, 0.0, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint - dStrain);
 
 			CalculateForces(strainPlanePlusStrain, out double NPlusdStrain, out double MxPlusdStrain, out double MyPlusdStrain);
 			CalculateForces(strainPlaneMinusStrain, out double NMinusdStrain, out double MxMinusdStrain, out double MyMinusdStrain);
 
-			double dNdStrain = (NPlusdStrain - NMinusdStrain) / (2.0 * dStrain);
-			double dMxdStrain = (MxPlusdStrain - MxMinusdStrain) / (2.0 * dStrain);
-			double dMydStrain = (MyPlusdStrain - MyMinusdStrain) / (2.0 * dStrain);
+			double dNdStrain = (NPlusdStrain - NMinusdStrain) / (2.0 * dS);
+			double dMxdStrain = (MxPlusdStrain - MxMinusdStrain) / (2.0 * dS);
+			double dMydStrain = (MyPlusdStrain - MyMinusdStrain) / (2.0 * dS);
 
 
 			Matrix<double> partialDerivatives = Matrix<double>.Build.Dense(3, 3);
 
-			partialDerivatives[0, 0] = dNdTeta;
-			partialDerivatives[1, 0] = dMxdTeta;
-			partialDerivatives[2, 0] = dMydTeta;
+			partialDerivatives[0, 0] = dNdChiX;
+			partialDerivatives[1, 0] = dMxdChiX;
+			partialDerivatives[2, 0] = dMydChiX;
 
-			partialDerivatives[0, 1] = dNdChi;
-			partialDerivatives[1, 1] = dMxdChi;
-			partialDerivatives[2, 1] = dMydChi;
+			partialDerivatives[0, 1] = dNdChiY;
+			partialDerivatives[1, 1] = dMxdChiY;
+			partialDerivatives[2, 1] = dMydChiY;
 
 			partialDerivatives[0, 2] = dNdStrain;
 			partialDerivatives[1, 2] = dMxdStrain;
@@ -164,9 +179,9 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 			Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
-			deltaTeta = results[0, 0];
-			deltaChi = results[1, 0];
-			deltaStrainRefPoint = results[2, 0];
+			deltaChiX = results[0, 0] * deltaChiLimit;
+			deltaChiY = results[1, 0] * deltaChiLimit;
+			deltaStrainRefPoint = results[2, 0] * deltaStrainLimit;
 		}
 
 		#endregion

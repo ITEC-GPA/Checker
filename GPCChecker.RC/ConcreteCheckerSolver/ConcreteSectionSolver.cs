@@ -3,6 +3,7 @@ using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Materials;
 using GPC.Model.Maths.GaussIntegrations;
+using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using System;
 using System.Collections.Generic;
@@ -177,7 +178,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// </summary>
 		/// <param name="strainPlane"></param>
 		/// <returns></returns>
-		protected virtual void CalculateForces(StrainPlane strainPlane, out double N, out double Mx, out double My)
+		public virtual void CalculateForces(StrainPlane strainPlane, out double N, out double Mx, out double My)
 		{
 			double deltaNConcrete = 0;
 			double deltaMxConcrete = 0;
@@ -252,6 +253,28 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 					dMinVertexIndex = c;
 				}
 			}
+		}
+
+		protected virtual void CalculateAdimensionalForces(ResultBeamForces forces,out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
+		{
+			BoundingBox3d bBox = ConcreteSection.Shape.GetBoundingBox();
+			double h = bBox.Size.Y;
+			double b = bBox.Size.X;
+
+			adimAxialForce = forces.N / (b * h * ConcreteSection.ConcreteMaterial.Fck);
+			adimBendingMomentX = forces.M1 / (b * h * h * ConcreteSection.ConcreteMaterial.Fck);
+			adimBendingMomentY = forces.M2 / (b * b * h * ConcreteSection.ConcreteMaterial.Fck);
+		}
+
+		protected virtual void CalculateAdimensionalForces(double N, double Mx, double My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
+		{
+			BoundingBox3d bBox = ConcreteSection.Shape.GetBoundingBox();
+			double h = bBox.Size.Y;
+			double b = bBox.Size.X;
+
+			adimAxialForce = N / (b * h * ConcreteSection.ConcreteMaterial.Fck);
+			adimBendingMomentX = Mx / (b * h * h * ConcreteSection.ConcreteMaterial.Fck);
+			adimBendingMomentY = My / (b * b * h * ConcreteSection.ConcreteMaterial.Fck);
 		}
 
 		#endregion
