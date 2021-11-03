@@ -36,6 +36,10 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 		/// </summary>
 		public double StrainReferencePoint => _strainReferencePoint;
 
+		public double ChiX => Chi * Math.Sin(Teta);
+
+		public double ChiY => - Chi * Math.Cos(Teta);
+
 
 		public StrainPlane(Point3d centerOfStrainPlane, double teta, double chi, double epsilonCenterOfStrainPlane, int id = IDUNASSIGNED, string name = "")
 			:base(id, name)
@@ -43,6 +47,24 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 			_referencePoint = centerOfStrainPlane;
 			_teta = teta;
 			_chi = chi;
+			_strainReferencePoint = epsilonCenterOfStrainPlane;
+		}
+
+		public StrainPlane(double chiX, double chiY, Point3d centerOfStrainPlane, double epsilonCenterOfStrainPlane, int id = IDUNASSIGNED, string name = "")
+			: base(id, name)
+		{
+			_referencePoint = centerOfStrainPlane;
+			_teta = - Math.Atan2(chiX, chiY);
+
+			if (Math.Abs(_teta) < GeometryBase.GetDefaultTolerance())
+				_chi = - chiY / Math.Cos(_teta);
+
+			else if (Math.Abs(_teta) - Math.PI / 2.0 < GeometryBase.GetDefaultTolerance())
+				_chi = chiX / Math.Sin(_teta);
+
+			else
+				_chi = (chiX / Math.Sin(_teta) + - chiY / Math.Cos(_teta)) / 2.0;
+
 			_strainReferencePoint = epsilonCenterOfStrainPlane;
 		}
 
@@ -67,12 +89,15 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
 		public override int GetHashCode()
 		{
-			int hashCode = -23;
-			hashCode = hashCode * -17 + EqualityComparer<Point3d>.Default.GetHashCode(_referencePoint);
-			hashCode = hashCode * -17 + _teta.GetHashCode();
-			hashCode = hashCode * -17 + _chi.GetHashCode();
-			hashCode = hashCode * -17 + _strainReferencePoint.GetHashCode();
-			return hashCode;
+			unchecked
+			{
+				int hashCode = -23;
+				hashCode = hashCode * -17 + EqualityComparer<Point3d>.Default.GetHashCode(_referencePoint);
+				hashCode = hashCode * -17 + _teta.GetHashCode();
+				hashCode = hashCode * -17 + _chi.GetHashCode();
+				hashCode = hashCode * -17 + _strainReferencePoint.GetHashCode();
+				return hashCode;
+			}
 		}
 
 		public override void GetObjectData(SerializationInfo info, StreamingContext context)
@@ -83,6 +108,8 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 			info.AddValue("Chi", _chi, typeof(double));
 			info.AddValue("StrainReferencePoint", _strainReferencePoint, typeof(double));
 		}
+
+
 
 		///// <summary>
 		///// The angle between the strain plane and the plane of section
