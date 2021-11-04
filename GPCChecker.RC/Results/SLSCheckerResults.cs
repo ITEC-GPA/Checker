@@ -1,4 +1,4 @@
-using GPC.Model.Results;
+﻿using GPC.Model.Results;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,24 +39,37 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 		}
 
 
-		protected double GetTension(Point2d point)
+		public virtual double GetConcreteTension(Point3d point)
 		{
 			throw new NotImplementedException();
 		}
 
-		protected double[] GetVerticesTension()
+		public virtual double[] GetVerticesTension()
 		{
 			throw new NotImplementedException();
 		}
 
-		protected double GetStrain(Point2d point)
+		public double GetStrain(Point3d point)
 		{
-			throw new NotImplementedException();
+			return ConcreteSolverHelper.CalculateStrain(StrainPlane, point);
 		}
 
-		protected double[] GetVerticesStrain()
+		public double[] GetVerticesStrain()
 		{
-			throw new NotImplementedException();
+			List<Point3d> vertices = new List<Point3d>();
+
+			vertices.AddRange(ConcreteSection.Shape.Fill);
+
+			if (ConcreteSection.Shape.HasHoles)
+				for (int i = 0; i < ConcreteSection.Shape.Holes.Count(); i++)
+					vertices.AddRange(ConcreteSection.Shape.Holes[i]);
+
+			double[] strains = new double[vertices.Count];
+
+			for (int i = 0; i < strains.Length; i++)
+				strains[i] = GetStrain(vertices[i]);
+
+			return strains;
 		}
 
 		// TODO: implementare verifiche SLS (fessurazione)

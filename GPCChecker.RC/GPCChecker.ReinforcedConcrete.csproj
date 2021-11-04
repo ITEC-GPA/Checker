@@ -95,6 +95,7 @@
     <Compile Include="Results\PlateStationResults.cs" />
     <Compile Include="Results\CheckerStationResult.cs" />
     <Compile Include="Results\SLSCheckerResults.cs" />
+    <Compile Include="Results\SLSModelCode2010CheckerResult.cs" />
     <Compile Include="Results\StrainPlaneDoubleCurvature.cs" />
     <Compile Include="Results\StrainPlane.cs" />
     <Compile Include="Results\ULSCheckerResults.cs" />
