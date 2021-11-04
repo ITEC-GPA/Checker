@@ -275,7 +275,7 @@ namespace ConcreteTests
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
 
-			StrainPlane strainPlane = new StrainPlane(0.0, 0.0, section.Centroid, -0.0002);
+			StrainPlaneDoubleCurvature strainPlane = new StrainPlaneDoubleCurvature(0.0, 0.0, section.Centroid, -0.0002);
 			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
 
 			Assert.IsTrue(Math.Abs(Mx) < tolerance);
@@ -307,7 +307,7 @@ namespace ConcreteTests
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
 
-			StrainPlane strainPlane = new StrainPlane(0.0, 0.0, section.Centroid, -0.0004539);
+			StrainPlaneDoubleCurvature strainPlane = new StrainPlaneDoubleCurvature(0.0, 0.0, section.Centroid, -0.0004539);
 			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
 
 			Assert.IsTrue(Math.Abs(Mx) < tolerance);
@@ -339,7 +339,7 @@ namespace ConcreteTests
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 			ConcreteSectionSolverULSModelCode2010 solver = new ConcreteSectionSolverULSModelCode2010(section, standard);
 
-			StrainPlane strainPlane = new StrainPlane(0.0, 0.0000036072, section.Centroid, 0.00048156);
+			StrainPlaneDoubleCurvature strainPlane = new StrainPlaneDoubleCurvature(0.0, 0.0000036072, section.Centroid, 0.00048156);
 			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
 
 			Assert.IsTrue(Math.Abs((Math.Abs(Mx) - 50000000) / Mx) * 100 < tolerance);
