@@ -5,8 +5,8 @@ using GPC.Model.Sections.Rebar;
 using GPC.Geometry;
 using GPC.Model.Materials;
 using GPC.Model.Sections;
-using GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver;
-using GPC.Checkers.ReinforcedConcrete.Results;
+using GPC.Checkers.Concrete.ConcreteCheckerSolver;
+using GPC.Checkers.Concrete.Results;
 using System.Collections.Generic;
 using GPC.Model.Standards;
 

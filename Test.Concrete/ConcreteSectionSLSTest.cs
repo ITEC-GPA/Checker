@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver;
+﻿using GPC.Checkers.Concrete.ConcreteCheckerSolver;
 using GPC.Geometry;
 using GPC.Model.Materials;
 using GPC.Model.Results;
@@ -6,7 +6,7 @@ using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
-using GPC.Checkers.ReinforcedConcrete.Results;
+using GPC.Checkers.Concrete.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 

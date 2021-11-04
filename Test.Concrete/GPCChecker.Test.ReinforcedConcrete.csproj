@@ -97,12 +97,6 @@
     <Compile Include="ConcreteSectionSLSTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GPCChecker.RC\GPCChecker.ReinforcedConcrete.csproj">
-      <Project>{17392b09-9681-4820-b9c9-26d5d2362390}</Project>
-      <Name>GPCChecker.ReinforcedConcrete</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
