@@ -99,36 +99,11 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public abstract class PlateCheckerOptions : Options
         {
-            #region Variables
-
-
-
-            #endregion
-
-
-            #region Properties
-
-            
-
-            #endregion
-
-
-            #region Constructor
-
             public PlateCheckerOptions()
             {
                 
             }
 
-
-            #endregion
-
-
-            #region Setter
-
-            
-
-            #endregion
         }
     }
 }

@@ -27,7 +27,8 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public EN1992p11BeamChecker(BeamCheckerAttributes attributes, EN1992p11Options options, StandardEN1992p11 standardEN1992P11)
             : base(attributes, options, standardEN1992P11)
-        {         
+        {     
+            
         }
 
 
