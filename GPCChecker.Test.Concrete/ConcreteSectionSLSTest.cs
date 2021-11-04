@@ -10,6 +10,7 @@ using GPC.Checkers.Concrete.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
+
 namespace ConcreteTests
 {
 	[TestClass]
