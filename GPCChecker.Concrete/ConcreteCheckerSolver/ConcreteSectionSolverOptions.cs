@@ -45,12 +45,12 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
         private ConcreteSectionSolverOptions()
         {
             AxialForceDiscretizations = new (ConcreteSectionSolverULS.FailureIndices, int)[] { (ConcreteSectionSolverULS.FailureIndices.Iz1, 1),
-                (ConcreteSectionSolverULS.FailureIndices.Iz2, 1),
-                (ConcreteSectionSolverULS.FailureIndices.Iz3, 1),
-                (ConcreteSectionSolverULS.FailureIndices.Iz4, 30),
-                (ConcreteSectionSolverULS.FailureIndices.Iz5, 2),
-                (ConcreteSectionSolverULS.FailureIndices.Iz6, 1),
-                (ConcreteSectionSolverULS.FailureIndices.Iz7, 4) };
+                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz2, 1),
+                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz3, 1),
+                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz4, 30),
+                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz5, 2),
+                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz6, 1),
+                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz7, 4) };
 
             MomentsDiscretizations = 32;
 
