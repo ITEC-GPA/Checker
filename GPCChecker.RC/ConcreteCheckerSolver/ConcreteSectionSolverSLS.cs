@@ -47,12 +47,12 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		#region Solver
 
-		public StrainPlane CalculateStrainPlane()
+		public StrainPlaneDoubleCurvature CalculateStrainPlane()
 		{
 			return CalculateStrainPlane((ResultBeamForces)Forces, ConcreteSectionSolverOptions.Instance.SLSconvergenceTolerance);
 		}
 
-		protected StrainPlane CalculateStrainPlane(ResultBeamForces forces, double tolerance = 1e-5)
+		protected StrainPlaneDoubleCurvature CalculateStrainPlane(ResultBeamForces forces, double tolerance = 1e-5)
 		{
 			forces = CalculateExternalForces(forces, ConcreteSectionSolverOptions.Instance.DistanceFromCentroid);			
 			CalculateAdimensionalForces(forces, out double adimExternalAxialForce, out double adimExternalendingMomentX, out double adimExternalBendingMomentY);
@@ -65,7 +65,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			int id = 1;
 
 			// piano di primo tentativo. baricentrico e ruotato di teta = 0;
-			StrainPlane strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
+			StrainPlaneDoubleCurvature strainPlane = new StrainPlaneDoubleCurvature(chiX, chiY, referencePoint, strainReferencePoint, id);
 			CalculateForces(strainPlane, out double N, out double Mx, out double My);
 
 			CalculateAdimensionalForces(N, Mx, My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY);
@@ -88,6 +88,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 					catch
 					{
 						_log.Add("Fail to calculate increment");
+						throw new Exception("Fail to calculate increment");
 					}
 
 					// piano di nuovo tentativo
@@ -95,7 +96,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 					chiX += deltaChiX;
 					chiY += deltaChiY;
 					strainReferencePoint += deltaEpsilon0;
-					strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
+					strainPlane = new StrainPlaneDoubleCurvature(chiX, chiY, referencePoint, strainReferencePoint, id);
 
 					CalculateForces(strainPlane, out N, out Mx, out My);
 
@@ -109,32 +110,40 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		}
 
 
-		protected void CalculateIncrement(StrainPlane inputStrainPlane, Vector3d vector, out double deltaChiX, out double deltaChiY, out double deltaStrainRefPoint)
+		protected void CalculateIncrement(StrainPlaneDoubleCurvature inputStrainPlane, Vector3d vector, out double deltaChiX, out double deltaChiY, out double deltaStrainRefPoint)
 		{
 			CalculateAdimensionalForces(vector.Z, vector.X, vector.Y, out double adimAxialVector, out double adimBendingMomentXVector, out double adimBendingMomentYVector);
 
 			double deltaChiXLimit = Math.Abs(CalculateYeldingStrainConcreteCompression() / ConcreteSection.Shape.GetBoundingBox().Size.X);
-			double deltaChiYLimit = Math.Abs(CalculateYeldingStrainConcreteCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
 			double dCX = 0.00001;
 			if(adimBendingMomentXVector != 0)
-				dCX= 0.001 * adimBendingMomentXVector;
-			double dCY = 0.00001;
-			if (adimBendingMomentYVector != 0)
-				dCY = 0.001 * adimBendingMomentYVector;
+				dCX= 0.001 * Math.Max(adimBendingMomentXVector, 0.00001);
 
 			double dChiX = dCX * deltaChiXLimit;
+
+			double deltaChiYLimit = Math.Abs(CalculateYeldingStrainConcreteCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
+			double dCY = 0.00001;
+			if (adimBendingMomentYVector != 0)
+				dCY = 0.001 * Math.Max(adimBendingMomentYVector, 0.00001);
+
 			double dChiY = dCY * deltaChiYLimit;
 
 			double deltaStrainLimit = 1.0 / (ConcreteSection.Area * ConcreteSection.ConcreteMaterial.Fck);
-			double dS = 0.001 * adimAxialVector;
+			double dS = 0.00001;
+			if(adimAxialVector != 0)
+				dS = 0.0001 * Math.Max(adimAxialVector, 0.00001);
+
 			double dStrain = dS * deltaStrainLimit;
 
+
 			// derivate parziali rispetto a ChiX
-			StrainPlane strainPlanePlusdChiX = new StrainPlane(inputStrainPlane.ChiX + dChiX, inputStrainPlane.ChiY, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
-			StrainPlane strainPlaneMinusChiX = new StrainPlane(inputStrainPlane.ChiX - dChiX, inputStrainPlane.ChiY, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
+			StrainPlaneDoubleCurvature strainPlanePlusdChiX = new StrainPlaneDoubleCurvature(inputStrainPlane.ChiX + dChiX, inputStrainPlane.ChiY, 
+				inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
+			StrainPlaneDoubleCurvature strainPlaneMinusdChiX = new StrainPlaneDoubleCurvature(inputStrainPlane.ChiX - dChiX, inputStrainPlane.ChiY, 
+				inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
 
 			CalculateForces(strainPlanePlusdChiX, out double NPlusdChiX, out double MxPlusdChiX, out double MyPlusdChiX);
-			CalculateForces(strainPlaneMinusChiX, out double NMinusdChiX, out double MxMinusdChiX, out double MyMinusdChiX);
+			CalculateForces(strainPlaneMinusdChiX, out double NMinusdChiX, out double MxMinusdChiX, out double MyMinusdChiX);
 
 			double dNdChiX = (NPlusdChiX - NMinusdChiX) / (2.0 * dCX);
 			double dMxdChiX = (MxPlusdChiX - MxMinusdChiX) / (2.0 * dCX);
@@ -142,11 +151,13 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 
 			// derivate parziali rispetto a ChiY
-			StrainPlane strainPlanePlusdChiY = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY + dChiY, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
-			StrainPlane strainPlaneMinusChiY = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY - dChiY, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
+			StrainPlaneDoubleCurvature strainPlanePlusdChiY = new StrainPlaneDoubleCurvature(inputStrainPlane.ChiX, inputStrainPlane.ChiY + dChiY, 
+				inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
+			StrainPlaneDoubleCurvature strainPlaneMinusdChiY = new StrainPlaneDoubleCurvature(inputStrainPlane.ChiX, inputStrainPlane.ChiY - dChiY, 
+				inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
 
 			CalculateForces(strainPlanePlusdChiY, out double NPlusdChiY, out double MxPlusdChiY, out double MyPlusdChiY);
-			CalculateForces(strainPlaneMinusChiY, out double NMinusdChiY, out double MxMinusdChiY, out double MyMinusdChiY);
+			CalculateForces(strainPlaneMinusdChiY, out double NMinusdChiY, out double MxMinusdChiY, out double MyMinusdChiY);
 
 			double dNdChiY = (NPlusdChiY - NMinusdChiY) / (2.0 * dCY);
 			double dMxdChiY = (MxPlusdChiY - MxMinusdChiY) / (2.0 * dCY);
@@ -154,8 +165,10 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 
 			// derivate parziali rispetto a epsilon
-			StrainPlane strainPlanePlusStrain = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint + dStrain);
-			StrainPlane strainPlaneMinusStrain = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY, inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint - dStrain);
+			StrainPlaneDoubleCurvature strainPlanePlusStrain = new StrainPlaneDoubleCurvature(inputStrainPlane.ChiX, inputStrainPlane.ChiY, 
+				inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint + dStrain);
+			StrainPlaneDoubleCurvature strainPlaneMinusStrain = new StrainPlaneDoubleCurvature(inputStrainPlane.ChiX, inputStrainPlane.ChiY, 
+				inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint - dStrain);
 
 			CalculateForces(strainPlanePlusStrain, out double NPlusdStrain, out double MxPlusdStrain, out double MyPlusdStrain);
 			CalculateForces(strainPlaneMinusStrain, out double NMinusdStrain, out double MxMinusdStrain, out double MyMinusdStrain);
