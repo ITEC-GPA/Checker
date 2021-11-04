@@ -92,9 +92,11 @@
     <Compile Include="Results\EN1992p11PlateStationResult.cs" />
     <Compile Include="Results\EN1992p11BeamStationResult.cs" />
     <Compile Include="Results\FailureDomain.cs" />
+    <Compile Include="Results\IStrainPlane.cs" />
     <Compile Include="Results\PlateStationResults.cs" />
     <Compile Include="Results\CheckerStationResult.cs" />
     <Compile Include="Results\SLSCheckerResults.cs" />
+    <Compile Include="Results\StrainPlaneDoubleCurvature.cs" />
     <Compile Include="Results\StrainPlane.cs" />
     <Compile Include="Results\ULSCheckerResults.cs" />
   </ItemGroup>

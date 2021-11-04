@@ -9,11 +9,11 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 	/// <summary>
 	/// The strain plane - epsilon(x,y) = epsilon0 - chi * ((-sin(teta)*x + cos(teta)*y)
 	/// </summary>
-	public class StrainPlane : ModelObjectId, IStrainPlane
+	public class StrainPlaneDoubleCurvature : ModelObjectId, IStrainPlane
 	{
 		protected readonly Point3d _referencePoint;
-		protected readonly double _teta;
-		protected readonly double _chi;
+		protected readonly double _chiX;
+		protected readonly double _chiY;
 		protected readonly double _strainReferencePoint;
 
 		/// <summary>
@@ -21,15 +21,9 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 		/// </summary>
 		public Point3d ReferencePoint => _referencePoint;
 
-		/// <summary>
-		/// The angle between the strain plane and the plane of section
-		/// </summary>
-		public double Teta => _teta;
+		public double ChiX => _chiX;
 
-		/// <summary>
-		/// The curvature of the strain plane
-		/// </summary>
-		public double Chi => _chi;
+		public double ChiY => _chiY;
 
 		/// <summary>
 		/// The value of the strain in the <see cref="ReferencePoint"/>
@@ -38,31 +32,31 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
 
 
-		public StrainPlane(Point3d centerOfStrainPlane, double teta, double chi, double epsilonCenterOfStrainPlane, int id = IDUNASSIGNED, string name = "")
+		public StrainPlaneDoubleCurvature(double chiX, double chiY, Point3d centerOfStrainPlane,  double epsilonCenterOfStrainPlane, int id = IDUNASSIGNED, string name = "")
 			:base(id, name)
 		{
 			_referencePoint = centerOfStrainPlane;
-			_teta = teta;
-			_chi = chi;
+			_chiX = chiX;
+			_chiY = chiY;
 			_strainReferencePoint = epsilonCenterOfStrainPlane;
 		}
 
-		public StrainPlane(SerializationInfo info, StreamingContext context)
+		public StrainPlaneDoubleCurvature(SerializationInfo info, StreamingContext context)
 			:base(info, context)
 		{
 			_referencePoint = (Point3d)info.GetValue("ReferecePoint", typeof(Point3d));
-			_teta = info.GetDouble("Teta");
-			_chi = info.GetDouble("Chi");
+			_chiX = info.GetDouble("ChiX");
+			_chiY = info.GetDouble("ChiY");
 			_strainReferencePoint = info.GetDouble("StrainReferencePoint");			
 		}
 
 
 		public override bool Equals(object obj)
 		{
-			return obj is StrainPlane plane &&
+			return obj is StrainPlaneDoubleCurvature plane &&
 				   EqualityComparer<Point3d>.Default.Equals(_referencePoint, plane._referencePoint) &&
-				   _teta == plane._teta &&
-				   _chi == plane._chi &&
+				   _chiX == plane._chiX &&
+				   _chiY == plane._chiY &&
 				   _strainReferencePoint == plane._strainReferencePoint;
 		}
 
@@ -72,8 +66,8 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 			{
 				int hashCode = -23;
 				hashCode = hashCode * -17 + EqualityComparer<Point3d>.Default.GetHashCode(_referencePoint);
-				hashCode = hashCode * -17 + _teta.GetHashCode();
-				hashCode = hashCode * -17 + _chi.GetHashCode();
+				hashCode = hashCode * -17 + _chiX.GetHashCode();
+				hashCode = hashCode * -17 + _chiY.GetHashCode();
 				hashCode = hashCode * -17 + _strainReferencePoint.GetHashCode();
 				return hashCode;
 			}
@@ -83,15 +77,28 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 		{
 			base.GetObjectData(info, context);
 			info.AddValue("ReferecePoint", _referencePoint, typeof(Point3d));
-			info.AddValue("Teta", _teta, typeof(double));
-			info.AddValue("Chi", _chi, typeof(double));
+			info.AddValue("ChiX", _chiX, typeof(double));
+			info.AddValue("ChiY", _chiY, typeof(double));
 			info.AddValue("StrainReferencePoint", _strainReferencePoint, typeof(double));
 		}
 
-		public StrainPlaneDoubleCurvature ConvertToStrainPlaneDoubleCurvature()
+		public StrainPlane ConvertToStrainPlane()
 		{
-			return new StrainPlaneDoubleCurvature(Chi * Math.Sin(Teta), -Chi * Math.Cos(Teta), ReferencePoint, StrainReferencePoint, Id, Name);
-		}
+			double teta = -Math.Atan2(ChiX, ChiY);
+			double chi;
 
+			if (Math.Abs(teta) < GeometryBase.GetDefaultTolerance() ||
+				Math.Abs(Math.Abs(teta) - Math.PI) < GeometryBase.GetDefaultTolerance())
+				chi = -ChiY / Math.Cos(teta);
+
+			else if (Math.Abs(Math.Abs(teta) - Math.PI / 2.0) < GeometryBase.GetDefaultTolerance() ||
+				Math.Abs(Math.Abs(teta) - 3.0 * Math.PI / 2.0) < GeometryBase.GetDefaultTolerance())
+				chi = ChiX / Math.Sin(teta);
+
+			else
+				chi = - ChiY / Math.Cos(teta);
+
+			return new StrainPlane(ReferencePoint, teta, chi, StrainReferencePoint, Id, Name);
+		}
 	}
 }
