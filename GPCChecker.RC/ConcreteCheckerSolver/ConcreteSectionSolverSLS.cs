@@ -88,9 +88,9 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				do
 				{
 					Vector3d vector = new Vector3d(forces.M1 - Mx, forces.M2 - My, forces.N - N);
-					double deltaChiX = 0;
-					double deltaChiY = 0;
-					double deltaEpsilon0 = 0;
+					double deltaChiX;
+					double deltaChiY;
+					double deltaEpsilon0;
 
 					try
 					{
