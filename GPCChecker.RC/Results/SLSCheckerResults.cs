@@ -12,17 +12,17 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 	public class SLSCheckerResults : CheckerResultType
 	{
 		protected readonly ResultType _force;
-		protected readonly StrainPlane _strainPlane;
+		protected readonly IStrainPlane _strainPlane;
 		protected double _workingRatio;
 
 		//TODO: aggiungere tassi di lavoro necessari
 
 		public ResultType Force => _force;
 
-		public StrainPlane StrainPlane => _strainPlane;
+		public IStrainPlane StrainPlane => _strainPlane;
 
 
-		public SLSCheckerResults(IConcreteSection section, ResultType force, StrainPlane strainPlane, int id = IDUNASSIGNED)
+		public SLSCheckerResults(IConcreteSection section, ResultType force, IStrainPlane strainPlane, int id = IDUNASSIGNED)
 			: base(section, id)
 		{
 				if (force.GetType() != typeof(ResultBeamForces) && force.GetType() != typeof(ResultPlateForces))

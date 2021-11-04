@@ -45,6 +45,17 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		#endregion
 
+		#region Perform Check
+
+		public SLSCheckerResults PerformSolver()
+		{
+			StrainPlaneDoubleCurvature strainPlane = CalculateStrainPlane();
+
+			return new SLSCheckerResults(ConcreteSection, Forces, strainPlane);
+		}
+
+		#endregion
+
 		#region Solver
 
 		public StrainPlaneDoubleCurvature CalculateStrainPlane()
@@ -108,7 +119,6 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 			}
 			return strainPlane;
 		}
-
 
 		protected void CalculateIncrement(StrainPlaneDoubleCurvature inputStrainPlane, Vector3d vector, out double deltaChiX, out double deltaChiY, out double deltaStrainRefPoint)
 		{
