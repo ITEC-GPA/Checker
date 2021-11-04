@@ -7,27 +7,31 @@ using System.Threading.Tasks;
 using GPC.Checkers.Concrete.ConcreteCheckerSolver;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Results
 {
 	public abstract class CheckerResultType : Model.ModelObjectId
 	{
 		protected IConcreteSection _section;
+		protected readonly Standard _standard;
 
 		public IConcreteSection ConcreteSection => _section;
 
 		#region Public Constructor
 
-		public CheckerResultType(IConcreteSection section, int id = IDUNASSIGNED)
+		public CheckerResultType(IConcreteSection section, Standard standard, int id = IDUNASSIGNED)
 			:base(id)
 		{
 			_section = section ?? throw new ArgumentNullException(nameof(section));
+			_standard = standard ?? throw new ArgumentNullException(nameof(standard));
 		}
 
 		protected CheckerResultType(SerializationInfo info, StreamingContext context) 
 			: base(info, context)
 		{
 			_section = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
+			_standard = (Standard)info.GetValue("Standard", typeof(Standard));
 		}
 
 		#endregion
@@ -53,6 +57,7 @@ namespace GPC.Checkers.Concrete.Results
 		{
 			base.GetObjectData(info, context);
 			info.AddValue("ConcreteSection", _section);
+			info.AddValue("Standard", _standard);
 		}
 
 		#endregion

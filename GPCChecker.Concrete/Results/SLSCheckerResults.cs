@@ -15,7 +15,7 @@ namespace GPC.Checkers.Concrete.Results
 	{
 		protected readonly ResultType _force;
 		protected readonly StrainPlane _strainPlane;
-		protected readonly Standard _standard;
+
 		protected double _workingRatio;
 
 		//TODO: aggiungere tassi di lavoro necessari
@@ -24,18 +24,15 @@ namespace GPC.Checkers.Concrete.Results
 
 		public StrainPlane StrainPlane => _strainPlane;
 
-		public Standard Standard => _standard;
-
 
 		public SLSCheckerResults(IConcreteSection section, ResultType force, StrainPlane strainPlane, Standard standard, int id = IDUNASSIGNED)
-			: base(section, id)
+			: base(section, standard, id)
 		{
 			if (force.GetType() != typeof(ResultBeamForces) && force.GetType() != typeof(ResultPlateForces))
 				throw new ArgumentException("Result must be ResultBeamForces or ResultPlateForces");
 
 			_force = force ?? throw new ArgumentNullException(nameof(force));
 			_strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
-			_standard = standard ?? throw new ArgumentNullException(nameof(standard));
 		}
 
 

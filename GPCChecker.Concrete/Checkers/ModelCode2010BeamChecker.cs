@@ -12,7 +12,7 @@ using GPC.Model.Sections.Concrete;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
-	public class EN1992p11BeamChecker : BeamChecker
+	public class ModelCode2010BeamChecker : BeamChecker
 	{
         #region Properties
 
@@ -20,13 +20,13 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public ConcreteMaterialEN1992 Material => (ConcreteMaterialEN1992)_checkerAttributes.Sections.FirstOrDefault().ConcreteMaterial;
 
-        public EN1992p11BeamStationResult[] EN1993p11BeamStationResults => _checkerStationResult.Cast<EN1992p11BeamStationResult>().ToArray();
+        public ModelCode2010BeamStationResult[] EN1993p11BeamStationResults => _checkerStationResult.Cast<ModelCode2010BeamStationResult>().ToArray();
 
         #endregion
 
 
-        public EN1992p11BeamChecker(BeamCheckerAttributes attributes, EN1992p11Options options, StandardEN1992p11 standardEN1992P11)
-            : base(attributes, options, standardEN1992P11)
+        public ModelCode2010BeamChecker(BeamCheckerAttributes attributes, ModelCode2010Options options, StandardModelCode2010 standard)
+            : base(attributes, options, standard)
         {         
         }
 
@@ -34,21 +34,21 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public override void PerformCheck()
         {
-            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, BeamCheckersAttribute.SLSBeamResults, (EN1992p11Options)_options);
+            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, BeamCheckersAttribute.SLSBeamResults, (ModelCode2010Options)_options);
         }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _checkerStationResult = PerformCheck(_checkerAttributes.Sections, BeamCheckersAttribute.SLSBeamResults, (EN1992p11Options)_options);
+                _checkerStationResult = PerformCheck(_checkerAttributes.Sections, BeamCheckersAttribute.SLSBeamResults, (ModelCode2010Options)_options);
             });
         }
 
         /// <param name="steelSection">section of each station</param>
         /// <param name="beamResult">result for each station and loadcase</param>
         /// <returns></returns>
-        protected EN1992p11BeamStationResult[] PerformCheck(IConcreteSection[] steelSection, BeamResult[] beamResult, EN1992p11Options options)
+        protected ModelCode2010BeamStationResult[] PerformCheck(IConcreteSection[] steelSection, BeamResult[] beamResult, ModelCode2010Options options)
 		{
             throw new NotImplementedException();
 		}
@@ -63,7 +63,7 @@ namespace GPC.Checkers.Concrete.Checkers
 			throw new NotImplementedException();
 		}
 
-		public class EN1992p11Options : BeamCheckerOptions
+		public class ModelCode2010Options : BeamCheckerOptions
 		{
 
 		}
