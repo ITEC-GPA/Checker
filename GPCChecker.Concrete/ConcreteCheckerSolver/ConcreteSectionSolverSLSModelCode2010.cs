@@ -1,4 +1,5 @@
-﻿using GPC.Model.Materials;
+﻿using GPC.Checkers.Concrete.Results;
+using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
@@ -55,6 +56,15 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		#endregion
 
+		public override SLSCheckerResults PerformSolver()
+		{
+			StrainPlane strainPlane = CalculateStrainPlane();
+
+			return new SLSModelCode2010CheckerResult(ConcreteSection, Forces, strainPlane, ModelCode2010);
+		}
+
+		#region Protected Methods
+
 		protected virtual double CalculateFcd()
 		{
 			return ConcreteSolverHelper.CalculateFcd(ConcreteSection, ModelCode2010);
@@ -109,5 +119,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		{
 			return ConcreteSolverHelper.CalculateUltimateStrainConcreteTension();
 		}
+
+		#endregion
 	}
 }
