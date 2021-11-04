@@ -66,35 +66,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		protected override double CalculateSigmaC(double strain)
 		{
-			if (ConcreteMaterialModelCode2010.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.ParabolaRectangle)
-			{
-				if (strain >= 0.0)
-					return 0.0;
-				else if (strain <= ConcreteMaterial.EpsilonCy)
-					return -Fcd;
-				else
-					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain / ConcreteMaterial.EpsilonCy), ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
-			}
-			else if (ConcreteMaterialModelCode2010.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
-			{
-				if (strain >= 0.0)
-					return 0.0;
-				else if (strain <= ConcreteMaterial.EpsilonCy)
-					return -Fcd;
-				else
-					return 0.0;
-			}
-			else if (ConcreteMaterialModelCode2010.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear)
-			{
-				if (strain >= 0.0)
-					return 0.0;
-				else if (strain <= ConcreteMaterial.EpsilonCy)
-					return -Fcd;
-				else
-					return -Fcd * Math.Abs(strain / ConcreteMaterial.EpsilonCy);
-			}
-			else
-				throw new ArgumentException("");
+			return ConcreteSolverHelper.CalculateSigmaC(strain, Fcd, ConcreteSection);
 		}
 
 		protected override double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain)
