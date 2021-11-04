@@ -119,17 +119,9 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		#endregion
 
-		internal static double CalculateStrain(IStrainPlane inputStrainPlane, Point3d pointToTest)
+		internal static double CalculateStrain(StrainPlane strainPlane, Point3d pointToTest)
 		{
-			if (inputStrainPlane is StrainPlane strainPlane)
-				return strainPlane.StrainReferencePoint - strainPlane.Chi * ((pointToTest.Y - strainPlane.ReferencePoint.Y) * Math.Cos(strainPlane.Teta) -
-					(pointToTest.X - strainPlane.ReferencePoint.X) * Math.Sin(strainPlane.Teta));
-
-			else if (inputStrainPlane is StrainPlaneDoubleCurvature strainPlaneDC)
-				return strainPlaneDC.StrainReferencePoint + strainPlaneDC.ChiX * pointToTest.X + strainPlaneDC.ChiY * pointToTest.Y;
-
-			else
-				throw new ArgumentException();
+			return strainPlane.StrainReferencePoint + strainPlane.ChiX * pointToTest.X + strainPlane.ChiY * pointToTest.Y;
 		}
 	}
 }

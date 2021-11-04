@@ -67,11 +67,11 @@
   <ItemGroup>
     <Compile Include="Attributes\CheckerAttribute.cs" />
     <Compile Include="Checkers\Checker.cs" />
-    <Compile Include="Checkers\EN1992p11PlateChecker.cs" />
+    <Compile Include="Checkers\ModelCode2010PlateChecker.cs" />
     <Compile Include="Checkers\PlateChecker.cs" />
     <Compile Include="Attributes\BeamCheckerAttributes.cs" />
     <Compile Include="Checkers\BeamChecker.cs" />
-    <Compile Include="Checkers\EN1992p11BeamChecker.cs" />
+    <Compile Include="Checkers\ModelCode2010BeamChecker.cs" />
     <Compile Include="Attributes\PlateCheckerAttributes.cs" />
     <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolver.cs" />
     <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverOptions.cs" />
@@ -88,14 +88,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Results\BeamStationResults.cs" />
     <Compile Include="Results\CheckerResultType.cs" />
-    <Compile Include="Results\EN1992p11PlateStationResult.cs" />
-    <Compile Include="Results\EN1992p11BeamStationResult.cs" />
+    <Compile Include="Results\ModelCode2010PlateStationResult.cs" />
+    <Compile Include="Results\ModelCode2010BeamStationResult.cs" />
     <Compile Include="Results\FailureDomain.cs" />
-    <Compile Include="Results\IStrainPlane.cs" />
     <Compile Include="Results\PlateStationResults.cs" />
     <Compile Include="Results\CheckerStationResult.cs" />
     <Compile Include="Results\SLSCheckerResults.cs" />
-    <Compile Include="Results\StrainPlaneDoubleCurvature.cs" />
+    <Compile Include="Results\SLSModelCode2010CheckerResult.cs" />
     <Compile Include="Results\StrainPlane.cs" />
     <Compile Include="Results\ULSCheckerResults.cs" />
   </ItemGroup>

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using GPC.Checkers.Concrete.ConcreteCheckerSolver;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Results
 {
@@ -24,8 +25,8 @@ namespace GPC.Checkers.Concrete.Results
 		public FailureDomain Domain => _failureDomain;
 
 
-		public ULSCheckerResults(IConcreteSection section, FailureDomain failureDomain, List<ResultType> forces, int id = IDUNASSIGNED)
-			:base(section, id)
+		public ULSCheckerResults(IConcreteSection section, FailureDomain failureDomain, List<ResultType> forces, Standard standard, int id = IDUNASSIGNED)
+			:base(section, standard, id)
 		{
 			_failureDomain = failureDomain ?? throw new ArgumentNullException(nameof(failureDomain));
 

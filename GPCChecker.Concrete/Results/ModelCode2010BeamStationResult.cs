@@ -15,7 +15,7 @@ namespace GPC.Checkers.Concrete.Results
 	/// </summary>
 
 	[Serializable]
-    public class EN1992p11PlateStationResult : PlateStationResults, ISerializable
+    public class ModelCode2010BeamStationResult : BeamStationResults, ISerializable
     {
         #region Variables
 
@@ -31,10 +31,10 @@ namespace GPC.Checkers.Concrete.Results
 
         #region Constructor
 
-		public EN1992p11PlateStationResult(IConcreteSection section, ResultPlateForces[] forces, ResultStation station, ILoadCase[] Case,
+		public ModelCode2010BeamStationResult(IConcreteSection section, ResultStation station, ResultBeamForces[] forces, ILoadCase[] Case,
             StandardEN1992p11 standard, ULSCheckerResults uLSCheckerResults, SLSCheckerResults[] sLSCheckerResults, 
-            EN1992p11PlateChecker.EN1992p11Options checkerOptions, string name = "", int id = -1) 
-            : base(section, forces, station, Case, standard, uLSCheckerResults, sLSCheckerResults, checkerOptions, name, id)
+            ModelCode2010BeamChecker.ModelCode2010Options checkerOptions, string name = "", int id = -1) 
+            : base(section, station, forces, Case, standard, uLSCheckerResults, sLSCheckerResults, checkerOptions, name, id)
 		{
 		}
 

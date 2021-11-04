@@ -12,7 +12,7 @@ using GPC.Model.Sections.Concrete;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
-	public class EN1992p11PlateChecker : PlateChecker
+	public class ModelCode2010PlateChecker : PlateChecker
 	{
         #region Properties
 
@@ -20,12 +20,12 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public ConcreteMaterialEN1992 Material => (ConcreteMaterialEN1992)_checkerAttributes.Sections.FirstOrDefault().ConcreteMaterial;
 
-        public EN1992p11BeamStationResult[] EN1993p11BeamStationResults => _checkerStationResult.Cast<EN1992p11BeamStationResult>().ToArray();
+        public ModelCode2010BeamStationResult[] EN1993p11BeamStationResults => _checkerStationResult.Cast<ModelCode2010BeamStationResult>().ToArray();
 
         #endregion
 
 
-        public EN1992p11PlateChecker(PlateCheckerAttributes attributes, EN1992p11Options options, StandardEN1992p11 standardEN1992P11)
+        public ModelCode2010PlateChecker(PlateCheckerAttributes attributes, EN1992p11Options options, StandardEN1992p11 standardEN1992P11)
             : base(attributes, options, standardEN1992P11)
         {         
         }
@@ -50,7 +50,7 @@ namespace GPC.Checkers.Concrete.Checkers
 		/// <param name="steelSection">section of each station</param>
 		/// <param name="plateResults">result for each station and loadcase</param>
 		/// <returns></returns>
-		protected EN1992p11PlateStationResult[] PerformCheck(IConcreteSection[] steelSection, PlateResult[] plateResults, EN1992p11Options options)
+		protected ModelCode2010PlateStationResult[] PerformCheck(IConcreteSection[] steelSection, PlateResult[] plateResults, EN1992p11Options options)
 		{
             throw new NotImplementedException();
 		}

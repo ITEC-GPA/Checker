@@ -38,7 +38,7 @@ namespace ConcreteTests
 			adimBendingMomentY = My / (b * b * h * section.ConcreteMaterial.Fck);
 		}
 
-		protected bool CommonAssert(IConcreteSection section, ResultBeamForces forces, IStrainPlane strainPlane, StandardModelCode2010 standard, double tolerance = 1e-5)
+		protected bool CommonAssert(SLSCheckerResults result, IConcreteSection section, ResultBeamForces forces, StrainPlane strainPlane, StandardModelCode2010 standard, double tolerance = 1e-5)
 		{
 			CalculateAdimensionalForces(section, forces, out double adimExternalAxialForce, out double adimExternalendingMomentX, out double adimExternalBendingMomentY);
 			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
@@ -49,6 +49,11 @@ namespace ConcreteTests
 				Math.Abs(adimBendingMomentX - adimExternalendingMomentX) > tolerance ||
 				Math.Abs(adimBendingMomentY - adimExternalBendingMomentY) > tolerance)
 				return false;
+
+			double[] concreteTensions = result.GetVerticesTension();
+
+			for (int i = 0; i < concreteTensions.Length; i++)
+				Console.WriteLine($"Vertices {i} = {concreteTensions[i]}");
 
 			return true;
 		}
@@ -77,9 +82,9 @@ namespace ConcreteTests
 			ResultBeamForces forces = new ResultBeamForces(100 *  1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, CoordinateSystem.Global);
 
 			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
-			StrainPlaneDoubleCurvature strainPlane = solver.CalculateStrainPlane();
+			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
-			Assert.IsTrue(CommonAssert(section, forces, strainPlane, standard));
+			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));
 		}
 
 		[TestMethod]
@@ -106,9 +111,9 @@ namespace ConcreteTests
 			ResultBeamForces forces = new ResultBeamForces(100 * 1000, 0, 0, 0, 0 * 1000000, 10 * 1000000, CoordinateSystem.Global);
 
 			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
-			StrainPlaneDoubleCurvature strainPlane = solver.CalculateStrainPlane();
+			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
-			Assert.IsTrue(CommonAssert(section, forces, strainPlane, standard));
+			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));
 		}
 
 		[TestMethod]
@@ -139,9 +144,9 @@ namespace ConcreteTests
 			ResultBeamForces forces = new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, CoordinateSystem.Global);
 
 			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
-			StrainPlaneDoubleCurvature strainPlane = solver.CalculateStrainPlane();
+			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
-			Assert.IsTrue(CommonAssert(section, forces, strainPlane, standard));
+			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));
 		}
 
 		[TestMethod]
@@ -168,9 +173,9 @@ namespace ConcreteTests
 			ResultBeamForces forces = new ResultBeamForces(100 * 1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, CoordinateSystem.Global);
 
 			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
-			StrainPlaneDoubleCurvature strainPlane = solver.CalculateStrainPlane();
+			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
-			Assert.IsTrue(CommonAssert(section, forces, strainPlane, standard));
+			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));
 		}
 
 		[TestMethod]
@@ -199,9 +204,9 @@ namespace ConcreteTests
 			ResultBeamForces forces = new ResultBeamForces(-100 * 1000, 0, 0, 0, 20 * 1000000, 10 * 1000000, CoordinateSystem.Global);
 
 			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
-			StrainPlaneDoubleCurvature strainPlane = solver.CalculateStrainPlane();
+			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
-			Assert.IsTrue(CommonAssert(section, forces, strainPlane, standard));
+			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));
 		}
 
 		[TestMethod]
@@ -233,9 +238,9 @@ namespace ConcreteTests
 			ResultBeamForces forces = new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, 20 * 1000000, CoordinateSystem.Global);
 
 			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
-			StrainPlaneDoubleCurvature strainPlane = solver.CalculateStrainPlane();
+			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
-			Assert.IsTrue(CommonAssert(section, forces, strainPlane, standard));
+			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));
 		}
 
 

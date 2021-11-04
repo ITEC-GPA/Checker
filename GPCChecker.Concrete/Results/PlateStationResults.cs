@@ -20,6 +20,7 @@ namespace GPC.Checkers.Concrete.Results
 
         #endregion
 
+
         #region Properties
 
         /// <summary>
@@ -28,6 +29,7 @@ namespace GPC.Checkers.Concrete.Results
         public PlateChecker.PlateCheckerOptions CheckerOptions => _options;
 
         #endregion
+
 
         #region Constructor
 

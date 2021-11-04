@@ -11,31 +11,28 @@ using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Results
 {
-	public class SLSCheckerResults : CheckerResultType
+	public abstract class SLSCheckerResults : CheckerResultType
 	{
 		protected readonly ResultType _force;
-		protected readonly IStrainPlane _strainPlane;
-		protected readonly Standard _standard;
+		protected readonly StrainPlane _strainPlane;
+
 		protected double _workingRatio;
 
 		//TODO: aggiungere tassi di lavoro necessari
 
 		public ResultType Force => _force;
 
-		public IStrainPlane StrainPlane => _strainPlane;
-
-		public Standard Standard => _standard;
+		public StrainPlane StrainPlane => _strainPlane;
 
 
-		public SLSCheckerResults(IConcreteSection section, ResultType force, IStrainPlane strainPlane, Standard standard, int id = IDUNASSIGNED)
-			: base(section, id)
+		public SLSCheckerResults(IConcreteSection section, ResultType force, StrainPlane strainPlane, Standard standard, int id = IDUNASSIGNED)
+			: base(section, standard, id)
 		{
 			if (force.GetType() != typeof(ResultBeamForces) && force.GetType() != typeof(ResultPlateForces))
 				throw new ArgumentException("Result must be ResultBeamForces or ResultPlateForces");
 
 			_force = force ?? throw new ArgumentNullException(nameof(force));
 			_strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
-			_standard = standard ?? throw new ArgumentNullException(nameof(standard));
 		}
 
 
