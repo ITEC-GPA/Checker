@@ -88,7 +88,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				else if (strain <= ConcreteMaterial.EpsilonCy)
 					return -Fcd;
 				else
-					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain) / ConcreteMaterial.EpsilonCy, ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
+					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain) / Math.Abs(ConcreteMaterial.EpsilonCy), ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
 			}
 			else if (ConcreteMaterialModelCode2010.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
 			{
@@ -106,7 +106,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				else if (strain <= ConcreteMaterial.EpsilonCy)
 					return -Fcd;
 				else
-					return -Fcd * Math.Abs(strain) / ConcreteMaterial.EpsilonCy;
+					return -Fcd * Math.Abs(strain) / Math.Abs(ConcreteMaterial.EpsilonCy);
 			}
 			else
 				throw new ArgumentException("");
