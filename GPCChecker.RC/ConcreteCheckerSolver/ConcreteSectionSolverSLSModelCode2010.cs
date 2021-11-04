@@ -12,15 +12,9 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 {
 	public class ConcreteSectionSolverSLSModelCode2010 : ConcreteSectionSolverSLS
 	{
-		#region Variables
-
-		protected StandardModelCode2010 _standard;
-
-		#endregion
-
 		#region Properties
 
-		public StandardModelCode2010 ModelCode2010 => _standard;
+		public StandardModelCode2010 ModelCode2010 => (StandardModelCode2010)_standard;
 
 		public ConcreteMaterialModelCode2010 ConcreteMaterialModelCode2010 => (ConcreteMaterialModelCode2010)_concreteSection.ConcreteMaterial;
 
@@ -54,29 +48,16 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		#region Constructors
 
 		public ConcreteSectionSolverSLSModelCode2010(IConcreteSection concreteSection, ResultBeamForces forces, StandardModelCode2010 standard)
-			: base(concreteSection, forces)
+			: base(concreteSection, forces, standard)
 		{
-			_standard = standard;
+			
 		}
 
 		#endregion
 
 		protected virtual double CalculateFcd()
 		{
-			if (ConcreteMaterialModelCode2010.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
-			{
-				double eta;
-				if (ConcreteMaterial.Fck <= 50.0)
-					eta = 1.0;
-				else
-					eta = 1.0 - (ConcreteMaterial.Fck - 50.0) / 200;
-
-				return eta * ModelCode2010.AlphaCC * ConcreteMaterial.Fck / ModelCode2010.GammaC;
-			}
-			else
-			{
-				return ModelCode2010.AlphaCC * ConcreteMaterial.Fck / ModelCode2010.GammaC;
-			}
+			return ConcreteSolverHelper.CalculateFcd(ConcreteSection, ModelCode2010);
 		}
 
 		protected override double CalculateSigmaC(double strain)
@@ -88,13 +69,13 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				else if (strain <= ConcreteMaterial.EpsilonCy)
 					return -Fcd;
 				else
-					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain) / Math.Abs(ConcreteMaterial.EpsilonCy), ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
+					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain / ConcreteMaterial.EpsilonCy), ((ConcreteMaterialEN1992)ConcreteMaterial).CalculateN()));
 			}
 			else if (ConcreteMaterialModelCode2010.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
 			{
 				if (strain >= 0.0)
 					return 0.0;
-				if (strain <= ConcreteMaterial.EpsilonCy)
+				else if (strain <= ConcreteMaterial.EpsilonCy)
 					return -Fcd;
 				else
 					return 0.0;
@@ -106,7 +87,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 				else if (strain <= ConcreteMaterial.EpsilonCy)
 					return -Fcd;
 				else
-					return -Fcd * Math.Abs(strain) / Math.Abs(ConcreteMaterial.EpsilonCy);
+					return -Fcd * Math.Abs(strain / ConcreteMaterial.EpsilonCy);
 			}
 			else
 				throw new ArgumentException("");
@@ -114,50 +95,47 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		protected override double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain)
 		{
-			if (rebar.EpsilonP == 0)
-				return rebar.RebarMaterial.CalculateStress(strain) / ModelCode2010.GammaS;
-			else
-				return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP) / ModelCode2010.GammaSPrestress;
+			return ConcreteSolverHelper.CalculateStressSteel(rebar, strain, ModelCode2010);
 		}
 
 		protected override double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar)
 		{
-			return rebar.RebarMaterial.EpsilonU * 0.9;
+			return ConcreteSolverHelper.CalculateUltimateStrainSteel(rebar, ModelCode2010);
 		}
 
 		protected override double CalculateUltimateStrainSteel(int rebar)
 		{
-			return ConcreteSection.Rebars[rebar].RebarMaterial.EpsilonU * 0.9;
+			return ConcreteSolverHelper.CalculateUltimateStrainSteel(ConcreteSection, rebar, ModelCode2010);
 		}
 
 		protected override double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar)
 		{
-			return rebar.RebarMaterial.EpsilonY;
+			return ConcreteSolverHelper.CalculateYeldingStrainSteel(rebar);
 		}
 
 		protected override double CalculateYeldingStrainSteel(int rebar)
 		{
-			return ConcreteSection.Rebars[rebar].RebarMaterial.EpsilonY;
+			return ConcreteSolverHelper.CalculateYeldingStrainSteel(ConcreteSection, rebar);
 		}
 
 		protected override double CalculateUltimateStrainConcreteCompression()
 		{
-			return ConcreteSection.ConcreteMaterial.EpsilonCu;
+			return ConcreteSolverHelper.CalculateUltimateStrainConcreteCompression(ConcreteSection);
 		}
 
 		protected override double CalculateYeldingStrainConcreteCompression()
 		{
-			return ConcreteSection.ConcreteMaterial.EpsilonCy;
+			return ConcreteSolverHelper.CalculateYeldingStrainConcreteCompression(ConcreteSection);
 		}
 
 		protected override double CalculateLimitStrainCostantCompression()
 		{
-			return ModelCode2010.ConcreteLimitStrainPureCompression;
+			return ConcreteSolverHelper.CalculateLimitStrainCostantCompression(ModelCode2010);
 		}
 
 		protected override double CalculateUltimateStrainConcreteTension()
 		{
-			throw new NotImplementedException();
+			return ConcreteSolverHelper.CalculateUltimateStrainConcreteTension();
 		}
 	}
 }

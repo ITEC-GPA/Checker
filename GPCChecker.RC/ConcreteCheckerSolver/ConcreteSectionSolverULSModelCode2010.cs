@@ -13,15 +13,9 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 {
 	public class ConcreteSectionSolverULSModelCode2010 : ConcreteSectionSolverULS
 	{
-		#region Variables
-
-		protected StandardModelCode2010 _standard;
-
-		#endregion
-
 		#region Properties
 
-		public StandardModelCode2010 ModelCode2010 => _standard;
+		public StandardModelCode2010 ModelCode2010 => (StandardModelCode2010)_standard;
 
 		public ConcreteMaterialModelCode2010 ConcreteMaterialModelCode2010 => (ConcreteMaterialModelCode2010)_concreteSection.ConcreteMaterial;
 
@@ -55,14 +49,12 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		#region Constructors
 
 		public ConcreteSectionSolverULSModelCode2010(IConcreteSection concreteSection, StandardModelCode2010 standard)
-			:base(concreteSection)
+			:base(concreteSection, standard)
 		{
 			if(concreteSection.ConcreteMaterial is ConcreteMaterialEN1992)
 			{ }
 			else
 				throw new ArgumentException("Material must be a ConcreteMaterial");
-
-			_standard = standard;
 		}
 
 		#endregion

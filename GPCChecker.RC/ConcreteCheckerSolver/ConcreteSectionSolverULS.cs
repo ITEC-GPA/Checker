@@ -10,6 +10,7 @@ using GPC.Geometry.Meshes;
 using GPC.Model.Materials;
 using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Sections.Concrete;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 {
@@ -29,8 +30,8 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 
 		#region Public Constructor
 
-		public ConcreteSectionSolverULS(IConcreteSection section)
-			:base(section)
+		public ConcreteSectionSolverULS(IConcreteSection section, Standard standard)
+			:base(section, standard)
 		{
 
 		}

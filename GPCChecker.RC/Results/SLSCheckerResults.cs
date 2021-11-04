@@ -1,4 +1,4 @@
-﻿using GPC.Model.Results;
+using GPC.Model.Results;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Model.Sections.Concrete;
 using GPC.Geometry;
+using GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.ReinforcedConcrete.Results
 {
@@ -13,6 +15,7 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 	{
 		protected readonly ResultType _force;
 		protected readonly IStrainPlane _strainPlane;
+		protected readonly Standard _standard;
 		protected double _workingRatio;
 
 		//TODO: aggiungere tassi di lavoro necessari
@@ -21,15 +24,18 @@ namespace GPC.Checkers.ReinforcedConcrete.Results
 
 		public IStrainPlane StrainPlane => _strainPlane;
 
+		public Standard Standard => _standard;
 
-		public SLSCheckerResults(IConcreteSection section, ResultType force, IStrainPlane strainPlane, int id = IDUNASSIGNED)
+
+		public SLSCheckerResults(IConcreteSection section, ResultType force, IStrainPlane strainPlane, Standard standard, int id = IDUNASSIGNED)
 			: base(section, id)
 		{
-				if (force.GetType() != typeof(ResultBeamForces) && force.GetType() != typeof(ResultPlateForces))
-					throw new ArgumentException("Result must be ResultBeamForces or ResultPlateForces");
+			if (force.GetType() != typeof(ResultBeamForces) && force.GetType() != typeof(ResultPlateForces))
+				throw new ArgumentException("Result must be ResultBeamForces or ResultPlateForces");
 
 			_force = force ?? throw new ArgumentNullException(nameof(force));
 			_strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
+			_standard = standard ?? throw new ArgumentNullException(nameof(standard));
 		}
 
 
