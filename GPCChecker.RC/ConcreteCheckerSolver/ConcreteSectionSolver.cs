@@ -68,10 +68,17 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <summary>
 		/// Return the strain value of the <paramref name="pointToTest"/>
 		/// </summary>
-		protected virtual double CalculateStrain(StrainPlane strainPlane, Point3d pointToTest)
+		protected virtual double CalculateStrain(IStrainPlane inputStrainPlane, Point3d pointToTest)
 		{
-			return strainPlane.StrainReferencePoint - strainPlane.Chi * ((pointToTest.Y - strainPlane.ReferencePoint.Y) * Math.Cos(strainPlane.Teta) -
-				(pointToTest.X - strainPlane.ReferencePoint.X) * Math.Sin(strainPlane.Teta));
+			if (inputStrainPlane is StrainPlane strainPlane)
+				return strainPlane.StrainReferencePoint - strainPlane.Chi * ((pointToTest.Y - strainPlane.ReferencePoint.Y) * Math.Cos(strainPlane.Teta) -
+					(pointToTest.X - strainPlane.ReferencePoint.X) * Math.Sin(strainPlane.Teta));
+
+			else if (inputStrainPlane is StrainPlaneDoubleCurvature strainPlaneDC)			
+				return strainPlaneDC.StrainReferencePoint + strainPlaneDC.ChiX * pointToTest.X + strainPlaneDC.ChiY * pointToTest.Y;
+			
+			else
+				throw new ArgumentException();
 		}
 
 		/// <summary>
@@ -81,7 +88,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <param name="deltaN">The axial force resultant</param>
 		/// <param name="deltaMx">The bending moment about X-axis resultant</param>
 		/// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-		protected virtual void CalculateConcreteStressResultant(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+		protected virtual void CalculateConcreteStressResultant(IStrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
 		{
 			double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
 			double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
@@ -117,7 +124,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <param name="deltaN"></param>
 		/// <param name="deltaMx"></param>
 		/// <param name="deltaMy"></param>
-		protected virtual void CalculateFaceStressResultant(MeshFace face, StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+		protected virtual void CalculateFaceStressResultant(MeshFace face, IStrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
 		{
 			Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
 
@@ -151,7 +158,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// <param name="deltaN">The axial force resultant</param>
 		/// <param name="deltaMx">The bending moment about X-axis resultant</param>
 		/// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-		protected virtual void CalculateRebarsIntegration(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+		protected virtual void CalculateRebarsIntegration(IStrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
 		{
 			double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
 			double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
@@ -178,7 +185,7 @@ namespace GPC.Checkers.ReinforcedConcrete.ConcreteCheckerSolver
 		/// </summary>
 		/// <param name="strainPlane"></param>
 		/// <returns></returns>
-		public virtual void CalculateForces(StrainPlane strainPlane, out double N, out double Mx, out double My)
+		public virtual void CalculateForces(IStrainPlane strainPlane, out double N, out double Mx, out double My)
 		{
 			double deltaNConcrete = 0;
 			double deltaMxConcrete = 0;
