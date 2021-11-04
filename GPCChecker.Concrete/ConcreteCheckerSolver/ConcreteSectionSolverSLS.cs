@@ -12,6 +12,7 @@ using GPC.Model.Results;
 using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Sections.Concrete;
 using System.Runtime.Serialization;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 {
@@ -31,8 +32,8 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		#region Public Constructor
 
-		public ConcreteSectionSolverSLS(IConcreteSection section, ResultBeamForces forces)
-			:base(section)
+		public ConcreteSectionSolverSLS(IConcreteSection section, ResultBeamForces forces, Standard standard)
+			:base(section, standard)
 		{
 			_forces = forces ?? throw new ArgumentNullException(nameof(forces));
 		}
@@ -51,7 +52,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		{
 			StrainPlaneDoubleCurvature strainPlane = CalculateStrainPlane();
 
-			return new SLSCheckerResults(ConcreteSection, Forces, strainPlane);
+			return new SLSCheckerResults(ConcreteSection, Forces, strainPlane, Standard);
 		}
 
 		#endregion

@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Model.Sections.Concrete;
 using GPC.Geometry;
+using GPC.Checkers.Concrete.ConcreteCheckerSolver;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Results
 {
@@ -13,6 +15,7 @@ namespace GPC.Checkers.Concrete.Results
 	{
 		protected readonly ResultType _force;
 		protected readonly IStrainPlane _strainPlane;
+		protected readonly Standard _standard;
 		protected double _workingRatio;
 
 		//TODO: aggiungere tassi di lavoro necessari
@@ -21,36 +24,52 @@ namespace GPC.Checkers.Concrete.Results
 
 		public IStrainPlane StrainPlane => _strainPlane;
 
+		public Standard Standard => _standard;
 
-		public SLSCheckerResults(IConcreteSection section, ResultType force, IStrainPlane strainPlane, int id = IDUNASSIGNED)
+
+		public SLSCheckerResults(IConcreteSection section, ResultType force, IStrainPlane strainPlane, Standard standard, int id = IDUNASSIGNED)
 			: base(section, id)
 		{
-				if (force.GetType() != typeof(ResultBeamForces) && force.GetType() != typeof(ResultPlateForces))
-					throw new ArgumentException("Result must be ResultBeamForces or ResultPlateForces");
+			if (force.GetType() != typeof(ResultBeamForces) && force.GetType() != typeof(ResultPlateForces))
+				throw new ArgumentException("Result must be ResultBeamForces or ResultPlateForces");
 
 			_force = force ?? throw new ArgumentNullException(nameof(force));
 			_strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
+			_standard = standard ?? throw new ArgumentNullException(nameof(standard));
 		}
 
 
-		protected double GetTension(Point2d point)
+		public virtual double GetConcreteTension(Point3d point)
 		{
 			throw new NotImplementedException();
 		}
 
-		protected double[] GetVerticesTension()
+		public virtual double[] GetVerticesTension()
 		{
 			throw new NotImplementedException();
 		}
 
-		protected double GetStrain(Point2d point)
+		public double GetStrain(Point3d point)
 		{
-			throw new NotImplementedException();
+			return ConcreteSolverHelper.CalculateStrain(StrainPlane, point);
 		}
 
-		protected double[] GetVerticesStrain()
+		public double[] GetVerticesStrain()
 		{
-			throw new NotImplementedException();
+			List<Point3d> vertices = new List<Point3d>();
+
+			vertices.AddRange(ConcreteSection.Shape.Fill);
+
+			if (ConcreteSection.Shape.HasHoles)
+				for (int i = 0; i < ConcreteSection.Shape.Holes.Count(); i++)
+					vertices.AddRange(ConcreteSection.Shape.Holes[i]);
+
+			double[] strains = new double[vertices.Count];
+
+			for (int i = 0; i < strains.Length; i++)
+				strains[i] = GetStrain(vertices[i]);
+
+			return strains;
 		}
 
 		// TODO: implementare verifiche SLS (fessurazione)

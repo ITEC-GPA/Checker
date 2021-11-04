@@ -5,6 +5,7 @@ using GPC.Model.Materials;
 using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
+using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		#region Variables
 
 		protected IConcreteSection _concreteSection;
+		protected Standard _standard;
 		protected List<string> _log;
 
 		#endregion
@@ -30,13 +32,16 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		public ConcreteMaterial ConcreteMaterial => _concreteSection.ConcreteMaterial;
 
+		public Standard Standard => _standard;
+
 		#endregion
 
 		#region Public Constructor
 
-		public ConcreteSectionSolver(IConcreteSection section)
+		public ConcreteSectionSolver(IConcreteSection section, Standard standard)
 		{
 			_concreteSection = section;
+			_standard = standard;
 			_log = new List<string>();
 		}
 
@@ -70,15 +75,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		/// </summary>
 		protected virtual double CalculateStrain(IStrainPlane inputStrainPlane, Point3d pointToTest)
 		{
-			if (inputStrainPlane is StrainPlane strainPlane)
-				return strainPlane.StrainReferencePoint - strainPlane.Chi * ((pointToTest.Y - strainPlane.ReferencePoint.Y) * Math.Cos(strainPlane.Teta) -
-					(pointToTest.X - strainPlane.ReferencePoint.X) * Math.Sin(strainPlane.Teta));
-
-			else if (inputStrainPlane is StrainPlaneDoubleCurvature strainPlaneDC)			
-				return strainPlaneDC.StrainReferencePoint + strainPlaneDC.ChiX * pointToTest.X + strainPlaneDC.ChiY * pointToTest.Y;
-			
-			else
-				throw new ArgumentException();
+			return ConcreteSolverHelper.CalculateStrain(inputStrainPlane, pointToTest);
 		}
 
 		/// <summary>
