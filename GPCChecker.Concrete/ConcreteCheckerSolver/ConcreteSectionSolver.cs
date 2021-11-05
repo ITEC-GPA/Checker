@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Materials;
@@ -124,26 +124,49 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		protected virtual void CalculateFaceStressResultant(MeshFace face, StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
 		{
 			Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
+			
+			double value = Math.Abs(ConcreteSection.Mesh.GetFaceArea(face) / ConcreteSection.Area);
+
+			int gaussPointsTri;
+			int gaussPointsQuad;
+
+			if (value > 0.1)
+			{
+				gaussPointsTri = ConcreteSectionSolverOptions.Instance.GaussIntegrationTriHighPoints;
+				gaussPointsQuad = ConcreteSectionSolverOptions.Instance.GaussIntegrationQuadHighPoints;
+			}
+			else if (value > 0.01)
+			{
+				gaussPointsTri = ConcreteSectionSolverOptions.Instance.GaussIntegrationTriMidPoints;
+				gaussPointsQuad = ConcreteSectionSolverOptions.Instance.GaussIntegrationQuadMidPoints;
+			}
+			else						
+			{
+				gaussPointsTri = ConcreteSectionSolverOptions.Instance.GaussIntegrationTriLowPoints;
+				gaussPointsQuad = ConcreteSectionSolverOptions.Instance.GaussIntegrationQuadLowPoints;
+			}
+
 
 			if (face.IsTriangle)
 			{
 				deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))),
-					points, 79);
+					points, gaussPointsTri);
 				deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(y - ConcreteSection.Centroid.Y), points, 79);
+					(y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
 				deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(x - ConcreteSection.Centroid.X), points, 79);
+					(x - ConcreteSection.Centroid.X), points, gaussPointsTri);
 			}
 
 			else if (face.IsQuad)
 			{
 				deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))),
-					points, 121);
+					points, gaussPointsQuad);
 				deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(y - ConcreteSection.Centroid.Y), points, 121);
+					(y - ConcreteSection.Centroid.Y), points, gaussPointsQuad);
 				deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(x - ConcreteSection.Centroid.X), points, 121);
+					(x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
 			}
+
 			else
 				throw new Exception();
 		}

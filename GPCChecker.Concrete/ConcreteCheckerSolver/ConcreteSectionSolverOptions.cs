@@ -42,6 +42,13 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
         public Point3d DistanceFromCentroid { get; set; }
 
+        public int GaussIntegrationQuadLowPoints { get; set; }
+        public int GaussIntegrationQuadMidPoints { get; set; }
+        public int GaussIntegrationQuadHighPoints { get; set; }
+        public int GaussIntegrationTriLowPoints { get; set; }
+        public int GaussIntegrationTriMidPoints { get; set; }
+        public int GaussIntegrationTriHighPoints { get; set; }
+
         private ConcreteSectionSolverOptions()
         {
             AxialForceDiscretizations = new (ConcreteSectionSolverULS.FailureIndices, int)[] { (ConcreteSectionSolverULS.FailureIndices.Iz1, 1),
@@ -57,6 +64,14 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
             SLSconvergenceTolerance = 1e-5;
 
             DistanceFromCentroid = new Point3d(0, 0, 0);
+
+            GaussIntegrationQuadLowPoints = 12;
+            GaussIntegrationQuadMidPoints = 49;
+            GaussIntegrationQuadHighPoints = 121;
+            GaussIntegrationTriLowPoints = 6;
+            GaussIntegrationTriMidPoints = 33;
+            GaussIntegrationTriHighPoints = 79;
+
         }
     }    
 }
