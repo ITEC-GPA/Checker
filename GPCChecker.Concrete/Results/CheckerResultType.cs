@@ -18,6 +18,9 @@ namespace GPC.Checkers.Concrete.Results
 
 		public IConcreteSection ConcreteSection => _section;
 
+		public Standard Standard => _standard;
+
+
 		#region Public Constructor
 
 		public CheckerResultType(IConcreteSection section, Standard standard, int id = IDUNASSIGNED)

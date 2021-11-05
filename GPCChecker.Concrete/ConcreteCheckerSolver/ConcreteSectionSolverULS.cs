@@ -71,33 +71,27 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 			momentsDiscretizations++;
 
 			FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[momentsDiscretizations][];
+			(StrainPlane, FailureIndices)[][] strainPlanes = new (StrainPlane, FailureIndices)[momentsDiscretizations][];
 
 			try
 			{
-				for (int i = 0; i < momentsDiscretizations; i++)
-				//Parallel.For(0, momentsDiscretizations, (i) =>
+				Parallel.For(0, momentsDiscretizations, (i) =>
 				{
-					(StrainPlane, FailureIndices)[] strainPlanes = CalculateAllDesignStrainPlanes((i * deltaTeta), normalDiscretizations);
-					domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes.Length];
+					strainPlanes[i] = CalculateAllDesignStrainPlanes((i * deltaTeta), normalDiscretizations);
+					domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes[i].Length];
+				});
 
-					for (int j = 0; j < strainPlanes.Length; j++)
-					//Parallel.For(0, strainPlanes.Length, (j) =>
+				Parallel.For(0, momentsDiscretizations, (i) =>
+				{
+					Parallel.For(0, strainPlanes[i].Length, (j) =>
 					{
-						try
-						{
-							domainPoints[i][j] = CalculatePlasticResistance(strainPlanes[j]);
-							_log.Add($"Aggiunto punto {i}-{j}");
-						}
-						catch (Exception e)
-						{
-							_log.Add($"Fail to calculate domain point {i}-{j}" + e.InnerException);
-						}
-					}//);					
-				}//);
+						domainPoints[i][j] = CalculatePlasticResistance(strainPlanes[i][j]);
+					});
+				});
 			}
 			catch (Exception e)
 			{
-				_log.Add($"Fail to calculate domain points" + e.InnerException);
+				_log.Add($"Fail to calculate ULS strain planes" + e.InnerException);
 			}
 
 			return new FailureDomain(domainPoints);
@@ -132,6 +126,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 			{
 				double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta -
 					(ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
+
 				if (w1 <= dminSteel)
 				{
 					dminSteel = w1;
