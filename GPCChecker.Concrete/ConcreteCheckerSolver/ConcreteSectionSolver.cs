@@ -333,5 +333,14 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		}
 
 		#endregion
+
+		#region Public methods
+
+		public List<string> GetLog()
+		{
+			return _log;
+		}
+
+		#endregion
 	}
 }
