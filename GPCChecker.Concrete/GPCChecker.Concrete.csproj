@@ -68,13 +68,14 @@
     <Compile Include="Attributes\CheckerAttribute.cs" />
     <Compile Include="Attributes\SectionCheckerAttribute.cs" />
     <Compile Include="Checkers\Checker.cs" />
-    <Compile Include="Checkers\ModelCode2010PlateChecker.cs" />
+    <Compile Include="Checkers\PlateCheckerModelCode2010.cs" />
     <Compile Include="Checkers\PlateChecker.cs" />
     <Compile Include="Attributes\BeamCheckerAttributes.cs" />
     <Compile Include="Checkers\BeamChecker.cs" />
-    <Compile Include="Checkers\ModelCode2010BeamChecker.cs" />
+    <Compile Include="Checkers\BeamCheckerModelCode2010.cs" />
     <Compile Include="Attributes\PlateCheckerAttributes.cs" />
     <Compile Include="Checkers\SectionChecker.cs" />
+    <Compile Include="Checkers\SectionCheckerModelCode2010.cs" />
     <Compile Include="SectionSolver\SectionSolver.cs" />
     <Compile Include="SectionSolver\SectionSolverOptions.cs" />
     <Compile Include="SectionSolver\SectionSolverSLS.cs" />

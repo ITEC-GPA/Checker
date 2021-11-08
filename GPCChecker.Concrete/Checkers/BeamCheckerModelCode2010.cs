@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
-using GPC.Model.Standards;
-using GPC.Model.Materials;
 using GPC.Checkers.Concrete.Results;
+using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
-using GPC.Checkers.Concrete.Attributes;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
-	public class ModelCode2010BeamChecker : BeamChecker
-	{
+    public class BeamCheckerModelCode2010 : BeamChecker
+    {
         #region Properties
 
         public StandardEN1992p11 EN1992P11 => (StandardEN1992p11)_standard;
@@ -26,9 +26,9 @@ namespace GPC.Checkers.Concrete.Checkers
         #endregion
 
 
-        public ModelCode2010BeamChecker(BeamCheckerAttributes attributes, ModelCode2010Options options, StandardModelCode2010 standard)
+        public BeamCheckerModelCode2010(BeamCheckerAttributes attributes, ModelCode2010Options options, StandardModelCode2010 standard)
             : base(attributes, options, standard)
-        {         
+        {
         }
 
 
@@ -50,23 +50,23 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <param name="beamResult">result for each station and loadcase</param>
         /// <returns></returns>
         protected ModelCode2010BeamStationResult[] PerformCheck(IConcreteSection[] steelSection, BeamResult[] beamResult, ModelCode2010Options options)
-		{
+        {
             throw new NotImplementedException();
-		}
+        }
 
-		public override void ULSPerformCheck()
-		{
-			throw new NotImplementedException();
-		}
+        public override void ULSPerformCheck()
+        {
+            throw new NotImplementedException();
+        }
 
-		public override void SLSPerformCheck()
-		{
-			throw new NotImplementedException();
-		}
+        public override void SLSPerformCheck()
+        {
+            throw new NotImplementedException();
+        }
 
-		public class ModelCode2010Options : BeamCheckerOptions
-		{
+        public class ModelCode2010Options : BeamCheckerOptions
+        {
 
-		}
+        }
     }
 }
