@@ -4,16 +4,17 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Results;
 using GPC.Model;
 using GPC.Model.Standards;
-using GPC.Checkers.Concrete.Attributes;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
     public class SectionChecker : Checker, ISerializable
     {
 
-        public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionCheckerOptions options, Standard standard, 
+        public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionCheckerOptions options, Standard standard,
                                 int id = ModelObjectId.IDUNASSIGNED, string name = "")
             : base(checkerAttribute, options, standard, id, name)
         {
@@ -37,7 +38,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public override void ULSPerformCheck()
         {
-            throw new NotImplementedException();
+            
         }
 
 

@@ -14,7 +14,7 @@ using GPC.Model.Sections.Concrete;
 using System.Runtime.Serialization;
 using GPC.Model.Standards;
 
-namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
+namespace GPC.Checkers.Concrete.SectionSolver
 {
 	public abstract class SectionSolverSLS : SectionSolver
 	{

@@ -13,8 +13,9 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
+namespace GPC.Checkers.Concrete.SectionSolver
 {
+
 	[Serializable]
 	public abstract class SectionSolver
 	{

@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
+namespace GPC.Checkers.Concrete.SectionSolver
 {
 	internal static class SolverHelper
 	{

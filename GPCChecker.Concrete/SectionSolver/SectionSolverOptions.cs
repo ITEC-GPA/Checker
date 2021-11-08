@@ -1,6 +1,6 @@
 ﻿using GPC.Geometry;
 
-namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
+namespace GPC.Checkers.Concrete.SectionSolver
 {
     // https://csharpindepth.com/articles/singleton
 

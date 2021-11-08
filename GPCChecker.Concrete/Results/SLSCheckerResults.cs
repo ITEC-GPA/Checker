@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Model.Sections.Concrete;
 using GPC.Geometry;
-using GPC.Checkers.Concrete.ConcreteCheckerSolver;
+using GPC.Checkers.Concrete.SectionSolver;
 using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Results

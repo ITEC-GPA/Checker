@@ -12,7 +12,7 @@ using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 
-namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
+namespace GPC.Checkers.Concrete.SectionSolver
 {
 	public abstract class SectionSolverULS : SectionSolver
 	{
