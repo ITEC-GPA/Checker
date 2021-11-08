@@ -86,7 +86,7 @@ namespace GPC.Checkers.Concrete.SectionSolver
 				{
 					Parallel.For(0, strainPlanes[i].Length, (j) =>
 					{
-						domainPoints[i][j] = CalculatePlasticResistance(strainPlanes[i][j]);
+						domainPoints[i][j] = CalculatePlasticResistanceAsync(strainPlanes[i][j]).Result;
 					});
 				});
 			}
@@ -175,6 +175,7 @@ namespace GPC.Checkers.Concrete.SectionSolver
 			foreach (var kvp in zoneSubdivision)
 			{
 				int subdivision = kvp.Item2;
+				subdivision++;
 
 				if (subdivision == 0)
 					throw new ArgumentOutOfRangeException();
@@ -198,8 +199,7 @@ namespace GPC.Checkers.Concrete.SectionSolver
 							{
 								double chi = chiSx + j * (chiDx - chiSx) / subdivision;
 								strainPlanes[subIndex] = (new StrainPlane(ConcreteSection.Rebars[dMinRebarIndex].Position, teta, chi,
-																			ultimateStrainSteel, subIndex), 
-																			FailureIndices.Iz1);
+																			ultimateStrainSteel, subIndex), FailureIndices.Iz1);
 								subIndex++;
 							}
 
@@ -302,6 +302,7 @@ namespace GPC.Checkers.Concrete.SectionSolver
 																FailureIndices.Iz7);
 								subIndex++;
 							}
+
 							strainPlanes[subIndex] = (new StrainPlane(strainPlaneCenter, teta, chiDx, CalculateLimitStrainCostantCompression(), subIndex), 
 																FailureIndices.Iz7);
 							break;
@@ -323,16 +324,16 @@ namespace GPC.Checkers.Concrete.SectionSolver
 		/// <param name="Mx"></param>
 		/// <param name="My"></param>
 		/// <returns></returns>
-		protected virtual FailureDomain.FailureDomainPoint CalculatePlasticResistance((StrainPlane, FailureIndices) strainPlane)
+		protected async virtual Task<FailureDomain.FailureDomainPoint> CalculatePlasticResistanceAsync((StrainPlane, FailureIndices) strainPlane)
 		{
 			try
 			{
-				CalculateConcreteStressResultant(strainPlane.Item1, out double deltaNConcrete, out double deltaMxConcrete, out double deltaMyConcrete);
-				CalculateRebarsIntegration(strainPlane.Item1, out double deltaNRebar, out double deltaMxRebar, out double deltaMyRebar);
 
-				double N = deltaNConcrete + deltaNRebar;
-				double Mx = -(deltaMxConcrete + deltaMxRebar);
-				double My = deltaMyConcrete + deltaMyRebar;
+				var task = await Task.WhenAll(new[] { CalculateConcreteStressResultantAsync(strainPlane.Item1), CalculateRebarsIntegrationAsync(strainPlane.Item1) });
+
+				double N = task[0].deltaN + task[1].deltaN;
+				double Mx = -(task[0].deltaMx + task[1].deltaMx);
+				double My = task[0].deltaMy + task[1].deltaMy;
 
 				CalculateExternalForces(N, Mx, My, SectionSolverOptions.Instance.DistanceFromCentroid, out N, out Mx, out My);
 

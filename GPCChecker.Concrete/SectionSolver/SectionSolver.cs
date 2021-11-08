@@ -1,4 +1,5 @@
 ﻿using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.Checkers;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Materials;
@@ -24,12 +25,13 @@ namespace GPC.Checkers.Concrete.SectionSolver
 		protected IConcreteSection _concreteSection;
 		protected Standard _standard;
 		protected List<string> _log;
+		protected SectionChecker.Options _options;
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		public IConcreteSection ConcreteSection => _concreteSection;
+        public IConcreteSection ConcreteSection => _concreteSection;
 
 		public ConcreteMaterial ConcreteMaterial => _concreteSection.ConcreteMaterial;
 
@@ -39,16 +41,21 @@ namespace GPC.Checkers.Concrete.SectionSolver
 
 		#region Public Constructor
 
-		public SectionSolver(IConcreteSection section, Standard standard)
+		public SectionSolver(IConcreteSection section, Standard standard, SectionChecker.Options options)
 		{
-			_concreteSection = section;
-			_standard = standard;
+			_concreteSection = section ?? throw new ArgumentNullException(nameof(section));
+			_standard = standard ?? throw new ArgumentNullException(nameof(standard));
+			_options = options ?? throw new ArgumentNullException(nameof(options));
+
 			_log = new List<string>();
 		}
 
 		public SectionSolver(SerializationInfo info, StreamingContext context)
 		{
 			_concreteSection = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
+			_standard = (Standard)info.GetValue("Standard", typeof(Standard));
+			_options = (Checker.Options)info.GetValue("Checker.Options", typeof(SectionChecker.Options));
+
 			_log = (List<string>)info.GetValue("Log", typeof(List<string>));
 		}
 
@@ -86,32 +93,36 @@ namespace GPC.Checkers.Concrete.SectionSolver
 		/// <param name="deltaN">The axial force resultant</param>
 		/// <param name="deltaMx">The bending moment about X-axis resultant</param>
 		/// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-		protected virtual void CalculateConcreteStressResultant(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+		protected async virtual Task<(double deltaN, double deltaMx, double deltaMy)> CalculateConcreteStressResultantAsync(StrainPlane strainPlane)
 		{
-			double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
-			double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
-			double[] deltaMyArray = new double[ConcreteSection.Mesh.FacesCount];
 
-			try
+			(double deltaN, double deltaMx, double deltaMy) task = await Task.Run(() => 
 			{
-				Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
+				double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
+				double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
+				double[] deltaMyArray = new double[ConcreteSection.Mesh.FacesCount];
+
+				try
 				{
-					CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
+					Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
+					{
+						CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
 
-					deltaNArray[i] = deltaNBuffer;
-					deltaMxArray[i] = deltaMxBuffer;
-					deltaMyArray[i] = deltaMyBuffer;
-				});
-			}
-			catch (Exception e)
-			{
-				_log.Add($"Fail" + e.InnerException);
-			}
+						deltaNArray[i] = deltaNBuffer;
+						deltaMxArray[i] = deltaMxBuffer;
+						deltaMyArray[i] = deltaMyBuffer;
+					});
+				}
+				catch (Exception e)
+				{
+					_log.Add($"Fail" + e.InnerException);
+				}
 
+				return (deltaNArray.Sum(), deltaMxArray.Sum(), deltaMyArray.Sum());
+			});
 
-			deltaN = deltaNArray.Sum();
-			deltaMx = deltaMxArray.Sum();
-			deltaMy = deltaMyArray.Sum();
+            
+			return task;
 		}
 
 		/// <summary>
@@ -156,26 +167,30 @@ namespace GPC.Checkers.Concrete.SectionSolver
 		/// <param name="deltaN">The axial force resultant</param>
 		/// <param name="deltaMx">The bending moment about X-axis resultant</param>
 		/// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-		protected virtual void CalculateRebarsIntegration(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+		protected async virtual Task<(double deltaN, double deltaMx, double deltaMy)> CalculateRebarsIntegrationAsync(StrainPlane strainPlane)
 		{
-			double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
-			double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
-			double[] deltaMyArray = new double[ConcreteSection.Rebars.Length];
 
-			Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
+			(double deltaN, double deltaMx, double deltaMy) task = await Task.Run(() =>
 			{
-				double strain = CalculateStrain(strainPlane, ConcreteSection.Rebars[i].Position);
-				double sigmaS = CalculateStressSteel(ConcreteSection.Rebars[i], strain);
-				double sigmaC = CalculateSigmaC(strain);
+				double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
+				double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
+				double[] deltaMyArray = new double[ConcreteSection.Rebars.Length];
 
-				deltaNArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area;
-				deltaMxArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
-				deltaMyArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
+				Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
+				{
+					double strain = CalculateStrain(strainPlane, ConcreteSection.Rebars[i].Position);
+					double sigmaS = CalculateStressSteel(ConcreteSection.Rebars[i], strain);
+					double sigmaC = CalculateSigmaC(strain);
+
+					deltaNArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area;
+					deltaMxArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
+					deltaMyArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
+				});
+
+				return (deltaNArray.Sum(), deltaMxArray.Sum(), deltaMyArray.Sum());
 			});
 
-			deltaN = deltaNArray.Sum();
-			deltaMx = deltaMxArray.Sum();
-			deltaMy = deltaMyArray.Sum();
+			return task;			
 		}
 
 		/// <summary>
@@ -185,26 +200,24 @@ namespace GPC.Checkers.Concrete.SectionSolver
 		/// <returns></returns>
 		public virtual void CalculateForces(StrainPlane strainPlane, out double N, out double Mx, out double My)
 		{
-			double deltaNConcrete = 0;
-			double deltaMxConcrete = 0;
-			double deltaMyConcrete = 0;
-			double deltaNRebar = 0;
-			double deltaMxRebar = 0;
-			double deltaMyRebar = 0;
 
 			try
 			{
-				CalculateConcreteStressResultant(strainPlane, out deltaNConcrete, out deltaMxConcrete, out deltaMyConcrete);
-				CalculateRebarsIntegration(strainPlane, out deltaNRebar, out deltaMxRebar, out deltaMyRebar);
+				var task = Task.WhenAll(new[] { CalculateConcreteStressResultantAsync(strainPlane), CalculateRebarsIntegrationAsync(strainPlane) });
+
+				N = task.Result[0].deltaN + task.Result[1].deltaN;
+				Mx = -(task.Result[0].deltaMx + task.Result[1].deltaMx);
+				My = task.Result[0].deltaMy + task.Result[1].deltaMy;
+
 			}
 			catch (Exception e)
 			{
 				_log.Add($"Fail" + e.InnerException);
+				N = 0;
+				Mx = 0;
+				My = 0;
 			}
 
-			N = deltaNConcrete + deltaNRebar;
-			Mx = -(deltaMxConcrete + deltaMxRebar);
-			My = deltaMyConcrete + deltaMyRebar;
 		}
 
 		protected virtual void CalculateRelativeDistance(double teta, out int dMinRebarIndex, out int dMaxRebarIndex, out int dMinVertexIndex, out int dMaxVertexIndex)
@@ -271,11 +284,9 @@ namespace GPC.Checkers.Concrete.SectionSolver
 			double h = bBox.Size.Y;
 			double b = bBox.Size.X;
 
-			double area = ConcreteSection.Area;
-
-			adimAxialForce = N / (area * ConcreteSection.ConcreteMaterial.Fck);
-			adimBendingMomentX = Mx / (area * h * ConcreteSection.ConcreteMaterial.Fck);
-			adimBendingMomentY = My / (b * area * ConcreteSection.ConcreteMaterial.Fck);
+			adimAxialForce = N / (h * b * ConcreteSection.ConcreteMaterial.Fck);
+			adimBendingMomentX = Mx / (h * b * h * ConcreteSection.ConcreteMaterial.Fck);
+			adimBendingMomentY = My / (b * b * h * ConcreteSection.ConcreteMaterial.Fck);
 		}
 
 		protected virtual ResultBeamForces CalculateExternalForces(ResultBeamForces forces, Point3d distanceFromCentroid)
@@ -312,10 +323,14 @@ namespace GPC.Checkers.Concrete.SectionSolver
 			}
 		}
 
+
 		public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
 		{
 			info.AddValue("ConcreteSection", _concreteSection);
 			info.AddValue("Log", _log);
+
+			info.AddValue("Standard", _standard);
+			info.AddValue("Checker.Options", _options);
 		}
 
 		#endregion
