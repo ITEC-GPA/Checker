@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\CheckerAttribute.cs" />
+    <Compile Include="Attributes\SectionCheckerAttribute.cs" />
     <Compile Include="Checkers\Checker.cs" />
     <Compile Include="Checkers\ModelCode2010PlateChecker.cs" />
     <Compile Include="Checkers\PlateChecker.cs" />
@@ -73,15 +74,16 @@
     <Compile Include="Checkers\BeamChecker.cs" />
     <Compile Include="Checkers\ModelCode2010BeamChecker.cs" />
     <Compile Include="Attributes\PlateCheckerAttributes.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolver.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverOptions.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverSLS.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverSLSModelCode2010.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSolverHelper.cs" />
+    <Compile Include="Checkers\SectionChecker.cs" />
+    <Compile Include="SectionSolver\SectionSolver.cs" />
+    <Compile Include="SectionSolver\SectionSolverOptions.cs" />
+    <Compile Include="SectionSolver\SectionSolverSLS.cs" />
+    <Compile Include="SectionSolver\SectionSolverSLSModelCode2010.cs" />
+    <Compile Include="SectionSolver\SolverHelper.cs" />
     <Compile Include="OldCheckerCode\RCCheckingSection.cs" />
     <Compile Include="OldCheckerCode\RCSection.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverULS.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverULSModelCode2010.cs" />
+    <Compile Include="SectionSolver\SectionSolverULS.cs" />
+    <Compile Include="SectionSolver\SectionSolverULSModelCode2010.cs" />
     <Compile Include="OldCheckerCode\RCChecker.cs" />
     <Compile Include="OldCheckerCode\RCChecker.Viviani.cs" />
     <Compile Include="OldCheckerCode\RCFailureDomain.cs" />

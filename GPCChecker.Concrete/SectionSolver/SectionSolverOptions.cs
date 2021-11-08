@@ -1,0 +1,62 @@
+﻿using GPC.Geometry;
+
+namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
+{
+    // https://csharpindepth.com/articles/singleton
+
+    /// <summary>
+    /// This is a singleton class that collects options related to the concrete section solver
+    /// </summary>
+    public sealed class SectionSolverOptions
+    {
+        #region Singleton setup
+
+        private static readonly SectionSolverOptions instance = new SectionSolverOptions();
+
+        public static SectionSolverOptions Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
+
+        static SectionSolverOptions()
+        {
+
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Rapresent the discretization of the axial force in the solver
+        /// </summary>
+        public (SectionSolverULS.FailureIndices, int)[] AxialForceDiscretizations { get; set; }
+
+        /// <summary>
+        /// Rapresent the discretization of the moments around the axial force axis
+        /// </summary>
+        public int MomentsDiscretizations { get; set; }
+
+        public double SLSconvergenceTolerance { get; set; }
+
+        public Point3d DistanceFromCentroid { get; set; }
+
+        private SectionSolverOptions()
+        {
+            AxialForceDiscretizations = new (SectionSolverULS.FailureIndices, int)[] { (SectionSolverULS.FailureIndices.Iz1, 1),
+                                                                                               (SectionSolverULS.FailureIndices.Iz2, 1),
+                                                                                               (SectionSolverULS.FailureIndices.Iz3, 1),
+                                                                                               (SectionSolverULS.FailureIndices.Iz4, 30),
+                                                                                               (SectionSolverULS.FailureIndices.Iz5, 2),
+                                                                                               (SectionSolverULS.FailureIndices.Iz6, 1),
+                                                                                               (SectionSolverULS.FailureIndices.Iz7, 4) };
+
+            MomentsDiscretizations = 32;
+
+            SLSconvergenceTolerance = 1e-5;
+
+            DistanceFromCentroid = new Point3d(0, 0, 0);
+        }
+    }    
+}

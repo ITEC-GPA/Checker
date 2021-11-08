@@ -16,7 +16,7 @@ using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 {
-	public abstract class ConcreteSectionSolverSLS : ConcreteSectionSolver
+	public abstract class SectionSolverSLS : SectionSolver
 	{
 		#region Variables
 
@@ -32,13 +32,13 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		#region Public Constructor
 
-		public ConcreteSectionSolverSLS(IConcreteSection section, ResultBeamForces forces, Standard standard)
+		public SectionSolverSLS(IConcreteSection section, ResultBeamForces forces, Standard standard)
 			:base(section, standard)
 		{
 			_forces = forces ?? throw new ArgumentNullException(nameof(forces));
 		}
 
-		public ConcreteSectionSolverSLS(SerializationInfo info, StreamingContext context)
+		public SectionSolverSLS(SerializationInfo info, StreamingContext context)
 			: base(info, context)
 		{
 			_forces = (ResultBeamForces)info.GetValue("Forces", typeof(ResultBeamForces));
@@ -59,12 +59,12 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		public StrainPlane CalculateStrainPlane()
 		{
-			return CalculateStrainPlane((ResultBeamForces)Forces, ConcreteSectionSolverOptions.Instance.SLSconvergenceTolerance);
+			return CalculateStrainPlane((ResultBeamForces)Forces, SectionSolverOptions.Instance.SLSconvergenceTolerance);
 		}
 
 		protected StrainPlane CalculateStrainPlane(ResultBeamForces forces, double tolerance = 1e-5)
 		{
-			forces = CalculateExternalForces(forces, ConcreteSectionSolverOptions.Instance.DistanceFromCentroid);			
+			forces = CalculateExternalForces(forces, SectionSolverOptions.Instance.DistanceFromCentroid);			
 			CalculateAdimensionalForces(forces, out double adimExternalAxialForce, out double adimExternalendingMomentX, out double adimExternalBendingMomentY);
 
 			// Valori di primo tentativo
@@ -220,7 +220,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		public override bool Equals(object obj)
 		{
-			return obj is ConcreteSectionSolverSLS sLS &&
+			return obj is SectionSolverSLS sLS &&
 				   base.Equals(obj) &&
 				   EqualityComparer<ResultType>.Default.Equals(_forces, sLS._forces);
 		}

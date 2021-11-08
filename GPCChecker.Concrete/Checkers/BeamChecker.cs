@@ -10,6 +10,7 @@ using GPC.Model.Sections;
 using GPC.Model.Combinations;
 using System.Runtime.Serialization;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.Attributes;
 
 namespace GPC.Checkers.Concrete.Checkers
 {

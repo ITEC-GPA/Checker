@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 {
-	internal static class ConcreteSolverHelper
+	internal static class SolverHelper
 	{
 		#region ModelCode2010 
 

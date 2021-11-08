@@ -9,6 +9,7 @@ using GPC.Model.Materials;
 using GPC.Checkers.Concrete.Results;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
+using GPC.Checkers.Concrete.Attributes;
 
 namespace GPC.Checkers.Concrete.Checkers
 {

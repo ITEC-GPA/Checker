@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using GPC.Model;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 
-namespace GPC.Checkers.Concrete.Checkers
+namespace GPC.Checkers.Concrete.Attributes
 {
-	/// <summary>
-	/// This class rapresent the results of one plate (multiple loadcase/combination).
-	/// </summary>
+    /// <summary>
+    /// This class rapresent the results of one plate (multiple loadcase/combination).
+    /// </summary>
 
-	[Serializable]
-    public class PlateCheckerAttributes : CheckerAttribute, ISerializable 
+    [Serializable]
+    public class PlateCheckerAttributes : CheckerAttribute, ISerializable
     {
 
         #region Properties
@@ -23,7 +24,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
 
         public PlateCheckerAttributes(IConcreteSection section, PlateResult[] slsBeamResults, PlateResult[] ulsBeamResults, string name = "")
-            : base(section, slsBeamResults, ulsBeamResults, name)
+            : base(section, slsBeamResults, ulsBeamResults, ModelObjectId.IDUNASSIGNED, name)
         {
 
         }

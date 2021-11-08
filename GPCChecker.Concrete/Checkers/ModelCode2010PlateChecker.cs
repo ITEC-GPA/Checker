@@ -9,6 +9,7 @@ using GPC.Model.Materials;
 using GPC.Checkers.Concrete.Results;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
+using GPC.Checkers.Concrete.Attributes;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
@@ -28,6 +29,7 @@ namespace GPC.Checkers.Concrete.Checkers
         public ModelCode2010PlateChecker(PlateCheckerAttributes attributes, EN1992p11Options options, StandardEN1992p11 standardEN1992P11)
             : base(attributes, options, standardEN1992P11)
         {         
+
         }
 
 

@@ -14,7 +14,7 @@ using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 {
-	public abstract class ConcreteSectionSolverULS : ConcreteSectionSolver
+	public abstract class SectionSolverULS : SectionSolver
 	{
 		public enum FailureIndices
 		{
@@ -30,13 +30,13 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		#region Public Constructor
 
-		public ConcreteSectionSolverULS(IConcreteSection section, Standard standard)
+		public SectionSolverULS(IConcreteSection section, Standard standard)
 			:base(section, standard)
 		{
 
 		}
 
-		public ConcreteSectionSolverULS(SerializationInfo info, StreamingContext context)
+		public SectionSolverULS(SerializationInfo info, StreamingContext context)
 			:base(info, context)
 		{
 			
@@ -51,7 +51,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		/// </summary>
 		public FailureDomain CalculateFailureDomain()
 		{
-			return CalculateFailureDomain(ConcreteSectionSolverOptions.Instance.MomentsDiscretizations, ConcreteSectionSolverOptions.Instance.AxialForceDiscretizations);
+			return CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations, SectionSolverOptions.Instance.AxialForceDiscretizations);
 		}
 
 		#region Protected Method
@@ -62,7 +62,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		/// <param name="momentsDiscretizations">Number of discretizations of X-axis and Y-axis (moment around Z-axis)</param>
 		/// <param name="normalDiscretizations">Number of discretizations of Z-axis (axial force)</param>
 		/// <returns></returns>
-		protected virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, (ConcreteSectionSolverULS.FailureIndices, int)[] normalDiscretizations)
+		protected virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, (SectionSolverULS.FailureIndices, int)[] normalDiscretizations)
 		{
 			if (momentsDiscretizations < 2 || normalDiscretizations.Select(i => i.Item2).Sum() < 7)
 				throw new ArgumentException();
@@ -103,7 +103,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		/// <param name="teta">The angle of rotation of the axis</param>
 		/// <param name="zoneSubdivision">Number of subdivision for each failure zone</param>
 		/// <returns></returns>
-		protected virtual (StrainPlane, FailureIndices)[] CalculateAllDesignStrainPlanes(double teta, (ConcreteSectionSolverULS.FailureIndices, int)[] zoneSubdivision)
+		protected virtual (StrainPlane, FailureIndices)[] CalculateAllDesignStrainPlanes(double teta, (SectionSolverULS.FailureIndices, int)[] zoneSubdivision)
 		{
 			if (zoneSubdivision.Length != 7)
 				throw new ArgumentException("Subdivision must have 6 elements");
@@ -299,7 +299,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 				double Mx = -(deltaMxConcrete + deltaMxRebar);
 				double My = deltaMyConcrete + deltaMyRebar;
 
-				CalculateExternalForces(N, Mx, My, ConcreteSectionSolverOptions.Instance.DistanceFromCentroid, out N, out Mx, out My);
+				CalculateExternalForces(N, Mx, My, SectionSolverOptions.Instance.DistanceFromCentroid, out N, out Mx, out My);
 
 				return new FailureDomain.FailureDomainPoint(N, Mx, My, strainPlane.Item2, strainPlane.Item1);
 			}

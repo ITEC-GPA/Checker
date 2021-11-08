@@ -41,7 +41,7 @@ namespace ConcreteTests
 		protected bool CommonAssert(SLSCheckerResults result, IConcreteSection section, ResultBeamForces forces, StrainPlane strainPlane, StandardModelCode2010 standard, double tolerance = 1e-5)
 		{
 			CalculateAdimensionalForces(section, forces, out double adimExternalAxialForce, out double adimExternalendingMomentX, out double adimExternalBendingMomentY);
-			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
+			SectionSolverSLSModelCode2010 solver = new SectionSolverSLSModelCode2010(section, forces, standard);
 
 			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
 			CalculateAdimensionalForces(section, N, Mx, My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY);
@@ -81,7 +81,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			ResultBeamForces forces = new ResultBeamForces(100 *  1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, CoordinateSystem.Global);
 
-			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
+			SectionSolverSLSModelCode2010 solver = new SectionSolverSLSModelCode2010(section, forces, standard);
 			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
 			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));
@@ -110,7 +110,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			ResultBeamForces forces = new ResultBeamForces(100 * 1000, 0, 0, 0, 0 * 1000000, 10 * 1000000, CoordinateSystem.Global);
 
-			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
+			SectionSolverSLSModelCode2010 solver = new SectionSolverSLSModelCode2010(section, forces, standard);
 			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
 			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));
@@ -143,7 +143,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			ResultBeamForces forces = new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, CoordinateSystem.Global);
 
-			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
+			SectionSolverSLSModelCode2010 solver = new SectionSolverSLSModelCode2010(section, forces, standard);
 			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
 			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));
@@ -172,7 +172,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			ResultBeamForces forces = new ResultBeamForces(100 * 1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, CoordinateSystem.Global);
 
-			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
+			SectionSolverSLSModelCode2010 solver = new SectionSolverSLSModelCode2010(section, forces, standard);
 			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
 			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));
@@ -203,7 +203,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			ResultBeamForces forces = new ResultBeamForces(-100 * 1000, 0, 0, 0, 20 * 1000000, 10 * 1000000, CoordinateSystem.Global);
 
-			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
+			SectionSolverSLSModelCode2010 solver = new SectionSolverSLSModelCode2010(section, forces, standard);
 			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
 			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));
@@ -237,7 +237,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			ResultBeamForces forces = new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, 20 * 1000000, CoordinateSystem.Global);
 
-			ConcreteSectionSolverSLSModelCode2010 solver = new ConcreteSectionSolverSLSModelCode2010(section, forces, standard);
+			SectionSolverSLSModelCode2010 solver = new SectionSolverSLSModelCode2010(section, forces, standard);
 			SLSModelCode2010CheckerResult result = (SLSModelCode2010CheckerResult)solver.PerformSolver();
 
 			Assert.IsTrue(CommonAssert(result, section, forces, result.StrainPlane, standard));

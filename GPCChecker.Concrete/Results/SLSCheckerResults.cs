@@ -48,7 +48,7 @@ namespace GPC.Checkers.Concrete.Results
 
 		public double GetStrain(Point3d point)
 		{
-			return ConcreteSolverHelper.CalculateStrain(StrainPlane, point);
+			return SolverHelper.CalculateStrain(StrainPlane, point);
 		}
 
 		public double[] GetVerticesStrain()

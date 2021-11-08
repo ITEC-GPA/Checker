@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using GPC.Model;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 
-namespace GPC.Checkers.Concrete
+namespace GPC.Checkers.Concrete.Attributes
 {
-    public abstract class CheckerAttribute : Model.ModelObject
+    public abstract class CheckerAttribute : ModelObjectId
     {
         #region Variables
-
+        
         protected readonly IConcreteSection[] _sections;
         protected readonly IElementResult[] _uLSresults;
         protected readonly IElementResult[] _sLSresults;
@@ -26,34 +27,34 @@ namespace GPC.Checkers.Concrete
 
         #endregion
 
-        public CheckerAttribute(IConcreteSection section, IElementResult[] slsElementResults, IElementResult[] ulsElementResults, string name = "")
-            : base(name)
+        public CheckerAttribute(IConcreteSection section, IElementResult[] slsResults, IElementResult[] ulsResults, int id = ModelObjectId.IDUNASSIGNED, string name = "")
+            : base(id, name)
         {
             if (section is null)
             {
                 throw new ArgumentNullException(nameof(section));
             }
 
-            _sLSresults = slsElementResults ?? throw new ArgumentException("Input resultBeamForces can not be null");
-            _uLSresults = ulsElementResults ?? throw new ArgumentException("Input resultBeamForces can not be null");
+            _sLSresults = slsResults ?? throw new ArgumentException("Input resultBeamForces can not be null");
+            _uLSresults = ulsResults ?? throw new ArgumentException("Input resultBeamForces can not be null");
 
-            for (int i = 0; i < slsElementResults.Length; i++)
-                for (int c = 0; c < slsElementResults[i].Results.Length; c++)
-                    if (!(slsElementResults[i].Results[c] is ResultBeamForces))
+            for (int i = 0; i < slsResults.Length; i++)
+                for (int c = 0; c < slsResults[i].Results.Length; c++)
+                    if (!(slsResults[i].Results[c] is ResultBeamForces))
                         throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
 
-            for (int i = 0; i < ulsElementResults.Length; i++)
-                for (int c = 0; c < ulsElementResults[i].Results.Length; c++)
-                    if (!(ulsElementResults[i].Results[c] is ResultBeamForces))
+            for (int i = 0; i < ulsResults.Length; i++)
+                for (int c = 0; c < ulsResults[i].Results.Length; c++)
+                    if (!(ulsResults[i].Results[c] is ResultBeamForces))
                         throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
 
 
-            if (slsElementResults.Select(i => i.Points.Length).Distinct().Count() > 1)
+            if (slsResults.Select(i => i.Points.Length).Distinct().Count() > 1)
             {
                 throw new ArgumentException("Different station number");
             }
 
-            _sections = Enumerable.Repeat(section, slsElementResults.First().Points.Length).ToArray();
+            _sections = Enumerable.Repeat(section, slsResults.First().Points.Length).ToArray();
         }
 
         public CheckerAttribute(IConcreteSection[] sections, IElementResult[] slsElementResults, IElementResult[] ulsElementResults, string name = "")

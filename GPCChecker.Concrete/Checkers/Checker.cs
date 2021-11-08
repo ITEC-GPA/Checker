@@ -10,6 +10,7 @@ using GPC.Model.LoadCases;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
+using GPC.Checkers.Concrete.Attributes;
 
 namespace GPC.Checkers.Concrete.Checkers
 {

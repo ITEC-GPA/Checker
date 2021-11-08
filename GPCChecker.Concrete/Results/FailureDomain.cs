@@ -34,7 +34,7 @@ namespace GPC.Checkers.Concrete.Results
 		public class FailureDomainPoint 
 		{
 			private readonly Point3d _point;
-			private readonly ConcreteSectionSolverULS.FailureIndices _failureIndex;
+			private readonly SectionSolverULS.FailureIndices _failureIndex;
 			private readonly StrainPlane _strainPlane;
 
 			/// <summary>
@@ -66,10 +66,10 @@ namespace GPC.Checkers.Concrete.Results
 			/// 5) Epsilon sup: EpsilonConcrete = EpsilonCu /// Epsilon inf: EpsilonSteel = 0 -> EpsilonConcrete = 0
 			/// 6) Epsilon sup: EpsilonConcrete = EpsilonCy /// Epsilon inf: EpsilonConcrete = EpsilonCy
 			/// </summary>
-			public ConcreteSectionSolverULS.FailureIndices FailureIndex => _failureIndex;
+			public SectionSolverULS.FailureIndices FailureIndex => _failureIndex;
 
 
-			internal FailureDomainPoint(double nRd, double mxRd, double myRd, ConcreteSectionSolverULS.FailureIndices failureIndex, StrainPlane strainPlane)
+			internal FailureDomainPoint(double nRd, double mxRd, double myRd, SectionSolverULS.FailureIndices failureIndex, StrainPlane strainPlane)
 			{
 				_point = new Point3d(mxRd, myRd, nRd);
 				_failureIndex = failureIndex;
@@ -80,14 +80,14 @@ namespace GPC.Checkers.Concrete.Results
 			{
 				_point = (Point3d)info.GetValue("Point", typeof(Point3d));
 				_strainPlane = (StrainPlane)info.GetValue("StrainPlane", typeof(StrainPlane));
-				_failureIndex = (ConcreteSectionSolverULS.FailureIndices)info.GetValue("FailureIndex", typeof(ConcreteSectionSolverULS.FailureIndices));
+				_failureIndex = (SectionSolverULS.FailureIndices)info.GetValue("FailureIndex", typeof(SectionSolverULS.FailureIndices));
 			}
 
 			public void GetObjectData(SerializationInfo info, StreamingContext context)
 			{
 				info.AddValue("Point", _point, typeof(Point3d));
 				info.AddValue("StrainPlane", _strainPlane, typeof(StrainPlane));
-				info.AddValue("FailureIndex", _failureIndex, typeof(ConcreteSectionSolverULS.FailureIndices));
+				info.AddValue("FailureIndex", _failureIndex, typeof(SectionSolverULS.FailureIndices));
 			}
 		}
 	}
