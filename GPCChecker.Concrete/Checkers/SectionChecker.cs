@@ -26,20 +26,11 @@ namespace GPC.Checkers.Concrete.Checkers
 
         }
 
-        public override void PerformCheck()
-        {
-            throw new NotImplementedException();
-        }
+        public override abstract void PerformCheck();
 
-        public override void SLSPerformCheck()
-        {
-            throw new NotImplementedException();
-        }
+        public override abstract void ULSPerformCheck();
 
-        public override void ULSPerformCheck()
-        {
-
-        }
+        public override abstract void SLSPerformCheck();
 
 
         public abstract class SectionCheckerOptions : Options

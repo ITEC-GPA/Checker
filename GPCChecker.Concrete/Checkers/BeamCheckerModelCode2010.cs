@@ -29,6 +29,7 @@ namespace GPC.Checkers.Concrete.Checkers
         public BeamCheckerModelCode2010(BeamCheckerAttributes attributes, ModelCode2010Options options, StandardModelCode2010 standard)
             : base(attributes, options, standard)
         {
+
         }
 
 

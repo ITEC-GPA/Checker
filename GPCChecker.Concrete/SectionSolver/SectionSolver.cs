@@ -262,12 +262,20 @@ namespace GPC.Checkers.Concrete.SectionSolver
 
 		protected virtual void CalculateAdimensionalForces(ResultBeamForces forces,out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
 		{
-			SolverHelper.CalculateAdimensionalForces(ConcreteSection, forces, out adimAxialForce, out adimBendingMomentX, out adimBendingMomentY);
+			CalculateAdimensionalForces(forces.N, forces.M1, forces.M2, out adimAxialForce, out adimBendingMomentX, out adimBendingMomentY);
 		}
 
 		protected virtual void CalculateAdimensionalForces(double N, double Mx, double My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
 		{
-			SolverHelper.CalculateAdimensionalForces(ConcreteSection, N, Mx, My, out adimAxialForce, out adimBendingMomentX, out adimBendingMomentY);
+			BoundingBox3d bBox = ConcreteSection.Shape.GetBoundingBox();
+			double h = bBox.Size.Y;
+			double b = bBox.Size.X;
+
+			double area = ConcreteSection.Area;
+
+			adimAxialForce = N / (area * ConcreteSection.ConcreteMaterial.Fck);
+			adimBendingMomentX = Mx / (area * h * ConcreteSection.ConcreteMaterial.Fck);
+			adimBendingMomentY = My / (b * area * ConcreteSection.ConcreteMaterial.Fck);
 		}
 
 		protected virtual ResultBeamForces CalculateExternalForces(ResultBeamForces forces, Point3d distanceFromCentroid)
