@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using GPC.Model.Standards;
-using GPC.Model.LoadCases;
-using GPC.Model.Sections.Steel;
-using GPC.Model.Sections;
-using GPC.Model.Combinations;
-using System.Runtime.Serialization;
 using GPC.Checkers.Concrete.Results;
+using GPC.Model.Combinations;
+using GPC.Model.LoadCases;
+using GPC.Model.Sections;
+using GPC.Model.Sections.Steel;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
@@ -55,7 +55,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public Checker(CheckerAttribute checkerAttribute, Options options, Standard standard, int id, string name = "")
             : base(id, name)
-        {            
+        {
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
@@ -88,7 +88,7 @@ namespace GPC.Checkers.Concrete.Checkers
         public List<string> GetErrorLog()
         {
             return _errorLog;
-        }  
+        }
 
         protected double GetWorkingRatio(double force, double capacity)
         {
@@ -131,7 +131,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
             public Options()
             {
-                
+
             }
 
         }

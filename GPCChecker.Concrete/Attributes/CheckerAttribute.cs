@@ -1,18 +1,18 @@
-﻿using GPC.Model.Results;
-using GPC.Model.Sections.Concrete;
-using System;
+﻿using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using GPC.Model.Results;
+using GPC.Model.Sections.Concrete;
 
 namespace GPC.Checkers.Concrete
 {
-	public abstract class CheckerAttribute : Model.ModelObject
-	{
-		#region Variables
+    public abstract class CheckerAttribute : Model.ModelObject
+    {
+        #region Variables
 
-		protected readonly IConcreteSection[] _sections;
-		protected readonly IElementResult[] _uLSresults;
-		protected readonly IElementResult[] _sLSresults;
+        protected readonly IConcreteSection[] _sections;
+        protected readonly IElementResult[] _uLSresults;
+        protected readonly IElementResult[] _sLSresults;
 
         #endregion
 
@@ -20,9 +20,9 @@ namespace GPC.Checkers.Concrete
 
         public IConcreteSection[] Sections => _sections;
 
-		public IElementResult[] ULSResults => _uLSresults;
+        public IElementResult[] ULSResults => _uLSresults;
 
-		public IElementResult[] SLSResults => _sLSresults;
+        public IElementResult[] SLSResults => _sLSresults;
 
         #endregion
 
@@ -103,9 +103,9 @@ namespace GPC.Checkers.Concrete
                 return true;
 
             return (obj is CheckerAttribute objCasted) && _sections.SequenceEqual(objCasted.Sections)
-                                                            && _sLSresults.SequenceEqual(objCasted.SLSResults)
-                                                            && _uLSresults.SequenceEqual(objCasted.ULSResults)
-                                                            && base.Equals(objCasted);
+                                                       && _sLSresults.SequenceEqual(objCasted.SLSResults)
+                                                       && _uLSresults.SequenceEqual(objCasted.ULSResults)
+                                                       && base.Equals(objCasted);
         }
 
         public override int GetHashCode()
@@ -115,10 +115,10 @@ namespace GPC.Checkers.Concrete
                 int hashCode = 23;
                 hashCode = hashCode * -17 + base.GetHashCode();
 
-                for (int i = 0; i < _sections.Length; i++)                
-                    hashCode = hashCode * -17 + _sections[i].GetHashCode();                
+                for (int i = 0; i < _sections.Length; i++)
+                    hashCode = hashCode * -17 + _sections[i].GetHashCode();
 
-                for (int i = 0; i < _sLSresults.Length; i++)                
+                for (int i = 0; i < _sLSresults.Length; i++)
                     hashCode = hashCode * -17 + _sLSresults[i].GetHashCode();
 
                 for (int i = 0; i < _uLSresults.Length; i++)

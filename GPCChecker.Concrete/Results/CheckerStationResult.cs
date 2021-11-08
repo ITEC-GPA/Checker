@@ -1,15 +1,15 @@
 ﻿using System;
-using GPC.Model.Results;
-using GPC.Model.Standards;
-using GPC.Model.LoadCases;
 using System.Runtime.Serialization;
+using GPC.Model.LoadCases;
+using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Results
 {
-	[Serializable]
-	public abstract class CheckerStationResult : Model.ModelObjectId, ISerializable
-	{
+    [Serializable]
+    public abstract class CheckerStationResult : Model.ModelObjectId, ISerializable
+    {
         #region Variables
 
         protected readonly IConcreteSection _section;
@@ -20,7 +20,7 @@ namespace GPC.Checkers.Concrete.Results
         protected readonly SLSCheckerResults[] _sLSCheckerResults;
 
         protected readonly Standard _standard;
-        
+
         #endregion
 
         #region Properties
@@ -66,7 +66,7 @@ namespace GPC.Checkers.Concrete.Results
 
         internal CheckerStationResult(IConcreteSection section, IResultLocation station, ResultType[] forces, ILoadCase[] Case, Standard standard,
             ULSCheckerResults uLSCheckerResults, SLSCheckerResults[] sLSCheckerResults, string name = "", int id = IDUNASSIGNED)
-            :base(id, name)
+            : base(id, name)
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
             _location = station ?? throw new ArgumentNullException(nameof(station));
@@ -77,7 +77,7 @@ namespace GPC.Checkers.Concrete.Results
             _sLSCheckerResults = sLSCheckerResults ?? throw new ArgumentNullException(nameof(sLSCheckerResults));
         }
 
-        internal CheckerStationResult(SerializationInfo info, StreamingContext context) 
+        internal CheckerStationResult(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             _section = (IConcreteSection)info.GetValue("Section", typeof(IConcreteSection));
@@ -86,8 +86,8 @@ namespace GPC.Checkers.Concrete.Results
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
             _forces = (ResultType[])info.GetValue("Forces", typeof(ResultType[]));
             _uLSCheckerResult = (ULSCheckerResults)info.GetValue("ULSCheckerResults", typeof(ULSCheckerResults));
-            _sLSCheckerResults = (SLSCheckerResults[])info.GetValue("SLSCheckerResults", typeof(ULSCheckerResults));        
-            
+            _sLSCheckerResults = (SLSCheckerResults[])info.GetValue("SLSCheckerResults", typeof(ULSCheckerResults));
+
         }
 
         #endregion
@@ -106,9 +106,9 @@ namespace GPC.Checkers.Concrete.Results
             info.AddValue("Section", _section, typeof(IConcreteSection));
             info.AddValue("ResultStation", _location, typeof(IResultLocation));
             info.AddValue("ILoadCase", _case, typeof(ILoadCase));
-            info.AddValue("Standard", _standard, typeof(Standard));            
-            info.AddValue("Forces", _forces, typeof(ResultType[]));            
-            info.AddValue("ULSCheckerResults", _uLSCheckerResult, typeof(ULSCheckerResults));            
+            info.AddValue("Standard", _standard, typeof(Standard));
+            info.AddValue("Forces", _forces, typeof(ResultType[]));
+            info.AddValue("ULSCheckerResults", _uLSCheckerResult, typeof(ULSCheckerResults));
             info.AddValue("SLSCheckerResults", _sLSCheckerResults, typeof(ULSCheckerResults));
         }
 
@@ -120,9 +120,9 @@ namespace GPC.Checkers.Concrete.Results
             return (obj is BeamStationResults objCasted) && _section.Equals(objCasted._section)
                                                          && _location.Equals(objCasted._location)
                                                          && _case.Equals(objCasted._case)
-                                                         && _standard.Equals(objCasted._case)                                                         
-                                                         && _forces.Equals(objCasted._forces)                                                         
-                                                         && _uLSCheckerResult.Equals(objCasted._uLSCheckerResult)                                                         
+                                                         && _standard.Equals(objCasted._case)
+                                                         && _forces.Equals(objCasted._forces)
+                                                         && _uLSCheckerResult.Equals(objCasted._uLSCheckerResult)
                                                          && _sLSCheckerResults.Equals(objCasted._sLSCheckerResults)
                                                          && base.Equals(objCasted);
         }
@@ -136,9 +136,9 @@ namespace GPC.Checkers.Concrete.Results
                 hashCode = hashCode * -17 + _section.GetHashCode();
                 hashCode = hashCode * -17 + _location.GetHashCode();
                 hashCode = hashCode * -17 + _case.GetHashCode();
-                hashCode = hashCode * -17 + _standard.GetHashCode();                
-                hashCode = hashCode * -17 + _uLSCheckerResult.GetHashCode();                
-                hashCode = hashCode * -17 + _sLSCheckerResults.GetHashCode();                
+                hashCode = hashCode * -17 + _standard.GetHashCode();
+                hashCode = hashCode * -17 + _uLSCheckerResult.GetHashCode();
+                hashCode = hashCode * -17 + _sLSCheckerResults.GetHashCode();
                 hashCode = hashCode * -17 + _forces.GetHashCode();
 
                 return hashCode;

@@ -13,10 +13,14 @@ using GPC.Checkers.Concrete.Results;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
+
+
+#if DEBUG
+
     /// <summary>
     /// The purpose of this class is to perform a check of a single beam between all the ILoadCases
     /// </summary>
-    
+
     [Serializable]
     public abstract class PlateChecker : Checker, ISerializable
     {
@@ -24,7 +28,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public PlateCheckerAttributes PlateCheckerAttribute => (PlateCheckerAttributes)_checkerAttributes;
 
-        public PlateStationResults[] PlateStationResult => (PlateStationResults[])_checkerStationResult; 
+        public PlateStationResults[] PlateStationResult => (PlateStationResults[])_checkerStationResult;
 
         public PlateCheckerOptions PlateCheckerOption => (PlateCheckerOptions)_options;
 
@@ -44,7 +48,7 @@ namespace GPC.Checkers.Concrete.Checkers
             _errorLog = new List<string>();
         }
 
-        public PlateChecker(PlateCheckerAttributes plateCheckerAttributes, PlateCheckerOptions options, Standard standard, int id, string name = "") 
+        public PlateChecker(PlateCheckerAttributes plateCheckerAttributes, PlateCheckerOptions options, Standard standard, int id, string name = "")
             : base(plateCheckerAttributes, options, standard, id, name)
         {
 
@@ -52,7 +56,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         protected PlateChecker(SerializationInfo info, StreamingContext context) : base(info, context)
         {
-            
+
         }
 
 
@@ -62,9 +66,9 @@ namespace GPC.Checkers.Concrete.Checkers
         #region Public abstract method
 
         public override void PerformCheck()
-		{
+        {
             throw new Exception();
-		}
+        }
 
         #endregion
 
@@ -101,9 +105,10 @@ namespace GPC.Checkers.Concrete.Checkers
         {
             public PlateCheckerOptions()
             {
-                
+
             }
 
         }
-    }
+    } 
+#endif
 }
