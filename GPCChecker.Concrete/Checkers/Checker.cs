@@ -4,13 +4,13 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Results;
 using GPC.Model.Combinations;
 using GPC.Model.LoadCases;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
-using GPC.Checkers.Concrete.Attributes;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
@@ -96,12 +96,19 @@ namespace GPC.Checkers.Concrete.Checkers
             double result = Math.Abs(force / capacity);
 
             if (Math.Abs(capacity) < 0.01)
+            {
                 throw new ArgumentException("Capacity can not be null");
+            }
 
             if (Math.Abs(force) < 0.001)
+            {
                 return 0.001;
+            }
+
             if (result < 0.001)
+            {
                 return 0.001;
+            }
 
             return result;
         }
