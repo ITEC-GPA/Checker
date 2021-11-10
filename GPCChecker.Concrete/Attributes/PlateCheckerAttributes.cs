@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.Serialization;
 using GPC.Model;
 using GPC.Model.Results;
@@ -23,17 +24,12 @@ namespace GPC.Checkers.Concrete.Attributes
         #endregion
 
 
-        public PlateCheckerAttributes(IConcreteSection section, PlateResult[] slsBeamResults, PlateResult[] ulsBeamResults, string name = "")
-            : base(section, slsBeamResults, ulsBeamResults, ModelObjectId.IDUNASSIGNED, name)
+        public PlateCheckerAttributes(IConcreteSection section, PlateResult[] slsPlateResults, PlateResult[] ulsPlateResults, string name = "")
+            : base(Enumerable.Repeat(section, slsPlateResults.First().ResultLocations.Length).ToArray(), slsPlateResults, ulsPlateResults, ModelObjectId.IDUNASSIGNED, name)
         {
 
         }
 
-        public PlateCheckerAttributes(IConcreteSection[] sections, PlateResult[] slsBeamResults, PlateResult[] ulsBeamResults, string name = "")
-            : base(sections, slsBeamResults, ulsBeamResults, name)
-        {
-
-        }
 
         public PlateCheckerAttributes(SerializationInfo info, StreamingContext context)
             : base(info, context)
@@ -58,10 +54,7 @@ namespace GPC.Checkers.Concrete.Attributes
         {
             unchecked
             {
-                int hashCode = 23;
-                hashCode = hashCode * -17 + base.GetHashCode();
-
-                return hashCode;
+                return -17 * base.GetHashCode();
             }
         }
     }

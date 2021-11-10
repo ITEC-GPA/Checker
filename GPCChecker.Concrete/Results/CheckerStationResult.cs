@@ -13,7 +13,7 @@ namespace GPC.Checkers.Concrete.Results
         #region Variables
 
         protected readonly IConcreteSection _section;
-        protected readonly IResultLocation _location;
+        protected readonly ResultLocation _location;
         protected readonly ILoadCase[] _case;
         protected readonly ResultType[] _forces;
         protected readonly ULSCheckerResults _uLSCheckerResult;
@@ -64,7 +64,7 @@ namespace GPC.Checkers.Concrete.Results
 
         #region Constructor
 
-        internal CheckerStationResult(IConcreteSection section, IResultLocation station, ResultType[] forces, ILoadCase[] Case, Standard standard,
+        internal CheckerStationResult(IConcreteSection section, ResultLocationStation station, ResultType[] forces, ILoadCase[] Case, Standard standard,
             ULSCheckerResults uLSCheckerResults, SLSCheckerResults[] sLSCheckerResults, string name = "", int id = IDUNASSIGNED)
             : base(id, name)
         {
