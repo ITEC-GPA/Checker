@@ -73,15 +73,8 @@
     <Compile Include="Checkers\BeamChecker.cs" />
     <Compile Include="Checkers\ModelCode2010BeamChecker.cs" />
     <Compile Include="Attributes\PlateCheckerAttributes.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolver.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverOptions.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverSLS.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverSLSModelCode2010.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSolverHelper.cs" />
     <Compile Include="OldCheckerCode\RCCheckingSection.cs" />
     <Compile Include="OldCheckerCode\RCSection.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverULS.cs" />
-    <Compile Include="ConcreteCheckerSolver\ConcreteSectionSolverULSModelCode2010.cs" />
     <Compile Include="OldCheckerCode\RCChecker.cs" />
     <Compile Include="OldCheckerCode\RCChecker.Viviani.cs" />
     <Compile Include="OldCheckerCode\RCFailureDomain.cs" />
@@ -97,6 +90,13 @@
     <Compile Include="Results\SLSModelCode2010CheckerResult.cs" />
     <Compile Include="Results\StrainPlane.cs" />
     <Compile Include="Results\ULSCheckerResults.cs" />
+    <Compile Include="SectionSolver\SectionSolver.cs" />
+    <Compile Include="SectionSolver\SectionSolverOptions.cs" />
+    <Compile Include="SectionSolver\SectionSolverSLS.cs" />
+    <Compile Include="SectionSolver\SectionSolverSLSModelCode2010.cs" />
+    <Compile Include="SectionSolver\SectionSolverULS.cs" />
+    <Compile Include="SectionSolver\SectionSolverULSModelCode2010.cs" />
+    <Compile Include="SectionSolver\SolverHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GPCChecker.Common\GPCChecker.Common.csproj">
@@ -110,6 +110,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NewFolder1\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets')" />
