@@ -26,6 +26,7 @@ namespace GPC.Checkers.Concrete.Checkers
         #endregion
 
 
+
         public PlateCheckerModelCode2010(PlateCheckerAttributes attributes, EN1992p11Options options, StandardEN1992p11 standardEN1992P11)
             : base(attributes, options, standardEN1992P11)
         {
