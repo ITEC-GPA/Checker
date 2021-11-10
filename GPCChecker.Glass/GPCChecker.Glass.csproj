@@ -54,8 +54,8 @@
     <Reference Include="GPCModel, Version=0.1.0.29, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCModel.0.1.0.29\lib\net472\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="GPCUtilities, Version=1.0.31.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCUtilities.1.0.31\lib\net472\GPCUtilities.dll</HintPath>
+    <Reference Include="GPCUtilities, Version=1.0.31.2, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCUtilities.1.0.31.2\lib\net472\GPCUtilities.dll</HintPath>
     </Reference>
     <Reference Include="SAP2000v1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=453d728ef24c6f5e, processorArchitecture=MSIL">
       <HintPath>..\packages\CSI_SAP2000v23_x64.1.0.0\lib\SAP2000v1.dll</HintPath>
