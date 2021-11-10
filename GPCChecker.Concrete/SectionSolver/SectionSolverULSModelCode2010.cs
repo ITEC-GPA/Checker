@@ -9,7 +9,7 @@ using GPC.Model.Materials;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 
-namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
+namespace GPC.Checkers.Concrete.SectionSolvers
 {
 	public class SectionSolverULSModelCode2010 : SectionSolverULS
 	{

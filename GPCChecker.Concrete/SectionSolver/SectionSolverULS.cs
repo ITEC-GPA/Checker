@@ -14,7 +14,7 @@ using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 using MathNet.Numerics.LinearAlgebra;
 
-namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
+namespace GPC.Checkers.Concrete.SectionSolvers
 {
 	public abstract class SectionSolverULS : SectionSolver
 	{
