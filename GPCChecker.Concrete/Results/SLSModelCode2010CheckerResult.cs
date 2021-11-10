@@ -1,4 +1,4 @@
-using GPC.Checkers.Concrete.SectionSolver;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;

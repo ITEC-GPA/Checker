@@ -5,7 +5,7 @@ using GPC.Model.Sections.Rebar;
 using GPC.Geometry;
 using GPC.Model.Materials;
 using GPC.Model.Sections;
-using GPC.Checkers.Concrete.SectionSolver;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Checkers.Concrete.Results;
 using System.Collections.Generic;
 using GPC.Model.Standards;

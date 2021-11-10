@@ -1,6 +1,6 @@
 ﻿using GPC.Geometry;
 
-namespace GPC.Checkers.Concrete.SectionSolver
+namespace GPC.Checkers.Concrete.SectionSolvers
 {
     // https://csharpindepth.com/articles/singleton
 
@@ -51,16 +51,15 @@ namespace GPC.Checkers.Concrete.SectionSolver
         public int GaussIntegrationTriMidPoints { get; set; }
         public int GaussIntegrationTriHighPoints { get; set; }
 
-        private ConcreteSectionSolverOptions()
+        private SectionSolverOptions()
         {
             AxialForceDiscretizations = new (SectionSolverULS.FailureIndices, int)[] { (SectionSolverULS.FailureIndices.Iz1, 1),
-                                                                                       (SectionSolverULS.FailureIndices.Iz2, 1),
-                                                                                       (SectionSolverULS.FailureIndices.Iz3, 1),
-                                                                                       (SectionSolverULS.FailureIndices.Iz4, 30),
-                                                                                       (SectionSolverULS.FailureIndices.Iz5, 2),
-                                                                                       (SectionSolverULS.FailureIndices.Iz6, 1),
-                                                                                       (SectionSolverULS.FailureIndices.Iz7, 4) 
-            };
+                                                                                               (SectionSolverULS.FailureIndices.Iz2, 1),
+                                                                                               (SectionSolverULS.FailureIndices.Iz3, 1),
+                                                                                               (SectionSolverULS.FailureIndices.Iz4, 30),
+                                                                                               (SectionSolverULS.FailureIndices.Iz5, 2),
+                                                                                               (SectionSolverULS.FailureIndices.Iz6, 1),
+                                                                                               (SectionSolverULS.FailureIndices.Iz7, 4) };
 
             MomentsDiscretizations = 32;
 
