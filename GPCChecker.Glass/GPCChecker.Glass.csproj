@@ -39,9 +39,8 @@
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GMsh.Net, Version=1.0.0.484, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GMsh.Net.1.0.0.484\lib\net472\GMsh.Net.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="GMsh.Net, Version=1.0.484.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GMsh.Net.1.0.484.1\lib\net472\GMsh.Net.dll</HintPath>
     </Reference>
     <Reference Include="GPCConverters.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCConverters.Straus7.1.0.0.6\lib\net472\GPCConverters.Common.dll</HintPath>
@@ -49,9 +48,8 @@
     <Reference Include="GPCConverters.Straus7, Version=1.0.0.6, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCConverters.Straus7.1.0.0.6\lib\net472\GPCConverters.Straus7.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=1.1.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCGeometry.1.1.0\lib\net472\GPCGeometry.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="GPCGeometry, Version=1.1.0.2, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCGeometry.1.1.0.2\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
     <Reference Include="GPCModel, Version=0.1.0.29, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCModel.0.1.0.29\lib\net472\GPCModel.dll</HintPath>
@@ -144,8 +142,8 @@ If "$(ConfigurationName)"=="Release" (
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets'))" />
-    <Error Condition="!Exists('..\packages\GMsh.Net.1.0.0.484\build\GMsh.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GMsh.Net.1.0.0.484\build\GMsh.Net.targets'))" />
+    <Error Condition="!Exists('..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets'))" />
   </Target>
   <Import Project="..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets" Condition="Exists('..\packages\MathNet.Numerics.MKL.Win-x64.2.5.0\build\MathNet.Numerics.MKL.Win-x64.targets')" />
-  <Import Project="..\packages\GMsh.Net.1.0.0.484\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.0.484\build\GMsh.Net.targets')" />
+  <Import Project="..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets')" />
 </Project>
