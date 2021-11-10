@@ -113,12 +113,6 @@
     <Compile Include="Wrappers\TripleInsulatingGlassWrapper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GPCChecker.Common\GPCChecker.Common.csproj">
-      <Project>{468983dc-5288-4a32-ba38-b06fb247a1b8}</Project>
-      <Name>GPCChecker.Common</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

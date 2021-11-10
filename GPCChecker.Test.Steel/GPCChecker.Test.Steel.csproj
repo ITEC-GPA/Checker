@@ -86,10 +86,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GPCChecker.Common\GPCChecker.Common.csproj">
-      <Project>{468983dc-5288-4a32-ba38-b06fb247a1b8}</Project>
-      <Name>GPCChecker.Common</Name>
-    </ProjectReference>
     <ProjectReference Include="..\GPCChecker.Steel\GPCChecker.Steel.csproj">
       <Project>{ea309df3-9824-4c30-9301-5e97c097fcac}</Project>
       <Name>GPCChecker.Steel</Name>

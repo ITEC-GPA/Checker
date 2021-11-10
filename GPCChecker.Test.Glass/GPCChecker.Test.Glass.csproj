@@ -103,10 +103,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GPCChecker.Common\GPCChecker.Common.csproj">
-      <Project>{468983DC-5288-4A32-BA38-B06FB247A1B8}</Project>
-      <Name>GPCChecker.Common</Name>
-    </ProjectReference>
     <ProjectReference Include="..\GPCChecker.Glass\GPCChecker.Glass.csproj">
       <Project>{19977875-dc88-47e0-92c9-d9ace7ce4f3d}</Project>
       <Name>GPCChecker.Glass</Name>

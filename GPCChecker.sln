@@ -1,10 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30517.126
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.Common", "GPCChecker.Common\GPCChecker.Common.csproj", "{468983DC-5288-4A32-BA38-B06FB247A1B8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.Steel", "GPCChecker.Steel\GPCChecker.Steel.csproj", "{EA309DF3-9824-4C30-9301-5E97C097FCAC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.Glass", "GPCChecker.Glass\GPCChecker.Glass.csproj", "{19977875-DC88-47E0-92C9-D9ACE7CE4F3D}"
@@ -25,14 +23,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{468983DC-5288-4A32-BA38-B06FB247A1B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{468983DC-5288-4A32-BA38-B06FB247A1B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{468983DC-5288-4A32-BA38-B06FB247A1B8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{468983DC-5288-4A32-BA38-B06FB247A1B8}.Debug|x64.Build.0 = Debug|Any CPU
-		{468983DC-5288-4A32-BA38-B06FB247A1B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{468983DC-5288-4A32-BA38-B06FB247A1B8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{468983DC-5288-4A32-BA38-B06FB247A1B8}.Release|x64.ActiveCfg = Release|Any CPU
-		{468983DC-5288-4A32-BA38-B06FB247A1B8}.Release|x64.Build.0 = Release|Any CPU
 		{EA309DF3-9824-4C30-9301-5E97C097FCAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EA309DF3-9824-4C30-9301-5E97C097FCAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA309DF3-9824-4C30-9301-5E97C097FCAC}.Debug|x64.ActiveCfg = Debug|Any CPU
