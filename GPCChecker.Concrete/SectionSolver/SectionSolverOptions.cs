@@ -7,13 +7,13 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
     /// <summary>
     /// This is a singleton class that collects options related to the concrete section solver
     /// </summary>
-    public sealed class ConcreteSectionSolverOptions
+    public sealed class SectionSolverOptions
     {
         #region Singleton setup
 
-        private static readonly ConcreteSectionSolverOptions instance = new ConcreteSectionSolverOptions();
+        private static readonly SectionSolverOptions instance = new SectionSolverOptions();
 
-        public static ConcreteSectionSolverOptions Instance
+        public static SectionSolverOptions Instance
         {
             get
             {
@@ -21,7 +21,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
             }
         }
 
-        static ConcreteSectionSolverOptions()
+        static SectionSolverOptions()
         {
 
         }
@@ -31,7 +31,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
         /// <summary>
         /// Rapresent the discretization of the axial force in the solver
         /// </summary>
-        public (ConcreteSectionSolverULS.FailureIndices, int)[] AxialForceDiscretizations { get; set; }
+        public (SectionSolverULS.FailureIndices, int)[] AxialForceDiscretizations { get; set; }
 
         /// <summary>
         /// Rapresent the discretization of the moments around the axial force axis
@@ -51,15 +51,15 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
         public int GaussIntegrationTriMidPoints { get; set; }
         public int GaussIntegrationTriHighPoints { get; set; }
 
-        private ConcreteSectionSolverOptions()
+        private SectionSolverOptions()
         {
-            AxialForceDiscretizations = new (ConcreteSectionSolverULS.FailureIndices, int)[] { (ConcreteSectionSolverULS.FailureIndices.Iz1, 1),
-                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz2, 1),
-                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz3, 1),
-                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz4, 30),
-                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz5, 2),
-                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz6, 1),
-                                                                                               (ConcreteSectionSolverULS.FailureIndices.Iz7, 4) };
+            AxialForceDiscretizations = new (SectionSolverULS.FailureIndices, int)[] { (SectionSolverULS.FailureIndices.Iz1, 1),
+                                                                                               (SectionSolverULS.FailureIndices.Iz2, 1),
+                                                                                               (SectionSolverULS.FailureIndices.Iz3, 1),
+                                                                                               (SectionSolverULS.FailureIndices.Iz4, 30),
+                                                                                               (SectionSolverULS.FailureIndices.Iz5, 2),
+                                                                                               (SectionSolverULS.FailureIndices.Iz6, 1),
+                                                                                               (SectionSolverULS.FailureIndices.Iz7, 4) };
 
             MomentsDiscretizations = 32;
 

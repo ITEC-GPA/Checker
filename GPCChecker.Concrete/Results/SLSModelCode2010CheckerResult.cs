@@ -23,19 +23,19 @@ namespace GPC.Checkers.Concrete.Results
 		public override double GetConcreteTension(Point3d point)
 		{
 			double strain = GetStrain(point);
-			double Fcd = ConcreteSolverHelper.CalculateFcd(ConcreteSection, ModelCode2010);
-			return ConcreteSolverHelper.CalculateSigmaC(strain, Fcd, ConcreteSection);
+			double Fcd = SolverHelper.CalculateFcd(ConcreteSection, ModelCode2010);
+			return SolverHelper.CalculateSigmaC(strain, Fcd, ConcreteSection);
 		}
 
 		public override double[] GetVerticesTension()
 		{
-			double Fcd = ConcreteSolverHelper.CalculateFcd(ConcreteSection, ModelCode2010);
+			double Fcd = SolverHelper.CalculateFcd(ConcreteSection, ModelCode2010);
 
 			double[] strains = GetVerticesStrain();
 			double[] tensions = new double[strains.Length];
 
 			for (int i = 0; i < strains.Length; i++)
-				tensions[i] = ConcreteSolverHelper.CalculateSigmaC(strains[i], Fcd, ConcreteSection);
+				tensions[i] = SolverHelper.CalculateSigmaC(strains[i], Fcd, ConcreteSection);
 
 			return tensions;
 		}

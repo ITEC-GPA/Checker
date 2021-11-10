@@ -16,7 +16,7 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 {
-	public abstract class ConcreteSectionSolverULS : ConcreteSectionSolver
+	public abstract class SectionSolverULS : SectionSolver
 	{
 		public enum FailureIndices
 		{
@@ -32,13 +32,13 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		#region Public Constructor
 
-		public ConcreteSectionSolverULS(IConcreteSection section, Standard standard)
+		public SectionSolverULS(IConcreteSection section, Standard standard)
 			:base(section, standard)
 		{
 
 		}
 
-		public ConcreteSectionSolverULS(SerializationInfo info, StreamingContext context)
+		public SectionSolverULS(SerializationInfo info, StreamingContext context)
 			:base(info, context)
 		{
 			
@@ -53,12 +53,12 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		/// </summary>
 		public FailureDomain CalculateFailureDomain()
 		{
-			return CalculateFailureDomain(ConcreteSectionSolverOptions.Instance.MomentsDiscretizations, ConcreteSectionSolverOptions.Instance.AxialForceDiscretizations);
+			return CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations, SectionSolverOptions.Instance.AxialForceDiscretizations);
 		}
 
 		public virtual double CalculateSafetyFactor(ResultBeamForces forces, out FailureDomain.FailureDomainPoint pointOnDomain)
 		{
-			return CalculateSafetyFactor(forces, out pointOnDomain, ConcreteSectionSolverOptions.Instance.ULSconvergenceTolerance);
+			return CalculateSafetyFactor(forces, out pointOnDomain, SectionSolverOptions.Instance.ULSconvergenceTolerance);
 		}
 
 		#region Protected Method
@@ -69,7 +69,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		/// <param name="momentsDiscretizations">Number of discretizations of X-axis and Y-axis (moment around Z-axis)</param>
 		/// <param name="normalDiscretizations">Number of discretizations of Z-axis (axial force)</param>
 		/// <returns></returns>
-		protected virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, (ConcreteSectionSolverULS.FailureIndices, int)[] normalDiscretizations)
+		protected virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, (SectionSolverULS.FailureIndices, int)[] normalDiscretizations)
 		{
 			if (momentsDiscretizations < 2 || normalDiscretizations.Select(i => i.Item2).Sum() < 7)
 				throw new ArgumentException();
@@ -110,7 +110,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		/// <param name="teta">The angle of rotation of the axis</param>
 		/// <param name="zoneSubdivision">Number of subdivision for each failure zone</param>
 		/// <returns></returns>
-		protected virtual (StrainPlane, FailureIndices)[] CalculateAllDesignStrainPlanes(double teta, (ConcreteSectionSolverULS.FailureIndices, int)[] zoneSubdivision)
+		protected virtual (StrainPlane, FailureIndices)[] CalculateAllDesignStrainPlanes(double teta, (SectionSolverULS.FailureIndices, int)[] zoneSubdivision)
 		{
 			if (zoneSubdivision.Length != 7)
 				throw new ArgumentException("Subdivision must have 6 elements");
@@ -306,7 +306,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 				double Mx = -(deltaMxConcrete + deltaMxRebar);
 				double My = deltaMyConcrete + deltaMyRebar;
 
-				CalculateExternalForces(N, Mx, My, ConcreteSectionSolverOptions.Instance.DistanceFromCentroid, out N, out Mx, out My);
+				CalculateExternalForces(N, Mx, My, SectionSolverOptions.Instance.DistanceFromCentroid, out N, out Mx, out My);
 
 				return new FailureDomain.FailureDomainPoint(N, Mx, My, strainPlane.Item2, strainPlane.Item1);
 			}
@@ -319,7 +319,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		protected virtual double CalculateSafetyFactor(ResultBeamForces forces, out FailureDomain.FailureDomainPoint pointOnDomain, double angularTolerance = 0.001)
 		{
-			forces = CalculateExternalForces(forces, ConcreteSectionSolverOptions.Instance.DistanceFromCentroid);
+			forces = CalculateExternalForces(forces, SectionSolverOptions.Instance.DistanceFromCentroid);
 			//CalculateAdimensionalForces(forces, out double adimExternalAxialForce, out double adimExternalendingMomentX, out double adimExternalBendingMomentY);
 
 			// piano di primo tentativo. campo di rottura 7, immersione di 0.9 e ruotato di teta = 0;
@@ -557,12 +557,12 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 			deltaImmersione = results[1, 0] / 2.0;
 		}
 
-		protected virtual StrainPlane CalculateStrainPlane(double teta, ConcreteSectionSolverULS.FailureIndices failureIndex, double immersioneNelCampo, int id = -1)
+		protected virtual StrainPlane CalculateStrainPlane(double teta, SectionSolverULS.FailureIndices failureIndex, double immersioneNelCampo, int id = -1)
 		{
 			if (immersioneNelCampo > 1.0 || immersioneNelCampo < 0.0)
 				throw new ArgumentException("ImmersioneNelCampo cannot be greater than 1 and less than 0");
 
-			ConcreteSolverHelper.CalculateRelativeDistance(ConcreteSection, teta, out int dMinRebarIndex, out int dMaxRebarIndex, out int dMinVertexIndex, out int dMaxVertexIndex);
+			SolverHelper.CalculateRelativeDistance(ConcreteSection, teta, out int dMinRebarIndex, out int dMaxRebarIndex, out int dMinVertexIndex, out int dMaxVertexIndex);
 
 			double dmaxConcrete = (ConcreteSection.Shape.Fill[dMaxVertexIndex].Y - ConcreteSection.Centroid.Y) * Math.Cos(teta) -
 				(ConcreteSection.Shape.Fill[dMaxVertexIndex].X - ConcreteSection.Centroid.X) * Math.Sin(teta);

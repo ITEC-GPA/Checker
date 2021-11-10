@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 {
 	[Serializable]
-	public abstract class ConcreteSectionSolver
+	public abstract class SectionSolver
 	{
 		#region Variables
 
@@ -38,14 +38,14 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		#region Public Constructor
 
-		public ConcreteSectionSolver(IConcreteSection section, Standard standard)
+		public SectionSolver(IConcreteSection section, Standard standard)
 		{
 			_concreteSection = section;
 			_standard = standard;
 			_log = new List<string>();
 		}
 
-		public ConcreteSectionSolver(SerializationInfo info, StreamingContext context)
+		public SectionSolver(SerializationInfo info, StreamingContext context)
 		{
 			_concreteSection = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
 			_log = (List<string>)info.GetValue("Log", typeof(List<string>));
@@ -75,7 +75,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 		/// </summary>
 		protected virtual double CalculateStrain(StrainPlane inputStrainPlane, Point3d pointToTest)
 		{
-			return ConcreteSolverHelper.CalculateStrain(inputStrainPlane, pointToTest);
+			return SolverHelper.CalculateStrain(inputStrainPlane, pointToTest);
 		}
 
 		/// <summary>
@@ -132,18 +132,18 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 			if (value > 0.1)
 			{
-				gaussPointsTri = ConcreteSectionSolverOptions.Instance.GaussIntegrationTriHighPoints;
-				gaussPointsQuad = ConcreteSectionSolverOptions.Instance.GaussIntegrationQuadHighPoints;
+				gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriHighPoints;
+				gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadHighPoints;
 			}
 			else if (value > 0.01)
 			{
-				gaussPointsTri = ConcreteSectionSolverOptions.Instance.GaussIntegrationTriMidPoints;
-				gaussPointsQuad = ConcreteSectionSolverOptions.Instance.GaussIntegrationQuadMidPoints;
+				gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriMidPoints;
+				gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadMidPoints;
 			}
 			else						
 			{
-				gaussPointsTri = ConcreteSectionSolverOptions.Instance.GaussIntegrationTriLowPoints;
-				gaussPointsQuad = ConcreteSectionSolverOptions.Instance.GaussIntegrationQuadLowPoints;
+				gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriLowPoints;
+				gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadLowPoints;
 			}
 
 
@@ -284,12 +284,12 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		protected virtual void CalculateAdimensionalForces(ResultBeamForces forces,out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
 		{
-			ConcreteSolverHelper.CalculateAdimensionalForces(ConcreteSection, forces, out adimAxialForce, out adimBendingMomentX, out adimBendingMomentY);
+			SolverHelper.CalculateAdimensionalForces(ConcreteSection, forces, out adimAxialForce, out adimBendingMomentX, out adimBendingMomentY);
 		}
 
 		protected virtual void CalculateAdimensionalForces(double N, double Mx, double My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
 		{
-			ConcreteSolverHelper.CalculateAdimensionalForces(ConcreteSection, N, Mx, My, out adimAxialForce, out adimBendingMomentX, out adimBendingMomentY);
+			SolverHelper.CalculateAdimensionalForces(ConcreteSection, N, Mx, My, out adimAxialForce, out adimBendingMomentX, out adimBendingMomentY);
 		}
 
 		protected virtual ResultBeamForces CalculateExternalForces(ResultBeamForces forces, Point3d distanceFromCentroid)
@@ -314,7 +314,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
 		public override bool Equals(object obj)
 		{
-			return obj is ConcreteSectionSolver solver &&
+			return obj is SectionSolver solver &&
 				   EqualityComparer<IConcreteSection>.Default.Equals(_concreteSection, solver._concreteSection);
 		}
 
