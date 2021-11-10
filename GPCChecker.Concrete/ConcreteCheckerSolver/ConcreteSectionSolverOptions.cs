@@ -40,6 +40,8 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
 
         public double SLSconvergenceTolerance { get; set; }
 
+        public double ULSconvergenceTolerance { get; set; }
+
         public Point3d DistanceFromCentroid { get; set; }
 
         public int GaussIntegrationQuadLowPoints { get; set; }
@@ -62,6 +64,7 @@ namespace GPC.Checkers.Concrete.ConcreteCheckerSolver
             MomentsDiscretizations = 32;
 
             SLSconvergenceTolerance = 1e-5;
+            ULSconvergenceTolerance = 5e-4;
 
             DistanceFromCentroid = new Point3d(0, 0, 0);
 
