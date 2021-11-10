@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using GPC.Model.Standards;
-using GPC.Model.LoadCases;
-using GPC.Model.Sections.Steel;
-using GPC.Model.Sections;
-using GPC.Model.Combinations;
-using System.Runtime.Serialization;
-using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Results;
+using GPC.Model;
+using GPC.Model.Combinations;
+using GPC.Model.LoadCases;
+using GPC.Model.Sections;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
     /// <summary>
     /// The purpose of this class is to perform a check of a single beam between all the ILoadCases
     /// </summary>
-    
     [Serializable]
     public abstract class BeamChecker : Checker, ISerializable
     {
@@ -27,7 +26,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public BeamCheckerOptions BeamCheckerOption => (BeamCheckerOptions)_options;
 
-        public BeamStationResults[] BeamStationCheckerResults => (BeamStationResults[])_checkerStationResult; 
+        public BeamStationResults[] BeamStationCheckerResults => (BeamStationResults[])_checkerStationResult;
 
         public double BeamLength => BeamCheckersAttribute.Length;
 
@@ -40,22 +39,17 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #region Constructor
 
-        public BeamChecker(BeamCheckerAttributes beamCheckerAttributes, BeamCheckerOptions options, Standard standard, string name = "")
-            : this(beamCheckerAttributes, options, standard, Model.ModelObjectId.IDUNASSIGNED, name)
-        {
 
-        }
-
-        public BeamChecker(BeamCheckerAttributes beamCheckerAttributes, BeamCheckerOptions options, Standard standard, int id, string name = "") 
+        public BeamChecker(BeamCheckerAttributes beamCheckerAttributes, BeamCheckerOptions options, Standard standard, int id = ModelObjectId.IDUNASSIGNED, string name = "")
             : base(beamCheckerAttributes, options, standard, id, name)
         {
 
         }
 
-        protected BeamChecker(SerializationInfo info, StreamingContext context) 
+        protected BeamChecker(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            
+
         }
 
         #endregion
@@ -79,6 +73,9 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public override bool Equals(object obj)
         {
+            if (obj == null)
+                return false;
+
             if (ReferenceEquals(this, obj))
                 return true;
 
@@ -95,11 +92,11 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public abstract class BeamCheckerOptions : Options
         {
-           
+
 
             public BeamCheckerOptions()
             {
-               
+
             }
 
 

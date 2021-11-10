@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Results;
+using GPC.Model;
 using GPC.Model.Combinations;
 using GPC.Model.LoadCases;
 using GPC.Model.Sections;
@@ -19,7 +20,7 @@ namespace GPC.Checkers.Concrete.Checkers
     /// </summary>
 
     [Serializable]
-    public abstract class Checker : Model.ModelObjectId, ISerializable
+    public abstract class Checker : ModelObjectId, ISerializable
     {
         #region Variables
 
@@ -48,13 +49,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #region Constructor
 
-        public Checker(CheckerAttribute checkerAttribute, Options options, Standard standard, string name = "")
-            : this(checkerAttribute, options, standard, Model.ModelObjectId.IDUNASSIGNED, name)
-        {
-            _errorLog = new List<string>();
-        }
-
-        public Checker(CheckerAttribute checkerAttribute, Options options, Standard standard, int id, string name = "")
+        public Checker(CheckerAttribute checkerAttribute, Options options, Standard standard, int id = ModelObjectId.IDUNASSIGNED, string name = "")
             : base(id, name)
         {
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));

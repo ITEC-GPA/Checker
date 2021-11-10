@@ -6,20 +6,21 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.SectionSolver;
+using GPC.Model;
 using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
+    [Serializable]
     public class SectionCheckerModelCode2010 : SectionChecker, ISerializable
     {
-
 
         public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
 
 
 
         public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionCheckerOptions options,
-                                            StandardModelCode2010 standard, int id = -1, string name = "")
+                                            StandardModelCode2010 standard, int id = ModelObjectId.IDUNASSIGNED, string name = "")
             : base(checkerAttribute, options, standard, id, name)
         {
 

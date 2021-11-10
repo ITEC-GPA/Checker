@@ -46,7 +46,7 @@ namespace GPC.Checkers.Concrete.Checkers
         public PlateChecker(PlateCheckerAttributes plateCheckerAttributes, PlateCheckerOptions options, Standard standard, string name = "")
             : this(plateCheckerAttributes, options, standard, Model.ModelObjectId.IDUNASSIGNED, name)
         {
-            _errorLog = new List<string>();
+
         }
 
         public PlateChecker(PlateCheckerAttributes plateCheckerAttributes, PlateCheckerOptions options, Standard standard, int id, string name = "")

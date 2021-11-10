@@ -12,6 +12,7 @@ using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
+    [Serializable]
     public abstract class SectionChecker : Checker, ISerializable
     {
 
@@ -33,6 +34,9 @@ namespace GPC.Checkers.Concrete.Checkers
         public override abstract void ULSPerformCheck();
 
         public override abstract void SLSPerformCheck();
+
+
+
 
 
         public abstract class SectionCheckerOptions : Options
