@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Text;
+using System.Threading.Tasks;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
@@ -6,341 +12,342 @@ using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
-	[Serializable]
-	public abstract class SectionSolver
-	{
-		#region Variables
+    [Serializable]
+    public abstract class SectionSolver
+    {
 
-		protected IConcreteSection _concreteSection;
-		protected Standard _standard;
-		protected List<string> _log;
-
-		#endregion
-
-		#region Properties
-
-		public IConcreteSection ConcreteSection => _concreteSection;
-
-		public ConcreteMaterial ConcreteMaterial => _concreteSection.ConcreteMaterial;
-
-		public Standard Standard => _standard;
-
-		#endregion
-
-		#region Public Constructor
-
-		public SectionSolver(IConcreteSection section, Standard standard)
-		{
-			_concreteSection = section;
-			_standard = standard;
-			_log = new List<string>();
-		}
-
-		public SectionSolver(SerializationInfo info, StreamingContext context)
-		{
-			_concreteSection = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
-			_log = (List<string>)info.GetValue("Log", typeof(List<string>));
-		}
-
-		#endregion
-
-		#region Abstract Method
-
-		protected abstract double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar);
-		protected abstract double CalculateYeldingStrainSteel(int rebar);
-		protected abstract double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar);
-		protected abstract double CalculateUltimateStrainSteel(int rebar);
-		protected abstract double CalculateUltimateStrainConcreteCompression();
-		protected abstract double CalculateYeldingStrainConcreteCompression();
-		protected abstract double CalculateLimitStrainCostantCompression();
-		protected abstract double CalculateUltimateStrainConcreteTension();
-		protected abstract double CalculateSigmaC(double strain);
-		protected abstract double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain);
-
-		#endregion
-
-		#region Virtual Method
-
-		/// <summary>
-		/// Return the strain value of the <paramref name="pointToTest"/>
-		/// </summary>
-		protected virtual double CalculateStrain(StrainPlane inputStrainPlane, Point3d pointToTest)
-		{
-			return SolverHelper.CalculateStrain(inputStrainPlane, pointToTest);
-		}
-
-		/// <summary>
-		/// Calculate the stress resultant of the concrete part
-		/// </summary>
-		/// <param name="strainPlane">The strain plane</param>
-		/// <param name="deltaN">The axial force resultant</param>
-		/// <param name="deltaMx">The bending moment about X-axis resultant</param>
-		/// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-		protected virtual void CalculateConcreteStressResultant(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
-		{
-			double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
-			double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
-			double[] deltaMyArray = new double[ConcreteSection.Mesh.FacesCount];
-
-			try
-			{
-				Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
-				{
-					CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
-
-					deltaNArray[i] = deltaNBuffer;
-					deltaMxArray[i] = deltaMxBuffer;
-					deltaMyArray[i] = deltaMyBuffer;
-				});
-			}
-			catch (Exception e)
-			{
-				_log.Add($"Fail" + e.InnerException);
-			}
+        protected IConcreteSection _concreteSection;
+        protected Standard _standard;
+        protected List<string> _log;
 
 
-			deltaN = deltaNArray.Sum();
-			deltaMx = deltaMxArray.Sum();
-			deltaMy = deltaMyArray.Sum();
-		}
+        public IConcreteSection ConcreteSection => _concreteSection;
 
-		/// <summary>
-		/// Calculate the resultants of face <paramref name="face"/>
-		/// </summary>
-		/// <param name="face"></param>
-		/// <param name="strainPlane"></param>
-		/// <param name="deltaN"></param>
-		/// <param name="deltaMx"></param>
-		/// <param name="deltaMy"></param>
-		protected virtual void CalculateFaceStressResultant(MeshFace face, StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
-		{
-			Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
-			
-			double value = Math.Abs(ConcreteSection.Mesh.GetFaceArea(face) / ConcreteSection.Area);
+        public ConcreteMaterial ConcreteMaterial => _concreteSection.ConcreteMaterial;
 
-			int gaussPointsTri;
-			int gaussPointsQuad;
-
-			if (value > 0.1)
-			{
-				gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriHighPoints;
-				gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadHighPoints;
-			}
-			else if (value > 0.01)
-			{
-				gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriMidPoints;
-				gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadMidPoints;
-			}
-			else						
-			{
-				gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriLowPoints;
-				gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadLowPoints;
-			}
+        public Standard Standard => _standard;
 
 
-			if (face.IsTriangle)
-			{
-				deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))),
-					points, gaussPointsTri);
-				deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
-				deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(x - ConcreteSection.Centroid.X), points, gaussPointsTri);
-			}
+        public SectionSolver(IConcreteSection section, Standard standard)
+        {
+            _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
+            _standard = standard ?? throw new ArgumentNullException(nameof(standard));
+            _log = new List<string>();
+        }
 
-			else if (face.IsQuad)
-			{
-				deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))),
-					points, gaussPointsQuad);
-				deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(y - ConcreteSection.Centroid.Y), points, gaussPointsQuad);
-				deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
-					(x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
-			}
+        public SectionSolver(SerializationInfo info, StreamingContext context)
+        {
+            _concreteSection = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
+            _log = (List<string>)info.GetValue("Log", typeof(List<string>));
+        }
 
-			else
-				throw new Exception();
-		}
 
-		/// <summary>
-		/// Calculate the resultant of all the rebars
-		/// </summary>
-		/// <param name="strainPlane">The strain plane</param>
-		/// <param name="deltaN">The axial force resultant</param>
-		/// <param name="deltaMx">The bending moment about X-axis resultant</param>
-		/// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-		protected virtual void CalculateRebarsIntegration(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
-		{
-			double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
-			double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
-			double[] deltaMyArray = new double[ConcreteSection.Rebars.Length];
+        #region Abstract Method
 
-			Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
-			{
-				double strain = CalculateStrain(strainPlane, ConcreteSection.Rebars[i].Position);
-				double sigmaS = CalculateStressSteel(ConcreteSection.Rebars[i], strain);
-				double sigmaC = CalculateSigmaC(strain);
+        protected abstract double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar);
+        protected abstract double CalculateYeldingStrainSteel(int rebar);
+        protected abstract double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar);
+        protected abstract double CalculateUltimateStrainSteel(int rebar);
+        protected abstract double CalculateUltimateStrainConcreteCompression();
+        protected abstract double CalculateYeldingStrainConcreteCompression();
+        protected abstract double CalculateLimitStrainCostantCompression();
+        protected abstract double CalculateUltimateStrainConcreteTension();
+        protected abstract double CalculateSigmaC(double strain);
+        protected abstract double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain);
+        protected abstract double GetFck();
 
-				deltaNArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area;
-				deltaMxArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
-				deltaMyArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
-			});
+        #endregion
 
-			deltaN = deltaNArray.Sum();
-			deltaMx = deltaMxArray.Sum();
-			deltaMy = deltaMyArray.Sum();
-		}
+        #region Virtual Method
 
-		/// <summary>
-		/// Calculate the <see cref="FailureDomain.FailureDomainPoint"/> respect the strain plane <paramref name="strainPlane"/>
-		/// </summary>
-		/// <param name="strainPlane"></param>
-		/// <returns></returns>
-		public virtual void CalculateForces(StrainPlane strainPlane, out double N, out double Mx, out double My)
-		{
-			double deltaNConcrete = 0;
-			double deltaMxConcrete = 0;
-			double deltaMyConcrete = 0;
-			double deltaNRebar = 0;
-			double deltaMxRebar = 0;
-			double deltaMyRebar = 0;
 
-			try
-			{
-				CalculateConcreteStressResultant(strainPlane, out deltaNConcrete, out deltaMxConcrete, out deltaMyConcrete);
-				CalculateRebarsIntegration(strainPlane, out deltaNRebar, out deltaMxRebar, out deltaMyRebar);
-			}
-			catch (Exception e)
-			{
-				_log.Add($"Fail" + e.InnerException);
-			}
+        /// <summary>
+        /// Return the strain value of the <paramref name="pointToTest"/>
+        /// </summary>
+        protected virtual double CalculateStrain(StrainPlane inputStrainPlane, Point3d pointToTest)
+        {
+            return SolverHelper.CalculateStrain(inputStrainPlane, pointToTest);
+        }
 
-			N = deltaNConcrete + deltaNRebar;
-			Mx = -(deltaMxConcrete + deltaMxRebar);
-			My = deltaMyConcrete + deltaMyRebar;
-		}
+        /// <summary>
+        /// Calculate the stress resultant of the concrete part
+        /// </summary>
+        /// <param name="strainPlane">The strain plane</param>
+        /// <param name="deltaN">The axial force resultant</param>
+        /// <param name="deltaMx">The bending moment about X-axis resultant</param>
+        /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
+        protected virtual void CalculateConcreteStressResultant(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+        {
+            double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
+            double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
+            double[] deltaMyArray = new double[ConcreteSection.Mesh.FacesCount];
 
-		protected virtual void CalculateRelativeDistance(double teta, out int dMinRebarIndex, out int dMaxRebarIndex, out int dMinVertexIndex, out int dMaxVertexIndex)
-		{
-			double cosTeta = Math.Cos(teta);
-			double sinTeta = Math.Sin(teta);
+            try
+            {
+                Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
+                {
+                    CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
 
-			double dminSteel = double.MaxValue;
-			double dmaxSteel = double.MinValue;
-			double dmaxConcrete = double.MinValue;
-			double dminConcrete = double.MaxValue;
+                    deltaNArray[i] = deltaNBuffer;
+                    deltaMxArray[i] = deltaMxBuffer;
+                    deltaMyArray[i] = deltaMyBuffer;
+                });
+            }
+            catch (Exception e)
+            {
+                _log.Add($"Fail" + e.InnerException);
+            }
 
-			dMinRebarIndex = -1;
-			dMaxRebarIndex = -1;
-			dMaxVertexIndex = -1;
-			dMinVertexIndex = -1;
 
-			for (int r = 0; r < ConcreteSection.Rebars.Count(); r++)
-			{
-				double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta -
-					(ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
-				if (w1 <= dminSteel)
-				{
-					dminSteel = w1;
-					dMinRebarIndex = r;
-				}
+            deltaN = deltaNArray.Sum();
+            deltaMx = deltaMxArray.Sum();
+            deltaMy = deltaMyArray.Sum();
+        }
 
-				if (w1 >= dmaxSteel)
-				{
-					dmaxSteel = w1;
-					dMaxRebarIndex = r;
-				}					
-			}
+        /// <summary>
+        /// Calculate the resultants of face <paramref name="face"/>
+        /// </summary>
+        /// <param name="face"></param>
+        /// <param name="strainPlane"></param>
+        /// <param name="deltaN"></param>
+        /// <param name="deltaMx"></param>
+        /// <param name="deltaMy"></param>
+        protected virtual void CalculateFaceStressResultant(MeshFace face, StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+        {
+            Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
 
-			//TODO: implementare con armature lineari
+            double value = Math.Abs(ConcreteSection.Mesh.GetFaceArea(face) / ConcreteSection.Area);
 
-			for (int c = 0; c < ConcreteSection.Shape.Fill.Count; c++)
-			{
-				double w1 = (ConcreteSection.Shape.Fill[c].Y - ConcreteSection.Centroid.Y) * cosTeta -
-					(ConcreteSection.Shape.Fill[c].X - ConcreteSection.Centroid.X) * sinTeta;
+            int gaussPointsTri;
+            int gaussPointsQuad;
 
-				if (w1 >= dmaxConcrete)
-				{
-					dMaxVertexIndex = c;
-					dmaxConcrete = w1;
-				}
+            if (value > 0.1)
+            {
+                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriHighPoints;
+                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadHighPoints;
+            }
+            else if (value > 0.01)
+            {
+                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriMidPoints;
+                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadMidPoints;
+            }
+            else
+            {
+                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriLowPoints;
+                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadLowPoints;
+            }
 
-				if (w1 <= dminConcrete)
-				{
-					dminConcrete = w1;
-					dMinVertexIndex = c;
-				}
-			}
-		}
 
-		protected virtual void CalculateAdimensionalForces(ResultBeamForces forces,out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
-		{
-			SolverHelper.CalculateAdimensionalForces(ConcreteSection, forces, out adimAxialForce, out adimBendingMomentX, out adimBendingMomentY);
-		}
+            if (face.IsTriangle)
+            {
+                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))),
+                    points, gaussPointsTri);
+                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+                    (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
+                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+                    (x - ConcreteSection.Centroid.X), points, gaussPointsTri);
+            }
 
-		protected virtual void CalculateAdimensionalForces(double N, double Mx, double My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
-		{
-			SolverHelper.CalculateAdimensionalForces(ConcreteSection, N, Mx, My, out adimAxialForce, out adimBendingMomentX, out adimBendingMomentY);
-		}
+            else if (face.IsQuad)
+            {
+                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))),
+                    points, gaussPointsQuad);
+                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+                    (y - ConcreteSection.Centroid.Y), points, gaussPointsQuad);
+                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+                    (x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
+            }
 
-		protected virtual ResultBeamForces CalculateExternalForces(ResultBeamForces forces, Point3d distanceFromCentroid)
-		{
-			double N = forces.N;
-			double Mx = forces.M1 + N * distanceFromCentroid.Y;
-			double My = forces.M2 + N * distanceFromCentroid.X;
+            else
+                throw new Exception();
+        }
 
-			return new ResultBeamForces(N, forces.V1, forces.V2, forces.T, Mx, My, forces.CoordinateSystem);
-		}
+        /// <summary>
+        /// Calculate the resultant of all the rebars
+        /// </summary>
+        /// <param name="strainPlane">The strain plane</param>
+        /// <param name="deltaN">The axial force resultant</param>
+        /// <param name="deltaMx">The bending moment about X-axis resultant</param>
+        /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
+        protected virtual void CalculateRebarsIntegration(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+        {
+            double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
+            double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
+            double[] deltaMyArray = new double[ConcreteSection.Rebars.Length];
 
-		protected virtual void CalculateExternalForces(double inputN, double inputMx, double inputMy, Point3d distanceFromCentroid, out double N, out double Mx, out double My)
-		{
-			N = inputN;
-			Mx = inputMx + N * distanceFromCentroid.Y;
-			My = inputMy + N * distanceFromCentroid.X;
-		}
+            Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
+            {
+                double strain = CalculateStrain(strainPlane, ConcreteSection.Rebars[i].Position);
+                double sigmaS = CalculateStressSteel(ConcreteSection.Rebars[i], strain);
+                double sigmaC = CalculateSigmaC(strain);
 
-		#endregion
+                deltaNArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area;
+                deltaMxArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
+                deltaMyArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
+            });
 
-		#region Public override methods
+            deltaN = deltaNArray.Sum();
+            deltaMx = deltaMxArray.Sum();
+            deltaMy = deltaMyArray.Sum();
+        }
 
-		public override bool Equals(object obj)
-		{
-			return obj is SectionSolver solver &&
-				   EqualityComparer<IConcreteSection>.Default.Equals(_concreteSection, solver._concreteSection);
-		}
+        /// <summary>
+        /// Calculate the <see cref="FailureDomain.FailureDomainPoint"/> respect the strain plane <paramref name="strainPlane"/>
+        /// </summary>
+        /// <param name="strainPlane"></param>
+        /// <returns></returns>
+        public virtual void CalculateForces(StrainPlane strainPlane, out double N, out double Mx, out double My)
+        {
+            double deltaNConcrete = 0;
+            double deltaMxConcrete = 0;
+            double deltaMyConcrete = 0;
+            double deltaNRebar = 0;
+            double deltaMxRebar = 0;
+            double deltaMyRebar = 0;
 
-		public override int GetHashCode()
-		{
-			unchecked
-			{
-				return 23 + EqualityComparer<IConcreteSection>.Default.GetHashCode(_concreteSection);
-			}
-		}
+            try
+            {
+                CalculateConcreteStressResultant(strainPlane, out deltaNConcrete, out deltaMxConcrete, out deltaMyConcrete);
+                CalculateRebarsIntegration(strainPlane, out deltaNRebar, out deltaMxRebar, out deltaMyRebar);
+            }
+            catch (Exception e)
+            {
+                _log.Add($"Fail" + e.InnerException);
+            }
 
-		public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-		{
-			info.AddValue("ConcreteSection", _concreteSection);
-			info.AddValue("Log", _log);
-		}
+            N = deltaNConcrete + deltaNRebar;
+            Mx = -(deltaMxConcrete + deltaMxRebar);
+            My = deltaMyConcrete + deltaMyRebar;
+        }
 
-		#endregion
+        protected virtual void CalculateRelativeDistance(double teta, out int dMinRebarIndex, out int dMaxRebarIndex, out int dMinVertexIndex, out int dMaxVertexIndex)
+        {
+            double cosTeta = Math.Cos(teta);
+            double sinTeta = Math.Sin(teta);
 
-		#region Public methods
+            double dminSteel = double.MaxValue;
+            double dmaxSteel = double.MinValue;
+            double dmaxConcrete = double.MinValue;
+            double dminConcrete = double.MaxValue;
 
-		public List<string> GetLog()
-		{
-			return _log;
-		}
+            dMinRebarIndex = -1;
+            dMaxRebarIndex = -1;
+            dMaxVertexIndex = -1;
+            dMinVertexIndex = -1;
 
-		#endregion
-	}
+            for (int r = 0; r < ConcreteSection.Rebars.Count(); r++)
+            {
+                double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta -
+                    (ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
+                if (w1 <= dminSteel)
+                {
+                    dminSteel = w1;
+                    dMinRebarIndex = r;
+                }
+
+                if (w1 >= dmaxSteel)
+                {
+                    dmaxSteel = w1;
+                    dMaxRebarIndex = r;
+                }
+            }
+
+            //TODO: implementare con armature lineari
+
+            for (int c = 0; c < ConcreteSection.Shape.Fill.Count; c++)
+            {
+                double w1 = (ConcreteSection.Shape.Fill[c].Y - ConcreteSection.Centroid.Y) * cosTeta -
+                    (ConcreteSection.Shape.Fill[c].X - ConcreteSection.Centroid.X) * sinTeta;
+
+                if (w1 >= dmaxConcrete)
+                {
+                    dMaxVertexIndex = c;
+                    dmaxConcrete = w1;
+                }
+
+                if (w1 <= dminConcrete)
+                {
+                    dminConcrete = w1;
+                    dMinVertexIndex = c;
+                }
+            }
+        }
+
+        protected virtual void CalculateAdimensionalForces(ResultBeamForces forces, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
+        {
+            BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox();
+            double h = bBox.Size.Y;
+            double b = bBox.Size.X;
+
+            adimAxialForce = forces.N / (b * h * GetFck());
+            adimBendingMomentX = forces.M1 / (b * h * h * GetFck());
+            adimBendingMomentY = forces.M2 / (b * b * h * GetFck());
+        }
+
+        protected virtual void CalculateAdimensionalForces(double N, double Mx, double My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
+        {
+
+            BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox(); ;
+            double h = bBox.Size.Y;
+            double b = bBox.Size.X;
+
+            adimAxialForce = N / (b * h * GetFck());
+            adimBendingMomentX = Mx / (b * h * h * GetFck());
+            adimBendingMomentY = My / (b * b * h * GetFck());
+        }
+
+        protected virtual ResultBeamForces CalculateExternalForces(ResultBeamForces forces, Point3d distanceFromCentroid)
+        {
+            double N = forces.N;
+            double Mx = forces.M1 + N * distanceFromCentroid.Y;
+            double My = forces.M2 + N * distanceFromCentroid.X;
+
+            return new ResultBeamForces(N, forces.V1, forces.V2, forces.T, Mx, My, forces.CoordinateSystem);
+        }
+
+        protected virtual void CalculateExternalForces(double inputN, double inputMx, double inputMy, Point3d distanceFromCentroid, out double N, out double Mx, out double My)
+        {
+            N = inputN;
+            Mx = inputMx + N * distanceFromCentroid.Y;
+            My = inputMy + N * distanceFromCentroid.X;
+        }
+
+        #endregion
+
+        #region Public override methods
+
+        public override bool Equals(object obj)
+        {
+            return obj is SectionSolver solver &&
+                   EqualityComparer<IConcreteSection>.Default.Equals(_concreteSection, solver._concreteSection);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return 23 + EqualityComparer<IConcreteSection>.Default.GetHashCode(_concreteSection);
+            }
+        }
+
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("ConcreteSection", _concreteSection);
+            info.AddValue("Log", _log);
+        }
+
+        #endregion
+
+        #region Public methods
+
+        public List<string> GetLog()
+        {
+            return _log;
+        }
+
+        #endregion
+    }
 }

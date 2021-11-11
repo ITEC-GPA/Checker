@@ -65,6 +65,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#region Protected Methods
 
+		protected override double GetFck()
+        {
+			return ConcreteMaterialModelCode2010.Fck;
+        }
+
+
 		protected virtual double CalculateFcd()
 		{
 			return SolverHelper.CalculateFcd(ConcreteSection, ModelCode2010);

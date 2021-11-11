@@ -295,27 +295,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 			deltaMy = deltaMyArray.Sum();
 		}
 
-		internal static void CalculateAdimensionalForces(IConcreteSection concreteSection, double N, double Mx, double My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
-		{
-			BoundingBox3d bBox = concreteSection.Shape.GetBoundingBox();
-			double h = bBox.Size.Y;
-			double b = bBox.Size.X;
-
-			adimAxialForce = N / (b * h * concreteSection.ConcreteMaterial.Fck);
-			adimBendingMomentX = Mx / (b * h * h * concreteSection.ConcreteMaterial.Fck);
-			adimBendingMomentY = My / (b * b * h * concreteSection.ConcreteMaterial.Fck);
-		}
-
-		internal static void CalculateAdimensionalForces(IConcreteSection concreteSection, ResultBeamForces forces, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
-		{
-			BoundingBox3d bBox = concreteSection.Shape.GetBoundingBox();
-			double h = bBox.Size.Y;
-			double b = bBox.Size.X;
-
-			adimAxialForce = forces.N / (b * h * concreteSection.ConcreteMaterial.Fck);
-			adimBendingMomentX = forces.M1 / (b * h * h * concreteSection.ConcreteMaterial.Fck);
-			adimBendingMomentY = forces.M2 / (b * b * h * concreteSection.ConcreteMaterial.Fck);
-		}
 
 	}
 }
