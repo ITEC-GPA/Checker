@@ -18,6 +18,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 {
 	public abstract class SectionSolverULS : SectionSolver
 	{
+		/// <summary>
+		/// The failure type
+		/// 1) Epsilon sup: EpsilonConcrete = EpsilonSu -> 0 /// EpsilonC = Epsilon inf: EpsilonSu
+		/// 2) Epsilon sup: EpsilonConcrete = 0 -> EpsilonCu /// Epsilon inf: EpsilonSteel = EpsilonSu
+		/// 3) Epsilon sup: EpsilonConcrete = EpsilonCu	     /// Epsilon inf: EpsilonSteel = EpsilonSu -> EpsilonSy
+		/// 4) Epsilon sup: EpsilonConcrete = EpsilonCu	     /// Epsilon inf: EpsilonSteel = EpsilonSy -> 0
+		/// 5) Epsilon sup: EpsilonConcrete = EpsilonCu	     /// Epsilon inf: EpsilonSteel = 0 -> EpsilonConcrete = 0
+		/// 6) Epsilon sup: EpsilonConcrete = EpsilonCy	     /// Epsilon inf: EpsilonConcrete = EpsilonCy
+		/// </summary>
 		public enum FailureIndices
 		{
 			Iz1 = 1,

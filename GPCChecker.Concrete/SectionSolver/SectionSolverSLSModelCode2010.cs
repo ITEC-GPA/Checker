@@ -56,7 +56,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#endregion
 
-		public override SLSCheckerResults PerformSolver()
+		public override SLSCheckerResultsType PerformSolver()
 		{
 			StrainPlane strainPlane = CalculateStrainPlane();
 

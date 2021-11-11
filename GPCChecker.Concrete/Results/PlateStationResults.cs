@@ -34,8 +34,8 @@ namespace GPC.Checkers.Concrete.Results
         #region Constructor
 
         internal PlateStationResults(IConcreteSection section, ResultPlateForces[] forces, ResultStation station, ILoadCase[] Case, 
-            Standard standard, ULSCheckerResults uLSCheckerResults, SLSCheckerResults[] sLSCheckerResults, 
-            PlateChecker.PlateCheckerOptions checkerOptions, string name = "", int id = IDUNASSIGNED)
+                                        Standard standard, ULSCheckerResultsType uLSCheckerResults, SLSCheckerResultsType[] sLSCheckerResults, 
+                                        PlateChecker.PlateCheckerOptions checkerOptions, string name = "", int id = IDUNASSIGNED)
             : base(section, station, forces, Case, standard, uLSCheckerResults, sLSCheckerResults, name, id)
         {
             _options = checkerOptions ?? throw new ArgumentNullException(nameof(checkerOptions));

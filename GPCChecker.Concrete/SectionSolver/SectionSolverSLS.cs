@@ -48,7 +48,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#region Perform Check
 
-		public virtual SLSCheckerResults PerformSolver()
+		public virtual SLSCheckerResultsType PerformSolver()
 		{
 			throw new Exception();
 		}

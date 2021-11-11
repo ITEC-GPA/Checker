@@ -16,8 +16,8 @@ namespace GPC.Checkers.Concrete.Results
         protected readonly ResultLocation _location;
         protected readonly ILoadCase[] _case;
         protected readonly ResultType[] _forces;
-        protected readonly ULSCheckerResults _uLSCheckerResult;
-        protected readonly SLSCheckerResults[] _sLSCheckerResults;
+        protected readonly ULSCheckerResultsType _uLSCheckerResult;
+        protected readonly SLSCheckerResultsType[] _sLSCheckerResults;
 
         protected readonly Standard _standard;
 
@@ -28,7 +28,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <summary>
         /// The <see cref="ResultStation"/> to check
         /// </summary>
-        public IResultLocation Station => _location;
+        public ResultLocation Station => _location;
 
         /// <summary>
         /// The <see cref="ILoadCase"/> to check
@@ -53,19 +53,19 @@ namespace GPC.Checkers.Concrete.Results
         /// <summary>
         /// Results for ultimate limit state analysis
         /// </summary>
-        public ULSCheckerResults ULSCheckerResults => _uLSCheckerResult;
+        public ULSCheckerResultsType ULSCheckerResults => _uLSCheckerResult;
 
         /// <summary>
         /// Results for serviceability limit state analysis
         /// </summary>
-        public SLSCheckerResults[] SLSCheckerResults => _sLSCheckerResults;
+        public SLSCheckerResultsType[] SLSCheckerResults => _sLSCheckerResults;
 
         #endregion
 
         #region Constructor
 
         internal CheckerStationResult(IConcreteSection section, ResultLocationStation station, ResultType[] forces, ILoadCase[] Case, Standard standard,
-            ULSCheckerResults uLSCheckerResults, SLSCheckerResults[] sLSCheckerResults, string name = "", int id = IDUNASSIGNED)
+            ULSCheckerResultsType uLSCheckerResults, SLSCheckerResultsType[] sLSCheckerResults, string name = "", int id = IDUNASSIGNED)
             : base(id, name)
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
@@ -85,8 +85,8 @@ namespace GPC.Checkers.Concrete.Results
             _case = (ILoadCase[])info.GetValue("ILoadCase", typeof(ILoadCase[]));
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
             _forces = (ResultType[])info.GetValue("Forces", typeof(ResultType[]));
-            _uLSCheckerResult = (ULSCheckerResults)info.GetValue("ULSCheckerResults", typeof(ULSCheckerResults));
-            _sLSCheckerResults = (SLSCheckerResults[])info.GetValue("SLSCheckerResults", typeof(ULSCheckerResults));
+            _uLSCheckerResult = (ULSCheckerResultsType)info.GetValue("ULSCheckerResults", typeof(ULSCheckerResultsType));
+            _sLSCheckerResults = (SLSCheckerResultsType[])info.GetValue("SLSCheckerResults", typeof(ULSCheckerResultsType));
 
         }
 
@@ -108,8 +108,8 @@ namespace GPC.Checkers.Concrete.Results
             info.AddValue("ILoadCase", _case, typeof(ILoadCase));
             info.AddValue("Standard", _standard, typeof(Standard));
             info.AddValue("Forces", _forces, typeof(ResultType[]));
-            info.AddValue("ULSCheckerResults", _uLSCheckerResult, typeof(ULSCheckerResults));
-            info.AddValue("SLSCheckerResults", _sLSCheckerResults, typeof(ULSCheckerResults));
+            info.AddValue("ULSCheckerResults", _uLSCheckerResult, typeof(ULSCheckerResultsType));
+            info.AddValue("SLSCheckerResults", _sLSCheckerResults, typeof(ULSCheckerResultsType));
         }
 
         public override bool Equals(object obj)

@@ -20,7 +20,7 @@ namespace GPC.Checkers.Concrete.Results
         #region Constructor
 
 		public ModelCode2010PlateStationResult(IConcreteSection section, ResultPlateForces[] forces, ResultStation station, ILoadCase[] Case,
-            StandardEN1992p11 standard, ULSCheckerResults uLSCheckerResults, SLSCheckerResults[] sLSCheckerResults, 
+            StandardEN1992p11 standard, ULSCheckerResultsType uLSCheckerResults, SLSCheckerResultsType[] sLSCheckerResults, 
             PlateCheckerModelCode2010.EN1992p11Options checkerOptions, string name = "", int id = -1) 
             : base(section, forces, station, Case, standard, uLSCheckerResults, sLSCheckerResults, checkerOptions, name, id)
 		{

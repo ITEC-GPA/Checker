@@ -90,16 +90,16 @@
     <Compile Include="OldCheckerCode\RCFailureDomain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Results\BeamStationResults.cs" />
-    <Compile Include="Results\CheckerResultType.cs" />
+    <Compile Include="Results\ResultType\CheckerResultType.cs" />
     <Compile Include="Results\ModelCode2010PlateStationResult.cs" />
     <Compile Include="Results\ModelCode2010BeamStationResult.cs" />
     <Compile Include="Results\FailureDomain.cs" />
     <Compile Include="Results\PlateStationResults.cs" />
     <Compile Include="Results\CheckerStationResult.cs" />
-    <Compile Include="Results\SLSCheckerResults.cs" />
+    <Compile Include="Results\ResultType\SLSCheckerResultsType.cs" />
     <Compile Include="Results\SLSModelCode2010CheckerResult.cs" />
     <Compile Include="Results\StrainPlane.cs" />
-    <Compile Include="Results\ULSCheckerResults.cs" />
+    <Compile Include="Results\ResultType\ULSCheckerResultsType.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

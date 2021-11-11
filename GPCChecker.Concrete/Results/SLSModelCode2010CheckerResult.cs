@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace GPC.Checkers.Concrete.Results
 {
-	public class SLSModelCode2010CheckerResult : SLSCheckerResults
+	public class SLSModelCode2010CheckerResult : SLSCheckerResultsType
 	{
 		public StandardModelCode2010 ModelCode2010 => (StandardModelCode2010)_standard;
 

@@ -35,7 +35,7 @@ namespace GPC.Checkers.Concrete.Results
         #region Constructor
 
         internal BeamStationResults(IConcreteSection section, ResultStation station, ResultBeamForces[] forces, ILoadCase[] Case, Standard standard, 
-                                    ULSCheckerResults uLSCheckerResults, SLSCheckerResults[] sLSCheckerResults, BeamChecker.BeamCheckerOptions checkerOptions,
+                                    ULSCheckerResultsType uLSCheckerResults, SLSCheckerResultsType[] sLSCheckerResults, BeamChecker.BeamCheckerOptions checkerOptions,
                                     string name = "", int id = IDUNASSIGNED)
             : base(section, station, forces, Case, standard, uLSCheckerResults, sLSCheckerResults, name, id)
         {

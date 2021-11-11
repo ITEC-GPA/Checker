@@ -38,7 +38,7 @@ namespace ConcreteTests
 			adimBendingMomentY = My / (b * b * h * section.ConcreteMaterial.Fck);
 		}
 
-		protected bool CommonAssert(SLSCheckerResults result, IConcreteSection section, ResultBeamForces forces, StrainPlane strainPlane, StandardModelCode2010 standard, double tolerance = 1e-5)
+		protected bool CommonAssert(SLSCheckerResultsType result, IConcreteSection section, ResultBeamForces forces, StrainPlane strainPlane, StandardModelCode2010 standard, double tolerance = 1e-5)
 		{
 			CalculateAdimensionalForces(section, forces, out double adimExternalAxialForce, out double adimExternalendingMomentX, out double adimExternalBendingMomentY);
 			SectionSolverSLSModelCode2010 solver = new SectionSolverSLSModelCode2010(section, forces, standard);
