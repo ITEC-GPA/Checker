@@ -51,7 +51,7 @@ namespace ConcreteTests
 			int[] fillTag = new int[section.Shape.Fill.Count];
 			for (int i = 0; i < section.Shape.Fill.Count; i++)
 			{
-				fillTag[i] = GmshNet.Gmsh.Model.Occ.AddPoint(section.Shape.Fill[i].X, section.Shape.Fill[i].Y, section.Shape.Fill[i].Z);
+				fillTag[i] = GmshNet.Gmsh.Model.Occ.AddPoint(section.Shape.Fill[i].X, section.Shape.Fill[i].Y, 0.0);
 			}
 
 			for (int i = 0; i < fillTag.Length; i++)
@@ -71,7 +71,7 @@ namespace ConcreteTests
 					holesTag[i] = new int[section.Shape.Holes[i].Count];
 					for (int j = 0; j < section.Shape.Holes[i].Count; j++)
 					{
-						holesTag[i][j] = GmshNet.Gmsh.Model.Occ.AddPoint(section.Shape.Holes[i][j].X, section.Shape.Holes[i][j].Y, section.Shape.Holes[i][j].Z);
+						holesTag[i][j] = GmshNet.Gmsh.Model.Occ.AddPoint(section.Shape.Holes[i][j].X, section.Shape.Holes[i][j].Y, 0.0);
 					}
 				}
 
@@ -89,7 +89,7 @@ namespace ConcreteTests
 
 			for (int i = 0; i < section.Rebars.Length; i++)
 			{
-				GmshNet.Gmsh.Model.Occ.AddPoint(section.Rebars[i].Position.X, section.Rebars[i].Position.Y, section.Rebars[i].Position.Z);
+				GmshNet.Gmsh.Model.Occ.AddPoint(section.Rebars[i].Position.X, section.Rebars[i].Position.Y, 0.0);
 			}
 
 			GmshNet.Gmsh.Model.Occ.Synchronize();
@@ -144,14 +144,14 @@ namespace ConcreteTests
 			}
 
 			// valore per campo di deformazione 6 (epsilon 0.2% costante)
-			double pureCompressionAxialForce = section.Shape.GetArea() * section.ConcreteMaterial.Fck * standard.AlphaCC / standard.GammaC;
+			double pureCompressionAxialForce = section.Shape.GetArea() * ((ConcreteMaterialModelCode2010)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC;
 			double pureCompressionMomentX = 0;
 			double pureCompressionMomentY = 0;
 
 			for (int i = 0; i < section.Rebars.Length; i++)
 			{
-				pureCompressionAxialForce += section.Rebars[i].Area * (section.Rebars[i].RebarMaterial.Fyk / standard.GammaS - 
-					section.ConcreteMaterial.Fck * standard.AlphaCC / standard.GammaC);
+				pureCompressionAxialForce += section.Rebars[i].Area * (section.Rebars[i].RebarMaterial.Fyk / standard.GammaS -
+					((ConcreteMaterialModelCode2010)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC);
 				pureCompressionMomentX += section.Rebars[i].Area * (section.Rebars[i].RebarMaterial.Fyk / standard.GammaS) * 
 					(section.Rebars[i].Position.Y - section.Centroid.Y);
 				pureCompressionMomentY += section.Rebars[i].Area * (section.Rebars[i].RebarMaterial.Fyk / standard.GammaS) *
@@ -199,10 +199,10 @@ namespace ConcreteTests
             double rebarDiameter = 18;
 
             // sezione rettangolare 300x500
-            Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
-                                                                    new Point3d(300, 0, 0),
-                                                                    new Point3d(300, 500, 0),
-                                                                    new Point3d(0, 500, 0), }));
+            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   new Point2d(0, 0),
+																		new Point2d(300, 0),
+																		new Point2d(300, 500),
+																		new Point2d(0, 500) }));
 
             ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
@@ -272,10 +272,10 @@ namespace ConcreteTests
 			double tolerance = 5;     // tolleranza percentuale
 
 			// sezione rettangolare 300x500
-			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
-																	new Point3d(300, 0, 0),
-																	new Point3d(300, 500, 0),
-																	new Point3d(0, 500, 0), }));
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   new Point2d(0, 0),
+																		new Point2d(300, 0),
+																		new Point2d(300, 500),
+																		new Point2d(0, 500) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
@@ -301,13 +301,13 @@ namespace ConcreteTests
 		public void StrainPlaneRectangularSectionTest2()
 		{
 			double rebarDiameter = 18;
-			double tolerance = 5;		// tolleranza percentuale
+			double tolerance = 5;       // tolleranza percentuale
 
 			// sezione rettangolare 300x500
-			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
-																	new Point3d(300, 0, 0),
-																	new Point3d(300, 500, 0),
-																	new Point3d(0, 500, 0), }));
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   new Point2d(0, 0),
+																		new Point2d(300, 0),
+																		new Point2d(300, 500),
+																		new Point2d(0, 500) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
@@ -336,10 +336,10 @@ namespace ConcreteTests
 			double tolerance = 5;     // tolleranza percentuale
 
 			// sezione rettangolare 300x500
-			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
-																	new Point3d(300, 0, 0),
-																	new Point3d(300, 500, 0),
-																	new Point3d(0, 500, 0), }));
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   new Point2d(0, 0),
+																		new Point2d(300, 0),
+																		new Point2d(300, 500),
+																		new Point2d(0, 500) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
@@ -367,10 +367,10 @@ namespace ConcreteTests
 			double rebarDiameter = 26;
 
 			// sezione rettangolare 300x500
-			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
-																	new Point3d(300, 0, 0),
-																	new Point3d(300, 500, 0),
-																	new Point3d(0, 500, 0), }));
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   new Point2d(0, 0),
+																		new Point2d(300, 0),
+																		new Point2d(300, 500),
+																		new Point2d(0, 500) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
@@ -442,10 +442,10 @@ namespace ConcreteTests
 			double rebarDiameter = 18;
 
 			// sezione rettangolare 300x500
-			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
-																	new Point3d(300, 0, 0),
-																	new Point3d(300, 500, 0),
-																	new Point3d(0, 500, 0), }));
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   new Point2d(0, 0),
+																		new Point2d(300, 0),
+																		new Point2d(300, 500),
+																		new Point2d(0, 500) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
@@ -522,10 +522,10 @@ namespace ConcreteTests
 			double rebarDiameter = 26;
 
 			// sezione rettangolare 300x500
-			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
-																	new Point3d(300, 0, 0),
-																	new Point3d(300, 500, 0),
-																	new Point3d(0, 500, 0), }));
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   new Point2d(0, 0),
+																		new Point2d(300, 0),
+																		new Point2d(300, 500),
+																		new Point2d(0, 500) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
@@ -610,10 +610,10 @@ namespace ConcreteTests
 			double rebarDiameterPrestress = 20;
 
 			// sezione rettangolare 300x500
-			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
-																	new Point3d(300, 0, 0),
-																	new Point3d(300, 500, 0),
-																	new Point3d(0, 500, 0), }));
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   new Point2d(0, 0),
+																		new Point2d(300, 0),
+																		new Point2d(300, 500),
+																		new Point2d(0, 500) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
@@ -623,7 +623,7 @@ namespace ConcreteTests
 																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),																				
 																				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
 																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
-																				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 1, 0.007045)};
+																				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 0.007045)};
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
@@ -631,7 +631,7 @@ namespace ConcreteTests
 
 			FailureDomain failureDomain = solver.CalculateFailureDomain();
 			ShowDomainPoints(failureDomain);
-			ExportToGmsh(failureDomain);
+			//ExportToGmsh(failureDomain);
 
 			//// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 
@@ -685,10 +685,10 @@ namespace ConcreteTests
 			double rebarDiameterPrestress = 20;
 
 			// sezione rettangolare 300x500
-			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
-																	new Point3d(300, 0, 0),
-																	new Point3d(300, 500, 0),
-																	new Point3d(0, 500, 0), }));
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   new Point2d(0, 0),
+																		new Point2d(300, 0),
+																		new Point2d(300, 500),
+																		new Point2d(0, 500) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
@@ -698,8 +698,8 @@ namespace ConcreteTests
 																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
 																				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
 																				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
-																				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 1, 0.007045),
-																				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 400, 0), 2, 0.007045)};
+																				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 0.007045),
+																				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 400, 0), 0.007045)};
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
@@ -905,14 +905,14 @@ namespace ConcreteTests
 			double rebarDiameterPrestress = 20;
 
 			// sezion a T tovescia 
-			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
-																	new Point3d(500, 0, 0),
-																	new Point3d(500, 500, 0),
-																	new Point3d(400, 500, 0),
-																	new Point3d(400, 1000, 0),
-																	new Point3d(100, 1000, 0),
-																	new Point3d(100, 500, 0),
-																	new Point3d(0, 500, 0), }));
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   new Point2d(0, 0),
+																		new Point2d(500, 0),
+																		new Point2d(500, 500),
+																		new Point2d(400, 500),
+																		new Point2d(400, 1000),
+																		new Point2d(100, 1000),
+																		new Point2d(100, 500),
+																		new Point2d(0, 500) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
@@ -930,8 +930,8 @@ namespace ConcreteTests
 																				new ReinforcedConcreteRebar(rebar, new Point3d(200, 950, 0)),
 																				new ReinforcedConcreteRebar(rebar, new Point3d(300, 950, 0)),
 																				new ReinforcedConcreteRebar(rebar, new Point3d(350, 950, 0)),
-																				new ReinforcedConcreteRebar(rebarP, new Point3d(250, 100, 0), 1, 0.007045),
-																				new ReinforcedConcreteRebar(rebarP, new Point3d(250, 100, 0), 1, 0.007045) };
+																				new ReinforcedConcreteRebar(rebarP, new Point3d(250, 100, 0), 0.007045),
+																				new ReinforcedConcreteRebar(rebarP, new Point3d(250, 100, 0), 0.007045) };
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 
@@ -993,14 +993,14 @@ namespace ConcreteTests
 			double rebarDiameter = 26;
 
 			// sezion a T tovescia 
-			Shape shape = new Shape(new Polygon3d(new Point3d[] {   new Point3d(0, 0, 0),
-																	new Point3d(500, 0, 0),
-																	new Point3d(500, 500, 0),
-																	new Point3d(400, 500, 0),
-																	new Point3d(400, 1000, 0),
-																	new Point3d(100, 1000, 0),
-																	new Point3d(100, 500, 0),
-																	new Point3d(0, 500, 0), }));
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   new Point2d(0, 0),
+																		new Point2d(500, 0),
+																		new Point2d(500, 500),
+																		new Point2d(400, 500),
+																		new Point2d(400, 1000),
+																		new Point2d(100, 1000),
+																		new Point2d(100, 500),
+																		new Point2d(0, 500) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial(450));
