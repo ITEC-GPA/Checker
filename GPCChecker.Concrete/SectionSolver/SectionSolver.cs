@@ -206,12 +206,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 var concreteForces = CalculateConcreteStressResultant(strainPlane);
                 var rebarsForces = CalculateRebarsIntegration(strainPlane);
 
-                var forces = CalculateExternalForces(concreteForces.N  + rebarsForces.N,
-                                                     concreteForces.Mx + rebarsForces.Mx,
-                                                     concreteForces.My + rebarsForces.My,
-                                                     SectionSolverOptions.Instance.DistanceFromCentroid);
+                var externalForces = GetExternalForces(concreteForces.N  + rebarsForces.N,
+                                               concreteForces.Mx + rebarsForces.Mx,
+                                               concreteForces.My + rebarsForces.My,
+                                               SectionSolverOptions.Instance.DistanceFromCentroid);
 
-                return (forces.N, forces.Mx, forces.My);
+                return (externalForces.N, externalForces.Mx, externalForces.My);
             }
             catch (Exception e)
             {
@@ -298,18 +298,28 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return (N / (b * h * GetFck()), Mx / (b * h * h * GetFck()), Mx / (b * b * h * GetFck()));
         }
 
-        protected virtual ResultBeamForces CalculateExternalForces(ResultBeamForces forces, Point3d distanceFromCentroid)
+        protected virtual ResultBeamForces GetLocalForces(ResultBeamForces externalForces, Point2d forceReferencePoint)
         {
-            double N = forces.N;
-            double Mx = forces.M1 + N * distanceFromCentroid.Y;
-            double My = forces.M2 + N * distanceFromCentroid.X;
+            double N = externalForces.N;
+            double Mx = externalForces.M1 + N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y);
+            double My = externalForces.M2 + N * (ConcreteSection.Centroid.X - forceReferencePoint.X);
 
-            return new ResultBeamForces(N, forces.V1, forces.V2, forces.T, Mx, My, forces.CoordinateSystem);
+            return new ResultBeamForces(N, externalForces.V1, externalForces.V2, externalForces.T, Mx, My, new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
         }
 
-        protected virtual (double N, double Mx, double My) CalculateExternalForces(double inputN, double inputMx, double inputMy, Point3d distanceFromCentroid)
+        protected virtual ResultBeamForces GetExternalForces(ResultBeamForces localForces, Point2d forceReferencePoint)
         {
-            return (inputN, inputMx + inputN * distanceFromCentroid.Y, inputMy + inputN * distanceFromCentroid.X);
+            double N = localForces.N;
+            double Mx = localForces.M1 + N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y);
+            double My = localForces.M2 + N * (ConcreteSection.Centroid.X - forceReferencePoint.X);
+
+            return new ResultBeamForces(N, localForces.V1, localForces.V2, localForces.T, Mx, My, CoordinateSystem.Global);
+        }
+
+
+        protected virtual (double N, double Mx, double My) GetExternalForces(double inputN, double inputMx, double inputMy, Point2d forceReferencePoint)
+        {
+            return (inputN, inputMx + inputN * (ConcreteSection.Centroid.Y - forceReferencePoint.Y), inputMy + inputN * (ConcreteSection.Centroid.X - forceReferencePoint.X);
         }
 
         #endregion

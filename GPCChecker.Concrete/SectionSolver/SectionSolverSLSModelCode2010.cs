@@ -58,7 +58,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		public override SLSCheckerResultsType PerformSolver()
 		{
-			StrainPlane strainPlane = CalculateStrainPlane();
+			StrainPlane strainPlane = Solve();
 
 			return new SLSModelCode2010CheckerResult(ConcreteSection, Forces, strainPlane, ModelCode2010);
 		}

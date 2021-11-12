@@ -77,7 +77,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		/// <summary>
 		/// Calculate the failure domain <see cref="FailureDomain"/> of the section
 		/// </summary>
-		public FailureDomain CalculateFailureDomain()
+		public FailureDomain Solve()
 		{
 			return CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations, SectionSolverOptions.Instance.AxialForceDiscretizations);
 		}
@@ -312,7 +312,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual double CalculateSafetyFactor(ResultBeamForces externalForces, out FailureDomain.FailureDomainPoint pointOnDomain, double angularTolerance = 0.001)
         {
-            externalForces = CalculateExternalForces(externalForces, SectionSolverOptions.Instance.DistanceFromCentroid);
+            externalForces = GetLocalForces(externalForces, SectionSolverOptions.Instance.DistanceFromCentroid);
+
             //CalculateAdimensionalForces(forces, out double adimExternalAxialForce, out double adimExternalendingMomentX, out double adimExternalBendingMomentY);
 
             // piano di primo tentativo. campo di rottura 7, immersione di 0.9 e ruotato di teta = 0;

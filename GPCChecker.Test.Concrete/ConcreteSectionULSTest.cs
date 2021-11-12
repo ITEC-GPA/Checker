@@ -216,7 +216,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
 
-            FailureDomain failureDomain = solver.CalculateFailureDomain();
+            FailureDomain failureDomain = solver.Solve();
 			ShowDomainPoints(failureDomain);
 			ExportToGmsh(failureDomain);
 			
@@ -387,7 +387,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
 
-			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			FailureDomain failureDomain = solver.Solve();
 			ShowDomainPoints(failureDomain);
 			ExportToGmsh(failureDomain);
 
@@ -467,7 +467,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
 
-			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			FailureDomain failureDomain = solver.Solve();
 			ShowDomainPoints(failureDomain);
 			// ExportToGmsh(failureDomain);
 
@@ -555,7 +555,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section,standard);
 
-			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			FailureDomain failureDomain = solver.Solve();
 			ShowDomainPoints(failureDomain);
 			// ExportToGmsh(failureDomain);
 
@@ -629,7 +629,7 @@ namespace ConcreteTests
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
 
-			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			FailureDomain failureDomain = solver.Solve();
 			ShowDomainPoints(failureDomain);
 			//ExportToGmsh(failureDomain);
 
@@ -705,7 +705,7 @@ namespace ConcreteTests
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
 
-			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			FailureDomain failureDomain = solver.Solve();
 			ShowDomainPoints(failureDomain);
 			ExportToGmsh(failureDomain);
 
@@ -786,7 +786,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
 
-			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			FailureDomain failureDomain = solver.Solve();
 			ShowDomainPoints(failureDomain);
 			// ExportToGmsh(failureDomain);
 
@@ -849,7 +849,7 @@ namespace ConcreteTests
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
 
-			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			FailureDomain failureDomain = solver.Solve();
 			ShowDomainPoints(failureDomain);
 			// ExportToGmsh(failureDomain);
 
@@ -937,7 +937,7 @@ namespace ConcreteTests
 
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);			
-			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			FailureDomain failureDomain = solver.Solve();
 
 			ShowDomainPoints(failureDomain);
 			ExportToGmsh(failureDomain);			
@@ -1022,7 +1022,7 @@ namespace ConcreteTests
 
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
-			FailureDomain failureDomain = solver.CalculateFailureDomain();
+			FailureDomain failureDomain = solver.Solve();
 
 			ShowDomainPoints(failureDomain);
 			ExportToGmsh(failureDomain);
