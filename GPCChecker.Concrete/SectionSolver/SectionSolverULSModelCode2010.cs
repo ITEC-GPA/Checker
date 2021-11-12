@@ -64,6 +64,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return ConcreteMaterialModelCode2010.Fck;
         }
 
+        protected override double GetStrainYCompression()
+        {
+            return ConcreteMaterialModelCode2010.StrainYCompression;
+        }
+
+        protected override double GetStrainUCompression()
+        {
+            return ConcreteMaterialModelCode2010.StrainUCompression;
+        }
+
         protected virtual double CalculateFcd()
         {
             return SectionSolverHelper.CalculateFcd(ConcreteSection, ModelCode2010);

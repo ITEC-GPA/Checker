@@ -104,7 +104,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		internal static double CalculateUltimateStrainConcreteCompression(IConcreteSection concreteSection)
 		{
-			return concreteSection.ConcreteMaterial.EpsilonCu;
+			return concreteSection.ConcreteMaterial;
 		}
 
 		internal static double CalculateYeldingStrainConcreteCompression(IConcreteSection concreteSection)

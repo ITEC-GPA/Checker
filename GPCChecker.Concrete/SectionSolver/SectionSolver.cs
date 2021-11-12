@@ -206,7 +206,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 var concreteForces = CalculateConcreteStressResultant(strainPlane);
                 var rebarsForces = CalculateRebarsIntegration(strainPlane);
 
-                return (concreteForces.N + rebarsForces.N, concreteForces.Mx + rebarsForces.Mx, concreteForces.My + rebarsForces.My);
+                var forces = CalculateExternalForces(concreteForces.N  + rebarsForces.N,
+                                                     concreteForces.Mx + rebarsForces.Mx,
+                                                     concreteForces.My + rebarsForces.My,
+                                                     SectionSolverOptions.Instance.DistanceFromCentroid);
+
+                return (forces.N, forces.Mx, forces.My);
             }
             catch (Exception e)
             {
