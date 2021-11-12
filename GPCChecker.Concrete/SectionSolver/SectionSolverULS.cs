@@ -571,7 +571,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 			if (immersioneNelCampo > 1.0 || immersioneNelCampo < 0.0)
 				throw new ArgumentException("ImmersioneNelCampo cannot be greater than 1 and less than 0");
 
-			SolverHelper.CalculateRelativeDistance(ConcreteSection, teta, out int dMinRebarIndex, out int dMaxRebarIndex, out int dMinVertexIndex, out int dMaxVertexIndex);
+			SectionSolverHelper.CalculateRelativeDistance(ConcreteSection, teta, out int dMinRebarIndex, out int dMaxRebarIndex, out int dMinVertexIndex, out int dMaxVertexIndex);
 
 			double dmaxConcrete = (ConcreteSection.Shape.Fill[dMaxVertexIndex].Y - ConcreteSection.Centroid.Y) * Math.Cos(teta) -
 				(ConcreteSection.Shape.Fill[dMaxVertexIndex].X - ConcreteSection.Centroid.X) * Math.Sin(teta);

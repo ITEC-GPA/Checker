@@ -69,7 +69,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         protected virtual double CalculateStrain(StrainPlane inputStrainPlane, Point3d pointToTest)
         {
-            return SolverHelper.CalculateStrain(inputStrainPlane, pointToTest);
+            return SectionSolverHelper.CalculateStrain(inputStrainPlane, pointToTest);
         }
 
         /// <summary>

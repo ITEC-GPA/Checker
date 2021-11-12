@@ -137,7 +137,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 			double dChiY = dCY * deltaChiYLimit;
 
-			double deltaStrainLimit = 1.0 / (ConcreteSection.Area * ConcreteSection.ConcreteMaterial.Fck);
+			double deltaStrainLimit = 1.0 / (ConcreteSection.Area * GetFck());
 			double dS = 0.00001;
 			if(adimAxialVector != 0)
 				dS = 0.0001 * Math.Max(adimAxialVector, 0.00001);
