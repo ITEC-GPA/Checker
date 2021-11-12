@@ -77,17 +77,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 				throw new ArgumentException("");
 		}
 
-		internal static double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain, StandardModelCode2010 standard)
+		internal static double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain)
 		{
-			if (rebar.EpsilonP == 0)
-				return rebar.RebarMaterial.CalculateStress(strain) / standard.GammaS;
-			else
-				return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP) / standard.GammaSPrestress;
-		}
-
-		internal static double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain, Standard standard)
-		{
-			throw new NotImplementedException();
+			return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP);
 		}
 
 		internal static double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar, StandardModelCode2010 standard)
@@ -138,59 +130,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 				strainPlane.ChiY * (pointToTest.Y - strainPlane.ReferencePoint.Y); 
 		}
 
-		internal static void CalculateRelativeDistance(IConcreteSection concreteSection, double teta, 
-			out int dMinRebarIndex, out int dMaxRebarIndex, out int dMinVertexIndex, out int dMaxVertexIndex)
-		{
-			double cosTeta = Math.Cos(teta);
-			double sinTeta = Math.Sin(teta);
-
-			double dminSteel = double.MaxValue;
-			double dmaxSteel = double.MinValue;
-			double dmaxConcrete = double.MinValue;
-			double dminConcrete = double.MaxValue;
-
-			dMinRebarIndex = -1;
-			dMaxRebarIndex = -1;
-			dMaxVertexIndex = -1;
-			dMinVertexIndex = -1;
-
-			for (int r = 0; r < concreteSection.Rebars.Count(); r++)
-			{
-				double w1 = (concreteSection.Rebars[r].Position.Y - concreteSection.Centroid.Y) * cosTeta -
-					(concreteSection.Rebars[r].Position.X - concreteSection.Centroid.X) * sinTeta;
-				if (w1 <= dminSteel)
-				{
-					dminSteel = w1;
-					dMinRebarIndex = r;
-				}
-
-				if (w1 >= dmaxSteel)
-				{
-					dmaxSteel = w1;
-					dMaxRebarIndex = r;
-				}
-			}
-
-			//TODO: implementare con armature lineari
-
-			for (int c = 0; c < concreteSection.Shape.Fill.Count; c++)
-			{
-				double w1 = (concreteSection.Shape.Fill[c].Y - concreteSection.Centroid.Y) * cosTeta -
-					(concreteSection.Shape.Fill[c].X - concreteSection.Centroid.X) * sinTeta;
-
-				if (w1 >= dmaxConcrete)
-				{
-					dMaxVertexIndex = c;
-					dmaxConcrete = w1;
-				}
-
-				if (w1 <= dminConcrete)
-				{
-					dminConcrete = w1;
-					dMinVertexIndex = c;
-				}
-			}
-		}
 
 		internal static void CalculateForces(IConcreteSection concreteSection, StrainPlane strainPlane, Standard standard, out double N, out double Mx, out double My)
 		{			

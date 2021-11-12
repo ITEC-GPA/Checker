@@ -143,8 +143,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (face.IsTriangle)
             {
-                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))),
-                    points, gaussPointsTri);
+                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), points, gaussPointsTri);
                 deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
                     (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
                 deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
@@ -195,10 +194,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <summary>
-        /// Calculate the <see cref="FailureDomain.FailureDomainPoint"/> respect the strain plane <paramref name="strainPlane"/>
+        /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
         /// </summary>
-        /// <param name="strainPlane"></param>
-        /// <returns></returns>
         public virtual void CalculateForces(StrainPlane strainPlane, out double N, out double Mx, out double My)
         {
             double deltaNConcrete = 0;
@@ -276,6 +273,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
+
         protected virtual void CalculateAdimensionalForces(ResultBeamForces forces, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
         {
             BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox();
@@ -286,6 +284,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             adimBendingMomentX = forces.M1 / (b * h * h * GetFck());
             adimBendingMomentY = forces.M2 / (b * b * h * GetFck());
         }
+
 
         protected virtual void CalculateAdimensionalForces(double N, double Mx, double My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
         {

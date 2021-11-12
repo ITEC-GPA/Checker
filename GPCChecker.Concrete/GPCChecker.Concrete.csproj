@@ -80,7 +80,7 @@
     <Compile Include="SectionSolver\SectionSolverOptions.cs" />
     <Compile Include="SectionSolver\SectionSolverSLS.cs" />
     <Compile Include="SectionSolver\SectionSolverSLSModelCode2010.cs" />
-    <Compile Include="SectionSolver\SolverHelper.cs" />
+    <Compile Include="SectionSolver\SectionSolverHelper.cs" />
     <Compile Include="OldCheckerCode\RCCheckingSection.cs" />
     <Compile Include="OldCheckerCode\RCSection.cs" />
     <Compile Include="SectionSolver\SectionSolverULS.cs" />
