@@ -27,7 +27,7 @@ namespace GPC.Checkers.Concrete.Results
         public sealed class FailureDomainPoint : ISerializable, IEquatable<FailureDomainPoint>
         {
             private readonly Point3d _point;
-            private readonly SectionSolverULS.FailureIndices _failureIndex;
+            private readonly SectionSolverULS.FailureZones _failureIndex;
             private readonly StrainPlane _strainPlane;
 
 
@@ -39,11 +39,11 @@ namespace GPC.Checkers.Concrete.Results
 
             public Point3d Point => _point;
 
-            /// <inheritdoc cref="SectionSolverULS.FailureIndices"/>
-            public SectionSolverULS.FailureIndices FailureIndex => _failureIndex;
+            /// <inheritdoc cref="SectionSolverULS.FailureZones"/>
+            public SectionSolverULS.FailureZones FailureIndex => _failureIndex;
 
 
-            internal FailureDomainPoint(double nRd, double mxRd, double myRd, SectionSolverULS.FailureIndices failureIndex, StrainPlane strainPlane)
+            internal FailureDomainPoint(double nRd, double mxRd, double myRd, SectionSolverULS.FailureZones failureIndex, StrainPlane strainPlane)
             {
                 _point = new Point3d(mxRd, myRd, nRd);
                 _failureIndex = failureIndex;
@@ -54,14 +54,14 @@ namespace GPC.Checkers.Concrete.Results
             {
                 _point = (Point3d)info.GetValue("Point", typeof(Point3d));
                 _strainPlane = (StrainPlane)info.GetValue("StrainPlane", typeof(StrainPlane));
-                _failureIndex = (SectionSolverULS.FailureIndices)info.GetValue("FailureIndex", typeof(SectionSolverULS.FailureIndices));
+                _failureIndex = (SectionSolverULS.FailureZones)info.GetValue("FailureIndex", typeof(SectionSolverULS.FailureZones));
             }
 
             public void GetObjectData(SerializationInfo info, StreamingContext context)
             {
                 info.AddValue("Point", _point, typeof(Point3d));
                 info.AddValue("StrainPlane", _strainPlane, typeof(StrainPlane));
-                info.AddValue("FailureIndex", _failureIndex, typeof(SectionSolverULS.FailureIndices));
+                info.AddValue("FailureIndex", _failureIndex, typeof(SectionSolverULS.FailureZones));
             }
 
             public override bool Equals(object obj)
