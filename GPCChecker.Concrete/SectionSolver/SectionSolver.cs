@@ -58,6 +58,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected abstract double CalculateSigmaC(double strain);
         protected abstract double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain);
         protected abstract double GetFck();
+        protected abstract double GetStrainYCompression();
+        protected abstract double GetStrainUCompression();
 
         #endregion
 
@@ -79,7 +81,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="deltaN">The axial force resultant</param>
         /// <param name="deltaMx">The bending moment about X-axis resultant</param>
         /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-        protected virtual void CalculateConcreteStressResultant(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+        protected virtual (double N, double Mx, double My) CalculateConcreteStressResultant(StrainPlane strainPlane)
         {
             double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
             double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
@@ -89,11 +91,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
                 {
-                    CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane, out double deltaNBuffer, out double deltaMxBuffer, out double deltaMyBuffer);
+                    (double N, double Mx, double My) forces = CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane);
 
-                    deltaNArray[i] = deltaNBuffer;
-                    deltaMxArray[i] = deltaMxBuffer;
-                    deltaMyArray[i] = deltaMyBuffer;
+                    deltaNArray[i] = forces.N;
+                    deltaMxArray[i] = forces.Mx;
+                    deltaMyArray[i] = forces.My;
                 });
             }
             catch (Exception e)
@@ -101,10 +103,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 _log.Add($"Fail" + e.InnerException);
             }
 
-
-            deltaN = deltaNArray.Sum();
-            deltaMx = deltaMxArray.Sum();
-            deltaMy = deltaMyArray.Sum();
+            return (deltaNArray.Sum(), deltaMxArray.Sum(), deltaMyArray.Sum());
         }
 
         /// <summary>
@@ -115,7 +114,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="deltaN"></param>
         /// <param name="deltaMx"></param>
         /// <param name="deltaMy"></param>
-        protected virtual void CalculateFaceStressResultant(MeshFace face, StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+        protected virtual (double N, double Mx, double My) CalculateFaceStressResultant(MeshFace face, StrainPlane strainPlane)
         {
             Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
 
@@ -140,16 +139,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadLowPoints;
             }
 
+            double deltaN;
+            double deltaMx;
+            double deltaMy;
 
             if (face.IsTriangle)
             {
-                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), points, gaussPointsTri);
+                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), 
+                    points, gaussPointsTri);
                 deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
                     (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
                 deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
                     (x - ConcreteSection.Centroid.X), points, gaussPointsTri);
             }
-
             else if (face.IsQuad)
             {
                 deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))),
@@ -159,9 +161,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
                     (x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
             }
-
             else
                 throw new Exception();
+
+            return (deltaN, deltaMx, deltaMy);
         }
 
         /// <summary>
@@ -171,7 +174,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="deltaN">The axial force resultant</param>
         /// <param name="deltaMx">The bending moment about X-axis resultant</param>
         /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-        protected virtual void CalculateRebarsIntegration(StrainPlane strainPlane, out double deltaN, out double deltaMx, out double deltaMy)
+        protected virtual (double N, double Mx, double My) CalculateRebarsIntegration(StrainPlane strainPlane)
         {
             double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
             double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
@@ -188,66 +191,60 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 deltaMyArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
             });
 
-            deltaN = deltaNArray.Sum();
-            deltaMx = deltaMxArray.Sum();
-            deltaMy = deltaMyArray.Sum();
+
+            return (deltaNArray.Sum(), deltaMxArray.Sum(), deltaMyArray.Sum());
         }
 
         /// <summary>
         /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
         /// </summary>
-        public virtual void CalculateForces(StrainPlane strainPlane, out double N, out double Mx, out double My)
+        public virtual (double N, double Mx, double My) CalculateForces(StrainPlane strainPlane)
         {
-            double deltaNConcrete = 0;
-            double deltaMxConcrete = 0;
-            double deltaMyConcrete = 0;
-            double deltaNRebar = 0;
-            double deltaMxRebar = 0;
-            double deltaMyRebar = 0;
-
+            
             try
             {
-                CalculateConcreteStressResultant(strainPlane, out deltaNConcrete, out deltaMxConcrete, out deltaMyConcrete);
-                CalculateRebarsIntegration(strainPlane, out deltaNRebar, out deltaMxRebar, out deltaMyRebar);
+                var concreteForces = CalculateConcreteStressResultant(strainPlane);
+                var rebarsForces = CalculateRebarsIntegration(strainPlane);
+
+                return (concreteForces.N + rebarsForces.N, concreteForces.Mx + rebarsForces.Mx, concreteForces.My + rebarsForces.My);
             }
             catch (Exception e)
             {
                 _log.Add($"Fail" + e.InnerException);
+
+                return (0,0,0);
             }
 
-            N = deltaNConcrete + deltaNRebar;
-            Mx = -(deltaMxConcrete + deltaMxRebar);
-            My = deltaMyConcrete + deltaMyRebar;
         }
 
-        protected virtual void CalculateRelativeDistance(double teta, out int dMinRebarIndex, out int dMaxRebarIndex, out int dMinVertexIndex, out int dMaxVertexIndex)
+        protected virtual (int dMinRebarIndex, double dminRebar, int dMaxRebarIndex,  double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) 
+            CalculateMaxMinSectionDistances(double teta)
         {
             double cosTeta = Math.Cos(teta);
             double sinTeta = Math.Sin(teta);
 
-            double dminSteel = double.MaxValue;
-            double dmaxSteel = double.MinValue;
+            double dminRebar = double.MaxValue;
+            double dmaxRebar = double.MinValue;
             double dmaxConcrete = double.MinValue;
             double dminConcrete = double.MaxValue;
 
-            dMinRebarIndex = -1;
-            dMaxRebarIndex = -1;
-            dMaxVertexIndex = -1;
-            dMinVertexIndex = -1;
+            int dMinRebarIndex = -1;
+            int dMaxRebarIndex = -1;
+            int dMaxVertexIndex = -1;
+            int dMinVertexIndex = -1;
 
             for (int r = 0; r < ConcreteSection.Rebars.Count(); r++)
             {
-                double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta -
-                    (ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
-                if (w1 <= dminSteel)
+                double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
+                if (w1 <= dminRebar)
                 {
-                    dminSteel = w1;
+                    dminRebar = w1;
                     dMinRebarIndex = r;
                 }
 
-                if (w1 >= dmaxSteel)
+                if (w1 >= dmaxRebar)
                 {
-                    dmaxSteel = w1;
+                    dmaxRebar = w1;
                     dMaxRebarIndex = r;
                 }
             }
@@ -271,31 +268,29 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     dMinVertexIndex = c;
                 }
             }
+
+            return (dMinRebarIndex, dminRebar, dMaxRebarIndex, dmaxRebar, dMinVertexIndex, dminConcrete, dMaxVertexIndex, dmaxConcrete);
         }
 
 
-        protected virtual void CalculateAdimensionalForces(ResultBeamForces forces, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
+        protected virtual (double N, double Mx, double My) CalculateAdimensionalForces(ResultBeamForces forces)
         {
-            BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox();
+            BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox(); 
             double h = bBox.Size.Y;
             double b = bBox.Size.X;
 
-            adimAxialForce = forces.N / (b * h * GetFck());
-            adimBendingMomentX = forces.M1 / (b * h * h * GetFck());
-            adimBendingMomentY = forces.M2 / (b * b * h * GetFck());
+            return (forces.N / (b * h * GetFck()), forces.M1 / (b * h * h * GetFck()), forces.M2 / (b * b * h * GetFck()));
         }
 
 
-        protected virtual void CalculateAdimensionalForces(double N, double Mx, double My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
+        protected virtual (double N, double Mx, double My) CalculateAdimensionalForces(double N, double Mx, double My)
         {
 
             BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox(); ;
             double h = bBox.Size.Y;
             double b = bBox.Size.X;
 
-            adimAxialForce = N / (b * h * GetFck());
-            adimBendingMomentX = Mx / (b * h * h * GetFck());
-            adimBendingMomentY = My / (b * b * h * GetFck());
+            return (N / (b * h * GetFck()), Mx / (b * h * h * GetFck()), Mx / (b * b * h * GetFck()));
         }
 
         protected virtual ResultBeamForces CalculateExternalForces(ResultBeamForces forces, Point3d distanceFromCentroid)
@@ -307,11 +302,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return new ResultBeamForces(N, forces.V1, forces.V2, forces.T, Mx, My, forces.CoordinateSystem);
         }
 
-        protected virtual void CalculateExternalForces(double inputN, double inputMx, double inputMy, Point3d distanceFromCentroid, out double N, out double Mx, out double My)
+        protected virtual (double N, double Mx, double My) CalculateExternalForces(double inputN, double inputMx, double inputMy, Point3d distanceFromCentroid)
         {
-            N = inputN;
-            Mx = inputMx + N * distanceFromCentroid.Y;
-            My = inputMy + N * distanceFromCentroid.X;
+            return (inputN, inputMx + inputN * distanceFromCentroid.Y, inputMy + inputN * distanceFromCentroid.X);
         }
 
         #endregion
@@ -320,8 +313,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public override bool Equals(object obj)
         {
-            return obj is SectionSolver solver &&
-                   EqualityComparer<IConcreteSection>.Default.Equals(_concreteSection, solver._concreteSection);
+            return obj is SectionSolver solver && _concreteSection.Equals(solver._concreteSection);
         }
 
         public override int GetHashCode()
