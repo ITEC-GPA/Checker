@@ -42,8 +42,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public double ULSconvergenceTolerance { get; set; }
 
-        public Point3d DistanceFromCentroid { get; set; }
-
         public int GaussIntegrationQuadLowPoints { get; set; }
         public int GaussIntegrationQuadMidPoints { get; set; }
         public int GaussIntegrationQuadHighPoints { get; set; }
@@ -65,8 +63,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             SLSconvergenceTolerance = 1e-5;
             ULSconvergenceTolerance = 5e-4;
-
-            DistanceFromCentroid = new Point3d(0, 0, 0);
 
             GaussIntegrationQuadLowPoints = 12;
             GaussIntegrationQuadMidPoints = 49;

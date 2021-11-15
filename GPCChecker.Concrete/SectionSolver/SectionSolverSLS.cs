@@ -19,14 +19,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
     public abstract class SectionSolverSLS : SectionSolver
     {
         protected ResultBeamForces _forces;
+        protected Point2d _forceReferencePoint;
+
+
 
         public ResultBeamForces Forces => _forces;
+        public Point2d ForceReferencePoint => _forceReferencePoint;
 
 
-        public SectionSolverSLS(IConcreteSection section, ResultBeamForces forces, Standard standard)
+        public SectionSolverSLS(IConcreteSection section, ResultBeamForces forces, Standard standard, Point2d forceReferencePoint = default)
             : base(section, standard)
         {
             _forces = forces ?? throw new ArgumentNullException(nameof(forces));
+            _forceReferencePoint = forceReferencePoint ?? section.Centroid; // se point2d è default (nullo) assegnamo il centroide della sezione
         }
 
 
@@ -34,6 +39,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             : base(info, context)
         {
             _forces = (ResultBeamForces)info.GetValue("Forces", typeof(ResultBeamForces));
+            _forceReferencePoint = (Point2d)info.GetValue("Point2d", typeof(Point2d));
         }
 
 
@@ -41,7 +47,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public StrainPlane Solve()
         {
-            return CalculateStrainPlane(Forces, new Point2d(), SectionSolverOptions.Instance.SLSconvergenceTolerance);
+            return CalculateStrainPlane(Forces, _forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance);
         }
 
         protected StrainPlane CalculateStrainPlane(ResultBeamForces externalForces, Point2d forceReferencePoint, double tolerance = 1e-5)
