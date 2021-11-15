@@ -319,7 +319,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual (double N, double Mx, double My) GetExternalForces(double inputN, double inputMx, double inputMy, Point2d forceReferencePoint)
         {
-            return (inputN, inputMx + inputN * (ConcreteSection.Centroid.Y - forceReferencePoint.Y), inputMy + inputN * (ConcreteSection.Centroid.X - forceReferencePoint.X);
+            return (inputN, inputMx + inputN * (ConcreteSection.Centroid.Y - forceReferencePoint.Y), inputMy + inputN * (ConcreteSection.Centroid.X - forceReferencePoint.X));
         }
 
         #endregion
