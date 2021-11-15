@@ -10,27 +10,32 @@ namespace GPC.Checkers.Concrete.Helper
 {
     // è una struct perchè rappresenta un value type
 
-    public struct ForceTuple : IEquatable<ForceTuple>
+    /// <summary>
+    /// This struct represent a set of forces applied on the local reference system of the section.
+    /// </summary>
+    internal struct ForceTuple : IEquatable<ForceTuple>
     {
         private readonly double _N;
-        private readonly double _M1;
-        private readonly double _M2;
+        private readonly double _Mx;
+        private readonly double _My;
 
 
         public double N => _N;
 
-        public double M1 => _M1;
+        public double Mx => _Mx;
 
-        public double M2 => _M2;
+        public double My => _My;
 
 
-        public ForceTuple(double N, double M1, double M2)
+        public ForceTuple(double N, double Mx, double My)
         {
             _N = N;
-            _M1 = M1;
-            _M2 = M2;
+            _Mx = Mx;
+            _My = My;
         }
 
+
+        #region Equals - Hashcode
 
         public override bool Equals(object obj)
         {
@@ -39,7 +44,7 @@ namespace GPC.Checkers.Concrete.Helper
 
         public bool Equals(ForceTuple other)
         {
-            return _N == other._N && _M1 == other._M1 && _M2 == other._M2;
+            return _N == other._N && _Mx == other._Mx && _My == other._My;
         }
 
         public override int GetHashCode()
@@ -48,11 +53,15 @@ namespace GPC.Checkers.Concrete.Helper
             {
                 int hashCode = -17;
                 hashCode = hashCode * -23 + _N.GetHashCode();
-                hashCode = hashCode * -23 + _M1.GetHashCode();
-                hashCode = hashCode * -23 + _M2.GetHashCode();
+                hashCode = hashCode * -23 + _Mx.GetHashCode();
+                hashCode = hashCode * -23 + _My.GetHashCode();
                 return hashCode;
             }
-        }
+        } 
+
+        #endregion
+
+        #region Operators
 
         public static bool operator ==(ForceTuple left, ForceTuple right)
         {
@@ -66,27 +75,27 @@ namespace GPC.Checkers.Concrete.Helper
 
         public static ForceTuple operator *(ForceTuple left, ForceTuple right)
         {
-            return new ForceTuple(left.N * right.N, left.M1 * right.M1, left.M2 * right.M2);
+            return new ForceTuple(left.N * right.N, left.Mx * right.Mx, left.My * right.My);
         }
 
         public static ForceTuple operator *(ForceTuple left, double value)
         {
-            return new ForceTuple(left.N * value, left.M1 * value, left.M2 * value);
+            return new ForceTuple(left.N * value, left.Mx * value, left.My * value);
         }
 
         public static ForceTuple operator +(ForceTuple left, ForceTuple right)
         {
-            return new ForceTuple(left.N + right.N, left.M1 + right.M1, left.M2 + right.M2);
+            return new ForceTuple(left.N + right.N, left.Mx + right.Mx, left.My + right.My);
         }
 
         public static ForceTuple operator +(ForceTuple left, double value)
         {
-            return new ForceTuple(left.N + value, left.M1 + value, left.M2 + value);
+            return new ForceTuple(left.N + value, left.Mx + value, left.My + value);
         }
 
         public static ForceTuple operator -(ForceTuple left, ForceTuple right)
         {
-            return new ForceTuple(left.N - right.N, left.M1 - right.M1, left.M2 - right.M2);
+            return new ForceTuple(left.N - right.N, left.Mx - right.Mx, left.My - right.My);
         }
 
         public static ForceTuple operator -(ForceTuple left, double value)
@@ -96,12 +105,12 @@ namespace GPC.Checkers.Concrete.Helper
 
         public static bool operator >(ForceTuple left, double value)
         {
-            return Math.Abs(left.N) > value || Math.Abs(left.M1) > value || Math.Abs(left.M2) > value;
+            return Math.Abs(left.N) > value || Math.Abs(left.Mx) > value || Math.Abs(left.My) > value;
         }
 
         public static bool operator >(ForceTuple left, ForceTuple right)
         {
-            return left.N > right.N || left.M1 > right.M1 || left.M2 > right.M2;
+            return left.N > right.N || left.Mx > right.Mx || left.My > right.My;
         }
 
         public static bool operator <(ForceTuple left, double value)
@@ -114,24 +123,21 @@ namespace GPC.Checkers.Concrete.Helper
             return !(left > right);
         }
 
+        #endregion
+
+        #region Cast operators
+
         public static implicit operator Vector3d(ForceTuple value)
         {
-            return new Vector3d(value.N, value.M1, value.M2);
+            return new Vector3d(value.Mx, value.My, value.N);
         }
 
         public static implicit operator Point3d(ForceTuple value)
         {
-            return new Point3d(value.N, value.M1, value.M2);
+            return new Point3d(value.Mx, value.My, value.N);
         }
 
-        public static implicit operator ForceTuple(ResultBeamForces value)
-        {
-            return new ForceTuple(value.N, value.M1, value.M2);
-        }
 
-        public static explicit operator ResultBeamForces(ForceTuple value)
-        {
-            return new ForceTuple(value.N, value.M1, value.M2);
-        }
+        #endregion
     }
 }

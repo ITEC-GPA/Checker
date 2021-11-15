@@ -95,8 +95,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     var forces = CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane);
 
                     deltaNArray[i] = forces.N;
-                    deltaMxArray[i] = forces.M1;
-                    deltaMyArray[i] = forces.M2;
+                    deltaMxArray[i] = forces.Mx;
+                    deltaMyArray[i] = forces.My;
                 });
             }
             catch (Exception e)
@@ -143,8 +143,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (face.IsTriangle)
             {
-                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), 
-                    points, gaussPointsTri);
+                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), points, gaussPointsTri);
                 deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
                     (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
                 deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
@@ -293,8 +292,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double b = bBox.Size.X;
 
             return new ForceTuple(forceTuple.N  / (b * h * GetFck()), 
-                                  forceTuple.M1 / (b * h * h * GetFck()),
-                                  forceTuple.M2 / (b * b * h * GetFck()));
+                                  forceTuple.Mx / (b * h * h * GetFck()),
+                                  forceTuple.My / (b * b * h * GetFck()));
         }
 
         protected virtual ResultBeamForces GetLocalForces(ResultBeamForces externalForces, Point2d forceReferencePoint)
@@ -312,8 +311,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
 
             return new ForceTuple(externalForces.N,
-                                  externalForces.M1 + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
-                                  externalForces.M2 + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X);
+                                  externalForces.Mx + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
+                                  externalForces.My + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X);
         }
 
         protected virtual ResultBeamForces GetExternalForces(ResultBeamForces localForces, Point2d forceReferencePoint)
@@ -331,8 +330,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected virtual ForceTuple GetExternalForces(ForceTuple forceTuple, Point2d forceReferencePoint)
         {
             return new ForceTuple(forceTuple.N, 
-                                  forceTuple.M1 + forceTuple.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y), 
-                                  forceTuple.M2 + forceTuple.N * (ConcreteSection.Centroid.X - forceReferencePoint.X));
+                                  forceTuple.Mx + forceTuple.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y), 
+                                  forceTuple.My + forceTuple.N * (ConcreteSection.Centroid.X - forceReferencePoint.X));
         }
 
         #endregion

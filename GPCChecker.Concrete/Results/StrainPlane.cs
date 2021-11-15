@@ -14,7 +14,7 @@ namespace GPC.Checkers.Concrete.Results
     public sealed class StrainPlane : ModelObjectId, ISerializable, IEquatable<StrainPlane>
     {
 
-        private readonly Point3d _referencePoint;
+        private readonly Point2d _referencePoint;
         private readonly double _chiY;
         private readonly double _chiX;
         private readonly double _strainReferencePoint;
@@ -22,7 +22,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <summary>
         /// The point where is set <see cref="StrainReferencePoint"/>
         /// </summary>
-        public Point3d ReferencePoint => _referencePoint;
+        public Point2d ReferencePoint => _referencePoint;
 
         /// <summary>
         /// The angle between the strain plane and the plane of section
@@ -45,7 +45,7 @@ namespace GPC.Checkers.Concrete.Results
 
 
 
-        public StrainPlane(Point3d centerOfStrainPlane, double teta, double chi, double epsilonCenterOfStrainPlane, int id = IDUNASSIGNED, string name = "")
+        public StrainPlane(Point2d centerOfStrainPlane, double teta, double chi, double epsilonCenterOfStrainPlane, int id = IDUNASSIGNED, string name = "")
             : base(id, name)
         {
             _referencePoint = centerOfStrainPlane;
@@ -54,7 +54,7 @@ namespace GPC.Checkers.Concrete.Results
             _strainReferencePoint = epsilonCenterOfStrainPlane;
         }
 
-        public StrainPlane(double chiX, double chiY, Point3d centerOfStrainPlane, double epsilonCenterOfStrainPlane, int id = IDUNASSIGNED, string name = "")
+        public StrainPlane(double chiX, double chiY, Point2d centerOfStrainPlane, double epsilonCenterOfStrainPlane, int id = IDUNASSIGNED, string name = "")
             : base(id, name)
         {
             _referencePoint = centerOfStrainPlane;
@@ -66,7 +66,7 @@ namespace GPC.Checkers.Concrete.Results
         public StrainPlane(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            _referencePoint = (Point3d)info.GetValue("ReferecePoint", typeof(Point3d));
+            _referencePoint = (Point2d)info.GetValue("ReferecePoint", typeof(Point2d));
             _chiX = info.GetDouble("ChiX");
             _chiY = info.GetDouble("ChiY");
             _strainReferencePoint = info.GetDouble("StrainReferencePoint");
@@ -96,7 +96,7 @@ namespace GPC.Checkers.Concrete.Results
         public bool Equals(StrainPlane other)
         {
             return !(other is null) &&
-                   EqualityComparer<Point3d>.Default.Equals(_referencePoint, other._referencePoint) &&
+                   EqualityComparer<Point2d>.Default.Equals(_referencePoint, other._referencePoint) &&
                    _chiX == other._chiX &&
                    _chiY == other._chiY &&
                    _strainReferencePoint == other._strainReferencePoint;
@@ -112,7 +112,7 @@ namespace GPC.Checkers.Concrete.Results
             unchecked
             {
                 int hashCode = -23;
-                hashCode = hashCode * -17 + EqualityComparer<Point3d>.Default.GetHashCode(_referencePoint);
+                hashCode = hashCode * -17 + EqualityComparer<Point2d>.Default.GetHashCode(_referencePoint);
                 hashCode = hashCode * -17 + _chiX.GetHashCode();
                 hashCode = hashCode * -17 + _chiY.GetHashCode();
                 hashCode = hashCode * -17 + _strainReferencePoint.GetHashCode();
@@ -123,7 +123,7 @@ namespace GPC.Checkers.Concrete.Results
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue("ReferecePoint", _referencePoint, typeof(Point3d));
+            info.AddValue("ReferecePoint", _referencePoint, typeof(Point2d));
             info.AddValue("ChiX", _chiX, typeof(double));
             info.AddValue("ChiY", _chiY, typeof(double));
             info.AddValue("StrainReferencePoint", _strainReferencePoint, typeof(double));

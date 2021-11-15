@@ -76,7 +76,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 {
                     try
                     {
-                        (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment = CalculateIncrement(strainPlane, targetLocalForces - iterationForces);
+                        (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment = CalculateIncrement(strainPlane, targetLocalForcesAdmin - iterationForces);
 
                         // piano di nuovo tentativo
                         id++;
@@ -107,15 +107,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             double deltaChiXLimit = Math.Abs(CalculateYeldingStrainConcreteCompression() / ConcreteSection.Shape.GetBoundingBox().Size.X);
             double dCX = 0.00001;
-            if (forceTupleAdmin.M1 != 0)
-                dCX = 0.001 * Math.Max(forceTupleAdmin.M1, 0.00001);
+            if (forceTupleAdmin.Mx != 0)
+                dCX = 0.001 * Math.Max(forceTupleAdmin.Mx, 0.00001);
 
             double dChiX = dCX * deltaChiXLimit;
 
             double deltaChiYLimit = Math.Abs(CalculateYeldingStrainConcreteCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
             double dCY = 0.00001;
-            if (forceTupleAdmin.M2 != 0)
-                dCY = 0.001 * Math.Max(forceTupleAdmin.M2, 0.00001);
+            if (forceTupleAdmin.My != 0)
+                dCY = 0.001 * Math.Max(forceTupleAdmin.My, 0.00001);
 
             double dChiY = dCY * deltaChiYLimit;
 
@@ -137,8 +137,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var forcesMinusdChiX = CalculateForces(strainPlaneMinusdChiX);
 
             double dNdChiX = (forcesPlusdChiX.N - forcesMinusdChiX.N) / (2.0 * dCX);
-            double dMxdChiX = (forcesPlusdChiX.M1 - forcesMinusdChiX.M1) / (2.0 * dCX);
-            double dMydChiX = (forcesPlusdChiX.M2 - forcesMinusdChiX.M2) / (2.0 * dCX);
+            double dMxdChiX = (forcesPlusdChiX.Mx - forcesMinusdChiX.Mx) / (2.0 * dCX);
+            double dMydChiX = (forcesPlusdChiX.My - forcesMinusdChiX.My) / (2.0 * dCX);
 
 
             // derivate parziali rispetto a ChiY
@@ -151,8 +151,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var forcesMinusdChiY = CalculateForces(strainPlaneMinusdChiY);
 
             double dNdChiY = (forcesPlusdChiY.N - forcesMinusdChiY.N) / (2.0 * dCY);
-            double dMxdChiY = (forcesPlusdChiY.M1 - forcesMinusdChiY.M1) / (2.0 * dCY);
-            double dMydChiY = (forcesPlusdChiY.M2 - forcesMinusdChiY.M2) / (2.0 * dCY);
+            double dMxdChiY = (forcesPlusdChiY.Mx - forcesMinusdChiY.Mx) / (2.0 * dCY);
+            double dMydChiY = (forcesPlusdChiY.My - forcesMinusdChiY.My) / (2.0 * dCY);
 
 
 
@@ -166,8 +166,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var forcesMinusStrain = CalculateForces(strainPlaneMinusStrain);
 
             double dNdStrain = (forcesPlusStrain.N - forcesMinusStrain.N) / (2.0 * dCY);
-            double dMxdStrain = (forcesPlusStrain.M1 - forcesMinusStrain.M1) / (2.0 * dCY);
-            double dMydStrain = (forcesPlusStrain.M2 - forcesMinusStrain.M2) / (2.0 * dCY);
+            double dMxdStrain = (forcesPlusStrain.Mx - forcesMinusStrain.Mx) / (2.0 * dCY);
+            double dMydStrain = (forcesPlusStrain.My - forcesMinusStrain.My) / (2.0 * dCY);
 
 
 
@@ -188,8 +188,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             Matrix<double> inputVector = Matrix<double>.Build.Dense(3, 1);
             inputVector[0, 0] = forceTuple.N;
-            inputVector[1, 0] = forceTuple.M1;
-            inputVector[2, 0] = forceTuple.M2;
+            inputVector[1, 0] = forceTuple.Mx;
+            inputVector[2, 0] = forceTuple.My;
 
             Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
