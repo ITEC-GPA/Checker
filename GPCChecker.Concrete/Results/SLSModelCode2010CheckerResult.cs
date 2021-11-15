@@ -18,6 +18,7 @@ namespace GPC.Checkers.Concrete.Results
 		public SLSModelCode2010CheckerResult(IConcreteSection section, ResultType force, StrainPlane strainPlane, StandardModelCode2010 standard, int id = -1) 
 			: base(section, force, strainPlane, standard, id)
 		{
+
 		}
 
 		public override double GetConcreteTension(Point3d point)

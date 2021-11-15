@@ -48,7 +48,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public StrainPlane Solve()
         {
-            return CalculateStrainPlane(Forces, _forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance);
+            return CalculateStrainPlane(Forces.ConvertToForceTuple(_forceReferencePoint), _forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance);
         }
 
         protected StrainPlane CalculateStrainPlane(ForceTuple externalForces, Point2d forceReferencePoint, double tolerance = 1e-5)
@@ -105,14 +105,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             ForceTuple forceTupleAdmin = CalculateAdimensionalForces(forceTuple);
 
-            double deltaChiXLimit = Math.Abs(CalculateYeldingStrainConcreteCompression() / ConcreteSection.Shape.GetBoundingBox().Size.X);
+            double deltaChiXLimit = Math.Abs(GetYieldingStrainConcreteCompression() / ConcreteSection.Shape.GetBoundingBox().Size.X);
             double dCX = 0.00001;
             if (forceTupleAdmin.Mx != 0)
                 dCX = 0.001 * Math.Max(forceTupleAdmin.Mx, 0.00001);
 
             double dChiX = dCX * deltaChiXLimit;
 
-            double deltaChiYLimit = Math.Abs(CalculateYeldingStrainConcreteCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
+            double deltaChiYLimit = Math.Abs(GetYieldingStrainConcreteCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
             double dCY = 0.00001;
             if (forceTupleAdmin.My != 0)
                 dCY = 0.001 * Math.Max(forceTupleAdmin.My, 0.00001);

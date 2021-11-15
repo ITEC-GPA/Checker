@@ -40,11 +40,6 @@ namespace GPC.Checkers.Concrete.Results
             return _section.Shape.Fill.Select(i => GetConcreteTension(i)).ToArray();
         }
 
-        public double GetStrain(Point3d point)
-        {
-            return SectionSolverHelper.CalculateStrain(StrainPlane, point);
-        }
-
         public double[] GetVerticesStrain()
         {
             List<Point3d> vertices = new List<Point3d>();
