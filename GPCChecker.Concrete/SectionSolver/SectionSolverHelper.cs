@@ -18,63 +18,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 	{
 		#region ModelCode2010 
 
-		internal static double CalculateFcd(IConcreteSection concreteSection, StandardModelCode2010 standard)
-		{
-			if (((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).CompressionStressStrainDiagram == 
-				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
-			{
-				double eta;
-				if (((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).Fck <= 50.0)
-					eta = 1.0;
-				else
-					eta = 1.0 - (((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).Fck - 50.0) / 200;
 
-				return eta * standard.AlphaCC * ((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).Fck / standard.GammaC;
-			}
-			else
-			{
-				return standard.AlphaCC * ((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).Fck / standard.GammaC;
-			}
-		}
-
-		internal static double CalculateFcd(IConcreteSection concreteSection, Standard standard)
+		internal static double CalculateSigmaC(double strain, double fcd, double fctd, IConcreteSection concreteSection)
 		{
-			throw new NotImplementedException();
-		}
+			var material = ((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial);
 
-		internal static double CalculateSigmaC(double strain, double Fcd, IConcreteSection concreteSection)
-		{
-			if (((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).CompressionStressStrainDiagram == 
-				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.ParabolaRectangle)
+			if (strain < 0)
 			{
-				if (strain >= 0.0)
-					return 0.0;
-				else if (strain <= ((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).EpsilonCy)
-					return -Fcd;
-				else
-					return -Fcd * (1 - Math.Pow(1 - Math.Abs(strain / ((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).EpsilonCy), 
-						((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).CalculateN()));
+				return material.GetStress(strain) * fcd / material.Fck;
 			}
-			else if (((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
-			{
-				if (strain >= 0.0)
-					return 0.0;
-				if (strain <= ((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).EpsilonCy)
-					return -Fcd;
-				else
-					return 0.0;
+            else
+            {
+				return material.GetStress(strain) * fctd / material.Fctk;
 			}
-			else if (((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear)
-			{
-				if (strain >= 0.0)
-					return 0.0;
-				else if (strain <= ((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).EpsilonCy)
-					return -Fcd;
-				else
-					return -Fcd * Math.Abs(strain / ((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial).EpsilonCy);
-			}
-			else
-				throw new ArgumentException("");
 		}
 
 		internal static double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain)
@@ -82,24 +38,24 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 			return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP);
 		}
 
-		internal static double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar, StandardModelCode2010 standard)
+		internal static double CalculateUltimateDesignStrainSteel(ReinforcedConcreteRebar rebar, StandardModelCode2010 standard)
 		{
-			return rebar.RebarMaterial.EpsilonU * standard.SteelCoefficientStrainTraction;
+			return rebar.RebarMaterial.StrainU * standard.SteelCoefficientStrainTraction;
 		}
 
-		internal static double CalculateUltimateStrainSteel(IConcreteSection concreteSection, int rebar, StandardModelCode2010 standard)
+		internal static double CalculateUltimateDesignStrainSteel(IConcreteSection concreteSection, int rebar, StandardModelCode2010 standard)
 		{
-			return concreteSection.Rebars[rebar].RebarMaterial.EpsilonU * standard.SteelCoefficientStrainTraction;
+			return concreteSection.Rebars[rebar].RebarMaterial.StrainU * standard.SteelCoefficientStrainTraction;
 		}
 
-		internal static double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar)
-		{
-			return rebar.RebarMaterial.EpsilonY;
-		}
+		//internal static double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar)
+		//{
+		//	return rebar.RebarMaterial.StrainU;
+		//}
 
 		internal static double CalculateYeldingStrainSteel(IConcreteSection concreteSection, int rebar)
 		{
-			return concreteSection.Rebars[rebar].RebarMaterial.EpsilonY;
+			return concreteSection.Rebars[rebar].RebarMaterial.StrainU;
 		}
 
 		internal static double CalculateUltimateStrainConcreteCompression(IConcreteSection concreteSection)
@@ -124,7 +80,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#endregion
 
-		internal static double CalculateStrain(StrainPlane strainPlane, Point3d pointToTest)
+		internal static double CalculatePointStrain(StrainPlane strainPlane, Point3d pointToTest)
 		{
 			return strainPlane.StrainReferencePoint + strainPlane.ChiX * (pointToTest.X - strainPlane.ReferencePoint.X) + 
 				strainPlane.ChiY * (pointToTest.Y - strainPlane.ReferencePoint.Y); 
@@ -183,21 +139,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 			if (face.IsTriangle)
 			{
-				deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection),
+				deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection),
 					points, 79);
-				deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection) *
+				deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection) *
 					(y - concreteSection.Centroid.Y), points, 79);
-				deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection) *
+				deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection) *
 					(x - concreteSection.Centroid.X), points, 79);
 			}
 
 			else if (face.IsQuad)
 			{
-				deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection),
+				deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection),
 					points, 121);
-				deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection) *
+				deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection) *
 					(y - concreteSection.Centroid.Y), points, 121);
-				deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection) *
+				deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0)), Fcd, concreteSection) *
 					(x - concreteSection.Centroid.X), points, 121);
 			}
 			else
@@ -220,7 +176,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 			Parallel.For(0, concreteSection.Rebars.Length, (i) =>
 			{
-				double strain = CalculateStrain(strainPlane, concreteSection.Rebars[i].Position);
+				double strain = CalculatePointStrain(strainPlane, concreteSection.Rebars[i].Position);
 				double sigmaS = CalculateStressSteel(concreteSection.Rebars[i], strain, standard);
 				double sigmaC = CalculateSigmaC(strain, Fcd, concreteSection);
 

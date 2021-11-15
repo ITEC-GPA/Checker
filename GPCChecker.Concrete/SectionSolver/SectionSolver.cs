@@ -48,32 +48,24 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Abstract Method
 
-        protected abstract double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar);
-        protected abstract double CalculateYeldingStrainSteel(int rebar);
-        protected abstract double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar);
-        protected abstract double CalculateUltimateStrainSteel(int rebar);
-        protected abstract double CalculateUltimateStrainConcreteCompression();
-        protected abstract double CalculateYeldingStrainConcreteCompression();
-        protected abstract double CalculateLimitStrainCostantCompression();
-        protected abstract double CalculateUltimateStrainConcreteTension();
+        protected abstract double GetDesignYieldingStrainSteel(ReinforcedConcreteRebar rebar);
+        protected abstract double GetDesignYieldingStrainSteel(int rebar);
+        protected abstract double GetDesignUltimateStrainSteel(ReinforcedConcreteRebar rebar);
+        protected abstract double GetDesignUltimateStrainSteel(int rebar);
+
+        protected abstract double GetUltimateStrainConcreteCompression();
+        protected abstract double GetYieldingStrainConcreteCompression();
+        protected abstract double GetYieldingStrainPureCompression();
+        protected abstract double GetYieldingStrainConcreteTension();
+        protected abstract double GetUltimateStrainConcreteTension();
+
+        protected abstract double GetFck();
+
         protected abstract double CalculateSigmaC(double strain);
         protected abstract double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain);
-        protected abstract double GetFck();
-        protected abstract double GetStrainYCompression();
-        protected abstract double GetStrainUCompression();
-
         #endregion
 
         #region Virtual Method
-
-
-        /// <summary>
-        /// Return the strain value of the <paramref name="pointToTest"/>
-        /// </summary>
-        protected virtual double CalculateStrain(StrainPlane inputStrainPlane, Point3d pointToTest)
-        {
-            return SectionSolverHelper.CalculateStrain(inputStrainPlane, pointToTest);
-        }
 
         /// <summary>
         /// Calculate the stress resultant of the concrete part
@@ -143,19 +135,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (face.IsTriangle)
             {
-                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))), points, gaussPointsTri);
-                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))), points, gaussPointsTri);
+                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
                     (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
-                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
                     (x - ConcreteSection.Centroid.X), points, gaussPointsTri);
             }
             else if (face.IsQuad)
             {
-                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))),
+                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))),
                     points, gaussPointsQuad);
-                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
                     (y - ConcreteSection.Centroid.Y), points, gaussPointsQuad);
-                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculateStrain(strainPlane, new Point3d(x, y, 0))) *
+                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
                     (x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
             }
             else
@@ -179,8 +171,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
             {
-                double strain = CalculateStrain(strainPlane, ConcreteSection.Rebars[i].Position);
-                double sigmaS = CalculateStressSteel(ConcreteSection.Rebars[i], strain);
+                double strain = SectionSolverHelper.CalculatePointStrain(strainPlane, ConcreteSection.Rebars[i].Position);
+                double sigmaS = SectionSolverHelper.CalculateStressSteel(ConcreteSection.Rebars[i], strain);
                 double sigmaC = CalculateSigmaC(strain);
 
                 deltaNArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area;
@@ -195,17 +187,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <summary>
         /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
         /// </summary>
-        public virtual ForceTuple CalculateForces(StrainPlane strainPlane)
-        {
-            
+        /// <returns>The forces in the local reference system</returns>
+        protected virtual ForceTuple CalculateForces(StrainPlane strainPlane)
+        {            
             try
             {
-                var concreteForces = CalculateConcreteStressResultant(strainPlane);
-                var rebarsForces = CalculateRebarsIntegration(strainPlane);
-
-                var externalForces = GetExternalForces(concreteForces + rebarsForces, SectionSolverOptions.Instance.DistanceFromCentroid);
-
-                return new ForceTuple(externalForces.N, externalForces.Mx, externalForces.My);
+                return CalculateConcreteStressResultant(strainPlane) + CalculateRebarsIntegration(strainPlane);
             }
             catch (Exception e)
             {
@@ -215,6 +202,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
 
         }
+
 
         protected virtual (int dMinRebarIndex, double dminRebar, int dMaxRebarIndex,  double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) 
             CalculateMaxMinSectionDistances(double teta)
@@ -307,12 +295,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                         new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
         }
 
-        protected virtual ForceTuple GetLocalForces(ForceTuple externalForces, Point2d forceReferencePoint)
+        protected ForceTuple GetLocalForces(ForceTuple externalForces, Point2d forceReferencePoint)
         {
-
             return new ForceTuple(externalForces.N,
                                   externalForces.Mx + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
-                                  externalForces.My + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X);
+                                  externalForces.My + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X));
         }
 
         protected virtual ResultBeamForces GetExternalForces(ResultBeamForces localForces, Point2d forceReferencePoint)
@@ -336,7 +323,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region Public override methods
+        #region Equals - hashcode - operators - serialization
 
         public override bool Equals(object obj)
         {

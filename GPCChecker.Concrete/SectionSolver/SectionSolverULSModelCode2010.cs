@@ -13,9 +13,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 {
     public class SectionSolverULSModelCode2010 : SectionSolverULS
     {
+
         #region Properties
 
-        public StandardModelCode2010 ModelCode2010 => (StandardModelCode2010)_standard;
+        public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
 
         public ConcreteMaterialModelCode2010 ConcreteMaterialModelCode2010 => (ConcreteMaterialModelCode2010)_concreteSection.ConcreteMaterial;
 
@@ -25,24 +26,24 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public double Fcd => CalculateFcd();
 
         /// <summary>
-        /// Design compressive strength for accidental design
-        /// </summary>
-        public double FcdAccidental => ModelCode2010.AlphaCC * ConcreteMaterialModelCode2010.Fck / ModelCode2010.GammaCAccidental;
-
-        /// <summary>
         /// Design tensile strength for persistent design
         /// </summary>
-        public double Fctd => ModelCode2010.AlphaCT * ConcreteMaterialModelCode2010.Fctk05 / ModelCode2010.GammaC;
+        public double Fctd => CalculateFctd();
+
+        /// <summary>
+        /// Design compressive strength for accidental design
+        /// </summary>
+        public double FcdAccidental => StandardModelCode2010.AlphaCC * ConcreteMaterialModelCode2010.Fck / StandardModelCode2010.GammaCAccidental;
 
         /// <summary>
         /// Design tensile strength for accidental design
         /// </summary>
-        public double FctdAccidental => ModelCode2010.AlphaCT * ConcreteMaterialModelCode2010.Fctk05 / ModelCode2010.GammaCAccidental;
+        public double FctdAccidental => StandardModelCode2010.AlphaCT * ConcreteMaterialModelCode2010.Fctk05 / StandardModelCode2010.GammaCAccidental;
 
         /// <summary>
         /// Modulus of elasticity value for ultimate limit state calculations
         /// </summary>
-        public double ECd => ConcreteMaterialModelCode2010.E / ModelCode2010.GammaCE;
+        public double ECd => ConcreteMaterialModelCode2010.E / StandardModelCode2010.GammaCE;
 
         #endregion
 
@@ -51,82 +52,110 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public SectionSolverULSModelCode2010(IConcreteSection concreteSection, StandardModelCode2010 standard)
             : base(concreteSection, standard)
         {
-            if (concreteSection.ConcreteMaterial is ConcreteMaterialEN1992)
-            { }
-            else
-                throw new ArgumentException("Material must be a ConcreteMaterial");
+            if (!(concreteSection.ConcreteMaterial is ConcreteMaterialModelCode2010))
+                throw new ArgumentException("Material must be a ConcreteMaterialModelCode2010");
+
         }
 
         #endregion
+
+
+        #region protected Override 
 
         protected override double GetFck()
         {
             return ConcreteMaterialModelCode2010.Fck;
         }
 
-        protected override double GetStrainYCompression()
+        protected override double GetDesignYieldingStrainSteel(ReinforcedConcreteRebar rebar)
         {
-            return ConcreteMaterialModelCode2010.StrainYCompression;
+            return rebar.RebarMaterial.Fyk / StandardModelCode2010.GammaS;
         }
 
-        protected override double GetStrainUCompression()
+        protected override double GetDesignYieldingStrainSteel(int rebar)
+        {
+            return ConcreteSection.Rebars[rebar].RebarMaterial.Fyk / StandardModelCode2010.GammaS;
+        }
+
+        protected override double GetDesignUltimateStrainSteel(ReinforcedConcreteRebar rebar)
+        {
+            return rebar.RebarMaterial.StrainU / StandardModelCode2010.SteelCoefficientStrainTension;
+        }
+
+        protected override double GetDesignUltimateStrainSteel(int rebar)
+        {
+            return ConcreteSection.Rebars[rebar].RebarMaterial.StrainU / StandardModelCode2010.SteelCoefficientStrainTension;
+        }
+
+        protected override double GetUltimateStrainConcreteCompression()
         {
             return ConcreteMaterialModelCode2010.StrainUCompression;
         }
 
-        protected virtual double CalculateFcd()
+        protected override double GetYieldingStrainConcreteCompression()
         {
-            return SectionSolverHelper.CalculateFcd(ConcreteSection, ModelCode2010);
+            return ConcreteMaterialModelCode2010.StrainYCompression;
+        }
+
+        protected override double GetYieldingStrainPureCompression()
+        {
+            return ConcreteMaterialModelCode2010.StrainYPureCompression;
+        }
+
+        protected override double GetYieldingStrainConcreteTension()
+        {
+            return ConcreteMaterialModelCode2010.StrainYTension;
+        }
+
+        protected override double GetUltimateStrainConcreteTension()
+        {
+            return ConcreteMaterialModelCode2010.StrainUTension;
         }
 
         protected override double CalculateSigmaC(double strain)
         {
-            return SectionSolverHelper.CalculateSigmaC(strain, Fcd, ConcreteSection);
+            return SectionSolverHelper.CalculateSigmaC(strain, Fcd, Fctd, ConcreteSection);
         }
 
         protected override double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain)
         {
-            return SectionSolverHelper.CalculateStressSteel(rebar, strain, ModelCode2010);
+            return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP);
         }
 
-        protected override double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar)
+
+        #endregion
+
+
+        #region Protected 
+
+        protected virtual double CalculateFcd()
         {
-            return SectionSolverHelper.CalculateUltimateStrainSteel(rebar, ModelCode2010);
+            var material = ConcreteMaterialModelCode2010;
+
+            if (material.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
+            {
+                if (material.Fck > 90)
+                    throw new ArgumentException("Fck > 90 not supported by Stress block");
+
+                double eta;
+                if (material.Fck <= 50.0)
+                    eta = 1.0;
+                else
+                    eta = 1.0 - (material.Fck - 50.0) / 200;
+
+                return eta * StandardModelCode2010.AlphaCC * material.Fck / StandardModelCode2010.GammaC;
+            }
+            else
+            {
+                return StandardModelCode2010.AlphaCC * material.Fck / StandardModelCode2010.GammaC;
+            }
         }
 
-        protected override double CalculateUltimateStrainSteel(int rebar)
+        protected virtual double CalculateFctd()
         {
-            return SectionSolverHelper.CalculateUltimateStrainSteel(ConcreteSection, rebar, ModelCode2010);
+            return StandardModelCode2010.AlphaCT * ConcreteMaterialModelCode2010.Fctk05 / StandardModelCode2010.GammaC;
         }
 
-        protected override double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar)
-        {
-            return SectionSolverHelper.CalculateYeldingStrainSteel(rebar);
-        }
-
-        protected override double CalculateYeldingStrainSteel(int rebar)
-        {
-            return SectionSolverHelper.CalculateYeldingStrainSteel(ConcreteSection, rebar);
-        }
-
-        protected override double CalculateUltimateStrainConcreteCompression()
-        {
-            return SectionSolverHelper.CalculateUltimateStrainConcreteCompression(ConcreteSection);
-        }
-
-        protected override double CalculateYeldingStrainConcreteCompression()
-        {
-            return SectionSolverHelper.CalculateYeldingStrainConcreteCompression(ConcreteSection);
-        }
-
-        protected override double CalculateLimitStrainCostantCompression()
-        {
-            return SectionSolverHelper.CalculateLimitStrainCostantCompression(ModelCode2010);
-        }
-
-        protected override double CalculateUltimateStrainConcreteTension()
-        {
-            return SectionSolverHelper.CalculateUltimateStrainConcreteTension();
-        }
+        #endregion
     }
 }

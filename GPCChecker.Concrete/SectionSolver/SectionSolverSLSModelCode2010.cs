@@ -13,6 +13,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 {
 	public class SectionSolverSLSModelCode2010 : SectionSolverSLS
 	{
+
 		#region Properties
 
 		public StandardModelCode2010 ModelCode2010 => (StandardModelCode2010)_standard;
@@ -69,17 +70,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
 			return ConcreteMaterialModelCode2010.Fck;
 		}
-		protected override double GetStrainYCompression()
-		{
-			return ConcreteMaterialModelCode2010.StrainYCompression;
-		}
-
-		protected override double GetStrainUCompression()
-		{
-			return ConcreteMaterialModelCode2010.StrainUCompression;
-		}
-
-
 
 		protected virtual double CalculateFcd()
 		{
@@ -96,42 +86,42 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 			return SectionSolverHelper.CalculateStressSteel(rebar, strain, ModelCode2010);
 		}
 
-		protected override double CalculateUltimateStrainSteel(ReinforcedConcreteRebar rebar)
+		protected override double GetDesignUltimateStrainSteel(ReinforcedConcreteRebar rebar)
 		{
-			return SectionSolverHelper.CalculateUltimateStrainSteel(rebar, ModelCode2010);
+			return SectionSolverHelper.CalculateUltimateDesignStrainSteel(rebar, ModelCode2010);
 		}
 
-		protected override double CalculateUltimateStrainSteel(int rebar)
+		protected override double GetDesignUltimateStrainSteel(int rebar)
 		{
-			return SectionSolverHelper.CalculateUltimateStrainSteel(ConcreteSection, rebar, ModelCode2010);
+			return SectionSolverHelper.CalculateUltimateDesignStrainSteel(ConcreteSection, rebar, ModelCode2010);
 		}
 
-		protected override double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar)
+		protected override double GetDesignYieldingStrainSteel(ReinforcedConcreteRebar rebar)
 		{
 			return SectionSolverHelper.CalculateYeldingStrainSteel(rebar);
 		}
 
-		protected override double CalculateYeldingStrainSteel(int rebar)
+		protected override double GetDesignYieldingStrainSteel(int rebar)
 		{
 			return SectionSolverHelper.CalculateYeldingStrainSteel(ConcreteSection, rebar);
 		}
 
-		protected override double CalculateUltimateStrainConcreteCompression()
+		protected override double GetUltimateStrainConcreteCompression()
 		{
 			return SectionSolverHelper.CalculateUltimateStrainConcreteCompression(ConcreteSection);
 		}
 
-		protected override double CalculateYeldingStrainConcreteCompression()
+		protected override double GetYieldingStrainConcreteCompression()
 		{
 			return SectionSolverHelper.CalculateYeldingStrainConcreteCompression(ConcreteSection);
 		}
 
-		protected override double CalculateLimitStrainCostantCompression()
+		protected override double GetYieldingStrainPureCompression()
 		{
 			return SectionSolverHelper.CalculateLimitStrainCostantCompression(ModelCode2010);
 		}
 
-		protected override double CalculateUltimateStrainConcreteTension()
+		protected override double GetUltimateStrainConcreteTension()
 		{
 			return SectionSolverHelper.CalculateUltimateStrainConcreteTension();
 		}
