@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Geometry;
+using GPC.Model.Results;
 
 namespace GPC.Checkers.Concrete.Helper
 {
@@ -113,10 +114,24 @@ namespace GPC.Checkers.Concrete.Helper
             return !(left > right);
         }
 
-        public static implicit operator Vector3d(ForceTuple value)  // explicit byte to digit conversion operator
+        public static implicit operator Vector3d(ForceTuple value)
         {
             return new Vector3d(value.N, value.M1, value.M2);
         }
 
+        public static implicit operator Point3d(ForceTuple value)
+        {
+            return new Point3d(value.N, value.M1, value.M2);
+        }
+
+        public static implicit operator ForceTuple(ResultBeamForces value)
+        {
+            return new ForceTuple(value.N, value.M1, value.M2);
+        }
+
+        public static explicit operator ResultBeamForces(ForceTuple value)
+        {
+            return new ForceTuple(value.N, value.M1, value.M2);
+        }
     }
 }

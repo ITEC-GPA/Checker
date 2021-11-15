@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
@@ -81,7 +82,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="deltaN">The axial force resultant</param>
         /// <param name="deltaMx">The bending moment about X-axis resultant</param>
         /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-        protected virtual (double N, double Mx, double My) CalculateConcreteStressResultant(StrainPlane strainPlane)
+        protected virtual ForceTuple CalculateConcreteStressResultant(StrainPlane strainPlane)
         {
             double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
             double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
@@ -91,11 +92,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
                 {
-                    (double N, double Mx, double My) forces = CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane);
+                    var forces = CalculateFaceStressResultant(ConcreteSection.Mesh.Faces[i + 1], strainPlane);
 
                     deltaNArray[i] = forces.N;
-                    deltaMxArray[i] = forces.Mx;
-                    deltaMyArray[i] = forces.My;
+                    deltaMxArray[i] = forces.M1;
+                    deltaMyArray[i] = forces.M2;
                 });
             }
             catch (Exception e)
@@ -103,7 +104,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 _log.Add($"Fail" + e.InnerException);
             }
 
-            return (deltaNArray.Sum(), deltaMxArray.Sum(), deltaMyArray.Sum());
+            return new ForceTuple(deltaNArray.Sum(), deltaMxArray.Sum(), deltaMyArray.Sum());
         }
 
         /// <summary>
@@ -111,10 +112,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         /// <param name="face"></param>
         /// <param name="strainPlane"></param>
-        /// <param name="deltaN"></param>
-        /// <param name="deltaMx"></param>
-        /// <param name="deltaMy"></param>
-        protected virtual (double N, double Mx, double My) CalculateFaceStressResultant(MeshFace face, StrainPlane strainPlane)
+        protected virtual ForceTuple CalculateFaceStressResultant(MeshFace face, StrainPlane strainPlane)
         {
             Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
 
@@ -164,7 +162,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
                 throw new Exception();
 
-            return (deltaN, deltaMx, deltaMy);
+            return new ForceTuple(deltaN, deltaMx, deltaMy);
         }
 
         /// <summary>
@@ -174,7 +172,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="deltaN">The axial force resultant</param>
         /// <param name="deltaMx">The bending moment about X-axis resultant</param>
         /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-        protected virtual (double N, double Mx, double My) CalculateRebarsIntegration(StrainPlane strainPlane)
+        protected virtual ForceTuple CalculateRebarsIntegration(StrainPlane strainPlane)
         {
             double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
             double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
@@ -192,13 +190,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             });
 
 
-            return (deltaNArray.Sum(), deltaMxArray.Sum(), deltaMyArray.Sum());
+            return new ForceTuple(deltaNArray.Sum(), deltaMxArray.Sum(), deltaMyArray.Sum());
         }
 
         /// <summary>
         /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
         /// </summary>
-        public virtual (double N, double Mx, double My) CalculateForces(StrainPlane strainPlane)
+        public virtual ForceTuple CalculateForces(StrainPlane strainPlane)
         {
             
             try
@@ -206,18 +204,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 var concreteForces = CalculateConcreteStressResultant(strainPlane);
                 var rebarsForces = CalculateRebarsIntegration(strainPlane);
 
-                var externalForces = GetExternalForces(concreteForces.N  + rebarsForces.N,
-                                               concreteForces.Mx + rebarsForces.Mx,
-                                               concreteForces.My + rebarsForces.My,
-                                               SectionSolverOptions.Instance.DistanceFromCentroid);
+                var externalForces = GetExternalForces(concreteForces + rebarsForces, SectionSolverOptions.Instance.DistanceFromCentroid);
 
-                return (externalForces.N, externalForces.Mx, externalForces.My);
+                return new ForceTuple(externalForces.N, externalForces.Mx, externalForces.My);
             }
             catch (Exception e)
             {
                 _log.Add($"Fail" + e.InnerException);
 
-                return (0,0,0);
+                return new ForceTuple(0,0,0);
             }
 
         }
@@ -278,48 +273,66 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
 
-        protected virtual (double N, double Mx, double My) CalculateAdimensionalForces(ResultBeamForces forces)
+        protected virtual ForceTuple CalculateAdimensionalForces(ResultBeamForces forces)
         {
             BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox(); 
             double h = bBox.Size.Y;
             double b = bBox.Size.X;
 
-            return (forces.N / (b * h * GetFck()), forces.M1 / (b * h * h * GetFck()), forces.M2 / (b * b * h * GetFck()));
+            return new ForceTuple(forces.N  / (b * h * GetFck()), 
+                                  forces.M1 / (b * h * h * GetFck()), 
+                                  forces.M2 / (b * b * h * GetFck()));
         }
 
 
-        protected virtual (double N, double Mx, double My) CalculateAdimensionalForces(double N, double Mx, double My)
+        protected virtual ForceTuple CalculateAdimensionalForces(ForceTuple forceTuple)
         {
 
             BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox(); ;
             double h = bBox.Size.Y;
             double b = bBox.Size.X;
 
-            return (N / (b * h * GetFck()), Mx / (b * h * h * GetFck()), Mx / (b * b * h * GetFck()));
+            return new ForceTuple(forceTuple.N  / (b * h * GetFck()), 
+                                  forceTuple.M1 / (b * h * h * GetFck()),
+                                  forceTuple.M2 / (b * b * h * GetFck()));
         }
 
         protected virtual ResultBeamForces GetLocalForces(ResultBeamForces externalForces, Point2d forceReferencePoint)
         {
-            double N = externalForces.N;
-            double Mx = externalForces.M1 + N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y);
-            double My = externalForces.M2 + N * (ConcreteSection.Centroid.X - forceReferencePoint.X);
+            return new ResultBeamForces(externalForces.N, 
+                                        externalForces.V1, 
+                                        externalForces.V2, 
+                                        externalForces.T,
+                                        externalForces.M1 + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
+                                        externalForces.M2 + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X), 
+                                        new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
+        }
 
-            return new ResultBeamForces(N, externalForces.V1, externalForces.V2, externalForces.T, Mx, My, new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
+        protected virtual ForceTuple GetLocalForces(ForceTuple externalForces, Point2d forceReferencePoint)
+        {
+
+            return new ForceTuple(externalForces.N,
+                                  externalForces.M1 + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
+                                  externalForces.M2 + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X);
         }
 
         protected virtual ResultBeamForces GetExternalForces(ResultBeamForces localForces, Point2d forceReferencePoint)
         {
-            double N = localForces.N;
-            double Mx = localForces.M1 + N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y);
-            double My = localForces.M2 + N * (ConcreteSection.Centroid.X - forceReferencePoint.X);
-
-            return new ResultBeamForces(N, localForces.V1, localForces.V2, localForces.T, Mx, My, CoordinateSystem.Global);
+            return new ResultBeamForces(localForces.N,
+                                        localForces.V1,
+                                        localForces.V2,
+                                        localForces.T,
+                                        localForces.M1 + localForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
+                                        localForces.M2 + localForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X),
+                                        new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
         }
 
 
-        protected virtual (double N, double Mx, double My) GetExternalForces(double inputN, double inputMx, double inputMy, Point2d forceReferencePoint)
+        protected virtual ForceTuple GetExternalForces(ForceTuple forceTuple, Point2d forceReferencePoint)
         {
-            return (inputN, inputMx + inputN * (ConcreteSection.Centroid.Y - forceReferencePoint.Y), inputMy + inputN * (ConcreteSection.Centroid.X - forceReferencePoint.X));
+            return new ForceTuple(forceTuple.N, 
+                                  forceTuple.M1 + forceTuple.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y), 
+                                  forceTuple.M2 + forceTuple.N * (ConcreteSection.Centroid.X - forceReferencePoint.X));
         }
 
         #endregion

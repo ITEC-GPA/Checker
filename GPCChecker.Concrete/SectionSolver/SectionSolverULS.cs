@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Materials;
@@ -297,9 +298,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             try
             {
-                var forces = base.CalculateForces(strainPlane.Item1);
+                Helper.ForceTuple forces = base.CalculateForces(strainPlane.Item1);
 
-                return new FailureDomain.FailureDomainPoint(forces.N, forces.Mx, forces.My, strainPlane.Item2, strainPlane.Item1);
+                return new FailureDomain.FailureDomainPoint(forces.N, forces.M1, forces.M2, strainPlane.Item2, strainPlane.Item1);
             }
             catch (Exception e)
             {
@@ -462,7 +463,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return vectorForcesEd.Length / vectorRd.Length;
         }
 
-        protected void CalculateIncrement(double NRd, double MxRd, double MyRd, StrainPlane inputStrainPlane, FailureZones failureIndex,
+        protected void CalculateIncrement(ForceTuple forceTuple, StrainPlane inputStrainPlane, FailureZones failureIndex,
                     double immersioneNelCampo, Vector3d externalForces, double deltaAngle,
                     out double deltaTeta, out double deltaImmersione)
         {
