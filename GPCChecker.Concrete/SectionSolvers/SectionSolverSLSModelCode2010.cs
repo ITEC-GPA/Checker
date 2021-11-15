@@ -16,34 +16,35 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#region Properties
 
-		public StandardModelCode2010 ModelCode2010 => (StandardModelCode2010)_standard;
+		public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
 
 		public ConcreteMaterialModelCode2010 ConcreteMaterialModelCode2010 => (ConcreteMaterialModelCode2010)_concreteSection.ConcreteMaterial;
 
 		/// <summary>
 		/// Design compressive strength for persistent design
 		/// </summary>
-		public double Fcd => CalculateFcd();
-
-		/// <summary>
-		/// Design compressive strength for accidental design
-		/// </summary>
-		public double FcdAccidental => ModelCode2010.AlphaCC * ConcreteMaterialModelCode2010.Fck / ModelCode2010.GammaCAccidental;
+		public double Fcd => ModelCode2010Helper.CalculateFcd(ConcreteMaterialModelCode2010, StandardModelCode2010);
 
 		/// <summary>
 		/// Design tensile strength for persistent design
 		/// </summary>
-		public double Fctd => ModelCode2010.AlphaCT * ConcreteMaterialModelCode2010.Fctk05 / ModelCode2010.GammaC;
+		public double Fctd => ModelCode2010Helper.CalculateFctd(ConcreteMaterialModelCode2010, StandardModelCode2010);
+
+		/// <summary>
+		/// Design compressive strength for accidental design
+		/// </summary>
+		public double FcdAccidental => ModelCode2010Helper.CalculateFcd(ConcreteMaterialModelCode2010, StandardModelCode2010);
 
 		/// <summary>
 		/// Design tensile strength for accidental design
 		/// </summary>
-		public double FctdAccidental => ModelCode2010.AlphaCT * ConcreteMaterialModelCode2010.Fctk05 / ModelCode2010.GammaCAccidental;
+		public double FctdAccidental => ModelCode2010Helper.CalculateFctdAccidental(ConcreteMaterialModelCode2010, StandardModelCode2010);
 
 		/// <summary>
 		/// Modulus of elasticity value for ultimate limit state calculations
 		/// </summary>
-		public double ECd => ConcreteMaterialModelCode2010.E / ModelCode2010.GammaCE;
+		public double ECd => ModelCode2010Helper.CalculateECd(ConcreteMaterialModelCode2010, StandardModelCode2010);
+
 
 		#endregion
 
@@ -57,13 +58,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#endregion
 
-		public override SLSCheckerResultsType PerformSolver()
-		{
-			StrainPlane strainPlane = Solve();
-
-			return new SLSModelCode2010CheckerResult(ConcreteSection, Forces, strainPlane, ModelCode2010);
-		}
-
 		#region Protected Methods
 
 		protected override double GetFck()
@@ -71,59 +65,60 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 			return ConcreteMaterialModelCode2010.Fck;
 		}
 
-		protected virtual double CalculateFcd()
-		{
-			return SectionSolverHelper.CalculateFcd(ConcreteSection, ModelCode2010);
-		}
 
 		protected override double CalculateSigmaC(double strain)
 		{
-			return SectionSolverHelper.CalculateSigmaC(strain, Fcd, ConcreteSection);
+			return ModelCode2010Helper.CalculateSigmaC(strain, Fcd, Fctd, ConcreteMaterialModelCode2010) ;
 		}
 
-		protected override double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain)
+		protected override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
 		{
-			return SectionSolverHelper.CalculateStressSteel(rebar, strain, ModelCode2010);
+			return SectionSolverHelper.CalculateStressSteel(rebar, strain);
 		}
 
-		protected override double GetDesignUltimateStrainSteel(ReinforcedConcreteRebar rebar)
+		protected override double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar)
 		{
-			return SectionSolverHelper.CalculateUltimateDesignStrainSteel(rebar, ModelCode2010);
+			return ModelCode2010Helper.CalculateDesignYieldingStrainRebar(rebar.RebarMaterial, StandardModelCode2010);
 		}
 
-		protected override double GetDesignUltimateStrainSteel(int rebar)
+		protected override double GetDesignYieldingStrainRebar(int rebar)
 		{
-			return SectionSolverHelper.CalculateUltimateDesignStrainSteel(ConcreteSection, rebar, ModelCode2010);
+			return ModelCode2010Helper.CalculateDesignYieldingStrainRebar(ConcreteSection.Rebars[rebar].RebarMaterial, StandardModelCode2010);
 		}
 
-		protected override double GetDesignYieldingStrainSteel(ReinforcedConcreteRebar rebar)
+		protected override double GetDesignUltimateStrainRebar(ReinforcedConcreteRebar rebar)
 		{
-			return SectionSolverHelper.CalculateYeldingStrainSteel(rebar);
+			return ModelCode2010Helper.CalculateDesignUltimateStrainRebar(rebar.RebarMaterial, StandardModelCode2010);
 		}
 
-		protected override double GetDesignYieldingStrainSteel(int rebar)
+		protected override double GetDesignUltimateStrainRebar(int rebar)
 		{
-			return SectionSolverHelper.CalculateYeldingStrainSteel(ConcreteSection, rebar);
+			return ModelCode2010Helper.CalculateDesignUltimateStrainRebar(ConcreteSection.Rebars[rebar].RebarMaterial, StandardModelCode2010);
 		}
 
 		protected override double GetUltimateStrainConcreteCompression()
 		{
-			return SectionSolverHelper.CalculateUltimateStrainConcreteCompression(ConcreteSection);
+			return ConcreteMaterialModelCode2010.StrainUCompression;
 		}
 
 		protected override double GetYieldingStrainConcreteCompression()
 		{
-			return SectionSolverHelper.CalculateYeldingStrainConcreteCompression(ConcreteSection);
+			return ConcreteMaterialModelCode2010.StrainYCompression;
 		}
 
 		protected override double GetYieldingStrainPureCompression()
 		{
-			return SectionSolverHelper.CalculateLimitStrainCostantCompression(ModelCode2010);
+			return ConcreteMaterialModelCode2010.StrainYPureCompression;
+		}
+
+		protected override double GetYieldingStrainConcreteTension()
+		{
+			return ConcreteMaterialModelCode2010.StrainYTension;
 		}
 
 		protected override double GetUltimateStrainConcreteTension()
 		{
-			return SectionSolverHelper.CalculateUltimateStrainConcreteTension();
+			return ConcreteMaterialModelCode2010.StrainUTension;
 		}
 
 		#endregion

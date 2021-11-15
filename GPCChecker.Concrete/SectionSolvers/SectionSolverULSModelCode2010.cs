@@ -23,27 +23,27 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <summary>
         /// Design compressive strength for persistent design
         /// </summary>
-        public double Fcd => CalculateFcd();
+        public double Fcd => ModelCode2010Helper.CalculateFcd(ConcreteMaterialModelCode2010, StandardModelCode2010);
 
         /// <summary>
         /// Design tensile strength for persistent design
         /// </summary>
-        public double Fctd => CalculateFctd();
+        public double Fctd => ModelCode2010Helper.CalculateFctd(ConcreteMaterialModelCode2010, StandardModelCode2010);
 
         /// <summary>
         /// Design compressive strength for accidental design
         /// </summary>
-        public double FcdAccidental => StandardModelCode2010.AlphaCC * ConcreteMaterialModelCode2010.Fck / StandardModelCode2010.GammaCAccidental;
+        public double FcdAccidental => ModelCode2010Helper.CalculateFcd(ConcreteMaterialModelCode2010, StandardModelCode2010);
 
         /// <summary>
         /// Design tensile strength for accidental design
         /// </summary>
-        public double FctdAccidental => StandardModelCode2010.AlphaCT * ConcreteMaterialModelCode2010.Fctk05 / StandardModelCode2010.GammaCAccidental;
+        public double FctdAccidental => ModelCode2010Helper.CalculateFctdAccidental(ConcreteMaterialModelCode2010, StandardModelCode2010);
 
         /// <summary>
         /// Modulus of elasticity value for ultimate limit state calculations
         /// </summary>
-        public double ECd => ConcreteMaterialModelCode2010.E / StandardModelCode2010.GammaCE;
+        public double ECd => ModelCode2010Helper.CalculateECd(ConcreteMaterialModelCode2010, StandardModelCode2010);
 
         #endregion
 
@@ -67,24 +67,24 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return ConcreteMaterialModelCode2010.Fck;
         }
 
-        protected override double GetDesignYieldingStrainSteel(ReinforcedConcreteRebar rebar)
+        protected override double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar)
         {
-            return rebar.RebarMaterial.Fyk / StandardModelCode2010.GammaS;
+            return ModelCode2010Helper.CalculateDesignYieldingStrainRebar(rebar.RebarMaterial, StandardModelCode2010);
         }
 
-        protected override double GetDesignYieldingStrainSteel(int rebar)
+        protected override double GetDesignYieldingStrainRebar(int rebar)
         {
-            return ConcreteSection.Rebars[rebar].RebarMaterial.Fyk / StandardModelCode2010.GammaS;
+            return ModelCode2010Helper.CalculateDesignYieldingStrainRebar(ConcreteSection.Rebars[rebar].RebarMaterial, StandardModelCode2010);
         }
 
-        protected override double GetDesignUltimateStrainSteel(ReinforcedConcreteRebar rebar)
+        protected override double GetDesignUltimateStrainRebar(ReinforcedConcreteRebar rebar)
         {
-            return rebar.RebarMaterial.StrainU / StandardModelCode2010.SteelCoefficientStrainTension;
+            return ModelCode2010Helper.CalculateDesignUltimateStrainRebar(rebar.RebarMaterial, StandardModelCode2010);
         }
 
-        protected override double GetDesignUltimateStrainSteel(int rebar)
+        protected override double GetDesignUltimateStrainRebar(int rebar)
         {
-            return ConcreteSection.Rebars[rebar].RebarMaterial.StrainU / StandardModelCode2010.SteelCoefficientStrainTension;
+            return ModelCode2010Helper.CalculateDesignUltimateStrainRebar(ConcreteSection.Rebars[rebar].RebarMaterial, StandardModelCode2010);
         }
 
         protected override double GetUltimateStrainConcreteCompression()
@@ -111,13 +111,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             return ConcreteMaterialModelCode2010.StrainUTension;
         }
-
+        
+        /// <inheritdoc cref="SectionSolver.CalculateSigmaC(double)"/>
         protected override double CalculateSigmaC(double strain)
         {
-            return SectionSolverHelper.CalculateSigmaC(strain, Fcd, Fctd, ConcreteSection);
+            return ModelCode2010Helper.CalculateSigmaC(strain, Fcd, Fctd, ConcreteMaterialModelCode2010);
         }
 
-        protected override double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain)
+        /// <inheritdoc cref="SectionSolver.CalculateStressRebar(ReinforcedConcreteRebar, double)"/>
+        protected override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
         {
             return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP);
         }
@@ -126,36 +128,5 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         #endregion
 
 
-        #region Protected 
-
-        protected virtual double CalculateFcd()
-        {
-            var material = ConcreteMaterialModelCode2010;
-
-            if (material.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
-            {
-                if (material.Fck > 90)
-                    throw new ArgumentException("Fck > 90 not supported by Stress block");
-
-                double eta;
-                if (material.Fck <= 50.0)
-                    eta = 1.0;
-                else
-                    eta = 1.0 - (material.Fck - 50.0) / 200;
-
-                return eta * StandardModelCode2010.AlphaCC * material.Fck / StandardModelCode2010.GammaC;
-            }
-            else
-            {
-                return StandardModelCode2010.AlphaCC * material.Fck / StandardModelCode2010.GammaC;
-            }
-        }
-
-        protected virtual double CalculateFctd()
-        {
-            return StandardModelCode2010.AlphaCT * ConcreteMaterialModelCode2010.Fctk05 / StandardModelCode2010.GammaC;
-        }
-
-        #endregion
     }
 }

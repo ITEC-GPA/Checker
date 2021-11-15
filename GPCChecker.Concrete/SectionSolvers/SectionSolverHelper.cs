@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Materials;
@@ -16,69 +16,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 {
 	internal static class SectionSolverHelper
 	{
-		#region ModelCode2010 
-
-
-		internal static double CalculateSigmaC(double strain, double fcd, double fctd, IConcreteSection concreteSection)
-		{
-			var material = ((ConcreteMaterialModelCode2010)concreteSection.ConcreteMaterial);
-
-			if (strain < 0)
-			{
-				return material.GetStress(strain) * fcd / material.Fck;
-			}
-            else
-            {
-				return material.GetStress(strain) * fctd / material.Fctk;
-			}
-		}
-
 		internal static double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain)
 		{
 			return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP);
 		}
 
-		internal static double CalculateUltimateDesignStrainSteel(ReinforcedConcreteRebar rebar, StandardModelCode2010 standard)
-		{
-			return rebar.RebarMaterial.StrainU * standard.SteelCoefficientStrainTraction;
-		}
-
-		internal static double CalculateUltimateDesignStrainSteel(IConcreteSection concreteSection, int rebar, StandardModelCode2010 standard)
-		{
-			return concreteSection.Rebars[rebar].RebarMaterial.StrainU * standard.SteelCoefficientStrainTraction;
-		}
-
-		//internal static double CalculateYeldingStrainSteel(ReinforcedConcreteRebar rebar)
-		//{
-		//	return rebar.RebarMaterial.StrainU;
-		//}
-
-		internal static double CalculateYeldingStrainSteel(IConcreteSection concreteSection, int rebar)
-		{
-			return concreteSection.Rebars[rebar].RebarMaterial.StrainU;
-		}
-
-		internal static double CalculateUltimateStrainConcreteCompression(IConcreteSection concreteSection)
-		{
-			return concreteSection.ConcreteMaterial;
-		}
-
-		internal static double CalculateYeldingStrainConcreteCompression(IConcreteSection concreteSection)
-		{
-			return concreteSection.ConcreteMaterial.EpsilonCy;
-		}
-
-		internal static double CalculateLimitStrainCostantCompression(StandardModelCode2010 standard)
-		{
-			return standard.ConcreteLimitStrainPureCompression;
-		}
-
-		internal static double CalculateUltimateStrainConcreteTension()
-		{
-			throw new NotImplementedException();
-		}
-
-		#endregion
 
 		internal static double CalculatePointStrain(StrainPlane strainPlane, Point3d pointToTest)
 		{

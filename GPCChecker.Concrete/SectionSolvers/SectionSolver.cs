@@ -48,10 +48,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Abstract Method
 
-        protected abstract double GetDesignYieldingStrainSteel(ReinforcedConcreteRebar rebar);
-        protected abstract double GetDesignYieldingStrainSteel(int rebar);
-        protected abstract double GetDesignUltimateStrainSteel(ReinforcedConcreteRebar rebar);
-        protected abstract double GetDesignUltimateStrainSteel(int rebar);
+        protected abstract double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar);
+        protected abstract double GetDesignYieldingStrainRebar(int rebar);
+        protected abstract double GetDesignUltimateStrainRebar(ReinforcedConcreteRebar rebar);
+        protected abstract double GetDesignUltimateStrainRebar(int rebar);
 
         protected abstract double GetUltimateStrainConcreteCompression();
         protected abstract double GetYieldingStrainConcreteCompression();
@@ -61,8 +61,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected abstract double GetFck();
 
+        /// <returns>The design concrete stress related to <paramref name="strain"/></returns>
         protected abstract double CalculateSigmaC(double strain);
-        protected abstract double CalculateStressSteel(ReinforcedConcreteRebar rebar, double strain);
+
+        /// <returns>The design steel stress related to <paramref name="strain"/></returns>
+        protected abstract double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain);
+
         #endregion
 
         #region Virtual Method
@@ -172,7 +176,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
             {
                 double strain = SectionSolverHelper.CalculatePointStrain(strainPlane, ConcreteSection.Rebars[i].Position);
-                double sigmaS = SectionSolverHelper.CalculateStressSteel(ConcreteSection.Rebars[i], strain);
+                double sigmaS = CalculateStressRebar(ConcreteSection.Rebars[i], strain);
                 double sigmaC = CalculateSigmaC(strain);
 
                 deltaNArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area;
