@@ -13,7 +13,7 @@ namespace GPC.Checkers.Concrete.Helper
     /// <summary>
     /// This struct represent a set of forces applied on the local reference system of the section.
     /// </summary>
-    internal struct ForceTuple : IEquatable<ForceTuple>
+    public struct ForceTuple : IEquatable<ForceTuple>
     {
         private readonly double _N;
         private readonly double _Mx;
@@ -27,39 +27,12 @@ namespace GPC.Checkers.Concrete.Helper
         public double My => _My;
 
 
-        public ForceTuple(double N, double Mx, double My)
+        internal ForceTuple(double N, double Mx, double My)
         {
             _N = N;
             _Mx = Mx;
             _My = My;
         }
-
-
-        #region Equals - Hashcode
-
-        public override bool Equals(object obj)
-        {
-            return obj is ForceTuple tuple && Equals(tuple);
-        }
-
-        public bool Equals(ForceTuple other)
-        {
-            return _N == other._N && _Mx == other._Mx && _My == other._My;
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hashCode = -17;
-                hashCode = hashCode * -23 + _N.GetHashCode();
-                hashCode = hashCode * -23 + _Mx.GetHashCode();
-                hashCode = hashCode * -23 + _My.GetHashCode();
-                return hashCode;
-            }
-        } 
-
-        #endregion
 
         #region Operators
 
@@ -139,5 +112,32 @@ namespace GPC.Checkers.Concrete.Helper
 
 
         #endregion
+
+        #region Equals - Hashcode
+
+        public override bool Equals(object obj)
+        {
+            return obj is ForceTuple tuple && Equals(tuple);
+        }
+
+        public bool Equals(ForceTuple other)
+        {
+            return _N == other._N && _Mx == other._Mx && _My == other._My;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = -17;
+                hashCode = hashCode * -23 + _N.GetHashCode();
+                hashCode = hashCode * -23 + _Mx.GetHashCode();
+                hashCode = hashCode * -23 + _My.GetHashCode();
+                return hashCode;
+            }
+        }
+
+        #endregion
+
     }
 }
