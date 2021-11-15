@@ -31,7 +31,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <summary>
         /// Rapresent the discretization of the axial force in the solver
         /// </summary>
-        public (SectionSolverULS.FailureZones, int)[] AxialForceDiscretizations { get; set; }
+        public (SectionSolverULS.FailureZones, int)[] FailureZonesDiscretizations { get; set; }
 
         /// <summary>
         /// Rapresent the discretization of the moments around the axial force axis
@@ -51,13 +51,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         private SectionSolverOptions()
         {
-            AxialForceDiscretizations = new (SectionSolverULS.FailureZones, int)[] { (SectionSolverULS.FailureZones.Iz1, 1),
-                                                                                               (SectionSolverULS.FailureZones.Iz2, 1),
-                                                                                               (SectionSolverULS.FailureZones.Iz3, 1),
-                                                                                               (SectionSolverULS.FailureZones.Iz4, 30),
-                                                                                               (SectionSolverULS.FailureZones.Iz5, 2),
-                                                                                               (SectionSolverULS.FailureZones.Iz6, 1),
-                                                                                               (SectionSolverULS.FailureZones.Iz7, 4) };
+            FailureZonesDiscretizations = new (SectionSolverULS.FailureZones, int)[] { (SectionSolverULS.FailureZones.F1, 1),
+                                                                                     (SectionSolverULS.FailureZones.F2A, 1),
+                                                                                     (SectionSolverULS.FailureZones.F2B, 1),
+                                                                                     (SectionSolverULS.FailureZones.F3A, 30),
+                                                                                     (SectionSolverULS.FailureZones.F3B, 2),
+                                                                                     (SectionSolverULS.FailureZones.F4, 1),
+                                                                                     (SectionSolverULS.FailureZones.F5, 4) };
 
             MomentsDiscretizations = 32;
 

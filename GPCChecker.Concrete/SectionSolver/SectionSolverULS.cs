@@ -79,7 +79,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         public FailureDomain Solve()
         {
-            return CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations, SectionSolverOptions.Instance.AxialForceDiscretizations);
+            return CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations, SectionSolverOptions.Instance.FailureZonesDiscretizations);
         }
 
 

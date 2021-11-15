@@ -76,6 +76,7 @@
     <Compile Include="Attributes\PlateCheckerAttributes.cs" />
     <Compile Include="Checkers\SectionChecker.cs" />
     <Compile Include="Checkers\SectionCheckerModelCode2010.cs" />
+    <Compile Include="Helper\ForceTuple.cs" />
     <Compile Include="SectionSolver\SectionSolver.cs" />
     <Compile Include="SectionSolver\SectionSolverOptions.cs" />
     <Compile Include="SectionSolver\SectionSolverSLS.cs" />
