@@ -74,7 +74,10 @@ namespace GPC.Checkers.Concrete.Results
 
         private double CalculateTeta()
         {
-            return -Math.Atan2(_chiX, _chiY);
+            if (_chiY != 0)
+                return Math.Atan(-_chiX / _chiY);
+
+            return Math.Atan2(-_chiX, _chiY);
         }
 
         private double CalculateChi()

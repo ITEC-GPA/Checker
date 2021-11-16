@@ -62,7 +62,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             MomentsDiscretizations = 32;
 
             SLSconvergenceTolerance = 1e-5;
-            ULSconvergenceTolerance = 5e-4;
+            ULSconvergenceTolerance = 1e-3;
 
             GaussIntegrationQuadLowPoints = 12;
             GaussIntegrationQuadMidPoints = 49;
