@@ -26,13 +26,6 @@ namespace GPC.Checkers.Concrete.Attributes
         public SectionCheckerAttribute(IConcreteSection section, ResultBeamForces[] slsResults, ResultBeamForces[] ulsResults, int id = ModelObjectId.IDUNASSIGNED)
             : base(id)
         {
-
-            if (slsResults.Length != ulsResults.Length)
-                throw new ArgumentException();
-
-            _sLSresults = slsResults ?? throw new ArgumentException("Input results can not be null");
-            _uLSresults = ulsResults ?? throw new ArgumentException("Input results can not be null");
-
             _section = section ?? throw new ArgumentNullException(nameof(section));
         }
 
