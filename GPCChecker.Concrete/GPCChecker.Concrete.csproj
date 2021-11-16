@@ -78,16 +78,11 @@
     <Compile Include="Checkers\SectionCheckerModelCode2010.cs" />
     <Compile Include="Helper\Extensions.cs" />
     <Compile Include="Helper\ForceTuple.cs" />
-    <Compile Include="SectionSolvers\ModelCode2010Helper.cs" />
     <Compile Include="SectionSolvers\SectionSolver.cs" />
+    <Compile Include="SectionSolvers\SectionSolverModelCode2010.cs" />
     <Compile Include="SectionSolvers\SectionSolverOptions.cs" />
-    <Compile Include="SectionSolvers\SectionSolverSLS.cs" />
-    <Compile Include="SectionSolvers\SectionSolverSLSModelCode2010.cs" />
-    <Compile Include="SectionSolvers\SectionSolverHelper.cs" />
     <Compile Include="OldCheckerCode\RCCheckingSection.cs" />
     <Compile Include="OldCheckerCode\RCSection.cs" />
-    <Compile Include="SectionSolvers\SectionSolverULS.cs" />
-    <Compile Include="SectionSolvers\SectionSolverULSModelCode2010.cs" />
     <Compile Include="OldCheckerCode\RCChecker.cs" />
     <Compile Include="OldCheckerCode\RCChecker.Viviani.cs" />
     <Compile Include="OldCheckerCode\RCFailureDomain.cs" />
