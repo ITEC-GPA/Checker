@@ -18,7 +18,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
     public abstract class SectionSolverModelCode2010 : SectionSolver
     {
 
-
         public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
 
         public ConcreteMaterialModelCode2010 ConcreteMaterialModelCode2010 => (ConcreteMaterialModelCode2010)_concreteSection.ConcreteMaterial;
@@ -53,15 +52,27 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-
         public SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard)
             : base(section, standard)
         {
 
         }
 
+        #region Public method
 
-        #region protected Override 
+        public FailureDomain GetFailureDomain()
+        {
+            return CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations, SectionSolverOptions.Instance.FailureZonesDiscretizations);
+        }
+
+        public StrainPlane GetStrainPlane(ResultBeamForces force, Point2d forceReferencePoint)
+        {
+            return CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(forceReferencePoint), forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance);
+        }
+
+        #endregion
+
+        #region Protected Override 
 
         protected override double GetFck()
         {
@@ -135,9 +146,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-
-
-        #region ProtectedConcrete 
+        #region Protected Concrete 
 
         protected double CalculateFcd()
         {
@@ -185,7 +194,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region Protected rebars
+        #region Protected Rebars
 
         /// <returns>The design rebar yielding stress</returns>
         protected double CalculateFyd(RebarMaterial material)

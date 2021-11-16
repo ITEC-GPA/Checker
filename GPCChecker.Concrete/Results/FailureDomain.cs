@@ -51,13 +51,6 @@ namespace GPC.Checkers.Concrete.Results
                 _strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
             }
 
-            //internal FailureDomainPoint(double nRd, double mxRd, double myRd, SectionSolverULS.FailureZones failureIndex, StrainPlane strainPlane)
-            //{
-            //    _point = new Point3d(mxRd, myRd, nRd);
-            //    _failureIndex = failureIndex;
-            //    _strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
-            //}
-
             internal FailureDomainPoint(SerializationInfo info, StreamingContext context)
             {
                 _point = (Point3d)info.GetValue("Point", typeof(Point3d));
