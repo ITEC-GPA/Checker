@@ -113,7 +113,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <inheritdoc cref="SectionSolver.CalculateSigmaC(double)"/>
-        protected override double CalculateSigmaC(double strain)
+        internal override double CalculateSigmaC(double strain)
         {
             if (strain < 0)
             {
@@ -126,7 +126,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <inheritdoc cref="SectionSolver.CalculateStressRebar(ReinforcedConcreteRebar, double)"/>
-        protected override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
+        internal override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
         {
             return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP);
         }

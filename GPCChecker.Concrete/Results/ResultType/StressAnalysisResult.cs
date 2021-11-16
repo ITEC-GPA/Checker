@@ -18,30 +18,42 @@ namespace GPC.Checkers.Concrete.Results
 
         protected readonly ResultBeamForces _force;
         protected readonly StrainPlane _strainPlane;
-
+        protected readonly SectionSolver _sectionSolver;
 
         public ResultBeamForces Force => _force;
 
         public StrainPlane StrainPlane => _strainPlane;
 
 
-        public StressAnalysisResult(IConcreteSection section, ResultBeamForces force, StrainPlane strainPlane, Standard standard, int id = IDUNASSIGNED)
+        public StressAnalysisResult(IConcreteSection section, ResultBeamForces force, StrainPlane strainPlane, SectionSolver solver, Standard standard, int id = IDUNASSIGNED)
             : base(section, standard, id)
         {
             _force = force ?? throw new ArgumentNullException(nameof(force));
             _strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
+            _sectionSolver = solver;
         }
 
 
-        public virtual double GetConcreteTension(Point3d point)
+        public virtual double GetConcreteTension(Point2d point)
         {
-            throw new NotImplementedException();
+            return _sectionSolver.CalculateSigmaC(StrainPlane.GetStrain(point));   
         }
 
-        public virtual double[] GetVerticesTension()
+        public virtual (Point2d point, double tension)[] GetConcreteVerticesTension(Point2d point)
         {
-            return _section.Shape.Fill.Select(i => GetConcreteTension(i)).ToArray();
+            return _section.Shape.GetPoints2d().Select(i => (i, _sectionSolver.CalculateSigmaC(StrainPlane.GetStrain(i)))).ToArray();
         }
+
+        public virtual double GetRebarTension(ReinforcedConcreteRebar rebar)
+        {            
+            return _sectionSolver.CalculateStressRebar(rebar, StrainPlane.GetStrain(rebar.Position));
+        }
+
+        public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension()
+        {
+            return _section.Rebars.Select(i => (i, _sectionSolver.CalculateStressRebar(i, StrainPlane.GetStrain(i.Position)) )  ).ToArray();
+        }
+
 
         public double[] GetVerticesStrain()
         {
