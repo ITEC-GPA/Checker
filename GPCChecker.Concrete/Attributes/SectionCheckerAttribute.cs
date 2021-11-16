@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using GPC.Model;
@@ -23,12 +24,14 @@ namespace GPC.Checkers.Concrete.Attributes
         public ResultBeamForces[] SLSResults => _sLSresults;
 
 
-        public SectionCheckerAttribute(IConcreteSection section, ResultBeamForces[] slsResults, ResultBeamForces[] ulsResults, int id = ModelObjectId.IDUNASSIGNED)
+        public SectionCheckerAttribute(IConcreteSection section, IEnumerable<ResultBeamForces> slsResults, IEnumerable<ResultBeamForces> ulsResults, int id = ModelObjectId.IDUNASSIGNED)
             : base(id)
         {
             _uLSresults = ulsResults;
             _sLSresults = slsResults;
             _section = section ?? throw new ArgumentNullException(nameof(section));
+            _uLSresults = ulsResults is null ? null : ulsResults.ToArray();
+            _sLSresults = slsResults is null ? null : slsResults.ToArray();
         }
 
         protected SectionCheckerAttribute(SerializationInfo info, StreamingContext context)
