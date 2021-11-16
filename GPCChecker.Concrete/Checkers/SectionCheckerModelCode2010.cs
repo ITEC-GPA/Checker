@@ -29,7 +29,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         }
 
-        public override FailureDomainResult GetFailureDomainResult()
+        internal override FailureDomainResult GetFailureDomainResult()
         {
             var solver = new SectionSolverModelCode2010(_checkerAttributes.Section, StandardModelCode2010);
 
@@ -50,7 +50,7 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
 
-        public override StressAnalysisResult[] GetStressAnalysisResult()
+        internal override StressAnalysisResult[] GetStressAnalysisResult()
         {
             var solver = new SectionSolverModelCode2010(_checkerAttributes.Section, StandardModelCode2010);
 

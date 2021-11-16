@@ -15,7 +15,7 @@ using GPC.Model.Standards;
 using GPC.TestUtilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Test.Concrete
+namespace ConcreteTest
 {
     [TestClass]
     public class GeneralTest : UnitTestBase
@@ -36,7 +36,7 @@ namespace Test.Concrete
 
             List<ResultBeamForces> forces = new List<ResultBeamForces>();
 
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < 10000; i++)
             {
                 forces.Add(new ResultBeamForces(10, 20, 30, 40, 50, 60, new CoordinateSystem(concreteSectionRectangular.Centroid, Vector3d.XAxis, Vector3d.YAxis)));
             }
@@ -48,10 +48,16 @@ namespace Test.Concrete
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardEN1992p11());
 
 
-            GPC.Checkers.Concrete.Results.StressAnalysisResult[] stressResult = sectionChecker.GetStressAnalysisResult();
+            //GPC.Checkers.Concrete.Results.StressAnalysisResult[] stressResult = sectionChecker.GetStressAnalysisResult();
 
-            Assert.IsTrue(stressResult.Length == forces.Count);
+            //Assert.IsTrue(stressResult.Length == forces.Count);
 
+
+            var stressResult = sectionChecker.GetStressAnalysisResultAsync();
+
+            Task.WaitAll(new[] {stressResult}); 
+
+            Assert.IsTrue(stressResult.Result.Length == forces.Count);
         }
     }
 }

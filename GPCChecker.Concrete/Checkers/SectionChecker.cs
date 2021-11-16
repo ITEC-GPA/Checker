@@ -34,11 +34,11 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
 
-        public abstract FailureDomainResult GetFailureDomainResult();
+        internal abstract FailureDomainResult GetFailureDomainResult();
 
         public abstract Task<FailureDomainResult> GetFailureDomainResultAsync();
 
-        public abstract StressAnalysisResult[] GetStressAnalysisResult();
+        internal abstract StressAnalysisResult[] GetStressAnalysisResult();
 
         public abstract Task<StressAnalysisResult[]> GetStressAnalysisResultAsync();
 
