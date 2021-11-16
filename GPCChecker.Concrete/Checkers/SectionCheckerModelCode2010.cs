@@ -46,12 +46,12 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public class SectionOptionsModelCode2010 : SectionOptions
         {
-            protected SectionOptionsModelCode2010()
+            public SectionOptionsModelCode2010()
             {
 
             }
 
-            protected SectionOptionsModelCode2010(Point2d axialForceReferencePoint)
+            public SectionOptionsModelCode2010(Point2d axialForceReferencePoint)
                 : base(axialForceReferencePoint)
             {
 

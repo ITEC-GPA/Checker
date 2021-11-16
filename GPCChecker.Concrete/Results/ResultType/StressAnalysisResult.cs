@@ -56,7 +56,7 @@ namespace GPC.Checkers.Concrete.Results
             double[] strains = new double[vertices.Count];
 
             for (int i = 0; i < strains.Length; i++)
-                strains[i] = GetStrain(vertices[i]);
+                strains[i] = _strainPlane.GetStrain(vertices[i]);
 
             return strains;
         }

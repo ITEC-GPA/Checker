@@ -4,11 +4,11 @@ using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Geometry;
 using GPC.Model.Materials;
-using GPC.Model.Sections;
-using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.Checkers;
 using System.Collections.Generic;
 using GPC.Model.Standards;
+using GPC.Model.Sections;
 
 namespace ConcreteTests
 {
@@ -214,11 +214,14 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
-			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
 
-            FailureDomain failureDomain = solver.Solve();
-			ShowDomainPoints(failureDomain);
-			ExportToGmsh(failureDomain);
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(new GPC.Checkers.Concrete.Attributes.SectionCheckerAttribute(section, null, null), 
+															new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), 
+															standard);
+
+			var failureDomain = sectionChecker.GetFailureDomainResult();
+			ShowDomainPoints(failureDomain.Domain);
+			ExportToGmsh(failureDomain.Domain);
 			
 			//Assert.IsTrue(CommonAssertsModelCode (section, standard, failureDomain));
 

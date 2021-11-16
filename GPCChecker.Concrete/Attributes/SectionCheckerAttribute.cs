@@ -36,7 +36,7 @@ namespace GPC.Checkers.Concrete.Attributes
             _section = section ?? throw new ArgumentNullException(nameof(section));
         }
 
-        public SectionCheckerAttribute(SerializationInfo info, StreamingContext context)
+        protected SectionCheckerAttribute(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             _section = (IConcreteSection)info.GetValue("Sections", typeof(IConcreteSection));

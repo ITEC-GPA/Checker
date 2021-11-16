@@ -73,7 +73,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public Standard Standard => _standard;
 
 
-        public SectionSolver(IConcreteSection section, Standard standard, int id)
+        internal SectionSolver(IConcreteSection section, Standard standard, int id)
             : base(id)
         {
             _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
@@ -747,8 +747,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
-        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
+            base.GetObjectData(info, context);
             info.AddValue("ConcreteSection", _concreteSection);
             info.AddValue("Log", _log);
         }
