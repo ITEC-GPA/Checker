@@ -8,8 +8,8 @@
     <ProjectGuid>{3FB18F2E-E269-4E95-93E1-27D177CCF568}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Test.Concrete</RootNamespace>
-    <AssemblyName>Test.Concrete</AssemblyName>
+    <RootNamespace>GPCChecker.Test.Concrete</RootNamespace>
+    <AssemblyName>GPCChecker.Test.Concrete</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
