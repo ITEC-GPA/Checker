@@ -5,7 +5,9 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
+using GPC.Geometry;
 using GPC.Model;
 using GPC.Model.Standards;
 
@@ -17,34 +19,43 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
 
+        public SectionOptionsModelCode2010 SectionCheckerOptionsModelCode2010 => (SectionOptionsModelCode2010)_options;
 
 
-        public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionCheckerOptions options,
-                                            StandardModelCode2010 standard, int id = ModelObjectId.IDUNASSIGNED, string name = "")
-            : base(checkerAttribute, options, standard, id, name)
+        /// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, int)"/>
+        public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptions options, StandardModelCode2010 standard, int id = ModelObjectId.IDUNASSIGNED)
+            : base(checkerAttribute, options, standard, id)
         {
 
         }
 
-        public SectionCheckerModelCode2010(SerializationInfo info, StreamingContext context)
-            : base(info, context)
+        public FailureDomainResult GetFailureDomainResult()
         {
+            var solver = new SectionSolverModelCode2010(_checkerAttributes.Section, StandardModelCode2010);
 
+            return solver.GetFailureDomainResults(_checkerAttributes.ULSResults);
         }
 
-        public override void PerformCheck()
+        public StressAnalysisResult[] GetStressAnalysisResult()
         {
-            throw new NotImplementedException();
+            var solver = new SectionSolverModelCode2010(_checkerAttributes.Section, StandardModelCode2010);
+
+            return solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.AxialForceReferencePoint);
         }
 
-        public override void ULSPerformCheck()
-        {
-            new SectionSolverULSModelCode2010(CheckerAttribute.Sections[0], StandardModelCode2010);
-        }
 
-        public override void SLSPerformCheck()
+        public class SectionOptionsModelCode2010 : SectionOptions
         {
-            throw new NotImplementedException();
+            protected SectionOptionsModelCode2010()
+            {
+
+            }
+
+            protected SectionOptionsModelCode2010(Point2d axialForceReferencePoint)
+                : base(axialForceReferencePoint)
+            {
+
+            }
         }
     }
 }

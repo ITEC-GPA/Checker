@@ -5,13 +5,16 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Checkers.Concrete.SectionSolvers;
+using GPC.Model;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Results
 {
-    public abstract class CheckerResultType : Model.ModelObjectId
+
+    [Serializable]
+    public abstract class CheckerResultType : ModelObjectId, ISerializable
     {
         protected readonly IConcreteSection _section;
         protected readonly Standard _standard;
@@ -50,7 +53,8 @@ namespace GPC.Checkers.Concrete.Results
             {
                 int hashCode = -23;
                 hashCode = hashCode * -17 + base.GetHashCode();
-                hashCode = hashCode * -17 + EqualityComparer<IConcreteSection>.Default.GetHashCode(_section);
+                hashCode = hashCode * -17 + _section.GetHashCode();
+                hashCode = hashCode * -17 + _standard.GetHashCode();
                 return hashCode;
             }
         }

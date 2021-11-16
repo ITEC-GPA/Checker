@@ -44,7 +44,7 @@ namespace GPC.Checkers.Concrete.Results
             public ForceTuple ForceTuple => _forceTuple;
 
 
-            /// <inheritdoc cref="SectionSolverULS.FailureZones"/>
+            /// <inheritdoc cref="SectionSolver.FailureZones"/>
             public SectionSolver.FailureZones FailureIndex => _failureIndex;
 
 

@@ -9,10 +9,12 @@ using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 
+
 namespace GPC.Checkers.Concrete.Results
 {
-    public class ULSCheckerResultsType : CheckerResultType
+    public class FailureDomainResult : CheckerResultType
     {
+
         protected readonly FailureDomain _failureDomain;
         protected List<ResultBeamForces> _forces;
 
@@ -22,12 +24,12 @@ namespace GPC.Checkers.Concrete.Results
         public FailureDomain Domain => _failureDomain;
 
 
-        public ULSCheckerResultsType(IConcreteSection section, FailureDomain failureDomain, IEnumerable<ResultBeamForces> forces, Standard standard, int id = IDUNASSIGNED)
+        public FailureDomainResult(IConcreteSection section, FailureDomain failureDomain, IEnumerable<ResultBeamForces> forces, Standard standard, int id = IDUNASSIGNED)
             : base(section, standard, id)
         {
             _failureDomain = failureDomain ?? throw new ArgumentNullException(nameof(failureDomain));
 
-            _forces = forces.ToList() ?? throw new ArgumentNullException(nameof(forces));
+            _forces = forces.ToList() ?? new List<ResultBeamForces>();
         }
 
         public void AddForces(ResultBeamForces forces)

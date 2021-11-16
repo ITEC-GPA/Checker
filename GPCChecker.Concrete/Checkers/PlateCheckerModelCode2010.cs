@@ -13,56 +13,56 @@ using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
-    public class PlateCheckerModelCode2010 : PlateChecker
-    {
-        #region Properties
+//    public class PlateCheckerModelCode2010 : PlateCheckerOld
+//    {
+//        #region Properties
 
-        public StandardEN1992p11 EN1992P11 => (StandardEN1992p11)_standard;
+//        public StandardEN1992p11 EN1992P11 => (StandardEN1992p11)_standard;
 
-        public ConcreteMaterialEN1992 Material => (ConcreteMaterialEN1992)_checkerAttributes.Sections.FirstOrDefault().ConcreteMaterial;
+//        public ConcreteMaterialEN1992 Material => (ConcreteMaterialEN1992)_checkerAttributes.Sections.FirstOrDefault().ConcreteMaterial;
 
-        public ModelCode2010BeamStationResult[] EN1993p11BeamStationResults => _checkerStationResult.Cast<ModelCode2010BeamStationResult>().ToArray();
+//        public ModelCode2010BeamStationResult[] EN1993p11BeamStationResults => _checkerStationResult.Cast<ModelCode2010BeamStationResult>().ToArray();
 
-        #endregion
-
-
-
-        public PlateCheckerModelCode2010(PlateCheckerAttributes attributes, EN1992p11Options options, StandardEN1992p11 standardEN1992P11)
-            : base(attributes, options, standardEN1992P11)
-        {
-
-        }
-
-
-        public override void SLSPerformCheck()
-        {
-            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, PlateCheckerAttribute.SLSPlateResults, (EN1992p11Options)_options);
-        }
-
-        public override void ULSPerformCheck()
-        {
-            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, PlateCheckerAttribute.ULSPlateResults, (EN1992p11Options)_options);
-        }
-
-        public override void PerformCheck()
-        {
-            base.PerformCheck();
-        }
-
-
-        /// <param name="steelSection">section of each station</param>
-        /// <param name="plateResults">result for each station and loadcase</param>
-        /// <returns></returns>
-        protected ModelCode2010PlateStationResult[] PerformCheck(IConcreteSection[] steelSection, PlateResult[] plateResults, EN1992p11Options options)
-        {
-            throw new NotImplementedException();
-        }
+//        #endregion
 
 
 
-        public class EN1992p11Options : PlateCheckerOptions
-        {
+//        public PlateCheckerModelCode2010(PlateCheckerAttribute attributes, EN1992p11Options options, StandardEN1992p11 standardEN1992P11)
+//            : base(attributes, options, standardEN1992P11)
+//        {
 
-        }
-    }
+//        }
+
+
+//        public override void SLSPerformCheck()
+//        {
+//            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, PlateCheckerAttribute.SLSPlateResults, (EN1992p11Options)_options);
+//        }
+
+//        public override void ULSPerformCheck()
+//        {
+//            _checkerStationResult = PerformCheck(_checkerAttributes.Sections, PlateCheckerAttribute.ULSPlateResults, (EN1992p11Options)_options);
+//        }
+
+//        public override void PerformCheck()
+//        {
+//            base.PerformCheck();
+//        }
+
+
+//        /// <param name="steelSection">section of each station</param>
+//        /// <param name="plateResults">result for each station and loadcase</param>
+//        /// <returns></returns>
+//        protected ModelCode2010PlateStationResult[] PerformCheck(IConcreteSection[] steelSection, PlateResult[] plateResults, EN1992p11Options options)
+//        {
+//            throw new NotImplementedException();
+//        }
+
+
+
+//        public class EN1992p11Options : PlateCheckerOptions
+//        {
+
+//        }
+//    }
 }

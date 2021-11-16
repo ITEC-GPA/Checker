@@ -8,6 +8,7 @@ using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
+using GPC.Model;
 using GPC.Model.Materials;
 using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Results;
@@ -18,7 +19,7 @@ using MathNet.Numerics.LinearAlgebra;
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
     [Serializable]
-    public abstract class SectionSolver
+    public abstract class SectionSolver : ModelObjectId
     {
 
         public enum FailureZones
@@ -72,7 +73,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public Standard Standard => _standard;
 
 
-        public SectionSolver(IConcreteSection section, Standard standard)
+        public SectionSolver(IConcreteSection section, Standard standard, int id)
+            : base(id)
         {
             _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));

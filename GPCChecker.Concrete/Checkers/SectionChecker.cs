@@ -16,64 +16,59 @@ namespace GPC.Checkers.Concrete.Checkers
     public abstract class SectionChecker : Checker, ISerializable
     {
 
-        public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionCheckerOptions options, Standard standard,
-                                int id = ModelObjectId.IDUNASSIGNED, string name = "")
-            : base(checkerAttribute, options, standard, id, name)
-        {
+        protected readonly SectionCheckerAttribute _checkerAttributes;
 
+
+        public SectionOptions SectionCheckerOptions => (SectionOptions)_options;
+
+
+        /// <param name="checkerAttribute">This rapresent one section and multiple forces applied</param>
+        /// <param name="options"></param>
+        /// <param name="standard"></param>
+        /// <param name="id"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionOptions options, Standard standard, int id = ModelObjectId.IDUNASSIGNED)
+            : base(standard, options, id)
+        {
+            _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
         }
 
-        public SectionChecker(SerializationInfo info, StreamingContext context)
-            : base(info, context)
+
+
+        public abstract class SectionOptions : Options
         {
 
-        }
+            public Point2d AxialForceReferencePoint { get; }
 
-        public override abstract void PerformCheck();
-
-        public override abstract void ULSPerformCheck();
-
-        public override abstract void SLSPerformCheck();
-
-
-
-
-
-        public abstract class SectionCheckerOptions : Options
-        {
-
-            public Point3d AxialForceReferencePoint { get; }
-
-            public SectionCheckerOptions()
+            public SectionOptions()
             {
-                AxialForceReferencePoint = Point3d.Origin;
+                AxialForceReferencePoint = Point2d.Origin;
             }
 
-            public SectionCheckerOptions(Point3d axialForceReferencePoint)
+            public SectionOptions(Point2d axialForceReferencePoint)
             {
                 AxialForceReferencePoint = axialForceReferencePoint;
             }
 
             public override bool Equals(object obj)
             {
-                return obj is SectionCheckerOptions options &&
-                       EqualityComparer<Point3d>.Default.Equals(AxialForceReferencePoint, options.AxialForceReferencePoint);
+                return obj is SectionOptions options && AxialForceReferencePoint.Equals(options.AxialForceReferencePoint);
             }
 
             public override int GetHashCode()
             {
                 unchecked
                 {
-                    return -17 * EqualityComparer<Point3d>.Default.GetHashCode(AxialForceReferencePoint);
+                    return -17 * AxialForceReferencePoint.GetHashCode();
                 }
             }
 
-            public static bool operator ==(SectionCheckerOptions left, SectionCheckerOptions right)
+            public static bool operator ==(SectionOptions left, SectionOptions right)
             {
-                return EqualityComparer<SectionCheckerOptions>.Default.Equals(left, right);
+                return left.Equals(right);
             }
 
-            public static bool operator !=(SectionCheckerOptions left, SectionCheckerOptions right)
+            public static bool operator !=(SectionOptions left, SectionOptions right)
             {
                 return !(left == right);
             }

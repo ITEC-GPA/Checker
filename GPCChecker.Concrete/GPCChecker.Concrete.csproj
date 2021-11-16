@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -66,14 +66,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\SectionCheckerAttribute.cs" />
+    <Compile Include="Checkers\BeamChecker.cs" />
     <Compile Include="Checkers\Checker.cs" />
+    <Compile Include="Checkers\PlateChecker.cs" />
     <Compile Include="Checkers\PlateCheckerModelCode2010.cs" />
     <Compile Include="Attributes\BeamCheckerAttribute.cs" />
-    <Compile Include="Checkers\BeamChecker.cs" />
     <Compile Include="Checkers\BeamCheckerModelCode2010.cs" />
     <Compile Include="Attributes\PlateCheckerAttribute.cs" />
-    <Compile Include="Checkers\SectionChecker.cs" />
     <Compile Include="Checkers\SectionCheckerModelCode2010.cs" />
+    <Compile Include="Checkers\SectionChecker.cs" />
     <Compile Include="Helper\Extensions.cs" />
     <Compile Include="Helper\ForceTuple.cs" />
     <Compile Include="SectionSolvers\SectionSolver.cs" />
@@ -85,17 +86,11 @@
     <Compile Include="OldCheckerCode\RCChecker.Viviani.cs" />
     <Compile Include="OldCheckerCode\RCFailureDomain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Results\BeamStationResults.cs" />
     <Compile Include="Results\ResultType\CheckerResultType.cs" />
-    <Compile Include="Results\ModelCode2010PlateStationResult.cs" />
-    <Compile Include="Results\ModelCode2010BeamStationResult.cs" />
     <Compile Include="Results\FailureDomain.cs" />
-    <Compile Include="Results\PlateStationResults.cs" />
-    <Compile Include="Results\CheckerStationResult.cs" />
-    <Compile Include="Results\ResultType\SLSCheckerResultsType.cs" />
-    <Compile Include="Results\SLSModelCode2010CheckerResult.cs" />
+    <Compile Include="Results\ResultType\StressAnalysisResult.cs" />
     <Compile Include="Results\StrainPlane.cs" />
-    <Compile Include="Results\ResultType\ULSCheckerResultsType.cs" />
+    <Compile Include="Results\ResultType\FailureDomainResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

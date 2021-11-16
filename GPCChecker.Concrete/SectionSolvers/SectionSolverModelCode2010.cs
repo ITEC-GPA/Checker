@@ -23,7 +23,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public ConcreteMaterialModelCode2010 ConcreteMaterialModelCode2010 => (ConcreteMaterialModelCode2010)_concreteSection.ConcreteMaterial;
 
-
         #region Properties
 
         /// <summary>
@@ -53,22 +52,38 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        public SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard)
-            : base(section, standard)
+
+        public SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, int id = Model.ModelObjectId.IDUNASSIGNED)
+            : base(section, standard, id)
         {
 
         }
 
         #region Public method
 
-        public FailureDomain GetFailureDomain()
+        public FailureDomainResult GetFailureDomainResults(ResultBeamForces[] forces)
         {
-            return CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations, SectionSolverOptions.Instance.FailureZonesDiscretizations);
+            if (forces == null) 
+                return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
+                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), null, StandardModelCode2010, Id);
+
+            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations, 
+                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), forces, StandardModelCode2010, Id);
         }
 
-        public StrainPlane GetStrainPlane(ResultBeamForces force, Point2d forceReferencePoint)
+        public StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, Point2d forceReferencePoint)
         {
-            return CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(forceReferencePoint), forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance);
+            StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
+
+
+            Parallel.For(0, force.Length, (i) =>
+            {
+                stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
+                                            CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint), forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance),
+                                            StandardModelCode2010, Id);
+            });
+
+            return stressAnalysisResults;
         }
 
         #endregion
