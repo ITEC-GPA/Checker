@@ -36,6 +36,20 @@ namespace GPC.Checkers.Concrete.Checkers
             return solver.GetFailureDomainResults(_checkerAttributes.ULSResults);
         }
 
+        public async override Task<FailureDomainResult> GetFailureDomainResultAsync()
+        {
+            FailureDomainResult failureDomainResult = null;
+
+            await Task.Run(() => {
+                var solver = new SectionSolverModelCode2010(_checkerAttributes.Section, StandardModelCode2010);
+
+                failureDomainResult = solver.GetFailureDomainResults(_checkerAttributes.ULSResults);
+            });
+
+            return failureDomainResult;
+        }
+
+
         public override StressAnalysisResult[] GetStressAnalysisResult()
         {
             var solver = new SectionSolverModelCode2010(_checkerAttributes.Section, StandardModelCode2010);
@@ -44,6 +58,23 @@ namespace GPC.Checkers.Concrete.Checkers
                 return null;
 
             return solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.AxialForceReferencePoint);
+        }
+
+
+        public async override Task<StressAnalysisResult[]> GetStressAnalysisResultAsync()
+        {
+            StressAnalysisResult[] stressAnalysisResult = null;
+
+            if (_checkerAttributes.SLSResults is null)
+                return null;
+
+            await Task.Run(() => {
+                var solver = new SectionSolverModelCode2010(_checkerAttributes.Section, StandardModelCode2010);
+
+                stressAnalysisResult = solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.AxialForceReferencePoint);
+            });
+
+            return stressAnalysisResult;
         }
 
 

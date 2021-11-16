@@ -33,11 +33,14 @@ namespace GPC.Checkers.Concrete.Checkers
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
         }
 
+
         public abstract FailureDomainResult GetFailureDomainResult();
+
+        public abstract Task<FailureDomainResult> GetFailureDomainResultAsync();
 
         public abstract StressAnalysisResult[] GetStressAnalysisResult();
 
-
+        public abstract Task<StressAnalysisResult[]> GetStressAnalysisResultAsync();
 
         public abstract class SectionOptions : Options
         {
