@@ -27,8 +27,6 @@ namespace GPC.Checkers.Concrete.Attributes
         public SectionCheckerAttribute(IConcreteSection section, IEnumerable<ResultBeamForces> slsResults, IEnumerable<ResultBeamForces> ulsResults, int id = ModelObjectId.IDUNASSIGNED)
             : base(id)
         {
-            _uLSresults = ulsResults;
-            _sLSresults = slsResults;
             _section = section ?? throw new ArgumentNullException(nameof(section));
             _uLSresults = ulsResults is null ? null : ulsResults.ToArray();
             _sLSresults = slsResults is null ? null : slsResults.ToArray();
