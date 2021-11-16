@@ -91,7 +91,10 @@ namespace GPC.Checkers.Concrete.Results
                 return -ChiY / Math.Cos(Teta);
         }
 
-
+        public double GetStrain(Point2d point)
+        {
+            return _strainReferencePoint + ChiX * (point.X - _referencePoint.X) + ChiY * (point.Y - _referencePoint.Y);
+        }
 
         public bool Equals(StrainPlane other)
         {
