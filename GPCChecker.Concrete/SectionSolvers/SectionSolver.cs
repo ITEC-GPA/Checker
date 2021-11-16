@@ -181,19 +181,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (face.IsTriangle)
             {
-                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))), points, gaussPointsTri);
-                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
+                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0))), points, gaussPointsTri);
+                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
                     (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
-                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
+                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
                     (x - ConcreteSection.Centroid.X), points, gaussPointsTri);
             }
             else if (face.IsQuad)
             {
-                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))),
+                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0))),
                     points, gaussPointsQuad);
-                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
+                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
                     (y - ConcreteSection.Centroid.Y), points, gaussPointsQuad);
-                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(SectionSolverHelper.CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
+                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(CalculatePointStrain(strainPlane, new Point3d(x, y, 0))) *
                     (x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
             }
             else
@@ -217,7 +217,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
             {
-                double strain = SectionSolverHelper.CalculatePointStrain(strainPlane, ConcreteSection.Rebars[i].Position);
+                double strain = CalculatePointStrain(strainPlane, ConcreteSection.Rebars[i].Position);
                 double sigmaS = CalculateStressRebar(ConcreteSection.Rebars[i], strain);
                 double sigmaC = CalculateSigmaC(strain);
 
@@ -334,6 +334,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                   forceTuple.My / (b * b * h * GetFck()));
         }
 
+        protected double CalculatePointStrain(StrainPlane strainPlane, Point2d point)
+        {
+            return strainPlane.StrainReferencePoint + strainPlane.ChiX * (point.X - strainPlane.ReferencePoint.X) + strainPlane.ChiY * (point.Y - strainPlane.ReferencePoint.Y);
+        }
+
         #endregion
 
         #region Failure domain
@@ -344,7 +349,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         /// <param name="momentsDiscretizations">Number of discretizations of X-axis and Y-axis (moment around Z-axis)</param>
         /// <param name="normalDiscretizations">Number of discretizations of Z-axis (axial force)</param>
-        protected virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, (SectionSolverULS.FailureZones, int)[] normalDiscretizations)
+        protected virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, (FailureZones, int)[] normalDiscretizations)
         {
             if (momentsDiscretizations < 2)
                 throw new ArgumentException();
@@ -384,7 +389,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="teta">The angle of rotation of the axis</param>
         /// <param name="zoneSubdivision">Number of subdivision for each failure zone</param>
         /// <returns></returns>
-        protected virtual (StrainPlane, FailureZones)[] CalculateFailureStrainPlanes(double teta, (SectionSolverULS.FailureZones, int)[] zoneSubdivision,
+        protected virtual (StrainPlane, FailureZones)[] CalculateFailureStrainPlanes(double teta, (FailureZones, int)[] zoneSubdivision,
                                                         double strainYCompression, double strainUCompression)
         {
 
