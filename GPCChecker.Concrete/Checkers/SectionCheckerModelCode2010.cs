@@ -29,16 +29,22 @@ namespace GPC.Checkers.Concrete.Checkers
 
         }
 
-        public FailureDomainResult GetFailureDomainResult()
+        public override FailureDomainResult GetFailureDomainResult()
         {
             var solver = new SectionSolverModelCode2010(_checkerAttributes.Section, StandardModelCode2010);
+
+            if (_checkerAttributes.ULSResults is null)
+                return null;
 
             return solver.GetFailureDomainResults(_checkerAttributes.ULSResults);
         }
 
-        public StressAnalysisResult[] GetStressAnalysisResult()
+        public override StressAnalysisResult[] GetStressAnalysisResult()
         {
             var solver = new SectionSolverModelCode2010(_checkerAttributes.Section, StandardModelCode2010);
+
+            if (_checkerAttributes.SLSResults is null)
+                return null;
 
             return solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.AxialForceReferencePoint);
         }
