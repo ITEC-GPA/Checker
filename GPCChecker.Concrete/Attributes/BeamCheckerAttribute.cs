@@ -12,7 +12,7 @@ namespace GPC.Checkers.Concrete.Attributes
     /// </summary>
 
     [Serializable]
-    public class BeamCheckerAttributes : ModelObjectId, ISerializable
+    public class BeamCheckerAttribute : ModelObjectId, ISerializable
     {
 
         private readonly SectionCheckerAttribute[] _sectionCheckerAttributes;
@@ -20,7 +20,7 @@ namespace GPC.Checkers.Concrete.Attributes
         public SectionCheckerAttribute[] SectionCheckerAttribute => _sectionCheckerAttributes;
 
 
-        public BeamCheckerAttributes(IConcreteSection[] sections, ResultBeamForces[][] slsbeamResults, ResultBeamForces[][] ulsbeamResults)
+        public BeamCheckerAttribute(IConcreteSection[] sections, ResultBeamForces[][] slsbeamResults, ResultBeamForces[][] ulsbeamResults)
             : base(ModelObjectId.IDUNASSIGNED)
         {
             if (sections is null)
@@ -49,7 +49,7 @@ namespace GPC.Checkers.Concrete.Attributes
 
         }
 
-        public BeamCheckerAttributes(SerializationInfo info, StreamingContext context)
+        public BeamCheckerAttribute(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             _sectionCheckerAttributes = (SectionCheckerAttribute[])info.GetValue("SectionCheckerAttribute", typeof(SectionCheckerAttribute[]));
@@ -69,7 +69,7 @@ namespace GPC.Checkers.Concrete.Attributes
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return (obj is BeamCheckerAttributes objCasted) && _sectionCheckerAttributes.SequenceEqual(objCasted._sectionCheckerAttributes) && base.Equals(objCasted);
+            return (obj is BeamCheckerAttribute objCasted) && _sectionCheckerAttributes.SequenceEqual(objCasted._sectionCheckerAttributes) && base.Equals(objCasted);
         }
 
         public override int GetHashCode()

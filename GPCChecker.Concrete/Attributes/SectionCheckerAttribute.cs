@@ -11,12 +11,12 @@ namespace GPC.Checkers.Concrete.Attributes
     public class SectionCheckerAttribute : ModelObjectId, ISerializable
     {
         
-        protected readonly IConcreteSection _sections;
+        protected readonly IConcreteSection _section;
         protected readonly ResultBeamForces[] _uLSresults;
         protected readonly ResultBeamForces[] _sLSresults;
 
 
-        public IConcreteSection Sections => _sections;
+        public IConcreteSection Section => _section;
 
         public ResultBeamForces[] ULSResults => _uLSresults;
 
@@ -33,13 +33,13 @@ namespace GPC.Checkers.Concrete.Attributes
             _sLSresults = slsResults ?? throw new ArgumentException("Input results can not be null");
             _uLSresults = ulsResults ?? throw new ArgumentException("Input results can not be null");
 
-            _sections = section ?? throw new ArgumentNullException(nameof(section));
+            _section = section ?? throw new ArgumentNullException(nameof(section));
         }
 
         public SectionCheckerAttribute(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            _sections = (IConcreteSection)info.GetValue("Sections", typeof(IConcreteSection));
+            _section = (IConcreteSection)info.GetValue("Sections", typeof(IConcreteSection));
             _sLSresults = (ResultBeamForces[])info.GetValue("SLSResult", typeof(ResultBeamForces[]));
             _uLSresults = (ResultBeamForces[])info.GetValue("ULSResult", typeof(ResultBeamForces[]));
         }
@@ -48,7 +48,7 @@ namespace GPC.Checkers.Concrete.Attributes
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue("Sections", _sections, typeof(IConcreteSection));
+            info.AddValue("Sections", _section, typeof(IConcreteSection));
             info.AddValue("SLSResult", _sLSresults, typeof(ResultBeamForces[]));
             info.AddValue("ULSResult", _uLSresults, typeof(ResultBeamForces[]));
         }
@@ -58,7 +58,7 @@ namespace GPC.Checkers.Concrete.Attributes
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return (obj is SectionCheckerAttribute objCasted) && _sections.Equals(objCasted.Sections)
+            return (obj is SectionCheckerAttribute objCasted) && _section.Equals(objCasted.Section)
                                                        && _sLSresults.SequenceEqual(objCasted.SLSResults)
                                                        && _uLSresults.SequenceEqual(objCasted.ULSResults)
                                                        && base.Equals(objCasted);
@@ -71,7 +71,7 @@ namespace GPC.Checkers.Concrete.Attributes
                 int hashCode = 23;
                 hashCode = hashCode * -17 + base.GetHashCode();
 
-                hashCode = hashCode * -17 + _sections.GetHashCode();
+                hashCode = hashCode * -17 + _section.GetHashCode();
 
                 for (int i = 0; i < _sLSresults.Length; i++)
                     hashCode = hashCode * -17 + _sLSresults[i].GetHashCode();

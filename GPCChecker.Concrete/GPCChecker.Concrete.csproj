@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -68,11 +68,10 @@
     <Compile Include="Attributes\SectionCheckerAttribute.cs" />
     <Compile Include="Checkers\Checker.cs" />
     <Compile Include="Checkers\PlateCheckerModelCode2010.cs" />
-    <Compile Include="Checkers\PlateChecker.cs" />
-    <Compile Include="Attributes\BeamCheckerAttributes.cs" />
+    <Compile Include="Attributes\BeamCheckerAttribute.cs" />
     <Compile Include="Checkers\BeamChecker.cs" />
     <Compile Include="Checkers\BeamCheckerModelCode2010.cs" />
-    <Compile Include="Attributes\PlateCheckerAttributes.cs" />
+    <Compile Include="Attributes\PlateCheckerAttribute.cs" />
     <Compile Include="Checkers\SectionChecker.cs" />
     <Compile Include="Checkers\SectionCheckerModelCode2010.cs" />
     <Compile Include="Helper\Extensions.cs" />
