@@ -11,11 +11,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
+using GPC.TestUtilities;
 
 namespace ConcreteTests
 {
 	[TestClass]
-	public class ConcreteSectionSLSTest
+	public class ConcreteSectionSLSTest : UnitTestBase
 	{
 		protected virtual void CalculateAdimensionalForces(IConcreteSection section, ResultBeamForces forces, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
 		{

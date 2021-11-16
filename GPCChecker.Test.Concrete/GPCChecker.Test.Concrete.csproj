@@ -67,6 +67,9 @@
     <Reference Include="GPCModel, Version=0.1.3.3, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCModel.0.1.3.3\lib\net472\GPCModel.dll</HintPath>
     </Reference>
+    <Reference Include="GPCTestUtilities, Version=1.0.0.7, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCTestUtilities.1.0.0.7\lib\net472\GPCTestUtilities.dll</HintPath>
+    </Reference>
     <Reference Include="GPCUtilities, Version=1.0.31.2, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCUtilities.1.0.31.2\lib\net472\GPCUtilities.dll</HintPath>
     </Reference>
@@ -89,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConcreteSectionULSTest.cs" />
+    <Compile Include="GeneralTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ConcreteSectionSLSTest.cs" />
   </ItemGroup>

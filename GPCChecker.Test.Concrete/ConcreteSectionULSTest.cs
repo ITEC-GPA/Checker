@@ -11,11 +11,12 @@ using GPC.Model.Standards;
 using GPC.Model.Sections;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Model.Results;
+using GPC.TestUtilities;
 
 namespace ConcreteTests
 {
 	[TestClass]
-	public class ConcreteSectionULSTest
+	public class ConcreteSectionULSTest : UnitTestBase
 	{
 		private Point3d[] ExportToGmsh(FailureDomain failureDomain)
 		{
