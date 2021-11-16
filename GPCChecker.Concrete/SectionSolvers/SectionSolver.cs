@@ -111,6 +111,36 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
+
+        #region Public method
+
+        public virtual FailureDomainResult GetFailureDomainResults(ResultBeamForces[] forces)
+        {
+            if (forces == null)
+                return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
+                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), null, Standard, Id);
+
+            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
+                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), forces, Standard, Id);
+        }
+
+        public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, Point2d forceReferencePoint)
+        {
+            StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
+
+
+            Parallel.For(0, force.Length, (i) =>
+            {
+                stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
+                                            CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint), forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance),
+                                            Standard, Id);
+            });
+
+            return stressAnalysisResults;
+        }
+
+        #endregion
+
         #region SectionIntegration
 
         /// <summary>

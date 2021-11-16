@@ -215,7 +215,8 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(new GPC.Checkers.Concrete.Attributes.SectionCheckerAttribute(section, null, null), 
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(
+															new GPC.Checkers.Concrete.Attributes.SectionCheckerAttribute(section, null, null), 
 															new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), 
 															standard);
 

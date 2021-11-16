@@ -59,34 +59,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         }
 
-        #region Public method
-
-        public FailureDomainResult GetFailureDomainResults(ResultBeamForces[] forces)
-        {
-            if (forces == null) 
-                return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
-                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), null, StandardModelCode2010, Id);
-
-            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations, 
-                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), forces, StandardModelCode2010, Id);
-        }
-
-        public StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, Point2d forceReferencePoint)
-        {
-            StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
-
-
-            Parallel.For(0, force.Length, (i) =>
-            {
-                stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
-                                            CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint), forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance),
-                                            StandardModelCode2010, Id);
-            });
-
-            return stressAnalysisResults;
-        }
-
-        #endregion
 
         #region Protected Override 
 
