@@ -542,7 +542,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         #endregion
-
+        
         #region Stress SLS
 
 

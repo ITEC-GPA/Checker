@@ -15,7 +15,8 @@ using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
-    public abstract class SectionSolverModelCode2010 : SectionSolver
+    [Serializable]
+    public class SectionSolverModelCode2010 : SectionSolver
     {
 
         public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
