@@ -24,21 +24,25 @@ namespace GPC.Checkers.Concrete.Results
             _domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
         }
 
+
         [Serializable]
         public sealed class FailureDomainPoint : ISerializable, IEquatable<FailureDomainPoint>
         {
-            private readonly Point3d _point;
+            private readonly ForceTuple _forceTuple;
             private readonly SectionSolver.FailureZones _failureIndex;
             private readonly StrainPlane _strainPlane;
 
 
-            public double NRd => _point.Z;
+            public double NRd => _forceTuple.N;
 
-            public double MxRd => _point.X;
+            public double MxRd => _forceTuple.Mx;
 
-            public double MyRd => _point.Y;
+            public double MyRd => _forceTuple.My;
 
-            public Point3d Point => _point;
+
+            public Point3d Point => _forceTuple;
+            public ForceTuple ForceTuple => _forceTuple;
+
 
             /// <inheritdoc cref="SectionSolverULS.FailureZones"/>
             public SectionSolver.FailureZones FailureIndex => _failureIndex;
@@ -46,21 +50,21 @@ namespace GPC.Checkers.Concrete.Results
 
             internal FailureDomainPoint(ForceTuple forceTuple, SectionSolver.FailureZones failureIndex, StrainPlane strainPlane)
             {
-                _point = forceTuple;
+                _forceTuple = forceTuple;
                 _failureIndex = failureIndex;
                 _strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
             }
 
             internal FailureDomainPoint(SerializationInfo info, StreamingContext context)
             {
-                _point = (Point3d)info.GetValue("Point", typeof(Point3d));
+                _forceTuple = (ForceTuple)info.GetValue("ForceTuple", typeof(ForceTuple));
                 _strainPlane = (StrainPlane)info.GetValue("StrainPlane", typeof(StrainPlane));
                 _failureIndex = (SectionSolver.FailureZones)info.GetValue("FailureIndex", typeof(SectionSolver.FailureZones));
             }
 
             public void GetObjectData(SerializationInfo info, StreamingContext context)
             {
-                info.AddValue("Point", _point, typeof(Point3d));
+                info.AddValue("ForceTuple", _forceTuple, typeof(ForceTuple));
                 info.AddValue("StrainPlane", _strainPlane, typeof(StrainPlane));
                 info.AddValue("FailureIndex", _failureIndex, typeof(SectionSolver.FailureZones));
             }
@@ -73,7 +77,7 @@ namespace GPC.Checkers.Concrete.Results
             public bool Equals(FailureDomainPoint other)
             {
                 return other != null &&
-                       _point.Equals(other._point) &&
+                       _forceTuple.Equals(other._forceTuple) &&
                        _failureIndex == other._failureIndex &&
                        _strainPlane.Equals(other._strainPlane);
             }
@@ -83,7 +87,7 @@ namespace GPC.Checkers.Concrete.Results
                 unchecked
                 {
                     int hashCode = 17;
-                    hashCode = hashCode * -23 + _point.GetHashCode();
+                    hashCode = hashCode * -23 + _forceTuple.GetHashCode();
                     hashCode = hashCode * -23 + _failureIndex.GetHashCode();
                     hashCode = hashCode * -23 + _strainPlane.GetHashCode();
                     return hashCode;
