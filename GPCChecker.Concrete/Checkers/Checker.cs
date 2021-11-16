@@ -22,16 +22,13 @@ namespace GPC.Checkers.Concrete.Checkers
     [Serializable]
     public abstract class Checker : ModelObjectId, ISerializable
     {
-        #region Variables
 
         protected readonly Standard _standard;
         protected readonly Options _options;
         protected CheckerStationResult[] _checkerStationResult;
-        protected readonly CheckerAttribute _checkerAttributes;
+        protected readonly SectionCheckerAttribute _checkerAttributes;
 
         protected List<string> _errorLog;
-
-        #endregion
 
 
         #region Properties
@@ -42,14 +39,14 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public CheckerStationResult[] StationResults => _checkerStationResult;
 
-        public CheckerAttribute CheckerAttribute => _checkerAttributes;
+        public SectionCheckerAttribute CheckerAttribute => _checkerAttributes;
 
         #endregion
 
 
         #region Constructor
 
-        public Checker(CheckerAttribute checkerAttribute, Options options, Standard standard, int id = ModelObjectId.IDUNASSIGNED, string name = "")
+        public Checker(SectionCheckerAttribute checkerAttribute, Options options, Standard standard, int id = ModelObjectId.IDUNASSIGNED, string name = "")
             : base(id, name)
         {
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
@@ -64,7 +61,7 @@ namespace GPC.Checkers.Concrete.Checkers
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
             _options = (Options)info.GetValue("CheckerOptions", typeof(Options));
             _checkerStationResult = (CheckerStationResult[])info.GetValue("CheckerStationResult", typeof(CheckerStationResult[]));
-            _checkerAttributes = (CheckerAttribute)info.GetValue("CheckerAttribute", typeof(CheckerAttribute[]));
+            _checkerAttributes = (SectionCheckerAttribute)info.GetValue("CheckerAttribute", typeof(SectionCheckerAttribute[]));
         }
 
 
@@ -86,27 +83,27 @@ namespace GPC.Checkers.Concrete.Checkers
             return _errorLog;
         }
 
-        protected double GetWorkingRatio(double force, double capacity)
-        {
-            double result = Math.Abs(force / capacity);
+        //protected double GetWorkingRatio(double force, double capacity)
+        //{
+        //    double result = Math.Abs(force / capacity);
 
-            if (Math.Abs(capacity) < 0.01)
-            {
-                throw new ArgumentException("Capacity can not be null");
-            }
+        //    if (Math.Abs(capacity) < 0.01)
+        //    {
+        //        throw new ArgumentException("Capacity can not be null");
+        //    }
 
-            if (Math.Abs(force) < 0.001)
-            {
-                return 0.001;
-            }
+        //    if (Math.Abs(force) < 0.001)
+        //    {
+        //        return 0.001;
+        //    }
 
-            if (result < 0.001)
-            {
-                return 0.001;
-            }
+        //    if (result < 0.001)
+        //    {
+        //        return 0.001;
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
@@ -114,7 +111,7 @@ namespace GPC.Checkers.Concrete.Checkers
             info.AddValue("Standard", _standard, typeof(Standard));
             info.AddValue("CheckerOptions", _options, typeof(Options));
             info.AddValue("CheckerStationResult", _checkerStationResult, typeof(CheckerStationResult[]));
-            info.AddValue("CheckerAttribute", _checkerAttributes, typeof(CheckerAttribute));
+            info.AddValue("CheckerAttribute", _checkerAttributes, typeof(SectionCheckerAttribute));
         }
 
         public override bool Equals(object obj)

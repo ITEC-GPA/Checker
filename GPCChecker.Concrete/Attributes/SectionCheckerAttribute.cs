@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using GPC.Model;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
@@ -11,54 +8,79 @@ using GPC.Model.Sections.Concrete;
 namespace GPC.Checkers.Concrete.Attributes
 {
     [Serializable]
-    public sealed class SectionCheckerAttribute : CheckerAttribute, ISerializable, IEquatable<SectionCheckerAttribute>
+    public class SectionCheckerAttribute : ModelObjectId, ISerializable
     {
+        
+        protected readonly IConcreteSection _sections;
+        protected readonly ResultBeamForces[] _uLSresults;
+        protected readonly ResultBeamForces[] _sLSresults;
 
 
-        public SectionCheckerAttribute(IConcreteSection section, SectionResult[] slsResults, SectionResult[] ulsResults,
-                                        int id = ModelObjectId.IDUNASSIGNED, string name = "")
-            : base(new[] { section }, slsResults, ulsResults, id, name)
+        public IConcreteSection Sections => _sections;
+
+        public ResultBeamForces[] ULSResults => _uLSresults;
+
+        public ResultBeamForces[] SLSResults => _sLSresults;
+
+
+        public SectionCheckerAttribute(IConcreteSection section, ResultBeamForces[] slsResults, ResultBeamForces[] ulsResults, int id = ModelObjectId.IDUNASSIGNED)
+            : base(id)
         {
 
-        }
+            if (slsResults.Length != ulsResults.Length)
+                throw new ArgumentException();
 
+            _sLSresults = slsResults ?? throw new ArgumentException("Input results can not be null");
+            _uLSresults = ulsResults ?? throw new ArgumentException("Input results can not be null");
+
+            _sections = section ?? throw new ArgumentNullException(nameof(section));
+        }
 
         public SectionCheckerAttribute(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-
+            _sections = (IConcreteSection)info.GetValue("Sections", typeof(IConcreteSection));
+            _sLSresults = (ResultBeamForces[])info.GetValue("SLSResult", typeof(ResultBeamForces[]));
+            _uLSresults = (ResultBeamForces[])info.GetValue("ULSResult", typeof(ResultBeamForces[]));
         }
+
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
+            info.AddValue("Sections", _sections, typeof(IConcreteSection));
+            info.AddValue("SLSResult", _sLSresults, typeof(ResultBeamForces[]));
+            info.AddValue("ULSResult", _uLSresults, typeof(ResultBeamForces[]));
         }
 
         public override bool Equals(object obj)
         {
-            return Equals((SectionCheckerAttribute)obj);
-        }
+            if (ReferenceEquals(this, obj))
+                return true;
 
-        public bool Equals(SectionCheckerAttribute other)
-        {
-            return other != null &&
-                   base.Equals(other);
+            return (obj is SectionCheckerAttribute objCasted) && _sections.Equals(objCasted.Sections)
+                                                       && _sLSresults.SequenceEqual(objCasted.SLSResults)
+                                                       && _uLSresults.SequenceEqual(objCasted.ULSResults)
+                                                       && base.Equals(objCasted);
         }
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
-        }
+            unchecked
+            {
+                int hashCode = 23;
+                hashCode = hashCode * -17 + base.GetHashCode();
 
+                hashCode = hashCode * -17 + _sections.GetHashCode();
 
-        public static bool operator ==(SectionCheckerAttribute left, SectionCheckerAttribute right)
-        {
-            return EqualityComparer<SectionCheckerAttribute>.Default.Equals(left, right);
-        }
+                for (int i = 0; i < _sLSresults.Length; i++)
+                    hashCode = hashCode * -17 + _sLSresults[i].GetHashCode();
 
-        public static bool operator !=(SectionCheckerAttribute left, SectionCheckerAttribute right)
-        {
-            return !(left == right);
+                for (int i = 0; i < _uLSresults.Length; i++)
+                    hashCode = hashCode * -17 + _uLSresults[i].GetHashCode();
+
+                return hashCode;
+            }
         }
     }
 }

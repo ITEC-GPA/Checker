@@ -8,55 +8,57 @@ using GPC.Model.Sections.Concrete;
 namespace GPC.Checkers.Concrete.Attributes
 {
     /// <summary>
-    /// This class rapresent the results of one beam (multiple loadcase/combination).
+    /// This class rapresent the results of one beam.
     /// </summary>
 
     [Serializable]
-    public class BeamCheckerAttributes : CheckerAttribute, ISerializable
+    public class BeamCheckerAttributes : ModelObjectId, ISerializable
     {
 
-        #region Properties
+        private readonly SectionCheckerAttribute[] _sectionCheckerAttributes;
 
-        public BeamResult[] ULSBeamResults => (BeamResult[])_sLSresults;
-
-        public BeamResult[] SLSBeamResults => (BeamResult[])_sLSresults;
-
-        public double Length => SLSBeamResults.First().Length;
-
-        #endregion
+        public SectionCheckerAttribute[] SectionCheckerAttribute => _sectionCheckerAttributes;
 
 
-        public BeamCheckerAttributes(IConcreteSection section, BeamResult[] slsbeamResults, BeamResult[] ulsbeamResults, string name = "")
-            : base(Enumerable.Repeat(section, slsbeamResults.First().ResultLocations.Length).ToArray(), slsbeamResults, ulsbeamResults, ModelObjectId.IDUNASSIGNED, name)
+        public BeamCheckerAttributes(IConcreteSection[] sections, ResultBeamForces[][] slsbeamResults, ResultBeamForces[][] ulsbeamResults)
+            : base(ModelObjectId.IDUNASSIGNED)
         {
-            if (section is null)
-            {
-                throw new ArgumentNullException(nameof(section));
-            }
+            if (sections is null)
+                throw new ArgumentNullException(nameof(sections));
 
             if (slsbeamResults is null)
-            {
                 throw new ArgumentNullException(nameof(slsbeamResults));
+
+            if (ulsbeamResults is null)
+                throw new ArgumentNullException(nameof(ulsbeamResults));
+
+
+            if (sections.Length != slsbeamResults.Length)
+                throw new ArgumentException();
+
+            if (sections.Length != ulsbeamResults.Length)
+                throw new ArgumentException();
+
+
+            _sectionCheckerAttributes = new SectionCheckerAttribute[sections.Length];
+
+            for (int i = 0; i < sections.Length; i++)
+            {
+                _sectionCheckerAttributes[i] = new SectionCheckerAttribute(sections[i], slsbeamResults[i], ulsbeamResults[i]);
             }
-
-
-        }
-
-        public BeamCheckerAttributes(IConcreteSection[] sections, BeamResult[] slsbeamResults, BeamResult[] ulsbeamResults, string name = "")
-            : base(sections, slsbeamResults, ulsbeamResults, ModelObjectId.IDUNASSIGNED, name)
-        {
 
         }
 
         public BeamCheckerAttributes(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-
+            _sectionCheckerAttributes = (SectionCheckerAttribute[])info.GetValue("SectionCheckerAttribute", typeof(SectionCheckerAttribute[]));
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
+            info.AddValue("SectionCheckerAttribute", _sectionCheckerAttributes, typeof(SectionCheckerAttribute[]));
         }
 
         public override bool Equals(object obj)
@@ -67,14 +69,20 @@ namespace GPC.Checkers.Concrete.Attributes
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return (obj is BeamCheckerAttributes objCasted) && base.Equals(objCasted);
+            return (obj is BeamCheckerAttributes objCasted) && _sectionCheckerAttributes.SequenceEqual(objCasted._sectionCheckerAttributes) && base.Equals(objCasted);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                return -base.GetHashCode();
+                int hashCode = 23;
+                hashCode = hashCode * -17 + base.GetHashCode();
+
+                for (int i = 0; i < _sectionCheckerAttributes.Length; i++)
+                    hashCode = hashCode * -17 + _sectionCheckerAttributes[i].GetHashCode();
+
+                return hashCode;
             }
         }
 

@@ -12,49 +12,79 @@ namespace GPC.Checkers.Concrete.Attributes
     /// </summary>
 
     [Serializable]
-    public class PlateCheckerAttributes : CheckerAttribute, ISerializable
+    public class PlateCheckerAttributes : ModelObjectId, ISerializable
     {
 
-        #region Properties
+        private readonly SectionCheckerAttribute[] _sectionCheckerAttributes;
 
-        public PlateResult[] ULSPlateResults => (PlateResult[])_uLSresults;
-
-        public PlateResult[] SLSPlateResults => (PlateResult[])_sLSresults;
-
-        #endregion
+        public SectionCheckerAttribute[] SectionCheckerAttribute => _sectionCheckerAttributes;
 
 
-        public PlateCheckerAttributes(IConcreteSection section, PlateResult[] slsPlateResults, PlateResult[] ulsPlateResults, string name = "")
-            : base(Enumerable.Repeat(section, slsPlateResults.First().ResultLocations.Length).ToArray(), slsPlateResults, ulsPlateResults, ModelObjectId.IDUNASSIGNED, name)
+
+        public PlateCheckerAttributes(IConcreteSection[] sections, ResultBeamForces[][] slsbeamResults, ResultBeamForces[][] ulsbeamResults, int id = ModelObjectId.IDUNASSIGNED)
+            : base(id)
         {
 
+            if (sections is null)
+                throw new ArgumentNullException(nameof(sections));
+
+            if (slsbeamResults is null)
+                throw new ArgumentNullException(nameof(slsbeamResults));
+
+            if (ulsbeamResults is null)
+                throw new ArgumentNullException(nameof(ulsbeamResults));
+
+
+            if (sections.Length != slsbeamResults.Length)
+                throw new ArgumentException();
+
+            if (sections.Length != ulsbeamResults.Length)
+                throw new ArgumentException();
+
+
+            _sectionCheckerAttributes = new SectionCheckerAttribute[sections.Length];
+
+            for (int i = 0; i < sections.Length; i++)
+            {
+                _sectionCheckerAttributes[i] = new SectionCheckerAttribute(sections[i], slsbeamResults[i], ulsbeamResults[i]);
+            }
         }
 
 
         public PlateCheckerAttributes(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-
+            _sectionCheckerAttributes = (SectionCheckerAttribute[])info.GetValue("SectionCheckerAttribute", typeof(SectionCheckerAttribute[]));
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
+            info.AddValue("SectionCheckerAttribute", _sectionCheckerAttributes, typeof(SectionCheckerAttribute[]));
         }
 
         public override bool Equals(object obj)
         {
+            if (obj is null)
+                return false;
+
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return (obj is PlateCheckerAttributes objCasted) && base.Equals(objCasted);
+            return (obj is PlateCheckerAttributes objCasted) && _sectionCheckerAttributes.SequenceEqual(objCasted._sectionCheckerAttributes) && base.Equals(objCasted);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                return -17 * base.GetHashCode();
+                int hashCode = 23;
+                hashCode = hashCode * -17 + base.GetHashCode();
+
+                for (int i = 0; i < _sectionCheckerAttributes.Length; i++)
+                    hashCode = hashCode * -17 + _sectionCheckerAttributes[i].GetHashCode();
+
+                return hashCode;
             }
         }
     }

@@ -65,7 +65,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\CheckerAttribute.cs" />
     <Compile Include="Attributes\SectionCheckerAttribute.cs" />
     <Compile Include="Checkers\Checker.cs" />
     <Compile Include="Checkers\PlateCheckerModelCode2010.cs" />
