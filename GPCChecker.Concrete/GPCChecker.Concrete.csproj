@@ -80,11 +80,6 @@
     <Compile Include="SectionSolvers\SectionSolver.cs" />
     <Compile Include="SectionSolvers\SectionSolverModelCode2010.cs" />
     <Compile Include="SectionSolvers\SectionSolverOptions.cs" />
-    <Compile Include="OldCheckerCode\RCCheckingSection.cs" />
-    <Compile Include="OldCheckerCode\RCSection.cs" />
-    <Compile Include="OldCheckerCode\RCChecker.cs" />
-    <Compile Include="OldCheckerCode\RCChecker.Viviani.cs" />
-    <Compile Include="OldCheckerCode\RCFailureDomain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Results\ResultType\CheckerResultType.cs" />
     <Compile Include="Results\FailureDomain.cs" />
