@@ -33,9 +33,6 @@ namespace GPC.Checkers.Concrete.Checkers
         {
             var solver = new SectionSolverModelCode2010(_checkerAttributes.Section, StandardModelCode2010);
 
-            if (_checkerAttributes.ULSResults is null)
-                return null;
-
             return solver.GetFailureDomainResults(_checkerAttributes.ULSResults);
         }
 
