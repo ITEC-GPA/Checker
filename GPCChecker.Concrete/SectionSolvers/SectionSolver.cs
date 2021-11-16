@@ -104,10 +104,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected abstract double GetFck();
 
         /// <returns>The design concrete stress related to <paramref name="strain"/></returns>
-        protected abstract double CalculateSigmaC(double strain);
+        internal abstract double CalculateSigmaC(double strain);
 
         /// <returns>The design steel stress related to <paramref name="strain"/></returns>
-        protected abstract double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain);
+        internal abstract double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain);
 
         #endregion
 
@@ -131,9 +131,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             Parallel.For(0, force.Length, (i) =>
             {
-                stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
-                                            CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint), forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance),
-                                            Standard, Id);
+                stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, 
+                                                                    force[i],
+                                                                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint), 
+                                                                                                       forceReferencePoint, 
+                                                                                                       SectionSolverOptions.Instance.SLSconvergenceTolerance),
+                                                                    this,
+                                                                    Standard, 
+                                                                    Id);
             });
 
             return stressAnalysisResults;
