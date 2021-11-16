@@ -73,7 +73,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		protected override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
 		{
-			return SectionSolverHelper.CalculateStressSteel(rebar, strain);
+			return SectionSolverHelper.CalculatecharacteristicStressRebar(rebar, strain);
 		}
 
 		protected override double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar)

@@ -290,7 +290,7 @@ namespace ConcreteTests
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
 
 			StrainPlane strainPlane = new StrainPlane(0.0, 0.0, section.Centroid, -0.0002);
-			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
+			solver.CalculateForceResultant(strainPlane, out double N, out double Mx, out double My);
 
 			Assert.IsTrue(Math.Abs(Mx) < tolerance);
 			Assert.IsTrue(Math.Abs(My) < tolerance);
@@ -322,7 +322,7 @@ namespace ConcreteTests
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
 
 			StrainPlane strainPlane = new StrainPlane(0.0, 0.0, section.Centroid, -0.0004539);
-			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
+			solver.CalculateForceResultant(strainPlane, out double N, out double Mx, out double My);
 
 			Assert.IsTrue(Math.Abs(Mx) < tolerance);
 			Assert.IsTrue(Math.Abs(My) < tolerance);
@@ -354,7 +354,7 @@ namespace ConcreteTests
 			SectionSolverULSModelCode2010 solver = new SectionSolverULSModelCode2010(section, standard);
 
 			StrainPlane strainPlane = new StrainPlane(0.0, 0.0000036072, section.Centroid, 0.00048156);
-			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
+			solver.CalculateForceResultant(strainPlane, out double N, out double Mx, out double My);
 
 			Assert.IsTrue(Math.Abs((Math.Abs(Mx) - 50000000) / Mx) * 100 < tolerance);  // 50 kNm calcolato con VCA
 			Assert.IsTrue(Math.Abs(My) < tolerance);

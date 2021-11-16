@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Results;
@@ -43,12 +44,19 @@ namespace GPC.Checkers.Concrete.Results
             public SectionSolverULS.FailureZones FailureIndex => _failureIndex;
 
 
-            internal FailureDomainPoint(double nRd, double mxRd, double myRd, SectionSolverULS.FailureZones failureIndex, StrainPlane strainPlane)
+            internal FailureDomainPoint(ForceTuple forceTuple, SectionSolverULS.FailureZones failureIndex, StrainPlane strainPlane)
             {
-                _point = new Point3d(mxRd, myRd, nRd);
+                _point = forceTuple;
                 _failureIndex = failureIndex;
                 _strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
             }
+
+            //internal FailureDomainPoint(double nRd, double mxRd, double myRd, SectionSolverULS.FailureZones failureIndex, StrainPlane strainPlane)
+            //{
+            //    _point = new Point3d(mxRd, myRd, nRd);
+            //    _failureIndex = failureIndex;
+            //    _strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
+            //}
 
             internal FailureDomainPoint(SerializationInfo info, StreamingContext context)
             {

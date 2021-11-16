@@ -45,7 +45,7 @@ namespace ConcreteTests
 			CalculateAdimensionalForces(section, forces, out double adimExternalAxialForce, out double adimExternalendingMomentX, out double adimExternalBendingMomentY);
 			SectionSolverSLSModelCode2010 solver = new SectionSolverSLSModelCode2010(section, forces, standard);
 
-			solver.CalculateForces(strainPlane, out double N, out double Mx, out double My);
+			solver.CalculateForceResultant(strainPlane, out double N, out double Mx, out double My);
 			CalculateAdimensionalForces(section, N, Mx, My, out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY);
 			if (Math.Abs(adimAxialForce - adimExternalAxialForce) > tolerance ||
 				Math.Abs(adimBendingMomentX - adimExternalendingMomentX) > tolerance ||

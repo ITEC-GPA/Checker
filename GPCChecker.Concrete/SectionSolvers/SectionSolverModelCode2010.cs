@@ -1,0 +1,237 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Text;
+using System.Threading.Tasks;
+using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Results;
+using GPC.Geometry;
+using GPC.Geometry.Meshes;
+using GPC.Model.Materials;
+using GPC.Model.Results;
+using GPC.Model.Sections.Concrete;
+using GPC.Model.Standards;
+
+namespace GPC.Checkers.Concrete.SectionSolvers
+{
+    public abstract class SectionSolverModelCode2010 : SectionSolver
+    {
+
+
+        public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
+
+        public ConcreteMaterialModelCode2010 ConcreteMaterialModelCode2010 => (ConcreteMaterialModelCode2010)_concreteSection.ConcreteMaterial;
+
+
+        #region Properties
+
+        /// <summary>
+        /// Design compressive strength for persistent design
+        /// </summary>
+        public double Fcd => CalculateFcd();
+
+        /// <summary>
+        /// Design tensile strength for persistent design
+        /// </summary>
+        public double Fctd => CalculateFctd();
+
+        /// <summary>
+        /// Design compressive strength for accidental design
+        /// </summary>
+        public double FcdAccidental => CalculateFcd();
+
+        /// <summary>
+        /// Design tensile strength for accidental design
+        /// </summary>
+        public double FctdAccidental => CalculateFctdAccidental();
+
+        /// <summary>
+        /// Modulus of elasticity value for ultimate limit state calculations
+        /// </summary>
+        public double ECd => CalculateECd();
+
+        #endregion
+
+
+        public SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard)
+            : base(section, standard)
+        {
+
+        }
+
+
+        #region protected Override 
+
+        protected override double GetFck()
+        {
+            return ConcreteMaterialModelCode2010.Fck;
+        }
+
+        protected override double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar)
+        {
+            return CalculateDesignYieldingStrainRebar(rebar.RebarMaterial);
+        }
+
+        protected override double GetDesignYieldingStrainRebar(int rebar)
+        {
+            return CalculateDesignYieldingStrainRebar(ConcreteSection.Rebars[rebar].RebarMaterial);
+        }
+
+        protected override double GetDesignUltimateStrainRebar(ReinforcedConcreteRebar rebar)
+        {
+            return CalculateDesignUltimateStrainRebar(rebar.RebarMaterial);
+        }
+
+        protected override double GetDesignUltimateStrainRebar(int rebar)
+        {
+            return CalculateDesignUltimateStrainRebar(ConcreteSection.Rebars[rebar].RebarMaterial);
+        }
+
+        protected override double GetUltimateStrainConcreteCompression()
+        {
+            return ConcreteMaterialModelCode2010.StrainUCompression;
+        }
+
+        protected override double GetYieldingStrainConcreteCompression()
+        {
+            return ConcreteMaterialModelCode2010.StrainYCompression;
+        }
+
+        protected override double GetYieldingStrainPureCompression()
+        {
+            return ConcreteMaterialModelCode2010.StrainYPureCompression;
+        }
+
+        protected override double GetYieldingStrainConcreteTension()
+        {
+            return ConcreteMaterialModelCode2010.StrainYTension;
+        }
+
+        protected override double GetUltimateStrainConcreteTension()
+        {
+            return ConcreteMaterialModelCode2010.StrainUTension;
+        }
+
+        /// <inheritdoc cref="SectionSolver.CalculateSigmaC(double)"/>
+        protected override double CalculateSigmaC(double strain)
+        {
+            if (strain < 0)
+            {
+                return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFcd() / ConcreteMaterialModelCode2010.Fck;
+            }
+            else
+            {
+                return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFctd() / ConcreteMaterialModelCode2010.Fctk;
+            }
+        }
+
+        /// <inheritdoc cref="SectionSolver.CalculateStressRebar(ReinforcedConcreteRebar, double)"/>
+        protected override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
+        {
+            return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP);
+        }
+
+
+        #endregion
+
+
+
+        #region ProtectedConcrete 
+
+        protected double CalculateFcd()
+        {
+            var material = ConcreteMaterialModelCode2010;
+            var standard = StandardModelCode2010;
+
+            if (material.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
+            {
+                if (material.Fck > 90)
+                    throw new ArgumentException("Fck > 90 not supported by Stress block");
+
+                double eta;
+                if (material.Fck <= 50.0)
+                    eta = 1.0;
+                else
+                    eta = 1.0 - (material.Fck - 50.0) / 200;
+
+                return eta * standard.AlphaCC * material.Fck / standard.GammaC;
+            }
+            else
+            {
+                return standard.AlphaCC * material.Fck / standard.GammaC;
+            }
+        }
+
+        protected double CalculateFctd()
+        {
+            return StandardModelCode2010.AlphaCT * ConcreteMaterialModelCode2010.Fctk05 / StandardModelCode2010.GammaC;
+        }
+
+        protected double CalculateFcdAccidental()
+        {
+            return StandardModelCode2010.AlphaCC * ConcreteMaterialModelCode2010.Fck / StandardModelCode2010.GammaCAccidental;
+        }
+
+        protected double CalculateFctdAccidental()
+        {
+            return StandardModelCode2010.AlphaCT * ConcreteMaterialModelCode2010.Fctk05 / StandardModelCode2010.GammaCAccidental;
+        }
+
+        protected double CalculateECd()
+        {
+            return ConcreteMaterialModelCode2010.E / StandardModelCode2010.GammaCE;
+        }
+
+        #endregion
+
+        #region Protected rebars
+
+        /// <returns>The design rebar yielding stress</returns>
+        protected double CalculateFyd(RebarMaterial material)
+        {
+            return material.Fyk / StandardModelCode2010.GammaS;
+        }
+
+        /// <returns>The design rebar stress related to <paramref name="strain"/></returns>
+        protected double CalculateDesignStressRebar(double strain, RebarMaterial material)
+        {
+            if (strain < CalculateDesignYieldingStrainRebar(material))
+            {
+                return material.CalculateStress(strain);
+            }
+            else
+            {
+                return CalculateFyd(material) + (strain - CalculateDesignYieldingStrainRebar(material)) * material.Et;
+            }
+        }
+
+        protected double CalculateUltimateDesignStrainRebar(ReinforcedConcreteRebar rebar)
+        {
+            return rebar.RebarMaterial.StrainU * StandardModelCode2010.SteelCoefficientStrainTension;
+        }
+
+        protected double CalculateUltimateDesignStrainRebar(int rebar)
+        {
+            return ConcreteSection.Rebars[rebar].RebarMaterial.StrainU * StandardModelCode2010.SteelCoefficientStrainTension;
+        }
+
+        protected double CalculateDesignYieldingStressRebar(RebarMaterial material)
+        {
+            return material.Fyk / StandardModelCode2010.GammaS;
+        }
+
+        protected double CalculateDesignYieldingStrainRebar(RebarMaterial material)
+        {
+            return CalculateDesignYieldingStressRebar(material) / material.E;
+        }
+
+        protected double CalculateDesignUltimateStrainRebar(RebarMaterial material)
+        {
+            return material.StrainU * StandardModelCode2010.SteelCoefficientStrainTension;
+        }
+
+        #endregion
+
+    }
+}
