@@ -101,7 +101,7 @@ namespace ConcreteTests
 		{
 			double rebarDiameter = 26;
 
-			// sezione rettangolare 300x500
+			// \\studio\Software_Development\FilesForTesting\Libs\GPCChecker\ConcreteSolver\Test_2 
 			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   
 				new Point2d(0, 0),
 				new Point2d(300, 0),
