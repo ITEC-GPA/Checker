@@ -366,9 +366,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double h = bBox.Size.Y;
             double b = bBox.Size.X;
 
-            return new ForceTuple(forceTuple.N / (b * h * GetFck()),
-                                  forceTuple.Mx / (b * h * h * GetFck()),
-                                  forceTuple.My / (b * b * h * GetFck()));
+            return new ForceTuple(forceTuple.N / (b * h * Math.Abs(GetFck())),
+                forceTuple.Mx / (b * h * h * Math.Abs(GetFck())),
+                forceTuple.My / (b * b * h * Math.Abs(GetFck())));
         }
 
 
