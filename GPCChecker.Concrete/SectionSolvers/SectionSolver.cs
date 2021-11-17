@@ -376,7 +376,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Failure domain
 
-
         /// <summary>
         /// Calculate the failure domain <see cref="FailureDomain"/> of the section
         /// </summary>
@@ -476,7 +475,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         #endregion
 
         #region ULS Line intersection
-
 
         public virtual double CalculateSafetyFactor(ForceTuple externalForces, Point2d forceReferencePoint, out FailureDomain.FailureDomainPoint pointOnDomain, double angularTolerance = 0.001)
         {
@@ -862,7 +860,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return strainPlane;
         }
-
 
         #endregion
 

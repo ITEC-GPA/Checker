@@ -26,7 +26,7 @@ namespace ConcreteTests
         [TestMethod]
         public void IntegrateSectionStressTest()
         {
-            RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, new RebarMaterial(450));
+            RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, new RebarMaterial("", 450));
 
             ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300,
                                                                     new ConcreteMaterialEN1992(25,
