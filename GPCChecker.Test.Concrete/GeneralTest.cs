@@ -15,7 +15,7 @@ using GPC.Model.Standards;
 using GPC.TestUtilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace ConcreteTest
+namespace ConcreteTests
 {
     [TestClass]
     public class GeneralTest : UnitTestBase
@@ -29,10 +29,10 @@ namespace ConcreteTest
             RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, new RebarMaterial(450));
 
             ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300,
-                                                                        new ConcreteMaterialEN1992(25,
-                                                                        ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear),
-                                                                        new ReinforcedConcreteRebar[] { new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)) }
-                                                                        );
+                                                                    new ConcreteMaterialEN1992(25,
+                                                                    ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear),
+                                                                    new ReinforcedConcreteRebar[] { new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)) }
+                                                                    );
 
             List<ResultBeamForces> forces = new List<ResultBeamForces>();
 
@@ -46,12 +46,6 @@ namespace ConcreteTest
 
 
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardEN1992p11());
-
-
-            //GPC.Checkers.Concrete.Results.StressAnalysisResult[] stressResult = sectionChecker.GetStressAnalysisResult();
-
-            //Assert.IsTrue(stressResult.Length == forces.Count);
-
 
             var stressResult = sectionChecker.GetStressAnalysisResultAsync();
 
