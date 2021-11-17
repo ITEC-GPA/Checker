@@ -91,12 +91,16 @@
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConcreteSectionULSTest.cs" />
+    <Compile Include="ULSCheckConcreteTest.cs" />
+    <Compile Include="ULSConcreteFailureDomainTest.cs" />
+    <Compile Include="SLSConcreteTest.cs" />
+    <Compile Include="ULSConcretePrestressedFailureDomainTest.cs" />
     <Compile Include="GeneralTest.cs" />
     <Compile Include="PerformanceTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ConcreteSectionSLSTest.cs" />
+    <Compile Include="SLSConcretePrestressedTest.cs" />
     <Compile Include="SectionIntegrationTest.cs" />
+    <Compile Include="ConcreteTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -18,7 +18,7 @@ using GPC.Checkers.Concrete.Helper;
 namespace ConcreteTests
 {
 	[TestClass]
-	public class SectionIntegrationTest : UnitTestBase
+	public class SectionIntegrationTest : ConcreteTest
 	{
 		[TestMethod]
 		public void RectangularSectionIntegration1()
@@ -247,30 +247,5 @@ namespace ConcreteTests
 			Assert.IsTrue(Math.Abs(force.My - expForceTuple.My) < 1);
 		}
 
-
-		internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
-		{
-			internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, int id = -1) 
-				: base(section, standard, id)
-			{
-			}
-
-			internal ForceTuple CalculateSectionForceResultant(StrainPlane strainPlane)
-			{
-				return base.CalculateForceResultant(strainPlane);
-			}
-
-			internal double CalculateSigmaConcrete(double strain)
-			{
-				{
-					return base.CalculateSigmaC(strain);
-				}
-			}
-
-			internal double GetDesignUltimateStrainRebars(ReinforcedConcreteRebar rebar, double strain)
-			{
-				return base.CalculateStressRebar(rebar, strain);
-			}
-		}
 	}
 }
