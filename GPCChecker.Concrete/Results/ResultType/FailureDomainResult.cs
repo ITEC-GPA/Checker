@@ -29,7 +29,10 @@ namespace GPC.Checkers.Concrete.Results
         {
             _failureDomain = failureDomain ?? throw new ArgumentNullException(nameof(failureDomain));
 
-            _forces = forces.ToList() ?? new List<ResultBeamForces>();
+            if (forces == null)
+                _forces = new List<ResultBeamForces>();
+            else
+				_forces = forces.ToList();
         }
 
         public void AddForces(ResultBeamForces forces)
