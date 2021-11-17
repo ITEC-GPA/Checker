@@ -835,10 +835,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 case FailureZones.F5:
 
-                    Point2d strainPlaneCenter = new Point2d((distances.dmaxConcrete - (GetYieldingStrainPureCompression() / GetUltimateStrainConcreteCompression()) *
-                        (distances.dmaxConcrete - distances.dminConcrete)) * (-Math.Sin(teta)) + ConcreteSection.Centroid.X,
-                        (distances.dmaxConcrete - (GetYieldingStrainPureCompression() / GetUltimateStrainConcreteCompression()) * 
-                        (distances.dmaxConcrete - distances.dmaxConcrete - distances.dminConcrete)) * (Math.Cos(teta)) + ConcreteSection.Centroid.Y);
+                    double fraction = GetYieldingStrainPureCompression() / GetUltimateStrainConcreteCompression();
+                    double heigth = distances.dmaxConcrete - distances.dminConcrete;
+
+                    Point2d strainPlaneCenter = new Point2d((distances.dmaxConcrete - (1 - fraction) * heigth) * (-Math.Sin(teta)) + ConcreteSection.Centroid.X,
+                        (distances.dmaxConcrete - (1 - fraction) * heigth) * (Math.Cos(teta)) + ConcreteSection.Centroid.Y);
 
                     chiSx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminConcrete);   
                     chiDx = 0.0; 
@@ -930,7 +931,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             double dChiY = dCY * deltaChiYLimit;
 
-            double deltaStrainLimit = 1.0 / (ConcreteSection.Area * GetFck());
+            double deltaStrainLimit = Math.Abs(GetYieldingStrainPureCompression());
             double dS = 0.00001;
             if (forceTupleAdim.N != 0)
                 dS = 0.0001 * Math.Max(forceTupleAdim.N, 0.00001);
