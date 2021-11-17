@@ -128,17 +128,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
 
-
             Parallel.For(0, force.Length, (i) =>
             {
-                stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, 
-                                                                    force[i],
-                                                                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint), 
-                                                                                                       forceReferencePoint, 
-                                                                                                       SectionSolverOptions.Instance.SLSconvergenceTolerance),
-                                                                    this,
-                                                                    Standard, 
-                                                                    Id);
+                stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
+                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint),  
+                    forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance), this, Standard, Id);
             });
 
             return stressAnalysisResults;
@@ -865,12 +859,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Stress SLS
 
-
         protected StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple externalForces, Point2d forceReferencePoint, double tolerance = 1e-5)
         {
-            ForceTuple targetLocalForces = GetLocalForces(externalForces, forceReferencePoint);
-
-            ForceTuple targetLocalForcesAdmin = ConvertToAdimensionalForces(targetLocalForces);
+            //ForceTuple targetLocalForces = GetLocalForces(externalForces, forceReferencePoint);
+            ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(externalForces);
 
             // Valori di primo tentativo
             Point3d referencePoint = ConcreteSection.Centroid;
@@ -881,17 +873,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             // piano di primo tentativo. baricentrico e ruotato di teta = 0;
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
+
             ForceTuple iterationForces = CalculateForceResultant(strainPlane);
+            ForceTuple iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
 
-            ForceTuple iterationForcesAdmin = ConvertToAdimensionalForces(iterationForces);
-
-            if (iterationForcesAdmin > tolerance)
+            if (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
+                Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
+                Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance)
             {
                 do
                 {
                     try
                     {
-                        (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment = CalculateIncrementStressAnalysis(strainPlane, targetLocalForcesAdmin - iterationForces);
+                        (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment = 
+                            CalculateIncrementStressAnalysis(strainPlane, externalForces - iterationForces);
 
                         // piano di nuovo tentativo
                         id++;
@@ -901,8 +896,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
                         iterationForces = CalculateForceResultant(strainPlane);
-
-                        iterationForcesAdmin = ConvertToAdimensionalForces(iterationForces);
+                        iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
                     }
                     catch
                     {
@@ -910,34 +904,36 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         throw new Exception("Fail to calculate increment");
                     }
 
-
-                } while (iterationForcesAdmin > tolerance);
+                } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
+                         Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
+                         Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance);
             }
+
             return strainPlane;
         }
 
         protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementStressAnalysis(StrainPlane inputStrainPlane, ForceTuple forceTuple)
         {
-            ForceTuple forceTupleAdmin = ConvertToAdimensionalForces(forceTuple);
+            ForceTuple forceTupleAdim = ConvertToAdimensionalForces(forceTuple);
 
-            double deltaChiXLimit = Math.Abs(GetYieldingStrainConcreteCompression() / ConcreteSection.Shape.GetBoundingBox().Size.X);
+            double deltaChiXLimit = Math.Abs(GetYieldingStrainPureCompression() / ConcreteSection.Shape.GetBoundingBox().Size.X);
             double dCX = 0.00001;
-            if (forceTupleAdmin.Mx != 0)
-                dCX = 0.001 * Math.Max(forceTupleAdmin.Mx, 0.00001);
+            if (forceTupleAdim.Mx != 0)
+                dCX = 0.001 * Math.Max(forceTupleAdim.Mx, 0.00001);
 
             double dChiX = dCX * deltaChiXLimit;
 
-            double deltaChiYLimit = Math.Abs(GetYieldingStrainConcreteCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
+            double deltaChiYLimit = Math.Abs(GetYieldingStrainPureCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
             double dCY = 0.00001;
-            if (forceTupleAdmin.My != 0)
-                dCY = 0.001 * Math.Max(forceTupleAdmin.My, 0.00001);
+            if (forceTupleAdim.My != 0)
+                dCY = 0.001 * Math.Max(forceTupleAdim.My, 0.00001);
 
             double dChiY = dCY * deltaChiYLimit;
 
             double deltaStrainLimit = 1.0 / (ConcreteSection.Area * GetFck());
             double dS = 0.00001;
-            if (forceTupleAdmin.N != 0)
-                dS = 0.0001 * Math.Max(forceTupleAdmin.N, 0.00001);
+            if (forceTupleAdim.N != 0)
+                dS = 0.0001 * Math.Max(forceTupleAdim.N, 0.00001);
 
             double dStrain = dS * deltaStrainLimit;
 
@@ -970,7 +966,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double dMydChiY = (forcesPlusdChiY.My - forcesMinusdChiY.My) / (2.0 * dCY);
 
 
-
             // derivate parziali rispetto a epsilon
             StrainPlane strainPlanePlusStrain = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY,
                 inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint + dStrain);
@@ -983,7 +978,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double dNdStrain = (forcesPlusStrain.N - forcesMinusStrain.N) / (2.0 * dCY);
             double dMxdStrain = (forcesPlusStrain.Mx - forcesMinusStrain.Mx) / (2.0 * dCY);
             double dMydStrain = (forcesPlusStrain.My - forcesMinusStrain.My) / (2.0 * dCY);
-
 
 
             Matrix<double> partialDerivatives = Matrix<double>.Build.Dense(3, 3);

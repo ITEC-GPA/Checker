@@ -39,7 +39,7 @@ namespace GPC.Checkers.Concrete.Results
             return _sectionSolver.CalculateSigmaC(StrainPlane.GetStrain(point));   
         }
 
-        public virtual (Point2d point, double tension)[] GetConcreteVerticesTension(Point2d point)
+        public virtual (Point2d point, double tension)[] GetConcreteVerticesTension()
         {
             return _section.Shape.GetPoints2d().Select(i => (i, _sectionSolver.CalculateSigmaC(StrainPlane.GetStrain(i)))).ToArray();
         }
