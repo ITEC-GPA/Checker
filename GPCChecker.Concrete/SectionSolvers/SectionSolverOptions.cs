@@ -1,4 +1,4 @@
-﻿using GPC.Geometry;
+using GPC.Geometry;
 
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
