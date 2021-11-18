@@ -31,7 +31,7 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
@@ -108,7 +108,7 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
@@ -188,7 +188,7 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
@@ -273,7 +273,7 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
@@ -382,7 +382,7 @@ namespace ConcreteTests
 
 
 			ConcreteSectionCircular section = new ConcreteSectionCircular(sectionDiameter,
-				new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle), rebars);
+				new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle), rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
@@ -520,7 +520,7 @@ namespace ConcreteTests
 				new Point2d(100, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  

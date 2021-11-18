@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.SectionSolvers;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Materials;
 using GPC.Model.Results;
@@ -64,7 +64,7 @@ namespace ConcreteTests
 																		new Point2d(300, 500),
 																		new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
@@ -89,7 +89,7 @@ namespace ConcreteTests
 			double rebarDiameter = 18;
 			double height = 800;
 			double width = 400;
-			// sezione rettangolare 300x500
+
 			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   
 				new Point2d(0, 0),
 				new Point2d(width, 0),
@@ -131,7 +131,7 @@ namespace ConcreteTests
 				new Point2d(300, 300),
 				new Point2d(0, 300) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
@@ -180,7 +180,7 @@ namespace ConcreteTests
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, new ResultBeamForces[] { forces }, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(section.Centroid);
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();

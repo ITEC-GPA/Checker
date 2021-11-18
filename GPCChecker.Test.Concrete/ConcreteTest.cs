@@ -50,7 +50,7 @@ namespace ConcreteTests
 			StandardModelCode2010 standard)
 		{
 			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
-			var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M2, forces.M2));
+			var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
 
 			ForceTuple calculatedForces = solver.CalculateSectionForceResultant(result.StrainPlane);
 
@@ -64,7 +64,7 @@ namespace ConcreteTests
 			(Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension();
 
 			for (int i = 0; i < concreteTensions.Length; i++)
-				Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {concreteTensions[i].point}");
+				Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {concreteTensions[i].tension}");
 
 			return true;
 		}

@@ -29,7 +29,7 @@ namespace ConcreteTests
             RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, new RebarMaterial("", 450));
 
             ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300,
-                                                                    new ConcreteMaterialEN1992(25,
+                                                                    new ConcreteMaterialEN1992("", 25,
                                                                     ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear),
                                                                     new ReinforcedConcreteRebar[] { new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)) }
                                                                     );

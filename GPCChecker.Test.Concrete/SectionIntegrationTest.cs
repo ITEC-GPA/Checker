@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
@@ -68,7 +68,7 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] { };
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
@@ -105,7 +105,7 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] { };
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
@@ -142,7 +142,7 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] { };
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
@@ -179,7 +179,7 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] { };
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
@@ -218,7 +218,7 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
@@ -264,7 +264,7 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
@@ -301,7 +301,7 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992(25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("",200000, 450, 510));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
