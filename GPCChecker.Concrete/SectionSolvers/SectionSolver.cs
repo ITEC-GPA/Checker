@@ -173,7 +173,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 _log.Add($"Fail" + e.InnerException);
             }
 
-            return new ForceTuple(deltaNArray.Sum(), deltaMxArray.Sum(), deltaMyArray.Sum());
+            return new ForceTuple(deltaNArray.Sum(), - deltaMxArray.Sum(), deltaMyArray.Sum());
         }
 
         /// <summary>
@@ -258,7 +258,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             });
 
 
-            return new ForceTuple(deltaNArray.Sum(), deltaMxArray.Sum(), deltaMyArray.Sum());
+            return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
         }
 
 
@@ -352,7 +352,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return (dMinRebarIndex, dminRebar, dMaxRebarIndex, dmaxRebar, dMinVertexIndex, dminConcrete, dMaxVertexIndex, dmaxConcrete);
         }
-
 
         protected virtual ForceTuple ConvertToAdimensionalForces(ForceTuple forceTuple)
         {
