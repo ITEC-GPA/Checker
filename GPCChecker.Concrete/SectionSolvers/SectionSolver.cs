@@ -131,7 +131,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Parallel.For(0, force.Length, (i) =>
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
-                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint),  
+                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint),
                     forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance), this, Standard, Id);
             });
 
@@ -461,7 +461,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     default:
                         throw new ArgumentException();
                 }
-			}
+            }
 
             return strainPlanes;
         }
@@ -495,7 +495,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             teta = strainPlane.Teta;
             int id = 1;
 
-            var forces = CalculateForceResultant(strainPlane); 
+            var forces = CalculateForceResultant(strainPlane);
 
             Vector3d vectorForcesEd = targetLocalForces;
 
@@ -508,7 +508,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 try
                 {
-					increment = CalculateIncrement(forces, strainPlane, failureIndex, immersione, targetLocalForces, angle);
+                    increment = CalculateIncrement(forces, strainPlane, failureIndex, immersione, targetLocalForces, angle);
                 }
                 catch (Exception e)
                 {
@@ -553,7 +553,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
         }
 
-        protected (double deltaTeta, double deltaImmersione, Vector3d distanceToTarget) CalculateIncrement(ForceTuple iterationPoint, 
+        protected (double deltaTeta, double deltaImmersione, Vector3d distanceToTarget) CalculateIncrement(ForceTuple iterationPoint,
             StrainPlane inputStrainPlane, FailureZones failureZone, double immersioneNelCampo, ForceTuple externalForces, double deltaAngle)
         {
             var adimIteractionPoint = ConvertToAdimensionalForces(iterationPoint);
@@ -562,45 +562,45 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double dTeta;
             double dEta;
 
-			switch (failureZone)
-			{
-				case FailureZones.F1:
-					dTeta = 0.25;
-					dEta = 0.25;
-					break;
+            switch (failureZone)
+            {
+                case FailureZones.F1:
+                    dTeta = 0.25;
+                    dEta = 0.25;
+                    break;
 
-				case FailureZones.F2A:
-					dTeta = 0.1;
-					dEta = 0.05;
-					break;
+                case FailureZones.F2A:
+                    dTeta = 0.1;
+                    dEta = 0.05;
+                    break;
 
-				case FailureZones.F2B:
-					dTeta = Math.Max(Math.Min(deltaAngle, 0.1), 0.025);
-					dEta = Math.Max(Math.Min(deltaAngle, 0.1), 0.001);
-					break;
+                case FailureZones.F2B:
+                    dTeta = Math.Max(Math.Min(deltaAngle, 0.1), 0.025);
+                    dEta = Math.Max(Math.Min(deltaAngle, 0.1), 0.001);
+                    break;
 
-				case FailureZones.F3A:
-					dTeta = Math.Min(deltaAngle, 0.025);
-					dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.0001);
-					break;
+                case FailureZones.F3A:
+                    dTeta = Math.Min(deltaAngle, 0.025);
+                    dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.0001);
+                    break;
 
-				case FailureZones.F3B:
-					dTeta = Math.Min(deltaAngle, 0.025);
-					dEta = Math.Max(0.01 * Math.Min(deltaAngle, 0.1), 0.001);
-					break;
+                case FailureZones.F3B:
+                    dTeta = Math.Min(deltaAngle, 0.025);
+                    dEta = Math.Max(0.01 * Math.Min(deltaAngle, 0.1), 0.001);
+                    break;
 
-				case FailureZones.F4:
-					dTeta = Math.Min(deltaAngle, 0.025);
-					dEta = Math.Min(deltaAngle, 0.1);
-					break;
+                case FailureZones.F4:
+                    dTeta = Math.Min(deltaAngle, 0.025);
+                    dEta = Math.Min(deltaAngle, 0.1);
+                    break;
 
-				default:
-					dTeta = Math.Min(deltaAngle, 0.025);
-					dEta = Math.Min(deltaAngle, 0.1);
-					break;
-			}
+                default:
+                    dTeta = Math.Min(deltaAngle, 0.025);
+                    dEta = Math.Min(deltaAngle, 0.1);
+                    break;
+            }
 
-			double dNdTeta;
+            double dNdTeta;
             double dMxdTeta;
             double dMydTeta;
             double dNdImm;
@@ -639,7 +639,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (Math.Abs(nonLinearErrorTeta) < 0.0001)
                     nonLinearErrorTeta = 0.0001;
 
-                nonLinearErrorTeta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N), Math.Max(Math.Abs(adimIteractionPoint.Mx), Math.Abs(adimIteractionPoint.My)) / 
+                nonLinearErrorTeta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N), Math.Max(Math.Abs(adimIteractionPoint.Mx), Math.Abs(adimIteractionPoint.My)) /
                     Math.Sqrt(nonLinearErrorTeta)));
 
             } while (dNdTeta == 0.0 || dMxdTeta == 0.0 || dMydTeta == 0.0);
@@ -672,7 +672,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (Math.Abs(nonLinearErrorEta) < 0.0001)
                     nonLinearErrorEta = 0.0001;
 
-                nonLinearErrorEta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N), Math.Max(Math.Abs(adimIteractionPoint.Mx), Math.Abs(adimIteractionPoint.My)) / 
+                nonLinearErrorEta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N), Math.Max(Math.Abs(adimIteractionPoint.Mx), Math.Abs(adimIteractionPoint.My)) /
                     Math.Sqrt(nonLinearErrorEta)));
 
             } while (dNdImm == 0.0 || dMxdImm == 0.0 || dMydImm == 0.0);
@@ -743,13 +743,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <returns>Strain Plane</returns>
         /// <remarks>Param distances can be calculated with CalculateMaxMinSectionDistances method</remarks>
         /// <exception cref="ArgumentException"></exception>
-        protected virtual StrainPlane CalculateStrainPlane(double teta, FailureZones failureIndex, double immersioneNelCampo, 
-            (int dMinRebarIndex, double dminRebar, int dMaxRebarIndex, double dmaxRebar, int dMinVertexIndex, double dminConcrete, 
+        protected virtual StrainPlane CalculateStrainPlane(double teta, FailureZones failureIndex, double immersioneNelCampo,
+            (int dMinRebarIndex, double dminRebar, int dMaxRebarIndex, double dmaxRebar, int dMinVertexIndex, double dminConcrete,
             int dMaxVertexIndex, double dmaxConcrete) distances, int id = -1)
         {
             if (immersioneNelCampo > 1.0 || immersioneNelCampo < 0.0)
                 throw new ArgumentException("ImmersioneNelCampo cannot be greater than 1 and less than 0");
-                        
+
             StrainPlane strainPlane;
 
             double chiSx;
@@ -760,23 +760,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 case FailureZones.F1:
 
-                    chiSx = 0;   
-                    chiDx = GetDesignUltimateStrainRebar(distances.dMinRebarIndex) / (distances.dmaxConcrete - distances.dminRebar); 
+                    chiSx = 0;
+                    chiDx = GetDesignUltimateStrainRebar(distances.dMinRebarIndex) / (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Rebars[distances.dMinRebarIndex].Position, teta, chi, 
+                    strainPlane = new StrainPlane(ConcreteSection.Rebars[distances.dMinRebarIndex].Position, teta, chi,
                         GetDesignUltimateStrainRebar(distances.dMinRebarIndex), id);
                     break;
 
 
                 case FailureZones.F2A:
 
-                    chiSx = GetDesignUltimateStrainRebar(distances.dMinRebarIndex) / (distances.dmaxConcrete - distances.dminRebar);   
+                    chiSx = GetDesignUltimateStrainRebar(distances.dMinRebarIndex) / (distances.dmaxConcrete - distances.dminRebar);
                     chiDx = (GetDesignUltimateStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetYieldingStrainConcreteCompression())) /
-                        (distances.dmaxConcrete - distances.dminRebar); 
+                        (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Rebars[distances.dMinRebarIndex].Position, teta, chi, 
+                    strainPlane = new StrainPlane(ConcreteSection.Rebars[distances.dMinRebarIndex].Position, teta, chi,
                         GetDesignUltimateStrainRebar(distances.dMinRebarIndex), id);
                     break;
 
@@ -784,12 +784,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 case FailureZones.F2B:
 
                     chiSx = (GetDesignUltimateStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetYieldingStrainConcreteCompression())) /
-                    (distances.dmaxConcrete - distances.dminRebar);   
+                    (distances.dmaxConcrete - distances.dminRebar);
                     chiDx = (GetDesignUltimateStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetUltimateStrainConcreteCompression())) /
-                        (distances.dmaxConcrete - distances.dminRebar); 
+                        (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Rebars[distances.dMinRebarIndex].Position, teta, chi, 
+                    strainPlane = new StrainPlane(ConcreteSection.Rebars[distances.dMinRebarIndex].Position, teta, chi,
                         GetDesignUltimateStrainRebar(distances.dMinRebarIndex), id);
                     break;
 
@@ -797,12 +797,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 case FailureZones.F3A:
 
                     chiSx = (GetDesignUltimateStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetUltimateStrainConcreteCompression())) /
-                        (distances.dmaxConcrete - distances.dminRebar);   
+                        (distances.dmaxConcrete - distances.dminRebar);
                     chiDx = (GetDesignYieldingStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetUltimateStrainConcreteCompression())) /
-                        (distances.dmaxConcrete - distances.dminRebar); 
+                        (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi, 
+                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
                         GetUltimateStrainConcreteCompression(), id);
                     break;
 
@@ -810,22 +810,22 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 case FailureZones.F3B:
 
                     chiSx = (GetDesignYieldingStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetUltimateStrainConcreteCompression())) /
-                        (distances.dmaxConcrete - distances.dminRebar);   
-                    chiDx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar); 
+                        (distances.dmaxConcrete - distances.dminRebar);
+                    chiDx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi, 
+                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
                         GetUltimateStrainConcreteCompression(), id);
                     break;
 
 
                 case FailureZones.F4:
 
-                    chiSx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);   
+                    chiSx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
                     chiDx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminConcrete);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi, 
+                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
                         GetUltimateStrainConcreteCompression(), id);
                     break;
 
@@ -838,8 +838,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     Point2d strainPlaneCenter = new Point2d((distances.dmaxConcrete - (1 - fraction) * heigth) * (-Math.Sin(teta)) + ConcreteSection.Centroid.X,
                         (distances.dmaxConcrete - (1 - fraction) * heigth) * (Math.Cos(teta)) + ConcreteSection.Centroid.Y);
 
-                    chiSx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminConcrete);   
-                    chiDx = 0.0; 
+                    chiSx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminConcrete);
+                    chiDx = 0.0;
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
                     strainPlane = new StrainPlane(strainPlaneCenter, teta, chi, GetYieldingStrainPureCompression(), id);
@@ -883,7 +883,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 {
                     try
                     {
-                        (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment = 
+                        (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
                             CalculateIncrementStressAnalysis(strainPlane, externalForces - iterationForces);
 
                         // piano di nuovo tentativo
