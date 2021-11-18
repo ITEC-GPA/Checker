@@ -146,7 +146,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double deltaStress = rebar.RebarMaterial.Fyk - fyd;
                 double deltaStrain = deltaStress / rebar.RebarMaterial.E;
 
-                return rebar.RebarMaterial.CalculateStress(strain + deltaStrain + rebar.EpsilonP) - Math.Sign(strain) * deltaStress;
+                return rebar.RebarMaterial.CalculateStress(strain + Math.Sign(strain) * deltaStrain + rebar.EpsilonP) - Math.Sign(strain) * deltaStress;
             }
         }
 
