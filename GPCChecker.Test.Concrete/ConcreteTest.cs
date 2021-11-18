@@ -273,6 +273,11 @@ namespace ConcreteTests
 			{
 				return base.ConvertToAdimensionalForces(force);
 			}
+
+			internal override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
+			{
+				return base.CalculateStressRebar(rebar, strain);
+			}
 		}
 	}
 }
