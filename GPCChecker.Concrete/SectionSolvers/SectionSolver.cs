@@ -132,7 +132,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
                     CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint),
-                    forceReferencePoint, SectionSolverOptions.Instance.SLSconvergenceTolerance), this, Standard, Id);
+                    SectionSolverOptions.Instance.SLSconvergenceTolerance), this, Standard, Id);
             });
 
             return stressAnalysisResults;
@@ -591,10 +591,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Point on failure domain
 
-        public virtual FailureDomain.FailureDomainPoint CalculateSafetyFactor(ForceTuple externalForces, Point2d forceReferencePoint, double angularTolerance = 0.001)
+        public virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, double angularTolerance = 0.001)
         {
-            ForceTuple targetLocalForces = GetLocalForces(externalForces, forceReferencePoint);
-
             FailureZones failureIndex;
             double immersione = 0.5;
             double teta;
@@ -857,10 +855,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Stress SLS
 
-        protected StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple externalForces, Point2d forceReferencePoint, double tolerance = 1e-5)
+        protected StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple localForces, double tolerance = 1e-5)
         {
             //ForceTuple targetLocalForces = GetLocalForces(externalForces, forceReferencePoint);
-            ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(externalForces);
+            ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
 
             // Valori di primo tentativo
             Point3d referencePoint = ConcreteSection.Centroid;
@@ -879,32 +877,44 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance)
             {
-                do
+                FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces);
+
+                Vector3d vEd = new Vector3d(localForces, Point3d.Origin);
+                Vector3d vRd = new Vector3d(pointOnDomain.Point, Point3d.Origin);
+
+                if (vEd.Length < vRd.Length)
                 {
-                    try
+                    do
                     {
-                        (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
-                            CalculateIncrementStressAnalysis(strainPlane, externalForces - iterationForces);
+                        try
+                        {
+                            (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
+                                CalculateIncrementStressAnalysis(strainPlane, localForces - iterationForces);
 
-                        // piano di nuovo tentativo
-                        id++;
-                        chiX += increment.deltaChiX;
-                        chiY += increment.deltaChiY;
-                        strainReferencePoint += increment.deltaStrainRefPoint;
-                        strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
+                            // piano di nuovo tentativo
+                            id++;
+                            chiX += increment.deltaChiX;
+                            chiY += increment.deltaChiY;
+                            strainReferencePoint += increment.deltaStrainRefPoint;
+                            strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
-                        iterationForces = CalculateForceResultant(strainPlane);
-                        iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
-                    }
-                    catch
-                    {
-                        _log.Add("Fail to calculate increment");
-                        throw new Exception("Fail to calculate increment");
-                    }
+                            iterationForces = CalculateForceResultant(strainPlane);
+                            iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
+                        }
+                        catch
+                        {
+                            _log.Add("Fail to calculate increment");
+                            throw new Exception("Fail to calculate increment");
+                        }
 
-                } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
+                    } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
                          Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
                          Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance);
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             return strainPlane;
