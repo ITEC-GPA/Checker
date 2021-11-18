@@ -32,7 +32,7 @@ namespace GPC.Checkers.Concrete.Results
             if (forces == null)
                 _forces = new List<ResultBeamForces>();
             else
-				_forces = forces.ToList();
+                _forces = forces.ToList();
         }
 
         public void AddForces(ResultBeamForces forces)

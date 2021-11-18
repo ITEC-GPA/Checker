@@ -468,9 +468,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region ULS Line intersection
+        #region Point on failure domain
 
-        public virtual double CalculateSafetyFactor(ForceTuple externalForces, Point2d forceReferencePoint, out FailureDomain.FailureDomainPoint pointOnDomain, double angularTolerance = 0.001)
+        public virtual FailureDomain.FailureDomainPoint CalculateSafetyFactor(ForceTuple externalForces, Point2d forceReferencePoint, double angularTolerance = 0.001)
         {
             ForceTuple targetLocalForces = GetLocalForces(externalForces, forceReferencePoint);
 
@@ -544,16 +544,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, distances, id);
                 forces = CalculateForceResultant(strainPlane);
 
-                vectorRd = forces;
                 angle = vectorForcesEd.AngleTo(forces);
 
                 adimOutputForces = ConvertToAdimensionalForces(new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y));
 
             } while (Math.Abs(adimOutputForces.N) > angularTolerance || Math.Abs(adimOutputForces.Mx) > angularTolerance || Math.Abs(adimOutputForces.My) > angularTolerance);
 
-            pointOnDomain = new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
-
-            return vectorForcesEd.Length / vectorRd.Length;
+            return new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
         }
 
         protected (double deltaTeta, double deltaImmersione, Vector3d distanceToTarget) CalculateIncrement(ForceTuple iterationPoint, 
