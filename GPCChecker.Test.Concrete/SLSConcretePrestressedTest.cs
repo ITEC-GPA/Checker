@@ -42,7 +42,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(150, 250,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250,0)),
-				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 150, 0), 0.007045)};
+				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 150, 0), 0.007045) };
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();

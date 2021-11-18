@@ -128,7 +128,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <inheritdoc cref="SectionSolver.CalculateStressRebar(ReinforcedConcreteRebar, double)"/>
         internal override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
         {
-            return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP);
+            double fyd;
+
+            if (rebar.EpsilonP == 0)
+                fyd = rebar.RebarMaterial.Fyk / StandardModelCode2010.GammaS;
+
+            else
+                fyd = rebar.RebarMaterial.Fyk / StandardModelCode2010.GammaSPrestress;
+
+            double strainYd = fyd / rebar.RebarMaterial.E;
+
+            if (Math.Abs(strain) < strainYd)
+                return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP);
+
+            else
+            {
+                double deltaStress = rebar.RebarMaterial.Fyk - fyd;
+                double deltaStrain = deltaStress / rebar.RebarMaterial.E;
+
+                return rebar.RebarMaterial.CalculateStress(strain + deltaStrain + rebar.EpsilonP) - Math.Sign(strain) * deltaStress;
+            }
         }
 
 
