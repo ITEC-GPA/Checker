@@ -117,10 +117,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             if (forces == null)
                 return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
-                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), null, Standard, Id);
+                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), null, this, Standard, Id);
 
             return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
-                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), forces, Standard, Id);
+                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), forces, this, Standard, Id);
         }
 
         public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, Point2d forceReferencePoint)
