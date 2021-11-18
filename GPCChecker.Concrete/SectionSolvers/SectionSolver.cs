@@ -111,7 +111,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-
         #region Public method
 
         public virtual FailureDomainResult GetFailureDomainResults(ResultBeamForces[] forces)
@@ -591,7 +590,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Point on failure domain
 
-        public virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, double angularTolerance = 0.001)
+        internal virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, double angularTolerance = 0.001)
         {
             FailureZones failureIndex;
             double immersione = 0.5;
