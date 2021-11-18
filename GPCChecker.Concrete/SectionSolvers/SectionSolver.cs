@@ -917,21 +917,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double deltaChiXLimit = Math.Abs(GetYieldingStrainPureCompression() / ConcreteSection.Shape.GetBoundingBox().Size.X);
             double dCX = 0.00001;
             if (forceTupleAdim.Mx != 0)
-                dCX = 0.001 * Math.Max(forceTupleAdim.Mx, 0.00001);
+                dCX = 0.001 * Math.Max(Math.Abs(forceTupleAdim.Mx), 0.00001);
 
             double dChiX = dCX * deltaChiXLimit;
 
             double deltaChiYLimit = Math.Abs(GetYieldingStrainPureCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
             double dCY = 0.00001;
             if (forceTupleAdim.My != 0)
-                dCY = 0.001 * Math.Max(forceTupleAdim.My, 0.00001);
+                dCY = 0.001 * Math.Max(Math.Abs(forceTupleAdim.My), 0.00001);
 
             double dChiY = dCY * deltaChiYLimit;
 
-            double deltaStrainLimit = Math.Abs(GetYieldingStrainPureCompression());
+            double deltaStrainLimit = 1.0 / (ConcreteSection.Area * Math.Abs(GetFck()));
             double dS = 0.00001;
             if (forceTupleAdim.N != 0)
-                dS = 0.0001 * Math.Max(forceTupleAdim.N, 0.00001);
+                dS = 0.0001 * Math.Max(Math.Abs(forceTupleAdim.N), 0.00001);
 
             double dStrain = dS * deltaStrainLimit;
 
@@ -973,9 +973,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var forcesPlusStrain = CalculateForceResultant(strainPlanePlusStrain);
             var forcesMinusStrain = CalculateForceResultant(strainPlaneMinusStrain);
 
-            double dNdStrain = (forcesPlusStrain.N - forcesMinusStrain.N) / (2.0 * dCY);
-            double dMxdStrain = (forcesPlusStrain.Mx - forcesMinusStrain.Mx) / (2.0 * dCY);
-            double dMydStrain = (forcesPlusStrain.My - forcesMinusStrain.My) / (2.0 * dCY);
+            double dNdStrain = (forcesPlusStrain.N - forcesMinusStrain.N) / (2.0 * dS);
+            double dMxdStrain = (forcesPlusStrain.Mx - forcesMinusStrain.Mx) / (2.0 * dS);
+            double dMydStrain = (forcesPlusStrain.My - forcesMinusStrain.My) / (2.0 * dS);
 
 
             Matrix<double> partialDerivatives = Matrix<double>.Build.Dense(3, 3);
