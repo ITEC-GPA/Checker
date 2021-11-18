@@ -278,6 +278,11 @@ namespace ConcreteTests
 			{
 				return base.CalculateStressRebar(rebar, strain);
 			}
+
+			internal FailureDomain.FailureDomainPoint CalculateSafetyFactor(ForceTuple targetLocalForces)
+			{
+				return base.CalculateDomainPoint(targetLocalForces);
+			}
 		}
 	}
 }

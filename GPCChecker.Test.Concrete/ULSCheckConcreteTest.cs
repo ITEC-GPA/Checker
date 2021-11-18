@@ -12,6 +12,7 @@ using GPC.Model.Sections;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Model.Results;
 using GPC.TestUtilities;
+using GPC.Checkers.Concrete.Helper;
 
 namespace ConcreteTests
 {
@@ -115,17 +116,19 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			ResultBeamForces forces = new ResultBeamForces(500 * 1000, 0, 0, 0, 0 * 1000000, 0, CoordinateSystem.Global);
-			ResultBeamForces forces1 = new ResultBeamForces(100 * 1000, 0, 0, 0, 10 * 1000000, 0, CoordinateSystem.Global);
-			ResultBeamForces forces2 = new ResultBeamForces(200 * 1000, 0, 0, 0, 20 * 1000000, 0, CoordinateSystem.Global);
+			ResultBeamForces forces1 = new ResultBeamForces(500 * 1000, 0, 0, 0, 0 * 1000000, 0, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis));
+			ResultBeamForces forces2 = new ResultBeamForces(100 * 1000, 0, 0, 0, 10 * 1000000, 0, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis));
+			ResultBeamForces forces3 = new ResultBeamForces(200 * 1000, 0, 0, 0, 20 * 1000000, 0, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis));
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, new ResultBeamForces[] { forces, forces1, forces2 });
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, new ResultBeamForces[] { forces1, forces2, forces3 });
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			var failureDomain = sectionChecker.GetFailureDomainResult();
-			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
+
+			FailureDomain.FailureDomainPoint pointOnDomain1 = solver.CalculateSafetyFactor(forces1.ConvertToForceTuple(section.Centroid));
+			FailureDomain.FailureDomainPoint pointOnDomain2 = solver.CalculateSafetyFactor(forces2.ConvertToForceTuple(section.Centroid));
+			FailureDomain.FailureDomainPoint pointOnDomain3 = solver.CalculateSafetyFactor(forces3.ConvertToForceTuple(section.Centroid)); 
 			
 		}
 
