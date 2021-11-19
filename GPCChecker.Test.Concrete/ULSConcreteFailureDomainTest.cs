@@ -12,6 +12,7 @@ using GPC.Model.Sections;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Model.Results;
 using GPC.TestUtilities;
+using System.Diagnostics;
 
 namespace ConcreteTests
 {
@@ -48,8 +49,11 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
-			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+
+			Debugger.Break();	
+
+			//ShowDomainPoints(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 			
 			//Assert.IsTrue(CommonAssertsModelCode (section, standard, failureDomain));
 
