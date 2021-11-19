@@ -26,20 +26,24 @@ namespace ConcreteTests
 			double rebarDiameter = 18;
 
 			// sezione rettangolare 300x500
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] 
+			{   
 				new Point2d(0, 0),
 				new Point2d(300, 0),
 				new Point2d(300, 500),
-				new Point2d(0, 500) }));
+				new Point2d(0, 500) 
+			}));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
+			{  
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))};
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))
+			};
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
@@ -106,23 +110,27 @@ namespace ConcreteTests
 			double rebarDiameter = 26;
 
 			// \\studio\Software_Development\FilesForTesting\Libs\GPCChecker\ConcreteSolver\Test_2 
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] 
+			{   
 				new Point2d(0, 0),
 				new Point2d(300, 0),
 				new Point2d(300, 500),
-				new Point2d(0, 500) }));
+				new Point2d(0, 500) 
+			}));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
+			{  
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))};
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))
+			};
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
@@ -186,16 +194,19 @@ namespace ConcreteTests
 			double rebarDiameter = 18;
 
 			// sezione rettangolare 300x500
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] 
+			{   
 				new Point2d(0, 0),
 				new Point2d(300, 0),
 				new Point2d(300, 500),
-				new Point2d(0, 500) }));
+				new Point2d(0, 500) 
+			}));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
+			{  
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
@@ -207,7 +218,8 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(200, 70, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 70, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0))};
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0))
+			};
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
@@ -271,16 +283,19 @@ namespace ConcreteTests
 			double rebarDiameter = 26;
 
 			// sezione rettangolare 300x500
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] 
+			{   
 				new Point2d(0, 0),
 				new Point2d(300, 0),
 				new Point2d(300, 500),
-				new Point2d(0, 500) }));
+				new Point2d(0, 500) 
+			}));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
+			{  
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
@@ -300,7 +315,8 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(100, 430, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(150, 430, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(200, 430, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 430, 0)),};
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 430, 0))
+			};
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
@@ -366,7 +382,8 @@ namespace ConcreteTests
 
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
+			{  
 				new ReinforcedConcreteRebar(rebar, new Point3d(450, 250, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(434.77591, 326.536678, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(391.421355, 391.421357, 0)),
@@ -382,7 +399,8 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250.0, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(326.536678, 65.22409, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(391.421357, 108.578645, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(434.775907, 173.463314, 0)) };
+				new ReinforcedConcreteRebar(rebar, new Point3d(434.775907, 173.463314, 0)) 
+			};
 
 
 			ConcreteSectionCircular section = new ConcreteSectionCircular(sectionDiameter,
@@ -514,7 +532,8 @@ namespace ConcreteTests
 			double rebarDiameter = 26;
 
 			// sezion a T tovescia 
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] 
+			{   
 				new Point2d(0, 0),
 				new Point2d(500, 0),
 				new Point2d(500, 500),
@@ -522,12 +541,14 @@ namespace ConcreteTests
 				new Point2d(400, 1000),
 				new Point2d(100, 1000),
 				new Point2d(100, 500),
-				new Point2d(0, 500) }));
+				new Point2d(0, 500) 
+			}));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
+			{  
 				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(300, 50, 0)),
@@ -539,7 +560,8 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(150, 950, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(200, 950, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(300, 950, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(350, 950, 0))};
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 950, 0))
+			};
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 

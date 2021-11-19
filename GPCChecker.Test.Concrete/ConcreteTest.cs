@@ -52,19 +52,54 @@ namespace ConcreteTests
 			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
 			var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
 
-			ForceTuple calculatedForces = solver.CalculateSectionForceResultant(result.StrainPlane);
+			if (result.StrainPlane != null)
+			{
+				ForceTuple calculatedForces = solver.CalculateSectionForceResultant(result.StrainPlane);
 
-			var adimForces = solver.ConvertToAdimForces(calculatedForces);
+				var adimForces = solver.ConvertToAdimForces(calculatedForces);
 
-			if (Math.Abs(adimForces.N - adimExternalForces.N) > SectionSolverOptions.Instance.SLSconvergenceTolerance ||
-				Math.Abs(adimForces.Mx - adimExternalForces.Mx) > SectionSolverOptions.Instance.SLSconvergenceTolerance ||
-				Math.Abs(adimForces.My - adimExternalForces.My) > SectionSolverOptions.Instance.SLSconvergenceTolerance)
-				return false;
+				if (Math.Abs(adimForces.N - adimExternalForces.N) > SectionSolverOptions.Instance.SLSconvergenceTolerance ||
+					Math.Abs(adimForces.Mx - adimExternalForces.Mx) > SectionSolverOptions.Instance.SLSconvergenceTolerance ||
+					Math.Abs(adimForces.My - adimExternalForces.My) > SectionSolverOptions.Instance.SLSconvergenceTolerance)
+					return false;
 
-			(Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension();
+				(Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension();
 
-			for (int i = 0; i < concreteTensions.Length; i++)
-				Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {concreteTensions[i].tension}");
+				Console.WriteLine($"Tensions associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} ");
+
+				for (int i = 0; i < concreteTensions.Length; i++)
+					Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
+			}
+			else
+			{
+				Console.WriteLine($"Result {result.Id} associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} don't find strain plane");
+			}
+
+			return true;
+		}
+
+		protected bool CommonAssertDomainPoint(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
+			double[] factor = null)
+		{
+			if (factor == null)
+				factor = new double[] { 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5 };
+
+			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
+			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
+
+			for (int i = 0; i < factor.Length; i++)
+			{
+				ResultBeamForces testForce = new ResultBeamForces(factor[i] * force.N, 0, 0, 0, factor[i] * force.M1, factor[i] * force.M2, force.CoordinateSystem);
+
+				failureDomainPoints[i] = solver.CalculateDomainPoint(testForce.ConvertToForceTuple(section.Centroid));
+			}
+
+			for (int i = 1; i < factor.Length; i++)
+			{
+				Assert.IsTrue(failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X < 1000000);
+				Assert.IsTrue(failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y < 1000000);
+				Assert.IsTrue(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z < 1000);
+			}
 
 			return true;
 		}
@@ -246,7 +281,7 @@ namespace ConcreteTests
 
 			return true;
 		}
-
+				
 		internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
 		{
 			internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, int id = -1)
@@ -279,7 +314,7 @@ namespace ConcreteTests
 				return base.CalculateStressRebar(rebar, strain);
 			}
 
-			internal FailureDomain.FailureDomainPoint CalculateSafetyFactor(ForceTuple targetLocalForces)
+			internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces)
 			{
 				return base.CalculateDomainPoint(targetLocalForces);
 			}
