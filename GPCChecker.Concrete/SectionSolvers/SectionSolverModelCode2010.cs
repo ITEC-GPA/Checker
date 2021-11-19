@@ -23,6 +23,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public ConcreteMaterialModelCode2010 ConcreteMaterialModelCode2010 => (ConcreteMaterialModelCode2010)_concreteSection.ConcreteMaterial;
 
+
         #region Properties
 
         /// <summary>

@@ -53,26 +53,35 @@ namespace GPC.Checkers.Concrete.Checkers
 
             public Point2d AxialForceReferencePoint { get; }
 
+            public bool PlasticFailureDomain { get; }
+
+
             public SectionOptions()
             {
                 AxialForceReferencePoint = Point2d.Origin;
+                PlasticFailureDomain = true;
             }
 
-            public SectionOptions(Point2d axialForceReferencePoint)
+            public SectionOptions(Point2d axialForceReferencePoint, bool plasticFailureDomain)
             {
                 AxialForceReferencePoint = axialForceReferencePoint;
+                PlasticFailureDomain = plasticFailureDomain;
             }
 
             public override bool Equals(object obj)
             {
-                return obj is SectionOptions options && AxialForceReferencePoint.Equals(options.AxialForceReferencePoint);
+                return obj is SectionOptions options && AxialForceReferencePoint.Equals(options.AxialForceReferencePoint)
+                                                     && PlasticFailureDomain.Equals(options.PlasticFailureDomain);
             }
 
             public override int GetHashCode()
             {
                 unchecked
                 {
-                    return -17 * AxialForceReferencePoint.GetHashCode();
+                    int hashCode = -17;
+                    hashCode = hashCode * -23 + EqualityComparer<Point2d>.Default.GetHashCode(AxialForceReferencePoint);
+                    hashCode = hashCode * -23 + PlasticFailureDomain.GetHashCode();
+                    return hashCode; 
                 }
             }
 
