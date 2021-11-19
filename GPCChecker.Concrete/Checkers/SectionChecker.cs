@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
 using GPC.Model.Standards;
@@ -15,6 +16,9 @@ namespace GPC.Checkers.Concrete.Checkers
     [Serializable]
     public abstract class SectionChecker : Checker, ISerializable
     {
+
+        protected readonly SectionSolver _solver;
+
 
         protected readonly SectionCheckerAttribute _checkerAttributes;
 
@@ -26,11 +30,13 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <param name="options"></param>
         /// <param name="standard"></param>
         /// <param name="id"></param>
+        /// <param name="solver"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionOptions options, Standard standard, int id = ModelObjectId.IDUNASSIGNED)
+        public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionOptions options, Standard standard, SectionSolver solver, int id = IDUNASSIGNED)
             : base(standard, options, id)
         {
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
+            _solver = solver ?? throw new ArgumentNullException(nameof(solver));
         }
 
 

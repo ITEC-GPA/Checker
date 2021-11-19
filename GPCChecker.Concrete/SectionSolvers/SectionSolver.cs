@@ -172,7 +172,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 _log.Add($"Fail" + e.InnerException);
             }
 
-            return new ForceTuple(deltaNArray.Sum(), - deltaMxArray.Sum(), deltaMyArray.Sum());
+            return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
         }
 
         /// <summary>

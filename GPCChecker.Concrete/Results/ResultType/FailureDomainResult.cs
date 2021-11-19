@@ -38,9 +38,10 @@ namespace GPC.Checkers.Concrete.Results
             if (forces == null)
                 _forces = new KeyValuePairCollection<ResultBeamForces, FailureDomain.FailureDomainPoint>();
             else
-            {
+            {             
                 
                 var forcesList = forces.ToList();
+
                 for (int i = 0; i < forces.Count(); i++)
                 {
                     _forces.Add(forcesList[i], _sectionSolver.CalculateDomainPoint(forcesList[i].ConvertToForceTuple(section.Centroid)));
