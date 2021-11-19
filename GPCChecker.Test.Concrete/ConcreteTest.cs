@@ -56,12 +56,13 @@ namespace ConcreteTests
 			{
 				ForceTuple calculatedForces = solver.CalculateSectionForceResultant(result.StrainPlane);
 
-				var adimForces = solver.ConvertToAdimForces(calculatedForces);
+			var adimForces = solver.ConvertToAdimForces(calculatedForces);
+			double tolerance = 1e-5;
 
-				if (Math.Abs(adimForces.N - adimExternalForces.N) > SectionSolverOptions.Instance.SLSconvergenceTolerance ||
-					Math.Abs(adimForces.Mx - adimExternalForces.Mx) > SectionSolverOptions.Instance.SLSconvergenceTolerance ||
-					Math.Abs(adimForces.My - adimExternalForces.My) > SectionSolverOptions.Instance.SLSconvergenceTolerance)
-					return false;
+			if (Math.Abs(adimForces.N - adimExternalForces.N) > tolerance ||
+				Math.Abs(adimForces.Mx - adimExternalForces.Mx) > tolerance ||
+				Math.Abs(adimForces.My - adimExternalForces.My) > tolerance)
+				return false;
 
 				(Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension();
 

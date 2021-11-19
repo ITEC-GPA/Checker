@@ -18,8 +18,6 @@ namespace GPC.Checkers.Concrete.Checkers
     {
 
         protected readonly SectionSolver _solver;
-
-
         protected readonly SectionCheckerAttribute _checkerAttributes;
 
 
@@ -52,7 +50,6 @@ namespace GPC.Checkers.Concrete.Checkers
         {
 
             public Point2d AxialForceReferencePoint { get; }
-
             public bool PlasticFailureDomain { get; }
 
 

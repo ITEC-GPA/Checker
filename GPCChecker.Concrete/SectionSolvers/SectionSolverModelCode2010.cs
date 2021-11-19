@@ -8,6 +8,7 @@ using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
+using GPC.Model;
 using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
@@ -22,7 +23,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
 
         public ConcreteMaterialModelCode2010 ConcreteMaterialModelCode2010 => (ConcreteMaterialModelCode2010)_concreteSection.ConcreteMaterial;
-
 
         #region Properties
 
@@ -53,13 +53,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-
-        internal SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, int id = Model.ModelObjectId.IDUNASSIGNED)
+        internal SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, int id = ModelObjectId.IDUNASSIGNED)
             : base(section, standard, id)
         {
 
         }
-
 
         #region Protected Override 
 

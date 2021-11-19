@@ -61,6 +61,21 @@ namespace GPC.Checkers.Concrete.Results
             return point;
         }
 
+        internal FailureDomain.FailureDomainPoint[] AddForces(ResultBeamForces[] forces)
+        {
+
+            List<ResultBeamForces> forcesList = forces.ToList();
+            var failureDomainPoint = new FailureDomain.FailureDomainPoint[forcesList.Count];
+
+            for (int i = 0; i < forcesList.Count(); i++)
+            {
+                var point = _sectionSolver.CalculateDomainPoint(forcesList[i].ConvertToForceTuple(ConcreteSection.Centroid));
+                _forces.Add(forcesList[i], point);
+                failureDomainPoint[i] = point;
+            }
+
+            return failureDomainPoint;
+        }
 
         public async Task<FailureDomain.FailureDomainPoint> AddForceAsync(ResultBeamForces forces)
         {

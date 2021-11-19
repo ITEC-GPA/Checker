@@ -38,9 +38,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         public int MomentsDiscretizations { get; set; }
 
-        public double SLSconvergenceTolerance { get; set; }
-
-        public double ULSconvergenceTolerance { get; set; }
 
         public int GaussIntegrationQuadLowPoints { get; set; }
         public int GaussIntegrationQuadMidPoints { get; set; }
@@ -60,9 +57,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                                                                     (SectionSolver.FailureZones.F5, 4) };
 
             MomentsDiscretizations = 32;
-
-            SLSconvergenceTolerance = 1e-5;
-            ULSconvergenceTolerance = 1e-3;
 
             GaussIntegrationQuadLowPoints = 12;
             GaussIntegrationQuadMidPoints = 49;

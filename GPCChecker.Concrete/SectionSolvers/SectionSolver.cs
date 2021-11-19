@@ -60,11 +60,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             F5 = 7,
         }
 
+        protected double _stressAnalysisTolerance;
+        protected double _failureAnalysisTolerance;        
 
         protected IConcreteSection _concreteSection;
         protected Standard _standard;
-        protected List<string> _log;
 
+        protected List<string> _log;
 
         public IConcreteSection ConcreteSection => _concreteSection;
 
@@ -78,13 +80,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
-            _log = new List<string>();
+
+            _stressAnalysisTolerance = 1e-5;
+            _failureAnalysisTolerance = 1e-3;
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)
         {
             _concreteSection = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
-            _log = (List<string>)info.GetValue("Log", typeof(List<string>));
         }
 
 
@@ -113,14 +116,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Public method
 
-        public virtual FailureDomainResult GetFailureDomainResults(ResultBeamForces[] forces)
+        public virtual FailureDomainResult GetFailureElasticDomainResult()
         {
-            if (forces == null)
-                return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
-                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), null, this, Standard, Id);
-
             return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
-                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), forces, this, Standard, Id);
+                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), null, this, Standard, Id);
+        }
+
+        public virtual FailureDomainResult GetFailurePlasticDomainResults()
+        {
+            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
+                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), null, this, Standard, Id);
         }
 
         public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, Point2d forceReferencePoint)
@@ -131,7 +136,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
                     CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint),
-                    SectionSolverOptions.Instance.SLSconvergenceTolerance), this, Standard, Id);
+                    _stressAnalysisTolerance), this, Standard, Id);
             });
 
             return stressAnalysisResults;
@@ -166,10 +171,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     deltaMxArray[i] = forces.Mx;
                     deltaMyArray[i] = forces.My;
                 });
-            }
+            } 
             catch (Exception e)
             {
-                _log.Add($"Fail" + e.InnerException);
+                _log.Add(e.Message);
+                throw;
             }
 
             return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
@@ -227,7 +233,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     (x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
             }
             else
-                throw new Exception();
+                throw new NotSupportedException();
 
             return new ForceTuple(deltaN, deltaMx, deltaMy);
         }
@@ -273,9 +279,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add($"Fail" + e.InnerException);
-
-                return new ForceTuple(0, 0, 0);
+                _log.Add(e.Message);
+                _log.Add(e.InnerException.Message);
+                throw;
             }
         }
 
@@ -291,9 +297,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add($"Fail" + e.InnerException);
-
-                return new ForceTuple(0, 0, 0);
+                _log.Add(e.Message);
+                _log.Add(e.InnerException.Message);
+                throw;
             }
         }
 
@@ -401,7 +407,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add($"Fail to calculate ULS strain planes" + e.InnerException);
+                _log.Add(e.Message);
+                _log.Add(e.InnerException.Message);
+                throw;
             }
 
             return new FailureDomain(domainPoints);
@@ -630,8 +638,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
                 catch (Exception e)
                 {
-                    _log.Add($"Fail to calculate increment, {e.Message}");
-                    throw new Exception("Fail to calculate increment");
+                    _log.Add(e.Message);
+                    _log.Add(e.InnerException.Message);
+                    throw;
                 }
 
                 increment.deltaImmersione = increment.deltaImmersione > 1 ? 1 : increment.deltaImmersione;
@@ -900,10 +909,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             iterationForces = CalculateForceResultant(strainPlane);
                             iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
                         }
-                        catch
+                        catch (Exception e)
                         {
-                            _log.Add("Fail to calculate increment");
-                            throw new Exception("Fail to calculate increment");
+                            _log.Add(e.Message);
+                            _log.Add(e.InnerException.Message);
+                            throw;
                         }
 
                     } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||

@@ -22,7 +22,7 @@ namespace GPC.Checkers.Concrete.Checkers
         public SectionOptionsModelCode2010 SectionCheckerOptionsModelCode2010 => (SectionOptionsModelCode2010)_options;
 
 
-        /// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, int)"/>
+        /// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, SectionSolver int)"/>
         public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptionsModelCode2010 options, StandardModelCode2010 standard, int id = ModelObjectId.IDUNASSIGNED)
             : base(checkerAttribute, options, standard, new SectionSolverModelCode2010(checkerAttribute.Section, standard), id)
         {
@@ -33,42 +33,51 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public async override Task<FailureDomainResult> GetFailureDomainResultAsync()
         {
-            FailureDomainResult failureDomainResult = null;
-
-            await Task.Run(() =>
+            return await Task.Run(() =>
             {
-                failureDomainResult = _solver.GetFailureDomainResults(_checkerAttributes.ULSResults);
-            });
+                var failureDomainResult = _solver.GetFailurePlasticDomainResults();
 
-            return failureDomainResult;
+                if (_checkerAttributes.ULSResults != null)
+                    failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+                return failureDomainResult;
+            });
         }
 
         public async override Task<StressAnalysisResult[]> GetStressAnalysisResultAsync()
         {
-            StressAnalysisResult[] stressAnalysisResult = null;
 
             if (_checkerAttributes.SLSResults is null)
                 return null;
 
-            await Task.Run(() =>
+            return await Task.Run(() =>
             {
-                stressAnalysisResult = _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.AxialForceReferencePoint);
+                return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.AxialForceReferencePoint);
             });
-
-            return stressAnalysisResult;
         }
-
-
-
-
 
         #endregion
 
         #region Internal
+        
+        internal FailureDomainResult GetElasticDomain()
+        {
+            var failureDomainResult = _solver.GetFailureElasticDomainResult();
 
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
+        }
+        
         internal override FailureDomainResult GetFailureDomainResult()
         {
-            return _solver.GetFailureDomainResults(_checkerAttributes.ULSResults);
+            var failureDomainResult = _solver.GetFailurePlasticDomainResults();
+
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
         }
 
         internal override StressAnalysisResult[] GetStressAnalysisResult()
