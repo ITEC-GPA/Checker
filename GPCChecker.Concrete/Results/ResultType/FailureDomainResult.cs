@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -22,6 +23,8 @@ namespace GPC.Checkers.Concrete.Results
 
         protected KeyValuePairCollection<ResultBeamForces, FailureDomain.FailureDomainPoint> _forces;
 
+        
+
         public FailureDomain Domain => _failureDomain;
 
 
@@ -31,6 +34,7 @@ namespace GPC.Checkers.Concrete.Results
             _failureDomain = failureDomain ?? throw new ArgumentNullException(nameof(failureDomain));
             _sectionSolver = solver ?? throw new ArgumentNullException(nameof(solver));
 
+            
             if (forces == null)
                 _forces = new KeyValuePairCollection<ResultBeamForces, FailureDomain.FailureDomainPoint>();
             else
@@ -103,6 +107,13 @@ namespace GPC.Checkers.Concrete.Results
 
             return failureDomainPoint;
         }
+
+
+        public IEnumerator<KeyValuePair<ResultBeamForces, FailureDomain.FailureDomainPoint>> GetEnumerator()
+        {
+            return _forces.GetEnumerator();
+        }
+
 
     }
 }
