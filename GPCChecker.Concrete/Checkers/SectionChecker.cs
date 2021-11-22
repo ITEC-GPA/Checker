@@ -49,25 +49,25 @@ namespace GPC.Checkers.Concrete.Checkers
         public abstract class SectionOptions : Options
         {
 
-            public Point2d AxialForceReferencePoint { get; }
+            public Vector2d ForceReferencePointCentroidDistance { get; }
             public bool PlasticFailureDomain { get; }
 
 
             public SectionOptions()
             {
-                AxialForceReferencePoint = Point2d.Origin;
+                ForceReferencePointCentroidDistance = Vector2d.Zero;
                 PlasticFailureDomain = true;
             }
 
-            public SectionOptions(Point2d axialForceReferencePoint, bool plasticFailureDomain)
+            public SectionOptions(Vector2d forceReferencePointCentroidDistance, bool plasticFailureDomain)
             {
-                AxialForceReferencePoint = axialForceReferencePoint;
+                ForceReferencePointCentroidDistance = forceReferencePointCentroidDistance;
                 PlasticFailureDomain = plasticFailureDomain;
             }
 
             public override bool Equals(object obj)
             {
-                return obj is SectionOptions options && AxialForceReferencePoint.Equals(options.AxialForceReferencePoint)
+                return obj is SectionOptions options && ForceReferencePointCentroidDistance.Equals(options.ForceReferencePointCentroidDistance)
                                                      && PlasticFailureDomain.Equals(options.PlasticFailureDomain);
             }
 
@@ -76,7 +76,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 unchecked
                 {
                     int hashCode = -17;
-                    hashCode = hashCode * -23 + EqualityComparer<Point2d>.Default.GetHashCode(AxialForceReferencePoint);
+                    hashCode = hashCode * -23 + ForceReferencePointCentroidDistance.GetHashCode();
                     hashCode = hashCode * -23 + PlasticFailureDomain.GetHashCode();
                     return hashCode; 
                 }
