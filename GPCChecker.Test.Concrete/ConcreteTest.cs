@@ -52,34 +52,47 @@ namespace ConcreteTests
 			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
 			var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
 
+			List<string> log = result.GetLog();
+			foreach (string s in log)
+				Console.WriteLine($"{s}");
+
+			if (log.Count > 0)
+				return false;
+
 			if (result.StrainPlane != null)
 			{
 				ForceTuple calculatedForces = solver.CalculateSectionForceResultant(result.StrainPlane);
 
-			var adimForces = solver.ConvertToAdimForces(calculatedForces);
-			double tolerance = 1e-5;
+				var adimForces = solver.ConvertToAdimForces(calculatedForces);
+				double tolerance = 1e-5;
 
-			if (Math.Abs(adimForces.N - adimExternalForces.N) > tolerance ||
-				Math.Abs(adimForces.Mx - adimExternalForces.Mx) > tolerance ||
-				Math.Abs(adimForces.My - adimExternalForces.My) > tolerance)
-				return false;
+				if (Math.Abs(adimForces.N - adimExternalForces.N) > tolerance ||
+					Math.Abs(adimForces.Mx - adimExternalForces.Mx) > tolerance ||
+					Math.Abs(adimForces.My - adimExternalForces.My) > tolerance)
+					return false;
 
 				(Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension();
+				(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result.GetRebarsTension();
 
 				Console.WriteLine($"Tensions associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} ");
+
+				for (int i = 0; i < rebarTensions.Length; i++)
+					Console.WriteLine($"Rebar {i}: {rebarTensions[i].rebar.Position.X}, {rebarTensions[i].rebar.Position.Y}. " +
+						$"Tension = {Math.Round(rebarTensions[i].tension, 2)}");
 
 				for (int i = 0; i < concreteTensions.Length; i++)
 					Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
 			}
 			else
 			{
-				Console.WriteLine($"Result {result.Id} associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} don't find strain plane");
+				Console.WriteLine($"Result {result.Id} associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} don't find strain plane." +
+					$"Point is external");
 			}
 
 			return true;
 		}
 
-		protected bool CommonAssertDomainPoint(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
+		protected bool CommonAssertDomainPoint(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard, double adimTolerance = 0.005,
 			double[] factor = null)
 		{
 			if (factor == null)
@@ -91,15 +104,18 @@ namespace ConcreteTests
 			for (int i = 0; i < factor.Length; i++)
 			{
 				ResultBeamForces testForce = new ResultBeamForces(factor[i] * force.N, 0, 0, 0, factor[i] * force.M1, factor[i] * force.M2, force.CoordinateSystem);
-
 				failureDomainPoints[i] = solver.CalculateDomainPoint(testForce.ConvertToForceTuple(section.Centroid));
 			}
 
 			for (int i = 1; i < factor.Length; i++)
 			{
-				Assert.IsTrue(failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X < 1000000);
-				Assert.IsTrue(failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y < 1000000);
-				Assert.IsTrue(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z < 1000);
+				ForceTuple adimForces = solver.ConvertToAdimForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
+					failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X,
+					failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y));
+
+				Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance);
+				Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance);
+				Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance);
 			}
 
 			return true;
