@@ -80,6 +80,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
+            _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
             _failureAnalysisTolerance = 1e-3;
@@ -128,19 +129,24 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                             SectionSolverOptions.Instance.FailureZonesDiscretizations), null, this, Standard, Id);
         }
 
-        public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, Point2d forceReferencePoint)
+        public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, Vector2d forceReferencePointDistance)
         {
             StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
 
             Parallel.For(0, force.Length, (i) =>
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
-                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePoint),
+                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePointDistance),
                     _stressAnalysisTolerance), this, Standard, Id);
             });
 
             return stressAnalysisResults;
         }
+
+        internal virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces)
+		{
+            return CalculateDomainPoint(targetLocalForces, _failureAnalysisTolerance);
+		}
 
         #endregion
 
@@ -265,7 +271,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
         }
-
 
         /// <summary>
         /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
@@ -934,7 +939,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance)
             {
-                FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces);
+                FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, _failureAnalysisTolerance);
 
                 Vector3d vEd = new Vector3d(localForces, Point3d.Origin);
                 Vector3d vRd = new Vector3d(pointOnDomain.Point, Point3d.Origin);
@@ -961,7 +966,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         catch (Exception e)
                         {
                             _log.Add(e.Message);
-                            _log.Add(e.InnerException.Message);
+                            if(e.InnerException != null)
+                                _log.Add(e.InnerException.Message);
                             throw;
                         }
 
@@ -989,14 +995,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             double dChiX = dCX * deltaChiXLimit;
 
-            double deltaChiYLimit = Math.Abs(GetYieldingStrainPureCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
+            double deltaChiYLimit = Math.Abs(GetYieldingStrainPureCompression() /  ConcreteSection.Shape.GetBoundingBox().Size.Y);
             double dCY = 0.00001;
             if (forceTupleAdim.My != 0)
                 dCY = 0.001 * Math.Max(Math.Abs(forceTupleAdim.My), 0.00001);
 
             double dChiY = dCY * deltaChiYLimit;
 
-            double deltaStrainLimit = 1.0 / (ConcreteSection.Area * Math.Abs(GetFck()));
+            double deltaStrainLimit = 1.0 / ConcreteSection.Area * Math.Abs(GetFck());
             double dS = 0.00001;
             if (forceTupleAdim.N != 0)
                 dS = 0.0001 * Math.Max(Math.Abs(forceTupleAdim.N), 0.00001);
