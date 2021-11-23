@@ -29,7 +29,7 @@ namespace GPC.Checkers.Concrete.Results
             : base(section, standard, id)
         {
             _force = force ?? throw new ArgumentNullException(nameof(force));
-            _strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
+            _strainPlane = strainPlane;
             _sectionSolver = solver;
         }
 
@@ -73,5 +73,9 @@ namespace GPC.Checkers.Concrete.Results
             return strains;
         }
 
+        public List<string> GetLog()
+        {
+            return _sectionSolver.GetLog();
+        }
     }
 }

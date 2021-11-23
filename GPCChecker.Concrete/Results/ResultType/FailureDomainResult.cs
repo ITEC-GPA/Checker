@@ -130,6 +130,9 @@ namespace GPC.Checkers.Concrete.Results
             return _forces.GetEnumerator();
         }
 
-
+        public List<string> GetLog()
+		{
+            return _sectionSolver.GetLog();
+		}
     }
 }

@@ -28,5 +28,18 @@ namespace GPC.Checkers.Concrete.Helper
                 return new ForceTuple(forcesConverted.N, forcesConverted.M1 + forcesConverted.N * eccentricity.X, forcesConverted.M2 + +forcesConverted.N * eccentricity.Y);
             }
         }
+
+        public static ForceTuple ConvertToForceTuple(this ResultBeamForces resultBeamForces, Vector2d distanceRefPointToCentroid)
+        {
+            if (distanceRefPointToCentroid == Vector2d.Zero)
+            {
+                return new ForceTuple(resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2);
+            }
+            else
+            {               
+                return new ForceTuple(resultBeamForces.N, resultBeamForces.M1 + resultBeamForces.N * distanceRefPointToCentroid.X, 
+                    resultBeamForces.M2 + resultBeamForces.N * distanceRefPointToCentroid.Y);
+            }
+        }
     }
 }
