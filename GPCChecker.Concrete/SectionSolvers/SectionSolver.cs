@@ -598,84 +598,106 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Point on failure domain
 
-        internal virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, double angularTolerance = 0.001)
+        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, double angularTolerance = 0.001)
         {
+            ForceTuple adimOutputForces = ConvertToAdimensionalForces(targetLocalForces);
+            Vector3d vectorEd = new Vector3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N);
+
             FailureZones failureIndex;
             double immersione = 0.5;
-            double teta;
+            double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
-            if (targetLocalForces.Mx > 0)
-                teta = 0;
-            else
-                teta = Math.PI / 2.0;
-
-            if (targetLocalForces.N > 0.0)
+            if(adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < angularTolerance && Math.Abs(adimOutputForces.My) < angularTolerance)
+                failureIndex = FailureZones.F1;
+            else if(adimOutputForces.N > 0.0)
                 failureIndex = FailureZones.F2A;
-            else
+            else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < angularTolerance && Math.Abs(adimOutputForces.My) < angularTolerance)
+			{
                 failureIndex = FailureZones.F5;
+                immersione = 1.0;
+            }                
+            else if (adimOutputForces.N < Math.Min(adimOutputForces.Mx, adimOutputForces.My))
+                failureIndex = FailureZones.F4;
+            else
+                failureIndex = FailureZones.F3B;
 
             var distances = CalculateMaxMinSectionDistances(teta);
             StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, distances);
 
             // Valori di primo tentativo
             teta = strainPlane.Teta;
+
+            if (targetLocalForces.Mx < 0)
+                teta += Math.PI;
+            //if (targetLocalForces.My < 0)
+            //    teta *= -1;
+
             int id = 1;
 
-            var forces = CalculateForceResultant(strainPlane);
+            ForceTuple forces = CalculateForceResultant(strainPlane);
 
-            Vector3d vectorForcesEd = targetLocalForces;
-
-            ForceTuple adimOutputForces;
             (double deltaTeta, double deltaImmersione, Vector3d distanceToTarget) increment;
-            Vector3d vectorRd = forces;
-            double angle = vectorForcesEd.AngleTo(vectorRd);
 
-            do
+            double angle = new Vector3d(forces.Mx, forces.My, forces.N).AngleTo(new Vector3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N));
+
+            if (angle > angularTolerance)
             {
-                try
+                do
                 {
-                    increment = CalculateIncrement(forces, strainPlane, failureIndex, immersione, targetLocalForces, angle);
-                }
-                catch (Exception e)
-                {
-                    _log.Add(e.Message);
-                    _log.Add(e.InnerException.Message);
-                    throw;
-                }
+                    if (id < 50)
+                    {
+                        try
+                        {
+                            increment = CalculateIncrement(forces, strainPlane, failureIndex, immersione, targetLocalForces, angle);
+                        }
+                        catch (Exception e)
+                        {
+                            _log.Add(e.Message);
+                            if (e.InnerException != null)
+                                _log.Add(e.InnerException.Message);
+                            throw;
+                        }
 
-                increment.deltaImmersione = increment.deltaImmersione > 1 ? 1 : increment.deltaImmersione;
-                increment.deltaImmersione = increment.deltaImmersione < -1 ? -1 : increment.deltaImmersione;
+                        increment.deltaImmersione = increment.deltaImmersione > 0.6 ? 0.6 : increment.deltaImmersione;
+                        increment.deltaImmersione = increment.deltaImmersione < -0.6 ? -0.6 : increment.deltaImmersione;
 
-                // piano di nuovo tentativo
-                id++;
-                teta += increment.deltaTeta;
+                        increment.deltaTeta = increment.deltaTeta > Math.PI / 8.0 ? Math.PI / 8.0 : increment.deltaTeta;
+                        increment.deltaTeta = increment.deltaTeta < -Math.PI / 8.0 ? -Math.PI / 8.0 : increment.deltaTeta;
 
-                immersione += (increment.deltaImmersione - (int)increment.deltaImmersione);
-                failureIndex += (int)increment.deltaImmersione;
+                        // piano di nuovo tentativo
+                        id++;
+                        teta += increment.deltaTeta;
 
-                if (immersione < 0.0)
-                {
-                    immersione++;
-                    failureIndex--;
-                }
-                if (immersione > 1.0)
-                {
-                    immersione--;
-                    failureIndex++;
-                }
+                        immersione += (increment.deltaImmersione - (int)increment.deltaImmersione);
+                        failureIndex += (int)increment.deltaImmersione;
 
-                failureIndex = (int)failureIndex < 1 ? FailureZones.F1 : failureIndex;
-                failureIndex = (int)failureIndex > 7 ? FailureZones.F5 : failureIndex;
+                        if (immersione < 0.0)
+                        {
+                            immersione++;
+                            failureIndex--;
+                        }
+                        if (immersione > 1.0)
+                        {
+                            immersione--;
+                            failureIndex++;
+                        }
 
-                distances = CalculateMaxMinSectionDistances(teta);
-                strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, distances, id);
-                forces = CalculateForceResultant(strainPlane);
+                        failureIndex = (int)failureIndex < 1 ? FailureZones.F1 : failureIndex;
+                        failureIndex = (int)failureIndex > 7 ? FailureZones.F5 : failureIndex;
 
-                angle = vectorForcesEd.AngleTo(forces);
+                        distances = CalculateMaxMinSectionDistances(teta);
+                        strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, distances, id);
+                        forces = CalculateForceResultant(strainPlane);
 
-                adimOutputForces = ConvertToAdimensionalForces(new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y));
-
-            } while (Math.Abs(adimOutputForces.N) > angularTolerance || Math.Abs(adimOutputForces.Mx) > angularTolerance || Math.Abs(adimOutputForces.My) > angularTolerance);
+                        angle = new Vector3d(forces.Mx, forces.My, forces.N).AngleTo(vectorEd);
+                    }
+                    else
+                    {
+                        _log.Add("Fail to calculate point on domain");
+                        break;
+                    }
+                } while (angle > angularTolerance);
+            }
 
             return new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
         }
