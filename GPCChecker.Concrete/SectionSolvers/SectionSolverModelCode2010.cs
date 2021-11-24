@@ -116,7 +116,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             if (strain < 0)
             {
-                return ConcreteMaterialModelCode2010.GetStress(strain);
+                return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFcd() / ConcreteMaterialModelCode2010.Fck;
             }
             else
             {
