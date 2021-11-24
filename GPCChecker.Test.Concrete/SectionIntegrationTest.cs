@@ -366,8 +366,7 @@ namespace ConcreteTests
 				Assert.IsTrue(stresses[i] < stresses[i + 1]);
 				Assert.IsTrue(Math.Abs(stresses[i]) < rebars[0].RebarMaterial.Fu);
 			}
-				
-			
+
 		}
 	}
 }
