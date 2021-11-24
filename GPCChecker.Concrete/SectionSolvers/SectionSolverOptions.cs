@@ -60,7 +60,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             GaussIntegrationQuadLowPoints = 12;
             GaussIntegrationQuadMidPoints = 49;
-            GaussIntegrationQuadHighPoints = 121;
+            GaussIntegrationQuadHighPoints = 400;
             GaussIntegrationTriLowPoints = 6;
             GaussIntegrationTriMidPoints = 33;
             GaussIntegrationTriHighPoints = 79;

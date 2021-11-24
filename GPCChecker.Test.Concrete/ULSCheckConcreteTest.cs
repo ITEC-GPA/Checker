@@ -60,7 +60,7 @@ namespace ConcreteTests
 
 			for (int i = 0; i < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard));
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
 			}
 		}
 
