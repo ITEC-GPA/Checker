@@ -520,11 +520,11 @@ namespace ConcreteTests
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
 			{
-				new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 20 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 40 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 60 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 80 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
 				new ResultBeamForces(0 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-				new ResultBeamForces(0 * 1000, 0, 0, 0, 150 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-				new ResultBeamForces(0 * 1000, 0, 0, 0, 200 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-				new ResultBeamForces(0 * 1000, 0, 0, 0, 250 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
 			};
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
