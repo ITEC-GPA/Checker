@@ -24,6 +24,10 @@ namespace GPC.Checkers.Concrete.Results
             _domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
         }
 
+        public sealed class FailureDomainForce
+        {
+
+        }
 
         [Serializable]
         public sealed class FailureDomainPoint : ISerializable, IEquatable<FailureDomainPoint>
