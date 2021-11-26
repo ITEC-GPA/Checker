@@ -44,7 +44,11 @@ namespace GPC.Checkers.Concrete.Checkers
 
         internal abstract StressAnalysisResult[] GetStressAnalysisResult();
 
+        internal abstract StressAnalysisResult[] GetStressAnalysisResult(double n);
+
         public abstract Task<StressAnalysisResult[]> GetStressAnalysisResultAsync();
+
+        public abstract Task<StressAnalysisResult[]> GetStressAnalysisResultAsync(double n);
 
         public abstract class SectionOptions : Options
         {

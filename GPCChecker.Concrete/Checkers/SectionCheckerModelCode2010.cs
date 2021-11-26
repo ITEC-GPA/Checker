@@ -56,10 +56,22 @@ namespace GPC.Checkers.Concrete.Checkers
             });
         }
 
+        public async override Task<StressAnalysisResult[]> GetStressAnalysisResultAsync(double n)
+        {
+
+            if (_checkerAttributes.SLSResults is null)
+                return null;
+
+            return await Task.Run(() =>
+            {
+                return _solver.GetStressAnalysisResult(_checkerAttributes.SLSResults, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+            });
+        }
+
         #endregion
 
         #region Internal
-        
+
         internal FailureDomainResult GetElasticDomain()
         {
             var failureDomainResult = _solver.GetFailureElasticDomainResult();
@@ -89,10 +101,21 @@ namespace GPC.Checkers.Concrete.Checkers
             return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
         }
 
+        internal override StressAnalysisResult[] GetStressAnalysisResult(double n)
+        {
 
-        #endregion
+            if (_checkerAttributes.SLSResults is null)
+                return null;
 
-        public class SectionOptionsModelCode2010 : SectionOptions
+            return _solver.GetStressAnalysisResult(_checkerAttributes.SLSResults, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+        }
+
+
+
+
+		#endregion
+
+		public class SectionOptionsModelCode2010 : SectionOptions
         {
 
             public SectionOptionsModelCode2010()

@@ -142,6 +142,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return stressAnalysisResults;
         }
+                
+        public virtual StressAnalysisResult[] GetStressAnalysisResult(ResultBeamForces[] force, double n, Vector2d forceReferencePointDistance)
+        {
+            StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
+
+            Parallel.For(0, force.Length, (i) =>
+            {
+                stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
+                    CalculateStrainPlaneNMethodAnalysis(force[i].ConvertToForceTuple(forceReferencePointDistance), n,
+                    _stressAnalysisTolerance), this, Standard, Id);
+            });
+
+            return stressAnalysisResults;
+        }
 
         internal virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces)
 		{
@@ -245,6 +259,63 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <summary>
+        /// Calculate the resultants of face <paramref name="face"/>
+        /// </summary>
+        /// <param name="face"></param>
+        /// <param name="strainPlane"></param>
+        protected virtual ForceTuple IntegrateFaceStress(double n, MeshFace face, StrainPlane strainPlane)
+        {
+            Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
+
+            double value = Math.Abs(ConcreteSection.Mesh.GetFaceArea(face) / ConcreteSection.Area);
+
+            int gaussPointsTri;
+            int gaussPointsQuad;
+
+            if (value > 0.1)
+            {
+                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriHighPoints;
+                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadHighPoints;
+            }
+            else if (value > 0.01)
+            {
+                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriMidPoints;
+                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadMidPoints;
+            }
+            else
+            {
+                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriLowPoints;
+                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadLowPoints;
+            }
+
+            double deltaN;
+            double deltaMx;
+            double deltaMy;
+
+            if (face.IsTriangle)
+            {
+                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(n ,strainPlane.GetStrain(new Point2d(x, y))), points, gaussPointsTri);
+                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(n, strainPlane.GetStrain(new Point2d(x, y))) *
+                    (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
+                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(n, strainPlane.GetStrain(new Point2d(x, y))) *
+                    (x - ConcreteSection.Centroid.X), points, gaussPointsTri);
+            }
+            else if (face.IsQuad)
+            {
+                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(n, strainPlane.GetStrain(new Point2d(x, y))),
+                    points, gaussPointsQuad);
+                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(n, strainPlane.GetStrain(new Point2d(x, y))) *
+                    (y - ConcreteSection.Centroid.Y), points, gaussPointsQuad);
+                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(n, strainPlane.GetStrain(new Point2d(x, y))) *
+                    (x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
+            }
+            else
+                throw new NotSupportedException();
+
+            return new ForceTuple(deltaN, deltaMx, deltaMy);
+        }
+
+        /// <summary>
         /// Calculate the resultant of all the rebars
         /// </summary>
         /// <param name="strainPlane">The strain plane</param>
@@ -306,6 +377,110 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 _log.Add(e.InnerException.Message);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Calculate the stress resultant of the concrete part
+        /// </summary>
+        /// <param name="strainPlane">The strain plane</param>
+        /// <returns>
+        /// <para>The axial force resultant</para>
+        /// <para>The bending moment about X-axis resultant</para>
+        /// <para>The bending moment about Y-axis resultant</para>
+        /// </returns>
+        protected virtual ForceTuple IntegrateSectionStress(double n, StrainPlane strainPlane)
+        {
+            double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
+            double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
+            double[] deltaMyArray = new double[ConcreteSection.Mesh.FacesCount];
+
+            try
+            {
+                Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
+                {
+                    var forces = IntegrateFaceStress(n, ConcreteSection.Mesh.Faces[i + 1], strainPlane);
+
+                    deltaNArray[i] = forces.N;
+                    deltaMxArray[i] = forces.Mx;
+                    deltaMyArray[i] = forces.My;
+                });
+            }
+            catch (Exception e)
+            {
+                _log.Add(e.Message);
+                throw;
+            }
+
+            return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
+        }
+
+        /// <summary>
+        /// Calculate the resultant of all the rebars
+        /// </summary>
+        /// <param name="strainPlane">The strain plane</param>
+        /// <param name="deltaN">The axial force resultant</param>
+        /// <param name="deltaMx">The bending moment about X-axis resultant</param>
+        /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
+        protected virtual ForceTuple IntegrateRebarStress(double n, StrainPlane strainPlane)
+        {
+            double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
+            double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
+            double[] deltaMyArray = new double[ConcreteSection.Rebars.Length];
+
+            Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
+            {
+                double strain = strainPlane.GetStrain(ConcreteSection.Rebars[i].Position);
+                double sigmaC = CalculateSigmaC(n, strain);
+                double sigmaS = CalculateSigmaS(strain);
+
+                deltaNArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area;
+                deltaMxArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
+                deltaMyArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
+            });
+
+            return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
+        }
+
+        /// <summary>
+        /// Integrate the stress on the section given by the <paramref name="strainPlane"/> with homogenization coefficient <paramref name="n"/> and gives the resultant forces
+        /// </summary>
+        /// <returns>The forces in the local reference system</returns>
+        protected virtual ForceTuple CalculateForceResultant(double n, StrainPlane strainPlane)
+        {
+            try
+            {
+                return IntegrateSectionStress(n ,strainPlane) + IntegrateRebarStress(n, strainPlane);
+            }
+            catch (Exception e)
+            {
+                _log.Add(e.Message);
+                _log.Add(e.InnerException.Message);
+                throw;
+            }
+        }
+
+        /// <returns>The design concrete stress related to <paramref name="strain"/> with linear elastic stress-strain diagram</returns>
+        internal double CalculateSigmaC(double n, double strain)
+		{
+            if(_concreteSection.Rebars.Length > 0)
+			{
+                if (strain < 0)
+                    return _concreteSection.Rebars[0].RebarMaterial.E / n * strain;
+                else
+                    return 0.0;
+            }
+            else
+			{
+                if (strain < 0)
+                    return 200000 / n * strain;
+                else
+                    return 0.0;
+            }
+		}
+
+        internal double CalculateSigmaS(double strain)
+        {
+            return _concreteSection.Rebars[0].RebarMaterial.E * strain;
         }
 
         protected virtual (int dMinRebarIndex, double dminRebar, int dMaxRebarIndex, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete)
@@ -1092,6 +1267,166 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return (results[0, 0] * deltaChiXLimit, results[1, 0] * deltaChiYLimit, results[2, 0] * deltaStrainLimit);
         }
 
+
+        #endregion
+
+        #region N method
+
+        protected StrainPlane CalculateStrainPlaneNMethodAnalysis(ForceTuple localForces, double n, double tolerance = 1e-5)
+        {
+            //ForceTuple targetLocalForces = GetLocalForces(externalForces, forceReferencePoint);
+            ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
+
+            // Valori di primo tentativo
+            Point3d referencePoint = ConcreteSection.Centroid;
+            double chiX = 0;
+            double chiY = 0;
+            double strainReferencePoint = 0;
+            int id = 1;
+
+            // piano di primo tentativo. baricentrico e ruotato di teta = 0;
+            StrainPlane strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
+
+            ForceTuple iterationForces = CalculateForceResultant(n, strainPlane);
+            ForceTuple iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
+
+            if (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
+                Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
+                Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance)
+            {
+                do
+                {
+                    if (id < 50)
+                    {
+                        try
+                        {
+                            (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
+                                CalculateIncrementStressAnalysis(n, strainPlane, localForces - iterationForces);
+
+                            // piano di nuovo tentativo
+                            id++;
+                            chiX += increment.deltaChiX;
+                            chiY += increment.deltaChiY;
+                            strainReferencePoint += increment.deltaStrainRefPoint;
+                            strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
+
+                            iterationForces = CalculateForceResultant(n, strainPlane);
+                            iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
+                        }
+                        catch (Exception e)
+                        {
+                            _log.Add(e.Message);
+                            if (e.InnerException != null)
+                                _log.Add(e.InnerException.Message);
+                            throw;
+                        }
+                    }
+                    else
+                    {
+                        _log.Add("Fail to calculate find strain plane");
+                        return null;
+                    }
+
+                } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
+                     Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
+                     Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance);
+            }
+
+            return strainPlane;
+        }
+        
+        protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementStressAnalysis(double n, StrainPlane inputStrainPlane, ForceTuple forceTuple)
+        {
+            ForceTuple forceTupleAdim = ConvertToAdimensionalForces(forceTuple);
+
+            double deltaChiXLimit = Math.Abs(GetYieldingStrainPureCompression() / ConcreteSection.Shape.GetBoundingBox().Size.X);
+            double dCX = 0.00001;
+            if (forceTupleAdim.Mx != 0)
+                dCX = 0.001 * Math.Max(Math.Abs(forceTupleAdim.Mx), 0.00001);
+
+            double dChiX = dCX * deltaChiXLimit;
+
+            double deltaChiYLimit = Math.Abs(GetYieldingStrainPureCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
+            double dCY = 0.00001;
+            if (forceTupleAdim.My != 0)
+                dCY = 0.001 * Math.Max(Math.Abs(forceTupleAdim.My), 0.00001);
+
+            double dChiY = dCY * deltaChiYLimit;
+
+            double deltaStrainLimit = 1.0 / ConcreteSection.Area * Math.Abs(GetFck());
+            double dS = 0.00001;
+            if (forceTupleAdim.N != 0)
+                dS = 0.0001 * Math.Max(Math.Abs(forceTupleAdim.N), 0.00001);
+
+            double dStrain = dS * deltaStrainLimit;
+
+
+            // derivate parziali rispetto a ChiX
+            StrainPlane strainPlanePlusdChiX = new StrainPlane(inputStrainPlane.ChiX + dChiX, inputStrainPlane.ChiY,
+                inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
+            StrainPlane strainPlaneMinusdChiX = new StrainPlane(inputStrainPlane.ChiX - dChiX, inputStrainPlane.ChiY,
+                inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
+
+            var forcesPlusdChiX = CalculateForceResultant(n, strainPlanePlusdChiX);
+            var forcesMinusdChiX = CalculateForceResultant(n, strainPlaneMinusdChiX);
+
+            double dNdChiX = (forcesPlusdChiX.N - forcesMinusdChiX.N) / (2.0 * dCX);
+            double dMxdChiX = (forcesPlusdChiX.Mx - forcesMinusdChiX.Mx) / (2.0 * dCX);
+            double dMydChiX = (forcesPlusdChiX.My - forcesMinusdChiX.My) / (2.0 * dCX);
+
+
+            // derivate parziali rispetto a ChiY
+            StrainPlane strainPlanePlusdChiY = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY + dChiY,
+                inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
+            StrainPlane strainPlaneMinusdChiY = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY - dChiY,
+                inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
+
+            var forcesPlusdChiY = CalculateForceResultant(n, strainPlanePlusdChiY);
+            var forcesMinusdChiY = CalculateForceResultant(n, strainPlaneMinusdChiY);
+
+            double dNdChiY = (forcesPlusdChiY.N - forcesMinusdChiY.N) / (2.0 * dCY);
+            double dMxdChiY = (forcesPlusdChiY.Mx - forcesMinusdChiY.Mx) / (2.0 * dCY);
+            double dMydChiY = (forcesPlusdChiY.My - forcesMinusdChiY.My) / (2.0 * dCY);
+
+
+            // derivate parziali rispetto a epsilon
+            StrainPlane strainPlanePlusStrain = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY,
+                inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint + dStrain);
+            StrainPlane strainPlaneMinusStrain = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY,
+                inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint - dStrain);
+
+            var forcesPlusStrain = CalculateForceResultant(n, strainPlanePlusStrain);
+            var forcesMinusStrain = CalculateForceResultant(n, strainPlaneMinusStrain);
+
+            double dNdStrain = (forcesPlusStrain.N - forcesMinusStrain.N) / (2.0 * dS);
+            double dMxdStrain = (forcesPlusStrain.Mx - forcesMinusStrain.Mx) / (2.0 * dS);
+            double dMydStrain = (forcesPlusStrain.My - forcesMinusStrain.My) / (2.0 * dS);
+
+
+            Matrix<double> partialDerivatives = Matrix<double>.Build.Dense(3, 3);
+
+            partialDerivatives[0, 0] = dNdChiX;
+            partialDerivatives[1, 0] = dMxdChiX;
+            partialDerivatives[2, 0] = dMydChiX;
+
+            partialDerivatives[0, 1] = dNdChiY;
+            partialDerivatives[1, 1] = dMxdChiY;
+            partialDerivatives[2, 1] = dMydChiY;
+
+            partialDerivatives[0, 2] = dNdStrain;
+            partialDerivatives[1, 2] = dMxdStrain;
+            partialDerivatives[2, 2] = dMydStrain;
+
+
+            Matrix<double> inputVector = Matrix<double>.Build.Dense(3, 1);
+            inputVector[0, 0] = forceTuple.N;
+            inputVector[1, 0] = forceTuple.Mx;
+            inputVector[2, 0] = forceTuple.My;
+
+            Matrix<double> results = partialDerivatives.Inverse() * inputVector;
+
+            return (results[0, 0] * deltaChiXLimit, results[1, 0] * deltaChiYLimit, results[2, 0] * deltaStrainLimit);
+        }
 
         #endregion
 
