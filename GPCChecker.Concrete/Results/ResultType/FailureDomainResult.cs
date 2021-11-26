@@ -40,12 +40,18 @@ namespace GPC.Checkers.Concrete.Results
                 {
                     _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], _sectionSolver.CalculateDomainPoint(forcesList[i].ConvertToForceTuple(section.Centroid))));
                 }
-            }                
+            }
         }
 
+        /// <summary>
+        /// Adds a new single force
+        /// </summary>
+        /// <param name="forces">The force to add</param>
+        /// <returns>The corresponding domain point</returns>
+        /// <exception cref="ArgumentNullException">Thrown when forces is null or forces.Id == -1</exception>
         internal FailureDomain.FailureDomainPoint AddForce(ResultBeamForces forces)
         {
-            if (forces is null)
+            if (forces is null || forces.Id == -1)
             {
                 throw new ArgumentNullException(nameof(forces));
             }
@@ -55,8 +61,19 @@ namespace GPC.Checkers.Concrete.Results
             return point;
         }
 
+        /// <summary>
+        /// Adds a new range of forces
+        /// </summary>
+        /// <param name="forces">The forces array</param>
+        /// <returns>The corresponding points in the domain</returns>
+        /// <exception cref="ArgumentNullException">Thrown when forces is null or if one of the contained items have Id == -1</exception>
         internal FailureDomain.FailureDomainPoint[] AddForces(ResultBeamForces[] forces)
         {
+            if (forces is null || forces.Count(f => f.Id == -1) > 0)
+            {
+                throw new ArgumentNullException(nameof(forces));
+            }
+
             List<ResultBeamForces> forcesList = forces.ToList();
             var failureDomainPoint = new FailureDomain.FailureDomainPoint[forcesList.Count];
 
@@ -70,13 +87,19 @@ namespace GPC.Checkers.Concrete.Results
             return failureDomainPoint;
         }
 
+        /// <summary>
+        /// Adds a new single force asynchronously
+        /// </summary>
+        /// <param name="forces">The force to add</param>
+        /// <returns>The corresponding domain point</returns>
+        /// <exception cref="ArgumentNullException">Thrown when forces is null or forces.Id == -1</exception>
         public async Task<FailureDomain.FailureDomainPoint> AddForceAsync(ResultBeamForces forces)
         {
-            if (forces is null)
+            if (forces is null || forces.Id == -1)
             {
                 throw new ArgumentNullException(nameof(forces));
             }
-            
+
             FailureDomain.FailureDomainPoint failureDomainPoint = null;
 
             await Task.Run(() => {
@@ -87,9 +110,15 @@ namespace GPC.Checkers.Concrete.Results
             return failureDomainPoint;
         }
 
+        /// <summary>
+        /// Adds a new range of forces asynchronously
+        /// </summary>
+        /// <param name="forces">The forces array</param>
+        /// <returns>The corresponding points in the domain</returns>
+        /// <exception cref="ArgumentNullException">Thrown when forces is null or if one of the contained items have Id == -1</exception>
         public async Task<FailureDomain.FailureDomainPoint[]> AddForcesAsync(IEnumerable<ResultBeamForces> forces)
         {
-            if (forces is null)
+            if (forces is null || forces.Count(f => f.Id == -1) > 0)
             {
                 throw new ArgumentNullException(nameof(forces));
             }
@@ -113,9 +142,16 @@ namespace GPC.Checkers.Concrete.Results
             return failureDomainPoint;
         }
 
-        public async Task<FailureDomain.FailureDomainPoint> UpdateForceAsync(int index, ResultBeamForces forces)
+        /// <summary>
+        /// Update an extisting force racalculating the domain point asynchronously
+        /// </summary>
+        /// <param name="id">The id of the original force</param>
+        /// <param name="forces">The new force</param>
+        /// <returns>The new corresponding point in the domain</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public async Task<FailureDomain.FailureDomainPoint> UpdateForceAsync(int id, ResultBeamForces forces)
         {
-            if (forces is null)
+            if (forces is null || forces.Id == -1)
             {
                 throw new ArgumentNullException(nameof(forces));
             }
@@ -126,7 +162,7 @@ namespace GPC.Checkers.Concrete.Results
                 var point = _sectionSolver.CalculateDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
                 failureDomainPoint = point;
 
-                _forces.RemoveAt(index);
+                int index = _forces.FindIndex(f => f.Id == id);
                 _forces.Insert(index, new FailureDomain.FailureDomainForce(forces, point));
             });
 
