@@ -16,7 +16,7 @@ using GPC.TestUtilities;
 namespace ConcreteTests
 {
 	[TestClass]
-	public class ULSConcretePrestressedFailureDomainTest : ConcreteTest
+	public class FailureDomainPSCTest : ConcreteTest
 	{	
 
 		[TestMethod]
@@ -26,22 +26,26 @@ namespace ConcreteTests
 			double rebarDiameterPrestress = 20;
 
 			// sezione rettangolare 300x500
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] 
+			{   
 				new Point2d(0, 0),
 				new Point2d(300, 0),
 				new Point2d(300, 500),
-				new Point2d(0, 500) }));
+				new Point2d(0, 500) 
+			}));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, RebarMaterial.B450C);
 			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1800));
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
+			{  
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
-				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 0.007045)};
+				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 0.007045)
+			};
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
@@ -51,8 +55,8 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
-			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ShowDomainPoints(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			//// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 
@@ -106,23 +110,27 @@ namespace ConcreteTests
 			double rebarDiameterPrestress = 20;
 
 			// sezione rettangolare 300x500
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] 
+			{   
 				new Point2d(0, 0),
 				new Point2d(300, 0),
 				new Point2d(300, 500),
-				new Point2d(0, 500) }));
+				new Point2d(0, 500) 
+			}));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1800));
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
+			{  
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
 				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 0.007045),
-				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 400, 0), 0.007045)};
+				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 400, 0), 0.007045)
+			};
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
@@ -132,8 +140,8 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
-			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ShowDomainPoints(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			//// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 
@@ -187,7 +195,8 @@ namespace ConcreteTests
 			double rebarDiameterPrestress = 20;
 
 			// sezion a T tovescia 
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {   
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] 
+			{   
 				new Point2d(0, 0),
 				new Point2d(500, 0),
 				new Point2d(500, 500),
@@ -195,13 +204,15 @@ namespace ConcreteTests
 				new Point2d(400, 1000),
 				new Point2d(100, 1000),
 				new Point2d(100, 500),
-				new Point2d(0, 500) }));
+				new Point2d(0, 500) 
+			}));
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1800));
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
+			{  
 				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(300, 50, 0)),
@@ -215,7 +226,8 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(300, 950, 0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(350, 950, 0)),
 				new ReinforcedConcreteRebar(rebarP, new Point3d(250, 100, 0), 0.007045),
-				new ReinforcedConcreteRebar(rebarP, new Point3d(250, 100, 0), 0.007045) };
+				new ReinforcedConcreteRebar(rebarP, new Point3d(250, 100, 0), 0.007045) 
+			};
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
@@ -225,8 +237,8 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
-			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ShowDomainPoints(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 

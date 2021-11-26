@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace ConcreteTests
 {
 	[TestClass]
-	public class SLSConcreteTest : ConcreteTest
+	public class StressAnalysisTest : ConcreteTest
 	{
 		[TestMethod]
 		public void RectangularSectionTest1()
