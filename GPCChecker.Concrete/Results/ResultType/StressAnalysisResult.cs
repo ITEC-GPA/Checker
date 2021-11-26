@@ -54,6 +54,16 @@ namespace GPC.Checkers.Concrete.Results
             return _section.Rebars.Select(i => (i, _sectionSolver.CalculateStressRebar(i, StrainPlane.GetStrain(i.Position)) )  ).ToArray();
         }
 
+        public virtual double GetRebarTension(double n, ReinforcedConcreteRebar rebar)
+        {
+            return _sectionSolver.CalculateSigmaS(n, StrainPlane.GetStrain(rebar.Position));
+        }
+
+        public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension(double n)
+        {
+            return _section.Rebars.Select(i => (i, GetRebarTension(n, i))).ToArray();
+        }
+
 
         public double[] GetVerticesStrain()
         {
@@ -75,11 +85,11 @@ namespace GPC.Checkers.Concrete.Results
 
         public virtual (Point2d point, double tension)[] GetConcreteVerticesTension(double n)
         {
-            return _section.Shape.GetPoints2d().Select(i => (i, _sectionSolver.CalculateSigmaC(n, StrainPlane.GetStrain(i)))).ToArray();
+            return _section.Shape.GetPoints2d().Select(i => (i, _sectionSolver.CalculateElasticSigmaC(StrainPlane.GetStrain(i)))).ToArray();
         }
         public virtual double GetConcreteTension(double n, Point2d point)
         {
-            return _sectionSolver.CalculateSigmaC(n, StrainPlane.GetStrain(point));
+            return _sectionSolver.CalculateElasticSigmaC(StrainPlane.GetStrain(point));
         }
 
 

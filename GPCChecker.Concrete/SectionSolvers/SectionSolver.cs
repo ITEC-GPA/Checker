@@ -259,63 +259,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <summary>
-        /// Calculate the resultants of face <paramref name="face"/>
-        /// </summary>
-        /// <param name="face"></param>
-        /// <param name="strainPlane"></param>
-        protected virtual ForceTuple IntegrateFaceStress(double n, MeshFace face, StrainPlane strainPlane)
-        {
-            Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
-
-            double value = Math.Abs(ConcreteSection.Mesh.GetFaceArea(face) / ConcreteSection.Area);
-
-            int gaussPointsTri;
-            int gaussPointsQuad;
-
-            if (value > 0.1)
-            {
-                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriHighPoints;
-                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadHighPoints;
-            }
-            else if (value > 0.01)
-            {
-                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriMidPoints;
-                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadMidPoints;
-            }
-            else
-            {
-                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriLowPoints;
-                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadLowPoints;
-            }
-
-            double deltaN;
-            double deltaMx;
-            double deltaMy;
-
-            if (face.IsTriangle)
-            {
-                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(n ,strainPlane.GetStrain(new Point2d(x, y))), points, gaussPointsTri);
-                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(n, strainPlane.GetStrain(new Point2d(x, y))) *
-                    (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
-                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(n, strainPlane.GetStrain(new Point2d(x, y))) *
-                    (x - ConcreteSection.Centroid.X), points, gaussPointsTri);
-            }
-            else if (face.IsQuad)
-            {
-                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(n, strainPlane.GetStrain(new Point2d(x, y))),
-                    points, gaussPointsQuad);
-                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(n, strainPlane.GetStrain(new Point2d(x, y))) *
-                    (y - ConcreteSection.Centroid.Y), points, gaussPointsQuad);
-                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(n, strainPlane.GetStrain(new Point2d(x, y))) *
-                    (x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
-            }
-            else
-                throw new NotSupportedException();
-
-            return new ForceTuple(deltaN, deltaMx, deltaMy);
-        }
-
-        /// <summary>
         /// Calculate the resultant of all the rebars
         /// </summary>
         /// <param name="strainPlane">The strain plane</param>
@@ -380,6 +323,63 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <summary>
+        /// Calculate the resultants of face <paramref name="face"/>
+        /// </summary>
+        /// <param name="face"></param>
+        /// <param name="strainPlane"></param>
+        protected virtual ForceTuple IntegrateFaceStress(double n, MeshFace face, StrainPlane strainPlane)
+        {
+            Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
+
+            double value = Math.Abs(ConcreteSection.Mesh.GetFaceArea(face) / ConcreteSection.Area);
+
+            int gaussPointsTri;
+            int gaussPointsQuad;
+
+            if (value > 0.1)
+            {
+                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriHighPoints;
+                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadHighPoints;
+            }
+            else if (value > 0.01)
+            {
+                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriMidPoints;
+                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadMidPoints;
+            }
+            else
+            {
+                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriLowPoints;
+                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadLowPoints;
+            }
+
+            double deltaN;
+            double deltaMx;
+            double deltaMy;
+
+            if (face.IsTriangle)
+            {
+                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))), points, gaussPointsTri);
+                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
+                    (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
+                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
+                    (x - ConcreteSection.Centroid.X), points, gaussPointsTri);
+            }
+            else if (face.IsQuad)
+            {
+                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))),
+                    points, gaussPointsQuad);
+                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
+                    (y - ConcreteSection.Centroid.Y), points, gaussPointsQuad);
+                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
+                    (x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
+            }
+            else
+                throw new NotSupportedException();
+
+            return new ForceTuple(deltaN, deltaMx, deltaMy);
+        }
+
+        /// <summary>
         /// Calculate the stress resultant of the concrete part
         /// </summary>
         /// <param name="strainPlane">The strain plane</param>
@@ -430,8 +430,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
             {
                 double strain = strainPlane.GetStrain(ConcreteSection.Rebars[i].Position);
-                double sigmaC = CalculateSigmaC(n, strain);
-                double sigmaS = CalculateSigmaS(strain);
+                double sigmaC = CalculateElasticSigmaC(strain);
+                double sigmaS = CalculateSigmaS(n, strain);
 
                 deltaNArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area;
                 deltaMxArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
@@ -460,27 +460,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <returns>The design concrete stress related to <paramref name="strain"/> with linear elastic stress-strain diagram</returns>
-        internal double CalculateSigmaC(double n, double strain)
-		{
-            if(_concreteSection.Rebars.Length > 0)
-			{
-                if (strain < 0)
-                    return _concreteSection.Rebars[0].RebarMaterial.E / n * strain;
-                else
-                    return 0.0;
-            }
-            else
-			{
-                if (strain < 0)
-                    return 200000 / n * strain;
-                else
-                    return 0.0;
-            }
-		}
-
-        internal double CalculateSigmaS(double strain)
+        internal double CalculateElasticSigmaC(double strain)
         {
-            return _concreteSection.Rebars[0].RebarMaterial.E * strain;
+            if (strain < 0)
+                return _concreteSection.ConcreteMaterial.E * strain;
+            else
+                return 0.0;
+        }
+
+        internal double CalculateSigmaS(double n, double strain)
+        {
+            return _concreteSection.ConcreteMaterial.E * n * strain;
         }
 
         protected virtual (int dMinRebarIndex, double dminRebar, int dMaxRebarIndex, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete)
