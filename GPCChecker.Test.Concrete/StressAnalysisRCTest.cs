@@ -539,7 +539,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void SquareSectionest1()
+		public void SquareSectionTest1()
 		{
 			double rebarDiameter = 20;
 
