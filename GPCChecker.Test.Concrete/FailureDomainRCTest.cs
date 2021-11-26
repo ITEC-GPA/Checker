@@ -17,7 +17,7 @@ using System.Diagnostics;
 namespace ConcreteTests
 {
 	[TestClass]
-	public class FailureDomainTest : ConcreteTest
+	public class FailureDomainRCTest : ConcreteTest
 	{
 
 		[TestMethod]
