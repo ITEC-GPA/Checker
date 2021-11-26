@@ -195,7 +195,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             catch (Exception e)
             {
                 _log.Add(e.Message);
-                throw;
+                return new ForceTuple();
             }
 
             return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
@@ -300,7 +300,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 _log.Add(e.Message);
                 _log.Add(e.InnerException.Message);
-                throw;
+                return new ForceTuple();
             }
         }
 
@@ -318,7 +318,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 _log.Add(e.Message);
                 _log.Add(e.InnerException.Message);
-                throw;
+                return new ForceTuple();
             }
         }
 
@@ -408,7 +408,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             catch (Exception e)
             {
                 _log.Add(e.Message);
-                throw;
+                return new ForceTuple();
             }
 
             return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
@@ -455,7 +455,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 _log.Add(e.Message);
                 _log.Add(e.InnerException.Message);
-                throw;
+                return new ForceTuple();
             }
         }
 
@@ -552,7 +552,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, (FailureZones, int)[] normalDiscretizations)
         {
             if (momentsDiscretizations < 2)
-                throw new ArgumentException();
+                return null;
 
             double deltaTeta = 2 * Math.PI / (momentsDiscretizations);
             momentsDiscretizations++;
@@ -578,8 +578,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             catch (Exception e)
             {
                 _log.Add(e.Message);
-                _log.Add(e.InnerException.Message);
-                throw;
+                if(e.InnerException != null)
+                    _log.Add(e.InnerException.Message);
+                return null;
             }
 
             return new FailureDomain(domainPoints);
@@ -635,7 +636,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         }
 
                     default:
-                        throw new ArgumentException();
+                        return null;
                 }
             }
 
@@ -757,7 +758,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 
                 default:
-                    throw new ArgumentException();
+                    return null;
             }
 
             return strainPlane;
@@ -774,6 +775,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Vector3d vectorEd = new Vector3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N);
 
             FailureZones failureIndex;
+
+            // Valori di primo tentativo
             double immersione = 0.5;
             double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
@@ -800,11 +803,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var distances = CalculateMaxMinSectionDistances(teta);
             StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, distances);
 
-            // Valori di primo tentativo
-            teta = strainPlane.Teta;
+            //teta = strainPlane.Teta;
 
-            if (targetLocalForces.Mx < 0)
-                teta += Math.PI;
+            //if (targetLocalForces.My < 0)
+            //    teta *= -1;
+
+            //if (targetLocalForces.Mx < 0)
+            //    teta += Math.PI;
             //if (targetLocalForces.My < 0)
             //    teta *= -1;
 
@@ -831,7 +836,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             _log.Add(e.Message);
                             if (e.InnerException != null)
                                 _log.Add(e.InnerException.Message);
-                            throw;
+                            return null;
                         }
 
                         increment.deltaImmersione = increment.deltaImmersione > 0.6 ? 0.6 : increment.deltaImmersione;
@@ -870,7 +875,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else
                     {
                         _log.Add("Fail to calculate point on domain");
-                        break;
+                        return null;
                     }
                 } while (angle > angularTolerance);
             }
@@ -939,40 +944,50 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double dTetaBuffer = dTeta;
             double dEtaBuffer = dEta;
 
+            int etaCounter = 1;
+            int tetaCounter = 1;
 
             // derivate parziali rispetto a teta
             do
             {
-                var distancesPlusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta + dTetaBuffer);
-                var distancesMinusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta - dTetaBuffer);
+                if (tetaCounter < 50)
+				{
+                    var distancesPlusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta + dTetaBuffer);
+                    var distancesMinusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta - dTetaBuffer);
 
-                StrainPlane strainPlanePlusdTeta = CalculateStrainPlane(inputStrainPlane.Teta + dTetaBuffer, inputFailureZone, 
-                    inputImmersioneNelCampo, distancesPlusTeta);
-                StrainPlane strainPlaneMinusdTeta = CalculateStrainPlane(inputStrainPlane.Teta - dTetaBuffer, inputFailureZone, 
-                    inputImmersioneNelCampo, distancesMinusTeta);
+                    StrainPlane strainPlanePlusdTeta = CalculateStrainPlane(inputStrainPlane.Teta + dTetaBuffer, inputFailureZone,
+                        inputImmersioneNelCampo, distancesPlusTeta);
+                    StrainPlane strainPlaneMinusdTeta = CalculateStrainPlane(inputStrainPlane.Teta - dTetaBuffer, inputFailureZone,
+                        inputImmersioneNelCampo, distancesMinusTeta);
 
-                var forcesPlusTeta = CalculateForceResultant(strainPlanePlusdTeta);
-                var forcesMinusTeta = CalculateForceResultant(strainPlaneMinusdTeta);
+                    var forcesPlusTeta = CalculateForceResultant(strainPlanePlusdTeta);
+                    var forcesMinusTeta = CalculateForceResultant(strainPlaneMinusdTeta);
 
-                dNdTeta = (forcesPlusTeta.N - forcesMinusTeta.N) / (2.0 * dTetaBuffer);
-                dMxdTeta = (forcesPlusTeta.Mx - forcesMinusTeta.Mx) / (2.0 * dTetaBuffer);
-                dMydTeta = (forcesPlusTeta.My - forcesMinusTeta.My) / (2.0 * dTetaBuffer);
+                    dNdTeta = (forcesPlusTeta.N - forcesMinusTeta.N) / (2.0 * dTetaBuffer);
+                    dMxdTeta = (forcesPlusTeta.Mx - forcesMinusTeta.Mx) / (2.0 * dTetaBuffer);
+                    dMydTeta = (forcesPlusTeta.My - forcesMinusTeta.My) / (2.0 * dTetaBuffer);
 
-                dTetaBuffer += dTeta;
+                    dTetaBuffer += dTeta;
 
-                var adimForcePlusTeta = ConvertToAdimensionalForces(new ForceTuple(forcesPlusTeta.N, forcesPlusTeta.Mx, forcesPlusTeta.My));
-                var adimForceMinusTeta = ConvertToAdimensionalForces(new ForceTuple(forcesMinusTeta.N, forcesMinusTeta.Mx, forcesMinusTeta.My));
+                    var adimForcePlusTeta = ConvertToAdimensionalForces(new ForceTuple(forcesPlusTeta.N, forcesPlusTeta.Mx, forcesPlusTeta.My));
+                    var adimForceMinusTeta = ConvertToAdimensionalForces(new ForceTuple(forcesMinusTeta.N, forcesMinusTeta.Mx, forcesMinusTeta.My));
 
-                nonLinearErrorTeta = Math.Max(Math.Max(Math.Abs((adimForcePlusTeta.N + adimForceMinusTeta.N) / 2.0 - adimIteractionPoint.N),
-                                                       Math.Abs((adimForcePlusTeta.Mx + adimForceMinusTeta.Mx) / 2.0 - adimIteractionPoint.Mx)),
-                                                       Math.Abs((adimForcePlusTeta.My + adimForceMinusTeta.My) / 2.0 - adimIteractionPoint.My));
+                    nonLinearErrorTeta = Math.Max(Math.Max(
+                        Math.Abs((adimForcePlusTeta.N + adimForceMinusTeta.N) / 2.0 - adimIteractionPoint.N),
+                        Math.Abs((adimForcePlusTeta.Mx + adimForceMinusTeta.Mx) / 2.0 - adimIteractionPoint.Mx)),
+                        Math.Abs((adimForcePlusTeta.My + adimForceMinusTeta.My) / 2.0 - adimIteractionPoint.My));
 
-                if (Math.Abs(nonLinearErrorTeta) < 0.0001)
-                    nonLinearErrorTeta = 0.0001;
+                    if (Math.Abs(nonLinearErrorTeta) < 0.0001)
+                        nonLinearErrorTeta = 0.0001;
 
-                nonLinearErrorTeta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N), 
-                    Math.Max(Math.Abs(adimIteractionPoint.Mx), Math.Abs(adimIteractionPoint.My)) /
-                    Math.Sqrt(nonLinearErrorTeta)));
+                    nonLinearErrorTeta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N),
+                        Math.Max(Math.Abs(adimIteractionPoint.Mx), Math.Abs(adimIteractionPoint.My)) /
+                        Math.Sqrt(nonLinearErrorTeta)));
+
+                    tetaCounter++;
+                }
+                else
+                    return (0.1, 0.5, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
 
             } while (dNdTeta == 0.0 || (dMxdTeta == 0.0 && dMydTeta == 0.0));
 
@@ -980,34 +995,42 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // derivate parziali rispetto a immersione nel campo
             do
             {
-                var distances = CalculateMaxMinSectionDistances(inputStrainPlane.Teta);
+                if (etaCounter < 50)
+                {
+                    var distances = CalculateMaxMinSectionDistances(inputStrainPlane.Teta);
 
-                StrainPlane strainPlanePlusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZone, 
-                    Math.Min(inputImmersioneNelCampo + dEtaBuffer, 1.0), distances);
-                StrainPlane strainPlaneMinusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZone, 
-                    Math.Max(inputImmersioneNelCampo - dEtaBuffer, 0.0), distances);
+                    StrainPlane strainPlanePlusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZone,
+                        Math.Min(inputImmersioneNelCampo + dEtaBuffer, 1.0), distances);
+                    StrainPlane strainPlaneMinusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZone,
+                        Math.Max(inputImmersioneNelCampo - dEtaBuffer, 0.0), distances);
 
-                var forcesPlusEta = CalculateForceResultant(strainPlanePlusdImm);
-                var forcesMinusEta = CalculateForceResultant(strainPlaneMinusdImm);
+                    var forcesPlusEta = CalculateForceResultant(strainPlanePlusdImm);
+                    var forcesMinusEta = CalculateForceResultant(strainPlaneMinusdImm);
 
-                dNdImm = (forcesPlusEta.N - forcesMinusEta.N) / (2.0 * dEtaBuffer);
-                dMxdImm = (forcesPlusEta.Mx - forcesMinusEta.Mx) / (2.0 * dEtaBuffer);
-                dMydImm = (forcesPlusEta.My - forcesMinusEta.My) / (2.0 * dEtaBuffer);
+                    dNdImm = (forcesPlusEta.N - forcesMinusEta.N) / (2.0 * dEtaBuffer);
+                    dMxdImm = (forcesPlusEta.Mx - forcesMinusEta.Mx) / (2.0 * dEtaBuffer);
+                    dMydImm = (forcesPlusEta.My - forcesMinusEta.My) / (2.0 * dEtaBuffer);
 
-                dEtaBuffer += dEta;
+                    dEtaBuffer += dEta;
 
-                var adimForcePlusEta = ConvertToAdimensionalForces(new ForceTuple(forcesPlusEta.N, forcesPlusEta.Mx, forcesPlusEta.My));
-                var adimForceMinusEta = ConvertToAdimensionalForces(new ForceTuple(forcesMinusEta.N, forcesMinusEta.Mx, forcesMinusEta.My));
+                    var adimForcePlusEta = ConvertToAdimensionalForces(new ForceTuple(forcesPlusEta.N, forcesPlusEta.Mx, forcesPlusEta.My));
+                    var adimForceMinusEta = ConvertToAdimensionalForces(new ForceTuple(forcesMinusEta.N, forcesMinusEta.Mx, forcesMinusEta.My));
 
-                nonLinearErrorEta = Math.Max(Math.Max(Math.Abs((adimForcePlusEta.N + adimForceMinusEta.N) / 2.0 - adimIteractionPoint.N),
-                                                      Math.Abs((adimForcePlusEta.Mx + adimForceMinusEta.Mx) / 2.0 - adimIteractionPoint.Mx)),
-                                                      Math.Abs((adimForcePlusEta.My + adimForceMinusEta.My) / 2.0 - adimIteractionPoint.My));
+                    nonLinearErrorEta = Math.Max(Math.Max(
+                        Math.Abs((adimForcePlusEta.N + adimForceMinusEta.N) / 2.0 - adimIteractionPoint.N),
+                        Math.Abs((adimForcePlusEta.Mx + adimForceMinusEta.Mx) / 2.0 - adimIteractionPoint.Mx)),
+                        Math.Abs((adimForcePlusEta.My + adimForceMinusEta.My) / 2.0 - adimIteractionPoint.My));
 
-                if (Math.Abs(nonLinearErrorEta) < 0.0001)
-                    nonLinearErrorEta = 0.0001;
+                    if (Math.Abs(nonLinearErrorEta) < 0.0001)
+                        nonLinearErrorEta = 0.0001;
 
-                nonLinearErrorEta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N), Math.Max(Math.Abs(adimIteractionPoint.Mx), 
-                    Math.Abs(adimIteractionPoint.My)) / Math.Sqrt(nonLinearErrorEta)));
+                    nonLinearErrorEta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N), Math.Max(Math.Abs(adimIteractionPoint.Mx),
+                        Math.Abs(adimIteractionPoint.My)) / Math.Sqrt(nonLinearErrorEta)));
+
+                    etaCounter++;
+                }
+                else
+                    return (0.1, 0.5, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
 
             } while (dNdImm == 0.0 || (dMxdImm == 0.0 && dMydImm == 0.0));
 

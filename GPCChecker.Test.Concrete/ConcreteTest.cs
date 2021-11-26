@@ -119,13 +119,18 @@ namespace ConcreteTests
 
 			for (int i = 1; i < factor.Length; i++)
 			{
-				ForceTuple adimForces = solver.ConvertToAdimForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
-					failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X,
-					failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y));
+				if (failureDomainPoints[i] != null)
+				{
+					ForceTuple adimForces = solver.ConvertToAdimForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
+						failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X,
+						failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y));
 
-				Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance);
-				Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance);
-				Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance);
+					Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance);
+					Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance);
+					Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance);
+				}
+				else
+					return false;
 			}
 
 			return true;
