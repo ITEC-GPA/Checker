@@ -199,6 +199,16 @@ namespace GPC.Checkers.Concrete.Results
             return failureDomainPoint;
         }
 
+        /// <summary>
+        /// Tells if there is a force with the given id
+        /// </summary>
+        /// <param name="id">The id to check</param>
+        /// <returns>True if the force exists</returns>
+        public bool ContainsForceWithId(int id)
+        {
+            return _forces.Any(force => force.Id == id);
+        }
+
         public IEnumerator<FailureDomain.FailureDomainForce> GetEnumerator()
         {
             return _forces.GetEnumerator();
