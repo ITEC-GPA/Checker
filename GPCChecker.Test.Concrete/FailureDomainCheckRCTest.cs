@@ -17,11 +17,11 @@ using GPC.Checkers.Concrete.Helper;
 namespace ConcreteTests
 {
 	[TestClass]
-	public class ULSCheckConcreteTest : ConcreteTest
+	public class FailureDomainCheckRCTest : ConcreteTest
 	{
 
 		[TestMethod]
-		public void ULSDomainPointRectangularSectionTest1()
+		public void RectangularSectionTest1()
 		{
 			double rebarDiameter = 18;
 
@@ -65,7 +65,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void ULSDomainPointRectangularSectionTest2()
+		public void RectangularSectionTest2()
 		{
 			double rebarDiameter = 18;
 
@@ -105,7 +105,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void ULSDomainPointRectangularSectionTest3()
+		public void RectangularSectionTest3()
 		{
 			double rebarDiameter = 18;
 

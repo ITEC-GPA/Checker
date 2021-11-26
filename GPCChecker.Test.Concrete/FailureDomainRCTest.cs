@@ -21,7 +21,7 @@ namespace ConcreteTests
 	{
 
 		[TestMethod]
-		public void FailureDomainRectangularSectionTest1()
+		public void RectangularSectionTest1()
 		{
 			double rebarDiameter = 18;
 
@@ -105,7 +105,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void FailureDomainRectangularSectionTest2()
+		public void RectangularSectionTest2()
 		{
 			double rebarDiameter = 26;
 
@@ -189,7 +189,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void FailureDomainRectangularSectionTest3()
+		public void RectangularSectionTest3()
 		{
 			double rebarDiameter = 18;
 
@@ -278,7 +278,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void FailureDomainRectangularSectionTest4()
+		public void RectangularSectionTest4()
 		{
 			double rebarDiameter = 26;
 
@@ -374,7 +374,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void FailureDomainCircularSectionTest1()
+		public void CircularSectionTest1()
 		{
 			// sezione circolare diametro 500
 			double rebarDiameter = 16;
@@ -461,7 +461,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void FailureDomainCHSSectionTest1()
+		public void CHSSectionTest1()
 		{
 			double rebarDiameter = 26;
 			double diameterExternal = 1000;
@@ -527,7 +527,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void FailureDomainSectionTTest1()
+		public void SectionTTest1()
 		{
 			double rebarDiameter = 26;
 

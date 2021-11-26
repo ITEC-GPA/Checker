@@ -20,7 +20,7 @@ namespace ConcreteTests
 	{	
 
 		[TestMethod]
-		public void FailureDomainRectangularSectionPrestressedTest1()
+		public void RectangularSectionPrestressedTest1()
 		{
 			double rebarDiameter = 20;
 			double rebarDiameterPrestress = 20;
@@ -104,7 +104,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void FailureDomainRectangularSectionPrestressedTest2()
+		public void RectangularSectionPrestressedTest2()
 		{
 			double rebarDiameter = 20;
 			double rebarDiameterPrestress = 20;
@@ -189,7 +189,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		public void FailureDomainSectionTPrestressedTest1()
+		public void SectionTPrestressedTest1()
 		{
 			double rebarDiameter = 26;
 			double rebarDiameterPrestress = 20;

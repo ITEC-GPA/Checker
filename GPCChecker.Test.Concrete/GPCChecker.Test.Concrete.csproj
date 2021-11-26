@@ -94,7 +94,7 @@
     <Compile Include="FailureDomainPSCTest.cs" />
     <Compile Include="FailureDomainRCTest.cs" />
     <Compile Include="StressAnalysisRCTest.cs" />
-    <Compile Include="ULSCheckConcreteTest.cs" />
+    <Compile Include="FailureDomainCheckRCTest.cs" />
     <Compile Include="GeneralTest.cs" />
     <Compile Include="PerformanceTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
