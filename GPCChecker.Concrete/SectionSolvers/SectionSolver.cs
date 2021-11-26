@@ -910,23 +910,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     break;
 
                 case FailureZones.F3A:
-                    dTeta = Math.Min(deltaAngle, 0.025);
+                    dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.0001);
                     dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.00001);
                     break;
 
                 case FailureZones.F3B:
-                    dTeta = Math.Min(deltaAngle, 0.025);
-                    dEta = Math.Max(0.01 * Math.Min(deltaAngle, 0.01), 0.000001);
+                    dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.00001);
+                    dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.000001);
                     break;
 
                 case FailureZones.F4:
-                    dTeta = Math.Min(deltaAngle, 0.005);
-                    dEta = Math.Min(deltaAngle, 0.0001);
+                    dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.0001);
+                    dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.00001);
                     break;
 
                 default:
-                    dTeta = Math.Min(deltaAngle, 0.005);
-                    dEta = Math.Min(deltaAngle, 0.0001);
+                    dTeta = Math.Max(Math.Min(deltaAngle, 0.005), 0.0001);
+                    dEta = Math.Max(Math.Min(deltaAngle, 0.0001), 0.0001);
                     break;
             }
 
@@ -1081,15 +1081,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
                 double dT;
-
-                if (dTeta > 0.1)
-                    dT = Math.Pow(dTeta, 0.5);
-                else if (dTeta > 0.01)
-                    dT = Math.Pow(dTeta, 0.25);
-                else
-                    dT = Math.Pow(dTeta, 0.1);
-
                 double dE;
+
+                 
+                if (dTeta >= 0.1)
+                    dT = Math.Pow(dTeta, 0.75);
+                else if (dTeta >= 0.01)
+                    dT = Math.Pow(dTeta, 0.5);
+                else if (dTeta >= 0.001)
+                    dT = Math.Pow(dTeta, 0.3);
+                else
+                    dT = Math.Pow(dTeta, 0.2);
+
 
                 if (dEta >= 0.1)
                     dE = Math.Pow(dEta, 0.75);
