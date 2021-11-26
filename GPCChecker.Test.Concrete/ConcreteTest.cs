@@ -33,6 +33,16 @@ namespace ConcreteTests
 			adimBendingMomentY = forces.M2 / (b * b * h * fck);
 		}
 
+		protected virtual ForceTuple CalculateAdimensionalForces(IConcreteSection section, ForceTuple forces)
+		{
+			BoundingBox3d bBox = section.Shape.GetBoundingBox();
+			double h = bBox.Size.Y;
+			double b = bBox.Size.X;
+			double fck = Math.Abs(section.ConcreteMaterial.StressStrainTableCompression.GetMinimumStress());
+
+			return new ForceTuple(forces.N / (b * h * fck), forces.Mx / (b * h * h * fck), forces.My / (b * b * h * fck));			
+		}
+
 		protected virtual void CalculateAdimensionalForces(IConcreteSection section, double N, double Mx, double My, 
 			out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
 		{
@@ -104,7 +114,7 @@ namespace ConcreteTests
 			for (int i = 0; i < factor.Length; i++)
 			{
 				ResultBeamForces testForce = new ResultBeamForces(factor[i] * force.N, 0, 0, 0, factor[i] * force.M1, factor[i] * force.M2, force.CoordinateSystem);
-				failureDomainPoints[i] = solver.CalculateDomainPoint(testForce.ConvertToForceTuple(section.Centroid));
+				failureDomainPoints[i] = solver.CalculatePoint(testForce.ConvertToForceTuple(section.Centroid));
 			}
 
 			for (int i = 1; i < factor.Length; i++)
@@ -331,7 +341,7 @@ namespace ConcreteTests
 				return base.CalculateStressRebar(rebar, strain);
 			}
 
-			internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces)
+			internal FailureDomain.FailureDomainPoint CalculatePoint(ForceTuple targetLocalForces)
 			{
 				return base.CalculateDomainPoint(targetLocalForces);
 			}

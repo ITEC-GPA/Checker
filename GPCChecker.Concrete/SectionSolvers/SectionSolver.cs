@@ -612,11 +612,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double immersione = 0.5;
             double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
-            if(adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < angularTolerance && Math.Abs(adimOutputForces.My) < angularTolerance)
+            if(adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
                 failureIndex = FailureZones.F1;
             else if(adimOutputForces.N > 0.0)
                 failureIndex = FailureZones.F2A;
-            else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < angularTolerance && Math.Abs(adimOutputForces.My) < angularTolerance)
+            else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
 			{
                 failureIndex = FailureZones.F5;
                 immersione = 1.0;
