@@ -64,7 +64,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(n);
-			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension();
+			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(n);
 
 			(Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
 			{
@@ -144,7 +144,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(n);
-			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension();
+			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(n);
 
 			(Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
 			{
@@ -227,7 +227,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(n);
-			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension();
+			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(n);
 
 			(Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
 			{
@@ -317,7 +317,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(n);
-			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension();
+			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(n);
 
 			(Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
 			{
@@ -359,5 +359,63 @@ namespace ConcreteTests
 					Assert.IsTrue(Math.Abs((rebarTensions[i].tension - expRebarTensions[i].tension) / rebarTensions[i].tension) < tolerance);
 		}
 
+		[TestMethod]
+		public void VCA_N_5()
+		{
+			double tolerance = 0.05;
+			double h = 500;
+			double n = 15;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(h, 0),
+				new Point2d(h, h),
+				new Point2d(0, h)
+			}));
+
+			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C45_55;
+			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, new ReinforcedConcreteRebar[] {});
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis))
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
+
+			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(n);
+			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(n);
+
+			(Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+			{
+				(section.Shape.Fill[0], 0.0),
+				(section.Shape.Fill[1], -0.5759),
+				(section.Shape.Fill[2], -3.31),
+				(section.Shape.Fill[3], -0.5759),
+			};
+
+			Console.WriteLine($"Tensions associated with force {result[0].Force.N}, {result[0].Force.M1}, {result[0].Force.M2} ");
+
+			for (int i = 0; i < rebarTensions.Length; i++)
+				Console.WriteLine($"Rebar {i}: {rebarTensions[i].rebar.Position.X}, {rebarTensions[i].rebar.Position.Y}. " +
+					$"Tension = {Math.Round(rebarTensions[i].tension, 2)}");
+
+			for (int i = 0; i < concreteTensions.Length; i++)
+				Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
+
+			for (int i = 0; i < section.Shape.Fill.Count; i++)
+				if (concreteTensions[i].tension != 0)
+					Assert.IsTrue(Math.Abs((concreteTensions[i].tension - expConcreteTensions[i].tension) / concreteTensions[i].tension) < tolerance);
+
+		}
 	}
 }

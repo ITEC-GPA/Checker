@@ -278,7 +278,7 @@ namespace ConcreteTests
 		[TestMethod]
 		public void VCA_4()
 		{
-			double tolerance = 0.05;
+			double tolerance = 0.06;
 			double elasticModulusFactor = 0.85 / 1.5;
 			double elasticModulus = 36.283;
 			double rebarDiameter = 26;
