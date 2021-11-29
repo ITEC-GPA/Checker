@@ -56,7 +56,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                                                                     (SectionSolver.FailureZones.F4, 1),
                                                                                     (SectionSolver.FailureZones.F5, 4) };
 
-            MomentsDiscretizations = 32;
+            MomentsDiscretizations = 64;
 
             GaussIntegrationQuadLowPoints = 12;
             GaussIntegrationQuadMidPoints = 49;

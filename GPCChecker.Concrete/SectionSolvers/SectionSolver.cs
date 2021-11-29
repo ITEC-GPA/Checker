@@ -769,21 +769,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Point on failure domain
 
-        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, double angularTolerance = 0.001)
+        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
         {
             ForceTuple adimOutputForces = ConvertToAdimensionalForces(targetLocalForces);
             Vector3d vectorEd = new Vector3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N);
 
-            FailureZones failureIndex;
-
             // Valori di primo tentativo
-            double immersione = 0.5;
+            FailureZones failureIndex;
+            double immersione;
             double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
             if(adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
+			{
                 failureIndex = FailureZones.F1;
+                immersione = 0.75;
+            }                
             else if(adimOutputForces.N > 0.0)
+			{
                 failureIndex = FailureZones.F2A;
+                immersione = 0.5;
+            }             
             else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
 			{
                 failureIndex = FailureZones.F5;
@@ -816,6 +821,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             int id = 1;
 
             ForceTuple forces = CalculateForceResultant(strainPlane);
+            ForceTuple adimIncrement = ConvertToAdimensionalForces(forces);
 
             (double deltaTeta, double deltaImmersione, Vector3d distanceToTarget) increment;
 
@@ -825,7 +831,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 do
                 {
-                    if (id < 50)
+                    if (id < 100)
                     {
                         try
                         {
@@ -870,7 +876,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, distances, id);
                         forces = CalculateForceResultant(strainPlane);
 
+                        ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
+                        adimIncrement = ConvertToAdimensionalForces(incrementForce);
+
                         angle = new Vector3d(forces.Mx, forces.My, forces.N).AngleTo(vectorEd);
+
+                        if ((Math.Abs(adimIncrement.N) < distanceTolerance &&
+                            Math.Abs(adimIncrement.Mx) < distanceTolerance &&
+                            Math.Abs(adimIncrement.My) < distanceTolerance))
+                            break;
                     }
                     else
                     {
@@ -888,6 +902,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             var adimIteractionPoint = ConvertToAdimensionalForces(iterationPoint);
             Line3d externalForcesLine = new Line3d(new Point3d(0, 0, 0), externalForces);
+            Vector3d externalForcesVector = new Vector3d(new Point3d(0, 0, 0), externalForces);
 
             double dTeta;
             double dEta;
@@ -911,7 +926,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 case FailureZones.F3A:
                     dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.0001);
-                    dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.00001);
+                    dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.00001);
                     break;
 
                 case FailureZones.F3B:
@@ -1060,7 +1075,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (!intersect)
             {
-                return (0.1, 0.5, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                return (0.1, 0.3, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
             }
             else
             {
@@ -1086,25 +1101,50 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                  
                 if (dTeta >= 0.1)
                     dT = Math.Pow(dTeta, 0.75);
-                else if (dTeta >= 0.01)
+                else if (dTeta > 0.01)
                     dT = Math.Pow(dTeta, 0.5);
-                else if (dTeta >= 0.001)
+                else if (dTeta > 0.001)
                     dT = Math.Pow(dTeta, 0.3);
                 else
                     dT = Math.Pow(dTeta, 0.2);
 
-
                 if (dEta >= 0.1)
                     dE = Math.Pow(dEta, 0.75);
-                else if (dEta >= 0.01)
+                else if (dEta > 0.01)
                     dE = Math.Pow(dEta, 0.5);
-                else if (dEta >= 0.001)
+                else if (dEta > 0.001)
                     dE = Math.Pow(dEta, 0.3);
                 else
                     dE = Math.Pow(dEta, 0.2);
 
+                if (Math.Abs(results[1, 0]) < 0.01)
+                    dE = 1.0;
+                else if (Math.Abs(results[1, 0]) < 0.1)
+                    dE = 0.5;
+
+
                 double deltaTeta = results[0, 0] * dT / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorTeta), 1.0));
                 double deltaImmersione = results[1, 0] * dE / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorEta), 1.0));
+
+                double dotProduct = externalForcesVector * v;
+
+                if (iterationPoint.Mx < 0 && iterationPoint.My < 0)
+                {
+                    deltaTeta *= -1;
+                }
+                else if (iterationPoint.Mx < 0 && iterationPoint.My > 0)
+                {
+                    deltaTeta *= -1;
+                }
+                else if (iterationPoint.Mx > 0 && iterationPoint.My < 0)
+                {
+
+                }
+                else if (iterationPoint.Mx > 0 && iterationPoint.My > 0 )
+                {
+
+                }
+
 
                 return (deltaTeta, deltaImmersione, v);
             }
