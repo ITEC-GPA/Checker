@@ -34,7 +34,7 @@ namespace ConcreteTests
 				new Point2d(0, 500) 
 			}));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
@@ -54,9 +54,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 
-			Debugger.Break();	
-
-			//ShowDomainPoints(failureDomain.Domain);
+			ShowDomainPoints(failureDomain.Domain);
 			//ExportToGmsh(failureDomain.Domain);
 			
 			//Assert.IsTrue(CommonAssertsModelCode (section, standard, failureDomain));
@@ -141,7 +139,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 
@@ -230,7 +228,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 
@@ -327,7 +325,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 
@@ -413,7 +411,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			//// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 
@@ -479,7 +477,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 
@@ -573,7 +571,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 

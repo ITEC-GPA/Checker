@@ -111,11 +111,22 @@ namespace ConcreteTests
 			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
 			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
 
-			for (int i = 0; i < factor.Length; i++)
+			int j = 0;
+
+			try
 			{
-				ResultBeamForces testForce = new ResultBeamForces(factor[i] * force.N, 0, 0, 0, factor[i] * force.M1, factor[i] * force.M2, force.CoordinateSystem);
-				failureDomainPoints[i] = solver.CalculatePoint(testForce.ConvertToForceTuple(section.Centroid));
+				for (j = 0; j < factor.Length; j++)
+				{
+					ResultBeamForces testForce = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
+					failureDomainPoints[j] = solver.CalculatePoint(testForce.ConvertToForceTuple(section.Centroid));
+				}
 			}
+			catch (Exception e)
+			{
+				Console.WriteLine($"Fail to calculate domain point {j}, {e.Message}");
+				return false;
+			}
+			
 
 			for (int i = 1; i < factor.Length; i++)
 			{
