@@ -193,6 +193,7 @@ namespace GPC.Checkers.Concrete.Results
             await Task.Run(() => {
                 var point = _sectionSolver.CalculateDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
                 failureDomainPoint = point;
+                _forces.RemoveAt(index);
                 _forces.Insert(index, new FailureDomain.FailureDomainForce(forces, point));
             });
 
