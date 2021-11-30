@@ -372,6 +372,49 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		public void SquareSectionTest1()
+		{
+			double rebarDiameter = 18;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(300, 0),
+				new Point2d(300, 300),
+				new Point2d(0, 300)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),				
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,250,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(100, 250, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(150, 250, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(200, 250, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			var failureDomain = sectionChecker.GetFailureDomainResult();
+			//ShowDomainPoints(failureDomain.Domain);
+			ExportToGmsh(failureDomain.Domain);
+						
+		}
+
+		[TestMethod]
 		public void CircularSectionTest1()
 		{
 			// sezione circolare diametro 500
