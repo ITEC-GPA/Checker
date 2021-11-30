@@ -371,5 +371,104 @@ namespace ConcreteTests
 					Assert.IsTrue(Math.Abs((rebarTensions[i].tension - expRebarTensions[i].tension) / rebarTensions[i].tension) < tolerance);
 		}
 
+		[TestMethod]
+		public void VCA_5()
+		{
+			double tolerance = 0.06;
+
+			double elasticModulusFactorComp = 0.85 / 1.5;
+			double elasticModulusFactorTens = 1.0 / 1.5;
+			double elasticModulus = 36.283;
+
+			double rebarDiameter = 8;
+			double h = 500;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(h, 0),
+				new Point2d(h, h),
+				new Point2d(0, h)
+			}));
+
+			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 0.0,
+				new StressStrainTable(new double[] { 0, -elasticModulus / elasticModulusFactorComp, -2.0 * elasticModulus / elasticModulusFactorComp },
+				new double[] { 0, -0.001, -0.002 }),
+				new StressStrainTable(new double[] { 0, elasticModulus / elasticModulusFactorTens }, new double[] { 0, 0.001 }));
+			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(450, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(150, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(450, 450, 0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 40 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult();
+
+			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension();
+			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension();
+
+			(Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+			{
+				(section.Shape.Fill[0], 1.88),
+				(section.Shape.Fill[1], 1.88),
+				(section.Shape.Fill[2], -1.88),
+				(section.Shape.Fill[3], -1.88),
+			};
+
+			(ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+			{
+				(rebars[0], 8.273),
+				(rebars[1], 8.273),
+				(rebars[2], 8.273),
+				(rebars[3], 8.273),
+				(rebars[4], 8.273),
+				(rebars[5], -8.273),
+				(rebars[6], -8.273),
+				(rebars[7], -8.273),
+				(rebars[8], -8.273),
+				(rebars[9], -8.273),
+			};
+
+			Console.WriteLine($"Tensions associated with force {result[0].Force.N}, {result[0].Force.M1}, {result[0].Force.M2} ");
+
+			for (int i = 0; i < rebarTensions.Length; i++)
+				Console.WriteLine($"Rebar {i}: {rebarTensions[i].rebar.Position.X}, {rebarTensions[i].rebar.Position.Y}. " +
+					$"Tension = {Math.Round(rebarTensions[i].tension, 2)}");
+
+			for (int i = 0; i < concreteTensions.Length; i++)
+				Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
+
+			for (int i = 0; i < section.Shape.Fill.Count; i++)
+				if (concreteTensions[i].tension != 0)
+					Assert.IsTrue(Math.Abs((concreteTensions[i].tension - expConcreteTensions[i].tension) / concreteTensions[i].tension) < tolerance);
+
+			for (int i = 0; i < rebarTensions.Length; i++)
+				if (rebarTensions[i].tension != 0)
+					Assert.IsTrue(Math.Abs((rebarTensions[i].tension - expRebarTensions[i].tension) / rebarTensions[i].tension) < tolerance);
+		}
+
 	}
 }

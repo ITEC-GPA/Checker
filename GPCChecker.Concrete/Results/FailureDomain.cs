@@ -27,6 +27,16 @@ namespace GPC.Checkers.Concrete.Results
 
 			for (int i = 0; i < _domainPoints.Length - 1; i++)
 			{
+				for (int j = 1; j < 2; j++)
+				{
+					mesh.AddFaceMesh(new Point3d[]
+					{
+						_domainPoints[i][j].Point,
+						_domainPoints[i][j + 1].Point,
+						_domainPoints[i + 1][j + 1].Point,
+					});
+				}
+
 				for (int j = 2; j < _domainPoints[i].Length - 2; j++)
 				{
 					mesh.AddFaceMesh(new Point3d[]

@@ -626,11 +626,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                     case FailureZones.F5:
                         {
-                            for (int j = 0; j <= subdivision; j++)
+                            for (int j = 0; j < subdivision; j++)
                             {
                                 strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision, sectionDistances, subIndex), failureZones);
                                 subIndex++;
                             }
+
+                            strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, 1.0, sectionDistances, subIndex), failureZones);
 
                             break;
                         }

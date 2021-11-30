@@ -813,6 +813,59 @@ namespace ConcreteTests
 			for (int i = 0; i < section.Shape.Fill.Count; i++)
 				if (concreteTensions[i].tension != 0)
 					Assert.IsTrue(Math.Abs((concreteTensions[i].tension - expConcreteTensions[i].tension) / concreteTensions[i].tension) < tolerance);
+		}
+
+		[TestMethod]
+		public void VCA_N_T_6()
+		{
+			double tolerance = 0.05;
+			double h = 500;
+			double n = 15;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(h, 0),
+				new Point2d(h, h),
+				new Point2d(0, h)
+			}));
+
+			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
+			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, new ReinforcedConcreteRebar[] { });
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis))
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
+
+			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(n);
+
+			(Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+			{
+				(section.Shape.Fill[0], 2.4),
+				(section.Shape.Fill[1], 2.4),
+				(section.Shape.Fill[2], -2.4),
+				(section.Shape.Fill[3], -2.4),
+			};
+
+			Console.WriteLine($"Tensions associated with force {result[0].Force.N}, {result[0].Force.M1}, {result[0].Force.M2} ");
+
+			for (int i = 0; i < concreteTensions.Length; i++)
+				Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
+
+			for (int i = 0; i < section.Shape.Fill.Count; i++)
+				if (concreteTensions[i].tension != 0)
+					Assert.IsTrue(Math.Abs((concreteTensions[i].tension - expConcreteTensions[i].tension) / concreteTensions[i].tension) < tolerance);
 
 		}
 	}
