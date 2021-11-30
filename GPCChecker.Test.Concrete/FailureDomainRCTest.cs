@@ -13,6 +13,7 @@ using GPC.Checkers.Concrete.Attributes;
 using GPC.Model.Results;
 using GPC.TestUtilities;
 using System.Diagnostics;
+using GPC.Geometry.Meshes;
 
 namespace ConcreteTests
 {
@@ -56,6 +57,9 @@ namespace ConcreteTests
 
 			ShowDomainPoints(failureDomain.Domain);
 			//ExportToGmsh(failureDomain.Domain);
+
+			Mesh mesh = failureDomain.Domain.BuildMesh();
+			ExportToGmsh(mesh);
 			
 			//Assert.IsTrue(CommonAssertsModelCode (section, standard, failureDomain));
 
@@ -454,7 +458,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 			ShowDomainPoints(failureDomain.Domain);
-			//ExportToGmsh(failureDomain.Domain);
+			ExportToGmsh(failureDomain.Domain);
 
 			//// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 
@@ -614,6 +618,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 			ShowDomainPoints(failureDomain.Domain);
+
 			//ExportToGmsh(failureDomain.Domain);
 
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));

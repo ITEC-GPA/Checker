@@ -465,7 +465,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             if (strain < 0)
                 return _concreteSection.ConcreteMaterial.E * strain;
             else
-                return 0.0;
+                return _concreteSection.ConcreteMaterial.E * strain;    //TODO: implementare con cls in trazione
         }
 
         internal double CalculateSigmaS(double n, double strain)

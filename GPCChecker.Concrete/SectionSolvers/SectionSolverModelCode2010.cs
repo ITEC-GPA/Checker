@@ -121,7 +121,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
             {
                 //TODO: sistemare CalculateSigmaC quando si gestirà il calcestruzzo in trazione
-                return 0;// ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFctd() / ConcreteMaterialModelCode2010.Fctk;
+                return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFctd() / ConcreteMaterialModelCode2010.Fctk;
             }
         }
 
