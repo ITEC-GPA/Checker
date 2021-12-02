@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Windows;
 using System.Threading.Tasks;
+using System.Windows;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
@@ -52,7 +52,7 @@ namespace ConcreteTests
 
             var stressResult = sectionChecker.GetStressAnalysisResultAsync();
 
-            Task.WaitAll(new[] {stressResult}); 
+            Task.WaitAll(new[] { stressResult });
 
             Assert.IsTrue(stressResult.Result.Length == forces.Count);
         }
@@ -68,7 +68,7 @@ namespace ConcreteTests
             ConcreteSectionRectangular concreteSectionRectangular1 = new ConcreteSectionRectangular(500, 300,
                                                                     new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 
-            concreteSectionRectangular1.AddRebar(new ReinforcedConcreteRebar(1, rebarPhi201, new Point3d(50, 50, 0)) );
+            concreteSectionRectangular1.AddRebar(new ReinforcedConcreteRebar(1, rebarPhi201, new Point3d(50, 50, 0)));
 
 
             ConcreteSectionRectangular concreteSectionRectangular2 = new ConcreteSectionRectangular(500, 300,
