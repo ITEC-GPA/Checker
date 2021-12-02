@@ -211,30 +211,12 @@ namespace ConcreteTests
 		[TestMethod]
 		public void RectangularSectionIntegration6()
 		{
-			double rebarDiameter = 18;
-
 			double chiX = 0.0;
 			double chiY = 0.0;
 			double strainRefPoint = +0.01;
 
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {
-				new Point2d(0, 0),
-				new Point2d(300, 0),
-				new Point2d(300, 500),
-				new Point2d(0, 500) }));
+			var section = base.GetRectangularSection4Rebars(300, 500, 18, 50, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
-
-			int k = 0;
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  new ReinforcedConcreteRebar(k++, rebar, new Point3d(50,50,0)),
-																				new ReinforcedConcreteRebar(k++, rebar, new Point3d(250, 50, 0)),
-																				new ReinforcedConcreteRebar(k++, rebar, new Point3d(250,450,0)),
-																				new ReinforcedConcreteRebar(k++, rebar, new Point3d(50,450,0))};
-
-
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			StrainPlane strainPlane = new StrainPlane(chiX, chiY, section.Centroid, strainRefPoint);
@@ -242,6 +224,8 @@ namespace ConcreteTests
 			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
 
 			ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
+
+			var rebars = section.GetRebars();
 
 			double axialForce = 0;
 			for (int i = 0; i < rebars.Length; i++)
@@ -261,27 +245,8 @@ namespace ConcreteTests
 			double chiY = -1e-3 / 500;
 			double strainRefPoint = +0.0;
 
-			double rebarDiameter = 18;
+			var section = base.GetRectangularSection4Rebars(300, 500, 18, 50);
 
-			// sezione rettangolare 300x500
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {
-				new Point2d(0, 0),
-				new Point2d(300, 0),
-				new Point2d(300, 500),
-				new Point2d(0, 500) }));
-
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
-			
-			int k = 0;
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
-				new ReinforcedConcreteRebar(k++, rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(k++, rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(k++, rebar, new Point3d(250,450,0)),
-				new ReinforcedConcreteRebar(k++, rebar, new Point3d(50,450,0))};
-
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-			section.AddRebars(rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			StrainPlane strainPlane = new StrainPlane(chiX, chiY, section.Centroid, strainRefPoint);
@@ -313,7 +278,7 @@ namespace ConcreteTests
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("",200000, 450, 510));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
-				new ReinforcedConcreteRebar(1, rebar, new Point3d(150,50,0)) };
+				new ReinforcedConcreteRebar(rebar, new Point3d(150,50,0)) };
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 			section.AddRebars(rebars);

@@ -42,13 +42,12 @@ namespace ConcreteTests
             ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
-            int i = 0;
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(concreteCover, concreteCover, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width - concreteCover, concreteCover, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width - concreteCover, height - concreteCover, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(concreteCover, height - concreteCover, 0))
+                new ReinforcedConcreteRebar(rebar, new Point3d(concreteCover, concreteCover, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(width - concreteCover, concreteCover, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(width - concreteCover, height - concreteCover, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(concreteCover, height - concreteCover, 0))
             };
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
@@ -78,17 +77,16 @@ namespace ConcreteTests
             ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
-            int i = 0;
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(concreteCover, concreteCover, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width / 2.0, concreteCover, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width - concreteCover, concreteCover, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width - concreteCover, height / 2.0, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width - concreteCover, height - concreteCover, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width / 2.0, height - concreteCover, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(concreteCover, height - concreteCover, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(concreteCover, height / 2.0, 0))
+                new ReinforcedConcreteRebar(rebar, new Point3d(concreteCover, concreteCover, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(width / 2.0, concreteCover, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(width - concreteCover, concreteCover, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(width - concreteCover, height / 2.0, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(width - concreteCover, height - concreteCover, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(width / 2.0, height - concreteCover, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(concreteCover, height - concreteCover, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(concreteCover, height / 2.0, 0))
             };
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
@@ -119,13 +117,12 @@ namespace ConcreteTests
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
 
-            int i = 0;
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[2 * numberOfRebars];
 
             for (int j = 0; j < numberOfRebars; j++)
             {
-                rebars[j] = new ReinforcedConcreteRebar(i++, rebar, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), concreteCover));
-                rebars[2 * numberOfRebars - 1 - j] = new ReinforcedConcreteRebar(i++, rebar, 
+                rebars[j] = new ReinforcedConcreteRebar(rebar, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), concreteCover));
+                rebars[2 * numberOfRebars - 1 - j] = new ReinforcedConcreteRebar(rebar, 
                     new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), height - concreteCover));                
             }
 

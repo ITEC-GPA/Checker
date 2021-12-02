@@ -21,28 +21,8 @@ namespace ConcreteTests
 			double rebarDiameter = 26;
 
 			// sezione rettangolare 300x500
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-			{
-				new Point2d(0, 0),
-				new Point2d(300, 0),
-				new Point2d(300, 500),
-				new Point2d(0, 500)
-			}));
+			var section = GetRectangularSection4Rebars();
 
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
-
-			int k = 0;
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(k++, rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(k++, rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(k++, rebar, new Point3d(250,450,0)),
-				new ReinforcedConcreteRebar(k++, rebar, new Point3d(50,450,0))
-			};
-
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-			section.AddRebars(rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			ResultBeamForces[] forces = new ResultBeamForces[] 
