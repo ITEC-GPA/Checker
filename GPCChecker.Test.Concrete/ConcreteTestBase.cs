@@ -453,8 +453,8 @@ namespace ConcreteTests
 
         internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
         {
-            internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, int id = -1)
-                : base(section, standard, id)
+            internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = -1)
+                : base(section, standard, considerTensileConcrete, id)
             {
             }
 

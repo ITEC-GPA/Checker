@@ -499,7 +499,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return _concreteSection.ConcreteMaterial.E * n * strain;
         }
 
-        protected virtual (int dMinRebarIndex, double dminRebar, int dMaxRebarIndex, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete)
+        protected virtual (int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete)
             CalculateMaxMinSectionDistances(double teta)
         {
             double cosTeta = Math.Cos(teta);
@@ -510,8 +510,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double dmaxConcrete = double.MinValue;
             double dminConcrete = double.MaxValue;
 
-            int dMinRebarIndex = -1;
-            int dMaxRebarIndex = -1;
+            int dMinRebarId = -1;
+            int dMaxRebarId = -1;
             int dMaxVertexIndex = -1;
             int dMinVertexIndex = -1;
 
@@ -523,13 +523,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (w1 <= dminRebar)
                 {
                     dminRebar = w1;
-                    dMinRebarIndex = r;
+                    dMinRebarId = rebars[r].Id;
                 }
 
                 if (w1 >= dmaxRebar)
                 {
                     dmaxRebar = w1;
-                    dMaxRebarIndex = r;
+                    dMaxRebarId = rebars[r].Id;
                 }
             }
 
@@ -553,7 +553,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             }
 
-            return (dMinRebarIndex, dminRebar, dMaxRebarIndex, dmaxRebar, dMinVertexIndex, dminConcrete, dMaxVertexIndex, dmaxConcrete);
+            return (dMinRebarId, dminRebar, dMaxRebarId, dmaxRebar, dMinVertexIndex, dminConcrete, dMaxVertexIndex, dmaxConcrete);
         }
 
         protected virtual ForceTuple ConvertToAdimensionalForces(ForceTuple forceTuple)
@@ -629,7 +629,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             (StrainPlane, FailureZones)[] strainPlanes = new (StrainPlane, FailureZones)[zoneSubdivision.Select(i => i.Item2).Sum() + zoneSubdivision.Length + 1];
 
-            (int dMinRebarIndex, double dminRebar, int dMaxRebarIndex, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) sectionDistances
+            (int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) sectionDistances
                 = CalculateMaxMinSectionDistances(teta);
 
             int subIndex = 0;
@@ -690,8 +690,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <remarks>Param distances can be calculated with CalculateMaxMinSectionDistances method</remarks>
         /// <exception cref="ArgumentException"></exception>
         protected virtual StrainPlane CalculateStrainPlane(double teta, FailureZones failureIndex, double immersioneNelCampo,
-            (int dMinRebarIndex, double dminRebar, int dMaxRebarIndex, double dmaxRebar, int dMinVertexIndex, double dminConcrete,
-            int dMaxVertexIndex, double dmaxConcrete) distances, int id = -1)
+            (int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances, int id = -1)
         {
             if (immersioneNelCampo > 1.0 || immersioneNelCampo < 0.0)
                 throw new ArgumentException("ImmersioneNelCampo cannot be greater than 1 and less than 0");
@@ -708,44 +707,44 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 case FailureZones.F1:
 
                     chiSx = 0;
-                    chiDx = GetDesignUltimateStrainRebar(distances.dMinRebarIndex) / (distances.dmaxConcrete - distances.dminRebar);
+                    chiDx = GetDesignUltimateStrainRebar(distances.dMinRebarId) / (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(rebars[distances.dMinRebarIndex].Position, teta, chi,
-                        GetDesignUltimateStrainRebar(distances.dMinRebarIndex), id);
+                    strainPlane = new StrainPlane(rebars[distances.dMinRebarId].Position, teta, chi,
+                        GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
                     break;
 
 
                 case FailureZones.F2A:
 
-                    chiSx = GetDesignUltimateStrainRebar(distances.dMinRebarIndex) / (distances.dmaxConcrete - distances.dminRebar);
-                    chiDx = (GetDesignUltimateStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetYieldingStrainConcreteCompression())) /
+                    chiSx = GetDesignUltimateStrainRebar(distances.dMinRebarId) / (distances.dmaxConcrete - distances.dminRebar);
+                    chiDx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression())) /
                         (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(rebars[distances.dMinRebarIndex].Position, teta, chi,
-                        GetDesignUltimateStrainRebar(distances.dMinRebarIndex), id);
+                    strainPlane = new StrainPlane(rebars[distances.dMinRebarId].Position, teta, chi,
+                        GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
                     break;
 
 
                 case FailureZones.F2B:
 
-                    chiSx = (GetDesignUltimateStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetYieldingStrainConcreteCompression())) /
+                    chiSx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression())) /
                     (distances.dmaxConcrete - distances.dminRebar);
-                    chiDx = (GetDesignUltimateStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetUltimateStrainConcreteCompression())) /
+                    chiDx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
                         (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(rebars[distances.dMinRebarIndex].Position, teta, chi,
-                        GetDesignUltimateStrainRebar(distances.dMinRebarIndex), id);
+                    strainPlane = new StrainPlane(rebars[distances.dMinRebarId].Position, teta, chi,
+                        GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
                     break;
 
 
                 case FailureZones.F3A:
 
-                    chiSx = (GetDesignUltimateStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetUltimateStrainConcreteCompression())) /
+                    chiSx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
                         (distances.dmaxConcrete - distances.dminRebar);
-                    chiDx = (GetDesignYieldingStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetUltimateStrainConcreteCompression())) /
+                    chiDx = (GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
                         (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
@@ -756,7 +755,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 case FailureZones.F3B:
 
-                    chiSx = (GetDesignYieldingStrainRebar(distances.dMinRebarIndex) + Math.Abs(GetUltimateStrainConcreteCompression())) /
+                    chiSx = (GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
                         (distances.dmaxConcrete - distances.dminRebar);
                     chiDx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
 
