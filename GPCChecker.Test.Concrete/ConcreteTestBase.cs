@@ -137,6 +137,25 @@ namespace ConcreteTests
             return new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis);
 		}
 
+        protected ConcreteMaterialEN1992 GetLinearConcreteMaterial(double elasticModulus)
+		{
+            double elasticModulusFactor = 0.85 / 1.5;
+
+            return new ConcreteMaterialEN1992("", 0.0,
+                new StressStrainTable(new double[] { 0, -elasticModulus / elasticModulusFactor, -2.0 * elasticModulus / elasticModulusFactor }, new double[] { 0, -0.001, -0.002 }),
+                new StressStrainTable(new double[] { 0, 0 }, new double[] { 0, 0.001 }));
+        }
+
+        protected ConcreteMaterialEN1992 GetLinearConcreteMaterialTensile(double elasticModulus)
+        {
+            double elasticModulusFactor = 0.85 / 1.5;
+            double elasticModulusFactorTens = 1.0 / 1.5;
+
+            return new ConcreteMaterialEN1992("", 0.0,
+                new StressStrainTable(new double[] { 0, -elasticModulus / elasticModulusFactor, -2.0 * elasticModulus / elasticModulusFactor }, new double[] { 0, -0.001, -0.002 }),
+                new StressStrainTable(new double[] { 0, elasticModulus / elasticModulusFactorTens }, new double[] { 0, 0.001 }));
+        }
+
         protected virtual void CalculateAdimensionalForces(IConcreteSection section, ResultBeamForces forces,
             out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
         {
@@ -172,6 +191,8 @@ namespace ConcreteTests
             adimBendingMomentX = Mx / (b * h * h * fck);
             adimBendingMomentY = My / (b * b * h * fck);
         }
+
+
 
         protected bool SLSCommonAssertModelCode(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
             StandardModelCode2010 standard)
@@ -278,6 +299,169 @@ namespace ConcreteTests
             }
 
             return true;
+        }
+
+        protected void ShowDomainPoints(FailureDomain failureDomain)
+        {
+            for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
+                for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
+                    Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd)}, " +
+                                      $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd)}, " +
+                                      $"{Math.Round(failureDomain.DomainPoints[i][j].NRd)}");
+        }
+
+        protected bool CommonAssertsModelCode(IConcreteSection section, StandardModelCode2010 standard, FailureDomain failureDomain, double errorPercentage = 5.0)
+        {
+            List<Point3d> failureDomainPoints = new List<Point3d>();
+
+            Point3d NRdMin = new Point3d(double.MaxValue, double.MaxValue, double.MaxValue);
+            Point3d MxRdMin = new Point3d(double.MaxValue, double.MaxValue, double.MaxValue);
+            Point3d MyRdMin = new Point3d(double.MaxValue, double.MaxValue, double.MaxValue);
+            Point3d NRdMax = new Point3d(double.MinValue, double.MinValue, double.MinValue);
+            Point3d MxRdMax = new Point3d(double.MinValue, double.MinValue, double.MinValue);
+            Point3d MyRdMax = new Point3d(double.MinValue, double.MinValue, double.MinValue);
+
+            for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
+            {
+                for (int j = 0; j < failureDomain.DomainPoints[i].Length; j++)
+                {
+                    failureDomainPoints.Add(failureDomain.DomainPoints[i][j].Point);
+
+                    if (failureDomain.DomainPoints[i][j].Point.Z < NRdMin.Z)
+                        NRdMin = failureDomain.DomainPoints[i][j].Point;
+
+                    if (failureDomain.DomainPoints[i][j].Point.X < MxRdMin.X)
+                        MxRdMin = failureDomain.DomainPoints[i][j].Point;
+
+                    if (failureDomain.DomainPoints[i][j].Point.Y < MyRdMin.Y)
+                        MyRdMin = failureDomain.DomainPoints[i][j].Point;
+
+                    if (failureDomain.DomainPoints[i][j].Point.Z > NRdMax.Z)
+                        NRdMax = failureDomain.DomainPoints[i][j].Point;
+
+                    if (failureDomain.DomainPoints[i][j].Point.X > MxRdMax.X)
+                        MxRdMax = failureDomain.DomainPoints[i][j].Point;
+
+                    if (failureDomain.DomainPoints[i][j].Point.Y > MyRdMax.Y)
+                        MyRdMax = failureDomain.DomainPoints[i][j].Point;
+                }
+            }
+
+            // valore per campo di deformazione 6 (epsilon 0.2% costante)
+            double pureCompressionAxialForce = section.Shape.GetArea() * ((ConcreteMaterialModelCode2010)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC;
+            double pureCompressionMomentX = 0;
+            double pureCompressionMomentY = 0;
+
+
+            foreach (var rebar in section.GetRebars())
+            {
+                pureCompressionAxialForce += rebar.Area * (rebar.RebarMaterial.Fyk / standard.GammaS -
+                    ((ConcreteMaterialModelCode2010)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC);
+                pureCompressionMomentX += rebar.Area * (rebar.RebarMaterial.Fyk / standard.GammaS) *
+                    (rebar.Position.Y - section.Centroid.Y);
+                pureCompressionMomentY += rebar.Area * (rebar.RebarMaterial.Fyk / standard.GammaS) *
+                    (rebar.Position.X - section.Centroid.X);
+            }
+
+
+            if (Math.Abs((Math.Abs(NRdMin.Z) - Math.Abs(pureCompressionAxialForce)) / NRdMin.Z) * 100 > errorPercentage)
+                return false;
+            if (Math.Abs((Math.Abs(NRdMin.X) - Math.Abs(pureCompressionMomentX)) / NRdMin.X) * 100 > errorPercentage &&
+                (Math.Abs(NRdMin.X) > 1 && Math.Abs(pureCompressionMomentX) > 1))
+                return false;
+            if (Math.Abs((Math.Abs(NRdMin.Y) - Math.Abs(pureCompressionMomentY)) / NRdMin.Y) * 100 > errorPercentage &&
+                (Math.Abs(NRdMin.Y) > 1 && Math.Abs(pureCompressionMomentY) > 1))
+                return false;
+
+            // valore per campo di deformazione 1 (epsilon 7.5% costante)
+            double pureTractionAxialForce = 0.0;
+            double pureTractionMomentX = 0;
+            double pureTractionMomentY = 0;
+
+
+            foreach (var rebar in section.GetRebars())
+            {
+                pureTractionAxialForce += rebar.Area * rebar.RebarMaterial.Fyk / standard.GammaS;
+                pureTractionMomentX += rebar.Area * rebar.RebarMaterial.Fyk / standard.GammaS * (rebar.Position.Y - section.Centroid.Y);
+                pureTractionMomentY += rebar.Area * rebar.RebarMaterial.Fyk / standard.GammaS * (rebar.Position.X - section.Centroid.X);
+            }
+
+
+            if (Math.Abs((Math.Abs(NRdMax.Z) - Math.Abs(pureTractionAxialForce)) / NRdMax.Z) * 100 > errorPercentage)
+                return false;
+            if (Math.Abs((Math.Abs(NRdMax.X) - Math.Abs(pureTractionMomentX)) / NRdMax.X) * 100 > errorPercentage &&
+                (Math.Abs(NRdMax.X) > 1 && Math.Abs(pureTractionMomentX) > 1))
+                return false;
+            if (Math.Abs((Math.Abs(NRdMax.Y) - Math.Abs(pureTractionMomentY)) / NRdMax.Y) * 100 > errorPercentage &&
+                (Math.Abs(NRdMax.X) > 1 && Math.Abs(pureTractionMomentY) > 1))
+                return false;
+
+            return true;
+        }
+
+        protected bool CommonAssertsVCA(StressAnalysisResult result, IConcreteSection section, (Point2d rebar, double tension)[] concreteTensionsCalculate, 
+            (ReinforcedConcreteRebar rebar, double tension)[] rebarTensionsCalculate, double tolerance = 0.05)
+		{
+            (Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension();
+            (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result.GetRebarsTension();
+
+            Console.WriteLine($"Tensions associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} ");
+
+            for (int i = 0; i < rebarTensions.Length; i++)
+                Console.WriteLine($"Rebar {i}: {rebarTensions[i].rebar.Position.X}, {rebarTensions[i].rebar.Position.Y}. " +
+                    $"Tension = {Math.Round(rebarTensions[i].tension, 2)}");
+
+            for (int i = 0; i < concreteTensions.Length; i++)
+                Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
+
+            for (int i = 0; i < section.Shape.Fill.Count; i++)
+                if (concreteTensions[i].tension != 0)
+                    Assert.IsTrue(Math.Abs((concreteTensions[i].tension - concreteTensionsCalculate[i].tension) / concreteTensions[i].tension) < tolerance);
+
+            for (int i = 0; i < rebarTensions.Length; i++)
+                if (rebarTensions[i].tension != 0)
+                    Assert.IsTrue(Math.Abs((rebarTensions[i].tension - rebarTensionsCalculate[i].tension) / rebarTensions[i].tension) < tolerance);
+
+            return true;
+        }
+
+        protected bool CommonAssertsAbacus(IConcreteSection section, ForceTuple expForce, FailureDomainResult failureDomain, double adimTolerance = 0.05)
+		{
+            bool check = false;
+            double distance = double.MaxValue;
+            Point3d nearestPoint = new Point3d();
+
+            for (int i = 0; i < failureDomain.Domain.DomainPoints.GetLength(0); i++)
+            {
+                for (int j = 0; j < failureDomain.Domain.DomainPoints[i].GetLength(0); j++)
+                {
+                    double d = new Point3d(failureDomain.Domain.DomainPoints[i][j].Point.X / 1000000, failureDomain.Domain.DomainPoints[i][j].Point.Y / 1000000,
+                        failureDomain.Domain.DomainPoints[i][j].Point.Z / 1000).DistanceTo(new Point3d(expForce.Mx / 1000000, expForce.My / 1000000, expForce.N / 1000));
+
+                    Point3d dist = failureDomain.Domain.DomainPoints[i][j].Point - new Point3d(expForce);
+                    ForceTuple f = new ForceTuple(dist.Z, dist.X, dist.Y);
+                    ForceTuple adimForces = CalculateAdimensionalForces(section, f);
+
+                    if (Math.Abs(adimForces.N) < adimTolerance && Math.Abs(adimForces.Mx) < adimTolerance && Math.Abs(adimForces.My) < adimTolerance)
+                        check = true;
+
+                    if (d < distance)
+                    {
+                        nearestPoint = failureDomain.Domain.DomainPoints[i][j].Point;
+                        distance = d;
+                    }
+                }
+            }
+
+            Assert.IsTrue(check);
+
+            Console.WriteLine($"Point calculated = {Math.Round(expForce.Mx / 1000000, 1)} KNm, " +
+                $"{Math.Round(expForce.My / 1000000, 1)} KNm, {Math.Round(expForce.N / 1000, 1)} KN");
+
+            Console.WriteLine($"Nearest point = {Math.Round(nearestPoint.X / 1000000, 1)} KNm, " +
+                $"{Math.Round(nearestPoint.Y / 1000000, 1)} KNm, {Math.Round(nearestPoint.Z / 1000, 1)} KN");
+
+            return check;
         }
 
         protected Point3d[] ExportToGmsh(FailureDomain failureDomain, FailureDomain failureDomain2 = null)
@@ -459,103 +643,7 @@ namespace ConcreteTests
             GmshNet.Gmsh.Finalize();
         }
 
-        protected void ShowDomainPoints(FailureDomain failureDomain)
-        {
-            for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
-                for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
-                    Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd)}, " +
-                                      $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd)}, " +
-                                      $"{Math.Round(failureDomain.DomainPoints[i][j].NRd)}");
-        }
 
-        protected bool CommonAssertsModelCode(IConcreteSection section, StandardModelCode2010 standard, FailureDomain failureDomain, double errorPercentage = 5.0)
-        {
-            List<Point3d> failureDomainPoints = new List<Point3d>();
-
-            Point3d NRdMin = new Point3d(double.MaxValue, double.MaxValue, double.MaxValue);
-            Point3d MxRdMin = new Point3d(double.MaxValue, double.MaxValue, double.MaxValue);
-            Point3d MyRdMin = new Point3d(double.MaxValue, double.MaxValue, double.MaxValue);
-            Point3d NRdMax = new Point3d(double.MinValue, double.MinValue, double.MinValue);
-            Point3d MxRdMax = new Point3d(double.MinValue, double.MinValue, double.MinValue);
-            Point3d MyRdMax = new Point3d(double.MinValue, double.MinValue, double.MinValue);
-
-            for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
-            {
-                for (int j = 0; j < failureDomain.DomainPoints[i].Length; j++)
-                {
-                    failureDomainPoints.Add(failureDomain.DomainPoints[i][j].Point);
-
-                    if (failureDomain.DomainPoints[i][j].Point.Z < NRdMin.Z)
-                        NRdMin = failureDomain.DomainPoints[i][j].Point;
-
-                    if (failureDomain.DomainPoints[i][j].Point.X < MxRdMin.X)
-                        MxRdMin = failureDomain.DomainPoints[i][j].Point;
-
-                    if (failureDomain.DomainPoints[i][j].Point.Y < MyRdMin.Y)
-                        MyRdMin = failureDomain.DomainPoints[i][j].Point;
-
-                    if (failureDomain.DomainPoints[i][j].Point.Z > NRdMax.Z)
-                        NRdMax = failureDomain.DomainPoints[i][j].Point;
-
-                    if (failureDomain.DomainPoints[i][j].Point.X > MxRdMax.X)
-                        MxRdMax = failureDomain.DomainPoints[i][j].Point;
-
-                    if (failureDomain.DomainPoints[i][j].Point.Y > MyRdMax.Y)
-                        MyRdMax = failureDomain.DomainPoints[i][j].Point;
-                }
-            }
-
-            // valore per campo di deformazione 6 (epsilon 0.2% costante)
-            double pureCompressionAxialForce = section.Shape.GetArea() * ((ConcreteMaterialModelCode2010)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC;
-            double pureCompressionMomentX = 0;
-            double pureCompressionMomentY = 0;
-
-
-            foreach (var rebar in section.GetRebars())
-            {
-                pureCompressionAxialForce += rebar.Area * (rebar.RebarMaterial.Fyk / standard.GammaS -
-                    ((ConcreteMaterialModelCode2010)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC);
-                pureCompressionMomentX += rebar.Area * (rebar.RebarMaterial.Fyk / standard.GammaS) *
-                    (rebar.Position.Y - section.Centroid.Y);
-                pureCompressionMomentY += rebar.Area * (rebar.RebarMaterial.Fyk / standard.GammaS) *
-                    (rebar.Position.X - section.Centroid.X);
-            }
-
-
-            if (Math.Abs((Math.Abs(NRdMin.Z) - Math.Abs(pureCompressionAxialForce)) / NRdMin.Z) * 100 > errorPercentage)
-                return false;
-            if (Math.Abs((Math.Abs(NRdMin.X) - Math.Abs(pureCompressionMomentX)) / NRdMin.X) * 100 > errorPercentage &&
-                (Math.Abs(NRdMin.X) > 1 && Math.Abs(pureCompressionMomentX) > 1))
-                return false;
-            if (Math.Abs((Math.Abs(NRdMin.Y) - Math.Abs(pureCompressionMomentY)) / NRdMin.Y) * 100 > errorPercentage &&
-                (Math.Abs(NRdMin.Y) > 1 && Math.Abs(pureCompressionMomentY) > 1))
-                return false;
-
-            // valore per campo di deformazione 1 (epsilon 7.5% costante)
-            double pureTractionAxialForce = 0.0;
-            double pureTractionMomentX = 0;
-            double pureTractionMomentY = 0;
-
-
-            foreach (var rebar in section.GetRebars())
-            {
-                pureTractionAxialForce += rebar.Area * rebar.RebarMaterial.Fyk / standard.GammaS;
-                pureTractionMomentX += rebar.Area * rebar.RebarMaterial.Fyk / standard.GammaS * (rebar.Position.Y - section.Centroid.Y);
-                pureTractionMomentY += rebar.Area * rebar.RebarMaterial.Fyk / standard.GammaS * (rebar.Position.X - section.Centroid.X);
-            }
-
-
-            if (Math.Abs((Math.Abs(NRdMax.Z) - Math.Abs(pureTractionAxialForce)) / NRdMax.Z) * 100 > errorPercentage)
-                return false;
-            if (Math.Abs((Math.Abs(NRdMax.X) - Math.Abs(pureTractionMomentX)) / NRdMax.X) * 100 > errorPercentage &&
-                (Math.Abs(NRdMax.X) > 1 && Math.Abs(pureTractionMomentX) > 1))
-                return false;
-            if (Math.Abs((Math.Abs(NRdMax.Y) - Math.Abs(pureTractionMomentY)) / NRdMax.Y) * 100 > errorPercentage &&
-                (Math.Abs(NRdMax.X) > 1 && Math.Abs(pureTractionMomentY) > 1))
-                return false;
-
-            return true;
-        }
 
         internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
         {

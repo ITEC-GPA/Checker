@@ -28,7 +28,7 @@ namespace ConcreteTests
 
 			double rebarDiameter = 18;
 
-			var section = GetRectangularSection4Rebars(300, 500, 18, 50, ConcreteMaterialEN1992.C25_30, new RebarMaterial("", 200000, 450, 450));
+			var section = GetRectangularSection4Rebars(300, 500, rebarDiameter, 50, ConcreteMaterialEN1992.C25_30, new RebarMaterial("", 200000, 450, 450));
 
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 

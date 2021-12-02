@@ -711,7 +711,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double chiDx;
             double chi;
 
-            var rebars = ConcreteSection.GetRebars();
             switch (failureIndex)
             {
                 case FailureZones.F1:

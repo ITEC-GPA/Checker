@@ -112,7 +112,7 @@ namespace ConcreteTests
 			double width = 300;
 			double concreteCover = 50;
 
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, 
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover,
 				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 
 			StandardEN1992p11 standard = new StandardEN1992p11();
@@ -138,7 +138,7 @@ namespace ConcreteTests
 				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
-		
+
 		[TestMethod]
 		public void RectangularSectionTest5()
 		{
@@ -168,7 +168,7 @@ namespace ConcreteTests
 				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
 			}
 		}
-		
+
 		[TestMethod]
 		public void RectangularSectionTest6()
 		{
@@ -198,7 +198,7 @@ namespace ConcreteTests
 				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
 			}
 		}
-		
+
 		[TestMethod]
 		public void RectangularSectionTest7()
 		{
@@ -223,10 +223,10 @@ namespace ConcreteTests
 			for (int i = 0; i < forces.Length; i++)
 			{
 				Console.WriteLine($"Force {i}");
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard, 0.005, new double[] {1.0}), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard, 0.005, new double[] { 1.0 }), $"Force {i} fail");
 			}
 		}
-				
+
 		[TestMethod]
 		public void RectangularSectionTest8()
 		{
@@ -300,7 +300,7 @@ namespace ConcreteTests
 				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
 			}
 		}
-		
+
 		[TestMethod]
 		public void SquareSectionTest1()
 		{

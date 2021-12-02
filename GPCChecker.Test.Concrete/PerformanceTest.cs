@@ -20,72 +20,63 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ConcreteTests
 {
-    [TestClass]
-    public class PerformanceTest : ConcreteTestBase
-    {
+	[TestClass]
+	public class PerformanceTest : ConcreteTestBase
+	{
 
-        [TestMethod]
-        public void IntegrateSectionStressTest()
-        {
-            RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, new RebarMaterial("", 450));
+		[TestMethod]
+		public void IntegrateSectionStressTest()
+		{
+			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, new RebarMaterial("", 450));
 
-            ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300,
-                                                                    new ConcreteMaterialEN1992("", 25,
-                                                                    ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear)
-                                                                    );
+			ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300,
+				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 
-            concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(1, rebarPhi20, new Point3d(50, 50, 0)));
+			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
-            List<ResultBeamForces> forces = new List<ResultBeamForces>();
+			List<ResultBeamForces> forces = new List<ResultBeamForces>();
 
-            for (int i = 0; i < 10000; i++)
-            {
-                forces.Add(new ResultBeamForces(10, 20, 30, 40, 50, 60, new CoordinateSystem(concreteSectionRectangular.Centroid, Vector3d.XAxis, Vector3d.YAxis)));
-            }
+			for (int i = 0; i < 10000; i++)
+			{
+				forces.Add(new ResultBeamForces(10, 20, 30, 40, 50, 60, new CoordinateSystem(concreteSectionRectangular.Centroid, Vector3d.XAxis, Vector3d.YAxis)));
+			}
 
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular, forces.ToArray(), null);
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular, forces.ToArray(), null);
+			SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(concreteSectionRectangular, new StandardEN1992p11());
 
+			var slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray(), new Point2d());
 
-            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(concreteSectionRectangular, new StandardEN1992p11());
+			Action ac0 = new Action(() =>
+				{
+					sectionSolverModelCode2010Test.IntegrateSectionStressTest(slsResult.Select(i => i.StrainPlane).First());
+				}
+			);
+						
+			var bb0 = MeasureTime.FunctionExecutionTime(20, ac0, true); ;
 
-
-            var slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray(), new Point2d());
-
-
-
-            Action ac0 = new Action(() =>
-                {
-                    sectionSolverModelCode2010Test.IntegrateSectionStressTest(slsResult.Select(i => i.StrainPlane).First());
-                }
-            );
-
-
-            var bb0 = MeasureTime.FunctionExecutionTime(20, ac0, true); ;
-
-            Console.WriteLine(bb0); 
-        }
+			Console.WriteLine(bb0);
+		}
 
 
 
-        [TestMethod]
-        public void FailureDomainTest()
-        {
-            var section = GetRectangularSection4Rebars();
+		[TestMethod]
+		public void FailureDomainTest()
+		{
+			var section = GetRectangularSection4Rebars();
 
-            SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new StandardEN1992p11());
+			SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new StandardEN1992p11());
 
-            Action ac0 = new Action(() =>
-            {
-                solver.GetFailurePlasticDomainResults();
-            });
+			Action ac0 = new Action(() =>
+			{
+				solver.GetFailurePlasticDomainResults();
+			});
+
+			var bb0 = MeasureTime.FunctionExecutionTime(20, ac0, true); ;
+
+			Console.WriteLine(bb0);
+		}
 
 
-            var bb0 = MeasureTime.FunctionExecutionTime(20, ac0, true); ;
-
-            Console.WriteLine(bb0);
-        }
-
-
-    }
+	}
 }
