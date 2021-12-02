@@ -23,8 +23,8 @@ namespace GPC.Checkers.Concrete.Checkers
 
 
         /// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, SectionSolver int)"/>
-        public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptionsModelCode2010 options, StandardModelCode2010 standard, int id = ModelObjectId.IDUNASSIGNED)
-            : base(checkerAttribute, options, standard, new SectionSolverModelCode2010(checkerAttribute.Section, standard), id)
+        public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptionsModelCode2010 options, StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
+            : base(checkerAttribute, options, standard, new SectionSolverModelCode2010(checkerAttribute.Section, standard, considerTensileConcrete), id)
         {
 
         }
@@ -81,7 +81,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
             return failureDomainResult;
         }
-        
+
         internal override FailureDomainResult GetFailureDomainResult()
         {
             var failureDomainResult = _solver.GetFailurePlasticDomainResults();
@@ -113,9 +113,9 @@ namespace GPC.Checkers.Concrete.Checkers
 
 
 
-		#endregion
+        #endregion
 
-		public class SectionOptionsModelCode2010 : SectionOptions
+        public class SectionOptionsModelCode2010 : SectionOptions
         {
 
             public SectionOptionsModelCode2010()

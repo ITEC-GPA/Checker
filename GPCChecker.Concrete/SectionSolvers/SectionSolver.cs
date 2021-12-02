@@ -60,6 +60,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             F5 = 7,
         }
 
+        #region Variables
+        
         protected double _stressAnalysisTolerance;
         protected double _failureAnalysisTolerance;
         protected bool _considerTensileConcrete;
@@ -67,16 +69,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected IConcreteSection _concreteSection;
         protected Standard _standard;
 
-        protected List<string> _log;
+        protected List<string> _log; 
+        
+        #endregion
 
         public IConcreteSection ConcreteSection => _concreteSection;
 
         public ConcreteMaterial ConcreteMaterial => _concreteSection.ConcreteMaterial;
 
         public Standard Standard => _standard;
+        
+        public bool ConsiderTensileConcrete { get => _considerTensileConcrete; internal set => _considerTensileConcrete = value; }
 
-
-        internal SectionSolver(IConcreteSection section, Standard standard, int id)
+        internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id)
             : base(id)
         {
             _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
@@ -85,7 +90,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             _stressAnalysisTolerance = 1e-5;
             _failureAnalysisTolerance = 1e-3;
-            _considerTensileConcrete = false;
+
+            _considerTensileConcrete = considerTensileConcrete;
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)
@@ -168,7 +174,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region SectionIntegration
+        #region Protected method - SectionIntegration
 
         /// <summary>
         /// Calculate the stress resultant of the concrete part
@@ -476,9 +482,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
             {
                 // trazione
-                if (_considerTensileConcrete)
+                if (ConsiderTensileConcrete)
                 {
-                    return _concreteSection.ConcreteMaterial.E * strain;    //TODO: implementare con cls in trazione
+                    return _concreteSection.ConcreteMaterial.E * strain;
                 }
                 else
                 {
@@ -564,7 +570,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region Failure domain
+        #region Protected method - Failure domain
 
         /// <summary>
         /// Calculate the failure domain <see cref="FailureDomain"/> of the section
@@ -797,7 +803,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region Point on failure domain
+        #region Protected method - Point on failure domain
 
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
         {
@@ -1182,7 +1188,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region Stress SLS
+        #region Protected method - Stress SLS
 
         protected StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple localForces, double tolerance = 1e-5)
         {
@@ -1356,11 +1362,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region N method
+        #region Protected method - N method
 
         protected StrainPlane CalculateStrainPlaneNMethodAnalysis(ForceTuple localForces, double n, double tolerance = 1e-5)
         {
-            //ForceTuple targetLocalForces = GetLocalForces(externalForces, forceReferencePoint);
             ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
 
             // Valori di primo tentativo
@@ -1516,7 +1521,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region Convert forces local/global
+        #region Protected method - Convert forces local/global
 
         protected virtual ResultBeamForces GetLocalForces(ResultBeamForces externalForces, Point2d forceReferencePoint)
         {

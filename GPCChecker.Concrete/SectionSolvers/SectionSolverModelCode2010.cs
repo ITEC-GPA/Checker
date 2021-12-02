@@ -53,8 +53,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        internal SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, int id = ModelObjectId.IDUNASSIGNED)
-            : base(section, standard, id)
+        internal SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
+            : base(section, standard, considerTensileConcrete, id)
         {
 
         }
@@ -122,7 +122,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
             {
                 // trazione
-                if (_considerTensileConcrete)
+                if (ConsiderTensileConcrete)
                 {
                     return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFctd() / ConcreteMaterialModelCode2010.Fctk;
                 }
