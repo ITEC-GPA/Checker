@@ -63,7 +63,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         #region Variables
         
         protected double _stressAnalysisTolerance;
-        protected double _failureAnalysisTolerance;
+        protected double _failureAnalysisAngularTolerance;
         protected bool _considerTensileConcrete;
 
         protected IConcreteSection _concreteSection;
@@ -89,7 +89,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
-            _failureAnalysisTolerance = 1e-3;
+            _failureAnalysisAngularTolerance = 1e-2;
 
             _considerTensileConcrete = considerTensileConcrete;
         }
@@ -168,8 +168,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         internal virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces)
+		{
+            return CalculateDomainPoint(targetLocalForces, _failureAnalysisAngularTolerance);
+		}
+
+        public virtual FailureDomain CalculateDomain2D(double teta)
+		{
+            return CalculateDomain2D(teta, 20, _failureAnalysisAngularTolerance, _stressAnalysisTolerance);
+		}
+
+        public virtual FailureDomain CalculateDomain2D(ForceTuple forces)
         {
-            return CalculateDomainPoint(targetLocalForces, _failureAnalysisTolerance);
+            return CalculateDomain2D(forces, 20, _failureAnalysisAngularTolerance, _stressAnalysisTolerance);
         }
 
         #endregion
@@ -879,18 +889,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Protected method - Point on failure domain
 
+        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(Vector3d vector, double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
+		{
+            return CalculateDomainPoint(vector, angularTolerance, distanceTolerance);
+        }
+
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
         {
             ForceTuple adimOutputForces = ConvertToAdimensionalForces(targetLocalForces);
-            Vector3d vectorEd = new Vector3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N);
+            Vector3d vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, targetLocalForces.N / 1000);
 
             // Valori di primo tentativo
             FailureZones failureIndex;
             double immersione;
             double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
-            if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
-            {
+            if(adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
+			{
                 failureIndex = FailureZones.F1;
                 immersione = 0.75;
             }
@@ -898,12 +913,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 failureIndex = FailureZones.F2A;
                 immersione = 0.5;
-            }
+            }             
             else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
-            {
+			{
                 failureIndex = FailureZones.F5;
                 immersione = 1.0;
-            }
+            }                
             else if (adimOutputForces.N < Math.Min(adimOutputForces.Mx, adimOutputForces.My))
             {
                 failureIndex = FailureZones.F3B;
@@ -916,6 +931,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
 
             var distances = CalculateMaxMinSectionDistances(teta);
+            
             StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, distances);
 
             //teta = strainPlane.Teta;
@@ -931,11 +947,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             int id = 1;
 
             ForceTuple forces = CalculateForceResultant(strainPlane);
-            ForceTuple adimIncrement = ConvertToAdimensionalForces(forces);
+            ForceTuple adimIncrement;
 
             (double deltaTeta, double deltaImmersione, Vector3d distanceToTarget) increment;
 
-            double angle = new Vector3d(forces.Mx, forces.My, forces.N).AngleTo(new Vector3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N));
+            double angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000, 
+                targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
 
             if (angle > angularTolerance)
             {
@@ -955,8 +972,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             return null;
                         }
 
-                        increment.deltaImmersione = increment.deltaImmersione > 0.6 ? 0.6 : increment.deltaImmersione;
-                        increment.deltaImmersione = increment.deltaImmersione < -0.6 ? -0.6 : increment.deltaImmersione;
+                        increment.deltaImmersione = increment.deltaImmersione > 0.4 ? 0.4 : increment.deltaImmersione;
+                        increment.deltaImmersione = increment.deltaImmersione < -0.4 ? -0.4 : increment.deltaImmersione;
 
                         increment.deltaTeta = increment.deltaTeta > Math.PI / 8.0 ? Math.PI / 8.0 : increment.deltaTeta;
                         increment.deltaTeta = increment.deltaTeta < -Math.PI / 8.0 ? -Math.PI / 8.0 : increment.deltaTeta;
@@ -989,7 +1006,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
                         adimIncrement = ConvertToAdimensionalForces(incrementForce);
 
-                        angle = new Vector3d(forces.Mx, forces.My, forces.N).AngleTo(vectorEd);
+                        angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
 
                         if ((Math.Abs(adimIncrement.N) < distanceTolerance &&
                             Math.Abs(adimIncrement.Mx) < distanceTolerance &&
@@ -1045,13 +1062,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     break;
 
                 case FailureZones.F4:
-                    dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.0001);
-                    dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.00001);
+                    dTeta = Math.Max(Math.Min(deltaAngle, 0.1), 0.0001);
+                    dEta = Math.Max(Math.Min(deltaAngle, 0.1), 0.00001);
                     break;
 
                 default:
-                    dTeta = Math.Max(Math.Min(deltaAngle, 0.005), 0.0001);
-                    dEta = Math.Max(Math.Min(deltaAngle, 0.0001), 0.0001);
+                    dTeta = Math.Max(Math.Min(deltaAngle, 0.01), 0.0001);
+                    dEta = Math.Max(Math.Min(deltaAngle, 0.01), 0.0001);
                     break;
             }
 
@@ -1286,7 +1303,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance)
             {
-                FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, _failureAnalysisTolerance);
+                FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, _failureAnalysisAngularTolerance);
 
                 Vector3d vEd = new Vector3d(localForces, Point3d.Origin);
                 Vector3d vRd = new Vector3d(pointOnDomain.Point, Point3d.Origin);

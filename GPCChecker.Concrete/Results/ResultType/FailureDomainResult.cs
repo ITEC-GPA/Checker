@@ -200,6 +200,11 @@ namespace GPC.Checkers.Concrete.Results
             return failureDomainPoint;
         }
 
+        public FailureDomain CalculateDomain2D(double teta)
+		{
+            return _sectionSolver.CalculateDomain2D(teta);
+		}
+
         /// <summary>
         /// Tells if there is a force with the given id
         /// </summary>
