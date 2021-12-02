@@ -116,12 +116,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             if (strain < 0)
             {
+                // compressione
                 return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFcd() / ConcreteMaterialModelCode2010.Fck;
             }
             else
             {
-                //TODO: sistemare CalculateSigmaC quando si gestirà il calcestruzzo in trazione
-                return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFctd() / ConcreteMaterialModelCode2010.Fctk;
+                // trazione
+                if (_considerTensileConcrete)
+                {
+                    return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFctd() / ConcreteMaterialModelCode2010.Fctk;
+                }
+                else
+                {
+                    return 0;
+                }
             }
         }
 

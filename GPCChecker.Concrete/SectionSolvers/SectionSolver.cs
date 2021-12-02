@@ -61,7 +61,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         protected double _stressAnalysisTolerance;
-        protected double _failureAnalysisTolerance;        
+        protected double _failureAnalysisTolerance;
+        protected bool _considerTensileConcrete;
 
         protected IConcreteSection _concreteSection;
         protected Standard _standard;
@@ -84,6 +85,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             _stressAnalysisTolerance = 1e-5;
             _failureAnalysisTolerance = 1e-3;
+            _considerTensileConcrete = false;
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)
@@ -144,7 +146,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return stressAnalysisResults;
         }
-                
+
         public virtual StressAnalysisResult[] GetStressAnalysisResult(ResultBeamForces[] force, double n, Vector2d forceReferencePointDistance)
         {
             StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
@@ -160,9 +162,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         internal virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces)
-		{
+        {
             return CalculateDomainPoint(targetLocalForces, _failureAnalysisTolerance);
-		}
+        }
 
         #endregion
 
@@ -193,7 +195,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     deltaMxArray[i] = forces.Mx;
                     deltaMyArray[i] = forces.My;
                 });
-            } 
+            }
             catch (Exception e)
             {
                 _log.Add(e.Message);
@@ -453,7 +455,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             try
             {
-                return IntegrateSectionStress(n ,strainPlane) + IntegrateRebarStress(n, strainPlane);
+                return IntegrateSectionStress(n, strainPlane) + IntegrateRebarStress(n, strainPlane);
             }
             catch (Exception e)
             {
@@ -467,9 +469,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         internal double CalculateElasticSigmaC(double strain)
         {
             if (strain < 0)
+            {
+                // compressione
                 return _concreteSection.ConcreteMaterial.E * strain;
+            }
             else
-                return _concreteSection.ConcreteMaterial.E * strain;    //TODO: implementare con cls in trazione
+            {
+                // trazione
+                if (_considerTensileConcrete)
+                {
+                    return _concreteSection.ConcreteMaterial.E * strain;    //TODO: implementare con cls in trazione
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
         }
 
         internal double CalculateSigmaS(double n, double strain)
@@ -589,7 +605,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             catch (Exception e)
             {
                 _log.Add(e.Message);
-                if(e.InnerException != null)
+                if (e.InnerException != null)
                     _log.Add(e.InnerException.Message);
                 return null;
             }
@@ -793,26 +809,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double immersione;
             double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
-            if(adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
-			{
+            if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
+            {
                 failureIndex = FailureZones.F1;
                 immersione = 0.75;
-            }                
-            else if(adimOutputForces.N > 0.0)
-			{
+            }
+            else if (adimOutputForces.N > 0.0)
+            {
                 failureIndex = FailureZones.F2A;
                 immersione = 0.5;
-            }             
+            }
             else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
-			{
+            {
                 failureIndex = FailureZones.F5;
                 immersione = 1.0;
-            }                
+            }
             else if (adimOutputForces.N < Math.Min(adimOutputForces.Mx, adimOutputForces.My))
-			{
+            {
                 failureIndex = FailureZones.F3B;
                 immersione = 0.5;
-            }                
+            }
             else
             {
                 failureIndex = FailureZones.F3B;
@@ -980,7 +996,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             do
             {
                 if (tetaCounter < 50)
-				{
+                {
                     var distancesPlusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta + dTetaBuffer);
                     var distancesMinusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta - dTetaBuffer);
 
@@ -1112,7 +1128,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double dT;
                 double dE;
 
-                 
+
                 if (dTeta >= 0.1)
                     dT = Math.Pow(dTeta, 0.75);
                 else if (dTeta > 0.01)
@@ -1154,7 +1170,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 {
 
                 }
-                else if (iterationPoint.Mx > 0 && iterationPoint.My > 0 )
+                else if (iterationPoint.Mx > 0 && iterationPoint.My > 0)
                 {
 
                 }
@@ -1255,7 +1271,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             double dChiX = dCX * deltaChiXLimit;
 
-            double deltaChiYLimit = Math.Abs(GetYieldingStrainPureCompression() /  ConcreteSection.Shape.GetBoundingBox().Size.Y);
+            double deltaChiYLimit = Math.Abs(GetYieldingStrainPureCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
             double dCY = 0.00001;
             if (forceTupleAdim.My != 0)
                 dCY = 0.001 * Math.Max(Math.Abs(forceTupleAdim.My), 0.00001);
@@ -1404,7 +1420,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return strainPlane;
         }
-        
+
         protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementStressAnalysis(double n, StrainPlane inputStrainPlane, ForceTuple forceTuple)
         {
             ForceTuple forceTupleAdim = ConvertToAdimensionalForces(forceTuple);
