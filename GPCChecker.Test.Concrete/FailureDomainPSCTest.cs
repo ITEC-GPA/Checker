@@ -23,32 +23,21 @@ namespace ConcreteTests
         public void RectangularSectionPrestressedTest1()
         {
             double rebarDiameter = 20;
+            double height = 500;
+            double width = 300;
+            double concreteCover = 50;
             double rebarDiameterPrestress = 20;
 
-            // sezione rettangolare 300x500
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(300, 0),
-                new Point2d(300, 500),
-                new Point2d(0, 500)
-            }));
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C45_55);
 
-            ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, RebarMaterial.B450C);
             RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1800));
 
             int i = 0;
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,450,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 450, 0)),
                 new ReinforcedConcreteRebar(i++, rebarP, new Point3d(150, 100, 0), 0.007045)
             };
 
-            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
             section.AddRebars(rebars);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 

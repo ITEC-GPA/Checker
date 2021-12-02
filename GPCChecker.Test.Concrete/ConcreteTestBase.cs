@@ -21,11 +21,15 @@ namespace ConcreteTests
     [TestClass]
     public abstract class ConcreteTestBase : UnitTestBase
     {
-        protected ReinforcedConcreteSection GetRectangularSection1(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, ConcreteMaterialEN1992 concreteMaterial = null)
+        protected ReinforcedConcreteSection GetRectangularSection4Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
+            ConcreteMaterialEN1992 concreteMaterial = null, RebarMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
+
+            if (rebarMaterial == null)
+                rebarMaterial = new RebarMaterial("", 450);
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -36,7 +40,7 @@ namespace ConcreteTests
             }));
 
             ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, RebarMaterial.B450C);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
             int i = 0;
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -52,6 +56,89 @@ namespace ConcreteTests
 
             return section;
         }
+
+        protected ReinforcedConcreteSection GetRectangularSection8Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
+            ConcreteMaterialEN1992 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+        {
+
+            if (concreteMaterial == null)
+                concreteMaterial = ConcreteMaterialEN1992.C25_30;
+
+            if (rebarMaterial == null)
+                rebarMaterial = new RebarMaterial("", 450);
+
+            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+            {
+                new Point2d(0, 0),
+                new Point2d(width, 0),
+                new Point2d(width, height),
+                new Point2d(0, height)
+            }));
+
+            ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
+
+            int i = 0;
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(i++, rebar, new Point3d(concreteCover, concreteCover, 0)),
+                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width / 2.0, concreteCover, 0)),
+                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width - concreteCover, concreteCover, 0)),
+                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width - concreteCover, height / 2.0, 0)),
+                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width - concreteCover, height - concreteCover, 0)),
+                new ReinforcedConcreteRebar(i++, rebar, new Point3d(width / 2.0, height - concreteCover, 0)),
+                new ReinforcedConcreteRebar(i++, rebar, new Point3d(concreteCover, height - concreteCover, 0)),
+                new ReinforcedConcreteRebar(i++, rebar, new Point3d(concreteCover, height / 2.0, 0))
+            };
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+            section.AddRebars(rebars);
+
+            return section;
+        }
+
+        protected ReinforcedConcreteSection GetRectangularSection2SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
+            int numberOfRebars = 4, ConcreteMaterialEN1992 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+        {
+
+            if (concreteMaterial == null)
+                concreteMaterial = ConcreteMaterialEN1992.C25_30;
+
+            if (rebarMaterial == null)
+                rebarMaterial = new RebarMaterial("", 450);
+
+            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+            {
+                new Point2d(0, 0),
+                new Point2d(width, 0),
+                new Point2d(width, height),
+                new Point2d(0, height)
+            }));
+
+            ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
+
+
+            int i = 0;
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[2 * numberOfRebars];
+
+            for (int j = 0; j < numberOfRebars; j++)
+            {
+                rebars[j] = new ReinforcedConcreteRebar(i++, rebar, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), concreteCover));
+                rebars[2 * numberOfRebars - 1 - j] = new ReinforcedConcreteRebar(i++, rebar, 
+                    new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), height - concreteCover));                
+            }
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+            section.AddRebars(rebars);
+
+            return section;
+        }
+
+        protected CoordinateSystem GetLocalCoordinateSystem(IConcreteSection section)
+		{
+            return new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis);
+		}
 
         protected virtual void CalculateAdimensionalForces(IConcreteSection section, ResultBeamForces forces,
             out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
@@ -135,39 +222,55 @@ namespace ConcreteTests
             return true;
         }
 
-        protected bool CommonAssertDomainPoint(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard, double adimTolerance = 0.005,
-            double[] factor = null)
-        {
-            if (factor == null)
-                factor = new double[] { 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5 };
+		protected bool CommonAssertDomainPoint(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard, double adimTolerance = 0.005,
+			double[] factor = null)
+		{
+			if (factor == null)
+				factor = new double[] { 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 2.0, 2.5, 3.0 };
 
-            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
-            FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
+			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
+			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
+			ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
+			int j = 0;
 
-            int j = 0;
-
-            try
-            {
-                for (j = 0; j < factor.Length; j++)
-                {
-                    ResultBeamForces testForce = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-                    failureDomainPoints[j] = solver.CalculatePoint(testForce.ConvertToForceTuple(section.Centroid));
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Fail to calculate domain point {j}, {e.Message}");
-                return false;
-            }
+			try
+			{
+				for (j = 0; j < factor.Length; j++)
+				{
+					testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
+					failureDomainPoints[j] = solver.CalculatePoint(testForces[j].ConvertToForceTuple(section.Centroid));
+				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine($"Fail to calculate domain point {j}, {e.Message}");
+				return false;
+			}
 
 
-            for (int i = 1; i < factor.Length; i++)
-            {
-                if (failureDomainPoints[i] != null)
-                {
-                    ForceTuple adimForces = solver.ConvertToAdimForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
-                        failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X,
-                        failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y));
+			for (int i = 0; i < factor.Length; i++)
+			{
+				Console.WriteLine($"External Force = {Math.Round(testForces[i].M1 / 1000000)}, " +
+					$"{Math.Round(testForces[i].M2 / 1000000)}, " +
+					$"{Math.Round(testForces[i].N / 1000)}");
+
+				if (failureDomainPoints[i] != null)
+				{
+					ForceTuple adimForces = solver.ConvertToAdimForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
+						failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X,
+						failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y));
+
+					Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance, 
+						$"Force {Math.Round(force.N/1000)}, {Math.Round(force.M1/1000000)}, {Math.Round(force.M2/1000000)} fail");
+					Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance,
+						$"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
+					Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance,
+						$"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
+
+					Console.WriteLine($"Point {i} = {Math.Round(failureDomainPoints[i].Point.X / 1000000)}, " +
+						$"{Math.Round(failureDomainPoints[i].Point.Y / 1000000)}, " +
+						$"{Math.Round(failureDomainPoints[i].Point.Z / 1000)}");
+			
 
                     Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance);
                     Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance);
@@ -223,22 +326,28 @@ namespace ConcreteTests
             return points.ToArray();
         }
 
+		protected Point3d[] ExportToGmsh(FailureDomain failureDomain)
+		{
+			GmshNet.Gmsh.Initialize();
+			int horizontal = failureDomain.DomainPoints.Length;
+			List<Point3d> points = new List<Point3d>();
 
-        protected Point3d[] ExportToGmsh(FailureDomain failureDomain)
-        {
-            GmshNet.Gmsh.Initialize();
-            int horizontal = failureDomain.DomainPoints.GetUpperBound(0);
-            List<Point3d> points = new List<Point3d>();
+			for (int i = 0; i < horizontal; i++)
+			{
+				int vertical = failureDomain.DomainPoints[i].Length;
 
-            for (int i = 0; i < horizontal; i++)
-            {
-                int vertical = failureDomain.DomainPoints[i].GetUpperBound(0);
+				for (int j = 0; j < vertical; j++)
+				{
+					if(failureDomain.DomainPoints[i][j] != null)
+					{
+						GmshNet.Gmsh.Model.Occ.AddPoint(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+							failureDomain.DomainPoints[i][j].MyRd / 1000000,
+							failureDomain.DomainPoints[i][j].NRd / 1000 / 10);
 
-                for (int j = 0; j < vertical; j++)
-                {
-                    GmshNet.Gmsh.Model.Occ.AddPoint(failureDomain.DomainPoints[i][j].MxRd / 1000000,
-                        failureDomain.DomainPoints[i][j].MyRd / 1000000,
-                        failureDomain.DomainPoints[i][j].NRd / 1000 / 10);
+						points.Add(new Point3d(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+							failureDomain.DomainPoints[i][j].MyRd / 1000000,
+							failureDomain.DomainPoints[i][j].NRd / 1000 / 10));
+					}
 
                     points.Add(new Point3d(failureDomain.DomainPoints[i][j].MxRd / 1000000,
                         failureDomain.DomainPoints[i][j].MyRd / 1000000,
@@ -453,8 +562,8 @@ namespace ConcreteTests
 
         internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
         {
-            internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, int id = -1)
-                : base(section, standard, id)
+            internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = -1)
+                : base(section, standard, considerTensileConcrete, id)
             {
             }
 

@@ -71,7 +71,7 @@ namespace ConcreteTests
         [TestMethod]
         public void FailureDomainTest()
         {
-            var section = GetRectangularSection1();
+            var section = GetRectangularSection4Rebars();
 
             SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new StandardEN1992p11());
 

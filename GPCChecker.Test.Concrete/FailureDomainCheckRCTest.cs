@@ -1,359 +1,455 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Generic;
-using GPC.Checkers.Concrete.Attributes;
-using GPC.Checkers.Concrete.Checkers;
-using GPC.Checkers.Concrete.Helper;
-using GPC.Checkers.Concrete.Results;
-using GPC.Geometry;
-using GPC.Model.Materials;
-using GPC.Model.Results;
-using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
+using GPC.Geometry;
+using GPC.Model.Materials;
+using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.Checkers;
+using System.Collections.Generic;
 using GPC.Model.Standards;
+using GPC.Model.Sections;
+using GPC.Checkers.Concrete.Attributes;
+using GPC.Model.Results;
 using GPC.TestUtilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using GPC.Checkers.Concrete.Helper;
 
 namespace ConcreteTests
 {
-    [TestClass]
-    public class FailureDomainCheckRCTest : ConcreteTestBase
-    {
+	[TestClass]
+	public class FailureDomainCheckRCTest : ConcreteTestBase
+	{
 
-        [TestMethod]
-        public void RectangularSectionTest1()
-        {
-            ReinforcedConcreteSection section = GetRectangularSection1();
+		[TestMethod]
+		public void RectangularSectionTest1()
+		{
+			double rebarDiameter = 18;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
 
-            StandardEN1992p11 standard = new StandardEN1992p11();
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover,
+				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
+			StandardEN1992p11 standard = new StandardEN1992p11();
 
-            ResultBeamForces[] forces = new ResultBeamForces[]
-            {
-                new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-200 * 1000, 0, 0, 0, -50 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis))
-            };
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, -50 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
+			};
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
-            }
-        }
+			for (int j = 0; j < forces.Length; j++)
+			{
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+			}
+		}
 
-        [TestMethod]
-        public void RectangularSectionTest2()
-        {
-            ReinforcedConcreteSection section = GetRectangularSection1();
+		[TestMethod]
+		public void RectangularSectionTest2()
+		{
+			double rebarDiameter = 18;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
 
-            StandardEN1992p11 standard = new StandardEN1992p11();
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover,
+				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
+			StandardEN1992p11 standard = new StandardEN1992p11();
 
-            ResultBeamForces[] forces = new ResultBeamForces[]
-            {
-                new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis))
-            };
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
+			};
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
-            }
-        }
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+			}
+		}
 
-        [TestMethod]
-        public void RectangularSectionTest3()
-        {
-            ReinforcedConcreteSection section = GetRectangularSection1();
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+		[TestMethod]
+		public void RectangularSectionTest3()
+		{
+			double rebarDiameter = 18;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
 
-            ResultBeamForces[] forces = new ResultBeamForces[]
-            {
-                new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis))
-            };
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover,
+				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
-            }
-        }
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
+			};
 
-        [TestMethod]
-        public void RectangularSectionTest4()
-        {
-            ReinforcedConcreteSection section = GetRectangularSection1();
-            StandardEN1992p11 standard = new StandardEN1992p11();
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard, 0.005, new double[] { 1.0 }), $"Force {i} fail");
+			}
+		}
 
-            ResultBeamForces[] forces = new ResultBeamForces[]
-            {
-                new ResultBeamForces(+200 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(+100 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-300 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-900 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-1200 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-1500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis))
-            };
+		[TestMethod]
+		public void RectangularSectionTest4()
+		{
+			double rebarDiameter = 18;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, 
+				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
-            }
-        }
+			StandardEN1992p11 standard = new StandardEN1992p11();
 
-        [TestMethod]
-        public void SquareSectionTest1()
-        {
-            ReinforcedConcreteSection section = GetRectangularSection1(300, 300, 20);
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(+200 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(+100 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-300 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-900 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1200 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section))
+			};
 
-            StandardEN1992p11 standard = new StandardEN1992p11();
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-            ResultBeamForces[] forces = new ResultBeamForces[]
-            {
-                new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 80 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-500 * 1000, 0, 0, 0, 20 * 1000000, 50 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-200 * 1000, 0, 0, 0, 80 * 1000000, 20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(0 * 1000, 0, 0, 0, 100 * 1000000, 50 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis))
-            };
+			for (int j = 0; j < forces.Length; j++)
+			{
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+			}
+		}
+		
+		[TestMethod]
+		public void RectangularSectionTest5()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
+			int numberOfSideRebar = 3;
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, concreteCover, numberOfSideRebar,
+				new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
+			StandardEN1992p11 standard = new StandardEN1992p11();
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
-            }
-        }
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, 40 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-400 * 1000, 0, 0, 0, 40 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, -50 * 1000000, -100 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -200 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 150 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
+			};
 
-        [TestMethod]
-        public void SquareSectionTest2()
-        {
-            double rebarDiameter = 20;
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+			}
+		}
+		
+		[TestMethod]
+		public void RectangularSectionTest6()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
+			int numberOfSideRebar = 3;
 
-            // sezione rettangolare 300x300
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(300, 0),
-                new Point2d(300, 300),
-                new Point2d(0, 300)
-            }));
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, concreteCover, numberOfSideRebar,
+				ConcreteMaterialEN1992.C40_50);
+			StandardEN1992p11 standard = new StandardEN1992p11();
 
-            ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, -20 * 1000000, 40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-400 * 1000, 0, 0, 0, -20 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, 20 * 1000000, 40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 40 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, -100 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-800 * 1000, 0, 0, 0, -120 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section))
+			};
 
-            int i = 0;
-            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-            {
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 250,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 250,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 250,0))
-            };
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+			}
+		}
+		
+		[TestMethod]
+		public void RectangularSectionTest7()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
 
-            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-            section.AddRebars(rebars);
-            StandardEN1992p11 standard = new StandardEN1992p11();
+			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C40_50);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            ResultBeamForces[] forces = new ResultBeamForces[]
-            {
-                new ResultBeamForces(-100 * 1000, 0, 0, 0, 20 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-300 * 1000, 0, 0, 0, 20 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-500 * 1000, 0, 0, 0, 20 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-800 * 1000, 0, 0, 0, 20 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, 10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-300 * 1000, 0, 0, 0, -20 * 1000000, 10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-500 * 1000, 0, 0, 0, -20 * 1000000, 10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-800 * 1000, 0, 0, 0, -20 * 1000000, 10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-            };
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				//new ResultBeamForces(-200 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(-400 * 1000, 0, 0, 0, -20 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, -100 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(-800 * 1000, 0, 0, 0, -120 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section)),
+			};
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard, 0.005, new double[] {1.0}), $"Force {i} fail");
+			}
+		}
+				
+		[TestMethod]
+		public void RectangularSectionTest8()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 600;
+			double concreteCover = 50;
+			int numberOfSideRebars = 5;
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
-            }
-        }
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, concreteCover, numberOfSideRebars, ConcreteMaterialEN1992.C45_55);
 
-        [TestMethod]
-        public void SquareSectionTest3()
-        {
-            double rebarDiameter = 20;
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(500, 0),
-                new Point2d(500, 500),
-                new Point2d(0, 500)
-            }));
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-2000 * 1000, 0, 0, 0, -300 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-3000 * 1000, 0, 0, 0, -200 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, -200 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -400 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, -300 * 1000000, 0, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -120 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section)),
+			};
 
-            ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-            int i = 0;
-            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-            {
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(350, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(450, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 450,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 450,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 450,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(350, 450,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(450, 450,0))
-            };
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+			}
+		}
 
-            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-            section.AddRebars(rebars);
-            StandardEN1992p11 standard = new StandardEN1992p11();
+		[TestMethod]
+		public void RectangularSectionTest9()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 600;
+			double concreteCover = 50;
+			int numberOfSideRebars = 5;
 
-            ResultBeamForces[] forces = new ResultBeamForces[]
-            {
-                new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 80 * 1000000, CoordinateSystem.Global),
-                new ResultBeamForces(-500 * 1000, 0, 0, 0, 20 * 1000000, 50 * 1000000, CoordinateSystem.Global),
-                new ResultBeamForces(-200 * 1000, 0, 0, 0, 80 * 1000000, 20 * 1000000, CoordinateSystem.Global),
-                new ResultBeamForces(0 * 1000, 0, 0, 0, 100 * 1000000, 50 * 1000000, CoordinateSystem.Global)
-            };
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, concreteCover, numberOfSideRebars, ConcreteMaterialEN1992.C45_55);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -10 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -20 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -30 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -40 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -0 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -0 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -0 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -0 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -20 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -30 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+			};
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
-            }
-        }
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-        [TestMethod]
-        public void SquareSectionTest4()
-        {
-            double rebarDiameter = 26;
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+			}
+		}
+		
+		[TestMethod]
+		public void SquareSectionTest1()
+		{
+			double rebarDiameter = 20;
+			double width = 300;
+			double concreteCover = 50;
 
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(500, 0),
-                new Point2d(500, 500),
-                new Point2d(0, 500)
-            }));
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, width, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C45_55);
+			StandardEN1992p11 standard = new StandardEN1992p11();
 
-            ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 80 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-500 * 1000, 0, 0, 0, 20 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, 80 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 100 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section))
+			};
 
-            int i = 0;
-            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-            {
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(350, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(450, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 450,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 450,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 450,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(350, 450,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(450, 450,0))
-            };
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-            section.AddRebars(rebars);
-            StandardEN1992p11 standard = new StandardEN1992p11();
+			for (int j = 0; j < forces.Length; j++)
+			{
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+			}
+		}
 
-            ResultBeamForces[] forces = new ResultBeamForces[]
-            {
-                new ResultBeamForces(+200 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(+100 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-300 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-900 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-1200 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-                new ResultBeamForces(-1500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis))
-            };
+		[TestMethod]
+		public void SquareSectionTest2()
+		{
+			double rebarDiameter = 20;
+			double width = 300;
+			double concreteCover = 50;
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, width, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C25_30);
+			StandardEN1992p11 standard = new StandardEN1992p11();
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
-            }
-        }
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, 20 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-300 * 1000, 0, 0, 0, 20 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-500 * 1000, 0, 0, 0, 20 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-800 * 1000, 0, 0, 0, 20 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-300 * 1000, 0, 0, 0, -20 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-500 * 1000, 0, 0, 0, -20 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+			};
 
-        [TestMethod]
-        public void SquareSectionTest5()
-        {
-            double rebarDiameter = 20;
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-            // sezione rettangolare 300x300
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(300, 0),
-                new Point2d(300, 300),
-                new Point2d(0, 300)
-            }));
+			for (int j = 0; j < forces.Length; j++)
+			{
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+			}
+		}
 
-            ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+		[TestMethod]
+		public void SquareSectionTest3()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double concreteCover = 50;
+			int numberOfSideRebars = 5;
 
-            int i = 0;
-            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-            {
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 250,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 250,0)),
-                new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 250,0))
-            };
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(height, height, rebarDiameter, concreteCover, numberOfSideRebars, ConcreteMaterialEN1992.C25_30);
+			StandardEN1992p11 standard = new StandardEN1992p11();
 
-            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-            section.AddRebars(rebars);
-            StandardEN1992p11 standard = new StandardEN1992p11();
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 80 * 1000000, CoordinateSystem.Global),
+				new ResultBeamForces(-500 * 1000, 0, 0, 0, 20 * 1000000, 50 * 1000000, CoordinateSystem.Global),
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, 80 * 1000000, 20 * 1000000, CoordinateSystem.Global),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 100 * 1000000, 50 * 1000000, CoordinateSystem.Global)
+			};
 
-            ResultBeamForces[] forces = new ResultBeamForces[]
-            {
-                new ResultBeamForces(-500 * 1000, 0, 0, 0, -20 * 1000000, 10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
-            };
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			for (int j = 0; j < forces.Length; j++)
+			{
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+			}
+		}
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
-            }
-        }
-    }
+		[TestMethod]
+		public void SquareSectionTest4()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double concreteCover = 50;
+			int numberOfSideRebars = 5;
+
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(height, height, rebarDiameter, concreteCover, numberOfSideRebars, ConcreteMaterialEN1992.C25_30);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(+200 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(+100 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-300 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-900 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1200 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section))
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			for (int j = 0; j < forces.Length; j++)
+			{
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+			}
+		}
+
+		[TestMethod]
+		public void SquareSectionTest5()
+		{
+			double rebarDiameter = 20;
+			double height = 500;
+			double concreteCover = 50;
+			int numberOfSideRebars = 5;
+
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(height, height, rebarDiameter, concreteCover, numberOfSideRebars, ConcreteMaterialEN1992.C25_30);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-500 * 1000, 0, 0, 0, -20 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			for (int j = 0; j < forces.Length; j++)
+			{
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+			}
+		}
+	}
 }

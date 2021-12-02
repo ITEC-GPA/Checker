@@ -27,7 +27,7 @@ namespace ConcreteTests
             double elasticModulusFactor = 0.85 / 1.5;
 
 
-            ReinforcedConcreteSection section = GetRectangularSection1(300, 500, 18, 50,
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50,
                 new ConcreteMaterialEN1992("", 0.0,
                 new StressStrainTable(new double[] { 0, -31.476 / elasticModulusFactor, -62.9152 / elasticModulusFactor }, new double[] { 0, -0.001, -0.002 }),
                 new StressStrainTable(new double[] { 0, 0 }, new double[] { 0, 0.001 })));
@@ -91,7 +91,7 @@ namespace ConcreteTests
             double tolerance = 0.05;
             double elasticModulusFactor = 0.85 / 1.5;
 
-            ReinforcedConcreteSection section = GetRectangularSection1(300, 500, 18, 50,
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50,
                 new ConcreteMaterialEN1992("", 0.0,
                 new StressStrainTable(new double[] { 0, -31.476 / elasticModulusFactor, -62.9152 / elasticModulusFactor }, new double[] { 0, -0.001, -0.002 }),
                 new StressStrainTable(new double[] { 0, 0 }, new double[] { 0, 0.001 })));
