@@ -98,31 +98,19 @@ namespace ConcreteTests
         {
             double rebarDiameter = 20;
             double rebarDiameterPrestress = 20;
-
-            // sezione rettangolare 300x500
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(300, 0),
-                new Point2d(300, 500),
-                new Point2d(0, 500)
-            }));
-
-            ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
+						
             RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1800));
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
-                new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-                new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-                new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
-                new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
                 new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 0.007045),
                 new ReinforcedConcreteRebar(rebarP, new Point3d(150, 400, 0), 0.007045)
             };
 
-            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C45_55);
             section.AddRebars(rebars);
 
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
@@ -132,7 +120,7 @@ namespace ConcreteTests
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
             var failureDomain = sectionChecker.GetFailureDomainResult();
-            //ShowDomainPoints(failureDomain.Domain);
+            ShowDomainPoints(failureDomain.Domain);
             //ExportToGmsh(failureDomain.Domain);
 
             //// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
@@ -230,7 +218,7 @@ namespace ConcreteTests
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
             var failureDomain = sectionChecker.GetFailureDomainResult();
-            //ShowDomainPoints(failureDomain.Domain);
+            ShowDomainPoints(failureDomain.Domain);
             //ExportToGmsh(failureDomain.Domain);
 
             // Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));

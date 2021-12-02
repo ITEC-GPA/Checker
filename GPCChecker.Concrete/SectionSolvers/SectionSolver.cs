@@ -1301,53 +1301,61 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance)
             {
-                FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, _failureAnalysisAngularTolerance);
+                FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, 2.0 * _failureAnalysisAngularTolerance);
 
-                Vector3d vEd = new Vector3d(localForces, Point3d.Origin);
-                Vector3d vRd = new Vector3d(pointOnDomain.Point, Point3d.Origin);
+                if(pointOnDomain != null)
+				{
+                    Vector3d vEd = new Vector3d(localForces, Point3d.Origin);
+                    Vector3d vRd = new Vector3d(pointOnDomain.Point, Point3d.Origin);
 
-                if (vEd.Length < vRd.Length)
-                {
-                    do
+                    if (vEd.Length < vRd.Length)
                     {
-                        if (id < 50)
+                        do
                         {
-
-                            try
+                            if (id < 50)
                             {
-                                (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
-                                    CalculateIncrementStressAnalysis(strainPlane, localForces - iterationForces);
 
-                                // piano di nuovo tentativo
-                                id++;
-                                chiX += increment.deltaChiX;
-                                chiY += increment.deltaChiY;
-                                strainReferencePoint += increment.deltaStrainRefPoint;
-                                strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
+                                try
+                                {
+                                    (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
+                                        CalculateIncrementStressAnalysis(strainPlane, localForces - iterationForces);
 
-                                iterationForces = CalculateForceResultant(strainPlane);
-                                iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
+                                    // piano di nuovo tentativo
+                                    id++;
+                                    chiX += increment.deltaChiX;
+                                    chiY += increment.deltaChiY;
+                                    strainReferencePoint += increment.deltaStrainRefPoint;
+                                    strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
+
+                                    iterationForces = CalculateForceResultant(strainPlane);
+                                    iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
+                                }
+                                catch (Exception e)
+                                {
+                                    _log.Add(e.Message);
+                                    if (e.InnerException != null)
+                                        _log.Add(e.InnerException.Message);
+                                    throw;
+                                }
                             }
-                            catch (Exception e)
+                            else
                             {
-                                _log.Add(e.Message);
-                                if (e.InnerException != null)
-                                    _log.Add(e.InnerException.Message);
-                                throw;
+                                _log.Add("Fail to calculate find strain plane");
+                                return null;
                             }
-                        }
-                        else
-                        {
-                            _log.Add("Fail to calculate find strain plane");
-                            return null;
-                        }
 
-                    } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
-                         Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
-                         Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance);
+                        } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
+                             Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
+                             Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance);
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
                 else
                 {
+                    _log.Add("Fail to calculate find strain plane");
                     return null;
                 }
             }

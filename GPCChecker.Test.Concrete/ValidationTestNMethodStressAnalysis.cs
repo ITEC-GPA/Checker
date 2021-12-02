@@ -388,7 +388,6 @@ namespace ConcreteTests
 			double tolerance = 0.05;
 			double n = 15;
 
-
 			var section = GetRectangularSection4Rebars(300, 500, 18, 50, ConcreteMaterialEN1992.C25_30, new RebarMaterial("", 200000, 450, 450));
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -400,7 +399,7 @@ namespace ConcreteTests
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
 			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
 
@@ -460,7 +459,7 @@ namespace ConcreteTests
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
 			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
 
@@ -545,7 +544,7 @@ namespace ConcreteTests
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
 			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
 
@@ -636,7 +635,7 @@ namespace ConcreteTests
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
 			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
 
@@ -712,7 +711,7 @@ namespace ConcreteTests
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
 			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
 
@@ -770,7 +769,7 @@ namespace ConcreteTests
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
 			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
 
