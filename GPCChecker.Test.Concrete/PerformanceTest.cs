@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Materials;
@@ -20,7 +21,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace ConcreteTests
 {
     [TestClass]
-    public class PerformanceTest : UnitTestBase
+    public class PerformanceTest : ConcreteTestBase
     {
 
         [TestMethod]
@@ -66,18 +67,23 @@ namespace ConcreteTests
         }
 
 
-        internal class SectionSolverModelCode2010Test : GPC.Checkers.Concrete.SectionSolvers.SectionSolverModelCode2010
+
+        [TestMethod]
+        public void FailureDomainTest()
         {
-            internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, int id = -1) 
-                : base(section, standard, id)
-            {
+            var section = GetRectangularSection1();
 
-            }
+            SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new StandardEN1992p11());
 
-            internal ForceTuple IntegrateSectionStressTest(StrainPlane strainPlane)
+            Action ac0 = new Action(() =>
             {
-                return base.IntegrateSectionStress(strainPlane);
-            }
+                solver.GetFailurePlasticDomainResults();
+            });
+
+
+            var bb0 = MeasureTime.FunctionExecutionTime(20, ac0, true); ;
+
+            Console.WriteLine(bb0);
         }
 
 

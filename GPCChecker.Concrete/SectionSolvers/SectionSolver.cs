@@ -119,8 +119,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual FailureDomainResult GetFailureElasticDomainResult()
         {
-
-
             return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
                                             SectionSolverOptions.Instance.FailureZonesDiscretizations), null, this, Standard, Id);
         }
@@ -566,20 +564,25 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             momentsDiscretizations++;
 
             FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[momentsDiscretizations][];
-            (StrainPlane, FailureZones)[][] strainPlanes = new (StrainPlane, FailureZones)[momentsDiscretizations][];
 
             try
             {
 
                 Parallel.For(0, momentsDiscretizations, (i) =>
                 {
-                    strainPlanes[i] = CalculateFailureStrainPlanes((i * deltaTeta), normalDiscretizations);
-                    domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes[i].Length];
+                    (StrainPlane, FailureZones)[] strainPlanes = CalculateFailureStrainPlanes((i * deltaTeta), normalDiscretizations);
 
-                    Parallel.For(0, strainPlanes[i].Length, (j) =>
+                    domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes.Length];
+
+                    for (int j = 0; j < strainPlanes.Length; j++)
                     {
-                        domainPoints[i][j] = new FailureDomain.FailureDomainPoint(CalculateForceResultant(strainPlanes[i][j]), strainPlanes[i][j].Item2, strainPlanes[i][j].Item1);
-                    });
+                        domainPoints[i][j] = new FailureDomain.FailureDomainPoint(CalculateForceResultant(strainPlanes[j]), strainPlanes[j].Item2, strainPlanes[j].Item1);
+                    }
+
+                    //Parallel.For(0, strainPlanes.Length, (j) =>
+                    //{
+                    //    domainPoints[i][j] = new FailureDomain.FailureDomainPoint(CalculateForceResultant(strainPlanes[j]), strainPlanes[j].Item2, strainPlanes[j].Item1);
+                    //});
                 });
 
             }

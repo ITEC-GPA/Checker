@@ -487,6 +487,11 @@ namespace ConcreteTests
             {
                 return base.CalculateDomainPoint(targetLocalForces);
             }
+
+            internal ForceTuple IntegrateSectionStressTest(StrainPlane strainPlane)
+            {
+                return base.IntegrateSectionStress(strainPlane);
+            }
         }
     }
 }
