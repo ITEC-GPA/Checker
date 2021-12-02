@@ -710,7 +710,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     chiDx = GetDesignUltimateStrainRebar(distances.dMinRebarId) / (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(rebars[distances.dMinRebarId].Position, teta, chi,
+                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
                         GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
                     break;
 
@@ -722,7 +722,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(rebars[distances.dMinRebarId].Position, teta, chi,
+                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
                         GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
                     break;
 
@@ -735,7 +735,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(rebars[distances.dMinRebarId].Position, teta, chi,
+                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
                         GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
                     break;
 
