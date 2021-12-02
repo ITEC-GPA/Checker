@@ -37,15 +37,17 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
 			{  
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250,450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,450,0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -58,9 +60,9 @@ namespace ConcreteTests
 				new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis))
 			};
 
-			for (int i = 0; i < forces.Length; i++)
+			for (int j = 0; j < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -79,13 +81,15 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {  
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))};
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250,450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,450,0))};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -98,9 +102,9 @@ namespace ConcreteTests
 				new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis))
 			};
 
-			for (int i = 0; i < forces.Length; i++)
+			for (int j = 0; j < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -121,15 +125,17 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250,450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,450,0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -142,9 +148,9 @@ namespace ConcreteTests
 				new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis))
 			};
 
-			for (int i = 0; i < forces.Length; i++)
+			for (int j = 0; j < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard, 0.005, new double[] {1.0}), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -165,15 +171,17 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250,450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,450,0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -192,9 +200,9 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			for (int i = 0; i < forces.Length; i++)
+			for (int j = 0; j < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -214,15 +222,17 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250,0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 250,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 250,0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -238,9 +248,9 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			for (int i = 0; i < forces.Length; i++)
+			for (int j = 0; j < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -261,17 +271,19 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 250,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250,0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 250,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 250,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 250,0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[] 
@@ -291,9 +303,9 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			for (int i = 0; i < forces.Length; i++)
+			for (int j = 0; j < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -313,21 +325,23 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(450, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(350, 450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(450, 450,0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(350, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(450, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(350, 450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(450, 450,0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -343,9 +357,9 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			for (int i = 0; i < forces.Length; i++)
+			for (int j = 0; j < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -365,21 +379,23 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(450, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(350, 450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(450, 450,0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(350, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(450, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(350, 450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(450, 450,0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -398,9 +414,9 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			for (int i = 0; i < forces.Length; i++)
+			for (int j = 0; j < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -421,17 +437,19 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 250,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250,0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 250,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 250,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 250,0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -444,9 +462,9 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			for (int i = 0; i < forces.Length; i++)
+			for (int j = 0; j < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 	}

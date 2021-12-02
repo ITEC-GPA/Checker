@@ -71,9 +71,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return CalculateDesignYieldingStrainRebar(rebar.RebarMaterial);
         }
 
-        protected override double GetDesignYieldingStrainRebar(int rebar)
+        protected override double GetDesignYieldingStrainRebar(int rebarID)
         {
-            return CalculateDesignYieldingStrainRebar(ConcreteSection.Rebars[rebar].RebarMaterial);
+            return CalculateDesignYieldingStrainRebar(ConcreteSection.GetRebarById(rebarID).RebarMaterial);
         }
 
         protected override double GetDesignUltimateStrainRebar(ReinforcedConcreteRebar rebar)
@@ -81,9 +81,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return CalculateDesignUltimateStrainRebar(rebar.RebarMaterial);
         }
 
-        protected override double GetDesignUltimateStrainRebar(int rebar)
+        protected override double GetDesignUltimateStrainRebar(int rebarID)
         {
-            return CalculateDesignUltimateStrainRebar(ConcreteSection.Rebars[rebar].RebarMaterial);
+            return CalculateDesignUltimateStrainRebar(ConcreteSection.GetRebarById(rebarID).RebarMaterial);
         }
 
         protected override double GetUltimateStrainConcreteCompression()
@@ -220,9 +220,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return rebar.RebarMaterial.StrainU * StandardModelCode2010.SteelCoefficientStrainTension;
         }
 
-        protected double CalculateUltimateDesignStrainRebar(int rebar)
+        protected double CalculateUltimateDesignStrainRebar(int rebarId)
         {
-            return ConcreteSection.Rebars[rebar].RebarMaterial.StrainU * StandardModelCode2010.SteelCoefficientStrainTension;
+            return ConcreteSection.GetRebarById(rebarId).RebarMaterial.StrainU * StandardModelCode2010.SteelCoefficientStrainTension;
         }
 
         protected double CalculateDesignYieldingStressRebar(RebarMaterial material)

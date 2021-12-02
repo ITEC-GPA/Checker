@@ -119,12 +119,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual FailureDomainResult GetFailureElasticDomainResult()
         {
+
+
             return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
                                             SectionSolverOptions.Instance.FailureZonesDiscretizations), null, this, Standard, Id);
         }
 
         public virtual FailureDomainResult GetFailurePlasticDomainResults()
         {
+
+
             return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
                                             SectionSolverOptions.Instance.FailureZonesDiscretizations), null, this, Standard, Id);
         }
@@ -262,24 +266,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// Calculate the resultant of all the rebars
         /// </summary>
         /// <param name="strainPlane">The strain plane</param>
-        /// <param name="deltaN">The axial force resultant</param>
-        /// <param name="deltaMx">The bending moment about X-axis resultant</param>
-        /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
         protected virtual ForceTuple IntegrateRebarStress(StrainPlane strainPlane)
         {
-            double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
-            double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
-            double[] deltaMyArray = new double[ConcreteSection.Rebars.Length];
+            double[] deltaNArray = new double[ConcreteSection.Rebars.Count()];
+            double[] deltaMxArray = new double[ConcreteSection.Rebars.Count()];
+            double[] deltaMyArray = new double[ConcreteSection.Rebars.Count()];
 
-            Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
+            var rebars = ConcreteSection.GetRebars();
+
+            Parallel.For(0, rebars.Length, (i) =>
             {
-                double strain = strainPlane.GetStrain(ConcreteSection.Rebars[i].Position);
-                double sigmaS = CalculateStressRebar(ConcreteSection.Rebars[i], strain);
+                double strain = strainPlane.GetStrain(rebars[i].Position);
+                double sigmaS = CalculateStressRebar(rebars[i], strain);
                 double sigmaC = CalculateSigmaC(strain);
 
-                deltaNArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area;
-                deltaMxArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
-                deltaMyArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
+                deltaNArray[i] = (sigmaS - sigmaC) * rebars[i].Area;
+                deltaMxArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.Y - ConcreteSection.Centroid.Y);
+                deltaMyArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.X - ConcreteSection.Centroid.X);
             });
 
 
@@ -422,20 +425,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="deltaMx">The bending moment about X-axis resultant</param>
         /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
         protected virtual ForceTuple IntegrateRebarStress(double n, StrainPlane strainPlane)
-        {
-            double[] deltaNArray = new double[ConcreteSection.Rebars.Length];
-            double[] deltaMxArray = new double[ConcreteSection.Rebars.Length];
-            double[] deltaMyArray = new double[ConcreteSection.Rebars.Length];
 
-            Parallel.For(0, ConcreteSection.Rebars.Length, (i) =>
+        {
+            var rebars = ConcreteSection.GetRebars();
+
+            double[] deltaNArray = new double[rebars.Length];
+            double[] deltaMxArray = new double[rebars.Length];
+            double[] deltaMyArray = new double[rebars.Length];
+
+            Parallel.For(0, rebars.Length, (i) =>
             {
-                double strain = strainPlane.GetStrain(ConcreteSection.Rebars[i].Position);
+                double strain = strainPlane.GetStrain(rebars[i].Position);
                 double sigmaC = CalculateElasticSigmaC(strain);
                 double sigmaS = CalculateSigmaS(n, strain);
 
-                deltaNArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area;
-                deltaMxArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.Y - ConcreteSection.Centroid.Y);
-                deltaMyArray[i] = (sigmaS - sigmaC) * ConcreteSection.Rebars[i].Area * (ConcreteSection.Rebars[i].Position.X - ConcreteSection.Centroid.X);
+                deltaNArray[i] = (sigmaS - sigmaC) * rebars[i].Area;
+                deltaMxArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.Y - ConcreteSection.Centroid.Y);
+                deltaMyArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.X - ConcreteSection.Centroid.X);
             });
 
             return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
@@ -489,9 +495,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             int dMaxVertexIndex = -1;
             int dMinVertexIndex = -1;
 
-            for (int r = 0; r < ConcreteSection.Rebars.Count(); r++)
+            var rebars = ConcreteSection.GetRebars();
+
+            for (int r = 0; r < rebars.Length; r++)
             {
-                double w1 = (ConcreteSection.Rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta - (ConcreteSection.Rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
+                double w1 = (rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta - (rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
                 if (w1 <= dminRebar)
                 {
                     dminRebar = w1;
@@ -669,6 +677,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double chiDx;
             double chi;
 
+            var rebars = ConcreteSection.GetRebars();
             switch (failureIndex)
             {
                 case FailureZones.F1:
@@ -677,7 +686,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     chiDx = GetDesignUltimateStrainRebar(distances.dMinRebarIndex) / (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Rebars[distances.dMinRebarIndex].Position, teta, chi,
+                    strainPlane = new StrainPlane(rebars[distances.dMinRebarIndex].Position, teta, chi,
                         GetDesignUltimateStrainRebar(distances.dMinRebarIndex), id);
                     break;
 
@@ -689,7 +698,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Rebars[distances.dMinRebarIndex].Position, teta, chi,
+                    strainPlane = new StrainPlane(rebars[distances.dMinRebarIndex].Position, teta, chi,
                         GetDesignUltimateStrainRebar(distances.dMinRebarIndex), id);
                     break;
 
@@ -702,7 +711,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         (distances.dmaxConcrete - distances.dminRebar);
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Rebars[distances.dMinRebarIndex].Position, teta, chi,
+                    strainPlane = new StrainPlane(rebars[distances.dMinRebarIndex].Position, teta, chi,
                         GetDesignUltimateStrainRebar(distances.dMinRebarIndex), id);
                     break;
 

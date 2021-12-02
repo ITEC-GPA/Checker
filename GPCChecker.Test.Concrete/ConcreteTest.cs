@@ -267,9 +267,9 @@ namespace ConcreteTests
 				}
 			}
 
-			for (int i = 0; i < section.Rebars.Length; i++)
+            foreach (var rebar in section.GetRebars())
 			{
-				GmshNet.Gmsh.Model.Occ.AddPoint(section.Rebars[i].Position.X, section.Rebars[i].Position.Y, 0.0);
+				GmshNet.Gmsh.Model.Occ.AddPoint(rebar.Position.X, rebar.Position.Y, 0.0);
 			}
 
 			GmshNet.Gmsh.Model.Occ.Synchronize();
@@ -328,15 +328,17 @@ namespace ConcreteTests
 			double pureCompressionMomentX = 0;
 			double pureCompressionMomentY = 0;
 
-			for (int i = 0; i < section.Rebars.Length; i++)
-			{
-				pureCompressionAxialForce += section.Rebars[i].Area * (section.Rebars[i].RebarMaterial.Fyk / standard.GammaS -
+
+            foreach (var rebar in section.GetRebars())
+            {
+				pureCompressionAxialForce += rebar.Area * (rebar.RebarMaterial.Fyk / standard.GammaS -
 					((ConcreteMaterialModelCode2010)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC);
-				pureCompressionMomentX += section.Rebars[i].Area * (section.Rebars[i].RebarMaterial.Fyk / standard.GammaS) *
-					(section.Rebars[i].Position.Y - section.Centroid.Y);
-				pureCompressionMomentY += section.Rebars[i].Area * (section.Rebars[i].RebarMaterial.Fyk / standard.GammaS) *
-					(section.Rebars[i].Position.X - section.Centroid.X);
+				pureCompressionMomentX += rebar.Area * (rebar.RebarMaterial.Fyk / standard.GammaS) *
+					(rebar.Position.Y - section.Centroid.Y);
+				pureCompressionMomentY += rebar.Area * (rebar.RebarMaterial.Fyk / standard.GammaS) *
+					(rebar.Position.X - section.Centroid.X);
 			}
+
 
 			if (Math.Abs((Math.Abs(NRdMin.Z) - Math.Abs(pureCompressionAxialForce)) / NRdMin.Z) * 100 > errorPercentage)
 				return false;
@@ -352,14 +354,14 @@ namespace ConcreteTests
 			double pureTractionMomentX = 0;
 			double pureTractionMomentY = 0;
 
-			for (int i = 0; i < section.Rebars.Length; i++)
+
+			foreach (var rebar in section.GetRebars())
 			{
-				pureTractionAxialForce += section.Rebars[i].Area * section.Rebars[i].RebarMaterial.Fyk / standard.GammaS;
-				pureTractionMomentX += section.Rebars[i].Area * section.Rebars[i].RebarMaterial.Fyk / standard.GammaS *
-					(section.Rebars[i].Position.Y - section.Centroid.Y);
-				pureTractionMomentY += section.Rebars[i].Area * section.Rebars[i].RebarMaterial.Fyk / standard.GammaS *
-					(section.Rebars[i].Position.X - section.Centroid.X);
+				pureTractionAxialForce += rebar.Area * rebar.RebarMaterial.Fyk / standard.GammaS;
+				pureTractionMomentX += rebar.Area * rebar.RebarMaterial.Fyk / standard.GammaS * (rebar.Position.Y - section.Centroid.Y);
+				pureTractionMomentY += rebar.Area * rebar.RebarMaterial.Fyk / standard.GammaS * (rebar.Position.X - section.Centroid.X);
 			}
+
 
 			if (Math.Abs((Math.Abs(NRdMax.Z) - Math.Abs(pureTractionAxialForce)) / NRdMax.Z) * 100 > errorPercentage)
 				return false;

@@ -38,15 +38,17 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
 			{  
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250,450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,450,0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
@@ -123,18 +125,20 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
 			{  
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(100, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 450, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 450, 0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
@@ -207,23 +211,25 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
 			{  
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,70,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(100, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,70,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(100, 70, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 70, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 70, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 70, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 450, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 450, 0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
@@ -296,31 +302,33 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
 			{  
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,70,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,430,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 430, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 430, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 430, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 430, 0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(100, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,70,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(100, 70, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 70, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 70, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 70, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,450,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(100, 450, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 450, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 450, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 450, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,430,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(100, 430, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 430, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 430, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 430, 0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
@@ -390,22 +398,24 @@ namespace ConcreteTests
 
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
-
+			
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),				
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,250,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(100, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 50, 0)),				
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50,250,0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(100, 250, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 250, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 250, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 250, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
@@ -427,29 +437,31 @@ namespace ConcreteTests
 
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
 			{  
-				new ReinforcedConcreteRebar(rebar, new Point3d(450, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(434.77591, 326.536678, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(391.421355, 391.421357, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(326.536686, 434.775907, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(173.463322, 434.77591, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(108.578643, 391.421355, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(65.224093, 326.536686, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(65.22409, 173.463322, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(108.578645, 108.578643, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(173.463314, 65.224093, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250.0, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(326.536678, 65.22409, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(391.421357, 108.578645, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(434.775907, 173.463314, 0)) 
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(450, 250, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(434.77591, 326.536678, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(391.421355, 391.421357, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(326.536686, 434.775907, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250, 450, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(173.463322, 434.77591, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(108.578643, 391.421355, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(65.224093, 326.536686, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(50, 250, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(65.22409, 173.463322, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(108.578645, 108.578643, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(173.463314, 65.224093, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(250.0, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(326.536678, 65.22409, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(391.421357, 108.578645, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(434.775907, 173.463314, 0)) 
 			};
 
 
 			ConcreteSectionCircular section = new ConcreteSectionCircular(sectionDiameter,
-				new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle), rebars);
+				new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
@@ -515,7 +527,9 @@ namespace ConcreteTests
 			int numberOfRebars = 32;
 
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
-			ConcreteSectionCHS section = new ConcreteSectionCHS(diameterExternal, thickness, ConcreteMaterialEN1992.C25_30, concreteCover, numberOfRebars, rebar);
+			ConcreteSectionCHS section = new ConcreteSectionCHS(diameterExternal, thickness, ConcreteMaterialEN1992.C25_30);
+			section.AddRadialRebars(concreteCover, numberOfRebars, rebar);
+
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
@@ -592,23 +606,25 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
+			int i = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] 
 			{  
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(300, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(400, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(300, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(400, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 950, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 950, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(300, 950, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(350, 950, 0))
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(100, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(300, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(400, 50, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(100, 450, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 450, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(300, 450, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(400, 450, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(150, 950, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(200, 950, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(300, 950, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(350, 950, 0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 

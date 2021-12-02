@@ -30,9 +30,10 @@ namespace ConcreteTests
 
             ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300,
                                                                     new ConcreteMaterialEN1992("", 25,
-                                                                    ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear),
-                                                                    new ReinforcedConcreteRebar[] { new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)) }
+                                                                    ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear)
                                                                     );
+
+            concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(1, rebarPhi20, new Point3d(50, 50, 0)));
 
             List<ResultBeamForces> forces = new List<ResultBeamForces>();
 

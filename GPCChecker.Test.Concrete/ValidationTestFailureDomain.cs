@@ -56,16 +56,18 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h/10, 0 + h/10, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h/10, 0 + h/10, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h/10, h - h/10, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h/10, h - h/10, 0))
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h/10, 0 + h/10, 0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h/10, 0 + h/10, 0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h/10, h - h/10, 0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h/10, h - h/10, 0))
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -147,16 +149,18 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h/10, 0 + h/10, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h/10, 0 + h/10, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h/10, h - h/10, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h/10, h - h/10, 0))
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h/10, 0 + h/10, 0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h/10, 0 + h/10, 0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h/10, h - h/10, 0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h/10, h - h/10, 0))
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -238,16 +242,18 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h/10, 0 + h/10, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h/10, 0 + h/10, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h/10, h - h/10, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h/10, h - h/10, 0))
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h/10, 0 + h/10, 0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h/10, 0 + h/10, 0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h/10, h - h/10, 0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h/10, h - h/10, 0))
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -329,20 +335,22 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,		0 + h / 10.0,		0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,				0 + h / 10.0,		0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,		0 + h / 10.0,		0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,		h - h / 10.0,		0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,				h - h / 10.0,		0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,		h - h / 10.0,		0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,		h / 2.0,			0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,		h / 2.0,			0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,		0 + h / 10.0,		0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,				0 + h / 10.0,		0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,		0 + h / 10.0,		0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,		h - h / 10.0,		0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,				h - h / 10.0,		0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,		h - h / 10.0,		0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,		h / 2.0,			0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,		h / 2.0,			0)),
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -423,20 +431,22 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -517,20 +527,22 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -612,20 +624,22 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -709,20 +723,22 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -806,20 +822,22 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -903,20 +921,22 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -999,20 +1019,22 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -1096,20 +1118,22 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -1193,20 +1217,22 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
@@ -1290,20 +1316,22 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
+			int k = 0;
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        0 + h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b / 2.0,             h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h - h / 10.0,       0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(0 + h / 10.0,        h / 2.0,            0)),
+				new ReinforcedConcreteRebar(k++, rebar, new Point3d(b - h / 10.0,        h / 2.0,            0)),
 			};
 
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx, rebars);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
