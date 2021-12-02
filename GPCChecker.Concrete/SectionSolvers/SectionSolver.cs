@@ -800,6 +800,80 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return strainPlane;
         }
 
+        protected virtual FailureDomain CalculateDomain2D(double teta, int subdivision = 20, double angularTolerance = 1.8e-2, double distanceTolerance = 1e-4)
+		{
+            double mx;
+            double my;
+
+            if(Math.Abs(teta) < angularTolerance)
+			{
+                mx = 100 * 1000000;
+                my = 0;
+			}
+            else if (Math.Abs(teta) - Math.PI / 2.0 < angularTolerance)
+            {
+                mx = 0;
+                my = 100 * 1000000;
+            }
+			else
+			{
+                my = 20 * 1000000;
+                mx = my * Math.Tan(teta);
+            }
+
+            return CalculateDomain2D(new ForceTuple(0, mx, my), subdivision, angularTolerance, distanceTolerance);
+		}
+
+        protected virtual FailureDomain CalculateDomain2D(ForceTuple forces, int subdivision = 20, double angularTolerance = 1.8e-2, double distanceTolerance = 1e-4)
+        {
+            if (subdivision <= 2)
+                throw new Exception();
+
+            FailureDomain.FailureDomainPoint[][] points = new FailureDomain.FailureDomainPoint[1][];
+            points[0] = new FailureDomain.FailureDomainPoint[2 * subdivision + 2];
+
+            ForceTuple[] forceTuples = new ForceTuple[2 * subdivision + 2];
+
+            double nMax = ConcreteSection.AreaRebars * ConcreteSection.Rebars.FirstOrDefault().RebarMaterial.Fyk / 2.0;
+            double nMin = ConcreteSection.Area * GetFck() / 2.0;
+
+
+            for (int i = 0; i <= subdivision / 2.0; i++)
+            {
+                forceTuples[i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.Mx, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.My, i));
+
+                forceTuples[subdivision / 2 + i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.Mx, 0.0, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.My, 0.0, i));
+
+                forceTuples[2 * subdivision + 1 - i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.Mx, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.My, i));
+
+                forceTuples[subdivision / 2 + subdivision + 1 - i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.Mx, 0.0, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.My, 0.0, i));
+            }
+
+            for (int i = 0; i < forceTuples.Length; i++)
+            {
+                Console.WriteLine($"Force {i}: N = {Math.Round(forceTuples[i].N / 1000)} kN, " +
+                    $"Mx = {Math.Round(forceTuples[i].Mx / 1000000)} kNm, My = {Math.Round(forceTuples[i].My / 1000000)} kNm");
+            }
+
+
+            for (int i = 0; i < forceTuples.Length; i++)
+            //Parallel.For(0, forceTuples.Length, (i) =>
+            {
+                points[0][i] = CalculateDomainPoint(forceTuples[i], angularTolerance, distanceTolerance);
+            }
+
+            return new FailureDomain(points);
+        }
+
+
 
         #endregion
 
