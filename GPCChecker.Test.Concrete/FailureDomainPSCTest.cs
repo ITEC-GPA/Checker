@@ -16,7 +16,7 @@ using GPC.TestUtilities;
 namespace ConcreteTests
 {
 	[TestClass]
-	public class FailureDomainPSCTest : ConcreteTest
+	public class FailureDomainPSCTest : ConcreteTestBase
 	{	
 
 		[TestMethod]

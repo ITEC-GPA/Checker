@@ -19,8 +19,40 @@ using GPC.Geometry.Meshes;
 namespace ConcreteTests
 {
 	[TestClass]
-	public abstract class ConcreteTest : UnitTestBase
+	public abstract class ConcreteTestBase : UnitTestBase
 	{
+		protected ReinforcedConcreteSection GetRectangularSection1(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, ConcreteMaterialEN1992 concreteMaterial = null)
+		{
+
+			if (concreteMaterial == null)
+				concreteMaterial = ConcreteMaterialEN1992.C25_30;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(width, 0),
+				new Point2d(width, height),
+				new Point2d(0, height)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, RebarMaterial.B450C);
+
+			int i = 0;
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(concreteCover, concreteCover, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(width - concreteCover, concreteCover, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(width - concreteCover, height - concreteCover, 0)),
+				new ReinforcedConcreteRebar(i++, rebar, new Point3d(concreteCover, height - concreteCover, 0))
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+
+			return section;
+		}
+
 		protected virtual void CalculateAdimensionalForces(IConcreteSection section, ResultBeamForces forces, 
 			out double adimAxialForce, out double adimBendingMomentX, out double adimBendingMomentY)
 		{
@@ -147,6 +179,50 @@ namespace ConcreteTests
 
 			return true;
 		}
+
+		protected Point3d[] ExportToGmsh(FailureDomain failureDomain, FailureDomain failureDomain2 = null)
+		{
+			GmshNet.Gmsh.Initialize();
+			int horizontal = failureDomain.DomainPoints.GetUpperBound(0);
+			List<Point3d> points = new List<Point3d>();
+
+
+			Action<FailureDomain> action = new Action<FailureDomain>((domain) =>
+			{
+				for (int i = 0; i < horizontal; i++)
+				{
+					int vertical = domain.DomainPoints[i].GetUpperBound(0);
+
+					for (int j = 0; j < vertical; j++)
+					{
+
+						GmshNet.Gmsh.Model.Occ.AddPoint(domain.DomainPoints[i][j].MxRd / 1000000,
+							domain.DomainPoints[i][j].MyRd / 1000000,
+							domain.DomainPoints[i][j].NRd / 1000 / 10);
+
+						points.Add(new Point3d(domain.DomainPoints[i][j].MxRd / 1000000,
+							domain.DomainPoints[i][j].MyRd / 1000000,
+							domain.DomainPoints[i][j].NRd / 1000 / 10));
+					}
+				}
+
+				GmshNet.Gmsh.Model.Occ.Synchronize();
+			});
+
+			action(failureDomain);
+
+			if (failureDomain2 != null)
+				action(failureDomain2);
+
+
+
+
+			GmshNet.Gmsh.Fltk.Run();
+			GmshNet.Gmsh.Finalize();
+
+			return points.ToArray();
+		}
+
 
 		protected Point3d[] ExportToGmsh(FailureDomain failureDomain)
 		{

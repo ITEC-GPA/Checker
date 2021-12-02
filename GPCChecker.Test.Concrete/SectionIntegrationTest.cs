@@ -18,7 +18,7 @@ using GPC.Checkers.Concrete.Helper;
 namespace ConcreteTests
 {
 	[TestClass]
-	public class SectionIntegrationTest : ConcreteTest
+	public class SectionIntegrationTest : ConcreteTestBase
 	{
 		[TestMethod]
 		public void RectangularSectionIntegration1()

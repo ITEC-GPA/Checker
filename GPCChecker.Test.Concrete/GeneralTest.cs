@@ -20,51 +20,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace ConcreteTests
 {
     [TestClass]
-    public class GeneralTest : UnitTestBase
+    public class GeneralTest : ConcreteTestBase
     {
 
-        protected Point3d[] ExportToGmsh(FailureDomain failureDomain, FailureDomain failureDomain2 = null)
-        {
-            GmshNet.Gmsh.Initialize();
-            int horizontal = failureDomain.DomainPoints.GetUpperBound(0);
-            List<Point3d> points = new List<Point3d>();
-
-
-            Action<FailureDomain> action = new Action<FailureDomain>((domain) =>
-            {
-                for (int i = 0; i < horizontal; i++)
-                {
-                    int vertical = domain.DomainPoints[i].GetUpperBound(0);
-
-                    for (int j = 0; j < vertical; j++)
-                    {
-
-                        GmshNet.Gmsh.Model.Occ.AddPoint(domain.DomainPoints[i][j].MxRd / 1000000,
-                            domain.DomainPoints[i][j].MyRd / 1000000,
-                            domain.DomainPoints[i][j].NRd / 1000 / 10);
-
-                        points.Add(new Point3d(domain.DomainPoints[i][j].MxRd / 1000000,
-                            domain.DomainPoints[i][j].MyRd / 1000000,
-                            domain.DomainPoints[i][j].NRd / 1000 / 10));
-                    }
-                }
-
-                GmshNet.Gmsh.Model.Occ.Synchronize();
-            });
-
-            action(failureDomain);
-
-            if (failureDomain2 != null)
-                action(failureDomain2);
-
-
-
-
-            GmshNet.Gmsh.Fltk.Run();
-            GmshNet.Gmsh.Finalize();
-
-            return points.ToArray();
-        }
 
         [TestMethod]
         public void AsyncTest1()

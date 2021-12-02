@@ -18,7 +18,7 @@ using GPC.Checkers.Concrete.Helper;
 namespace ConcreteTests
 {
 	[TestClass]
-	public class ValidationTestFailureDomain : ConcreteTest
+	public class ValidationTestFailureDomain : ConcreteTestBase
 	{
 
 		[TestMethod]

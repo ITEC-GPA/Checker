@@ -18,7 +18,7 @@ using GPC.Geometry.Meshes;
 namespace ConcreteTests
 {
 	[TestClass]
-	public class FailureDomainRCTest : ConcreteTest
+	public class FailureDomainRCTest : ConcreteTestBase
 	{
 
 		[TestMethod]

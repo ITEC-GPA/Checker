@@ -16,7 +16,7 @@ using GPC.TestUtilities;
 namespace ConcreteTests
 {
 	[TestClass]
-	public class StressAnalysisPSCTest : ConcreteTest
+	public class StressAnalysisPSCTest : ConcreteTestBase
 	{
 		[TestMethod]
 		public void SquareSectionPrestressed1()
