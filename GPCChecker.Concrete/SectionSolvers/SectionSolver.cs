@@ -923,8 +923,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             else if (adimOutputForces.N > 0.0)
             {
-                failureIndex = FailureZones.F2A;
-                immersione = 0.5;
+                failureIndex = FailureZones.F3A;
+                immersione = 0.2;
             }             
             else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
 			{
@@ -1234,9 +1234,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
+
                 double dT;
                 double dE;
-
 
                 if (dTeta >= 0.1)
                     dT = Math.Pow(dTeta, 0.75);

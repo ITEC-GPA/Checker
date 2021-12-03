@@ -293,6 +293,13 @@ namespace ConcreteTests
                     Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance);
                     Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance);
                     Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance);
+
+                    if(force.N != 0)
+                        Assert.IsTrue(Math.Sign(force.N) == Math.Sign(failureDomainPoints[i].Point.Z));
+                    if (force.M1 != 0)
+                        Assert.IsTrue(Math.Sign(force.M1) == Math.Sign(failureDomainPoints[i].Point.X));
+                    if (force.M2 != 0)
+                        Assert.IsTrue(Math.Sign(force.M2) == Math.Sign(failureDomainPoints[i].Point.Y));
                 }
                 else
 				{
