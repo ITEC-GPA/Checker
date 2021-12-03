@@ -543,11 +543,10 @@ namespace ConcreteTests
 		public void SquareSectionTest5()
 		{
 			double rebarDiameter = 26;
-			double height = 500;
-			double width = 300;
+			double height = 300;
 			double concreteCover = 50;
 
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C25_30);
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(height, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C25_30);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -565,5 +564,32 @@ namespace ConcreteTests
 			for (int i = 0; i < slsResult.Length; i++)
 				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
+
+		[TestMethod]
+		public void SquareSectionTest6()
+		{
+			double rebarDiameter = 14;
+			double height = 400;
+			double concreteCover = 50;
+
+			ReinforcedConcreteSection section = GetRectangularSectionBottomSideRebars(height, height, rebarDiameter, concreteCover, 4, ConcreteMaterialEN1992.C25_30);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, 30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
+
+			for (int i = 0; i < slsResult.Length; i++)
+				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+		}
+
 	}
 }

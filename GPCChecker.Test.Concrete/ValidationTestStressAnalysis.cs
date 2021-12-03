@@ -59,6 +59,9 @@ namespace ConcreteTests
 			};
 
 			CommonAssertsVCA(result[0], section, expConcreteTensions, expRebarTensions);
+
+			Line2d line = result[0].StrainPlane.GetNeutralAxisRespectCentroid();
+
 		}
 
 		[TestMethod]
@@ -252,7 +255,7 @@ namespace ConcreteTests
 			double rebarDiameter = 8;
 			double h = 500;
 			
-			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(h, h, rebarDiameter, 50, 5, GetLinearConcreteMaterial(elasticModulus));
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(h, h, rebarDiameter, 50, 5, GetLinearConcreteMaterialTensile(elasticModulus));
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			var rebars = section.GetRebars();
@@ -265,7 +268,7 @@ namespace ConcreteTests
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
 			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult();
 
@@ -292,6 +295,7 @@ namespace ConcreteTests
 			};
 
 			CommonAssertsVCA(result[0], section, expConcreteTensions, expRebarTensions);
+
 		}
 
 	}

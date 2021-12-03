@@ -132,6 +132,42 @@ namespace ConcreteTests
             return section;
         }
 
+
+        protected ReinforcedConcreteSection GetRectangularSectionBottomSideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
+            int numberOfRebars = 4, ConcreteMaterialEN1992 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+        {
+
+            if (concreteMaterial == null)
+                concreteMaterial = ConcreteMaterialEN1992.C25_30;
+
+            if (rebarMaterial == null)
+                rebarMaterial = new RebarMaterial("", 450);
+
+            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+            {
+                new Point2d(0, 0),
+                new Point2d(width, 0),
+                new Point2d(width, height),
+                new Point2d(0, height)
+            }));
+
+            ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
+
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[numberOfRebars];
+
+            for (int j = 0; j < numberOfRebars; j++)
+            {
+                rebars[j] = new ReinforcedConcreteRebar(rebar, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), concreteCover));
+            }
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+            section.AddRebars(rebars);
+
+            return section;
+        }
+
         protected CoordinateSystem GetLocalCoordinateSystem(IConcreteSection section)
 		{
             return new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis);
