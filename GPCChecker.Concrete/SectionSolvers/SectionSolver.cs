@@ -153,7 +153,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return stressAnalysisResults;
         }
 
-        public virtual StressAnalysisResult[] GetStressAnalysisResult(ResultBeamForces[] force, double n, Vector2d forceReferencePointDistance)
+        public virtual StressAnalysisResult GetStressAnalysisResult(ResultBeamForces force, Vector2d forceReferencePointDistance)
+        {
+            return new StressAnalysisResult(ConcreteSection, force,
+                    CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(forceReferencePointDistance),
+                    _stressAnalysisTolerance), this, Standard, Id);
+        }
+
+        public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, double n, Vector2d forceReferencePointDistance)
         {
             StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
 
@@ -165,6 +172,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             });
 
             return stressAnalysisResults;
+        }
+
+        public virtual StressAnalysisResult GetStressAnalysisResult(ResultBeamForces force, double n, Vector2d forceReferencePointDistance)
+        {
+            return new StressAnalysisResult(ConcreteSection, force,
+                CalculateStrainPlaneNMethodAnalysis(force.ConvertToForceTuple(forceReferencePointDistance), n,
+                _stressAnalysisTolerance), this, Standard, Id);
         }
 
         internal virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces)
@@ -900,7 +914,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // Valori di primo tentativo
             FailureZones failureIndex;
             double immersione;
-            double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
+            double teta = Math.Atan2(-targetLocalForces.My, targetLocalForces.Mx);
 
             if(adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
 			{
@@ -932,7 +946,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             
             StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, distances);
 
-            //teta = strainPlane.Teta;
+            teta = strainPlane.Teta;
 
             //if (targetLocalForces.My < 0)
             //    teta *= -1;

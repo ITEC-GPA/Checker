@@ -9,6 +9,7 @@ using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
+using GPC.Model.Results;
 using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Checkers
@@ -44,11 +45,19 @@ namespace GPC.Checkers.Concrete.Checkers
 
         internal abstract StressAnalysisResult[] GetStressAnalysisResult();
 
+        internal abstract StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces);
+
         internal abstract StressAnalysisResult[] GetStressAnalysisResult(double n);
+
+        internal abstract StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces, double n);
 
         public abstract Task<StressAnalysisResult[]> GetStressAnalysisResultAsync();
 
+        public abstract Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces);
+
         public abstract Task<StressAnalysisResult[]> GetStressAnalysisResultAsync(double n);
+
+        public abstract Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces, double n);
 
         public abstract class SectionOptions : Options
         {

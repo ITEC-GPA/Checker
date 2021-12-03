@@ -9,6 +9,7 @@ using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
+using GPC.Model.Results;
 using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Checkers
@@ -56,6 +57,18 @@ namespace GPC.Checkers.Concrete.Checkers
             });
         }
 
+        public async override Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces, double n)
+        {
+
+            if (forces is null)
+                return null;
+
+            return await Task.Run(() =>
+            {
+                return _solver.GetStressAnalysisResult(forces, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+            });
+        }
+
         public async override Task<StressAnalysisResult[]> GetStressAnalysisResultAsync(double n)
         {
 
@@ -64,7 +77,18 @@ namespace GPC.Checkers.Concrete.Checkers
 
             return await Task.Run(() =>
             {
-                return _solver.GetStressAnalysisResult(_checkerAttributes.SLSResults, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+            });
+        }
+
+        public async override Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces)
+        {
+            if (forces is null)
+                return null;
+
+            return await Task.Run(() =>
+            {
+                return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
             });
         }
 
@@ -107,15 +131,22 @@ namespace GPC.Checkers.Concrete.Checkers
             if (_checkerAttributes.SLSResults is null)
                 return null;
 
-            return _solver.GetStressAnalysisResult(_checkerAttributes.SLSResults, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+            return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
         }
 
+		internal override StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
+		{
+            return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+        }
 
+		internal override StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces, double n)
+		{
+            return _solver.GetStressAnalysisResult(forces, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+        }
 
+		#endregion
 
-        #endregion
-
-        public class SectionOptionsModelCode2010 : SectionOptions
+		public class SectionOptionsModelCode2010 : SectionOptions
         {
 
             public SectionOptionsModelCode2010()

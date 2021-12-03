@@ -32,6 +32,11 @@ namespace GPC.Checkers.Concrete.Attributes
             _sLSresults = slsResults is null ? null : slsResults.ToArray();
         }
 
+        public SectionCheckerAttribute(IConcreteSection section, int id = ModelObjectId.IDUNASSIGNED)
+            : this(section, null, null, id)
+        {
+        }
+
         protected SectionCheckerAttribute(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
