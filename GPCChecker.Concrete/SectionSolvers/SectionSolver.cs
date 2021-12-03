@@ -953,8 +953,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             teta = strainPlane.Teta;
 
-            int id = 1;
-
             ForceTuple forces = CalculateForceResultant(strainPlane);
             ForceTuple adimIncrement;
 
