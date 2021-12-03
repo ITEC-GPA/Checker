@@ -29,8 +29,8 @@ namespace GPC.Checkers.Concrete.Results
             : base(section, standard, id)
         {
             _force = force ?? throw new ArgumentNullException(nameof(force));
-            _strainPlane = strainPlane;
-            _sectionSolver = solver;
+            _strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
+            _sectionSolver = solver ?? throw new ArgumentNullException(nameof(solver));
         }
 
 
@@ -92,10 +92,36 @@ namespace GPC.Checkers.Concrete.Results
             return _sectionSolver.CalculateElasticSigmaC(StrainPlane.GetStrain(point));
         }
 
-
         public List<string> GetLog()
         {
             return _sectionSolver.GetLog();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is StressAnalysisResult result &&
+                   //base.Equals(obj) &&
+                   _name == result._name &&
+                   _id == result._id &&
+                   EqualityComparer<IConcreteSection>.Default.Equals(_section, result._section) &&
+                   EqualityComparer<Standard>.Default.Equals(_standard, result._standard) &&
+                   EqualityComparer<ResultBeamForces>.Default.Equals(_force, result._force) &&
+                   EqualityComparer<StrainPlane>.Default.Equals(_strainPlane, result._strainPlane) &&
+                   EqualityComparer<SectionSolver>.Default.Equals(_sectionSolver, result._sectionSolver);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -2006748420;
+            hashCode = hashCode * -1521134295 + base.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(_name);
+            hashCode = hashCode * -1521134295 + _id.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<IConcreteSection>.Default.GetHashCode(_section);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Standard>.Default.GetHashCode(_standard);
+            hashCode = hashCode * -1521134295 + EqualityComparer<ResultBeamForces>.Default.GetHashCode(_force);
+            hashCode = hashCode * -1521134295 + EqualityComparer<StrainPlane>.Default.GetHashCode(_strainPlane);
+            hashCode = hashCode * -1521134295 + EqualityComparer<SectionSolver>.Default.GetHashCode(_sectionSolver);
+            return hashCode;
         }
     }
 }
