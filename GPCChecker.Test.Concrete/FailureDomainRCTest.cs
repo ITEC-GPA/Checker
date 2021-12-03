@@ -24,29 +24,11 @@ namespace ConcreteTests
 		public void RectangularSectionTest1()
 		{
 			double rebarDiameter = 18;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
 
-			// sezione rettangolare 300x500
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-			{
-				new Point2d(0, 0),
-				new Point2d(300, 0),
-				new Point2d(300, 500),
-				new Point2d(0, 500)
-			}));
-
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
-
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0))
-			};
-
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-			section.AddRebars(rebars);
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C25_30);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
@@ -56,7 +38,7 @@ namespace ConcreteTests
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 
 			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			//Mesh mesh = failureDomain.Domain.BuildMesh();
 			//ExportToGmsh(mesh);
@@ -144,7 +126,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 

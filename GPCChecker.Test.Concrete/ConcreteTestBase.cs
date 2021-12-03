@@ -295,7 +295,13 @@ namespace ConcreteTests
                     Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance);
                 }
                 else
+				{
+                    Console.WriteLine($"Fail to calculate strain plane for force {i} = {Math.Round(testForces[i].M1 / 1000000)}, " +
+                    $"{Math.Round(testForces[i].M2 / 1000000)}, " +
+                    $"{Math.Round(testForces[i].N / 1000)}");
                     return false;
+                }
+                    
             }
 
             return true;
