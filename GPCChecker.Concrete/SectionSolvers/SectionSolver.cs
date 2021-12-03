@@ -936,25 +936,22 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 failureIndex = FailureZones.F3B;
                 immersione = 0.5;
             }
+            else if (Math.Abs(adimOutputForces.N) < 1e-5)
+            {
+                failureIndex = FailureZones.F3A;
+                immersione = 0.5;
+            }
             else
             {
                 failureIndex = FailureZones.F3B;
                 immersione = 0.25;
             }
 
-            var distances = CalculateMaxMinSectionDistances(teta);
-            
+            int id = 1;
+            var distances = CalculateMaxMinSectionDistances(teta);            
             StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, distances);
 
             teta = strainPlane.Teta;
-
-            //if (targetLocalForces.My < 0)
-            //    teta *= -1;
-
-            //if (targetLocalForces.Mx < 0)
-            //    teta += Math.PI;
-            //if (targetLocalForces.My < 0)
-            //    teta *= -1;
 
             int id = 1;
 
@@ -1058,8 +1055,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     break;
 
                 case FailureZones.F2B:
-                    dTeta = Math.Max(Math.Min(deltaAngle, 0.1), 0.005);
-                    dEta = Math.Max(Math.Min(deltaAngle, 0.1), 0.0005);
+                    dTeta = Math.Max(Math.Min(deltaAngle, 0.01), 0.005);
+                    dEta = Math.Max(Math.Min(deltaAngle, 0.01), 0.0005);
                     break;
 
                 case FailureZones.F3A:
@@ -1140,7 +1137,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     tetaCounter++;
                 }
                 else
-                    return (0.1, 0.5, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                    return (+0.1, -0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
 
             } while (dNdTeta == 0.0 || (dMxdTeta == 0.0 && dMydTeta == 0.0));
 
@@ -1183,7 +1180,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     etaCounter++;
                 }
                 else
-                    return (0.1, 0.5, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                    return (0.0, -0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
 
             } while (dNdImm == 0.0 || (dMxdImm == 0.0 && dMydImm == 0.0));
 
