@@ -89,7 +89,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
-            _failureAnalysisAngularTolerance = 1.8e-2;
+            _failureAnalysisAngularTolerance = 1e-2;
 
             _considerTensileConcrete = considerTensileConcrete;
         }
@@ -914,7 +914,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // Valori di primo tentativo
             FailureZones failureIndex;
             double immersione;
-            double teta = Math.Atan2(-targetLocalForces.My, targetLocalForces.Mx);
+            double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
             if(adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
 			{
@@ -923,8 +923,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             else if (adimOutputForces.N > 0.0)
             {
-                failureIndex = FailureZones.F2A;
-                immersione = 0.5;
+                failureIndex = FailureZones.F3A;
+                immersione = 0.2;
             }             
             else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
 			{
@@ -1041,7 +1041,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             var adimIteractionPoint = ConvertToAdimensionalForces(iterationPoint);
             Line3d externalForcesLine = new Line3d(new Point3d(0, 0, 0), externalForces);
-            Vector3d externalForcesVector = new Vector3d(new Point3d(0, 0, 0), externalForces);
 
             double dTeta;
             double dEta;
@@ -1234,9 +1233,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
+
                 double dT;
                 double dE;
-
 
                 if (dTeta >= 0.1)
                     dT = Math.Pow(dTeta, 0.75);
