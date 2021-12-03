@@ -89,7 +89,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
-            _failureAnalysisAngularTolerance = 1e-2;
+            _failureAnalysisAngularTolerance = 1.8e-2;
 
             _considerTensileConcrete = considerTensileConcrete;
         }
@@ -1264,26 +1264,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 double deltaTeta = results[0, 0] * dT / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorTeta), 1.0));
                 double deltaImmersione = results[1, 0] * dE / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorEta), 1.0));
-
-                double dotProduct = externalForcesVector * v;
-
-                if (iterationPoint.Mx < 0 && iterationPoint.My < 0)
-                {
-                    deltaTeta *= -1;
-                }
-                else if (iterationPoint.Mx < 0 && iterationPoint.My > 0)
-                {
-                    deltaTeta *= -1;
-                }
-                else if (iterationPoint.Mx > 0 && iterationPoint.My < 0)
-                {
-
-                }
-                else if (iterationPoint.Mx > 0 && iterationPoint.My > 0)
-                {
-
-                }
-
 
                 return (deltaTeta, deltaImmersione, v);
             }
