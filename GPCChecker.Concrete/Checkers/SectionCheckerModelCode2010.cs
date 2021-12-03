@@ -36,12 +36,19 @@ namespace GPC.Checkers.Concrete.Checkers
         {
             return await Task.Run(() =>
             {
-                var failureDomainResult = _solver.GetFailurePlasticDomainResults();
+                try
+                {
+                    var failureDomainResult = _solver.GetFailurePlasticDomainResults();
 
-                if (_checkerAttributes.ULSResults != null)
-                    failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+                    if (_checkerAttributes.ULSResults != null)
+                        failureDomainResult.AddForces(_checkerAttributes.ULSResults);
 
-                return failureDomainResult;
+                    return failureDomainResult;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
             });
         }
 
@@ -53,7 +60,14 @@ namespace GPC.Checkers.Concrete.Checkers
 
             return await Task.Run(() =>
             {
-                return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                try
+                {
+                    return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
             });
         }
 
@@ -65,7 +79,14 @@ namespace GPC.Checkers.Concrete.Checkers
 
             return await Task.Run(() =>
             {
-                return _solver.GetStressAnalysisResult(forces, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                try
+                { 
+                    return _solver.GetStressAnalysisResult(forces, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
             });
         }
 
@@ -77,7 +98,14 @@ namespace GPC.Checkers.Concrete.Checkers
 
             return await Task.Run(() =>
             {
-                return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                try
+                { 
+                    return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, n, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
             });
         }
 
@@ -88,7 +116,14 @@ namespace GPC.Checkers.Concrete.Checkers
 
             return await Task.Run(() =>
             {
-                return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                try
+                {
+                    return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
             });
         }
 
