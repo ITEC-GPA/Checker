@@ -105,6 +105,24 @@ namespace GPC.Checkers.Concrete.Results
             return _strainReferencePoint + ChiX * (point.X - _referencePoint.X) + ChiY * (point.Y - _referencePoint.Y);
         }
 
+        public Line2d GetNeutralAxisRespectCentroid()
+		{
+            if (_chiX == 0 && _chiY == 0)
+                return null;
+            else if (_chiY == 0 && _chiX != 0)
+            {
+                return new Line2d(new Point2d(-StrainReferencePoint / _chiX, 100.0), new Point2d(-StrainReferencePoint / _chiX, -100.0));
+            }
+            else if (_chiX == 0 && _chiY != 0)
+            {
+                return new Line2d(new Point2d(100.0, -StrainReferencePoint / _chiY), new Point2d(-100.0, -StrainReferencePoint / _chiY));
+            }
+            else
+            {
+                return new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY), new Point2d(-StrainReferencePoint / _chiX, 0.0));
+            }
+        }
+
         public bool Equals(StrainPlane other)
         {
             return !(other is null) &&
