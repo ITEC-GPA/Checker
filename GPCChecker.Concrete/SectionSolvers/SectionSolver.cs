@@ -89,7 +89,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
-            _failureAnalysisAngularTolerance = 1.8e-2;
+            _failureAnalysisAngularTolerance = 1e-2;
 
             _considerTensileConcrete = considerTensileConcrete;
         }
@@ -914,7 +914,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // Valori di primo tentativo
             FailureZones failureIndex;
             double immersione;
-            double teta = Math.Atan2(-targetLocalForces.My, targetLocalForces.Mx);
+            double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
             if(adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
 			{
