@@ -1041,7 +1041,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             var adimIteractionPoint = ConvertToAdimensionalForces(iterationPoint);
             Line3d externalForcesLine = new Line3d(new Point3d(0, 0, 0), externalForces);
-            Vector3d externalForcesVector = new Vector3d(new Point3d(0, 0, 0), externalForces);
 
             double dTeta;
             double dEta;
