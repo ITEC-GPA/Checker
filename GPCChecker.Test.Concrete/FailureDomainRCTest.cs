@@ -361,6 +361,56 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		[TestCategory("Brittle rebars")]
+		public void RectangularSectionTest5()
+		{
+			double rebarDiameter = 18;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
+
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, 
+				ConcreteMaterialEN1992.C35_45, new RebarMaterial("", 200000, 0.028, 450, 450, 0.002, 0.007850, 12 * 1e-6, new Guid()));
+
+			StandardEN1992p11 standard = new StandardEN1992p11();
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			var failureDomain = sectionChecker.GetFailureDomainResult();
+			ShowDomainPoints(failureDomain.Domain);
+			ExportToGmsh(failureDomain.Domain);
+
+			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
+		}
+
+		[TestMethod]
+		[TestCategory("Rebar with fragile material")]
+		public void RectangularSectionTest6()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
+
+			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover,
+				ConcreteMaterialEN1992.C35_45, new RebarMaterial("", 200000, 0.028, 450, 450, 0.002, 0.007850, 12 * 1e-6, new Guid()));
+
+			StandardEN1992p11 standard = new StandardEN1992p11();
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			var failureDomain = sectionChecker.GetFailureDomainResult();
+			ShowDomainPoints(failureDomain.Domain);
+			ExportToGmsh(failureDomain.Domain);
+
+			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
+		}
+
+		[TestMethod]
 		public void SquareSectionTest1()
 		{
 			double rebarDiameter = 18;

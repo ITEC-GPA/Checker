@@ -322,6 +322,7 @@ namespace ConcreteTests
 				Console.WriteLine($"Force {i}");
 				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard, 0.01), $"Force {i} fail");
 			}
+
 		}
 
 		[TestMethod]
@@ -485,6 +486,35 @@ namespace ConcreteTests
 			{
 				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
 			}
+		}
+
+		[TestMethod]
+		public void DomainCostantAxialForceTest1()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
+
+			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C35_45);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+
+			ResultBeamForces forces = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section));
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			FailureDomainResult failureDomainResult = sectionChecker.GetFailureDomainResult();
+			FailureDomain failureDomain = failureDomainResult.CalculateDomainConstantAxialForce(forces.ConvertToForceTuple(section.Centroid));
+
+			ExportToGmsh(failureDomain);
+
+			var failureDomainPoint = failureDomainResult.GetDomainPointConstantAxialForce(forces);
+
+			//Point3d expPoint = new Point3d(420 * 1000000, 0, -1000 * 1000 );
+
+			//Assert.IsTrue(Math.Abs(failureDomainPoint.FailureDomainPoint.Point.X) - )
 		}
 	}
 }
