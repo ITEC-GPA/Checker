@@ -56,7 +56,7 @@ namespace GPC.Checkers.Concrete.Results
 
         public virtual double GetRebarTension(double n, ReinforcedConcreteRebar rebar)
         {
-            return _sectionSolver.CalculateSigmaS(n, StrainPlane.GetStrain(rebar.Position));
+            return _sectionSolver.CalculateSigmaS(n, rebar, StrainPlane.GetStrain(rebar.Position));
         }
 
         public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension(double n)

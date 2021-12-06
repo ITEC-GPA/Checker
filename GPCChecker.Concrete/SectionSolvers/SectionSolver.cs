@@ -160,24 +160,24 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     _stressAnalysisTolerance), this, Standard, Id);
         }
 
-        public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, double n, Vector2d forceReferencePointDistance)
+        public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, double psi, Vector2d forceReferencePointDistance)
         {
             StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
 
             Parallel.For(0, force.Length, (i) =>
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
-                    CalculateStrainPlaneNMethodAnalysis(force[i].ConvertToForceTuple(forceReferencePointDistance), n,
+                    CalculateStrainPlaneNMethodAnalysis(force[i].ConvertToForceTuple(forceReferencePointDistance), psi,
                     _stressAnalysisTolerance), this, Standard, Id);
             });
 
             return stressAnalysisResults;
         }
 
-        public virtual StressAnalysisResult GetStressAnalysisResult(ResultBeamForces force, double n, Vector2d forceReferencePointDistance)
+        public virtual StressAnalysisResult GetStressAnalysisResult(ResultBeamForces force, double psi, Vector2d forceReferencePointDistance)
         {
             return new StressAnalysisResult(ConcreteSection, force,
-                CalculateStrainPlaneNMethodAnalysis(force.ConvertToForceTuple(forceReferencePointDistance), n,
+                CalculateStrainPlaneNMethodAnalysis(force.ConvertToForceTuple(forceReferencePointDistance), psi,
                 _stressAnalysisTolerance), this, Standard, Id);
         }
 
@@ -360,7 +360,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         /// <param name="face"></param>
         /// <param name="strainPlane"></param>
-        protected virtual ForceTuple IntegrateFaceStress(double n, MeshFace face, StrainPlane strainPlane)
+        protected virtual ForceTuple IntegrateFaceStressLinearElastic(MeshFace face, StrainPlane strainPlane)
         {
             Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
 
@@ -421,7 +421,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <para>The bending moment about X-axis resultant</para>
         /// <para>The bending moment about Y-axis resultant</para>
         /// </returns>
-        protected virtual ForceTuple IntegrateSectionStress(double n, StrainPlane strainPlane)
+        protected virtual ForceTuple IntegrateSectionStressLinearElastic(StrainPlane strainPlane)
         {
             double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
             double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
@@ -431,7 +431,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
                 {
-                    var forces = IntegrateFaceStress(n, ConcreteSection.Mesh.Faces[i + 1], strainPlane);
+                    var forces = IntegrateFaceStressLinearElastic(ConcreteSection.Mesh.Faces[i + 1], strainPlane);
 
                     deltaNArray[i] = forces.N;
                     deltaMxArray[i] = forces.Mx;
@@ -454,8 +454,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="deltaN">The axial force resultant</param>
         /// <param name="deltaMx">The bending moment about X-axis resultant</param>
         /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-        protected virtual ForceTuple IntegrateRebarStress(double n, StrainPlane strainPlane)
-
+        protected virtual ForceTuple IntegrateRebarStress(double psi, StrainPlane strainPlane)
         {
             var rebars = ConcreteSection.GetRebars();
 
@@ -467,7 +466,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 double strain = strainPlane.GetStrain(rebars[i].Position);
                 double sigmaC = CalculateElasticSigmaC(strain);
-                double sigmaS = CalculateSigmaS(n, strain);
+                double sigmaS = CalculateSigmaS(psi, rebars[i], strain);
 
                 deltaNArray[i] = (sigmaS - sigmaC) * rebars[i].Area;
                 deltaMxArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.Y - ConcreteSection.Centroid.Y);
@@ -481,11 +480,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// Integrate the stress on the section given by the <paramref name="strainPlane"/> with homogenization coefficient <paramref name="n"/> and gives the resultant forces
         /// </summary>
         /// <returns>The forces in the local reference system</returns>
-        protected virtual ForceTuple CalculateForceResultant(double n, StrainPlane strainPlane)
+        protected virtual ForceTuple CalculateForceResultant(double psi, StrainPlane strainPlane)
         {
             try
             {
-                return IntegrateSectionStress(n, strainPlane) + IntegrateRebarStress(n, strainPlane);
+                return IntegrateSectionStressLinearElastic(strainPlane) + IntegrateRebarStress(psi, strainPlane);
             }
             catch (Exception e)
             {
@@ -518,9 +517,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         }
 
-        internal double CalculateSigmaS(double n, double strain)
+        internal double CalculateSigmaS(double psi, ReinforcedConcreteRebar rebar, double strain)
         {
-            return _concreteSection.ConcreteMaterial.E * n * strain;
+            return _concreteSection.ConcreteMaterial.E * (rebar.RebarMaterial.E / (_concreteSection.ConcreteMaterial.E / (1 + psi))) * strain;
         }
 
         protected virtual (int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete)
@@ -1449,7 +1448,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Protected method - N method
 
-        protected StrainPlane CalculateStrainPlaneNMethodAnalysis(ForceTuple localForces, double n, double tolerance = 1e-5)
+        protected StrainPlane CalculateStrainPlaneNMethodAnalysis(ForceTuple localForces, double psi, double tolerance = 1e-5)
         {
             ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
 
@@ -1463,7 +1462,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // piano di primo tentativo. baricentrico e ruotato di teta = 0;
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
-            ForceTuple iterationForces = CalculateForceResultant(n, strainPlane);
+            ForceTuple iterationForces = CalculateForceResultant(psi, strainPlane);
             ForceTuple iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
 
             if (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
@@ -1477,7 +1476,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         try
                         {
                             (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
-                                CalculateIncrementStressAnalysis(n, strainPlane, localForces - iterationForces);
+                                CalculateIncrementStressAnalysis(psi, strainPlane, localForces - iterationForces);
 
                             // piano di nuovo tentativo
                             id++;
@@ -1486,7 +1485,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             strainReferencePoint += increment.deltaStrainRefPoint;
                             strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
-                            iterationForces = CalculateForceResultant(n, strainPlane);
+                            iterationForces = CalculateForceResultant(psi, strainPlane);
                             iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
                         }
                         catch (Exception e)
