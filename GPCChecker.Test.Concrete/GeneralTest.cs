@@ -107,7 +107,7 @@ namespace ConcreteTests
 
 
 
-            ExportToGmsh(func(concreteSectionRectangular1), func(concreteSectionRectangular2));
+            //ExportToGmsh(func(concreteSectionRectangular1), func(concreteSectionRectangular2));
 
         }
 

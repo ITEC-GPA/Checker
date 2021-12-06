@@ -421,7 +421,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetFailureDomainResult();
 			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);
+			//ExportToGmsh(failureDomain.Domain);
 
 			//// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 
