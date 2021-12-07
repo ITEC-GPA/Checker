@@ -138,7 +138,7 @@ namespace GPC.Checkers.Concrete.Results
 			{
 				_forceTuple = forceTuple;
 				_failureIndex = failureIndex;
-				_strainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
+				_strainPlane = strainPlane;
 			}
 
 			internal FailureDomainPoint(SerializationInfo info, StreamingContext context)
