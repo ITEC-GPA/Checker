@@ -361,7 +361,7 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
-		[TestCategory("Brittle rebars")]
+		[TestCategory("Rebar with fragile material")]
 		public void RectangularSectionTest5()
 		{
 			double rebarDiameter = 18;

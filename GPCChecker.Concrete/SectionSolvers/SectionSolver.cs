@@ -1510,7 +1510,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return strainPlane;
         }
 
-        protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementStressAnalysis(double n, StrainPlane inputStrainPlane, ForceTuple forceTuple)
+        protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementStressAnalysis(double psi, StrainPlane inputStrainPlane, ForceTuple forceTuple)
         {
             ForceTuple forceTupleAdim = ConvertToAdimensionalForces(forceTuple);
 
@@ -1542,8 +1542,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             StrainPlane strainPlaneMinusdChiX = new StrainPlane(inputStrainPlane.ChiX - dChiX, inputStrainPlane.ChiY,
                 inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
 
-            var forcesPlusdChiX = CalculateForceResultant(n, strainPlanePlusdChiX);
-            var forcesMinusdChiX = CalculateForceResultant(n, strainPlaneMinusdChiX);
+            var forcesPlusdChiX = CalculateForceResultant(psi, strainPlanePlusdChiX);
+            var forcesMinusdChiX = CalculateForceResultant(psi, strainPlaneMinusdChiX);
 
             double dNdChiX = (forcesPlusdChiX.N - forcesMinusdChiX.N) / (2.0 * dCX);
             double dMxdChiX = (forcesPlusdChiX.Mx - forcesMinusdChiX.Mx) / (2.0 * dCX);
@@ -1556,8 +1556,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             StrainPlane strainPlaneMinusdChiY = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY - dChiY,
                 inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
 
-            var forcesPlusdChiY = CalculateForceResultant(n, strainPlanePlusdChiY);
-            var forcesMinusdChiY = CalculateForceResultant(n, strainPlaneMinusdChiY);
+            var forcesPlusdChiY = CalculateForceResultant(psi, strainPlanePlusdChiY);
+            var forcesMinusdChiY = CalculateForceResultant(psi, strainPlaneMinusdChiY);
 
             double dNdChiY = (forcesPlusdChiY.N - forcesMinusdChiY.N) / (2.0 * dCY);
             double dMxdChiY = (forcesPlusdChiY.Mx - forcesMinusdChiY.Mx) / (2.0 * dCY);
@@ -1570,8 +1570,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             StrainPlane strainPlaneMinusStrain = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY,
                 inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint - dStrain);
 
-            var forcesPlusStrain = CalculateForceResultant(n, strainPlanePlusStrain);
-            var forcesMinusStrain = CalculateForceResultant(n, strainPlaneMinusStrain);
+            var forcesPlusStrain = CalculateForceResultant(psi, strainPlanePlusStrain);
+            var forcesMinusStrain = CalculateForceResultant(psi, strainPlaneMinusStrain);
 
             double dNdStrain = (forcesPlusStrain.N - forcesMinusStrain.N) / (2.0 * dS);
             double dMxdStrain = (forcesPlusStrain.Mx - forcesMinusStrain.Mx) / (2.0 * dS);
