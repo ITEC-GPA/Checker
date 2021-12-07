@@ -506,11 +506,11 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomainResult = sectionChecker.GetFailureDomainResult();
-			FailureDomain failureDomain = failureDomainResult.CalculateDomainConstantAxialForce(forces.ConvertToForceTuple(section.Centroid));
+			//FailureDomain failureDomain = failureDomainResult.CalculateDomainConstantAxialForce(forces.ConvertToForceTuple(section.Centroid));
 
-			ExportToGmsh(failureDomain);
+			//ExportToGmsh(failureDomain);
 
-			var failureDomainPoint = failureDomainResult.GetDomainPointConstantAxialForce(forces);
+			//var failureDomainPoint = failureDomainResult.GetDomainPointConstantAxialForce(forces);
 
 			//Point3d expPoint = new Point3d(420 * 1000000, 0, -1000 * 1000 );
 

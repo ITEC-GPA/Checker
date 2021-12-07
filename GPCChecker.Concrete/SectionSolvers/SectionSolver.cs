@@ -60,11 +60,27 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             F5 = 7,
         }
 
+        public enum MaterialTypes
+		{
+            Concrete,
+            //TensileConcrete,
+            FRC,
+		}
+
+        public enum FailureDomainAnalysisTypes
+		{
+            Elastic,
+            Plastic,
+		}
+
         #region Variables
         
         protected double _stressAnalysisTolerance;
         protected double _failureAnalysisAngularTolerance;
         protected bool _considerTensileConcrete;
+
+        protected MaterialTypes _materialType;
+        protected FailureDomainAnalysisTypes _analyisType;
 
         protected IConcreteSection _concreteSection;
         protected Standard _standard;
@@ -90,6 +106,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             _stressAnalysisTolerance = 1e-5;
             _failureAnalysisAngularTolerance = 1e-2;
+
+            if (ConcreteMaterial.GetType() == typeof(ConcreteMaterialModelCode2010FRC))
+                _materialType = MaterialTypes.FRC;
+            else
+                _materialType = MaterialTypes.Concrete;
 
             _considerTensileConcrete = considerTensileConcrete;
         }
@@ -127,16 +148,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual FailureDomainResult GetFailureElasticDomainResult()
         {
-            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
-                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), null, this, Standard, Id);
+            _analyisType = FailureDomainAnalysisTypes.Elastic;
+
+            return null; // new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
+                         //                   SectionSolverOptions.Instance.FailureZonesDiscretizations), null, this, Standard, Id);
         }
 
         public virtual FailureDomainResult GetFailurePlasticDomainResults()
         {
+            _analyisType = FailureDomainAnalysisTypes.Plastic;
 
+            (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(SectionSolverOptions.Instance.MomentsDiscretizations,
+                SectionSolverOptions.Instance.PlasticFailureZonesDiscretizations);
 
-            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(SectionSolverOptions.Instance.MomentsDiscretizations,
-                                            SectionSolverOptions.Instance.FailureZonesDiscretizations), null, this, Standard, Id);
+            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes), null, this, Standard, Id);
         }
 
         public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, Vector2d forceReferencePointDistance)
@@ -600,34 +625,25 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         /// <param name="momentsDiscretizations">Number of discretizations of X-axis and Y-axis (moment around Z-axis)</param>
         /// <param name="normalDiscretizations">Number of discretizations of Z-axis (axial force)</param>
-        protected virtual FailureDomain CalculateFailureDomain(int momentsDiscretizations, (FailureZones, int)[] normalDiscretizations)
+        protected virtual FailureDomain CalculateFailureDomain((StrainPlane, FailureZones)[][] strainPlanes)
         {
-            if (momentsDiscretizations < 2)
-                return null;
-
-            double deltaTeta = 2 * Math.PI / (momentsDiscretizations);
-            momentsDiscretizations++;
-
-            FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[momentsDiscretizations][];
+            FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[strainPlanes.Length][];
 
             try
             {
-
-                Parallel.For(0, momentsDiscretizations, (i) =>
+                Parallel.For(0, strainPlanes.Length, (i) =>
                 {
-                    (StrainPlane, FailureZones)[] strainPlanes = CalculateFailureStrainPlanes((i * deltaTeta), normalDiscretizations);
+                    domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes[i].Length];
 
-                    domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes.Length];
-
-                    for (int j = 0; j < strainPlanes.Length; j++)
-                    {
-                        domainPoints[i][j] = new FailureDomain.FailureDomainPoint(CalculateForceResultant(strainPlanes[j]), strainPlanes[j].Item2, strainPlanes[j].Item1);
-                    }
-
-                    //Parallel.For(0, strainPlanes.Length, (j) =>
+                    //for (int j = 0; j < strainPlanes[i].Length; j++)
                     //{
-                    //    domainPoints[i][j] = new FailureDomain.FailureDomainPoint(CalculateForceResultant(strainPlanes[j]), strainPlanes[j].Item2, strainPlanes[j].Item1);
-                    //});
+                    //    domainPoints[i][j] = new FailureDomain.FailureDomainPoint(CalculateForceResultant(strainPlanes[i][j]), strainPlanes[i][j].Item2, strainPlanes[i][j].Item1);
+                    //}
+
+                    Parallel.For(0, strainPlanes[i].Length, (j) =>
+                    {
+                        domainPoints[i][j] = new FailureDomain.FailureDomainPoint(CalculateForceResultant(strainPlanes[i][j]), strainPlanes[i][j].Item2, strainPlanes[i][j].Item1);
+                    });
                 });
 
             }
@@ -640,6 +656,35 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
 
             return new FailureDomain(domainPoints);
+        }
+
+        protected virtual (StrainPlane, FailureZones)[][] CalculateDesignFailureStrainPlanes(int momentsDiscretizations, (FailureZones, int)[] normalDiscretizations)
+        {
+            if (momentsDiscretizations < 2)
+                return null;
+
+            double deltaTeta = 2 * Math.PI / (momentsDiscretizations);
+            momentsDiscretizations++;
+
+            (StrainPlane, FailureZones)[][] strainPlanes = new (StrainPlane, FailureZones)[momentsDiscretizations][];
+
+            try
+            {
+                Parallel.For(0, momentsDiscretizations, (i) =>
+                {
+                    var distances = CalculateMaxMinSectionDistances(i * deltaTeta);
+                    strainPlanes[i] = CalculateFailureStrainPlanes((i * deltaTeta), normalDiscretizations);
+                });
+            }
+            catch (Exception e)
+            {
+                _log.Add(e.Message);
+                if (e.InnerException != null)
+                    _log.Add(e.InnerException.Message);
+                return null;
+            }
+
+            return strainPlanes;
         }
 
         /// <summary>
@@ -718,99 +763,511 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             if (immersioneNelCampo > 1.0 || immersioneNelCampo < 0.0)
                 throw new ArgumentException("ImmersioneNelCampo cannot be greater than 1 and less than 0");
 
-            StrainPlane strainPlane;
+            StrainPlane strainPlane = null;
 
             double chiSx;
             double chiDx;
             double chi;
+            double fraction;
+            double heigth;
+            Point2d strainPlaneCenter;
 
             switch (failureIndex)
             {
                 case FailureZones.F1:
 
-                    chiSx = 0;
-                    chiDx = GetDesignUltimateStrainRebar(distances.dMinRebarId) / (distances.dmaxConcrete - distances.dminRebar);
+                    switch (_materialType)
+                    {
+                        case MaterialTypes.Concrete:
 
-                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
-                        GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = 0;
+                                    chiDx = GetDesignYieldingStrainRebar(distances.dMinRebarId) / (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
+                                        GetDesignYieldingStrainRebar(distances.dMinRebarId), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = 0;
+                                    chiDx = GetDesignUltimateStrainRebar(distances.dMinRebarId) / (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
+                                        GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
+
+                                    break;
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+
+                        case MaterialTypes.FRC:
+
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = 0;
+                                    chiDx = GetYieldingStrainConcreteTension() / (distances.dmaxConcrete - distances.dminConcrete);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMinVertexIndex], teta, chi,
+                                        GetYieldingStrainConcreteTension(), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = 0;
+                                    chiDx = GetUltimateStrainConcreteTension() / (distances.dmaxConcrete - distances.dminConcrete);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMinVertexIndex], teta, chi,
+                                        GetUltimateStrainConcreteTension(), id);
+
+                                    break;
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+
+                        default:
+                            return null;
+                    }
+
                     break;
 
 
                 case FailureZones.F2A:
 
-                    chiSx = GetDesignUltimateStrainRebar(distances.dMinRebarId) / (distances.dmaxConcrete - distances.dminRebar);
-                    chiDx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression())) /
-                        (distances.dmaxConcrete - distances.dminRebar);
+                    switch (_materialType)
+                    {
+                        case MaterialTypes.Concrete:
 
-                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
-                        GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = GetDesignYieldingStrainRebar(distances.dMinRebarId) / (distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression()) / 
+                                        (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
+                                        GetDesignYieldingStrainRebar(distances.dMinRebarId), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = GetDesignUltimateStrainRebar(distances.dMinRebarId) / (distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression())) /
+                                        (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
+                                        GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
+
+                                    break;
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+
+                        case MaterialTypes.FRC:
+
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = GetYieldingStrainConcreteTension() / (distances.dmaxConcrete - distances.dminConcrete);
+                                    chiDx = GetYieldingStrainConcreteTension() + Math.Abs(GetYieldingStrainConcreteCompression()) / 
+                                        (distances.dmaxConcrete - distances.dminConcrete);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMinVertexIndex], teta, chi,
+                                        GetYieldingStrainConcreteTension(), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = GetUltimateStrainConcreteTension() / (distances.dmaxConcrete - distances.dminConcrete);
+                                    chiDx = GetUltimateStrainConcreteTension() + Math.Abs(GetYieldingStrainConcreteCompression()) / 
+                                        (distances.dmaxConcrete - distances.dminConcrete);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMinVertexIndex], teta, chi,
+                                        GetUltimateStrainConcreteTension(), id);
+
+                                    break;
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+                    }
+
                     break;
 
 
                 case FailureZones.F2B:
 
-                    chiSx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression())) /
-                    (distances.dmaxConcrete - distances.dminRebar);
-                    chiDx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
-                        (distances.dmaxConcrete - distances.dminRebar);
+                    switch (_materialType)
+                    {
+                        case MaterialTypes.Concrete:
 
-                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
-                        GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression()) / (
+                                        distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression()) / 
+                                        (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
+                                        GetDesignYieldingStrainRebar(distances.dMinRebarId), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression())) /
+                                        (distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
+                                        (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.GetRebarById(distances.dMinRebarId).Position, teta, chi,
+                                        GetDesignUltimateStrainRebar(distances.dMinRebarId), id);
+
+                                    break;
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+
+                        case MaterialTypes.FRC:
+
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = GetYieldingStrainConcreteTension() + Math.Abs(GetYieldingStrainConcreteCompression()) / 
+                                        (distances.dmaxConcrete - distances.dminConcrete);
+                                    chiDx = GetYieldingStrainConcreteTension() + Math.Abs(GetYieldingStrainConcreteCompression()) / 
+                                        (distances.dmaxConcrete - distances.dminConcrete);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMinVertexIndex], teta, chi,
+                                        GetYieldingStrainConcreteTension(), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = GetUltimateStrainConcreteTension() + Math.Abs(GetYieldingStrainConcreteCompression()) / 
+                                        (distances.dmaxConcrete - distances.dminConcrete);
+                                    chiDx = GetUltimateStrainConcreteTension() + Math.Abs(GetUltimateStrainConcreteCompression()) / 
+                                        (distances.dmaxConcrete - distances.dminConcrete);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMinVertexIndex], teta, chi,
+                                        GetUltimateStrainConcreteTension(), id);
+
+                                    break;
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+                    }
+
                     break;
 
 
                 case FailureZones.F3A:
 
-                    chiSx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
-                        (distances.dmaxConcrete - distances.dminRebar);
-                    chiDx = (GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
-                        (distances.dmaxConcrete - distances.dminRebar);
+                    switch (_materialType)
+                    {
+                        case MaterialTypes.Concrete:
 
-                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
-                        GetUltimateStrainConcreteCompression(), id);
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression()) / (
+                                        distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression()) /
+                                        (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetYieldingStrainConcreteCompression(), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = (GetDesignUltimateStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
+                                        (distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = (GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
+                                        (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetUltimateStrainConcreteCompression(), id);
+
+                                    break;
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+
+                        case MaterialTypes.FRC:
+
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = GetYieldingStrainConcreteTension() + Math.Abs(GetYieldingStrainConcreteCompression()) / (
+                                        distances.dmaxConcrete - distances.dminConcrete);
+                                    chiDx = GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression()) /
+                                        (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetYieldingStrainConcreteCompression(), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = GetUltimateStrainConcreteTension() + Math.Abs(GetUltimateStrainConcreteCompression()) /
+                                        (distances.dmaxConcrete - distances.dminConcrete);
+                                    chiDx = (GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
+                                        (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetUltimateStrainConcreteCompression(), id);
+
+                                    break;
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+                    }
+
                     break;
 
 
                 case FailureZones.F3B:
 
-                    chiSx = (GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
-                        (distances.dmaxConcrete - distances.dminRebar);
-                    chiDx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
+                    switch (_materialType)
+                    {
+                        case MaterialTypes.Concrete:
 
-                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
-                        GetUltimateStrainConcreteCompression(), id);
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression()) / (
+                                        distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = Math.Abs(GetYieldingStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetYieldingStrainConcreteCompression(), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = (GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
+                                        (distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetUltimateStrainConcreteCompression(), id);
+
+                                    break;
+
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+
+                        case MaterialTypes.FRC:
+
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetYieldingStrainConcreteCompression()) /
+                                        (distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = Math.Abs(GetYieldingStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetYieldingStrainConcreteCompression(), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = (GetDesignYieldingStrainRebar(distances.dMinRebarId) + Math.Abs(GetUltimateStrainConcreteCompression())) /
+                                        (distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetUltimateStrainConcreteCompression(), id);
+
+                                    break;
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+                    }
+
                     break;
 
 
                 case FailureZones.F4:
 
-                    chiSx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
-                    chiDx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminConcrete);
+                    switch (_materialType)
+                    {
+                        case MaterialTypes.Concrete:
 
-                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
-                        GetUltimateStrainConcreteCompression(), id);
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = Math.Abs(GetYieldingStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = Math.Abs(GetYieldingStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminConcrete);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetYieldingStrainConcreteCompression(), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminConcrete);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetUltimateStrainConcreteCompression(), id);
+
+                                    break;
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+
+                        case MaterialTypes.FRC:
+
+                            switch (_analyisType)
+                            {
+                                case FailureDomainAnalysisTypes.Elastic:
+
+                                    chiSx = Math.Abs(GetYieldingStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = Math.Abs(GetYieldingStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminConcrete);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetYieldingStrainConcreteCompression(), id);
+
+                                    break;
+
+                                case FailureDomainAnalysisTypes.Plastic:
+
+                                    chiSx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminRebar);
+                                    chiDx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminConcrete);
+
+                                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                                    strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi,
+                                        GetUltimateStrainConcreteCompression(), id);
+
+                                    break;
+
+                                default:
+                                    return null;
+                            }
+
+                            break;
+                    }
+
                     break;
 
 
                 case FailureZones.F5:
 
-                    double fraction = GetYieldingStrainPureCompression() / GetUltimateStrainConcreteCompression();
-                    double heigth = distances.dmaxConcrete - distances.dminConcrete;
+                    switch (_analyisType)
+                    {
+                        case FailureDomainAnalysisTypes.Elastic:
 
-                    Point2d strainPlaneCenter = new Point2d((distances.dmaxConcrete - (1 - fraction) * heigth) * (-Math.Sin(teta)) + ConcreteSection.Centroid.X,
-                        (distances.dmaxConcrete - (1 - fraction) * heigth) * (Math.Cos(teta)) + ConcreteSection.Centroid.Y);
+                            chiSx = Math.Abs(GetYieldingStrainPureCompression()) / (distances.dmaxConcrete - distances.dminConcrete);
+                            chiDx = 0.0;
 
-                    chiSx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminConcrete);
-                    chiDx = 0.0;
+                            chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                            strainPlane = new StrainPlane(ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], teta, chi, GetYieldingStrainPureCompression(), id);
 
-                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    strainPlane = new StrainPlane(strainPlaneCenter, teta, chi, GetYieldingStrainPureCompression(), id);
+                            break;
+
+                        case FailureDomainAnalysisTypes.Plastic:
+
+                            fraction = GetYieldingStrainPureCompression() / GetUltimateStrainConcreteCompression();
+                            heigth = distances.dmaxConcrete - distances.dminConcrete;
+
+                            strainPlaneCenter = new Point2d((distances.dmaxConcrete - (1.0 - fraction) * heigth) * (-Math.Sin(teta)) + ConcreteSection.Centroid.X,
+                                (distances.dmaxConcrete - (1.0 - fraction) * heigth) * (Math.Cos(teta)) + ConcreteSection.Centroid.Y);
+
+                            chiSx = Math.Abs(GetUltimateStrainConcreteCompression()) / (distances.dmaxConcrete - distances.dminConcrete);
+                            chiDx = 0.0;
+
+                            chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                            strainPlane = new StrainPlane(strainPlaneCenter, teta, chi, GetYieldingStrainPureCompression(), id);
+
+                            break;
+
+                        default:
+                            return null;
+                    }
+
                     break;
 
 

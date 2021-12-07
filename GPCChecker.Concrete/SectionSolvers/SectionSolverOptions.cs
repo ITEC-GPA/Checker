@@ -31,7 +31,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <summary>
         /// Rapresent the discretization of the axial force in the solver
         /// </summary>
-        public (SectionSolver.FailureZones, int)[] FailureZonesDiscretizations { get; set; }
+        public (SectionSolver.FailureZones, int)[] PlasticFailureZonesDiscretizations { get; set; }
 
         /// <summary>
         /// Rapresent the discretization of the moments around the axial force axis
@@ -48,7 +48,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         private SectionSolverOptions()
         {
-            FailureZonesDiscretizations = new (SectionSolver.FailureZones, int)[] { (SectionSolver.FailureZones.F1, 1),
+            PlasticFailureZonesDiscretizations = new (SectionSolver.FailureZones, int)[] { (SectionSolver.FailureZones.F1, 1),
                                                                                     (SectionSolver.FailureZones.F2A, 1),
                                                                                     (SectionSolver.FailureZones.F2B, 1),
                                                                                     (SectionSolver.FailureZones.F3A, 30),

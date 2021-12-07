@@ -59,9 +59,6 @@ namespace ConcreteTests
 			};
 
 			CommonAssertsVCA(result[0], section, expConcreteTensions, expRebarTensions);
-
-			Line2d line = result[0].StrainPlane.GetNeutralAxisRespectCentroid();
-
 		}
 
 		[TestMethod]
