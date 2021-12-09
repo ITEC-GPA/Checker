@@ -769,6 +769,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             switch (analysisType)
             {
                 case FailureDomainAnalysisTypes.Elastic:
+
                     return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
                         (distances.dmaxConcrete - distances.dminRebar));
 
@@ -843,7 +844,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                         case FailureDomainAnalysisTypes.Plastic:
 
-                            return (GetDesignYieldingStrainRebar(distances.dMinRebarId), ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
+                            return (GetYieldingStrainConcreteTension(), ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
                                 (distances.dmaxConcrete - distances.dminConcrete));
 
                         default:
@@ -899,7 +900,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 return null;
 
             double deltaTeta = 2 * Math.PI / (tetaDiscretizations);
-            tetaDiscretizations++;
 
             (StrainPlane, FailureZones)[][] strainPlanes = new (StrainPlane, FailureZones)[tetaDiscretizations][];
 
