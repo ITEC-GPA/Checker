@@ -39,25 +39,29 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
 
-        internal abstract FailureDomainResult GetFailureDomainResult();
+        internal abstract FailureDomainResult GetPlasticFailureDomainResult();
 
-        public abstract Task<FailureDomainResult> GetFailureDomainResultAsync();
+        public abstract Task<FailureDomainResult> GetPlasticFailureDomainResultAsync();
+
+        public abstract Task<FailureDomainResult> GetElasticFailureDomainResultAsync();
+
+        internal abstract FailureDomainResult GetElasticFailureDomainResult();
 
         internal abstract StressAnalysisResult[] GetStressAnalysisResult();
 
         internal abstract StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces);
 
-        internal abstract StressAnalysisResult[] GetStressAnalysisResult(double n);
+        internal abstract StressAnalysisResult[] GetLinearStressAnalysisResult(double n);
 
-        internal abstract StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces, double n);
+        internal abstract StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double n);
 
         public abstract Task<StressAnalysisResult[]> GetStressAnalysisResultAsync();
 
         public abstract Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces);
 
-        public abstract Task<StressAnalysisResult[]> GetStressAnalysisResultAsync(double n);
+        public abstract Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double n);
 
-        public abstract Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces, double n);
+        public abstract Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double n);
 
         public abstract class SectionOptions : Options
         {
