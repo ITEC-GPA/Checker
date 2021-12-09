@@ -1427,9 +1427,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             } while (dNdImm == 0.0 || (dMxdImm == 0.0 && dMydImm == 0.0));
 
-            dEta = dEtaBuffer;
-            dTeta = dTetaBuffer;
-
             Vector3d v1 = new Vector3d(dMxdTeta, dMydTeta, dNdTeta);
             v1.Unitize();
             Vector3d v2 = new Vector3d(dMxdImm, dMydImm, dNdImm);
@@ -1439,12 +1436,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Vector3d gradient = v1 ^ v2;
             gradient.Unitize();
 
-            // vettore che indica la direzione dell'incremento
-            Vector3d s = gradient ^ (externalForces ^ gradient);
-            s.Unitize();
-
-            // k dell'equazione del piano tangente alla superficie in M
-            // A*x + B*y + C*z + k = 0
+            // k dell'equazione del piano tangente alla superficie in M    //      A*x + B*y + C*z + k = 0
             double k = -(gradient.X * iterationPoint.Mx + gradient.Y * iterationPoint.My + gradient.Z * iterationPoint.N);
 
             // piano tangente 
@@ -1481,18 +1473,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double dE;
 
                 if (dTeta > 0.01)
-                    dT = Math.Pow(dTeta, 0.75);
-                else if (dTeta > 0.001)
                     dT = Math.Pow(dTeta, 0.5);
+                else if (dTeta > 0.001)
+                    dT = Math.Pow(dTeta, 0.3);
                 else
-                    dT = Math.Pow(dTeta, 0.25);
+                    dT = Math.Pow(dTeta, 0.2);
 
                 if (dEta > 0.01)
-                    dE = Math.Pow(dEta, 0.75);
-                else if (dEta > 0.001)
                     dE = Math.Pow(dEta, 0.5);
+                else if (dEta > 0.001)
+                    dE = Math.Pow(dEta, 0.3);
                 else
-                    dE = Math.Pow(dEta, 0.25);
+                    dE = Math.Pow(dEta, 0.2);
 
                 if (Math.Abs(results[1, 0]) < 0.001)
                     dE = 1.0;
