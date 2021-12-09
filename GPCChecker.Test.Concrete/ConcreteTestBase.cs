@@ -280,7 +280,7 @@ namespace ConcreteTests
 			double[] factor = null)
 		{
 			if (factor == null)
-				factor = new double[] { 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 2.0, 2.5, 3.0 };
+				factor = new double[] { 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0 };
 
 			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
 			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
@@ -354,9 +354,9 @@ namespace ConcreteTests
         {
             for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
                 for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
-                    Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd)}, " +
-                                      $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd)}, " +
-                                      $"{Math.Round(failureDomain.DomainPoints[i][j].NRd)}");
+                    Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd/1000000)}, " +
+                                      $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd/1000000)}, " +
+                                      $"{Math.Round(failureDomain.DomainPoints[i][j].NRd/1000)}");
         }
 
         protected bool CommonAssertsModelCode(IConcreteSection section, StandardModelCode2010 standard, FailureDomain failureDomain, double errorPercentage = 5.0)

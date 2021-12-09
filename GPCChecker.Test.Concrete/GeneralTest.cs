@@ -102,7 +102,7 @@ namespace ConcreteTests
 
                 SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardEN1992p11());
 
-                return sectionChecker.GetFailureDomainResult().Domain;
+                return sectionChecker.GetPlasticFailureDomainResult().Domain;
             });
 
 

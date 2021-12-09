@@ -69,7 +69,7 @@ namespace ConcreteTests
 
 			Action ac0 = new Action(() =>
 			{
-				solver.GetFailurePlasticDomainResults();
+				solver.GetPlasticFailureDomainResult();
 			});
 
 			var bb0 = MeasureTime.FunctionExecutionTime(20, ac0, true); ;

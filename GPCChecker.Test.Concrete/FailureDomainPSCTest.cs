@@ -44,7 +44,7 @@ namespace ConcreteTests
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-            var failureDomain = sectionChecker.GetFailureDomainResult();
+            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             //ShowDomainPoints(failureDomain.Domain);
             //ExportToGmsh(failureDomain.Domain);
 
@@ -119,7 +119,7 @@ namespace ConcreteTests
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-            var failureDomain = sectionChecker.GetFailureDomainResult();
+            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);
             //ExportToGmsh(failureDomain.Domain);
 
@@ -217,7 +217,7 @@ namespace ConcreteTests
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-            var failureDomain = sectionChecker.GetFailureDomainResult();
+            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);
             //ExportToGmsh(failureDomain.Domain);
 

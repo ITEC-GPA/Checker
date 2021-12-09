@@ -46,7 +46,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//ExportToGmsh(failureDomain.Domain);
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
@@ -81,7 +81,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//ExportToGmsh(failureDomain.Domain);
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
@@ -116,7 +116,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//ExportToGmsh(failureDomain.Domain);
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
@@ -152,7 +152,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
 			double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -186,7 +186,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
 			double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -220,7 +220,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
 			double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -255,7 +255,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//ExportToGmsh(failureDomain.Domain);
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
@@ -292,7 +292,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//ExportToGmsh(failureDomain.Domain);
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
@@ -329,7 +329,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//ExportToGmsh(failureDomain.Domain);
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
@@ -366,7 +366,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
 			double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -402,7 +402,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//ExportToGmsh(failureDomain.Domain);
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
@@ -439,7 +439,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//ExportToGmsh(failureDomain.Domain);
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
@@ -476,7 +476,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//ExportToGmsh(failureDomain.Domain);
 
 			// coppia Nrd/Mrd per questa combinazione di u/v
@@ -513,7 +513,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult failureDomain = sectionChecker.GetFailureDomainResult();
+			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//ExportToGmsh(failureDomain.Domain);
 
 			// coppia Nrd/Mrd per questa combinazione di u/v

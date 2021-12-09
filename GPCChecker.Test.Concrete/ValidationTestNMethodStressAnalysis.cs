@@ -42,7 +42,7 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(psi);
+			StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(psi);
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(psi);
@@ -103,7 +103,7 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(psi);
+			StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(psi);
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(psi);
@@ -189,7 +189,7 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(psi);
+			StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(psi);
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(psi);
@@ -281,7 +281,7 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(psi);
+			StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(psi);
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(psi);
@@ -357,7 +357,7 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
+			StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(n);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(n);
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(n);
@@ -405,7 +405,7 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
-			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(psi);
+			StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(psi);
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(psi);
@@ -465,7 +465,7 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
-			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(psi);
+			StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(psi);
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(psi);
@@ -551,7 +551,7 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
-			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(psi);
+			StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(psi);
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(psi);
@@ -643,7 +643,7 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
-			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(psi);
+			StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(psi);
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(psi);
@@ -719,7 +719,7 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
-			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
+			StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(n);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(n);
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result[0].GetRebarsTension(n);
@@ -777,7 +777,7 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
-			StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult(n);
+			StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(n);
 
 			(Point2d point, double tension)[] concreteTensions = result[0].GetConcreteVerticesTension(n);
 
