@@ -73,7 +73,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F5, 5)
         };
 
-        protected readonly int _tetaDiscretization = 2;
+        protected readonly int _tetaDiscretization = 64;
 
         public enum FailureZones
         {
@@ -434,7 +434,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 deltaMyArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.X - ConcreteSection.Centroid.X);
             });
 
-
             return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
         }
 
@@ -585,7 +584,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 double strain = strainPlane.GetStrain(rebars[i].Position);
                 double sigmaC = CalculateElasticSigmaC(strain);
-                double sigmaS = CalculateSigmaS(psi, rebars[i], strain);
+                double sigmaS = CalculateElasticSigmaS(psi, rebars[i], strain);
 
                 deltaNArray[i] = (sigmaS - sigmaC) * rebars[i].Area;
                 deltaMxArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.Y - ConcreteSection.Centroid.Y);
@@ -636,7 +635,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         }
 
-        internal double CalculateSigmaS(double psi, ReinforcedConcreteRebar rebar, double strain)
+        internal double CalculateElasticSigmaS(double psi, ReinforcedConcreteRebar rebar, double strain)
         {
             return _concreteSection.ConcreteMaterial.E * (rebar.RebarMaterial.E / (_concreteSection.ConcreteMaterial.E / (1 + psi))) * strain;
         }

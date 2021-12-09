@@ -139,7 +139,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double fyd = CalculateDesignYieldingStressRebar(rebar.RebarMaterial);
             double strainYd = CalculateDesignYieldingStrainRebar(rebar.RebarMaterial);
 
-            if (Math.Abs(strain) < strainYd)
+            if (Math.Abs(strain) <= strainYd)
                 return rebar.RebarMaterial.CalculateStress(strain + rebar.EpsilonP);
 
             else
