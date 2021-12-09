@@ -36,6 +36,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         };
 
         /// <summary>
+        /// Rapresent the discretization of the axial force in the solver for plastic analysis for FRC material
+        /// </summary>
+        protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizationsFRC =
+        {
+            (FailureZones.F1, 2),
+            (FailureZones.F2A, 5),
+            (FailureZones.F2B, 5),
+            (FailureZones.F3A, 5),
+            (FailureZones.F3B, 5),
+            (FailureZones.F4, 2),
+            (FailureZones.F5, 4)
+        };
+
+        /// <summary>
         /// Rapresent the discretization of the axial force in the solver for elastic analysis
         /// </summary>
         protected readonly (FailureZones, int)[] _elasticFailureZonesDiscretizations =
@@ -47,7 +61,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F5, 5)
         };
 
-        protected readonly int _tetaDiscretization = 64;
+        /// <summary>
+        /// Rapresent the discretization of the axial force in the solver for elastic analysis for FRC material
+        /// </summary>
+        protected readonly (FailureZones, int)[] _elasticFailureZonesDiscretizationsFRC =
+        {
+            (FailureZones.F1, 3),
+            (FailureZones.F2A, 5),
+            (FailureZones.F3A, 5),
+            (FailureZones.F4, 5),
+            (FailureZones.F5, 5)
+        };
+
+        protected readonly int _tetaDiscretization = 2;
 
         public enum FailureZones
         {
@@ -168,14 +194,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public virtual FailureDomainResult GetElasticFailureDomainResult()
         {
             MaterialTypes materialType;
+            (FailureZones, int)[] zoneDiscretization;
 
             if (ConcreteMaterial.GetType() == typeof(ConcreteMaterialModelCode2010FRC))
                 materialType = MaterialTypes.FRC;
             else
                 materialType = MaterialTypes.Concrete;
 
+            if (materialType == MaterialTypes.Concrete)
+                zoneDiscretization = _elasticFailureZonesDiscretizations;
+            else
+                zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
+
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
-                _elasticFailureZonesDiscretizations, FailureDomainAnalysisTypes.Elastic, materialType);
+                zoneDiscretization, FailureDomainAnalysisTypes.Elastic, materialType);
 
             return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes), null, this, Standard,
                 FailureDomainAnalysisTypes.Elastic, Id);
@@ -184,14 +216,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public virtual FailureDomainResult GetPlasticFailureDomainResult()
         {
             MaterialTypes materialType;
+            (FailureZones, int)[] zoneDiscretization;
 
             if (ConcreteMaterial.GetType() == typeof(ConcreteMaterialModelCode2010FRC))
                 materialType = MaterialTypes.FRC;
             else
                 materialType = MaterialTypes.Concrete;
 
+            if (materialType == MaterialTypes.Concrete)
+                zoneDiscretization = _plasticFailureZonesDiscretizations;
+            else
+                zoneDiscretization = _plasticFailureZonesDiscretizationsFRC;
+
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
-                _plasticFailureZonesDiscretizations, FailureDomainAnalysisTypes.Plastic, materialType);
+                zoneDiscretization, FailureDomainAnalysisTypes.Plastic, materialType);
 
             return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes), null, this, Standard,
                 FailureDomainAnalysisTypes.Plastic, Id);
