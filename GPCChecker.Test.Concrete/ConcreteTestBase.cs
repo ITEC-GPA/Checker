@@ -292,7 +292,7 @@ namespace ConcreteTests
 				for (j = 0; j < factor.Length; j++)
 				{
 					testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-					failureDomainPoints[j] = solver.CalculatePoint(testForces[j].ConvertToForceTuple(section.Centroid));
+					failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(section.Centroid));
 				}
 			}
 			catch (Exception e)
@@ -726,9 +726,9 @@ namespace ConcreteTests
                 return base.CalculateStressRebar(rebar, strain);
             }
 
-            internal FailureDomain.FailureDomainPoint CalculatePoint(ForceTuple targetLocalForces)
+            internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces)
             {
-                return base.CalculateDomainPoint(targetLocalForces);
+                return base.CalculatePlasticDomainPoint(targetLocalForces);
             }
 
             internal ForceTuple IntegrateSectionStressTest(StrainPlane strainPlane)

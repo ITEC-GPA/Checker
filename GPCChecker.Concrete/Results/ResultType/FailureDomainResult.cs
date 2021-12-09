@@ -38,7 +38,7 @@ namespace GPC.Checkers.Concrete.Results
 
                 for (int i = 0; i < forces.Count(); i++)
                 {
-                    _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], _sectionSolver.CalculateDomainPoint(forcesList[i].ConvertToForceTuple(section.Centroid))));
+                    _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], _sectionSolver.CalculatePlasticDomainPoint(forcesList[i].ConvertToForceTuple(section.Centroid))));
                 }
             }
         }
@@ -61,7 +61,7 @@ namespace GPC.Checkers.Concrete.Results
                 throw new ArgumentException(nameof(forces));
             }
 
-            var point = _sectionSolver.CalculateDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
+            var point = _sectionSolver.CalculatePlasticDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
             _forces.Add(new FailureDomain.FailureDomainForce(forces, point));
             return point;
         }
@@ -89,7 +89,7 @@ namespace GPC.Checkers.Concrete.Results
 
             for (int i = 0; i < forcesList.Count(); i++)
             {
-                var point = _sectionSolver.CalculateDomainPoint(forcesList[i].ConvertToForceTuple(ConcreteSection.Centroid));
+                var point = _sectionSolver.CalculatePlasticDomainPoint(forcesList[i].ConvertToForceTuple(ConcreteSection.Centroid));
                 _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
                 failureDomainPoint[i] = point;
             }
@@ -118,7 +118,7 @@ namespace GPC.Checkers.Concrete.Results
             FailureDomain.FailureDomainPoint failureDomainPoint = null;
 
             await Task.Run(() => {
-                failureDomainPoint = _sectionSolver.CalculateDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
+                failureDomainPoint = _sectionSolver.CalculatePlasticDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
                 _forces.Add(new FailureDomain.FailureDomainForce(forces, failureDomainPoint));
             });
 
@@ -152,7 +152,7 @@ namespace GPC.Checkers.Concrete.Results
 
                 for (int i = 0; i < forcesList.Count(); i++)
                 {
-                    var point = _sectionSolver.CalculateDomainPoint(forcesList[i].ConvertToForceTuple(ConcreteSection.Centroid));
+                    var point = _sectionSolver.CalculatePlasticDomainPoint(forcesList[i].ConvertToForceTuple(ConcreteSection.Centroid));
                     _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
                     failureDomainPoint[i] = point;
                 }
@@ -191,7 +191,7 @@ namespace GPC.Checkers.Concrete.Results
             FailureDomain.FailureDomainPoint failureDomainPoint = null;
 
             await Task.Run(() => {
-                var point = _sectionSolver.CalculateDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
+                var point = _sectionSolver.CalculatePlasticDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
                 failureDomainPoint = point;
                 _forces.RemoveAt(index);
                 _forces.Insert(index, new FailureDomain.FailureDomainForce(forces, point));
@@ -199,11 +199,6 @@ namespace GPC.Checkers.Concrete.Results
 
             return failureDomainPoint;
         }
-
-        public FailureDomain CalculateDomain2D(double teta)
-		{
-            return _sectionSolver.CalculateDomain2D(teta);
-		}
 
         /// <summary>
         /// Tells if there is a force with the given id

@@ -28,15 +28,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        /// <summary>
-        /// Rapresent the discretization of the axial force in the solver
-        /// </summary>
-        public (SectionSolver.FailureZones, int)[] PlasticFailureZonesDiscretizations { get; set; }
-
-        /// <summary>
-        /// Rapresent the discretization of the moments around the axial force axis
-        /// </summary>
-        public int MomentsDiscretizations { get; set; }
 
 
         public int GaussIntegrationQuadLowPoints { get; set; }
@@ -48,16 +39,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         private SectionSolverOptions()
         {
-            PlasticFailureZonesDiscretizations = new (SectionSolver.FailureZones, int)[] { (SectionSolver.FailureZones.F1, 1),
-                                                                                    (SectionSolver.FailureZones.F2A, 1),
-                                                                                    (SectionSolver.FailureZones.F2B, 1),
-                                                                                    (SectionSolver.FailureZones.F3A, 30),
-                                                                                    (SectionSolver.FailureZones.F3B, 2),
-                                                                                    (SectionSolver.FailureZones.F4, 1),
-                                                                                    (SectionSolver.FailureZones.F5, 4) };
-
-            MomentsDiscretizations = 64;
-
             GaussIntegrationQuadLowPoints = 12;
             GaussIntegrationQuadMidPoints = 49;
             GaussIntegrationQuadHighPoints = 400;
