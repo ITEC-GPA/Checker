@@ -448,11 +448,37 @@ namespace ConcreteTests
             return true;
         }
 
-        protected bool CommonAssertsVCA(StressAnalysisResult result, IConcreteSection section, (Point2d rebar, double tension)[] concreteTensionsCalculate, 
+        protected bool CommonAssertsVCA(StressAnalysisResult result, IConcreteSection section, (Point2d rebar, double tension)[] concreteTensionsCalculate,
             (ReinforcedConcreteRebar rebar, double tension)[] rebarTensionsCalculate, double tolerance = 0.05)
 		{
             (Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension();
             (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result.GetRebarsTension();
+
+            Console.WriteLine($"Tensions associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} ");
+
+            for (int i = 0; i < rebarTensions.Length; i++)
+                Console.WriteLine($"Rebar {i}: {rebarTensions[i].rebar.Position.X}, {rebarTensions[i].rebar.Position.Y}. " +
+                    $"Tension = {Math.Round(rebarTensions[i].tension, 2)}");
+
+            for (int i = 0; i < concreteTensions.Length; i++)
+                Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
+
+            for (int i = 0; i < section.Shape.Fill.Count; i++)
+                if (concreteTensions[i].tension != 0)
+                    Assert.IsTrue(Math.Abs((concreteTensions[i].tension - concreteTensionsCalculate[i].tension) / concreteTensions[i].tension) < tolerance);
+
+            for (int i = 0; i < rebarTensions.Length; i++)
+                if (rebarTensions[i].tension != 0)
+                    Assert.IsTrue(Math.Abs((rebarTensions[i].tension - rebarTensionsCalculate[i].tension) / rebarTensions[i].tension) < tolerance);
+
+            return true;
+        }
+
+        protected bool CommonAssertsVCA(double psi, StressAnalysisResult result, IConcreteSection section, (Point2d rebar, double tension)[] concreteTensionsCalculate,
+            (ReinforcedConcreteRebar rebar, double tension)[] rebarTensionsCalculate, double tolerance = 0.05)
+        {
+            (Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension(psi);
+            (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result.GetRebarsTension(psi);
 
             Console.WriteLine($"Tensions associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} ");
 

@@ -370,5 +370,6 @@ namespace ConcreteTests
 			CommonAssertsVCA(result[0], section, expConcreteTensions, expRebarTensions);
 
 		}
+				
 	}
 }
