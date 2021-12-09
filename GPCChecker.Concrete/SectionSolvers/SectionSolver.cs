@@ -1106,7 +1106,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
             {
                 failureIndex = FailureZones.F3;
-                immersione = 0.9;
+                immersione = 0.95;
             }
 
             int id = 1;
@@ -1364,6 +1364,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             } while (dNdImm == 0.0 || (dMxdImm == 0.0 && dMydImm == 0.0));
 
+            dEta = dEtaBuffer;
+            dTeta = dTetaBuffer;
 
             Vector3d v1 = new Vector3d(dMxdTeta, dMydTeta, dNdTeta);
             v1.Unitize();
@@ -1410,43 +1412,37 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
-                double d = extVector * v;
 
                 double dT;
                 double dE;
 
                 if (dTeta >= 0.1)
-                    dT = Math.Pow(dTeta, 0.75);
+                    dT = dTeta;
                 else if (dTeta > 0.01)
-                    dT = Math.Pow(dTeta, 0.5);
+                    dT = Math.Pow(dTeta, 0.75);
                 else if (dTeta > 0.001)
-                    dT = Math.Pow(dTeta, 0.3);
+                    dT = Math.Pow(dTeta, 0.5);
                 else
-                    dT = Math.Pow(dTeta, 0.2);
+                    dT = Math.Pow(dTeta, 0.25);
 
                 if (dEta >= 0.1)
-                    dE = Math.Pow(dEta, 0.75);
+                    dE = dEta;
                 else if (dEta > 0.01)
-                    dE = Math.Pow(dEta, 0.5);
+                    dE = Math.Pow(dEta, 0.75);
                 else if (dEta > 0.001)
-                    dE = Math.Pow(dEta, 0.3);
+                    dE = Math.Pow(dEta, 0.5);
                 else
-                    dE = Math.Pow(dEta, 0.2);
+                    dE = Math.Pow(dEta, 0.25);
 
-                if (Math.Abs(results[1, 0]) < 0.01)
+                if (Math.Abs(results[1, 0]) < 0.001)
                     dE = 1.0;
-                else if (Math.Abs(results[1, 0]) < 0.1)
+                else if (Math.Abs(results[1, 0]) < 0.01)
                     dE = 0.5;
 
 
                 double deltaTeta = results[0, 0] * dT / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorTeta), 1.0));
                 double deltaImmersione = results[1, 0] * dE / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorEta), 1.0));
 
-                if (extVector * v < 0)
-				{
-                    deltaImmersione *= -1;
-                    deltaTeta *= -1;
-                }
 
                 return (deltaTeta, deltaImmersione, v);
             }
