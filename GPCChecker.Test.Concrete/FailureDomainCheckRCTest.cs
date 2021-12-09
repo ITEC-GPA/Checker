@@ -489,6 +489,76 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		public void SquareSectionTest6()
+		{
+			double rebarDiameter = 26;
+			double h = 500;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(h, 0),
+				new Point2d(h, h),
+				new Point2d(0, h)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 30, ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(450, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(150, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(450, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 150, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 350, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(450, 150, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(450, 250, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(450, 350, 0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces force = new ResultBeamForces(-512.2 * 1000, 0, 0, 0, 380.4 * 1000000, -86.79 * 1000000, GetLocalCoordinateSystem(section), 1);
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			FailureDomainResult result = sectionChecker.GetElasticFailureDomainResult();
+
+			//ExportToGmsh(section);
+			//ExportToGmsh(result.Domain);
+
+			FailureDomain.FailureDomainForce[] resultsArray = result.GetFailureDomainForces();
+			FailureDomain.FailureDomainPoint failurePoint = result.AddForce(force);
+
+			Console.WriteLine($"NRD = {Math.Round(force.N / 1000, 2)}, " +
+				$"MXRD = {Math.Round(force.M1 / 1000000, 2)}, " +
+				$"MYRD = {Math.Round(force.M2 / 1000000, 2)}");
+
+			Console.WriteLine($"NRD = {Math.Round(failurePoint.NRd / 1000, 2)}, " +
+				$"MXRD = {Math.Round(failurePoint.MxRd / 1000000, 2)}, " +
+				$"MYRD = {Math.Round(failurePoint.MyRd / 1000000, 2)}");
+
+			Vector3d vRd = new Vector3d(failurePoint.Point);
+			Vector3d eRd = new Vector3d(new Point3d(force.M1, force.M2, force.N));
+
+			Console.WriteLine($"WR = {Math.Round(eRd.Length / vRd.Length, 3)}");
+		}
+
+		[TestMethod]
 		public void DomainCostantAxialForceTest1()
 		{
 			double rebarDiameter = 26;

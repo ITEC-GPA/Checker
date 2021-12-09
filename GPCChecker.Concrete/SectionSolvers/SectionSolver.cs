@@ -117,7 +117,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public ConcreteMaterial ConcreteMaterial => _concreteSection.ConcreteMaterial;
 
         public Standard Standard => _standard;
-        
+
+
         public bool ConsiderTensileConcrete { get => _considerTensileConcrete; internal set => _considerTensileConcrete = value; }
 
         internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id)
@@ -176,7 +177,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
                 _elasticFailureZonesDiscretizations, FailureDomainAnalysisTypes.Elastic, materialType);
 
-            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes), null, this, Standard, Id);
+            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes), null, this, Standard,
+                FailureDomainAnalysisTypes.Elastic, Id);
         }
 
         public virtual FailureDomainResult GetPlasticFailureDomainResult()
@@ -191,7 +193,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
                 _plasticFailureZonesDiscretizations, FailureDomainAnalysisTypes.Plastic, materialType);
 
-            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes), null, this, Standard, Id);
+            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes), null, this, Standard,
+                FailureDomainAnalysisTypes.Plastic, Id);
         }
 
         public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, Vector2d forceReferencePointDistance)
