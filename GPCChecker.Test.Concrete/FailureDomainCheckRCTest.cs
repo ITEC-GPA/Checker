@@ -502,7 +502,7 @@ namespace ConcreteTests
 				new Point2d(0, h)
 			}));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 30, ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear));
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 30, ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -544,9 +544,9 @@ namespace ConcreteTests
 			FailureDomain.FailureDomainForce[] resultsArray = result.GetFailureDomainForces();
 			FailureDomain.FailureDomainPoint failurePoint = result.AddForce(force);
 
-			Console.WriteLine($"NRD = {Math.Round(force.N / 1000, 2)}, " +
-				$"MXRD = {Math.Round(force.M1 / 1000000, 2)}, " +
-				$"MYRD = {Math.Round(force.M2 / 1000000, 2)}");
+			Console.WriteLine($"Ned = {Math.Round(force.N / 1000, 2)}, " +
+				$"MXed = {Math.Round(force.M1 / 1000000, 2)}, " +
+				$"MYed = {Math.Round(force.M2 / 1000000, 2)}");
 
 			Console.WriteLine($"NRD = {Math.Round(failurePoint.NRd / 1000, 2)}, " +
 				$"MXRD = {Math.Round(failurePoint.MxRd / 1000000, 2)}, " +
@@ -556,6 +556,20 @@ namespace ConcreteTests
 			Vector3d eRd = new Vector3d(new Point3d(force.M1, force.M2, force.N));
 
 			Console.WriteLine($"WR = {Math.Round(eRd.Length / vRd.Length, 3)}");
+
+			FailureDomain2d resultNCost = result.CalculateDomainConstantAxialForce(force.ConvertToForceTuple(section.Centroid));
+			FailureDomain.FailureDomainForce pointNCost = resultNCost.GetDomainPointConstantAxialForce(force, Vector2d.Zero);
+
+			Vector3d vRd2 = new Vector3d(pointNCost.FailureDomainPoint.Point);
+			Line3d line = new Line3d(Point3d.Origin, pointNCost.FailureDomainPoint.Point);
+
+			Console.WriteLine($"NRD = {Math.Round(pointNCost.FailureDomainPoint.NRd / 1000, 2)}, " +
+				$"MXRD = {Math.Round(pointNCost.FailureDomainPoint.MxRd / 1000000, 2)}, " +
+				$"MYRD = {Math.Round(pointNCost.FailureDomainPoint.MyRd / 1000000, 2)}");
+
+			Console.WriteLine($"WR = {Math.Round(eRd.Length / vRd2.Length, 3)}");
+
+			ExportToGmsh(resultNCost, new Line3d[] {line}, new Point3d[] { pointNCost.FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
 		}
 
 		[TestMethod]

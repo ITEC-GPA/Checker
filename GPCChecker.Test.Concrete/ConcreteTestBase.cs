@@ -618,6 +618,62 @@ namespace ConcreteTests
             return points.ToArray();
         }
 
+        protected Point3d[] ExportToGmsh(FailureDomain2d failureDomain, Line3d[] lines = null, Point3d[] pointsToTest = null)
+        {
+            GmshNet.Gmsh.Initialize();
+            List<Point3d> points = new List<Point3d>();
+
+            for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
+            {
+                if (failureDomain.DomainPoints[i] != null)
+                {
+                    GmshNet.Gmsh.Model.Occ.AddPoint(failureDomain.DomainPoints[i].MxRd / 1000000,
+                        failureDomain.DomainPoints[i].MyRd / 1000000,
+                        failureDomain.DomainPoints[i].NRd / 1000 / 10);
+
+                    points.Add(new Point3d(failureDomain.DomainPoints[i].MxRd / 1000000,
+                        failureDomain.DomainPoints[i].MyRd / 1000000,
+                        failureDomain.DomainPoints[i].NRd / 1000 / 10));
+                }
+
+                points.Add(new Point3d(failureDomain.DomainPoints[i].MxRd / 1000000,
+                    failureDomain.DomainPoints[i].MyRd / 1000000,
+                    failureDomain.DomainPoints[i].NRd / 1000 / 10));
+            }
+
+            if(lines != null)
+			{
+                for(int i = 0; i < lines.Length; i++)
+				{
+                    int t1 = GmshNet.Gmsh.Model.Occ.AddPoint(lines[i].Start.X / 1000000,
+                        lines[i].Start.Y / 1000000,
+                        lines[i].Start.Z / 1000 / 10);
+
+                    int t2 = GmshNet.Gmsh.Model.Occ.AddPoint(lines[i].End.X / 1000000,
+                        lines[i].End.Y / 1000000,
+                        lines[i].End.Z / 1000 / 10);
+
+                    GmshNet.Gmsh.Model.Occ.AddLine(t1, t2);
+                }
+			}
+
+            if(pointsToTest != null)
+			{
+                for (int i = 0; i < pointsToTest.Length; i++)
+                {
+                    int t1 = GmshNet.Gmsh.Model.Occ.AddPoint(pointsToTest[i].X / 1000000,
+                        pointsToTest[i].Y / 1000000,
+                        pointsToTest[i].Z / 1000 / 10);
+                }
+            }
+
+            GmshNet.Gmsh.Model.Occ.Synchronize();
+            GmshNet.Gmsh.Fltk.Run();
+            GmshNet.Gmsh.Finalize();
+
+            return points.ToArray();
+        }
+
         protected Point3d[] ExportToGmsh(Mesh mesh)
         {
             GmshNet.Gmsh.Initialize();
