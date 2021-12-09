@@ -1742,9 +1742,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             ForceTuple iterationForces = CalculateForceResultant(psi, strainPlane);
             ForceTuple iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
 
-            if (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
-                Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
-                Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance)
+            if (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance * tolerance ||
+                Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance * tolerance ||
+                Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance * tolerance)
             {
                 do
                 {
