@@ -159,16 +159,14 @@ namespace GPC.Checkers.Concrete.Results
             FailureDomain.FailureDomainPoint failureDomainPoint = null;
 
             await Task.Run(() => {
-                FailureDomain.FailureDomainPoint point;
 
                 if (_analysisType == SectionSolver.FailureDomainAnalysisTypes.Plastic)
-                    point = _sectionSolver.CalculatePlasticDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
+                    failureDomainPoint = _sectionSolver.CalculatePlasticDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
                 else
-                    point = _sectionSolver.CalculateElasticDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
+                    failureDomainPoint = _sectionSolver.CalculateElasticDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
 
-                failureDomainPoint = point;
                 _forces.RemoveAt(index);
-                _forces.Insert(index, new FailureDomain.FailureDomainForce(forces, point));
+                _forces.Insert(index, new FailureDomain.FailureDomainForce(forces, failureDomainPoint));
             });
 
             return failureDomainPoint;
@@ -255,6 +253,7 @@ namespace GPC.Checkers.Concrete.Results
                 point = _sectionSolver.CalculateElasticDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
 
             _forces.Add(new FailureDomain.FailureDomainForce(forces, point));
+
             return point;
         }
 
