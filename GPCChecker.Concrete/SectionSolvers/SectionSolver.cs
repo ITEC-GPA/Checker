@@ -29,7 +29,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F1, 1),
             (FailureZones.F2A, 1),
             (FailureZones.F2B, 1),
-            (FailureZones.F3, 50),
+            (FailureZones.F3A, 50),
+            (FailureZones.F3B, 3),
             (FailureZones.F4, 2),
             (FailureZones.F5, 4)
         };
@@ -39,11 +40,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         protected readonly (FailureZones, int)[] _elasticFailureZonesDiscretizations =
         {
-            (FailureZones.F2A, 1),
-            (FailureZones.F2B, 1),
-            (FailureZones.F3, 50),
-            (FailureZones.F4, 1),
-            (FailureZones.F5, 4)
+            (FailureZones.F1, 1),
+            (FailureZones.F2A, 5),
+            (FailureZones.F3A, 5),
+            (FailureZones.F4, 3),
+            (FailureZones.F5, 5)
         };
 
         protected readonly int _tetaDiscretization = 64;
@@ -66,28 +67,33 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             F2B = 3,
 
             /// <summary>
-            /// Around P2. From espSu to 0 
+            /// Around P2. From espSu to espSy 
             /// </summary>
-            F3 = 4,
+            F3A = 4,
+
+            /// <summary>
+            /// Around P2. From espSy to 0 
+            /// </summary>
+            F3B = 5,
 
             /// <summary>
             /// Around P2. From 0 to 0 
             /// </summary>
-            F4 = 5,
+            F4 = 6,
 
             /// <summary>
             /// Around P3. From 0 to espCyCost 
             /// </summary>
-            F5 = 6,
+            F5 = 7,
         }
 
-        protected enum MaterialTypes
+        public enum MaterialTypes
 		{
             Concrete,
             FRC,
 		}
 
-        protected enum FailureDomainAnalysisTypes
+        public enum FailureDomainAnalysisTypes
 		{
             Elastic,
             Plastic,
@@ -158,7 +164,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Public method
 
-        public virtual FailureDomainResult GetFailureElasticDomainResult()
+        public virtual FailureDomainResult GetElasticFailureDomainResult()
         {
             MaterialTypes materialType;
 
@@ -173,7 +179,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes), null, this, Standard, Id);
         }
 
-        public virtual FailureDomainResult GetFailurePlasticDomainResults()
+        public virtual FailureDomainResult GetPlasticFailureDomainResult()
         {
             MaterialTypes materialType;
 
@@ -223,24 +229,24 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     _stressAnalysisTolerance), this, Standard, Id);
         }
 
-        public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, double psi, Vector2d forceReferencePointDistance)
+        public virtual StressAnalysisResult[] GetLinearStressAnalysisResults(ResultBeamForces[] force, double psi, Vector2d forceReferencePointDistance)
         {
             StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
 
             Parallel.For(0, force.Length, (i) =>
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
-                    CalculateStrainPlaneNMethodAnalysis(force[i].ConvertToForceTuple(forceReferencePointDistance), psi,
+                    CalculateStrainPlaneLinearStressAnalysis(force[i].ConvertToForceTuple(forceReferencePointDistance), psi,
                     _stressAnalysisTolerance), this, Standard, Id);
             });
 
             return stressAnalysisResults;
         }
 
-        public virtual StressAnalysisResult GetStressAnalysisResult(ResultBeamForces force, double psi, Vector2d forceReferencePointDistance)
+        public virtual StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces force, double psi, Vector2d forceReferencePointDistance)
         {
             return new StressAnalysisResult(ConcreteSection, force,
-                CalculateStrainPlaneNMethodAnalysis(force.ConvertToForceTuple(forceReferencePointDistance), psi,
+                CalculateStrainPlaneLinearStressAnalysis(force.ConvertToForceTuple(forceReferencePointDistance), psi,
                 _stressAnalysisTolerance), this, Standard, Id);
         }
 
@@ -267,18 +273,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return CalculateDomainPoint(targetLocalForces, FailureDomainAnalysisTypes.Elastic, materialType, _failureAnalysisAngularTolerance);
         }
-
-  //      public virtual FailureDomain CalculateDomain2D(double teta, FailureDomainAnalysisTypes analysisType = FailureDomainAnalysisTypes.Plastic,
-  //          MaterialTypes materialType = MaterialTypes.Concrete)
-		//{
-  //          return CalculateDomain2D(teta, analysisType, materialType, 20, _failureAnalysisAngularTolerance, _stressAnalysisTolerance);
-		//}
-
-  //      public virtual FailureDomain CalculateDomain2D(ForceTuple forces, FailureDomainAnalysisTypes analysisType,
-  //          MaterialTypes materialType)
-  //      {
-  //          return CalculateDomain2D(forces, analysisType, materialType, 20, _failureAnalysisAngularTolerance, _stressAnalysisTolerance);
-  //      }
 
         #endregion
 
@@ -678,6 +672,150 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
+        #region Failure domain limit points
+
+        protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP1((double teta, int dMinRebarId, double dminRebar,
+            int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
+            FailureDomainAnalysisTypes analysisType, MaterialTypes materialType)
+        {
+            switch (materialType)
+            {
+                case MaterialTypes.Concrete:
+
+                    switch (analysisType)
+                    {
+                        case FailureDomainAnalysisTypes.Elastic:
+
+                            return (GetDesignYieldingStrainRebar(distances.dMinRebarId), ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
+                                (distances.dmaxConcrete - distances.dminRebar));
+
+                        case FailureDomainAnalysisTypes.Plastic:
+
+                            return (GetDesignUltimateStrainRebar(distances.dMinRebarId), ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
+                                (distances.dmaxConcrete - distances.dminRebar));
+
+                        default:
+                            return (0.0, null, 0.0);
+                    }
+
+                case MaterialTypes.FRC:
+
+                    switch (analysisType)
+                    {
+                        case FailureDomainAnalysisTypes.Elastic:
+
+                            return (GetYieldingStrainConcreteTension(), ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
+                                (distances.dmaxConcrete - distances.dminConcrete));
+
+                        case FailureDomainAnalysisTypes.Plastic:
+
+                            return (GetUltimateStrainConcreteTension(), ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
+                                (distances.dmaxConcrete - distances.dminConcrete));
+
+                        default:
+                            return (0.0, null, 0.0);
+                    }
+
+                default:
+                    return (0.0, null, 0.0);
+            }
+        }
+
+        protected (double epsilon, Point2d point, double distanceFromBaricentre) GetP2((double teta, int dMinRebarId, double dminRebar,
+            int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
+            FailureDomainAnalysisTypes analysisType)
+        {
+            switch (analysisType)
+            {
+                case FailureDomainAnalysisTypes.Elastic:
+                    return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+                        (distances.dmaxConcrete - distances.dminRebar));
+
+                case FailureDomainAnalysisTypes.Plastic:
+
+                    return (GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+                        (distances.dmaxConcrete - distances.dminRebar));
+
+                default:
+                    return (0.0, null, 0.0);
+            }
+        }
+
+        protected (double epsilon, Point2d point, double distanceFromBaricentre) GetP3((double teta, int dMinRebarId, double dminRebar,
+            int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
+            FailureDomainAnalysisTypes analysisType)
+        {
+            switch (analysisType)
+            {
+                case FailureDomainAnalysisTypes.Elastic:
+
+                    return (GetYieldingStrainPureCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+                        (distances.dmaxConcrete - distances.dminConcrete));
+
+                case FailureDomainAnalysisTypes.Plastic:
+
+                    double fraction = GetYieldingStrainPureCompression() / GetUltimateStrainConcreteCompression();
+                    double heigth = distances.dmaxConcrete - distances.dminConcrete;
+
+                    Point2d strainPlaneCenter = new Point2d((distances.dmaxConcrete - (1.0 - fraction) * heigth) * (-Math.Sin(distances.teta)) + ConcreteSection.Centroid.X,
+                        (distances.dmaxConcrete - (1.0 - fraction) * heigth) * (Math.Cos(distances.teta)) + ConcreteSection.Centroid.Y);
+
+                    return (GetYieldingStrainPureCompression(), strainPlaneCenter, (distances.dmaxConcrete - distances.dminConcrete));
+
+                default:
+                    return (0.0, null, 0.0);
+            }
+        }
+
+        protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP4((double teta, int dMinRebarId, double dminRebar,
+            int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
+            FailureDomainAnalysisTypes analysisType, MaterialTypes materialType)
+        {
+            switch (materialType)
+            {
+                case MaterialTypes.Concrete:
+
+                    switch (analysisType)
+                    {
+                        case FailureDomainAnalysisTypes.Elastic:
+
+                            return (0.0, ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
+                                (distances.dmaxConcrete - distances.dminRebar));
+
+                        case FailureDomainAnalysisTypes.Plastic:
+
+                            return (GetDesignYieldingStrainRebar(distances.dMinRebarId), ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
+                                (distances.dmaxConcrete - distances.dminRebar));
+
+                        default:
+                            return (0.0, null, 0.0);
+                    }
+
+                case MaterialTypes.FRC:
+
+                    switch (analysisType)
+                    {
+                        case FailureDomainAnalysisTypes.Elastic:
+
+                            return (0.0, ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
+                                (distances.dmaxConcrete - distances.dminConcrete));
+
+                        case FailureDomainAnalysisTypes.Plastic:
+
+                            return (GetDesignYieldingStrainRebar(distances.dMinRebarId), ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
+                                (distances.dmaxConcrete - distances.dminConcrete));
+
+                        default:
+                            return (0.0, null, 0.0);
+                    }
+
+                default:
+                    return (0.0, null, 0.0);
+            }
+        }
+
+        #endregion
+
         #region Protected method - Failure domain
 
         /// <summary>
@@ -694,11 +832,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Parallel.For(0, strainPlanes.Length, (i) =>
                 {
                     domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes[i].Length];
-
-                    //for (int j = 0; j < strainPlanes[i].Length; j++)
-                    //{
-                    //    domainPoints[i][j] = new FailureDomain.FailureDomainPoint(CalculateForceResultant(strainPlanes[i][j]), strainPlanes[i][j].Item2, strainPlanes[i][j].Item1);
-                    //}
 
                     Parallel.For(0, strainPlanes[i].Length, (j) =>
                     {
@@ -763,6 +896,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var p1 = GetP1(sectionDistances, analysisType, materialType);
             var p2 = GetP2(sectionDistances, analysisType);
             var p3 = GetP3(sectionDistances, analysisType);
+            var p4 = GetP4(sectionDistances, analysisType, materialType);
 
             int subIndex = 0;
 
@@ -776,12 +910,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     case FailureZones.F1:
                     case FailureZones.F2A:
                     case FailureZones.F2B:
-                    case FailureZones.F3:
+                    case FailureZones.F3A:
+                    case FailureZones.F3B:
                     case FailureZones.F4:
                         {
                             for (int j = 0; j < subdivision; j++)
                             {
-                                strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision, p1, p2, p3, subIndex), failureZones);
+                                strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision, 
+                                    p1, p2, p3, p4, subIndex), failureZones);
                                 subIndex++;
                             }
 
@@ -792,11 +928,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         {
                             for (int j = 0; j < subdivision; j++)
                             {
-                                strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision, p1, p2, p3, subIndex), failureZones);
+                                strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision, 
+                                    p1, p2, p3, p4, subIndex), failureZones);
                                 subIndex++;
                             }
 
-                            strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, 1.0, p1, p2, p3, subIndex), failureZones);
+                            strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, 1.0, p1, p2, p3, p4, subIndex), failureZones);
 
                             break;
                         }
@@ -822,7 +959,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <exception cref="ArgumentException"></exception>
         protected virtual StrainPlane CalculateStrainPlane(double teta, FailureZones failureIndex, double immersioneNelCampo,
             (double epsilon, Point2d point, double distanceFromBaricentre) p1, (double epsilon, Point2d point, double distanceFromBaricentre) p2, 
-            (double epsilon, Point2d point, double distanceFromBaricentre) p3, int id = -1)
+            (double epsilon, Point2d point, double distanceFromBaricentre) p3, (double epsilon, Point2d point, double distanceFromBaricentre) p4, int id = -1)
         {
             if (immersioneNelCampo > 1.0 || immersioneNelCampo < 0.0)
                 throw new ArgumentException("ImmersioneNelCampo cannot be greater than 1 and less than 0");
@@ -845,7 +982,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 case FailureZones.F2A:
 
                     chiSx = p1.epsilon / p1.distanceFromBaricentre;
-                    chiDx = (p1.epsilon + p3.epsilon) / p1.distanceFromBaricentre;
+                    chiDx = (p1.epsilon + Math.Abs(p3.epsilon)) / p1.distanceFromBaricentre;
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
                     return new StrainPlane(p1.point, teta, chi, p1.epsilon, id);
@@ -860,10 +997,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     return new StrainPlane(p1.point, teta, chi, p1.epsilon, id);
 
 
-                case FailureZones.F3:
+                case FailureZones.F3A:
 
                     chiSx = (p1.epsilon + Math.Abs(p2.epsilon)) / p1.distanceFromBaricentre;
-                    chiDx = Math.Abs(p2.epsilon) / p1.distanceFromBaricentre;
+                    chiDx = (p4.epsilon + Math.Abs(p2.epsilon)) / p4.distanceFromBaricentre;
+
+                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                    return new StrainPlane(p2.point, teta, chi, p2.epsilon, id);
+
+
+                case FailureZones.F3B:
+
+                    chiSx = (p4.epsilon + Math.Abs(p2.epsilon)) / p4.distanceFromBaricentre;
+                    chiDx = Math.Abs(p2.epsilon) / p4.distanceFromBaricentre;
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
                     return new StrainPlane(p2.point, teta, chi, p2.epsilon, id);
@@ -871,7 +1017,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 case FailureZones.F4:
 
-                    chiSx = Math.Abs(p2.epsilon) / p1.distanceFromBaricentre;
+                    chiSx = Math.Abs(p2.epsilon) / p4.distanceFromBaricentre;
                     chiDx = Math.Abs(p2.epsilon) / p3.distanceFromBaricentre;
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
@@ -967,101 +1113,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return new FailureDomain(points);
         }
 
-        protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP1((double teta, int dMinRebarId, double dminRebar, 
-            int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances, 
-            FailureDomainAnalysisTypes analysisType, MaterialTypes materialType)
-		{
-            switch (materialType)
-            {
-                case MaterialTypes.Concrete:
-
-                    switch (analysisType)
-                    {
-                        case FailureDomainAnalysisTypes.Elastic:
-
-                            return (GetDesignYieldingStrainRebar(distances.dMinRebarId), ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
-                                (distances.dmaxConcrete - distances.dminRebar));
-
-                        case FailureDomainAnalysisTypes.Plastic:
-
-                            return (GetDesignUltimateStrainRebar(distances.dMinRebarId), ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
-                                (distances.dmaxConcrete - distances.dminRebar));
-
-                        default:
-                            return (0.0, null, 0.0);
-                    }
-
-                case MaterialTypes.FRC:
-
-                    switch (analysisType)
-                    {
-                        case FailureDomainAnalysisTypes.Elastic:
-
-                            return (GetYieldingStrainConcreteTension(), ConcreteSection.Shape.Fill[distances.dMinVertexIndex], 
-                                (distances.dmaxConcrete - distances.dminConcrete));
-
-                        case FailureDomainAnalysisTypes.Plastic:
-
-                            return (GetUltimateStrainConcreteTension(), ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
-                                (distances.dmaxConcrete - distances.dminConcrete));
-
-                        default:
-                            return (0.0, null, 0.0);
-                    }
-
-                default:
-                    return (0.0, null, 0.0);
-            }
-        }
-
-        protected (double epsilon, Point2d point, double distanceFromBaricentre) GetP2((double teta, int dMinRebarId, double dminRebar, 
-            int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances, 
-            FailureDomainAnalysisTypes analysisType)
-        {
-            switch (analysisType)
-            {
-                case FailureDomainAnalysisTypes.Elastic:
-                    return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
-                        (distances.dmaxConcrete - distances.dminRebar));
-
-                case FailureDomainAnalysisTypes.Plastic:
-
-                    return (GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
-                        (distances.dmaxConcrete - distances.dminRebar));
-
-                default:
-                    return (0.0, null, 0.0);
-            }
-        }
-
-        protected (double epsilon, Point2d point, double distanceFromBaricentre) GetP3((double teta, int dMinRebarId, double dminRebar, 
-            int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances, 
-            FailureDomainAnalysisTypes analysisType)
-        {
-            switch (analysisType)
-            {
-                case FailureDomainAnalysisTypes.Elastic:
-
-                    return (GetYieldingStrainPureCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
-                        (distances.dmaxConcrete - distances.dminConcrete));
-
-                case FailureDomainAnalysisTypes.Plastic:
-
-                    double fraction = GetYieldingStrainPureCompression() / GetUltimateStrainConcreteCompression();
-                    double heigth = distances.dmaxConcrete - distances.dminConcrete;
-
-                    Point2d strainPlaneCenter = new Point2d((distances.dmaxConcrete - (1.0 - fraction) * heigth) * (-Math.Sin(distances.teta)) + ConcreteSection.Centroid.X,
-                        (distances.dmaxConcrete - (1.0 - fraction) * heigth) * (Math.Cos(distances.teta)) + ConcreteSection.Centroid.Y);
-
-                    return (GetYieldingStrainPureCompression(), strainPlaneCenter, (distances.dmaxConcrete - distances.dminConcrete));
-
-                default:
-                    return (0.0, null, 0.0);
-            }
-        }
-
-
-
         #endregion
 
         #region Protected method - Point on failure domain
@@ -1090,8 +1141,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             else if (adimOutputForces.N > 0.0)
             {
-                failureIndex = FailureZones.F3;
-                immersione = 0.2;
+                failureIndex = FailureZones.F3A;
+                immersione = 0.25;
             }             
             else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
 			{
@@ -1100,13 +1151,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }                
             else if (Math.Abs(adimOutputForces.N) < 1e-5)
             {
-                failureIndex = FailureZones.F3;
-                immersione = 0.25;
+                failureIndex = FailureZones.F3A;
+                immersione = 0.5;
             }
             else
             {
-                failureIndex = FailureZones.F3;
-                immersione = 0.95;
+                failureIndex = FailureZones.F3B;
+                immersione = 0.5;
             }
 
             int id = 1;
@@ -1115,8 +1166,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var p1 = GetP1(distances, analysisType, materialType);
             var p2 = GetP2(distances, analysisType);
             var p3 = GetP3(distances, analysisType);
+            var p4 = GetP4(distances, analysisType, materialType);
 
-            StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, p1, p2, p3);
+            StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, p1, p2, p3, p4);
 
             teta = strainPlane.Teta;
 
@@ -1179,8 +1231,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         p1 = GetP1(distances, analysisType, materialType);
                         p2 = GetP2(distances, analysisType);
                         p3 = GetP3(distances, analysisType);
+                        p4 = GetP4(distances, analysisType, materialType);
 
-                        strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, p1, p2, p3, id);
+                        strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, p1, p2, p3, p4, id);
                         forces = CalculateForceResultant(strainPlane);
 
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
@@ -1210,7 +1263,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             var adimIteractionPoint = ConvertToAdimensionalForces(iterationPoint);
             Line3d externalForcesLine = new Line3d(new Point3d(0, 0, 0), externalForces);
-            Vector3d extVector = new Vector3d(new Point3d(0, 0, 0), externalForces);
 
             double dTeta;
             double dEta;
@@ -1232,7 +1284,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     dEta = Math.Max(Math.Min(deltaAngle, 0.01), 0.0005);
                     break;
 
-                case FailureZones.F3:
+                case FailureZones.F3A:
+                    dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.0001);
+                    dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.00001);
+                    break;
+
+                case FailureZones.F3B:
                     dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.00001);
                     dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.000001);
                     break;
@@ -1276,15 +1333,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     var p1PlusTeta = GetP1(distancesPlusTeta, analysisType, materialType);
                     var p2PlusTeta = GetP2(distancesPlusTeta, analysisType);
                     var p3PlusTeta = GetP3(distancesPlusTeta, analysisType);
+                    var p4PlusTeta = GetP4(distancesPlusTeta, analysisType, materialType);
 
                     var p1MinusTeta = GetP1(distancesMinusTeta, analysisType, materialType);
                     var p2MinusTeta = GetP2(distancesMinusTeta, analysisType);
                     var p3MinusTeta = GetP3(distancesMinusTeta, analysisType);
+                    var p4MinusTeta = GetP4(distancesMinusTeta, analysisType, materialType);
 
                     StrainPlane strainPlanePlusdTeta = CalculateStrainPlane(distancesPlusTeta.teta, inputFailureZone,
-                        inputImmersioneNelCampo, p1PlusTeta, p2PlusTeta, p3PlusTeta);
+                        inputImmersioneNelCampo, p1PlusTeta, p2PlusTeta, p3PlusTeta, p4PlusTeta);
                     StrainPlane strainPlaneMinusdTeta = CalculateStrainPlane(distancesMinusTeta.teta, inputFailureZone,
-                        inputImmersioneNelCampo, p1MinusTeta, p2MinusTeta, p3MinusTeta);
+                        inputImmersioneNelCampo, p1MinusTeta, p2MinusTeta, p3MinusTeta, p4MinusTeta);
 
                     var forcesPlusTeta = CalculateForceResultant(strainPlanePlusdTeta);
                     var forcesMinusTeta = CalculateForceResultant(strainPlaneMinusdTeta);
@@ -1328,11 +1387,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     var p1Eta = GetP1(distances, analysisType, materialType);
                     var p2Eta = GetP2(distances, analysisType);
                     var p3Eta = GetP3(distances, analysisType);
+                    var p4Eta = GetP4(distances, analysisType, materialType);
 
                     StrainPlane strainPlanePlusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZone,
-                        Math.Min(inputImmersioneNelCampo + dEtaBuffer, 1.0), p1Eta, p2Eta, p3Eta);
+                        Math.Min(inputImmersioneNelCampo + dEtaBuffer, 1.0), p1Eta, p2Eta, p3Eta, p4Eta);
                     StrainPlane strainPlaneMinusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZone,
-                        Math.Max(inputImmersioneNelCampo - dEtaBuffer, 0.0), p1Eta, p2Eta, p3Eta);
+                        Math.Max(inputImmersioneNelCampo - dEtaBuffer, 0.0), p1Eta, p2Eta, p3Eta, p4Eta);
 
                     var forcesPlusEta = CalculateForceResultant(strainPlanePlusdImm);
                     var forcesMinusEta = CalculateForceResultant(strainPlaneMinusdImm);
@@ -1396,7 +1456,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             else
             {
-                Vector3d v = new Vector3d(iterationPoint, intersectionPoint);
+                Vector3d displacementVector = new Vector3d(iterationPoint, intersectionPoint);
+                Vector3d vectorRd = new Vector3d(intersectionPoint);
 
                 Matrix<double> partialDerivatives = Matrix<double>.Build.Dense(2, 2);
 
@@ -1407,8 +1468,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 partialDerivatives[1, 1] = dNdImm;
 
                 Matrix<double> inputVector = Matrix<double>.Build.Dense(2, 1);
-                inputVector[0, 0] = v.X;
-                inputVector[1, 0] = v.Z;
+                inputVector[0, 0] = displacementVector.X;
+                inputVector[1, 0] = displacementVector.Z;
 
                 Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
@@ -1416,18 +1477,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double dT;
                 double dE;
 
-                if (dTeta >= 0.1)
-                    dT = dTeta;
-                else if (dTeta > 0.01)
+                if (dTeta > 0.01)
                     dT = Math.Pow(dTeta, 0.75);
                 else if (dTeta > 0.001)
                     dT = Math.Pow(dTeta, 0.5);
                 else
                     dT = Math.Pow(dTeta, 0.25);
 
-                if (dEta >= 0.1)
-                    dE = dEta;
-                else if (dEta > 0.01)
+                if (dEta > 0.01)
                     dE = Math.Pow(dEta, 0.75);
                 else if (dEta > 0.001)
                     dE = Math.Pow(dEta, 0.5);
@@ -1444,7 +1501,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double deltaImmersione = results[1, 0] * dE / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorEta), 1.0));
 
 
-                return (deltaTeta, deltaImmersione, v);
+                return (deltaTeta, deltaImmersione, displacementVector);
             }
         }
 
@@ -1633,9 +1690,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region Protected method - N method
+        #region Protected method - Linear stress method
 
-        protected StrainPlane CalculateStrainPlaneNMethodAnalysis(ForceTuple localForces, double psi, double tolerance = 1e-5)
+        protected StrainPlane CalculateStrainPlaneLinearStressAnalysis(ForceTuple localForces, double psi, double tolerance = 1e-5)
         {
             ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
 
@@ -1663,7 +1720,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         try
                         {
                             (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
-                                CalculateIncrementStressAnalysis(psi, strainPlane, localForces - iterationForces);
+                                CalculateIncrementLinearStressAnalysis(psi, strainPlane, localForces - iterationForces);
 
                             // piano di nuovo tentativo
                             id++;
@@ -1697,7 +1754,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return strainPlane;
         }
 
-        protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementStressAnalysis(double psi, StrainPlane inputStrainPlane, ForceTuple forceTuple)
+        protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementLinearStressAnalysis(double psi, StrainPlane inputStrainPlane, ForceTuple forceTuple)
         {
             ForceTuple forceTupleAdim = ConvertToAdimensionalForces(forceTuple);
 
