@@ -77,6 +77,8 @@
     <Compile Include="Checkers\SectionChecker.cs" />
     <Compile Include="Helper\Extensions.cs" />
     <Compile Include="Helper\ForceTuple.cs" />
+    <Compile Include="Results\FailureDomain2d.cs" />
+    <Compile Include="Results\ResultType\FailureDomainResult2d.cs" />
     <Compile Include="SectionSolvers\SectionSolver.cs" />
     <Compile Include="SectionSolvers\SectionSolverModelCode2010.cs" />
     <Compile Include="SectionSolvers\SectionSolverOptions.cs" />

@@ -21,7 +21,7 @@ namespace GPC.Checkers.Concrete.Results
 			_domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
 		}
 
-		public Mesh BuildMesh()
+		public Mesh GetMesh()
 		{
 			Mesh mesh = new Mesh();
 
