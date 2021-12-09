@@ -17,6 +17,8 @@ namespace GPC.Checkers.Concrete.Results
         protected readonly FailureDomain _failureDomain;
         protected List<FailureDomain.FailureDomainForce> _forces;
 
+        protected int _failureSectionSubdivision;
+
         public FailureDomain Domain => _failureDomain;
 
         public FailureDomainResult(
@@ -41,61 +43,11 @@ namespace GPC.Checkers.Concrete.Results
                     _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], _sectionSolver.CalculatePlasticDomainPoint(forcesList[i].ConvertToForceTuple(section.Centroid))));
                 }
             }
+
+            _failureSectionSubdivision = 10; 
         }
 
-        /// <summary>
-        /// Adds a new single force
-        /// </summary>
-        /// <param name="forces">The force to add</param>
-        /// <returns>The corresponding domain point</returns>
-        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
-        /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
-        internal FailureDomain.FailureDomainPoint AddForce(ResultBeamForces forces)
-        {
-            if (forces is null || forces.Id == -1)
-            {
-                throw new ArgumentNullException(nameof(forces));
-            }
-            else if (forces.Id == -1)
-            {
-                throw new ArgumentException(nameof(forces));
-            }
-
-            var point = _sectionSolver.CalculatePlasticDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
-            _forces.Add(new FailureDomain.FailureDomainForce(forces, point));
-            return point;
-        }
-
-        /// <summary>
-        /// Adds a new range of forces
-        /// </summary>
-        /// <param name="forces">The forces array</param>
-        /// <returns>The corresponding points in the domain</returns>
-        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
-        /// <exception cref="ArgumentException">Thrown when forces contains items with Id == -1</exception>
-        internal FailureDomain.FailureDomainPoint[] AddForces(ResultBeamForces[] forces)
-        {
-            if (forces is null)
-            {
-                throw new ArgumentNullException(nameof(forces));
-            }
-            else if (forces.Any(f => f.Id == -1))
-            {
-                throw new ArgumentException(nameof(forces));
-            }
-
-            List<ResultBeamForces> forcesList = forces.ToList();
-            var failureDomainPoint = new FailureDomain.FailureDomainPoint[forcesList.Count];
-
-            for (int i = 0; i < forcesList.Count(); i++)
-            {
-                var point = _sectionSolver.CalculatePlasticDomainPoint(forcesList[i].ConvertToForceTuple(ConcreteSection.Centroid));
-                _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
-                failureDomainPoint[i] = point;
-            }
-
-            return failureDomainPoint;
-        }
+        #region Public Async Methods
 
         /// <summary>
         /// Adds a new single force asynchronously
@@ -199,6 +151,246 @@ namespace GPC.Checkers.Concrete.Results
 
             return failureDomainPoint;
         }
+
+        /// <summary>
+        /// Calculate the failure domain 2d with costant value of axial force
+        /// </summary>
+        /// <param name="forces"></param>
+        /// <returns>New FailureDomain2d</returns>
+        /// <remarks>Only axial force of <paramref name="forces"/> is used</remarks>
+        public async Task<FailureDomain2d> CalculateDomainConstantAxialForceAsync(ResultBeamForces forces)
+		{
+            FailureDomain2d failureDomain2D = null;
+
+            await Task.Run(() => {
+                failureDomain2D = CalculateDomainConstantAxialForce(forces.ConvertToForceTuple(ConcreteSection.Centroid));
+            });
+
+            return failureDomain2D;
+        }
+
+        /// <summary>
+        /// Calculate the plastic failure domain 2d with costant ratio between Mx and My
+        /// </summary>
+        /// <param name="forces"></param>
+        /// <returns>New FailureDomain2d</returns>
+        /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
+        public async Task<FailureDomain2d> CalculatePlasticDomainCostantAngleAsync(ResultBeamForces forces)
+        {
+            FailureDomain2d failureDomain2D = null;
+
+            await Task.Run(() => {
+                failureDomain2D = CalculatePlasticDomainCostantAngle(forces.ConvertToForceTuple(ConcreteSection.Centroid));
+            });
+
+            return failureDomain2D;
+        }
+
+        /// <summary>
+        /// Calculate the elastic failure domain 2d with costant ratio between Mx and My
+        /// </summary>
+        /// <param name="forces"></param>
+        /// <returns>New FailureDomain2d</returns>
+        /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
+        public async Task<FailureDomain2d> CalculateElasticDomainCostantAngleAsync(ResultBeamForces forces)
+        {
+            FailureDomain2d failureDomain2D = null;
+
+            await Task.Run(() => {
+                failureDomain2D = CalculateElasticDomainCostantAngle(forces.ConvertToForceTuple(ConcreteSection.Centroid));
+            });
+
+            return failureDomain2D;
+        }
+
+        #endregion
+
+        #region Internal Methods
+
+        /// <summary>
+        /// Adds a new single force
+        /// </summary>
+        /// <param name="forces">The force to add</param>
+        /// <returns>The corresponding domain point</returns>
+        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
+        /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
+        internal FailureDomain.FailureDomainPoint AddForce(ResultBeamForces forces)
+        {
+            if (forces is null || forces.Id == -1)
+            {
+                throw new ArgumentNullException(nameof(forces));
+            }
+            else if (forces.Id == -1)
+            {
+                throw new ArgumentException(nameof(forces));
+            }
+
+            var point = _sectionSolver.CalculatePlasticDomainPoint(forces.ConvertToForceTuple(ConcreteSection.Centroid));
+            _forces.Add(new FailureDomain.FailureDomainForce(forces, point));
+            return point;
+        }
+
+        /// <summary>
+        /// Adds a new range of forces
+        /// </summary>
+        /// <param name="forces">The forces array</param>
+        /// <returns>The corresponding points in the domain</returns>
+        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
+        /// <exception cref="ArgumentException">Thrown when forces contains items with Id == -1</exception>
+        internal FailureDomain.FailureDomainPoint[] AddForces(ResultBeamForces[] forces)
+        {
+            if (forces is null)
+            {
+                throw new ArgumentNullException(nameof(forces));
+            }
+            else if (forces.Any(f => f.Id == -1))
+            {
+                throw new ArgumentException(nameof(forces));
+            }
+
+            List<ResultBeamForces> forcesList = forces.ToList();
+            var failureDomainPoint = new FailureDomain.FailureDomainPoint[forcesList.Count];
+
+            for (int i = 0; i < forcesList.Count(); i++)
+            {
+                var point = _sectionSolver.CalculatePlasticDomainPoint(forcesList[i].ConvertToForceTuple(ConcreteSection.Centroid));
+                _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
+                failureDomainPoint[i] = point;
+            }
+
+            return failureDomainPoint;
+        }
+
+        /// <summary>
+        /// Calculate the failure domain 2d with costant value of axial force
+        /// </summary>
+        /// <param name="forces">Input forces</param>
+        /// <returns>New FailureDomain2d</returns>
+        /// <exception cref="ArgumentException"></exception>
+        internal virtual FailureDomain2d CalculateDomainConstantAxialForce(ForceTuple forces)
+        {
+            if (forces == null)
+                throw new ArgumentException();
+
+            if (forces.N > _failureDomain.DomainPoints.FirstOrDefault().FirstOrDefault().NRd || forces.N < _failureDomain.DomainPoints.LastOrDefault().LastOrDefault().NRd)
+                return null;
+
+            FailureDomain.FailureDomainPoint[] points = new FailureDomain.FailureDomainPoint[_failureDomain.DomainPoints.Length];
+
+            for (int i = 0; i < _failureDomain.DomainPoints.Length; i++)
+            {
+                for (int j = 1; j < _failureDomain.DomainPoints[i].Length; j++)
+                {
+                    if (forces.N == _failureDomain.DomainPoints[i][j].NRd)
+                    {
+                        points[i] = _failureDomain.DomainPoints[i][j];
+                        break;
+                    }
+
+                    if (forces.N > _failureDomain.DomainPoints[i][j].NRd && forces.N < _failureDomain.DomainPoints[i][j - 1].NRd)
+                    {
+                        double mx = Utilities.Maths.Interpolation.GetLinearInterpolation(_failureDomain.DomainPoints[i][j - 1].NRd, _failureDomain.DomainPoints[i][j].NRd,
+                            _failureDomain.DomainPoints[i][j - 1].MxRd, _failureDomain.DomainPoints[i][j].MxRd, forces.N);
+                        double my = Utilities.Maths.Interpolation.GetLinearInterpolation(_failureDomain.DomainPoints[i][j - 1].NRd, _failureDomain.DomainPoints[i][j].NRd,
+                            _failureDomain.DomainPoints[i][j - 1].MyRd, _failureDomain.DomainPoints[i][j].MyRd, forces.N);
+
+                        points[i] = new FailureDomain.FailureDomainPoint(new ForceTuple(forces.N, mx, my),
+                            _failureDomain.DomainPoints[i][j].FailureIndex, null);
+
+                        break;
+                    }
+                }
+            }
+
+            return new FailureDomain2d(points);
+        }
+
+        /// <summary>
+        /// Calculate the plastic failure domain 2d with costant ratio between Mx and My
+        /// </summary>
+        /// <param name="forces"></param>
+        /// <returns>New FailureDomain2d</returns>
+        /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
+        internal virtual FailureDomain2d CalculatePlasticDomainCostantAngle(ForceTuple forces)
+		{
+            return CalculatePlasticDomainCostantAngle(forces, _failureSectionSubdivision);
+		}
+
+        /// <summary>
+        /// Calculate the elastic failure domain 2d with costant ratio between Mx and My
+        /// </summary>
+        /// <param name="forces"></param>
+        /// <returns>New FailureDomain2d</returns>
+        /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
+        internal virtual FailureDomain2d CalculateElasticDomainCostantAngle(ForceTuple forces)
+        {
+            return CalculateElasticDomainCostantAngle(forces, _failureSectionSubdivision);
+        }
+
+        protected virtual FailureDomain2d CalculatePlasticDomainCostantAngle(ForceTuple forces, int subdivision = 20)
+        {
+            if (subdivision <= 2)
+                throw new Exception();
+
+            FailureDomain.FailureDomainPoint[] points = new FailureDomain.FailureDomainPoint[2 * subdivision + 2];
+
+            ForceTuple[] forceTuples = CalculateRadialForces(forces, subdivision);
+
+            Parallel.For(0, forceTuples.Length, (i) =>
+            {
+                points[i] = _sectionSolver.CalculatePlasticDomainPoint(forceTuples[i]);
+            });
+
+            return new FailureDomain2d(points);
+        }
+
+        protected virtual FailureDomain2d CalculateElasticDomainCostantAngle(ForceTuple forces, int subdivision = 20)
+        {
+            if (subdivision <= 2)
+                throw new Exception();
+
+            FailureDomain.FailureDomainPoint[] points = new FailureDomain.FailureDomainPoint[2 * subdivision + 2];
+
+            ForceTuple[] forceTuples = CalculateRadialForces(forces, subdivision);
+
+            Parallel.For(0, forceTuples.Length, (i) =>
+            {
+                points[i] = _sectionSolver.CalculateElasticDomainPoint(forceTuples[i]);
+            });
+
+            return new FailureDomain2d(points);
+        }
+
+        protected ForceTuple[] CalculateRadialForces(ForceTuple forces, int subdivision = 20)
+		{
+            ForceTuple[] forceTuples = new ForceTuple[2 * subdivision + 2];
+
+            double nMax = ConcreteSection.AreaRebars * ConcreteSection.Rebars.FirstOrDefault().RebarMaterial.Fyk / 2.0;
+            double nMin = ConcreteSection.Area * ConcreteSection.ConcreteMaterial.StressStrainTableCompression.GetMinimumStress() / 2.0;
+
+
+            for (int i = 0; i <= subdivision / 2.0; i++)
+            {
+                forceTuples[i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.Mx, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.My, i));
+
+                forceTuples[subdivision / 2 + i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.Mx, 0.0, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.My, 0.0, i));
+
+                forceTuples[2 * subdivision + 1 - i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.Mx, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.My, i));
+
+                forceTuples[subdivision / 2 + subdivision + 1 - i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.Mx, 0.0, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.My, 0.0, i));
+            }
+            return forceTuples;
+        }
+
+        #endregion
 
         /// <summary>
         /// Tells if there is a force with the given id
