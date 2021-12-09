@@ -28,7 +28,12 @@ namespace GPC.Checkers.Concrete.Results
 
 			for (int i = 0; i < _domainPoints.Length; i++)
 			{
-				Line3d edge = new Line3d(_domainPoints[i].Point, _domainPoints[i + 1].Point);
+				Line3d edge;
+
+				if(i != _domainPoints.Length - 1)
+					edge = new Line3d(_domainPoints[i].Point, _domainPoints[i + 1].Point);
+				else
+					edge = new Line3d(_domainPoints[i].Point, _domainPoints[0].Point);
 
 				bool intersect = edge.GetIntersectionWithInfiniteLine(line, out Point3d intersection);
 
@@ -36,8 +41,11 @@ namespace GPC.Checkers.Concrete.Results
 				{
 					if (edge.IsPointOnLine(intersection))
 					{
-						return new FailureDomain.FailureDomainForce(forces, new FailureDomain.FailureDomainPoint(new ForceTuple(intersection.Z, intersection.X, intersection.Y),
-							_domainPoints[i].FailureIndex, null));
+						if(Math.Sign(intersection.Z) == Math.Sign(force.N) && 
+							Math.Sign(intersection.X) == Math.Sign(force.Mx) && 
+							Math.Sign(intersection.Y) == Math.Sign(force.My))
+							return new FailureDomain.FailureDomainForce(forces, new FailureDomain.FailureDomainPoint(new ForceTuple(intersection.Z, 
+								intersection.X, intersection.Y), _domainPoints[i].FailureIndex, null));
 					}
 				}
 			}
