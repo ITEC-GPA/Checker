@@ -22,7 +22,7 @@ namespace ConcreteTests
     public abstract class ConcreteTestBase : UnitTestBase
     {
         protected ReinforcedConcreteSection GetRectangularSection4Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
-            ConcreteMaterialEN1992 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            ConcreteMaterialModelCode2010 concreteMaterial = null, RebarMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
@@ -56,8 +56,8 @@ namespace ConcreteTests
             return section;
         }
 
-        protected ReinforcedConcreteSection GetRectangularSection8Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
-            ConcreteMaterialEN1992 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+        protected ReinforcedConcreteSection GetRectangularSection8Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
+            ConcreteMaterialModelCode2010 concreteMaterial = null, RebarMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
@@ -96,7 +96,7 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection2SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
-            int numberOfRebars = 4, ConcreteMaterialEN1992 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebars = 4, ConcreteMaterialModelCode2010 concreteMaterial = null, RebarMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
@@ -134,7 +134,7 @@ namespace ConcreteTests
 
 
         protected ReinforcedConcreteSection GetRectangularSectionBottomSideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            int numberOfRebars = 4, ConcreteMaterialEN1992 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebars = 4, ConcreteMaterialModelCode2010 concreteMaterial = null, RebarMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)

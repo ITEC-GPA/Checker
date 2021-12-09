@@ -29,18 +29,18 @@ namespace ConcreteTests
 			double concreteCover = 50;
 
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C25_30);
-			StandardEN1992p11 standard = new StandardEN1992p11();
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			//var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
 			//ShowDomainPoints(plasticFailureDomain.Domain);
 			//ExportToGmsh(plasticFailureDomain.Domain);
-			ExportToGmsh(elasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain);
 
 			//Mesh mesh = failureDomain.Domain.BuildMesh();
 			//ExportToGmsh(mesh);

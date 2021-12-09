@@ -92,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FailureDomainPSCTest.cs" />
+    <Compile Include="FailureDomainFRCTest.cs" />
     <Compile Include="FailureDomainRCTest.cs" />
     <Compile Include="StressAnalysisRCTest.cs" />
     <Compile Include="FailureDomainCheckRCTest.cs" />
