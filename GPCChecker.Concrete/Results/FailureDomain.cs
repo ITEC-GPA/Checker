@@ -130,6 +130,8 @@ namespace GPC.Checkers.Concrete.Results
 
 			public ForceTuple ForceTuple => _forceTuple;
 
+			public StrainPlane StrainPlane => _strainPlane;
+
 			/// <inheritdoc cref="SectionSolver.FailureZones"/>
 			public SectionSolver.FailureZones FailureIndex => _failureIndex;
 

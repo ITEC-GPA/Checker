@@ -1489,7 +1489,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
             {
                 Vector3d displacementVector = new Vector3d(iterationPoint, intersectionPoint);
-                Vector3d vectorRd = new Vector3d(intersectionPoint);
 
                 Matrix<double> partialDerivatives = Matrix<double>.Build.Dense(2, 2);
 
