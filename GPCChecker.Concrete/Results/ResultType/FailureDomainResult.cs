@@ -300,6 +300,30 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="forces">Input forces</param>
         /// <returns>New FailureDomain2d</returns>
         /// <exception cref="ArgumentException"></exception>
+        internal virtual FailureDomainResult2d CalculateDomainConstantAxialForce(ResultBeamForces forces)
+        {
+            return new FailureDomainResult2d(_section, CalculateDomainConstantAxialForce(forces.ConvertToForceTuple(ConcreteSection.Centroid)), 
+                new ResultBeamForces[] { forces }, _sectionSolver, _standard, FailureDomainResult2d.DomainTypes.CostantN);
+        }
+
+        /// <summary>
+        /// Calculate the failure domain 2d with costant ratio between Mx and My
+        /// </summary>
+        /// <param name="forces"></param>
+        /// <returns>New FailureDomain2d</returns>
+        /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
+        internal virtual FailureDomainResult2d CalculateFailureDomainCostantAngle(ResultBeamForces forces)
+        {
+            return new FailureDomainResult2d(_section, CalculateFailureDomainCostantAngle(forces.ConvertToForceTuple(ConcreteSection.Centroid)),
+                new ResultBeamForces[] { forces }, _sectionSolver, _standard, FailureDomainResult2d.DomainTypes.CostantMxMy);
+        }
+
+        /// <summary>
+        /// Calculate the failure domain 2d with costant value of axial force
+        /// </summary>
+        /// <param name="forces">Input forces</param>
+        /// <returns>New FailureDomain2d</returns>
+        /// <exception cref="ArgumentException"></exception>
         internal virtual FailureDomain2d CalculateDomainConstantAxialForce(ForceTuple forces)
         {
             if (forces == null)
@@ -328,14 +352,14 @@ namespace GPC.Checkers.Concrete.Results
                             _failureDomain.DomainPoints[i][j - 1].MyRd, _failureDomain.DomainPoints[i][j].MyRd, forces.N);
 
                         points[i] = new FailureDomain.FailureDomainPoint(new ForceTuple(forces.N, mx, my),
-                            _failureDomain.DomainPoints[i][j].FailureIndex, null);
+                            _failureDomain.DomainPoints[i][j].FailureIndex, _failureDomain.DomainPoints[i][j].StrainPlane);
 
                         break;
                     }
                 }
             }
 
-            return new FailureDomain2d(points);
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.CostantN);
         }
 
         /// <summary>
@@ -357,19 +381,18 @@ namespace GPC.Checkers.Concrete.Results
             if (subdivision <= 2)
                 throw new Exception();
 
-            FailureDomain.FailureDomainPoint[] points = new FailureDomain.FailureDomainPoint[2 * subdivision + 2];
-
             ForceTuple[] forceTuples = CalculateRadialForces(forces, subdivision);
+            FailureDomain.FailureDomainPoint[] points = new FailureDomain.FailureDomainPoint[forceTuples.Length];
 
             Parallel.For(0, forceTuples.Length, (i) =>
             {
                 points[i] = _sectionSolver.CalculatePlasticDomainPoint(forceTuples[i]);
             });
 
-            return new FailureDomain2d(points);
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.CostantMxMy);
         }
 
-        protected virtual FailureDomain2d CalculateElasticDomainCostantAngle(ForceTuple forces, int subdivision = 20)
+        protected virtual FailureDomain2d CalculateElasticDomainCostantAngle(ForceTuple forces, int subdivision = 10)
         {
             if (subdivision <= 2)
                 throw new Exception();
@@ -383,35 +406,39 @@ namespace GPC.Checkers.Concrete.Results
                 points[i] = _sectionSolver.CalculateElasticDomainPoint(forceTuples[i]);
             });
 
-            return new FailureDomain2d(points);
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.CostantMxMy);
         }
 
-        protected ForceTuple[] CalculateRadialForces(ForceTuple forces, int subdivision = 20)
+        protected ForceTuple[] CalculateRadialForces(ForceTuple forces, int subdivision = 10)
 		{
-            ForceTuple[] forceTuples = new ForceTuple[2 * subdivision + 2];
+            ForceTuple[] forceTuples = new ForceTuple[2 * subdivision];
 
             double nMax = ConcreteSection.AreaRebars * ConcreteSection.Rebars.FirstOrDefault().RebarMaterial.Fyk / 2.0;
             double nMin = ConcreteSection.Area * ConcreteSection.ConcreteMaterial.StressStrainTableCompression.GetMinimumStress() / 2.0;
-
-
-            for (int i = 0; i <= subdivision / 2.0; i++)
+            
+            for (int i = 0; i < subdivision / 2.0; i++)
             {
-                forceTuples[i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i),
+                forceTuples[i] = new ForceTuple(
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i),
                     Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.Mx, i),
                     Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.My, i));
 
-                forceTuples[subdivision / 2 + i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i),
+                forceTuples[subdivision / 2 + i] = new ForceTuple(
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i),
                     Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.Mx, 0.0, i),
                     Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.My, 0.0, i));
 
-                forceTuples[2 * subdivision + 1 - i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.Mx, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.My, i));
+                forceTuples[2 * subdivision - 1 - i] = new ForceTuple(
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i + 1),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.Mx, i + 1),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.My, i + 1));
 
-                forceTuples[subdivision / 2 + subdivision + 1 - i] = new ForceTuple(Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.Mx, 0.0, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.My, 0.0, i));
+                forceTuples[subdivision / 2 + subdivision - 1 - i] = new ForceTuple(
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i + 1),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.Mx, 0.0, i + 1),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.My, 0.0, i + 1));
             }
+
             return forceTuples;
         }
 
