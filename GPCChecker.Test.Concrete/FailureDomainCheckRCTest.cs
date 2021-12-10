@@ -48,7 +48,7 @@ namespace ConcreteTests
 
 			for (int j = 0; j < forces.Length; j++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -80,7 +80,7 @@ namespace ConcreteTests
 
 			for (int i = 0; i < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard), $"Force {i} fail");
 			}
 		}
 
@@ -112,7 +112,7 @@ namespace ConcreteTests
 
 			for (int i = 0; i < forces.Length; i++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard, 0.005, new double[] { 1.0 }), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, 0.005, new double[] { 1.0 }), $"Force {i} fail");
 			}
 		}
 
@@ -144,14 +144,9 @@ namespace ConcreteTests
 				new ResultBeamForces(-1500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section))
 			};
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
 			for (int j = 0; j < forces.Length; j++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -185,7 +180,7 @@ namespace ConcreteTests
 			for (int i = 0; i < forces.Length; i++)
 			{
 				Console.WriteLine($"Force {i}");
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard), $"Force {i} fail");
 			}
 		}
 
@@ -215,7 +210,7 @@ namespace ConcreteTests
 			for (int i = 0; i < forces.Length; i++)
 			{
 				Console.WriteLine($"Force {i}");
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard), $"Force {i} fail");
 			}
 		}
 
@@ -243,7 +238,7 @@ namespace ConcreteTests
 			for (int i = 0; i < forces.Length; i++)
 			{
 				Console.WriteLine($"Force {i}");
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard, 0.005, new double[] { 1.0 }), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, 0.005, new double[] { 1.0 }), $"Force {i} fail");
 			}
 		}
 
@@ -270,15 +265,10 @@ namespace ConcreteTests
 				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -120 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section)),
 			};
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
 			for (int i = 0; i < forces.Length; i++)
 			{
 				Console.WriteLine($"Force {i}");
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard), $"Force {i} fail");
 			}
 		}
 
@@ -312,15 +302,48 @@ namespace ConcreteTests
 				new ResultBeamForces(-1800 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
 			};
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, 0.01), $"Force {i} fail");
+			}
+
+		}
+
+		[TestMethod]
+		public void RectangularSectionTest10()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 600;
+			double concreteCover = 50;
+			int numberOfSideRebars = 5;
+
+			ReinforcedConcreteSection section = GetRectangularSection4SideRebars(width, height, rebarDiameter, concreteCover, numberOfSideRebars, numberOfSideRebars, ConcreteMaterialEN1992.C45_55);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -10 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -20 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -30 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -40 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -0 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -0 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -0 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -0 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, +10 * 1000000, +10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -20 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, +20 * 1000000, +20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, -30 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(-1800 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+			};
 
 			for (int i = 0; i < forces.Length; i++)
 			{
 				Console.WriteLine($"Force {i}");
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[i], standard, 0.01), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, 0.01), $"Force {i} fail");
 			}
 
 		}
@@ -343,14 +366,9 @@ namespace ConcreteTests
 				new ResultBeamForces(0 * 1000, 0, 0, 0, 100 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section))
 			};
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
 			for (int j = 0; j < forces.Length; j++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -375,14 +393,9 @@ namespace ConcreteTests
 				new ResultBeamForces(-500 * 1000, 0, 0, 0, -20 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
 			};
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
 			for (int j = 0; j < forces.Length; j++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -399,20 +412,15 @@ namespace ConcreteTests
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
 			{
-				//new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 80 * 1000000, GetLocalCoordinateSystem(section)),
-				//new ResultBeamForces(-500 * 1000, 0, 0, 0, 20 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
-				//new ResultBeamForces(-200 * 1000, 0, 0, 0, 80 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 80 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-500 * 1000, 0, 0, 0, 20 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, 80 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(0 * 1000, 0, 0, 0, 100 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
 			};
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
 			for (int j = 0; j < forces.Length; j++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -438,14 +446,9 @@ namespace ConcreteTests
 				new ResultBeamForces(-1500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section))
 			};
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
 			for (int j = 0; j < forces.Length; j++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -477,14 +480,9 @@ namespace ConcreteTests
 				new ResultBeamForces(-1000 * 1000, 0, 0, 0, -20 * 1000000, -100 * 1000000, GetLocalCoordinateSystem(section)),
 			};
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
 			for (int j = 0; j < forces.Length; j++)
 			{
-				Assert.IsTrue(CommonAssertDomainPoint(section, forces[j], standard), $"Force {j} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[j], standard), $"Force {j} fail");
 			}
 		}
 
@@ -531,45 +529,141 @@ namespace ConcreteTests
 
 			ResultBeamForces force = new ResultBeamForces(-512.2 * 1000, 0, 0, 0, 380.4 * 1000000, -86.79 * 1000000, GetLocalCoordinateSystem(section), 1);
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, new ResultBeamForces[] { force });
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult result = sectionChecker.GetElasticFailureDomainResult();
+			FailureDomain.FailureDomainForce[] forces = result.GetFailureDomainForces();
 
-			//ExportToGmsh(section);
-			//ExportToGmsh(result.Domain);
+			FailureDomainResult2d failureDomainResult2d = result.CalculateDomainConstantAxialForce(force);
+			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
-			FailureDomain.FailureDomainForce[] resultsArray = result.GetFailureDomainForces();
-			FailureDomain.FailureDomainPoint failurePoint = result.AddForce(force);
+			Vector3d vRd = new Vector3d(forces2d[0].FailureDomainPoint.Point);
+			Vector3d eRd = new Vector3d(new Point3d(force.M1, force.M2, force.N));
+			Vector3d vRd2 = new Vector3d(forces[0].FailureDomainPoint.Point);
+
+			double wr1 = eRd.Length / vRd.Length;
+			double wr2 = eRd.Length / vRd2.Length;
 
 			Console.WriteLine($"Ned = {Math.Round(force.N / 1000, 2)}, " +
 				$"MXed = {Math.Round(force.M1 / 1000000, 2)}, " +
 				$"MYed = {Math.Round(force.M2 / 1000000, 2)}");
 
-			Console.WriteLine($"NRD = {Math.Round(failurePoint.NRd / 1000, 2)}, " +
-				$"MXRD = {Math.Round(failurePoint.MxRd / 1000000, 2)}, " +
-				$"MYRD = {Math.Round(failurePoint.MyRd / 1000000, 2)}");
+			Console.WriteLine("Constant N");
 
-			Vector3d vRd = new Vector3d(failurePoint.Point);
+			Console.WriteLine($"NRD = {Math.Round(forces2d[0].FailureDomainPoint.NRd / 1000, 2)}, " +
+				$"MXRD = {Math.Round(forces2d[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
+				$"MYRD = {Math.Round(forces2d[0].FailureDomainPoint.MyRd / 1000000, 2)}");
+
+			Console.WriteLine($"WR = {Math.Round(wr1, 3)}");
+
+			Console.WriteLine("Radial");
+
+			Console.WriteLine($"NRD = {Math.Round(forces[0].FailureDomainPoint.NRd / 1000, 2)}, " +
+				$"MXRD = {Math.Round(forces[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
+				$"MYRD = {Math.Round(forces[0].FailureDomainPoint.MyRd / 1000000, 2)}");
+
+			Console.WriteLine($"WR = {Math.Round(wr2, 3)}");
+
+			ExportToGmsh(failureDomainResult2d.Domain, 
+				new Line3d[] {new Line3d(new Point3d(0,0,force.N), new Point3d(forces2d[0].FailureDomainPoint.Point))}, 
+				new Point3d[] {forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+
+			double expMxConstantN = 495 * 1000000;
+			double expMyConstantN = -110 * 1000000;
+
+			double expMxrd = 496.21 * 1000000;
+			double expMyrd = -113.2 * 1000000;
+			double expNrd = -676 * 1000;
+
+			double expWR1 = 0.7689;
+			double expWR2 = 1.0 / 1.3;
+
+			Assert.IsTrue(Math.Abs((expNrd - forces[0].FailureDomainPoint.NRd) / forces[0].FailureDomainPoint.NRd) * 100 < 2);
+			Assert.IsTrue(Math.Abs((expMxrd - forces[0].FailureDomainPoint.MxRd) / forces[0].FailureDomainPoint.MxRd) * 100 < 2);
+			Assert.IsTrue(Math.Abs((expMyrd - forces[0].FailureDomainPoint.MyRd) / forces[0].FailureDomainPoint.MyRd) * 100 < 2);
+
+			Assert.IsTrue(Math.Abs((expMxConstantN - forces2d[0].FailureDomainPoint.MxRd) / forces2d[0].FailureDomainPoint.MxRd) * 100 < 3);
+			Assert.IsTrue(Math.Abs((expMyConstantN - forces2d[0].FailureDomainPoint.MyRd) / forces2d[0].FailureDomainPoint.MyRd) * 100 < 2);
+
+			Assert.IsTrue(Math.Abs(expWR1 - wr1) / expWR1 * 100 < 2.55);
+			Assert.IsTrue(Math.Abs(expWR2 - wr1) / expWR2 * 100 < 2.5);
+		}
+
+		[TestMethod]
+		public void SquareSectionTest7()
+		{
+			double rebarDiameter = 26;
+			double h = 500;
+
+			ReinforcedConcreteSection section = GetRectangularSection4SideRebars(h, h, rebarDiameter, 50, 5, 5, ConcreteMaterialEN1992.C30_37);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces force = new ResultBeamForces(-512.2 * 1000, 0, 0, 0, 380.4 * 1000000, -86.79 * 1000000, GetLocalCoordinateSystem(section), 1);
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, new ResultBeamForces[] { force });
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			FailureDomainResult result = sectionChecker.GetElasticFailureDomainResult();
+			FailureDomain.FailureDomainForce[] forces = result.GetFailureDomainForces();
+
+			FailureDomainResult2d failureDomainResult2d = result.CalculateDomainConstantAxialForce(force);
+			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+
+			Vector3d vRd = new Vector3d(forces2d[0].FailureDomainPoint.Point);
 			Vector3d eRd = new Vector3d(new Point3d(force.M1, force.M2, force.N));
+			Vector3d vRd2 = new Vector3d(forces[0].FailureDomainPoint.Point);
 
-			Console.WriteLine($"WR = {Math.Round(eRd.Length / vRd.Length, 3)}");
+			double wr1 = eRd.Length / vRd.Length;
+			double wr2 = eRd.Length / vRd2.Length;
 
-			FailureDomain2d resultNCost = result.CalculateDomainConstantAxialForce(force.ConvertToForceTuple(section.Centroid));
-			FailureDomain.FailureDomainForce pointNCost = resultNCost.GetDomainPointConstantAxialForce(force, Vector2d.Zero);
+			Console.WriteLine($"Ned = {Math.Round(force.N / 1000, 2)}, " +
+				$"MXed = {Math.Round(force.M1 / 1000000, 2)}, " +
+				$"MYed = {Math.Round(force.M2 / 1000000, 2)}");
 
-			Vector3d vRd2 = new Vector3d(pointNCost.FailureDomainPoint.Point);
-			Line3d line = new Line3d(Point3d.Origin, pointNCost.FailureDomainPoint.Point);
+			Console.WriteLine("Constant N");
 
-			Console.WriteLine($"NRD = {Math.Round(pointNCost.FailureDomainPoint.NRd / 1000, 2)}, " +
-				$"MXRD = {Math.Round(pointNCost.FailureDomainPoint.MxRd / 1000000, 2)}, " +
-				$"MYRD = {Math.Round(pointNCost.FailureDomainPoint.MyRd / 1000000, 2)}");
+			Console.WriteLine($"NRD = {Math.Round(forces2d[0].FailureDomainPoint.NRd / 1000, 2)}, " +
+				$"MXRD = {Math.Round(forces2d[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
+				$"MYRD = {Math.Round(forces2d[0].FailureDomainPoint.MyRd / 1000000, 2)}");
 
-			Console.WriteLine($"WR = {Math.Round(eRd.Length / vRd2.Length, 3)}");
+			Console.WriteLine($"WR = {Math.Round(wr1, 3)}");
 
-			ExportToGmsh(resultNCost, new Line3d[] {line}, new Point3d[] { pointNCost.FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+			Console.WriteLine("Radial");
+
+			Console.WriteLine($"NRD = {Math.Round(forces[0].FailureDomainPoint.NRd / 1000, 2)}, " +
+				$"MXRD = {Math.Round(forces[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
+				$"MYRD = {Math.Round(forces[0].FailureDomainPoint.MyRd / 1000000, 2)}");
+
+			Console.WriteLine($"WR = {Math.Round(wr2, 3)}");
+
+			ExportToGmsh(failureDomainResult2d.Domain,
+				new Line3d[] { new Line3d(new Point3d(0, 0, force.N), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+				new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+
+			double expMxConstantN = 495 * 1000000;
+			double expMyConstantN = -110 * 1000000;
+
+			double expMxrd = 496.21 * 1000000;
+			double expMyrd = -113.2 * 1000000;
+			double expNrd = -676 * 1000;
+
+			double expWR1 = 0.7689;
+			double expWR2 = 1.0 / 1.3;
+
+			Assert.IsTrue(Math.Abs((expNrd - forces[0].FailureDomainPoint.NRd) / forces[0].FailureDomainPoint.NRd) * 100 < 2);
+			Assert.IsTrue(Math.Abs((expMxrd - forces[0].FailureDomainPoint.MxRd) / forces[0].FailureDomainPoint.MxRd) * 100 < 2);
+			Assert.IsTrue(Math.Abs((expMyrd - forces[0].FailureDomainPoint.MyRd) / forces[0].FailureDomainPoint.MyRd) * 100 < 2);
+
+			Assert.IsTrue(Math.Abs((expMxConstantN - forces2d[0].FailureDomainPoint.MxRd) / forces2d[0].FailureDomainPoint.MxRd) * 100 < 3);
+			Assert.IsTrue(Math.Abs((expMyConstantN - forces2d[0].FailureDomainPoint.MyRd) / forces2d[0].FailureDomainPoint.MyRd) * 100 < 2);
+
+			Assert.IsTrue(Math.Abs(expWR1 - wr1) / expWR1 * 100 < 2.55);
+			Assert.IsTrue(Math.Abs(expWR2 - wr1) / expWR2 * 100 < 2.5);
 		}
 
 		[TestMethod]
@@ -583,16 +677,28 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C35_45);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
-			ResultBeamForces forces = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section));
+			ResultBeamForces force = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section));
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
-			//FailureDomain failureDomain = failureDomainResult.CalculateDomainConstantAxialForce(forces.ConvertToForceTuple(section.Centroid));
+			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantAxialForce(force);
 
-			//ExportToGmsh(failureDomain);
+			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+
+			//ExportToGmsh(failureDomainResult2d.Domain,
+			//	new Line3d[] { new Line3d(new Point3d(0, 0, force.N), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+			//	new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+
+			Console.WriteLine($"Ned = {Math.Round(force.N / 1000, 2)}, " +
+				$"MXed = {Math.Round(force.M1 / 1000000, 2)}, " +
+				$"MYed = {Math.Round(force.M2 / 1000000, 2)}");
+
+			Console.WriteLine($"NRD = {Math.Round(forces2d[0].FailureDomainPoint.NRd / 1000, 2)}, " +
+				$"MXRD = {Math.Round(forces2d[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
+				$"MYRD = {Math.Round(forces2d[0].FailureDomainPoint.MyRd / 1000000, 2)}");
 
 			//var failureDomainPoint = failureDomainResult.GetDomainPointConstantAxialForce(forces);
 
@@ -600,5 +706,47 @@ namespace ConcreteTests
 
 			//Assert.IsTrue(Math.Abs(failureDomainPoint.FailureDomainPoint.Point.X) - )
 		}
+
+		[TestMethod]
+		public void DomainCostantMxMyTest1()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
+
+			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C35_45);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+
+			ResultBeamForces force = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section));
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
+			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateFailureDomainCostantAngle(force);
+
+			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+
+			//ExportToGmsh(failureDomainResult2d.Domain,
+			//	new Line3d[] { new Line3d(new Point3d(0, 0, force.N), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+			//	new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+
+			Console.WriteLine($"Ned = {Math.Round(force.N / 1000, 2)}, " +
+				$"MXed = {Math.Round(force.M1 / 1000000, 2)}, " +
+				$"MYed = {Math.Round(force.M2 / 1000000, 2)}");
+
+			Console.WriteLine($"NRD = {Math.Round(forces2d[0].FailureDomainPoint.NRd / 1000, 2)}, " +
+				$"MXRD = {Math.Round(forces2d[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
+				$"MYRD = {Math.Round(forces2d[0].FailureDomainPoint.MyRd / 1000000, 2)}");
+
+			//var failureDomainPoint = failureDomainResult.GetDomainPointConstantAxialForce(forces);
+
+			//Point3d expPoint = new Point3d(420 * 1000000, 0, -1000 * 1000 );
+
+			//Assert.IsTrue(Math.Abs(failureDomainPoint.FailureDomainPoint.Point.X) - )
+		}
+
 	}
 }
