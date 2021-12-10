@@ -50,7 +50,7 @@ namespace GPC.Checkers.Concrete.Results
                 }
             }
 
-            _failureSectionSubdivision = 10; 
+            _failureSectionSubdivision = 20; 
         }
 
         #region Public Async Methods
@@ -200,7 +200,7 @@ namespace GPC.Checkers.Concrete.Results
             FailureDomain2d failureDomain2D = null;
 
             await Task.Run(() => {
-                failureDomain2D = CalculateFailureDomainCostantAngle(forces.ConvertToForceTuple(ConcreteSection.Centroid));
+                failureDomain2D = CalculateFailureDomainCostantMomentsRatio(forces.ConvertToForceTuple(ConcreteSection.Centroid));
             });
 
             return failureDomain2D;
@@ -312,9 +312,9 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="forces"></param>
         /// <returns>New FailureDomain2d</returns>
         /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
-        internal virtual FailureDomainResult2d CalculateFailureDomainCostantAngle(ResultBeamForces forces)
+        internal virtual FailureDomainResult2d CalculateFailureDomainCostantMomentsRatio(ResultBeamForces forces)
         {
-            return new FailureDomainResult2d(_section, CalculateFailureDomainCostantAngle(forces.ConvertToForceTuple(ConcreteSection.Centroid)),
+            return new FailureDomainResult2d(_section, CalculateFailureDomainCostantMomentsRatio(forces.ConvertToForceTuple(ConcreteSection.Centroid)),
                 new ResultBeamForces[] { forces }, _sectionSolver, _standard, FailureDomainResult2d.DomainTypes.CostantMxMy);
         }
 
@@ -368,15 +368,15 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="forces"></param>
         /// <returns>New FailureDomain2d</returns>
         /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
-        internal virtual FailureDomain2d CalculateFailureDomainCostantAngle(ForceTuple forces)
+        internal virtual FailureDomain2d CalculateFailureDomainCostantMomentsRatio(ForceTuple forces)
 		{
             if (_analysisType == SectionSolver.FailureDomainAnalysisTypes.Plastic)
-                return CalculatePlasticDomainCostantAngle(forces, _failureSectionSubdivision);
+                return CalculatePlasticDomainCostantMomentsRatio(forces, _failureSectionSubdivision);
             else
                 return CalculateElasticDomainCostantAngle(forces, _failureSectionSubdivision);
         }
 
-        protected virtual FailureDomain2d CalculatePlasticDomainCostantAngle(ForceTuple forces, int subdivision = 20)
+        protected virtual FailureDomain2d CalculatePlasticDomainCostantMomentsRatio(ForceTuple forces, int subdivision = 20)
         {
             if (subdivision <= 2)
                 throw new Exception();
@@ -414,7 +414,7 @@ namespace GPC.Checkers.Concrete.Results
             ForceTuple[] forceTuples = new ForceTuple[2 * subdivision];
 
             double nMax = ConcreteSection.AreaRebars * ConcreteSection.Rebars.FirstOrDefault().RebarMaterial.Fyk / 2.0;
-            double nMin = ConcreteSection.Area * ConcreteSection.ConcreteMaterial.StressStrainTableCompression.GetMinimumStress() / 2.0;
+            double nMin = ConcreteSection.Area * ConcreteSection.ConcreteMaterial.StressStrainTableCompression.GetMinimumStress() / 4.0;
             
             for (int i = 0; i < subdivision / 2.0; i++)
             {

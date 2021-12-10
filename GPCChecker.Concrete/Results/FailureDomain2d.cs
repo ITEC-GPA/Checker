@@ -13,14 +13,13 @@ namespace GPC.Checkers.Concrete.Results
 	public class FailureDomain2d : ModelObject
 	{
 		protected readonly FailureDomain.FailureDomainPoint[] _domainPoints;
-		protected Dictionary<FailureDomain.FailureDomainPoint, Point2d> _domainPoints2dAssociation;
+		protected readonly Dictionary<FailureDomain.FailureDomainPoint, Point2d> _domainPoints2dAssociation;
 		protected readonly FailureDomainResult2d.DomainTypes _domainType;
 
 		internal FailureDomain.FailureDomainPoint[] DomainPoints => _domainPoints;
 		
 		internal Dictionary<FailureDomain.FailureDomainPoint, Point2d> DomainPoints2dAssociation => _domainPoints2dAssociation;
-
-		
+				
 
 		internal FailureDomain2d(FailureDomain.FailureDomainPoint[] domainPoints, FailureDomainResult2d.DomainTypes domainType)
 		{
@@ -29,7 +28,6 @@ namespace GPC.Checkers.Concrete.Results
 			_domainPoints2dAssociation = new Dictionary<FailureDomain.FailureDomainPoint, Point2d>();
 			CalculateDomainPoints2dAssociation();
 		}
-
 
 
 		internal (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) GetDomainPoint(Point2d point)
@@ -66,15 +64,19 @@ namespace GPC.Checkers.Concrete.Results
 					((Math.Sign(x) == Math.Sign(point1.X) || Math.Abs(point1.X) < 1) && 
 					((Math.Sign(y) == Math.Sign(point1.Y)) || Math.Abs(point1.Y) < 1)))
 				{
-					index = i;
-					break;
+					if(Math.Abs(teta) > Math.Abs(t1) && Math.Abs(teta) < Math.Abs(t2) ||
+						Math.Abs(teta) < Math.Abs(t1) && Math.Abs(teta) > Math.Abs(t2))
+					{
+						index = i;
+						break;
+					}					
 				}
 			}
 
 			if (index != -1)
 			{
 				Line2d line = new Line2d(new Point2d(0, 0), new Point2d(x, y));
-				Line2d edge = new Line2d(_domainPoints[index].Point, _domainPoints[index + 1].Point);
+				Line2d edge = new Line2d(_domainPoints2dAssociation[_domainPoints[index]], _domainPoints2dAssociation[_domainPoints[index + 1]]);
 
 				if (edge.GetIntersectionWithInfiniteLine(line, out Point2d intersection))
 				{
@@ -82,13 +84,17 @@ namespace GPC.Checkers.Concrete.Results
 						return (new FailureDomain.FailureDomainPoint(new ForceTuple(_domainPoints[index].NRd, intersection.X, intersection.Y),
 							_domainPoints[index].FailureIndex, _domainPoints[index].StrainPlane), intersection);
 					else
-						return (new FailureDomain.FailureDomainPoint(new ForceTuple(_domainPoints[index].NRd, intersection.X, intersection.Y),
+					{
+						CoordinateSystem coordinateSystem = GetCoordinateSystem();
+						var pointGlobalCoordinate = coordinateSystem.ToGlobal(intersection);
+						return (new FailureDomain.FailureDomainPoint(new ForceTuple(intersection.Y, pointGlobalCoordinate.X, pointGlobalCoordinate.Y), 
 							_domainPoints[index].FailureIndex, _domainPoints[index].StrainPlane), intersection);
-					//TODO: implementare
+					}
 				}
 			}
 
-			return (new FailureDomain.FailureDomainPoint(new ForceTuple(), SectionSolver.FailureZones.F1, new StrainPlane(0, 0, new Point2d(0,0), 0)), new Point2d());
+			return (new FailureDomain.FailureDomainPoint(new ForceTuple(), SectionSolver.FailureZones.F1, 
+				new StrainPlane(0, 0, new Point2d(0,0), 0)), new Point2d());
 		}
 
 		protected void CalculateDomainPoints2dAssociation()
@@ -107,5 +113,20 @@ namespace GPC.Checkers.Concrete.Results
 			}
 		}
 
+		protected CoordinateSystem GetCoordinateSystem()
+		{
+			if (_domainType == FailureDomainResult2d.DomainTypes.CostantN)
+			{
+				return new CoordinateSystem(new Point3d(0, 0, _domainPoints[0].NRd), Vector3d.XAxis, Vector3d.YAxis);
+			}
+			else
+			{
+				CoordinateSystem coordinateSystem = CoordinateSystem.Global;
+				coordinateSystem.RotateV3(Math.Atan2(-_domainPoints[(int)(_domainPoints.Length / 4.0)].MyRd, 
+					_domainPoints[(int)(_domainPoints.Length / 4.0)].MxRd));
+
+				return coordinateSystem;
+			}
+		}
 	}
 }
