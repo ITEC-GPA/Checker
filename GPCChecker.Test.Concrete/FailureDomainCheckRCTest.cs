@@ -540,56 +540,18 @@ namespace ConcreteTests
 			FailureDomainResult2d failureDomainResult2d = result.CalculateDomainConstantAxialForce(force);
 			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
-			Vector3d vRd = new Vector3d(forces2d[0].FailureDomainPoint.Point);
-			Vector3d eRd = new Vector3d(new Point3d(force.M1, force.M2, force.N));
-			Vector3d vRd2 = new Vector3d(forces[0].FailureDomainPoint.Point);
-
-			double wr1 = eRd.Length / vRd.Length;
-			double wr2 = eRd.Length / vRd2.Length;
-
-			Console.WriteLine($"Ned = {Math.Round(force.N / 1000, 2)}, " +
-				$"MXed = {Math.Round(force.M1 / 1000000, 2)}, " +
-				$"MYed = {Math.Round(force.M2 / 1000000, 2)}");
-
-			Console.WriteLine("Constant N");
-
-			Console.WriteLine($"NRD = {Math.Round(forces2d[0].FailureDomainPoint.NRd / 1000, 2)}, " +
-				$"MXRD = {Math.Round(forces2d[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
-				$"MYRD = {Math.Round(forces2d[0].FailureDomainPoint.MyRd / 1000000, 2)}");
-
-			Console.WriteLine($"WR = {Math.Round(wr1, 3)}");
-
-			Console.WriteLine("Radial");
-
-			Console.WriteLine($"NRD = {Math.Round(forces[0].FailureDomainPoint.NRd / 1000, 2)}, " +
-				$"MXRD = {Math.Round(forces[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
-				$"MYRD = {Math.Round(forces[0].FailureDomainPoint.MyRd / 1000000, 2)}");
-
-			Console.WriteLine($"WR = {Math.Round(wr2, 3)}");
-
-			ExportToGmsh(failureDomainResult2d.Domain, 
-				new Line3d[] {new Line3d(new Point3d(0,0,force.N), new Point3d(forces2d[0].FailureDomainPoint.Point))}, 
-				new Point3d[] {forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
-
-			double expMxConstantN = 495 * 1000000;
-			double expMyConstantN = -110 * 1000000;
-
-			double expMxrd = 496.21 * 1000000;
-			double expMyrd = -113.2 * 1000000;
-			double expNrd = -676 * 1000;
+			ForceTuple expForceConstantMxMy = new ForceTuple(-676 * 1000, 496.21 * 1000000, -113.2 * 1000000);
+			ForceTuple expForceConstantN = new ForceTuple(-512.2 * 1000, 495 * 1000000, -110 * 1000000);
 
 			double expWR1 = 0.7689;
 			double expWR2 = 1.0 / 1.3;
 
-			Assert.IsTrue(Math.Abs((expNrd - forces[0].FailureDomainPoint.NRd) / forces[0].FailureDomainPoint.NRd) * 100 < 2);
-			Assert.IsTrue(Math.Abs((expMxrd - forces[0].FailureDomainPoint.MxRd) / forces[0].FailureDomainPoint.MxRd) * 100 < 2);
-			Assert.IsTrue(Math.Abs((expMyrd - forces[0].FailureDomainPoint.MyRd) / forces[0].FailureDomainPoint.MyRd) * 100 < 2);
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(section.Centroid), expForceConstantN, forces2d[0], expWR1);
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(section.Centroid), expForceConstantMxMy, forces[0], expWR2);
 
-			Assert.IsTrue(Math.Abs((expMxConstantN - forces2d[0].FailureDomainPoint.MxRd) / forces2d[0].FailureDomainPoint.MxRd) * 100 < 3);
-			Assert.IsTrue(Math.Abs((expMyConstantN - forces2d[0].FailureDomainPoint.MyRd) / forces2d[0].FailureDomainPoint.MyRd) * 100 < 2);
-
-			Assert.IsTrue(Math.Abs(expWR1 - wr1) / expWR1 * 100 < 2.55);
-			Assert.IsTrue(Math.Abs(expWR2 - wr1) / expWR2 * 100 < 2.5);
+			//ExportToGmsh(failureDomainResult2d.Domain,
+			//	new Line3d[] { new Line3d(new Point3d(0, 0, force.N), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+			//	new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
 		}
 
 		[TestMethod]
@@ -614,56 +576,18 @@ namespace ConcreteTests
 			FailureDomainResult2d failureDomainResult2d = result.CalculateDomainConstantAxialForce(force);
 			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
-			Vector3d vRd = new Vector3d(forces2d[0].FailureDomainPoint.Point);
-			Vector3d eRd = new Vector3d(new Point3d(force.M1, force.M2, force.N));
-			Vector3d vRd2 = new Vector3d(forces[0].FailureDomainPoint.Point);
-
-			double wr1 = eRd.Length / vRd.Length;
-			double wr2 = eRd.Length / vRd2.Length;
-
-			Console.WriteLine($"Ned = {Math.Round(force.N / 1000, 2)}, " +
-				$"MXed = {Math.Round(force.M1 / 1000000, 2)}, " +
-				$"MYed = {Math.Round(force.M2 / 1000000, 2)}");
-
-			Console.WriteLine("Constant N");
-
-			Console.WriteLine($"NRD = {Math.Round(forces2d[0].FailureDomainPoint.NRd / 1000, 2)}, " +
-				$"MXRD = {Math.Round(forces2d[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
-				$"MYRD = {Math.Round(forces2d[0].FailureDomainPoint.MyRd / 1000000, 2)}");
-
-			Console.WriteLine($"WR = {Math.Round(wr1, 3)}");
-
-			Console.WriteLine("Radial");
-
-			Console.WriteLine($"NRD = {Math.Round(forces[0].FailureDomainPoint.NRd / 1000, 2)}, " +
-				$"MXRD = {Math.Round(forces[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
-				$"MYRD = {Math.Round(forces[0].FailureDomainPoint.MyRd / 1000000, 2)}");
-
-			Console.WriteLine($"WR = {Math.Round(wr2, 3)}");
-
-			ExportToGmsh(failureDomainResult2d.Domain,
-				new Line3d[] { new Line3d(new Point3d(0, 0, force.N), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
-				new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
-
-			double expMxConstantN = 495 * 1000000;
-			double expMyConstantN = -110 * 1000000;
-
-			double expMxrd = 496.21 * 1000000;
-			double expMyrd = -113.2 * 1000000;
-			double expNrd = -676 * 1000;
+			ForceTuple expForceConstantMxMy = new ForceTuple(-676 * 1000, 496.21 * 1000000, -113.2 * 1000000);
+			ForceTuple expForceConstantN = new ForceTuple(-512.2 * 1000, 495 * 1000000, -110 * 1000000);
 
 			double expWR1 = 0.7689;
 			double expWR2 = 1.0 / 1.3;
 
-			Assert.IsTrue(Math.Abs((expNrd - forces[0].FailureDomainPoint.NRd) / forces[0].FailureDomainPoint.NRd) * 100 < 2);
-			Assert.IsTrue(Math.Abs((expMxrd - forces[0].FailureDomainPoint.MxRd) / forces[0].FailureDomainPoint.MxRd) * 100 < 2);
-			Assert.IsTrue(Math.Abs((expMyrd - forces[0].FailureDomainPoint.MyRd) / forces[0].FailureDomainPoint.MyRd) * 100 < 2);
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(section.Centroid), expForceConstantN, forces2d[0], expWR1);
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(section.Centroid), expForceConstantMxMy, forces[0], expWR2);
 
-			Assert.IsTrue(Math.Abs((expMxConstantN - forces2d[0].FailureDomainPoint.MxRd) / forces2d[0].FailureDomainPoint.MxRd) * 100 < 3);
-			Assert.IsTrue(Math.Abs((expMyConstantN - forces2d[0].FailureDomainPoint.MyRd) / forces2d[0].FailureDomainPoint.MyRd) * 100 < 2);
-
-			Assert.IsTrue(Math.Abs(expWR1 - wr1) / expWR1 * 100 < 2.55);
-			Assert.IsTrue(Math.Abs(expWR2 - wr1) / expWR2 * 100 < 2.5);
+			//ExportToGmsh(failureDomainResult2d.Domain,
+			//	new Line3d[] { new Line3d(new Point3d(0, 0, force.N), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+			//	new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
 		}
 
 		[TestMethod]
@@ -718,34 +642,89 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C35_45);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
-			ResultBeamForces force = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section));
+			ResultBeamForces force = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section));
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
-			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateFailureDomainCostantAngle(force);
+			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateFailureDomainCostantMomentsRatio(force);
 
 			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
-			//ExportToGmsh(failureDomainResult2d.Domain,
-			//	new Line3d[] { new Line3d(new Point3d(0, 0, force.N), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
-			//	new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+			ForceTuple expForce = new ForceTuple(-3147 * 1000, 314.7 * 1000000, 0);
+			double expWR = 0.32;
 
-			Console.WriteLine($"Ned = {Math.Round(force.N / 1000, 2)}, " +
-				$"MXed = {Math.Round(force.M1 / 1000000, 2)}, " +
-				$"MYed = {Math.Round(force.M2 / 1000000, 2)}");
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(section.Centroid), expForce, forces2d[0], expWR);
 
-			Console.WriteLine($"NRD = {Math.Round(forces2d[0].FailureDomainPoint.NRd / 1000, 2)}, " +
-				$"MXRD = {Math.Round(forces2d[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
-				$"MYRD = {Math.Round(forces2d[0].FailureDomainPoint.MyRd / 1000000, 2)}");
+			ExportToGmsh(failureDomainResult2d.Domain,
+				new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+				new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+		}
 
-			//var failureDomainPoint = failureDomainResult.GetDomainPointConstantAxialForce(forces);
+		[TestMethod]
+		public void DomainCostantMxMyTest2()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 500;
+			double concreteCover = 50;
 
-			//Point3d expPoint = new Point3d(420 * 1000000, 0, -1000 * 1000 );
+			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C35_45);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			//Assert.IsTrue(Math.Abs(failureDomainPoint.FailureDomainPoint.Point.X) - )
+			ResultBeamForces force = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section));
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
+			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateFailureDomainCostantMomentsRatio(force);
+
+			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+
+			ForceTuple expForce = new ForceTuple(-4000 * 1000, 400 * 1000000, 0);
+			double expWR = 0.25;
+
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(section.Centroid), expForce, forces2d[0], expWR);
+
+			ExportToGmsh(failureDomainResult2d.Domain,
+				new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+				new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+		}
+
+		[TestMethod]
+		public void DomainCostantMxMyTest3()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 500;
+			double concreteCover = 50;
+
+			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C35_45);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces force = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section));
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
+			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateFailureDomainCostantMomentsRatio(force);
+
+			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+
+			ForceTuple expForce = new ForceTuple(-4000 * 1000, 0, 400 * 1000000);
+			double expWR = 0.25;
+
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(section.Centroid), expForce, forces2d[0], expWR);
+
+			ExportToGmsh(failureDomainResult2d.Domain,
+				new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+				new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
 		}
 
 	}

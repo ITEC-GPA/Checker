@@ -564,6 +564,53 @@ namespace ConcreteTests
             return check;
         }
 
+        protected bool CommonAssertsDomainCheck(IConcreteSection section, ForceTuple forceEd, ForceTuple expForce, 
+            FailureDomain.FailureDomainForce failureDomainForce, double expWR, double errorPercentage = 3)
+		{
+            Console.WriteLine("Design force");
+
+            Console.WriteLine($"Ned = {Math.Round(forceEd.N / 1000, 2)}, " +
+                $"MXed = {Math.Round(forceEd.Mx / 1000000, 2)}, " +
+                $"MYed = {Math.Round(forceEd.My / 1000000, 2)}");
+
+            Console.WriteLine("Expected force");
+
+            Console.WriteLine($"Ned = {Math.Round(forceEd.N / 1000, 2)}, " +
+                $"MXed = {Math.Round(forceEd.Mx / 1000000, 2)}, " +
+                $"MYed = {Math.Round(forceEd.My / 1000000, 2)}");
+
+            Console.WriteLine("Calculated force on domain");
+
+            Console.WriteLine($"NRD = {Math.Round(failureDomainForce.FailureDomainPoint.NRd / 1000, 2)}, " +
+                $"MXRD = {Math.Round(failureDomainForce.FailureDomainPoint.MxRd / 1000000, 2)}, " +
+                $"MYRD = {Math.Round(failureDomainForce.FailureDomainPoint.MyRd / 1000000, 2)}");
+
+            Vector3d vRd = new Vector3d(failureDomainForce.FailureDomainPoint.Point.X / 1000000, failureDomainForce.FailureDomainPoint.Point.Y / 1000000,
+                failureDomainForce.FailureDomainPoint.Point.Z / 1000);
+            Vector3d eRd = new Vector3d(new Point3d(forceEd.Mx / 1000000, forceEd.My / 1000000, forceEd.N / 1000));
+
+            double wr = eRd.Length / vRd.Length;
+
+			ForceTuple adimForce = CalculateAdimensionalForces(section, new ForceTuple(expForce.N - failureDomainForce.FailureDomainPoint.NRd,
+                expForce.Mx - failureDomainForce.FailureDomainPoint.MxRd, expForce.My - failureDomainForce.FailureDomainPoint.MyRd));
+
+            if (Math.Abs(expForce.N - failureDomainForce.FailureDomainPoint.NRd) > 1000000 * errorPercentage &&
+                adimForce.N > 0.001 * errorPercentage)
+                Assert.IsTrue(Math.Abs((expForce.N - failureDomainForce.FailureDomainPoint.NRd) / failureDomainForce.FailureDomainPoint.NRd) * 100 < errorPercentage);
+
+            if (Math.Abs(expForce.Mx - failureDomainForce.FailureDomainPoint.MxRd) > 1000000 * errorPercentage &&
+                adimForce.Mx > 0.001 * errorPercentage)
+                Assert.IsTrue(Math.Abs((expForce.Mx - failureDomainForce.FailureDomainPoint.MxRd) / failureDomainForce.FailureDomainPoint.MxRd) * 100 < errorPercentage);
+
+            if(Math.Abs(expForce.My - failureDomainForce.FailureDomainPoint.MyRd) > 1000000 * errorPercentage &&
+                adimForce.My > 0.001 * errorPercentage)
+                Assert.IsTrue(Math.Abs((expForce.My - failureDomainForce.FailureDomainPoint.MyRd) / failureDomainForce.FailureDomainPoint.MyRd) * 100 < errorPercentage);
+
+            Assert.IsTrue(Math.Abs(wr - expWR) / expWR * 100 < errorPercentage);
+
+            return true;
+        }
+
 		#endregion
 
 		#region Export To Gmsh
