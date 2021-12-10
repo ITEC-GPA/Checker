@@ -1208,7 +1208,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var p3 = GetP3(distances, analysisType);
             var p4 = GetP4(distances, analysisType, materialType);
 
-            StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, p1, p2, p3, p4);
+            StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, p1, p2, p3, p4, id);
 
             teta = strainPlane.Teta;
 

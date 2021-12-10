@@ -233,19 +233,6 @@ namespace GPC.Checkers.Concrete.Results
             }
         }
 
-        protected CoordinateSystem GetCoordinateSystem()
-		{
-            if (_domainType == DomainTypes.CostantN)
-			{
-                return new CoordinateSystem(new Point3d(0, 0, _failureDomain.DomainPoints[0].NRd), Vector3d.XAxis, Vector3d.YAxis);
-			}
-			else
-			{
-                //TODO: implementare GetCoordinateSystem
-                return null;
-			}
-        }
-
         #endregion
 
         /// <summary>
