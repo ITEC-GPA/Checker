@@ -26,7 +26,7 @@ namespace ConcreteTests
 			double elasticModulus = 31.476;
 
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, GetLinearConcreteMaterial(elasticModulus));
-			var rebars = section.GetRebars();
+			ReinforcedConcreteRebar[] rebars = section.GetRebars();
 
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 

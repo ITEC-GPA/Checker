@@ -412,6 +412,83 @@ namespace ConcreteTests
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 		}
 
+
+		[TestMethod]
+		[TestCategory("No Rebars")]
+		public void RectangularSectionTest7()
+		{
+			// sezione rettangolare 300x500
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(300, 0),
+				new Point2d(300, 500),
+				new Point2d(0, 500)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+
+			Assert.IsNull(plasticFailureDomain);
+			Assert.IsNull(elasticFailureDomain);
+
+			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+				NRd			MRd			C3			C4
+				-398.343	0			0			0
+				-398.343	0			0			0
+				-398.343	0			0			0
+				-398.343	0			0			0
+				-382.775	3.84247		0			0
+				-351.973	11.3133		0			0
+				-321.43		18.5065		0			0
+				-293.415	24.8945		0			0
+				-48.0393	75.0195		0			0
+				396.513		159.786		0			0
+				495.779		173.896		0			0
+				661.413		192.136		0			0
+				993.368		208.726		0			0
+				1234.54		191.47		0			0
+				1539.64		162.899		0			0
+				1955.48		104.992		0			0
+				2236.37		53.6365		0			0
+				2427.3		18.3439		0			0
+				2523.84		0			0			0
+				2523.84		0			0			0
+				2427.3		-18.3439	0			0
+				2236.37		-53.6365	0			0
+				1955.48		-104.992	0			0
+				1539.64		-162.899	0			0
+				1234.54		-191.47		0			0
+				993.368		-208.726	0			0
+				661.413		-192.136	0			0
+				495.779		-173.896	0			0
+				396.513		-159.786	0			0
+				-48.0393	-75.0195	0			0
+				-293.415	-24.8945	0			0
+				-321.43		-18.5065	0			0
+				-351.973	-11.3133	0			0
+				-382.775	-3.84247	0			0
+				-398.343	0			0			0
+				-398.343	0			0			0
+				-398.343	0			0			0
+				-398.343	0			0			0
+			*/
+		}
+
 		[TestMethod]
 		public void SquareSectionTest1()
 		{

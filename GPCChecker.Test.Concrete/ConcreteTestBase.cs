@@ -270,16 +270,6 @@ namespace ConcreteTests
 
             if (result.StrainPlane != null)
             {
-                ForceTuple calculatedForces = solver.CalculateSectionForceResultant(result.StrainPlane);
-
-                var adimForces = solver.ConvertToAdimForces(calculatedForces);
-                double tolerance = 1e-5;
-
-                if (Math.Abs(adimForces.N - adimExternalForces.N) > tolerance ||
-                    Math.Abs(adimForces.Mx - adimExternalForces.Mx) > tolerance ||
-                    Math.Abs(adimForces.My - adimExternalForces.My) > tolerance)
-                    return false;
-
                 (Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension();
                 (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result.GetRebarsTension();
 
@@ -291,6 +281,16 @@ namespace ConcreteTests
 
                 for (int i = 0; i < concreteTensions.Length; i++)
                     Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
+
+                ForceTuple calculatedForces = solver.CalculateSectionForceResultant(result.StrainPlane);
+
+                var adimForces = solver.ConvertToAdimForces(calculatedForces);
+                double tolerance = 1e-5;
+
+                if (Math.Abs(adimForces.N - adimExternalForces.N) > tolerance ||
+                    Math.Abs(adimForces.Mx - adimExternalForces.Mx) > tolerance ||
+                    Math.Abs(adimForces.My - adimExternalForces.My) > tolerance)
+                    return false;
             }
             else
             {
