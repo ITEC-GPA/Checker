@@ -38,35 +38,90 @@ namespace GPC.Checkers.Concrete.Checkers
             _solver = solver ?? throw new ArgumentNullException(nameof(solver));
         }
 
+		#region Public Async Method
 
-        internal abstract FailureDomainResult GetPlasticFailureDomainResult();
+        /// <summary>
+        /// Calculate the plastic failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+		public abstract Task<FailureDomainResult> GetPlasticFailureDomainResultAsync();
 
-        public abstract Task<FailureDomainResult> GetPlasticFailureDomainResultAsync();
-
+        /// <summary>
+        /// Calculate the elastic failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
         public abstract Task<FailureDomainResult> GetElasticFailureDomainResultAsync();
 
-        internal abstract FailureDomainResult GetElasticFailureDomainResult();
-
-        internal abstract StressAnalysisResult[] GetStressAnalysisResult();
-
-        internal abstract StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces);
-
-        internal abstract StressAnalysisResult[] GetLinearStressAnalysisResult(double n);
-
-        internal abstract StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double n);
-
+        /// <summary>
+        /// Calculate the stress analysis for each forces
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
         public abstract Task<StressAnalysisResult[]> GetStressAnalysisResultAsync();
 
+        /// <summary>
+        /// Calculate the stress analysis for <paramref name="forces"/>
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
         public abstract Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces);
 
-        public abstract Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double n);
+        /// <summary>
+        /// Calculate the stress analysis for each forces with creep coefficient <paramref name="phi"/>
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        public abstract Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double phi);
 
-        public abstract Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double n);
+        /// <summary>
+        /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="phi"/>
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        public abstract Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double phi);
 
-        public abstract class SectionOptions : Options
+        #endregion
+
+        #region Internal Method
+
+        /// <summary>
+        /// Calculate the plastic failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        internal abstract FailureDomainResult GetPlasticFailureDomainResult();
+
+        /// <summary>
+        /// Calculate the elastic failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        internal abstract FailureDomainResult GetElasticFailureDomainResult();
+
+        /// <summary>
+        /// Calculate the stress analysis for each forces
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        internal abstract StressAnalysisResult[] GetStressAnalysisResult();
+
+        /// <summary>
+        /// Calculate the stress analysis for <paramref name="forces"/>
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        internal abstract StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces);
+
+        /// <summary>
+        /// Calculate the stress analysis for each forces with creep coefficient <paramref name="phi"/>
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        internal abstract StressAnalysisResult[] GetLinearStressAnalysisResult(double phi);
+
+        /// <summary>
+        /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="phi"/>
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        internal abstract StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double phi);
+
+		#endregion
+
+		public abstract class SectionOptions : Options
         {
-
             public Vector2d ForceReferencePointCentroidDistance { get; }
+
             public bool PlasticFailureDomain { get; }
 
 

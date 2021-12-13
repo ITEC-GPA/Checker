@@ -33,13 +33,14 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #region Public Async
 
+        /// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResultAsync"/>
         public async override Task<FailureDomainResult> GetPlasticFailureDomainResultAsync()
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetPlasticFailureDomainResult();
+                    var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -53,13 +54,14 @@ namespace GPC.Checkers.Concrete.Checkers
             });
         }
 
+        /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResultAsync"/>
         public async override Task<FailureDomainResult> GetElasticFailureDomainResultAsync()
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetElasticFailureDomainResult();
+                    var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -73,6 +75,7 @@ namespace GPC.Checkers.Concrete.Checkers
             });
         }
 
+        /// <inheritdoc cref="SectionChecker.GetStressAnalysisResultAsync"/>
         public async override Task<StressAnalysisResult[]> GetStressAnalysisResultAsync()
         {
 
@@ -92,6 +95,7 @@ namespace GPC.Checkers.Concrete.Checkers
             });
         }
 
+        /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResultAsync(ResultBeamForces, double)"/>
         public async override Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double psi)
         {
 
@@ -111,6 +115,7 @@ namespace GPC.Checkers.Concrete.Checkers
             });
         }
 
+        /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResultAsync(double)"/>
         public async override Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double psi)
         {
 
@@ -130,6 +135,7 @@ namespace GPC.Checkers.Concrete.Checkers
             });
         }
 
+        /// <inheritdoc cref="SectionChecker.GetStressAnalysisResultAsync(ResultBeamForces)"/>
         public async override Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces)
         {
             if (forces is null)
@@ -152,9 +158,10 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #region Internal
 
+        /// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResult"/>
         internal override FailureDomainResult GetPlasticFailureDomainResult()
         {
-            var failureDomainResult = _solver.GetPlasticFailureDomainResult();
+            var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -162,9 +169,10 @@ namespace GPC.Checkers.Concrete.Checkers
             return failureDomainResult;
         }
 
+        /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResult"/>
         internal override FailureDomainResult GetElasticFailureDomainResult()
         {
-            var failureDomainResult = _solver.GetElasticFailureDomainResult();
+            var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -172,6 +180,7 @@ namespace GPC.Checkers.Concrete.Checkers
             return failureDomainResult;
         }
 
+        /// <inheritdoc cref="SectionChecker.GetStressAnalysisResult"/>
         internal override StressAnalysisResult[] GetStressAnalysisResult()
         {
             if (_checkerAttributes.SLSResults is null)
@@ -180,6 +189,7 @@ namespace GPC.Checkers.Concrete.Checkers
             return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
         }
 
+        /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(double)"/>
         internal override StressAnalysisResult[] GetLinearStressAnalysisResult(double psi)
         {
 
@@ -189,12 +199,14 @@ namespace GPC.Checkers.Concrete.Checkers
             return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
         }
 
-		internal override StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
+        /// <inheritdoc cref="SectionChecker.GetStressAnalysisResult(ResultBeamForces)"/>
+        internal override StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
 		{
             return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
         }
 
-		internal override StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi)
+        /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(ResultBeamForces, double)"/>
+        internal override StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi)
 		{
             return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
         }

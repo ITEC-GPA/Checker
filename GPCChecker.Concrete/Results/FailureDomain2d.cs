@@ -18,6 +18,9 @@ namespace GPC.Checkers.Concrete.Results
 
 		internal FailureDomain.FailureDomainPoint[] DomainPoints => _domainPoints;
 		
+		/// <summary>
+		/// Dictionary of association between 3d domain points and 2d domain points
+		/// </summary>
 		internal Dictionary<FailureDomain.FailureDomainPoint, Point2d> DomainPoints2dAssociation => _domainPoints2dAssociation;
 				
 
@@ -29,12 +32,22 @@ namespace GPC.Checkers.Concrete.Results
 			CalculateDomainPoints2dAssociation();
 		}
 
-
+		/// <summary>
+		/// Return the domain point for input 2d forces <paramref name="point"/>
+		/// </summary>
+		/// <param name="point"></param>
+		/// <returns></returns>
 		internal (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) GetDomainPoint(Point2d point)
 		{
 			return GetDomainPoint(point.X, point.Y);	
 		}
 
+		/// <summary>
+		/// Return the domain point for input 2d forces <paramref name="x"/>, <paramref name="y"/>
+		/// </summary>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <returns></returns>
 		protected (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) GetDomainPoint(double x, double y)
 		{
 			double teta = Math.Atan2(x, y);
