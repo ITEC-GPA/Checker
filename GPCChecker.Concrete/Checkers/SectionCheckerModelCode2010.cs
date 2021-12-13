@@ -24,7 +24,8 @@ namespace GPC.Checkers.Concrete.Checkers
 
 
         /// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, SectionSolver int)"/>
-        public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptionsModelCode2010 options, StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
+        public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptionsModelCode2010 options, 
+            StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
             : base(checkerAttribute, options, standard, new SectionSolverModelCode2010(checkerAttribute.Section, standard, considerTensileConcrete), id)
         {
 

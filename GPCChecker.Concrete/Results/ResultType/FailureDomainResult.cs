@@ -195,7 +195,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="forces"></param>
         /// <returns>New FailureDomain2d</returns>
         /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
-        public async Task<FailureDomain2d> CalculatePlasticDomainCostantAngleAsync(ResultBeamForces forces)
+        public async Task<FailureDomain2d> CalculatePlasticDomainConstantMomentsRatioAsync(ResultBeamForces forces)
         {
             FailureDomain2d failureDomain2D = null;
 
@@ -212,12 +212,12 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="forces"></param>
         /// <returns>New FailureDomain2d</returns>
         /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
-        public async Task<FailureDomain2d> CalculateElasticDomainCostantAngleAsync(ResultBeamForces forces)
+        public async Task<FailureDomain2d> CalculateElasticDomainConstantMomentsRatioAsync(ResultBeamForces forces)
         {
             FailureDomain2d failureDomain2D = null;
 
             await Task.Run(() => {
-                failureDomain2D = CalculateElasticDomainCostantAngle(forces.ConvertToForceTuple(ConcreteSection.Centroid));
+                failureDomain2D = CalculateElasticDomainMomentsRatio(forces.ConvertToForceTuple(ConcreteSection.Centroid));
             });
 
             return failureDomain2D;
@@ -373,7 +373,7 @@ namespace GPC.Checkers.Concrete.Results
             if (_analysisType == SectionSolver.FailureDomainAnalysisTypes.Plastic)
                 return CalculatePlasticDomainCostantMomentsRatio(forces, _failureSectionSubdivision);
             else
-                return CalculateElasticDomainCostantAngle(forces, _failureSectionSubdivision);
+                return CalculateElasticDomainMomentsRatio(forces, _failureSectionSubdivision);
         }
 
         protected virtual FailureDomain2d CalculatePlasticDomainCostantMomentsRatio(ForceTuple forces, int subdivision = 20)
@@ -392,7 +392,7 @@ namespace GPC.Checkers.Concrete.Results
             return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.CostantMxMy);
         }
 
-        protected virtual FailureDomain2d CalculateElasticDomainCostantAngle(ForceTuple forces, int subdivision = 10)
+        protected virtual FailureDomain2d CalculateElasticDomainMomentsRatio(ForceTuple forces, int subdivision = 10)
         {
             if (subdivision <= 2)
                 throw new Exception();

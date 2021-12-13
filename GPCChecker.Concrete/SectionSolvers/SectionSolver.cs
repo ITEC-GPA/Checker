@@ -206,6 +206,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
                 zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
 
+            if (materialType == MaterialTypes.Concrete)
+                if (ConcreteSection.RebarsCount == 0)
+                    return null;
+
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
                 zoneDiscretization, FailureDomainAnalysisTypes.Elastic, materialType);
 
@@ -227,6 +231,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 zoneDiscretization = _plasticFailureZonesDiscretizations;
             else
                 zoneDiscretization = _plasticFailureZonesDiscretizationsFRC;
+
+            if (materialType == MaterialTypes.Concrete)
+                if (ConcreteSection.RebarsCount == 0)
+                    return null;
 
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
                 zoneDiscretization, FailureDomainAnalysisTypes.Plastic, materialType);
@@ -1558,9 +1566,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             ForceTuple iterationForces = CalculateForceResultant(strainPlane);
             ForceTuple iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
 
-            if (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
-                Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
-                Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance)
+            if (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance * tolerance ||
+                Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance * tolerance ||
+                Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance * tolerance)
             {
                 FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, 
                     FailureDomainAnalysisTypes.Plastic, materialType, 2.0 * _failureAnalysisAngularTolerance);
