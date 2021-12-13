@@ -21,10 +21,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
     [Serializable]
     public abstract class SectionSolver : ModelObjectId
     {
-        /// <summary>
-        /// Rapresent the discretization of the axial force in the solver for plastic analysis
-        /// </summary>
-        protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizations =
+		#region Public enum 
+
+		/// <summary>
+		/// Rapresent the discretization of the axial force in the solver for plastic analysis
+		/// </summary>
+		protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizations =
         {
             (FailureZones.F1, 1),
             (FailureZones.F2A, 1),
@@ -72,8 +74,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F4, 5),
             (FailureZones.F5, 5)
         };
-
-        protected readonly int _tetaDiscretization = 64;
 
         public enum FailureZones
         {
@@ -125,8 +125,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Plastic,
 		}
 
+        #endregion
+
         #region Variables
-        
+
         protected double _stressAnalysisTolerance;
         protected double _failureAnalysisAngularTolerance;
         protected bool _considerTensileConcrete;
@@ -134,8 +136,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected IConcreteSection _concreteSection;
         protected Standard _standard;
 
-        protected List<string> _log; 
-        
+        protected List<string> _log;
+        protected readonly int _tetaDiscretization;
+
         #endregion
 
         public IConcreteSection ConcreteSection => _concreteSection;
@@ -158,6 +161,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _failureAnalysisAngularTolerance = 1e-2;
 
             _considerTensileConcrete = considerTensileConcrete;
+            _tetaDiscretization = 64;
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)
@@ -191,7 +195,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Public method
 
-        public virtual FailureDomainResult GetElasticFailureDomainResult()
+        public virtual FailureDomainResult GetElasticFailureDomainResult(Vector2d forceReferencePointDistance)
         {
             MaterialTypes materialType;
             (FailureZones, int)[] zoneDiscretization;
@@ -213,11 +217,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
                 zoneDiscretization, FailureDomainAnalysisTypes.Elastic, materialType);
 
-            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes), null, this, Standard,
+            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes, forceReferencePointDistance), null, this, Standard,
                 FailureDomainAnalysisTypes.Elastic, Id);
         }
 
-        public virtual FailureDomainResult GetPlasticFailureDomainResult()
+        public virtual FailureDomainResult GetPlasticFailureDomainResult(Vector2d forceReferencePointDistance)
         {
             MaterialTypes materialType;
             (FailureZones, int)[] zoneDiscretization;
@@ -239,7 +243,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
                 zoneDiscretization, FailureDomainAnalysisTypes.Plastic, materialType);
 
-            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes), null, this, Standard,
+            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes, forceReferencePointDistance), null, this, Standard,
                 FailureDomainAnalysisTypes.Plastic, Id);
         }
 
@@ -872,7 +876,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         /// <param name="momentsDiscretizations">Number of discretizations of X-axis and Y-axis (moment around Z-axis)</param>
         /// <param name="normalDiscretizations">Number of discretizations of Z-axis (axial force)</param>
-        protected virtual FailureDomain CalculateFailureDomain((StrainPlane, FailureZones)[][] strainPlanes)
+        protected virtual FailureDomain CalculateFailureDomain((StrainPlane, FailureZones)[][] strainPlanes, Vector2d forceReferencePointDistance)
         {
             FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[strainPlanes.Length][];
 
@@ -884,7 +888,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                     Parallel.For(0, strainPlanes[i].Length, (j) =>
                     {
-                        domainPoints[i][j] = new FailureDomain.FailureDomainPoint(CalculateForceResultant(strainPlanes[i][j]), strainPlanes[i][j].Item2, strainPlanes[i][j].Item1);
+                        domainPoints[i][j] = new FailureDomain.FailureDomainPoint(GetExternalForces(CalculateForceResultant(strainPlanes[i][j]), forceReferencePointDistance),
+                            strainPlanes[i][j].Item2, strainPlanes[i][j].Item1);
                     });
                 });
 
@@ -1890,7 +1895,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Protected method - Convert forces local/global
 
-        protected virtual ResultBeamForces GetLocalForces(ResultBeamForces externalForces, Point2d forceReferencePoint)
+        protected virtual ResultBeamForces GetLocalForces(ResultBeamForces externalForces, Vector2d forceReferencePoint)
         {
             return new ResultBeamForces(externalForces.N,
                                         externalForces.V1,
@@ -1901,14 +1906,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                         new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
         }
 
-        protected ForceTuple GetLocalForces(ForceTuple externalForces, Point2d forceReferencePoint)
+        protected ForceTuple GetLocalForces(ForceTuple externalForces, Vector2d forceReferencePoint)
         {
             return new ForceTuple(externalForces.N,
                                   externalForces.Mx + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
                                   externalForces.My + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X));
         }
 
-        protected virtual ResultBeamForces GetExternalForces(ResultBeamForces localForces, Point2d forceReferencePoint)
+        protected virtual ResultBeamForces GetExternalForces(ResultBeamForces localForces, Vector2d forceReferencePoint)
         {
             return new ResultBeamForces(localForces.N,
                                         localForces.V1,
@@ -1919,11 +1924,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                         new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
         }
 
-        protected virtual ForceTuple GetExternalForces(ForceTuple forceTuple, Point2d forceReferencePoint)
+        protected virtual ForceTuple GetExternalForces(ForceTuple forceTuple, Vector2d forceReferencePoint)
         {
             return new ForceTuple(forceTuple.N,
-                                  forceTuple.Mx + forceTuple.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
-                                  forceTuple.My + forceTuple.N * (ConcreteSection.Centroid.X - forceReferencePoint.X));
+                                  forceTuple.Mx + forceTuple.N * (forceReferencePoint.Y),
+                                  forceTuple.My - forceTuple.N * (forceReferencePoint.X));
         }
 
         #endregion

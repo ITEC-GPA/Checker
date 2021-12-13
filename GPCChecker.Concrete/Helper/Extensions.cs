@@ -10,7 +10,6 @@ namespace GPC.Checkers.Concrete.Helper
 {
     internal static class Extensions
     {
-
         public static ForceTuple ConvertToForceTuple(this ResultBeamForces resultBeamForces, Point2d centroid)
         {
             if (centroid.Equals(resultBeamForces.CoordinateSystem.Origin))
@@ -41,5 +40,6 @@ namespace GPC.Checkers.Concrete.Helper
                     resultBeamForces.M2 + resultBeamForces.N * distanceRefPointToCentroid.X);
             }
         }
+
     }
 }
