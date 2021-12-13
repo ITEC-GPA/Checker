@@ -791,17 +791,25 @@ namespace ConcreteTests
 
                     for (int k = 0; k < vertices.Length; k++)
                     {
-                        indicesV.Add(GmshNet.Gmsh.Model.Occ.AddPoint(vertices[k].Point.X / 1000000,
-                            vertices[k].Point.Y / 1000000,
-                            vertices[k].Point.Z / 10000));
+						try
+						{
+                            indicesV.Add(GmshNet.Gmsh.Model.Occ.AddPoint(vertices[k].Point.X / 1000000,
+                                vertices[k].Point.Y / 1000000,
+                                vertices[k].Point.Z / 10000));
+                        }
+						catch { }
                     }
 
                     for (int k = 0; k < indicesV.Count; k++)
                     {
-                        if (k != indicesV.Count - 1)
-                            indicesL.Add(GmshNet.Gmsh.Model.Occ.AddLine(indicesV[k], indicesV[k + 1]));
-                        else
-                            indicesL.Add(GmshNet.Gmsh.Model.Occ.AddLine(indicesV[k], indicesV[0]));
+						try
+						{
+                            if (k != indicesV.Count - 1)
+                                indicesL.Add(GmshNet.Gmsh.Model.Occ.AddLine(indicesV[k], indicesV[k + 1]));
+                            else
+                                indicesL.Add(GmshNet.Gmsh.Model.Occ.AddLine(indicesV[k], indicesV[0]));
+                        }
+                        catch { }
                     }
 
                     int wire = GmshNet.Gmsh.Model.Occ.AddWire(indicesL.ToArray());
