@@ -424,12 +424,58 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		[TestCategory("Force reference point not in centroid")]
 		public void RectangularSectionTest11()
 		{
 			double rebarDiameter = 16;
 
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, rebarDiameter, 50, GetLinearConcreteMaterial(31.476));
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			var rebars = section.GetRebars();
+			
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new Point2d(-150, 0), false);
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
+
+			(Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+{
+				(section.Shape.Fill[0], -4.341),
+				(section.Shape.Fill[1], 0.0),
+				(section.Shape.Fill[2], 0.0),
+				(section.Shape.Fill[3], -4.341),
+};
+
+			(ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+			{
+				(rebars[0], -14.03),
+				(rebars[1], 40.12),
+				(rebars[2], 40.12),
+				(rebars[3], -14.03),
+			};
+
+			for (int i = 0; i < slsResult.Length; i++)
+				Assert.IsTrue(CommonAssertsVCA(slsResult[i], section, expConcreteTensions, expRebarTensions, 0.07));
+		}
+
+		[TestMethod]
+		[TestCategory("Force reference point not in centroid")]
+		public void RectangularSectionTest12()
+		{
+			double rebarDiameter = 16;
+
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, rebarDiameter, 50, GetLinearConcreteMaterial(31.476));
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			var rebars = section.GetRebars();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
 			{
@@ -438,15 +484,72 @@ namespace ConcreteTests
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new Point2d(-150,-250), false);
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new Point2d(0, -250), false);
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
-			(Point2d point, double tension)[] concreteTensions = slsResult[0].GetConcreteVerticesTension();
+			(Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+{
+				(section.Shape.Fill[0], -3.988),
+				(section.Shape.Fill[1], -3.988),
+				(section.Shape.Fill[2], 0.0),
+				(section.Shape.Fill[3], 0.0),
+};
+
+			(ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+			{
+				(rebars[0], -18.3),
+				(rebars[1], -18.3),
+				(rebars[2], 37.87),
+				(rebars[3], 37.87),
+			};
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(CommonAssertsVCA(slsResult[i], section, expConcreteTensions, expRebarTensions, 0.07));
+		}
+
+		[TestMethod]
+		[TestCategory("Force reference point not in centroid")]
+		public void RectangularSectionTest13()
+		{
+			double rebarDiameter = 16;
+
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, rebarDiameter, 50, GetLinearConcreteMaterial(31.476));
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			var rebars = section.GetRebars();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new Point2d(-150, -250), false);
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
+
+			(Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+{
+				(section.Shape.Fill[0], -10.15),
+				(section.Shape.Fill[1], 0.0),
+				(section.Shape.Fill[2], 0.0),
+				(section.Shape.Fill[3], 0.0),
+};
+
+			(ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+			{
+				(rebars[0], -39.33),
+				(rebars[1], 26.08),
+				(rebars[2], 95.99),
+				(rebars[3], 30.58),
+			};
+
+			for (int i = 0; i < slsResult.Length; i++)
+				Assert.IsTrue(CommonAssertsVCA(slsResult[i], section, expConcreteTensions, expRebarTensions, 0.07));
 		}
 
 		[TestMethod]

@@ -37,8 +37,8 @@ namespace GPC.Checkers.Concrete.Helper
             }
             else
             {               
-                return new ForceTuple(resultBeamForces.N, resultBeamForces.M1 + resultBeamForces.N * distanceRefPointToCentroid.X, 
-                    resultBeamForces.M2 + resultBeamForces.N * distanceRefPointToCentroid.Y);
+                return new ForceTuple(resultBeamForces.N, resultBeamForces.M1 - resultBeamForces.N * distanceRefPointToCentroid.Y, 
+                    resultBeamForces.M2 + resultBeamForces.N * distanceRefPointToCentroid.X);
             }
         }
     }
