@@ -54,14 +54,14 @@ namespace GPC.Checkers.Concrete.Results
             return _section.Rebars.Select(i => (i, _sectionSolver.CalculateStressRebar(i, StrainPlane.GetStrain(i.Position)) )  ).ToArray();
         }
 
-        public virtual double GetRebarTension(double n, ReinforcedConcreteRebar rebar)
+        public virtual double GetRebarTension(double phi, ReinforcedConcreteRebar rebar)
         {
-            return _sectionSolver.CalculateElasticSigmaS(n, rebar, StrainPlane.GetStrain(rebar.Position));
+            return _sectionSolver.CalculateElasticSigmaS(phi, rebar, StrainPlane.GetStrain(rebar.Position));
         }
 
-        public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension(double n)
+        public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension(double phi)
         {
-            return _section.Rebars.Select(i => (i, GetRebarTension(n, i))).ToArray();
+            return _section.Rebars.Select(i => (i, GetRebarTension(phi, i))).ToArray();
         }
 
 
