@@ -896,7 +896,7 @@ namespace ConcreteTests
 
             internal ForceTuple CalculateSectionForceResultant(StrainPlane strainPlane)
             {
-                return base.CalculateForceResultant(strainPlane);
+                return base.CalculateForceResultant(strainPlane, GetRebarIsInsideAssociation());
             }
 
             internal double CalculateSigmaConcrete(double strain)

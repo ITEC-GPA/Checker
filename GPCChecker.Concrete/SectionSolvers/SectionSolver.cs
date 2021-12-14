@@ -31,7 +31,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F1, 1),
             (FailureZones.F2A, 1),
             (FailureZones.F2B, 1),
-            (FailureZones.F3A, 50),
+            (FailureZones.F3A, 25),
             (FailureZones.F3B, 3),
             (FailureZones.F4, 2),
             (FailureZones.F5, 4)
@@ -441,7 +441,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// Calculate the resultant of all the rebars
         /// </summary>
         /// <param name="strainPlane">The strain plane</param>
-        protected virtual ForceTuple IntegrateRebarStress(StrainPlane strainPlane)
+        protected virtual ForceTuple IntegrateRebarStress(StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             double[] deltaNArray = new double[ConcreteSection.Rebars.Count()];
             double[] deltaMxArray = new double[ConcreteSection.Rebars.Count()];
@@ -453,7 +453,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 double strain = strainPlane.GetStrain(rebars[i].Position);
                 double sigmaS = CalculateStressRebar(rebars[i], strain);
-                double sigmaC = CalculateSigmaC(strain);
+
+                double sigmaC = 0;
+                if (rebarIsInsideAssociation[i])
+                    sigmaC = CalculateSigmaC(strain);
 
                 deltaNArray[i] = (sigmaS - sigmaC) * rebars[i].Area;
                 deltaMxArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.Y - ConcreteSection.Centroid.Y);
@@ -467,11 +470,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
         /// </summary>
         /// <returns>The forces in the local reference system</returns>
-        protected virtual ForceTuple CalculateForceResultant(StrainPlane strainPlane)
+        protected virtual ForceTuple CalculateForceResultant(StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             try
             {
-                return IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane);
+                return IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation);
             }
             catch (Exception e)
             {
@@ -485,11 +488,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
         /// </summary>
         /// <returns>The forces in the local reference system</returns>
-        protected virtual ForceTuple CalculateForceResultant((StrainPlane, FailureZones) strainPlane)
+        protected virtual ForceTuple CalculateForceResultant((StrainPlane, FailureZones) strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             try
             {
-                return IntegrateSectionStress(strainPlane.Item1) + IntegrateRebarStress(strainPlane.Item1);
+                return IntegrateSectionStress(strainPlane.Item1) + IntegrateRebarStress(strainPlane.Item1, rebarIsInsideAssociation);
             }
             catch (Exception e)
             {
@@ -598,7 +601,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="deltaN">The axial force resultant</param>
         /// <param name="deltaMx">The bending moment about X-axis resultant</param>
         /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-        protected virtual ForceTuple IntegrateRebarStress(double psi, StrainPlane strainPlane)
+        protected virtual ForceTuple IntegrateRebarLinearStress(double psi, StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             var rebars = ConcreteSection.GetRebars();
 
@@ -609,8 +612,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Parallel.For(0, rebars.Length, (i) =>
             {
                 double strain = strainPlane.GetStrain(rebars[i].Position);
-                double sigmaC = CalculateElasticSigmaC(strain);
                 double sigmaS = CalculateElasticSigmaS(psi, rebars[i], strain);
+
+                double sigmaC = 0;
+                if (rebarIsInsideAssociation[i])
+                    sigmaC = CalculateElasticSigmaC(strain);
 
                 deltaNArray[i] = (sigmaS - sigmaC) * rebars[i].Area;
                 deltaMxArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.Y - ConcreteSection.Centroid.Y);
@@ -624,11 +630,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// Integrate the stress on the section given by the <paramref name="strainPlane"/> with homogenization coefficient and gives the resultant forces
         /// </summary>
         /// <returns>The forces in the local reference system</returns>
-        protected virtual ForceTuple CalculateForceResultant(double psi, StrainPlane strainPlane)
+        protected virtual ForceTuple CalculateForceResultant(double psi, StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             try
             {
-                return IntegrateSectionStressLinearElastic(strainPlane) + IntegrateRebarStress(psi, strainPlane);
+                return IntegrateSectionStressLinearElastic(strainPlane) + IntegrateRebarLinearStress(psi, strainPlane, rebarIsInsideAssociation);
             }
             catch (Exception e)
             {
@@ -735,6 +741,22 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 forceTuple.My / (b * b * h * Math.Abs(GetFck())));
         }
 
+        protected Dictionary<int, bool> GetRebarIsInsideAssociation()
+        {
+            Dictionary<int, bool> kvp = new Dictionary<int, bool>();
+
+            ReinforcedConcreteRebar[] rebars = ConcreteSection.GetRebars();
+
+            for (int i = 0; i < rebars.Length; i++)
+            {
+                if (ConcreteSection.Shape.IsPointInside(rebars[i].Position))
+                    kvp.Add(i, true);
+                else
+                    kvp.Add(i, false);
+            }
+
+            return kvp;
+        }
 
         #endregion
 
@@ -893,6 +915,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected virtual FailureDomain CalculateFailureDomain((StrainPlane, FailureZones)[][] strainPlanes, Vector2d forceReferencePointDistance)
         {
             FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[strainPlanes.Length][];
+            Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
 
             try
             {
@@ -902,7 +925,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                     Parallel.For(0, strainPlanes[i].Length, (j) =>
                     {
-                        domainPoints[i][j] = new FailureDomain.FailureDomainPoint(GetExternalForces(CalculateForceResultant(strainPlanes[i][j]), forceReferencePointDistance),
+                        domainPoints[i][j] = new FailureDomain.FailureDomainPoint(GetExternalForces(CalculateForceResultant(strainPlanes[i][j],
+                            rebarIsInsideAssociation), forceReferencePointDistance),
                             strainPlanes[i][j].Item2, strainPlanes[i][j].Item1);
                     });
                 });
@@ -1193,6 +1217,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, FailureDomainAnalysisTypes analysisType, 
             MaterialTypes materialType, double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
         {
+            Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
+
             ForceTuple adimOutputForces = ConvertToAdimensionalForces(targetLocalForces);
             Vector3d vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, targetLocalForces.N / 1000);
 
@@ -1239,7 +1265,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             teta = strainPlane.Teta;
 
-            ForceTuple forces = CalculateForceResultant(strainPlane);
+            ForceTuple forces = CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
             ForceTuple adimIncrement;
 
             (double deltaTeta, double deltaImmersione, Vector3d distanceToTarget) increment;
@@ -1256,7 +1282,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         try
                         {
                             increment = CalculateIncrement(forces, strainPlane, failureIndex, immersione, targetLocalForces, angle, 
-                                analysisType, materialType);
+                                analysisType, materialType, rebarIsInsideAssociation);
                         }
                         catch (Exception e)
                         {
@@ -1301,7 +1327,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         p4 = GetP4(distances, analysisType, materialType);
 
                         strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, p1, p2, p3, p4, id);
-                        forces = CalculateForceResultant(strainPlane);
+                        forces = CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
 
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
                         adimIncrement = ConvertToAdimensionalForces(incrementForce);
@@ -1326,7 +1352,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected (double deltaTeta, double deltaImmersione, Vector3d distanceToTarget) CalculateIncrement(ForceTuple iterationPoint,
             StrainPlane inputStrainPlane, FailureZones inputFailureZone, double inputImmersioneNelCampo, ForceTuple externalForces, 
-            double deltaAngle, FailureDomainAnalysisTypes analysisType, MaterialTypes materialType)
+            double deltaAngle, FailureDomainAnalysisTypes analysisType, MaterialTypes materialType, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             var adimIteractionPoint = ConvertToAdimensionalForces(iterationPoint);
             Line3d externalForcesLine = new Line3d(new Point3d(0, 0, 0), externalForces);
@@ -1412,8 +1438,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     StrainPlane strainPlaneMinusdTeta = CalculateStrainPlane(distancesMinusTeta.teta, inputFailureZone,
                         inputImmersioneNelCampo, p1MinusTeta, p2MinusTeta, p3MinusTeta, p4MinusTeta);
 
-                    var forcesPlusTeta = CalculateForceResultant(strainPlanePlusdTeta);
-                    var forcesMinusTeta = CalculateForceResultant(strainPlaneMinusdTeta);
+                    var forcesPlusTeta = CalculateForceResultant(strainPlanePlusdTeta, rebarIsInsideAssociation);
+                    var forcesMinusTeta = CalculateForceResultant(strainPlaneMinusdTeta, rebarIsInsideAssociation);
 
                     dNdTeta = (forcesPlusTeta.N - forcesMinusTeta.N) / (2.0 * dTetaBuffer);
                     dMxdTeta = (forcesPlusTeta.Mx - forcesMinusTeta.Mx) / (2.0 * dTetaBuffer);
@@ -1461,8 +1487,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     StrainPlane strainPlaneMinusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZone,
                         Math.Max(inputImmersioneNelCampo - dEtaBuffer, 0.0), p1Eta, p2Eta, p3Eta, p4Eta);
 
-                    var forcesPlusEta = CalculateForceResultant(strainPlanePlusdImm);
-                    var forcesMinusEta = CalculateForceResultant(strainPlaneMinusdImm);
+                    var forcesPlusEta = CalculateForceResultant(strainPlanePlusdImm, rebarIsInsideAssociation);
+                    var forcesMinusEta = CalculateForceResultant(strainPlaneMinusdImm, rebarIsInsideAssociation);
 
                     dNdImm = (forcesPlusEta.N - forcesMinusEta.N) / (2.0 * dEtaBuffer);
                     dMxdImm = (forcesPlusEta.Mx - forcesMinusEta.Mx) / (2.0 * dEtaBuffer);
@@ -1549,9 +1575,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else
                     dE = Math.Pow(dEta, 0.2);
 
-                if (Math.Abs(results[1, 0]) < 0.001)
-                    dE = 1.0;
-                else if (Math.Abs(results[1, 0]) < 0.01)
+                if (Math.Abs(results[1, 0]) < 0.01)
                     dE = 0.5;
 
 
@@ -1569,7 +1593,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple localForces, MaterialTypes materialType, double tolerance = 1e-5)
         {
-            //ForceTuple targetLocalForces = GetLocalForces(externalForces, forceReferencePoint);
+            Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
             ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
 
             // Valori di primo tentativo
@@ -1582,7 +1606,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // piano di primo tentativo. baricentrico e ruotato di teta = 0;
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
-            ForceTuple iterationForces = CalculateForceResultant(strainPlane);
+            ForceTuple iterationForces = CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
             ForceTuple iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
 
             if (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance * tolerance ||
@@ -1607,7 +1631,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                 try
                                 {
                                     (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
-                                        CalculateIncrementStressAnalysis(strainPlane, localForces - iterationForces);
+                                        CalculateIncrementStressAnalysis(strainPlane, localForces - iterationForces, 
+                                        rebarIsInsideAssociation);
 
                                     // piano di nuovo tentativo
                                     id++;
@@ -1616,7 +1641,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                     strainReferencePoint += increment.deltaStrainRefPoint;
                                     strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
-                                    iterationForces = CalculateForceResultant(strainPlane);
+                                    iterationForces = CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
                                     iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
                                 }
                                 catch (Exception e)
@@ -1652,7 +1677,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return strainPlane;
         }
 
-        protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementStressAnalysis(StrainPlane inputStrainPlane, ForceTuple forceTuple)
+        protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementStressAnalysis(StrainPlane inputStrainPlane, ForceTuple forceTuple,
+            Dictionary<int, bool> rebarIsInsideAssociation)
         {
             ForceTuple forceTupleAdim = ConvertToAdimensionalForces(forceTuple);
 
@@ -1684,8 +1710,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             StrainPlane strainPlaneMinusdChiX = new StrainPlane(inputStrainPlane.ChiX - dChiX, inputStrainPlane.ChiY,
                 inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
 
-            var forcesPlusdChiX = CalculateForceResultant(strainPlanePlusdChiX);
-            var forcesMinusdChiX = CalculateForceResultant(strainPlaneMinusdChiX);
+            var forcesPlusdChiX = CalculateForceResultant(strainPlanePlusdChiX, rebarIsInsideAssociation);
+            var forcesMinusdChiX = CalculateForceResultant(strainPlaneMinusdChiX, rebarIsInsideAssociation);
 
             double dNdChiX = (forcesPlusdChiX.N - forcesMinusdChiX.N) / (2.0 * dCX);
             double dMxdChiX = (forcesPlusdChiX.Mx - forcesMinusdChiX.Mx) / (2.0 * dCX);
@@ -1698,8 +1724,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             StrainPlane strainPlaneMinusdChiY = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY - dChiY,
                 inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
 
-            var forcesPlusdChiY = CalculateForceResultant(strainPlanePlusdChiY);
-            var forcesMinusdChiY = CalculateForceResultant(strainPlaneMinusdChiY);
+            var forcesPlusdChiY = CalculateForceResultant(strainPlanePlusdChiY, rebarIsInsideAssociation);
+            var forcesMinusdChiY = CalculateForceResultant(strainPlaneMinusdChiY, rebarIsInsideAssociation);
 
             double dNdChiY = (forcesPlusdChiY.N - forcesMinusdChiY.N) / (2.0 * dCY);
             double dMxdChiY = (forcesPlusdChiY.Mx - forcesMinusdChiY.Mx) / (2.0 * dCY);
@@ -1712,8 +1738,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             StrainPlane strainPlaneMinusStrain = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY,
                 inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint - dStrain);
 
-            var forcesPlusStrain = CalculateForceResultant(strainPlanePlusStrain);
-            var forcesMinusStrain = CalculateForceResultant(strainPlaneMinusStrain);
+            var forcesPlusStrain = CalculateForceResultant(strainPlanePlusStrain, rebarIsInsideAssociation);
+            var forcesMinusStrain = CalculateForceResultant(strainPlaneMinusStrain, rebarIsInsideAssociation);
 
             double dNdStrain = (forcesPlusStrain.N - forcesMinusStrain.N) / (2.0 * dS);
             double dMxdStrain = (forcesPlusStrain.Mx - forcesMinusStrain.Mx) / (2.0 * dS);
@@ -1752,6 +1778,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected StrainPlane CalculateStrainPlaneLinearStressAnalysis(ForceTuple localForces, double psi, double tolerance = 1e-5)
         {
+            Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
             ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
 
             // Valori di primo tentativo
@@ -1764,7 +1791,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // piano di primo tentativo. baricentrico e ruotato di teta = 0;
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
-            ForceTuple iterationForces = CalculateForceResultant(psi, strainPlane);
+            ForceTuple iterationForces = CalculateForceResultant(psi, strainPlane, rebarIsInsideAssociation);
             ForceTuple iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
 
             if (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance * tolerance ||
@@ -1778,7 +1805,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         try
                         {
                             (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
-                                CalculateIncrementLinearStressAnalysis(psi, strainPlane, localForces - iterationForces);
+                                CalculateIncrementLinearStressAnalysis(psi, strainPlane, localForces - iterationForces,
+                                rebarIsInsideAssociation);
 
                             // piano di nuovo tentativo
                             id++;
@@ -1787,7 +1815,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             strainReferencePoint += increment.deltaStrainRefPoint;
                             strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
-                            iterationForces = CalculateForceResultant(psi, strainPlane);
+                            iterationForces = CalculateForceResultant(psi, strainPlane, rebarIsInsideAssociation);
                             iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
                         }
                         catch (Exception e)
@@ -1812,7 +1840,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return strainPlane;
         }
 
-        protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementLinearStressAnalysis(double psi, StrainPlane inputStrainPlane, ForceTuple forceTuple)
+        protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementLinearStressAnalysis(double psi, 
+            StrainPlane inputStrainPlane, ForceTuple forceTuple, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             ForceTuple forceTupleAdim = ConvertToAdimensionalForces(forceTuple);
 
@@ -1844,8 +1873,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             StrainPlane strainPlaneMinusdChiX = new StrainPlane(inputStrainPlane.ChiX - dChiX, inputStrainPlane.ChiY,
                 inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
 
-            var forcesPlusdChiX = CalculateForceResultant(psi, strainPlanePlusdChiX);
-            var forcesMinusdChiX = CalculateForceResultant(psi, strainPlaneMinusdChiX);
+            var forcesPlusdChiX = CalculateForceResultant(psi, strainPlanePlusdChiX, rebarIsInsideAssociation);
+            var forcesMinusdChiX = CalculateForceResultant(psi, strainPlaneMinusdChiX, rebarIsInsideAssociation);
 
             double dNdChiX = (forcesPlusdChiX.N - forcesMinusdChiX.N) / (2.0 * dCX);
             double dMxdChiX = (forcesPlusdChiX.Mx - forcesMinusdChiX.Mx) / (2.0 * dCX);
@@ -1858,8 +1887,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             StrainPlane strainPlaneMinusdChiY = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY - dChiY,
                 inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint);
 
-            var forcesPlusdChiY = CalculateForceResultant(psi, strainPlanePlusdChiY);
-            var forcesMinusdChiY = CalculateForceResultant(psi, strainPlaneMinusdChiY);
+            var forcesPlusdChiY = CalculateForceResultant(psi, strainPlanePlusdChiY, rebarIsInsideAssociation);
+            var forcesMinusdChiY = CalculateForceResultant(psi, strainPlaneMinusdChiY, rebarIsInsideAssociation);
 
             double dNdChiY = (forcesPlusdChiY.N - forcesMinusdChiY.N) / (2.0 * dCY);
             double dMxdChiY = (forcesPlusdChiY.Mx - forcesMinusdChiY.Mx) / (2.0 * dCY);
@@ -1872,8 +1901,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             StrainPlane strainPlaneMinusStrain = new StrainPlane(inputStrainPlane.ChiX, inputStrainPlane.ChiY,
                 inputStrainPlane.ReferencePoint, inputStrainPlane.StrainReferencePoint - dStrain);
 
-            var forcesPlusStrain = CalculateForceResultant(psi, strainPlanePlusStrain);
-            var forcesMinusStrain = CalculateForceResultant(psi, strainPlaneMinusStrain);
+            var forcesPlusStrain = CalculateForceResultant(psi, strainPlanePlusStrain, rebarIsInsideAssociation);
+            var forcesMinusStrain = CalculateForceResultant(psi, strainPlaneMinusStrain, rebarIsInsideAssociation);
 
             double dNdStrain = (forcesPlusStrain.N - forcesMinusStrain.N) / (2.0 * dS);
             double dMxdStrain = (forcesPlusStrain.Mx - forcesMinusStrain.Mx) / (2.0 * dS);

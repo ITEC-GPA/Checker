@@ -335,7 +335,7 @@ namespace ConcreteTests
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
 			{
-				new ResultBeamForces(0 * 1000, 0, 0, 0, 200 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-500 * 1000, 0, 0, 0, 200 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
 			};
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
@@ -349,22 +349,22 @@ namespace ConcreteTests
 			{
 				(section.Shape.Fill[0], 0.0),
 				(section.Shape.Fill[1], 0.0),
-				(section.Shape.Fill[2], -12.21),
-				(section.Shape.Fill[3], -12.21),
+				(section.Shape.Fill[2], -14.21),
+				(section.Shape.Fill[3], -14.21),
 			};
 
 			(ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
 			{
-				(rebars[0], 365.5),
-				(rebars[1], 365.5),
-				(rebars[2], 365.5),
-				(rebars[3], 365.5),
-				(rebars[4], 365.5),
-				(rebars[5], -106.5),
-				(rebars[6], -106.5),
-				(rebars[7], -106.5),
-				(rebars[8], -106.5),
-				(rebars[9], -106.5),
+				(rebars[0], 184.0),
+				(rebars[1], 184.0),
+				(rebars[2], 184.0),
+				(rebars[3], 184.0),
+				(rebars[4], 184.0),
+				(rebars[5], -102.0),
+				(rebars[6], -102.0),
+				(rebars[7], -102.0),
+				(rebars[8], -102.0),
+				(rebars[9], -102.0),
 			};
 
 			CommonAssertsVCA(result[0], section, expConcreteTensions, expRebarTensions);

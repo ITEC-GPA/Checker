@@ -103,7 +103,7 @@
     <Compile Include="SectionIntegrationTest.cs" />
     <Compile Include="ConcreteTestBase.cs" />
     <Compile Include="ValidationTestFailureDomain.cs" />
-    <Compile Include="ValidationTestNMethodStressAnalysis.cs" />
+    <Compile Include="ValidationTestLinearStressAnalysis.cs" />
     <Compile Include="ValidationTestStressAnalysis.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -18,7 +18,7 @@ using GPC.Checkers.Concrete.Helper;
 namespace ConcreteTests
 {
 	[TestClass]
-	public class ValidationTestNMethodStressAnalysis : ConcreteTestBase
+	public class ValidationTestLinearStressAnalysis : ConcreteTestBase
 	{
 		[TestMethod]
 		public void VCA_N_1()
