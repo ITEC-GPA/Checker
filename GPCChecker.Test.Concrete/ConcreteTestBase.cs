@@ -783,38 +783,39 @@ namespace ConcreteTests
 
             for (int i = 1; i <= mesh.FacesCount; i++)
             {
-                for (int j = 1; j <= mesh.Faces[i].GetNodes().Length; j++)
+                MeshVertex[] vertices = mesh.GetFaceVertices(mesh.Faces[i]);
+                List<int> indicesV = new List<int>();
+                List<int> indicesL = new List<int>();
+
+                for (int k = 0; k < vertices.Length; k++)
                 {
-                    MeshVertex[] vertices = mesh.GetFaceVertices(mesh.Faces[i]);
-                    List<int> indicesV = new List<int>();
-                    List<int> indicesL = new List<int>();
-
-                    for (int k = 0; k < vertices.Length; k++)
+                    try
                     {
-						try
-						{
-                            indicesV.Add(GmshNet.Gmsh.Model.Occ.AddPoint(vertices[k].Point.X / 1000000,
-                                vertices[k].Point.Y / 1000000,
-                                vertices[k].Point.Z / 10000));
-                        }
-						catch { }
+                        indicesV.Add(GmshNet.Gmsh.Model.Occ.AddPoint(vertices[k].Point.X / 1000000,
+                            vertices[k].Point.Y / 1000000,
+                            vertices[k].Point.Z / 10000));
                     }
+                    catch { }
+                }
 
-                    for (int k = 0; k < indicesV.Count; k++)
+                for (int k = 0; k < indicesV.Count; k++)
+                {
+                    try
                     {
-						try
-						{
-                            if (k != indicesV.Count - 1)
-                                indicesL.Add(GmshNet.Gmsh.Model.Occ.AddLine(indicesV[k], indicesV[k + 1]));
-                            else
-                                indicesL.Add(GmshNet.Gmsh.Model.Occ.AddLine(indicesV[k], indicesV[0]));
-                        }
-                        catch { }
+                        if (k != indicesV.Count - 1)
+                            indicesL.Add(GmshNet.Gmsh.Model.Occ.AddLine(indicesV[k], indicesV[k + 1]));
+                        else
+                            indicesL.Add(GmshNet.Gmsh.Model.Occ.AddLine(indicesV[k], indicesV[0]));
                     }
+                    catch { }
+                }
 
+                try
+                {
                     int wire = GmshNet.Gmsh.Model.Occ.AddWire(indicesL.ToArray());
                     GmshNet.Gmsh.Model.Occ.AddPlaneSurface(new int[] { wire });
                 }
+                catch { }
             }
 
             GmshNet.Gmsh.Model.Occ.Synchronize();
