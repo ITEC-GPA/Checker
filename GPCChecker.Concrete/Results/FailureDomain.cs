@@ -25,33 +25,105 @@ namespace GPC.Checkers.Concrete.Results
 		{
 			Mesh mesh = new Mesh();
 
+			int progressVertexId = 1;
+			int progressEdgeId = 1;
+			int progressPlateId = 1;
+
+			Dictionary<Point3d, MeshVertex> pointVertexAssociation = new Dictionary<Point3d, MeshVertex>();
+			Dictionary<MeshVertex, int> pointIdAssociation = new Dictionary<MeshVertex, int>();
+
+			for (int i = 0; i < _domainPoints.Length; i++)
+			{
+				for (int j = 0; j < _domainPoints[i].Length; j++)
+				{
+					bool commonPoint = false;
+					int vertexId = -1;
+
+					MeshVertex mv = new MeshVertex(_domainPoints[i][j].Point);
+
+					if(pointVertexAssociation.ContainsKey(_domainPoints[i][j].Point))
+					{
+						vertexId = pointIdAssociation[mv];
+						commonPoint = true;
+					}
+
+					if(!commonPoint)
+					{
+						if (!pointIdAssociation.ContainsKey(mv))
+						{
+							vertexId = mesh.Vertices.Build(mv, progressVertexId++);
+						}
+						else
+						{
+							vertexId = pointIdAssociation[mv];
+						}
+
+						pointIdAssociation.Add(mv, vertexId);
+						pointVertexAssociation.Add(_domainPoints[i][j].Point, mv);
+					}
+
+					if (vertexId == -1)
+					{
+						throw new NotSupportedException("Vertex id not assigned");
+					}
+
+				}
+			}
+
 			for (int i = 0; i < _domainPoints.Length - 1; i++)
 			{
 				for (int j = 3; j < _domainPoints[i].Length - 2; j++)
 				{
-					mesh.AddFaceMesh(new Point3d[]
-					{
-						_domainPoints[i][j].Point,
-						_domainPoints[i][j+1].Point,
-						_domainPoints[i+1][j+1].Point,
-					});
+					mesh.Faces.Build(new MeshFace
+					(
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j + 1].Point]]), progressPlateId++
+					);
 
-					mesh.AddFaceMesh(new Point3d[]
-					{
-						_domainPoints[i][j].Point,
-						_domainPoints[i+1][j+1].Point,
-						_domainPoints[i+1][j].Point,
-					});
+					mesh.Faces.Build(new MeshFace
+					(
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j].Point]]), progressPlateId++
+					);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]], 
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j + 1].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j + 1].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j + 1].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]]), progressEdgeId++);
 				}
 
 				for (int j = _domainPoints[i].Length - 2; j < _domainPoints[i].Length - 1; j++)
 				{
-					mesh.AddFaceMesh(new Point3d[]
-					{
-						_domainPoints[i][j].Point,
-						_domainPoints[i+1][j].Point,
-						_domainPoints[i+1][j+1].Point,
-					});
+					mesh.Faces.Build(new MeshFace
+					(
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j + 1].Point]]), progressPlateId++
+					);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j + 1].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j + 1].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i + 1][j].Point]]), progressEdgeId++);
 				}
 			}
 
@@ -59,32 +131,58 @@ namespace GPC.Checkers.Concrete.Results
 			{
 				for (int j = 3; j < _domainPoints[i].Length - 2; j++)
 				{
-					mesh.AddFaceMesh(new Point3d[]
-					{
-						_domainPoints[i][j].Point,
-						_domainPoints[i][0].Point,
-						_domainPoints[i+1][0].Point,
-					});
+					mesh.Faces.Build(new MeshFace
+					(
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[0][j + 1].Point]]), progressPlateId++
+					);
 
-					mesh.AddFaceMesh(new Point3d[]
-					{
-						_domainPoints[i][j].Point,
-						_domainPoints[i+1][0].Point,
-						_domainPoints[i+1][j].Point,
-					});
+					mesh.Faces.Build(new MeshFace
+					(
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[0][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[0][j].Point]]), progressPlateId++
+					);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j + 1].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[0][j + 1].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[0][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[0][j].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[0][j + 1].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[0][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[0][j].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[0][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]]), progressEdgeId++);
 				}
 
 				for (int j = _domainPoints[i].Length - 2; j < _domainPoints[i].Length - 1; j++)
 				{
-					mesh.AddFaceMesh(new Point3d[]
-					{
-						_domainPoints[i][j].Point,
-						_domainPoints[i+1][j].Point,
-						_domainPoints[i+1][0].Point,
-					});
+					mesh.Faces.Build(new MeshFace
+					(
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[0][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[0][j + 1].Point]]), progressPlateId++
+					);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i][j].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[i][j + 1].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[i][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[0][j + 1].Point]]), progressEdgeId++);
+
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[_domainPoints[0][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[_domainPoints[0][j].Point]]), progressEdgeId++);
 				}
 			}
-
 
 			return mesh;
 		}
