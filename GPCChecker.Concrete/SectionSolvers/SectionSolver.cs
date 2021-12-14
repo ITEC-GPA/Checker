@@ -139,6 +139,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected List<string> _log;
         protected readonly int _tetaDiscretization;
 
+        protected int _gaussIntegrationQuadLowPoints;
+        protected int _gaussIntegrationQuadMidPoints;
+        protected int _gaussIntegrationQuadHighPoints;
+        protected int _gaussIntegrationTriLowPoints;
+        protected int _gaussIntegrationTriMidPoints;
+        protected int _gaussIntegrationTriHighPoints;
+
         #endregion
 
         public IConcreteSection ConcreteSection => _concreteSection;
@@ -162,6 +169,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             _considerTensileConcrete = considerTensileConcrete;
             _tetaDiscretization = 64;
+
+            _gaussIntegrationQuadLowPoints = 12;
+            _gaussIntegrationQuadMidPoints = 49;
+            _gaussIntegrationQuadHighPoints = 400;
+            _gaussIntegrationTriLowPoints = 6;
+            _gaussIntegrationTriMidPoints = 33;
+            _gaussIntegrationTriHighPoints = 79;
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)
@@ -382,18 +396,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (value > 0.1)
             {
-                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriHighPoints;
-                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadHighPoints;
+                gaussPointsTri = _gaussIntegrationTriHighPoints;
+                gaussPointsQuad = _gaussIntegrationQuadHighPoints;
             }
             else if (value > 0.01)
             {
-                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriMidPoints;
-                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadMidPoints;
+                gaussPointsTri = _gaussIntegrationTriMidPoints;
+                gaussPointsQuad = _gaussIntegrationQuadMidPoints;
             }
             else
             {
-                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriLowPoints;
-                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadLowPoints;
+                gaussPointsTri = _gaussIntegrationTriLowPoints;
+                gaussPointsQuad = _gaussIntegrationQuadLowPoints;
             }
 
             double deltaN;
@@ -501,18 +515,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (value > 0.1)
             {
-                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriHighPoints;
-                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadHighPoints;
+                gaussPointsTri = _gaussIntegrationTriHighPoints;
+                gaussPointsQuad = _gaussIntegrationQuadHighPoints;
             }
             else if (value > 0.01)
             {
-                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriMidPoints;
-                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadMidPoints;
+                gaussPointsTri = _gaussIntegrationTriMidPoints;
+                gaussPointsQuad = _gaussIntegrationQuadMidPoints;
             }
             else
             {
-                gaussPointsTri = SectionSolverOptions.Instance.GaussIntegrationTriLowPoints;
-                gaussPointsQuad = SectionSolverOptions.Instance.GaussIntegrationQuadLowPoints;
+                gaussPointsTri = _gaussIntegrationTriLowPoints;
+                gaussPointsQuad = _gaussIntegrationQuadLowPoints;
             }
 
             double deltaN;
