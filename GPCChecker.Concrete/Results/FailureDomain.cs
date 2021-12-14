@@ -55,6 +55,37 @@ namespace GPC.Checkers.Concrete.Results
 				}
 			}
 
+			for (int i = _domainPoints.Length - 1; i < _domainPoints.Length; i++)
+			{
+				for (int j = 3; j < _domainPoints[i].Length - 2; j++)
+				{
+					mesh.AddFaceMesh(new Point3d[]
+					{
+						_domainPoints[i][j].Point,
+						_domainPoints[i][0].Point,
+						_domainPoints[i+1][0].Point,
+					});
+
+					mesh.AddFaceMesh(new Point3d[]
+					{
+						_domainPoints[i][j].Point,
+						_domainPoints[i+1][0].Point,
+						_domainPoints[i+1][j].Point,
+					});
+				}
+
+				for (int j = _domainPoints[i].Length - 2; j < _domainPoints[i].Length - 1; j++)
+				{
+					mesh.AddFaceMesh(new Point3d[]
+					{
+						_domainPoints[i][j].Point,
+						_domainPoints[i+1][j].Point,
+						_domainPoints[i+1][0].Point,
+					});
+				}
+			}
+
+
 			return mesh;
 		}
 
