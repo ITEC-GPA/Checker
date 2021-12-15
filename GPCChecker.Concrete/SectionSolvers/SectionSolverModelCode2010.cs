@@ -124,7 +124,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 // trazione
                 if (ConsiderTensileConcrete)
                 {
-                    return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFctd() / ConcreteMaterialModelCode2010.Fctk;
+                    return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFctd() / ConcreteMaterialModelCode2010.Fctk05;
                 }
                 else
                 {
