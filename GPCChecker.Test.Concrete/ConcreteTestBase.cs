@@ -301,7 +301,8 @@ namespace ConcreteTests
             return true;
         }
 
-		protected bool CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard, double adimTolerance = 0.005,
+		protected bool CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard, 
+            CoordinateSystem coordinateSystem, double adimTolerance = 0.005,
 			double[] factor = null)
 		{
 			if (factor == null)
@@ -317,7 +318,7 @@ namespace ConcreteTests
 				for (j = 0; j < factor.Length; j++)
 				{
 					testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-					failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(section.Centroid));
+					failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem));
 				}
 			}
 			catch (Exception e)
@@ -575,9 +576,9 @@ namespace ConcreteTests
 
             Console.WriteLine("Expected force");
 
-            Console.WriteLine($"Ned = {Math.Round(forceEd.N / 1000, 2)}, " +
-                $"MXed = {Math.Round(forceEd.Mx / 1000000, 2)}, " +
-                $"MYed = {Math.Round(forceEd.My / 1000000, 2)}");
+            Console.WriteLine($"Ned = {Math.Round(expForce.N / 1000, 2)}, " +
+                $"MXed = {Math.Round(expForce.Mx / 1000000, 2)}, " +
+                $"MYed = {Math.Round(expForce.My / 1000000, 2)}");
 
             Console.WriteLine("Calculated force on domain");
 
@@ -585,9 +586,9 @@ namespace ConcreteTests
                 $"MXRD = {Math.Round(failureDomainForce.FailureDomainPoint.MxRd / 1000000, 2)}, " +
                 $"MYRD = {Math.Round(failureDomainForce.FailureDomainPoint.MyRd / 1000000, 2)}");
 
-            Vector3d vRd = new Vector3d(failureDomainForce.FailureDomainPoint.Point.X / 1000000, failureDomainForce.FailureDomainPoint.Point.Y / 1000000,
-                failureDomainForce.FailureDomainPoint.Point.Z / 1000);
-            Vector3d eRd = new Vector3d(new Point3d(forceEd.Mx / 1000000, forceEd.My / 1000000, forceEd.N / 1000));
+            Vector3d vRd = new Vector3d(failureDomainForce.FailureDomainPoint.Point.X, failureDomainForce.FailureDomainPoint.Point.Y,
+                failureDomainForce.FailureDomainPoint.Point.Z);
+            Vector3d eRd = new Vector3d(new Point3d(forceEd.Mx, forceEd.My, forceEd.N ));
 
             double wr = eRd.Length / vRd.Length;
 

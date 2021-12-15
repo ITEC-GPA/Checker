@@ -20,7 +20,6 @@ namespace ConcreteTests
 	[TestClass]
 	public class ValidationTestFailureDomain : ConcreteTestBase
 	{
-
 		[TestMethod]
 		public void VSS_AB1_1()
 		{
@@ -43,7 +42,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(b, h, rebarDiameter, h/10, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -78,7 +78,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(b, h, rebarDiameter, h / 10, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -113,7 +114,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -149,7 +151,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -183,7 +186,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -217,7 +221,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -252,7 +257,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -289,7 +295,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -326,7 +333,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -363,7 +371,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -399,7 +408,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -436,7 +446,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -473,7 +484,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -510,7 +522,8 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
+				GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();

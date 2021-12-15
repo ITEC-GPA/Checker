@@ -32,18 +32,19 @@ namespace ConcreteTests
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
 			//ShowDomainPoints(plasticFailureDomain.Domain);
 			//ExportToGmsh(plasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain);
 
-			//Mesh mesh = failureDomain.Domain.BuildMesh();
-			//ExportToGmsh(mesh);
+			Mesh mesh = plasticFailureDomain.Domain.GetMesh();
+			ExportToGmsh(mesh);
 
 			//Assert.IsTrue(CommonAssertsModelCode (section, standard, failureDomain));
 
@@ -123,7 +124,8 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -213,7 +215,8 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -311,7 +314,8 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -377,7 +381,8 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -437,7 +442,8 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -521,7 +527,8 @@ namespace ConcreteTests
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -607,7 +614,8 @@ namespace ConcreteTests
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new Point2d(-150, -150), false);
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(-150, -150), 
+				Vector2d.XAxis, Vector2d.YAxis));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -697,13 +705,14 @@ namespace ConcreteTests
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new Point2d(0, +150), false);
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(0, +150),
+				Vector2d.XAxis, Vector2d.YAxis));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
-			ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
 			//ExportToGmsh(elasticFailureDomain.Domain);
 
 			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
@@ -787,7 +796,8 @@ namespace ConcreteTests
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new Point2d(0, 150), false);
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(0, 150),
+				Vector2d.XAxis, Vector2d.YAxis));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -871,7 +881,8 @@ namespace ConcreteTests
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new Point2d(150, 0), false);
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(150, 0),
+				Vector2d.XAxis, Vector2d.YAxis));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -935,7 +946,8 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -979,7 +991,8 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -1047,7 +1060,8 @@ namespace ConcreteTests
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -1142,7 +1156,8 @@ namespace ConcreteTests
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();

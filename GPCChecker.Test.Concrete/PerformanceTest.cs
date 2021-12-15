@@ -45,7 +45,7 @@ namespace ConcreteTests
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular, forces.ToArray(), null);
 			SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(concreteSectionRectangular, new StandardEN1992p11());
 
-			var slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray(), new Point2d());
+			var slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray(), GetLocalCoordinateSystem(concreteSectionRectangular));
 
 			Action ac0 = new Action(() =>
 				{
@@ -69,7 +69,7 @@ namespace ConcreteTests
 
 			Action ac0 = new Action(() =>
 			{
-				solver.GetPlasticFailureDomainResult(Vector2d.Zero);
+				solver.GetPlasticFailureDomainResult(GetLocalCoordinateSystem(section));
 			});
 
 			var bb0 = MeasureTime.FunctionExecutionTime(20, ac0, true); ;
