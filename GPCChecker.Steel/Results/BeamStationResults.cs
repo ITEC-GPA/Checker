@@ -25,8 +25,7 @@ namespace GPC.Checkers.Steel.Results
         #region Variables
 
         protected readonly ISteelSection _section;
-        protected readonly ResultBeamForces _forces;
-        protected readonly ResultStation _station;
+        protected readonly ResultLocationStation _resultLocationStation;
         protected readonly ILoadCase _case;
 
         protected readonly Standard _standard;
@@ -37,9 +36,9 @@ namespace GPC.Checkers.Steel.Results
 
         #region Properties
 
-        public ResultBeamForces ResultBeamForces => _forces;
+        public ResultBeamForces[] ResultBeamForces => (ResultBeamForces[])_resultLocationStation.ResultTypes;
 
-        public ResultStation Station => _station;
+        public ResultLocationStation Station => _resultLocationStation;
 
         public ILoadCase LoadCase => _case;
 
@@ -53,12 +52,11 @@ namespace GPC.Checkers.Steel.Results
 
 
 
-        internal BeamStationResults(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, Standard standard, 
+        internal BeamStationResults(ISteelSection section, ResultLocationStation station, ILoadCase Case, Standard standard, 
                                     Checker.Options checkerOptions, string name = "")
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
-            _forces = forces ?? throw new ArgumentNullException(nameof(forces));
-            _station = station ?? throw new ArgumentNullException(nameof(station));
+            _resultLocationStation = station ?? throw new ArgumentNullException(nameof(station));
             _case = Case ?? throw new ArgumentNullException(nameof(Case));
 
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
@@ -66,11 +64,11 @@ namespace GPC.Checkers.Steel.Results
             _name = name;
         }
 
-        internal BeamStationResults(SerializationInfo info, StreamingContext context) : base(info, context)
+        internal BeamStationResults(SerializationInfo info, StreamingContext context) 
+            : base(info, context)
         {
             _section = (ISteelSection)info.GetValue("ISteelSection", typeof(ISteelSection));
-            _forces = (ResultBeamForces)info.GetValue("ResultBeamForces", typeof(ResultBeamForces));
-            _station = (ResultStation)info.GetValue("ResultStation", typeof(ResultStation));
+            _resultLocationStation = (ResultLocationStation)info.GetValue("ResultStation", typeof(ResultLocationStation));
             _case = (ILoadCase)info.GetValue("ILoadCase", typeof(ILoadCase));
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
             _options = (Checker.Options)info.GetValue("CheckerOptions", typeof(Checker.Options));
@@ -83,8 +81,7 @@ namespace GPC.Checkers.Steel.Results
         {
             base.GetObjectData(info, context);
             info.AddValue("ISteelSection", _section, typeof(ISteelSection));
-            info.AddValue("ResultBeamForces", _forces, typeof(ResultBeamForces));
-            info.AddValue("ResultStation", _station, typeof(ResultStation));
+            info.AddValue("ResultStation", _resultLocationStation, typeof(ResultLocationStation));
             info.AddValue("ILoadCase", _case, typeof(ILoadCase));
             info.AddValue("ILoadCase", _standard, typeof(Standard));
             info.AddValue("ILoadCase", _options, typeof(Checker.Options));
@@ -96,8 +93,7 @@ namespace GPC.Checkers.Steel.Results
                 return true;
 
             return (obj is BeamStationResults objCasted) && _section.Equals(objCasted._section) 
-                                                         && _forces.Equals(objCasted._forces)
-                                                         && _station.Equals(objCasted._station)
+                                                         && _resultLocationStation.Equals(objCasted._resultLocationStation)
                                                          && _case.Equals(objCasted._case)
                                                          && _standard.Equals(objCasted._case)
                                                          && _options.Equals(objCasted._case)
@@ -111,8 +107,7 @@ namespace GPC.Checkers.Steel.Results
                 int hashCode = 23;
                 hashCode = hashCode * -17 + base.GetHashCode();
                 hashCode = hashCode * -17 + _section.GetHashCode();
-                hashCode = hashCode * -17 + _forces.GetHashCode();
-                hashCode = hashCode * -17 + _station.GetHashCode();
+                hashCode = hashCode * -17 + _resultLocationStation.GetHashCode();
                 hashCode = hashCode * -17 + _case.GetHashCode();
                 hashCode = hashCode * -17 + _standard.GetHashCode();
                 hashCode = hashCode * -17 + _options.GetHashCode();

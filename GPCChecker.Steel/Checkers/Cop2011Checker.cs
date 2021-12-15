@@ -85,10 +85,10 @@ namespace GPC.Checkers.Steel.Checkers
 
             for (int k = 0; k < beamResult.Length; k++)
             {
-                ResultBeamForces[] resultBeamForces = beamResult[k].Results.Cast<ResultBeamForces>().ToArray();
+                ResultBeamForces[] resultBeamForces = new ResultBeamForces[beamResult[k].ResultLocations.Length];
 
-                if (steelSection.Length != resultBeamForces.Count() || steelSection.Length != beamResult[k].Points.Length)
-                    throw new ArgumentException();
+                //if (steelSection.Length != resultBeamForces.Count() || steelSection.Length != beamResult[k].Points.Length)
+                //throw new ArgumentException();
 
                 SectionClass[] axialCompSectionClass = new SectionClass[steelSection.Length];
                 SectionClass[] bendingCompSectionClass = new SectionClass[steelSection.Length];
@@ -123,9 +123,13 @@ namespace GPC.Checkers.Steel.Checkers
                 {
                     try
                     {
-                        stationResults[i + k * steelSection.Length] = new Cop2011BeamStationResults(steelSection[i], resultBeamForces[i],
-                                                                          (ResultStation)beamResult[k].Points[i],
-                                                                          beamResult[k].Case, (StandardCopSuos2011)_standard, (Cop2011Options)_options, BeamName);
+                        ResultLocationStation resultLocationStation = new ResultLocationStation(new ResultBeamForces[] { resultBeamForces[i] },
+                            ((ResultLocationStation)beamResult[k].ResultLocations[i]).DistanceFromStartPoint,
+                            ((ResultLocationStation)beamResult[k].ResultLocations[i]).ElementLenght);
+
+                        stationResults[i + k * steelSection.Length] = 
+                            new Cop2011BeamStationResults(steelSection[i], resultLocationStation,
+                            beamResult[k].Case, (StandardCopSuos2011)_standard, (Cop2011Options)_options, BeamName);
 
                         axialCompSectionClass[i] = CalculateSectionClassDueToCompression(resultBeamForces[i], steelSection[i]);
                         bendingCompSectionClass[i] = CalculateSectionClassDueToBending(resultBeamForces[i], steelSection[i]);
@@ -277,7 +281,7 @@ namespace GPC.Checkers.Steel.Checkers
                     catch (Exception e)
                     {
                         _errorLog.Add($"Fail check beam {BeamName}, \n " +
-                            $"station {((ResultStation)beamResult[k].Points[i]).DistanceFromStartPoint} mm from start point, \n" +
+                            $"station {((ResultLocationStation)beamResult[k].ResultLocations[i]).DistanceFromStartPoint} mm from start point, \n" +
                             $"combination {beamResult[k].Case.Name}. \n" +
                             $"Error: {e.Message}");
                     }
@@ -1327,8 +1331,8 @@ namespace GPC.Checkers.Steel.Checkers
                                                                         GetClassCompressedOuterFlangeBending(sectionC.LengthTop, sectionC.ThicknessTop, section)});
 
                 else if (section is SectionL sectionL)
-                    return SetWorstClass(new SectionClass[]{ GetClassCompressedOutstandLeg(sectionL.LengthHor, sectionL.ThicknessHor),
-                                                                        GetClassCompressedOutstandLeg(sectionL.LengthVert, sectionL.ThicknessVert)});
+                    return SetWorstClass(new SectionClass[]{ GetClassCompressedOutstandLeg(sectionL.HorizontalLegLength, sectionL.HorizontalLegThickness),
+                                                                        GetClassCompressedOutstandLeg(sectionL.VerticalLegLength, sectionL.VerticalLegThickness)});
 
                 else
                     throw new NotImplementedException("CalculateSectionClassException: not implemented Section");
@@ -1369,8 +1373,8 @@ namespace GPC.Checkers.Steel.Checkers
                                                                     GetClassCompressedOuterFlangeAxial(sectionC.LengthTop, sectionC.ThicknessTop)});
 
                 else if (section is SectionL sectionL)
-                    return SetWorstClass(new SectionClass[]{ GetClassCompressedOuterFlangeAxial(sectionL.LengthHor, sectionL.ThicknessHor),
-                                                                    GetClassCompressedOuterFlangeAxial(sectionL.LengthVert, sectionL.ThicknessVert)});
+                    return SetWorstClass(new SectionClass[]{ GetClassCompressedOuterFlangeAxial(sectionL.HorizontalLegLength, sectionL.HorizontalLegThickness),
+                                                                    GetClassCompressedOuterFlangeAxial(sectionL.VerticalLegLength, sectionL.VerticalLegThickness)});
 
                 else
                     throw new NotImplementedException("CalculateSectionClassException: not implemented Section");
@@ -1766,8 +1770,8 @@ namespace GPC.Checkers.Steel.Checkers
                     return (-resultBeamForces.N / (section.Area * Py));
                 else
                 {
-                    double sigma1 = (-resultBeamForces.N / section.Area) + (resultBeamForces.M1 / sectionH.CalculateWelxTop());
-                    double sigma2 = (-resultBeamForces.N / section.Area) + (resultBeamForces.M1 / sectionH.CalculateWelxBottom());
+                    double sigma1 = (-resultBeamForces.N / section.Area) + (resultBeamForces.M1 / sectionH.WelXMax);
+                    double sigma2 = (-resultBeamForces.N / section.Area) + (resultBeamForces.M1 / sectionH.WelXMin);
                     return (sigma1 + sigma2) / (2 * Py);
                 }
             }
