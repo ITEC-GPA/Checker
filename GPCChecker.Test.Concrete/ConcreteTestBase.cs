@@ -251,6 +251,21 @@ namespace ConcreteTests
             return new ForceTuple(forces.N / (b * h * fck), forces.Mx / (b * h * h * fck), forces.My / (b * b * h * fck));
         }
 
+        protected virtual BoundingBox3d GetBoundingBox(FailureDomain failureDomain)
+		{
+            BoundingBox3d boundingBox = new BoundingBox3d();
+
+            for(int i = 0; i < failureDomain.DomainPoints.Length; i++)
+			{
+                for(int j = 0; j < failureDomain.DomainPoints[i].Length; j++)
+				{
+                    boundingBox.Update(failureDomain.DomainPoints[i][j].Point);
+				}
+			}
+
+            return boundingBox;
+		}
+
 		#endregion
 
 		#region Common Asserts
@@ -608,6 +623,26 @@ namespace ConcreteTests
                 Assert.IsTrue(Math.Abs((expForce.My - failureDomainForce.FailureDomainPoint.MyRd) / failureDomainForce.FailureDomainPoint.MyRd) * 100 < errorPercentage);
 
             Assert.IsTrue(Math.Abs(wr - expWR) / expWR * 100 < errorPercentage);
+
+            return true;
+        }
+
+        protected bool CommonAssertsDomainBoundingBox(IConcreteSection section, FailureDomain failureDomain, Point3d max, Point3d min)
+		{
+            BoundingBox3d bBox = GetBoundingBox(failureDomain);
+
+            var maxFT = CalculateAdimensionalForces(section,
+                new ForceTuple(max.Z + bBox.Min.Z, max.X - bBox.Max.X, 0));
+            var minFT = CalculateAdimensionalForces(section,
+                new ForceTuple(min.Z + bBox.Max.Z, min.X - bBox.Min.X, 0));
+
+            Assert.IsTrue(Math.Abs(maxFT.N) < 0.015);
+            Assert.IsTrue(Math.Abs(maxFT.Mx) < 0.01);
+            Assert.IsTrue(Math.Abs(maxFT.My) < 0.01);
+
+            Assert.IsTrue(Math.Abs(minFT.N) < 0.01);
+            Assert.IsTrue(Math.Abs(minFT.Mx) < 0.01);
+            Assert.IsTrue(Math.Abs(minFT.My) < 0.01);
 
             return true;
         }

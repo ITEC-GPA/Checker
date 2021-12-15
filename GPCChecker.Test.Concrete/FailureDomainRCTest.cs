@@ -705,57 +705,18 @@ namespace ConcreteTests
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(0, +150),
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(150, 0),
 				Vector2d.XAxis, Vector2d.YAxis));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
 			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
-			//ExportToGmsh(elasticFailureDomain.Domain);
 
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
-				NRd			MRd			C3			C4
-				-786.513	-117.977	0			0
-				-786.513	-117.977	0			0
-				-786.513	-117.977	0			0
-				-786.513	-117.977	0			0
-				-776.163	-114.894	0			0
-				-755.739	-108.867	0			0
-				-735.246	-102.917	0			0
-				-716.635	-97.6066	0			0
-				-676.131	-86.3377	0			0
-				116.495		112.543		0			0
-				274.437		150.58		0			0
-				440.932		187.428		0			0
-				845.032		233.449		0			0
-				1044.16		250.51		0			0
-				1271.52		268.245		0			0
-				1542.91		285.059		0			0
-				1772.77		295.59		0			0
-				1948.65		303.806		0			0
-				2061.81		309.272		0			0
-				2061.81		309.272		0			0
-				1549.81		213.947		0			0
-				966.346		102.12		0			0
-				521.898		24.6619		0			0
-				206.815		-20.2768	0			0
-				-34.3852	-49.5957	0			0
-				-124.274	-64.9633	0			0
-				-345.581	-94.4737	0			0
-				-456.007	-104.771	0			0
-				-522.189	-109.529	0			0
-				-676.131	-116.502	0			0
-				-716.635	-117.384	0			0
-				-735.246	-117.657	0			0
-				-755.739	-117.855	0			0
-				-776.163	-117.955	0			0
-				-786.513	-117.977	0			0
-				-786.513	-117.977	0			0
-				-786.513	-117.977	0			0
-				-786.513	-117.977	0			0
-			*/
+			Point3d max = new Point3d(309 * 1000000, 0, 2062 * 1000);	// da vca
+			Point3d min = new Point3d(-118 * 1000000, 0, -787 * 1000);
+
+			CommonAssertsDomainBoundingBox(section, plasticFailureDomain.Domain, max, min);
 		}
 
 		[TestMethod]
@@ -803,50 +764,8 @@ namespace ConcreteTests
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
-			ExportToGmsh(plasticFailureDomain.Domain);
+			//ExportToGmsh(plasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain);
-
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
-				NRd			MRd			C3			C4
-				-786.513	117.977		0			0
-				-786.513	117.977		0			0
-				-786.513	117.977		0			0
-				-786.513	117.977		0			0
-				-777.835	117.961		0			0
-				-760.733	117.89		0			0
-				-743.706	117.753		0			0
-				-728.18		117.563		0			0
-				-694.466	116.95		0			0
-				-19.1461	84.7548		0			0
-				146.11		75.9448		0			0
-				348.24		63.2884		0			0
-				551.876		41.8341		0			0
-				823.386		-15.4701	0			0
-				1140.49		-83.8263	0			0
-				1542.91		-177.814	0			0
-				1772.77		-236.241	0			0
-				1948.65		-280.789	0			0
-				2061.81		-309.272	0			0
-				2061.81		-309.272	0			0
-				2034.83		-308.115	0			0
-				1953.86		-304.644	0			0
-				1818.92		-298.86		0			0
-				1586.67		-280.631	0			0
-				1439.73		-262.363	0			0
-				1338.39		-246.723	0			0
-				1153.97		-211.891	0			0
-				1061.95		-191.436	0			0
-				1006.81		-178.197	0			0
-				878.56		-144.564	0			0
-				844.846		-135.063	0			0
-				829.32		-130.595	0			0
-				812.293		-125.624	0			0
-				795.191		-120.565	0			0
-				786.513		-117.977	0			0
-				0			-78.6513	0			0
-				-786.513	117.977		0			0
-				-786.513	117.977		0			0
-			*/
 		}
 
 		[TestMethod]
@@ -888,50 +807,13 @@ namespace ConcreteTests
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
-			ExportToGmsh(plasticFailureDomain.Domain);
+			//ExportToGmsh(plasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain);
 
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
-				NRd			MRd			C3			C4
-				-786.513	117.977		0			0
-				-786.513	117.977		0			0
-				-786.513	117.977		0			0
-				-786.513	117.977		0			0
-				-777.835	117.961		0			0
-				-760.733	117.89		0			0
-				-743.706	117.753		0			0
-				-728.18		117.563		0			0
-				-694.466	116.95		0			0
-				-19.1461	84.7548		0			0
-				146.11		75.9448		0			0
-				348.24		63.2884		0			0
-				551.876		41.8341		0			0
-				823.386		-15.4701	0			0
-				1140.49		-83.8263	0			0
-				1542.91		-177.814	0			0
-				1772.77		-236.241	0			0
-				1948.65		-280.789	0			0
-				2061.81		-309.272	0			0
-				2061.81		-309.272	0			0
-				2034.83		-308.115	0			0
-				1953.86		-304.644	0			0
-				1818.92		-298.86		0			0
-				1586.67		-280.631	0			0
-				1439.73		-262.363	0			0
-				1338.39		-246.723	0			0
-				1153.97		-211.891	0			0
-				1061.95		-191.436	0			0
-				1006.81		-178.197	0			0
-				878.56		-144.564	0			0
-				844.846		-135.063	0			0
-				829.32		-130.595	0			0
-				812.293		-125.624	0			0
-				795.191		-120.565	0			0
-				786.513		-117.977	0			0
-				0			-78.6513	0			0
-				-786.513	117.977		0			0
-				-786.513	117.977		0			0
-			*/
+			Point3d max = new Point3d(238 * 1000000, 0, 1590 * 1000);   // da vca
+			Point3d min = new Point3d(-47.2 * 1000000, 0, -315 * 1000);
+
+			CommonAssertsDomainBoundingBox(section, plasticFailureDomain.Domain, max, min);
 		}
 
 		[TestMethod]
