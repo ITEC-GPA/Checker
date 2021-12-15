@@ -647,7 +647,8 @@ namespace ConcreteTests
 			ResultBeamForces force = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section));
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
@@ -660,9 +661,9 @@ namespace ConcreteTests
 
 			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForce, forces2d[0], expWR);
 
-			ExportToGmsh(failureDomainResult2d.Domain,
-				new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
-				new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+			//ExportToGmsh(failureDomainResult2d.Domain,
+			//	new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+			//	new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
 		}
 
 		[TestMethod]
@@ -679,7 +680,8 @@ namespace ConcreteTests
 			ResultBeamForces force = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section));
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
@@ -692,9 +694,9 @@ namespace ConcreteTests
 
 			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForce, forces2d[0], expWR);
 
-			ExportToGmsh(failureDomainResult2d.Domain,
-				new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
-				new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+			//ExportToGmsh(failureDomainResult2d.Domain,
+			//	new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+			//	new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
 		}
 
 		[TestMethod]
@@ -711,7 +713,8 @@ namespace ConcreteTests
 			ResultBeamForces force = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section));
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
@@ -724,9 +727,9 @@ namespace ConcreteTests
 
 			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForce, forces2d[0], expWR);
 
-			ExportToGmsh(failureDomainResult2d.Domain,
-				new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
-				new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+			//ExportToGmsh(failureDomainResult2d.Domain,
+			//	new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+			//	new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
 		}
 
 	}
