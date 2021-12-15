@@ -40,7 +40,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                    var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -61,7 +61,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                    var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -86,7 +86,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                    return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
                 }
                 catch (Exception)
                 {
@@ -106,7 +106,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 { 
-                    return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                    return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
                 }
                 catch (Exception)
                 {
@@ -126,7 +126,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 { 
-                    return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                    return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
                 }
                 catch (Exception)
                 {
@@ -145,7 +145,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+                    return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
                 }
                 catch (Exception)
                 {
@@ -161,7 +161,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResult"/>
         internal override FailureDomainResult GetPlasticFailureDomainResult()
         {
-            var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+            var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -172,7 +172,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResult"/>
         internal override FailureDomainResult GetElasticFailureDomainResult()
         {
-            var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+            var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -186,7 +186,7 @@ namespace GPC.Checkers.Concrete.Checkers
             if (_checkerAttributes.SLSResults is null)
                 return null;
 
-            return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+            return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(double)"/>
@@ -196,19 +196,19 @@ namespace GPC.Checkers.Concrete.Checkers
             if (_checkerAttributes.SLSResults is null)
                 return null;
 
-            return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+            return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
         }
 
         /// <inheritdoc cref="SectionChecker.GetStressAnalysisResult(ResultBeamForces)"/>
         internal override StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
 		{
-            return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+            return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(ResultBeamForces, double)"/>
         internal override StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi)
 		{
-            return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsModelCode2010.ForceReferencePointCentroidDistance);
+            return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
         }
 
 		#endregion
@@ -222,8 +222,8 @@ namespace GPC.Checkers.Concrete.Checkers
 
             }
 
-            public SectionOptionsModelCode2010(Point2d axialForceReferencePoint, bool plasticFailureDomain)
-                : base(axialForceReferencePoint, plasticFailureDomain)
+            public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem)
+                : base(coordinateSystem)
             {
 
             }

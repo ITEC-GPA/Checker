@@ -24,6 +24,7 @@ namespace GPC.Checkers.Concrete.Results
         protected readonly FailureDomain2d _failureDomain;
         protected List<FailureDomain.FailureDomainForce> _forces;
         protected readonly DomainTypes _domainType;
+        protected readonly CoordinateSystem _coordinateSystem;
 
         public FailureDomain2d Domain => _failureDomain;
 
@@ -34,6 +35,7 @@ namespace GPC.Checkers.Concrete.Results
             SectionSolver solver,
             Standard standard,
             DomainTypes domainType,
+            CoordinateSystem coordinateSystem,
             int id = IDUNASSIGNED)
             : base(section, standard, id)
         {
@@ -41,7 +43,7 @@ namespace GPC.Checkers.Concrete.Results
             _sectionSolver = solver ?? throw new ArgumentNullException(nameof(solver));
             _forces = new List<FailureDomain.FailureDomainForce>();
             _domainType = domainType;
-
+            _coordinateSystem = coordinateSystem;
             if (forces != null)
             {
                 var forcesList = forces.ToList();
@@ -221,7 +223,7 @@ namespace GPC.Checkers.Concrete.Results
 
         protected Point2d ConvertForceToPoint(ResultBeamForces force)
 		{
-            ForceTuple forceTuple = force.ConvertToForceTuple(_section.Centroid);
+            ForceTuple forceTuple = force.ConvertToForceTuple(_coordinateSystem);
 
             if (_domainType == DomainTypes.CostantN)
             {

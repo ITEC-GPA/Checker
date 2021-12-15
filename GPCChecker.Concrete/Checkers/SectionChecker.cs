@@ -120,27 +120,21 @@ namespace GPC.Checkers.Concrete.Checkers
 
 		public abstract class SectionOptions : Options
         {
-            public Vector2d ForceReferencePointCentroidDistance { get; }
-
-            public bool PlasticFailureDomain { get; }
-
+            public CoordinateSystem ForceReferenceCoordinateSystem { get; }
 
             public SectionOptions()
             {
-                ForceReferencePointCentroidDistance = Vector2d.Zero;
-                PlasticFailureDomain = true;
+                ForceReferenceCoordinateSystem = CoordinateSystem.Global;
             }
 
-            public SectionOptions(Vector2d forceReferencePointCentroidDistance, bool plasticFailureDomain)
+            public SectionOptions(CoordinateSystem forceReferencePointCoordinateSystem)
             {
-                ForceReferencePointCentroidDistance = forceReferencePointCentroidDistance;
-                PlasticFailureDomain = plasticFailureDomain;
+                ForceReferenceCoordinateSystem = forceReferencePointCoordinateSystem;
             }
 
             public override bool Equals(object obj)
             {
-                return obj is SectionOptions options && ForceReferencePointCentroidDistance.Equals(options.ForceReferencePointCentroidDistance)
-                                                     && PlasticFailureDomain.Equals(options.PlasticFailureDomain);
+                return obj is SectionOptions options && ForceReferenceCoordinateSystem.Equals(options.ForceReferenceCoordinateSystem);
             }
 
             public override int GetHashCode()
@@ -148,8 +142,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 unchecked
                 {
                     int hashCode = -17;
-                    hashCode = hashCode * -23 + ForceReferencePointCentroidDistance.GetHashCode();
-                    hashCode = hashCode * -23 + PlasticFailureDomain.GetHashCode();
+                    hashCode = hashCode * -23 + ForceReferenceCoordinateSystem.GetHashCode();
                     return hashCode; 
                 }
             }
