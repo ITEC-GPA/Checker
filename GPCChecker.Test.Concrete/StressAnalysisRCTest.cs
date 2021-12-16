@@ -165,8 +165,8 @@ namespace ConcreteTests
 			double width = 500;
 			double concreteCover = 50;
 
-			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, concreteCover, 5, ConcreteMaterialEN1992.C45_55);
-			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, concreteCover, 5, ConcreteMaterialEN1992.C45_55, RebarMaterial.B450C);
+			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
 			{
@@ -177,6 +177,7 @@ namespace ConcreteTests
 				new ResultBeamForces(-500 * 1000, 0, 0, 0, 220 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(-200 * 1000, 0, 0, 0, 80 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(0 * 1000, 0, 0, 0, 100 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
 			};
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);

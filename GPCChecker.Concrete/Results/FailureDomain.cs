@@ -72,7 +72,7 @@ namespace GPC.Checkers.Concrete.Results
 
 			for (int i = 0; i < _domainPoints.Length - 1; i++)
 			{
-				for (int j = 3; j < _domainPoints[i].Length - 2; j++)
+				for (int j = 0; j < _domainPoints[i].Length - 2; j++)
 				{
 					mesh.Faces.Build(new MeshFace
 					(
@@ -129,7 +129,7 @@ namespace GPC.Checkers.Concrete.Results
 
 			for (int i = _domainPoints.Length - 1; i < _domainPoints.Length; i++)
 			{
-				for (int j = 3; j < _domainPoints[i].Length - 2; j++)
+				for (int j = 0; j < _domainPoints[i].Length - 2; j++)
 				{
 					mesh.Faces.Build(new MeshFace
 					(
