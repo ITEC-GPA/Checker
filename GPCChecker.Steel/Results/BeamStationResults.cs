@@ -36,7 +36,7 @@ namespace GPC.Checkers.Steel.Results
 
         #region Properties
 
-        public ResultBeamForces[] ResultBeamForces => (ResultBeamForces[])_resultLocationStation.ResultTypes;
+        public ResultBeamForces[] ResultBeamForces => _resultLocationStation.ResultTypes.Select(i => i).Distinct().Cast<ResultBeamForces>().ToArray();
 
         public ResultLocationStation Station => _resultLocationStation;
 

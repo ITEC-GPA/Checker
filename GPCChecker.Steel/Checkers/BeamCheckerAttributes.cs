@@ -63,7 +63,7 @@ namespace GPC.Checkers.Steel.Checkers
                 throw new ArgumentException("Different beam result lenght");
             }
 
-            _sections = Enumerable.Repeat(section, beamResults.First().ResultLocations.Length).ToArray();
+            _sections = Enumerable.Repeat(section, beamResults.FirstOrDefault().ResultLocations.FirstOrDefault().ResultTypes.Length).ToArray();
         }
 
 
