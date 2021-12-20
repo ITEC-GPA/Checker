@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#if NEVER
+
 namespace GPCChecker.Steel.PanelsStability
 {
     public class TransverseStiffener
     {
-        #region Variables
+#region Variables
         protected double _t1;
         protected double _b1;
         protected double _t2;
@@ -55,9 +57,9 @@ namespace GPCChecker.Steel.PanelsStability
 
 
 
-        #endregion
+#endregion
 
-        #region Properties
+#region Properties
         public double T1 => _t1;
         public double B1 => _b1;
         public double T2 => _t2;
@@ -98,12 +100,12 @@ namespace GPCChecker.Steel.PanelsStability
         /// Minimim Requirements for INTERMEDIATE Rigid Post
         public double IstminShear => _istminShear;
         public double Nstten => _nstten;
-        #endregion
+#endregion
 
-        #region Commands
-        #endregion
+#region Commands
+#endregion
 
-        #region Public Costructors
+#region Public Costructors
         public TransverseStiffener(double t1, double b1, double t2, double b2, double hw, double tw, double Ldiaf,
             double fy, double E,
             double nEd, double vEd,
@@ -136,12 +138,12 @@ namespace GPCChecker.Steel.PanelsStability
 
             CalculateStiffenerProperties();
         }
-        #endregion
+#endregion
 
-        #region Public Methods Specific       
-        #endregion
+#region Public Methods Specific       
+#endregion
 
-        #region Protected Methods Specific
+#region Protected Methods Specific
         protected void CalculateStiffenerProperties()
         {
             /// Geometric Properties
@@ -231,9 +233,11 @@ namespace GPCChecker.Steel.PanelsStability
             }
             _nstten = ((_vEd*1000) - 1 / Math.Pow(_lambdaw, 2.0) * _tw * _hw * _fy / Math.Sqrt(3) / 1.00)/1000;
         }
-        #endregion
+#endregion
 
-        #region Public Methods Override
-        #endregion
+#region Public Methods Override
+#endregion
     }
 }
+
+#endif

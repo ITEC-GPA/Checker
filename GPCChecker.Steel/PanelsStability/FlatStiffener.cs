@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#if NEVER
+
 namespace GPCChecker.Steel.PanelsStability
 {
     public class FlatStiffener
     {
-        #region Public Constructors
+#region Public Constructors
         public FlatStiffener(Code __code, double __ts, double __bs, double __t, double __b1, double __b2, double __b1eff, double __b2eff, double __Ldiaf, StiffenerLongitudinalType __stiffType, double __fy = 355, double __E = 210000, double __ni = 0.3)
         {
             _ts = __ts;
@@ -25,12 +27,12 @@ namespace GPCChecker.Steel.PanelsStability
             _code = __code;
             CalcStiffenerProperties();
         }
-        #endregion
+#endregion
 
-        #region Public Deconstructors
-        #endregion
+#region Public Deconstructors
+#endregion
 
-        #region Private Methods
+#region Private Methods
         private void CalcStiffenerProperties()
         {
             double alfainstC = 0;
@@ -95,9 +97,9 @@ namespace GPCChecker.Steel.PanelsStability
             _FiInst = 0.5 * (1.0 + (_alfae * (_lambdacAdimIrr - 0.2)) + Math.Pow(_lambdacAdimIrr, 2.0));
             _Chic = 1.0 / (_FiInst + Math.Sqrt(Math.Pow(_FiInst, 2.0) - Math.Pow(_lambdacAdimIrr, 2.0)));
         }
-        #endregion
+#endregion
 
-        #region Variables
+#region Variables
         protected double _ts;
         protected double _bs;
         protected double _b1;
@@ -143,9 +145,9 @@ namespace GPCChecker.Steel.PanelsStability
 
         protected double _Lambdacgr;
         protected double _Lambdaceff;
-        #endregion
+#endregion
 
-        #region Properties
+#region Properties
         public double ts
         {
             get => _ts;
@@ -351,6 +353,8 @@ namespace GPCChecker.Steel.PanelsStability
             get => _Lambdaceff;
             private set => _Lambdaceff = value;
         }
-        #endregion
+#endregion
     }
 }
+
+#endif

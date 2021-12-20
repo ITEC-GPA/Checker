@@ -9,6 +9,8 @@
     Overview:  Class 4 - Plate Effective Section Calculation
 \* ========================================================================= */
 
+#if NEVER
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -711,3 +713,5 @@ namespace GPCChecker.Steel.PanelsStability
         }
     }
 }
+
+#endif

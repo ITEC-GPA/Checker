@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#if NEVER
+
 namespace GPCChecker.Steel.PanelsStability
 {
     public class UnstiffenedPanel
@@ -39,7 +41,7 @@ namespace GPCChecker.Steel.PanelsStability
              
 
 
-        #region Variables
+#region Variables
         protected double _b;
         protected double _t;
         protected double _phi;
@@ -80,9 +82,9 @@ namespace GPCChecker.Steel.PanelsStability
         protected double _E;
         protected double _ni;
         protected Code _code;
-        #endregion
+#endregion
 
-        #region Properties
+#region Properties
         public double t
         {
             get => _t;
@@ -272,9 +274,9 @@ namespace GPCChecker.Steel.PanelsStability
             private set => _plateSupportType = value;
         }
         
-        #endregion
+#endregion
 
-        #region Public Constructors
+#region Public Constructors
         public UnstiffenedPanel(Code __code, double __t, double __b, double __phi, double __ksigma, double __fy = 355, double __E = 210000, double __ni = 0.3, double __Ldiaf = 1000, 
             PlateSupportType plateSupportType = PlateSupportType.Internal, bool tipInCompression = true)
         {
@@ -293,12 +295,12 @@ namespace GPCChecker.Steel.PanelsStability
 
             CalcPanelProperties(tipInCompression);
         }
-        #endregion
+#endregion
 
-        #region FIELD_DECONSTRUCTOR
-        #endregion
+#region FIELD_DECONSTRUCTOR
+#endregion
 
-        #region FIELD_METHODS
+#region FIELD_METHODS
         private void CalcPanelProperties(bool tipInCompression = true)
         {
             _beff = _b;
@@ -652,6 +654,8 @@ namespace GPCChecker.Steel.PanelsStability
                 }
             }
         }
-        #endregion
+#endregion
     }
 }
+
+#endif
