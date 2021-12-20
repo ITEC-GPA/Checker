@@ -53,7 +53,7 @@ namespace GPC.Checkers.Steel.Results
 
 
         internal BeamStationResults(ISteelSection section, ResultLocationStation station, ILoadCase Case, Standard standard, 
-                                    Checker.Options checkerOptions, string name = "")
+            Checker.Options checkerOptions, string name = "")
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
             _resultLocationStation = station ?? throw new ArgumentNullException(nameof(station));
