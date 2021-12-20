@@ -376,7 +376,7 @@ namespace ConcreteTests
 			double concreteCover = 50;
 
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, 
-				ConcreteMaterialEN1992.C35_45, new RebarMaterial("", 200000, 0.028, 450, 450, 0.002, 0.007850, 12 * 1e-6, new Guid()));
+				ConcreteMaterialEN1992.C35_45, new RebarMaterial("", 200000, 450, 450, 0.002));
 
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
@@ -402,7 +402,7 @@ namespace ConcreteTests
 			double concreteCover = 50;
 
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover,
-				ConcreteMaterialEN1992.C35_45, new RebarMaterial("", 200000, 0.028, 450, 450, 0.002, 0.007850, 12 * 1e-6, new Guid()));
+				ConcreteMaterialEN1992.C35_45, new RebarMaterial("", 200000, 450, 450, 0.002));
 
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
