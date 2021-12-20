@@ -417,7 +417,6 @@ namespace ConcreteTests
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
 		}
 
-
 		[TestMethod]
 		[TestCategory("No Rebars")]
 		public void RectangularSectionTest7()

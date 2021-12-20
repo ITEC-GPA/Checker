@@ -81,7 +81,8 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns></returns>
         private Cop2011BeamStationResults[] PerformCheck(ISteelSection[] steelSection, BeamResult[] beamResult)
         {
-            Cop2011BeamStationResults[] stationResults = new Cop2011BeamStationResults[steelSection.Length * beamResult.Length];
+            Cop2011BeamStationResults[] stationResults = new Cop2011BeamStationResults[steelSection.Length * beamResult.Select(i => i.ResultLocations.Length).Sum()];
+            int index = 0;
 
             for (int k = 0; k < beamResult.Length; k++)
             {
@@ -130,15 +131,15 @@ namespace GPC.Checkers.Steel.Checkers
                                 ((ResultLocationStation)beamResult[k].ResultLocations[j]).DistanceFromStartPoint,
                                 ((ResultLocationStation)beamResult[k].ResultLocations[j]).ElementLenght);
 
-                            stationResults[i + k * steelSection.Length] =
+                            stationResults[index] =
                                 new Cop2011BeamStationResults(steelSection[i], resultLocationStation,
                                 beamResult[k].Case, (StandardCopSuos2011)_standard, (Cop2011Options)_options, BeamName);
 
                             axialCompSectionClass[i] = CalculateSectionClassDueToCompression(rbf, steelSection[i]);
                             bendingCompSectionClass[i] = CalculateSectionClassDueToBending(rbf, steelSection[i]);
 
-                            stationResults[i + k * steelSection.Length].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
-                            stationResults[i + k * steelSection.Length].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
+                            stationResults[index].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
+                            stationResults[index].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
 
                             axialTensionRd[i] = CalculateAxialTensionCapacity(steelSection[i]);
                             axialTensionWR[i] = GetWorkingRatio(Math.Max(rbf.N, 0), axialTensionRd[i]);
@@ -261,25 +262,30 @@ namespace GPC.Checkers.Steel.Checkers
                                 interaction880WR[i] = 0.001;
 
 
-                            stationResults[i + k * steelSection.Length].SetCapacity(axialTensionRd[i], axialCompressionRd[i], axialBuck1Rd[i], axialBuck2Rd[i], shear1Rd[i], shear2Rd[i], bending1Rd[i], bending2Rd[i], latTorsRd[i]);
+                            stationResults[index].SetCapacity(axialTensionRd[i], axialCompressionRd[i], axialBuck1Rd[i], axialBuck2Rd[i], 
+                                shear1Rd[i], shear2Rd[i], bending1Rd[i], bending2Rd[i], latTorsRd[i]);
 
-                            stationResults[i + k * steelSection.Length].SetWorkingRatio(axialTensionWR[i], axialCompressionWR[i], axialBuck1WR[i], axialBuck2WR[i], shear1WR[i], shear2WR[i], bending1WR[i], bending2WR[i], latTorsWR[i],
-                                                              interaction878WR[i], interaction879WR[i], interaction880WR[i], interaction881WR[i]);
+                            stationResults[index].SetWorkingRatio(axialTensionWR[i], axialCompressionWR[i], axialBuck1WR[i], axialBuck2WR[i], 
+                                shear1WR[i], shear2WR[i], bending1WR[i], bending2WR[i], latTorsWR[i],
+                                interaction878WR[i], interaction879WR[i], interaction880WR[i], interaction881WR[i]);
 
-                            stationResults[i + k * steelSection.Length].SetPy(_py, _epsilon);
+                            stationResults[index].SetPy(_py, _epsilon);
 
-                            stationResults[i + k * steelSection.Length].SetResultsForReportAxialBuckling(GetBucklingCurveXXAxis(steelSection[i]), GetBucklingCurveYYAxis(steelSection[i]),
+                            stationResults[index].SetResultsForReportAxialBuckling(GetBucklingCurveXXAxis(steelSection[i]), GetBucklingCurveYYAxis(steelSection[i]),
                                 CalculateLambdaAxialBuckling1Axis(steelSection[i]), CalculateLambdaAxialBuckling2Axis(steelSection[i]),
                                 CalculatePeForAxialBuckling1Axis(steelSection[i]), CalculatePeForAxialBuckling2Axis(steelSection[i]),
                                 CalculatePhiforAxialBuckling1Axis(steelSection[i]), CalculatePhiforAxialBuckling2Axis(steelSection[i]),
                                 CalculatePCompression1Axis(steelSection[i]), CalculatePCompression2Axis(steelSection[i]), CalculateLambda0ForAxialBuckling(steelSection[i]),
                                 CalculateNForAxialBuckling1Axis(steelSection[i]), CalculateNForAxialBuckling2Axis(steelSection[i]));
 
-                            stationResults[i + k * steelSection.Length].SetResultsForReportLTB(CalculateLambdaLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculateLambdaL0ForLatTorsBucklingBS5950(steelSection[i].SteelMaterial.E),
-                                CalculatePeForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), CalculatePhiLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]),
+                            stationResults[index].SetResultsForReportLTB(CalculateLambdaLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), 
+                                CalculateLambdaL0ForLatTorsBucklingBS5950(steelSection[i].SteelMaterial.E), CalculatePeForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), 
+                                CalculatePhiLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]),
                                 CalculatePbForLatTorsBuckling(bendingCompSectionClass[i], steelSection[i]));
 
-                            stationResults[i + k * steelSection.Length].SetResultForReportShear(GetShearAreaXaxis(steelSection[i]), GetShearAreaYaxis(steelSection[i]));
+                            stationResults[index].SetResultForReportShear(GetShearAreaXaxis(steelSection[i]), GetShearAreaYaxis(steelSection[i]));
+
+                            index++;
                         }
                         catch (Exception e)
                         {
