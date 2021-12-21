@@ -43,8 +43,8 @@ namespace ConcreteTests
 			//ExportToGmsh(plasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain);
 
-			Mesh mesh = plasticFailureDomain.Domain.GetMesh();
-			ExportToGmsh(mesh);
+			//Mesh mesh = plasticFailureDomain.Domain.GetMesh();
+			//ExportToGmsh(mesh);
 
 			//Assert.IsTrue(CommonAssertsModelCode (section, standard, failureDomain));
 
