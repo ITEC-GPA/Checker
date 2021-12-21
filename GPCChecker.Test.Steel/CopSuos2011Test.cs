@@ -28,7 +28,7 @@ namespace SteelTests
 			double length = 9000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, length) };
@@ -75,7 +75,7 @@ namespace SteelTests
 				new LoadCase("Test1", LoadCase.LoadCaseTypes.SelfWeight),													
 				new LoadCase("Test2", LoadCase.LoadCaseTypes.SelfWeight),
 				new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] 
 			{
@@ -133,7 +133,7 @@ namespace SteelTests
 				new LoadCase("Test1", LoadCase.LoadCaseTypes.SelfWeight),													
 				new LoadCase("Test2", LoadCase.LoadCaseTypes.SelfWeight),
 				new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] 
 			{
@@ -187,7 +187,7 @@ namespace SteelTests
 				new LoadCase("Test2", LoadCase.LoadCaseTypes.SelfWeight),
 				new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) 
 			};
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[]
 			{
@@ -246,7 +246,7 @@ namespace SteelTests
 				new LoadCase("Test2", LoadCase.LoadCaseTypes.SelfWeight),
 				new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight)
 			};
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[]
 			{
@@ -307,7 +307,7 @@ namespace SteelTests
 			double length = 9000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 10000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -337,7 +337,7 @@ namespace SteelTests
 			double length = 3000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 10000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -367,7 +367,7 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-100, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -397,7 +397,7 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -427,7 +427,7 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-100000, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -460,7 +460,7 @@ namespace SteelTests
 			double length = 3000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 275, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 275, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-1000000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -497,7 +497,7 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-1100000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -524,7 +524,7 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-1100000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -553,7 +553,7 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 1100000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -582,12 +582,13 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 1100000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
-			SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty, 0, Section.FormedTypes.HotFinished, Section.SectionTypes.Rolled) };
+			SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { 
+				new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty, 0, Section.FormedTypes.HotFinished, Section.SectionTypes.Rolled) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionRHS[0], beamResults);
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
@@ -608,8 +609,9 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
-			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-5000000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
+			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { 
+				new ResultBeamForces(-5000000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
@@ -636,7 +638,7 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-1000000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -662,7 +664,7 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 275, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 275, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -688,7 +690,7 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -716,7 +718,7 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 100000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -748,8 +750,9 @@ namespace SteelTests
 			double length = 7000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
-			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-480000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
+			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { 
+				new ResultBeamForces(-480000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
@@ -787,7 +790,7 @@ namespace SteelTests
 			double length = 5000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-480000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -826,14 +829,14 @@ namespace SteelTests
 			double length = 5000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-480000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
 			SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
-														Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
+				Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
@@ -865,14 +868,14 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 255, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 255, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-10000000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
 			SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Welded)) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
-														Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
+				Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
@@ -902,7 +905,7 @@ namespace SteelTests
 			double length = 5000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-10000000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -939,14 +942,14 @@ namespace SteelTests
 			double length = 3000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-100000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
 			SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
-														Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
+				Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
@@ -976,14 +979,14 @@ namespace SteelTests
 			double length = 7315;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-10000000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
 			SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
-														Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
+				Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
@@ -1014,12 +1017,13 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(0, 0, 0, 0, 100 * 1000000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
-			SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty, 0, Section.FormedTypes.HotFinished, Section.SectionTypes.Rolled) };
+			SteelSectionRHS[] steelSectionRHS = new SteelSectionRHS[] { 
+				new SteelSectionRHS(h, b, t, t, t, t, steelMaterial, string.Empty, 0, Section.FormedTypes.HotFinished, Section.SectionTypes.Rolled) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionRHS[0], beamResults);
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
@@ -1077,7 +1081,7 @@ namespace SteelTests
 			double length = 7000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] {
 				new ResultBeamForces(-100 * 1000, 0, 300 * 1000, 100 * 1000000, 100 * 1000000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
@@ -1111,7 +1115,7 @@ namespace SteelTests
 			double length = 7000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { 
 				new ResultBeamForces(0, 0, 500 * 1000, 100 * 1000000, 100 * 1000000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
@@ -1142,8 +1146,9 @@ namespace SteelTests
 			double length = 5000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 430, 7850);
-			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-1000 * 1000, 1000 * 1000, 0, 10 * 10000000, 1000000000, 0, CoordinateSystem.Global) };
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 430);
+			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { 
+				new ResultBeamForces(-1000 * 1000, 1000 * 1000, 0, 10 * 10000000, 1000000000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
@@ -1175,10 +1180,11 @@ namespace SteelTests
 			double length = 6000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { 
 				new ResultBeamForces(-1000 * 1000, 500, 0, 0, 500 * 1000000, 0, CoordinateSystem.Global) };
-			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
+			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { 
+				new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
 			SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { 
@@ -1234,14 +1240,15 @@ namespace SteelTests
 			double length = 3000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 430, 7850);
-			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-100 * 1000, 0, 0, 0, 10 * 1000000, 0, CoordinateSystem.Global) };
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 430);
+			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { 
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, 10 * 1000000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
 			SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
-														Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
+				Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
@@ -1285,14 +1292,14 @@ namespace SteelTests
 			double length = 5000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-1000 * 1000, 0, 0, 0, 1000 * 1000000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
 			SteelSectionCHS[] steelSectionCHS = new SteelSectionCHS[1] { (new SteelSectionCHS(D, t, steelMaterial, string.Empty, Section.FormedTypes.HotFinished)) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
-														Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
+				Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionCHS[0], beamResults);
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
@@ -1338,14 +1345,15 @@ namespace SteelTests
 			double length = 10000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 275, 430, 7850);
-			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-1000 * 1000, 0, 0, 0, 522.2 * 1000000, 0, CoordinateSystem.Global) };
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 275, 430);
+			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { 
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 522.2 * 1000000, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
 			SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
-														Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+				Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1, 1, 1, 1, 1, 1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
@@ -1401,14 +1409,16 @@ namespace SteelTests
 			double length = 10000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 275, 430, 7850);
-			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(1200 * 1000, 0, 0, 0, 464 * 1000000, -25, CoordinateSystem.Global) };
-			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 275, 430);
+			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { 
+				new ResultBeamForces(1200 * 1000, 0, 0, 0, 464 * 1000000, -25, CoordinateSystem.Global) };
+			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { 
+				new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
 			SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
-														Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+				Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 1, 1, 1, 1, 1, 1, 1, 1, 1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
@@ -1426,7 +1436,7 @@ namespace SteelTests
 			double length = 2996;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-79.4 * 1000, 0, 0, 0, -18.36 * 1000000, 1.9 * 1000000, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -1451,8 +1461,9 @@ namespace SteelTests
 			double length = 8100;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
-			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(1073 * 1000, 7050, -159750, 0, 460.4 * 1000000, -26.3 * 1000000, CoordinateSystem.Global) };
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
+			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { 
+				new ResultBeamForces(1073 * 1000, 7050, -159750, 0, 460.4 * 1000000, -26.3 * 1000000, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
@@ -1476,14 +1487,16 @@ namespace SteelTests
 			double length = 8100;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
-			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { new ResultBeamForces(-1073 * 1000, 7050, -159750, 0, -460.4 * 1000000, 26.3 * 1000000, CoordinateSystem.Global) };
-			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
+			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { 
+				new ResultBeamForces(-1073 * 1000, 7050, -159750, 0, -460.4 * 1000000, 26.3 * 1000000, CoordinateSystem.Global) };
+			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { 
+				new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
 			SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, steelMaterial, string.Empty, Section.SectionTypes.Rolled)) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
-														Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 0.5, 1, 1, 1, 1, 0.5, 1, 1, 1);
+				Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 0.5, 1, 1, 1, 1, 0.5, 1, 1, 1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
@@ -1501,7 +1514,7 @@ namespace SteelTests
 			double length = 8100;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[1] { 
 				new ResultBeamForces(-1073 * 1000, 7050, -159750, 0, -460.4 * 1000000, 26.3 * 1000000, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
@@ -1538,7 +1551,7 @@ namespace SteelTests
 			double lengthBuckling = 3000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[3] { 
 				new ResultBeamForces(0, 0, 467900, 0, 0, 0, CoordinateSystem.Global),
 				new ResultBeamForces(0, 0, 0, 0, 931800000, 0, CoordinateSystem.Global),
@@ -1632,7 +1645,7 @@ namespace SteelTests
 			double length = 3500;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -1664,7 +1677,7 @@ namespace SteelTests
 			double length = 3500;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -1696,7 +1709,7 @@ namespace SteelTests
 			double length = 15000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -1726,7 +1739,7 @@ namespace SteelTests
 			double length = 15000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-10, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -1758,7 +1771,7 @@ namespace SteelTests
 			double length = 15000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(10, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -1790,13 +1803,14 @@ namespace SteelTests
 			double length = 9000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
-			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
-																			new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
-																			new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
-																			new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
-																			new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
-																			new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global)};
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
+			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { 
+				new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
+				new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
+				new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
+				new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
+				new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global),
+				new ResultBeamForces(0, 0, 500*1000, 0, 0, 0, CoordinateSystem.Global)};
 
 			ResultLocationStation[] resultLocationStation = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, length) };
 
@@ -1855,7 +1869,7 @@ namespace SteelTests
 			double length = 9000;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -1884,7 +1898,7 @@ namespace SteelTests
 			double d = 400;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0, 5000) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -1912,7 +1926,7 @@ namespace SteelTests
 			double d = 400;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-1000 * 1000, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0, 5000) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -1940,7 +1954,7 @@ namespace SteelTests
 			double d = 400;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(1000 * 1000, 0, 500 * 1000, 0, 0, 0, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0, 5000) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -1969,7 +1983,7 @@ namespace SteelTests
 			double d = 400;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(1000 * 1000, 500 * 1000, 500 * 1000, 0, 500 * 1000000, 500 * 1000000, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0, 5000) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -1998,7 +2012,7 @@ namespace SteelTests
 			double d = 400;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(1000 * 1000, 500 * 1000, 500 * 1000, 0, -500 * 1000000, -500 * 1000000, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0, 5000) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -2027,7 +2041,7 @@ namespace SteelTests
 			double d = 400;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-1000 * 1000, 500 * 1000, 500 * 1000, 0, 500 * 1000000, 500 * 1000000, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0, 5000) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -2056,7 +2070,7 @@ namespace SteelTests
 			double d = 400;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 0.3, 265, 430, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S275", 206000, 265, 430);
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-1000 * 1000, 500 * 1000, 500 * 1000, 0, -500 * 1000000, -500 * 1000000, CoordinateSystem.Global) };
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0, 5000) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
@@ -2085,7 +2099,7 @@ namespace SteelTests
 			double d = 193.7;
 
 			LoadCase[] loadCase = new LoadCase[] { new LoadCase("Test", LoadCase.LoadCaseTypes.SelfWeight) };
-			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 0.3, 355, 510, 7850);
+			SteelMaterial steelMaterial = new SteelMaterial("S355", 206000, 355, 510);
 
 			ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { 
 				new ResultBeamForces(-21 * 1000, -5 * 1000, 0 * 1000, 11 * 1000000, 1 * 1000000, 1 * 1000000, CoordinateSystem.Global) };
