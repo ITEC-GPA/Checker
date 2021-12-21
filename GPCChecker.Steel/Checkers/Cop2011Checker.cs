@@ -88,44 +88,11 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 for (int j = 0; j < beamResult[k].ResultLocations.Length; j++)
                 {
-                    //if (steelSection.Length != resultBeamForces.Count() || steelSection.Length != beamResult[k].Points.Length)
-                    //throw new ArgumentException();
-                    ResultType[] resultBeamForces = beamResult[k].ResultLocations[j].ResultTypes;
-
-                    SectionClass[] axialCompSectionClass = new SectionClass[steelSection.Length];
-                    SectionClass[] bendingCompSectionClass = new SectionClass[steelSection.Length];
-
-                    double[] latTorsRd = new double[steelSection.Length];
-                    double[] latTorsWR = new double[steelSection.Length];
-
-                    double[] axialTensionRd = new double[steelSection.Length];
-                    double[] axialCompressionRd = new double[steelSection.Length];
-                    double[] shear1Rd = new double[steelSection.Length];
-                    double[] shear2Rd = new double[steelSection.Length];
-                    double[] axialBuck1Rd = new double[steelSection.Length];
-                    double[] axialBuck2Rd = new double[steelSection.Length];
-                    double[] bending1Rd = new double[steelSection.Length];
-                    double[] bending2Rd = new double[steelSection.Length];
-
-                    double[] axialTensionWR = new double[steelSection.Length];
-                    double[] axialCompressionWR = new double[steelSection.Length];
-                    double[] axialBuck1WR = new double[steelSection.Length];
-                    double[] axialBuck2WR = new double[steelSection.Length];
-                    double[] shear1WR = new double[steelSection.Length];
-                    double[] shear2WR = new double[steelSection.Length];
-                    double[] bending1WR = new double[steelSection.Length];
-                    double[] bending2WR = new double[steelSection.Length];
-
-                    double[] interaction881WR = new double[steelSection.Length];
-                    double[] interaction878WR = new double[steelSection.Length];
-                    double[] interaction879WR = new double[steelSection.Length];
-                    double[] interaction880WR = new double[steelSection.Length];
-
-                    for (int i = 0; i < steelSection.Length; i++)
+                    for (int i = 0; i < beamResult[k].ResultLocations[j].ResultTypes.Length; i++)
                     {
                         try
                         {
-                            ResultBeamForces rbf = (ResultBeamForces)resultBeamForces[i];
+                            ResultBeamForces rbf = (ResultBeamForces)beamResult[k].ResultLocations[j].ResultTypes[i];
 
                             ResultLocationStation resultLocationStation = new ResultLocationStation(new ResultBeamForces[] { rbf },
                                 ((ResultLocationStation)beamResult[k].ResultLocations[j]).DistanceFromStartPoint,
@@ -135,139 +102,152 @@ namespace GPC.Checkers.Steel.Checkers
                                 new Cop2011BeamStationResults(steelSection[i], resultLocationStation,
                                 beamResult[k].Case, (StandardCopSuos2011)_standard, (Cop2011Options)_options, BeamName);
 
-                            axialCompSectionClass[i] = CalculateSectionClassDueToCompression(rbf, steelSection[i]);
-                            bendingCompSectionClass[i] = CalculateSectionClassDueToBending(rbf, steelSection[i]);
+                            SectionClass axialCompSectionClass = CalculateSectionClassDueToCompression(rbf, steelSection[i]);
+                            SectionClass bendingCompSectionClass = CalculateSectionClassDueToBending(rbf, steelSection[i]);
 
-                            stationResults[index].SetClasses(axialCompSectionClass[i], bendingCompSectionClass[i]);
+                            stationResults[index].SetClasses(axialCompSectionClass, bendingCompSectionClass);
                             stationResults[index].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
 
-                            axialTensionRd[i] = CalculateAxialTensionCapacity(steelSection[i]);
-                            axialTensionWR[i] = GetWorkingRatio(Math.Max(rbf.N, 0), axialTensionRd[i]);
+                            double axialTensionRd = CalculateAxialTensionCapacity(steelSection[i]);
+                            double axialTensionWR = GetWorkingRatio(Math.Max(rbf.N, 0), axialTensionRd);
 
-                            axialCompressionRd[i] = CalculateAxialCompression(steelSection[i]);
-                            axialCompressionWR[i] = GetWorkingRatio(Math.Min(rbf.N, 0), axialCompressionRd[i]);
+                            double axialCompressionRd = CalculateAxialCompression(steelSection[i]);
+                            double axialCompressionWR = GetWorkingRatio(Math.Min(rbf.N, 0), axialCompressionRd);
 
-                            shear1Rd[i] = CalculateShear1Capacity(rbf, steelSection[i]);
-                            shear1WR[i] = GetWorkingRatio(Math.Abs(rbf.V1), shear1Rd[i]);
+                            double shear1Rd = CalculateShear1Capacity(rbf, steelSection[i]);
+                            double shear1WR = GetWorkingRatio(Math.Abs(rbf.V1), shear1Rd);
 
-                            shear2Rd[i] = CalculateShear2Capacity(rbf, steelSection[i]);
-                            shear2WR[i] = GetWorkingRatio(Math.Abs(rbf.V2), shear2Rd[i]);
+                            double shear2Rd = CalculateShear2Capacity(rbf, steelSection[i]);
+                            double shear2WR = GetWorkingRatio(Math.Abs(rbf.V2), shear2Rd);
 
-                            axialBuck1Rd[i] = CalculateAxialBucklingCapacity1Axis(axialCompSectionClass[i], steelSection[i]);
+                            double axialBuck1Rd = CalculateAxialBucklingCapacity1Axis(axialCompSectionClass, steelSection[i]);
+                            double axialBuck1WR;
 
                             if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)
-                                axialBuck1WR[i] = GetWorkingRatio(Math.Min(rbf.N, 0), axialBuck1Rd[i]);
+                                axialBuck1WR = GetWorkingRatio(Math.Min(rbf.N, 0), axialBuck1Rd);
                             else
-                                axialBuck1WR[i] = 0.001;
+                                axialBuck1WR = 0.001;
 
-                            axialBuck2Rd[i] = CalculateAxialBucklingCapacity2Axis(axialCompSectionClass[i], steelSection[i]);
+                            double axialBuck2Rd = CalculateAxialBucklingCapacity2Axis(axialCompSectionClass, steelSection[i]);
+                            double axialBuck2WR;
+
                             if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)
-                                axialBuck2WR[i] = GetWorkingRatio(Math.Min(rbf.N, 0), axialBuck2Rd[i]);
+                                axialBuck2WR = GetWorkingRatio(Math.Min(rbf.N, 0), axialBuck2Rd);
                             else
-                                axialBuck2WR[i] = 0.001;
+                                axialBuck2WR = 0.001;
 
-                            bending1Rd[i] = CalculateBendingMoment1Capacity(rbf, bendingCompSectionClass[i], steelSection[i]);
-                            bending1WR[i] = GetWorkingRatio(rbf.M1, bending1Rd[i]);
+                            double bending1Rd = CalculateBendingMoment1Capacity(rbf, bendingCompSectionClass, steelSection[i]);
+                            double bending1WR = GetWorkingRatio(rbf.M1, bending1Rd);
 
-                            bending2Rd[i] = CalculateBendingMoment2Capacity(rbf, bendingCompSectionClass[i], steelSection[i]);
-                            bending2WR[i] = GetWorkingRatio(rbf.M2, bending2Rd[i]);
+                            double bending2Rd = CalculateBendingMoment2Capacity(rbf, bendingCompSectionClass, steelSection[i]);
+                            double bending2WR = GetWorkingRatio(rbf.M2, bending2Rd);
 
-                            latTorsRd[i] = Math.Min(CalculateLateralTorsionalBucklingMomentCapacity(bendingCompSectionClass[i], steelSection[i]), bending1Rd[i]);
+                            double latTorsRd = Math.Min(CalculateLateralTorsionalBucklingMomentCapacity(bendingCompSectionClass, steelSection[i]), bending1Rd);
+
+                            double latTorsWR;
+                            double interaction881WR;
 
                             // equazione 8.81 cap. 8.9.2
-                            if (IsNecessaryTheLatTorsBucklingCheck(bendingCompSectionClass[i], steelSection[i]))
+                            if (IsNecessaryTheLatTorsBucklingCheck(bendingCompSectionClass, steelSection[i]))
                             {
-                                latTorsWR[i] = GetWorkingRatio(CalculateMLTForLatTorsBuckling() * rbf.M1, latTorsRd[i]);
+                                latTorsWR = GetWorkingRatio(CalculateMLTForLatTorsBuckling() * rbf.M1, latTorsRd);
 
                                 // equazione 8.81 cap. 8.9.2
                                 if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)
                                 {
-                                    double result = Math.Abs(Math.Min(rbf.N, 0) / Math.Min(axialBuck1Rd[i], axialBuck2Rd[i])) +
-                                         Math.Abs(CalculateMLTForLatTorsBuckling() * rbf.M1 / latTorsRd[i]) +
-                                         Math.Abs(_options.UniformMomentFactorm2 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
+                                    double result = Math.Abs(Math.Min(rbf.N, 0) / Math.Min(axialBuck1Rd, axialBuck2Rd)) +
+                                         Math.Abs(CalculateMLTForLatTorsBuckling() * rbf.M1 / latTorsRd) +
+                                         Math.Abs(_options.UniformMomentFactorm2 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass, steelSection[i]));
 
                                     if (result < 0.001)
-                                        interaction881WR[i] = 0.001;
+                                        interaction881WR = 0.001;
                                     else
-                                        interaction881WR[i] = result;
+                                        interaction881WR = result;
                                 }
                                 else
-                                    interaction881WR[i] = 0.001;
+                                    interaction881WR = 0.001;
                             }
                             else
-                                interaction881WR[i] = 0.001;
+							{
+                                interaction881WR = 0.001;
+                                latTorsWR = 0.001;
+                            }
+
+                            double interaction878WR;
 
                             // equazione 8.78 cap. 8.9.2
                             if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)      // compressione
                             {
-                                SectionClass sectionClass = SetWorstClass(axialCompSectionClass[i], bendingCompSectionClass[i]);
+                                SectionClass sectionClass = SetWorstClass(axialCompSectionClass, bendingCompSectionClass);
                                 if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
                                 {
-                                    double result = Math.Abs(rbf.N / axialCompressionRd[i]) +
-                                         Math.Abs(rbf.M1 / CalculateBendingMoment1Capacity(rbf, bendingCompSectionClass[i], steelSection[i])) +
-                                         Math.Abs(rbf.M2 / CalculateBendingMoment2Capacity(rbf, bendingCompSectionClass[i], steelSection[i]));
+                                    double result = Math.Abs(rbf.N / axialCompressionRd) +
+                                         Math.Abs(rbf.M1 / CalculateBendingMoment1Capacity(rbf, bendingCompSectionClass, steelSection[i])) +
+                                         Math.Abs(rbf.M2 / CalculateBendingMoment2Capacity(rbf, bendingCompSectionClass, steelSection[i]));
 
                                     if (result < 0.001)
-                                        interaction878WR[i] = 0.001;
+                                        interaction878WR = 0.001;
                                     else
-                                        interaction878WR[i] = result;
+                                        interaction878WR = result;
                                 }
                                 else
-                                    interaction878WR[i] = 0.001;     //TODO: implementare CalculateInteractionWR per classe 4
+                                    interaction878WR = 0.001;     //TODO: implementare CalculateInteractionWR per classe 4
                             }
                             else
                             {
-                                double result = Math.Abs(rbf.N / axialTensionRd[i]) +
-                                         Math.Abs(rbf.M1 / CalculateBendingMoment1Capacity(rbf, bendingCompSectionClass[i], steelSection[i])) +
-                                         Math.Abs(rbf.M2 / CalculateBendingMoment2Capacity(rbf, bendingCompSectionClass[i], steelSection[i]));
+                                double result = Math.Abs(rbf.N / axialTensionRd) +
+                                         Math.Abs(rbf.M1 / CalculateBendingMoment1Capacity(rbf, bendingCompSectionClass, steelSection[i])) +
+                                         Math.Abs(rbf.M2 / CalculateBendingMoment2Capacity(rbf, bendingCompSectionClass, steelSection[i]));
 
                                 if (result < 0.001)
-                                    interaction878WR[i] = 0.001;
+                                    interaction878WR = 0.001;
                                 else
-                                    interaction878WR[i] = result;
+                                    interaction878WR = result;
                             }
 
+                            double interaction879WR;
 
                             // equazione 8.79 cap. 8.9.2
                             if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)
                             {
-                                double result = Math.Abs(Math.Min(rbf.N, 0) / Math.Min(axialBuck1Rd[i], axialBuck2Rd[i])) +
-                                    Math.Abs(_options.UniformMomentFactorm1 * rbf.M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
-                                    Math.Abs(_options.UniformMomentFactorm2 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
+                                double result = Math.Abs(Math.Min(rbf.N, 0) / Math.Min(axialBuck1Rd, axialBuck2Rd)) +
+                                    Math.Abs(_options.UniformMomentFactorm1 * rbf.M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass, steelSection[i])) +
+                                    Math.Abs(_options.UniformMomentFactorm2 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass, steelSection[i]));
 
                                 if (result < 0.001)
-                                    interaction879WR[i] = 0.001;
+                                    interaction879WR = 0.001;
                                 else
-                                    interaction879WR[i] = result;
+                                    interaction879WR = result;
                             }
                             else
-                                interaction879WR[i] = 0.001;
+                                interaction879WR = 0.001;
 
+                            double interaction880WR;
 
                             // equazione 8.80 cap. 8.9.2
                             if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)
                             {
                                 // <= Pc segnato cap 8.9.2
-                                double result = Math.Abs(Math.Min(rbf.N, 0) / Math.Min(CalculateAxialBucklingCapacity1AxisForInteraction(axialCompSectionClass[i], steelSection[i]),
-                                    CalculateAxialBucklingCapacity2AxisForInteraction(axialCompSectionClass[i], steelSection[i]))) +
-                                    Math.Abs(_options.UniformMomentFactorm1 * rbf.M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass[i], steelSection[i])) +
-                                    Math.Abs(_options.UniformMomentFactorm1 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass[i], steelSection[i]));
+                                double result = Math.Abs(Math.Min(rbf.N, 0) / Math.Min(CalculateAxialBucklingCapacity1AxisForInteraction(axialCompSectionClass, steelSection[i]),
+                                    CalculateAxialBucklingCapacity2AxisForInteraction(axialCompSectionClass, steelSection[i]))) +
+                                    Math.Abs(_options.UniformMomentFactorm1 * rbf.M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass, steelSection[i])) +
+                                    Math.Abs(_options.UniformMomentFactorm1 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass, steelSection[i]));
 
                                 if (result < 0.001)
-                                    interaction880WR[i] = 0.001;
+                                    interaction880WR = 0.001;
                                 else
-                                    interaction880WR[i] = result;
+                                    interaction880WR = result;
                             }
                             else
-                                interaction880WR[i] = 0.001;
+                                interaction880WR = 0.001;
 
 
-                            stationResults[index].SetCapacity(axialTensionRd[i], axialCompressionRd[i], axialBuck1Rd[i], axialBuck2Rd[i], 
-                                shear1Rd[i], shear2Rd[i], bending1Rd[i], bending2Rd[i], latTorsRd[i]);
+                            stationResults[index].SetCapacity(axialTensionRd, axialCompressionRd, axialBuck1Rd, axialBuck2Rd, 
+                                shear1Rd, shear2Rd, bending1Rd, bending2Rd, latTorsRd);
 
-                            stationResults[index].SetWorkingRatio(axialTensionWR[i], axialCompressionWR[i], axialBuck1WR[i], axialBuck2WR[i], 
-                                shear1WR[i], shear2WR[i], bending1WR[i], bending2WR[i], latTorsWR[i],
-                                interaction878WR[i], interaction879WR[i], interaction880WR[i], interaction881WR[i]);
+                            stationResults[index].SetWorkingRatio(axialTensionWR, axialCompressionWR, axialBuck1WR, axialBuck2WR, 
+                                shear1WR, shear2WR, bending1WR, bending2WR, latTorsWR,
+                                interaction878WR, interaction879WR, interaction880WR, interaction881WR);
 
                             stationResults[index].SetPy(_py, _epsilon);
 
@@ -278,10 +258,10 @@ namespace GPC.Checkers.Steel.Checkers
                                 CalculatePCompression1Axis(steelSection[i]), CalculatePCompression2Axis(steelSection[i]), CalculateLambda0ForAxialBuckling(steelSection[i]),
                                 CalculateNForAxialBuckling1Axis(steelSection[i]), CalculateNForAxialBuckling2Axis(steelSection[i]));
 
-                            stationResults[index].SetResultsForReportLTB(CalculateLambdaLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), 
-                                CalculateLambdaL0ForLatTorsBucklingBS5950(steelSection[i].SteelMaterial.E), CalculatePeForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]), 
-                                CalculatePhiLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass[i]),
-                                CalculatePbForLatTorsBuckling(bendingCompSectionClass[i], steelSection[i]));
+                            stationResults[index].SetResultsForReportLTB(CalculateLambdaLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass), 
+                                CalculateLambdaL0ForLatTorsBucklingBS5950(steelSection[i].SteelMaterial.E), CalculatePeForLatTorsBuckling(steelSection[i], bendingCompSectionClass), 
+                                CalculatePhiLTForLatTorsBuckling(steelSection[i], bendingCompSectionClass),
+                                CalculatePbForLatTorsBuckling(bendingCompSectionClass, steelSection[i]));
 
                             stationResults[index].SetResultForReportShear(GetShearAreaXaxis(steelSection[i]), GetShearAreaYaxis(steelSection[i]));
 
