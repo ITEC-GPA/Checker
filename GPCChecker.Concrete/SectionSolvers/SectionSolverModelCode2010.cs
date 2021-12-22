@@ -117,14 +117,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             if (strain < 0)
             {
                 // compressione
-                return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFcd() / ConcreteMaterialModelCode2010.Fck;
+                return ConcreteMaterialModelCode2010.GetStress(strain) * Math.Abs(CalculateFcd() / ConcreteMaterialModelCode2010.Fck);
             }
             else
             {
                 // trazione
                 if (ConsiderTensileConcrete)
                 {
-                    return ConcreteMaterialModelCode2010.GetStress(strain) * CalculateFctd() / ConcreteMaterialModelCode2010.Fctk05;
+                    return ConcreteMaterialModelCode2010.GetStress(strain) * Math.Abs(CalculateFctd() / ConcreteMaterialModelCode2010.Fctk05);
                 }
                 else
                 {

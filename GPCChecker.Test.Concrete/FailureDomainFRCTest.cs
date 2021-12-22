@@ -261,6 +261,91 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		public void RectangularSectionTest5()
+		{
+			double height = 600;
+			double width = 300;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(width, 0),
+				new Point2d(width, height),
+				new Point2d(0, height)
+			}));
+
+			ConcreteMaterialModelCode2010FRC concreteMaterial = ConcreteMaterialModelCode2010FRC.C30_37_10;
+			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
+
+			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+
+			ShowDomainPoints(plasticFailureDomain.Domain);
+
+			ExportToGmsh(plasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain);			
+		}
+
+		[TestMethod]
+		public void RectangularSectionTest6()
+		{
+			double height = 400;
+			double width = 400;
+			double rebarDiameter = 20;
+			double concreteCover = 50;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(-width / 2.0, -height / 2.0),
+				new Point2d(width / 2.0, -height / 2.0),
+				new Point2d(width / 2.0, height / 2.0),
+				new Point2d(-width / 2.0, height / 2.0)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialModelCode2010FRC.C30_37_15);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, RebarMaterial.B450C);
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point2d(-width / 2.0 + concreteCover, -height / 2.0 + concreteCover)),
+				new ReinforcedConcreteRebar(rebar, new Point2d(-width / 2.0 + width / 2.0, -height / 2.0 + concreteCover)),
+				new ReinforcedConcreteRebar(rebar, new Point2d(-width / 2.0 + width - concreteCover, -height / 2.0 + concreteCover)),
+				new ReinforcedConcreteRebar(rebar, new Point2d(-width / 2.0 + width - concreteCover, -height / 2.0 + height / 2.0)),
+				new ReinforcedConcreteRebar(rebar, new Point2d(-width / 2.0 + width - concreteCover, -height / 2.0 + height - concreteCover)),
+				new ReinforcedConcreteRebar(rebar, new Point2d(-width / 2.0 + width / 2.0, -height / 2.0 + height - concreteCover)),
+				new ReinforcedConcreteRebar(rebar, new Point2d(-width / 2.0 + concreteCover, -height / 2.0 + height - concreteCover)),
+				new ReinforcedConcreteRebar(rebar, new Point2d(-width / 2.0 + concreteCover, -height / 2.0 + height / 2.0))
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+
+			StandardEN1992p11 standard = new StandardEN1992p11();
+			//ExportToGmsh(section);
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
+
+			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			ShowDomainPoints(elasticFailureDomain.Domain);
+			ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
+
+			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResultAsync().Result;
+			ShowDomainPoints(plasticFailureDomain.Domain);
+			ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
+		}
+
+		[TestMethod]
 		public void RectangularSectionTest10()
 		{
 			double rebarDiameter = 20;

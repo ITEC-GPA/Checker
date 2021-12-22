@@ -45,9 +45,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F1, 2),
             (FailureZones.F2A, 5),
             (FailureZones.F2B, 5),
-            (FailureZones.F3A, 5),
-            (FailureZones.F3B, 5),
-            (FailureZones.F4, 2),
+            (FailureZones.F3A, 20),
+            (FailureZones.F3B, 0),
+            (FailureZones.F5, 4)
+        };
+
+        /// <summary>
+        /// Rapresent the discretization of the axial force in the solver for plastic analysis for FRC material with no rebars
+        /// </summary>
+        protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizationsFRCNoRebars =
+        {
+            (FailureZones.F1, 2),
+            (FailureZones.F2A, 5),
+            (FailureZones.F2B, 5),
+            (FailureZones.F3A, 20),
+            (FailureZones.F3B, 0),
             (FailureZones.F5, 4)
         };
 
@@ -71,7 +83,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F1, 3),
             (FailureZones.F2A, 5),
             (FailureZones.F3A, 5),
-            (FailureZones.F4, 5),
             (FailureZones.F5, 5)
         };
 
@@ -168,7 +179,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _failureAnalysisAngularTolerance = 1e-2;
 
             _considerTensileConcrete = considerTensileConcrete;
-            _tetaDiscretization = 64;
+            _tetaDiscretization = 32;
 
             _gaussIntegrationQuadLowPoints = 12;
             _gaussIntegrationQuadMidPoints = 49;
@@ -248,7 +259,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             if (materialType == MaterialTypes.Concrete)
                 zoneDiscretization = _plasticFailureZonesDiscretizations;
             else
-                zoneDiscretization = _plasticFailureZonesDiscretizationsFRC;
+			{
+                if(ConcreteSection.RebarsCount != 0)
+                    zoneDiscretization = _plasticFailureZonesDiscretizationsFRC;
+                else
+                    zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebars;
+            }
 
             if (materialType == MaterialTypes.Concrete)
                 if (ConcreteSection.RebarsCount == 0)
