@@ -363,3 +363,5 @@ FodyWeavers.xsd
 
 WASTAGE/
 [Ww]astage/
+
+GPCChecker.Concrete/PushNugetPackage.bat
