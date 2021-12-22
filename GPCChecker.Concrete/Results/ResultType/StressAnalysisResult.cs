@@ -33,16 +33,7 @@ namespace GPC.Checkers.Concrete.Results
             _sectionSolver = solver ?? throw new ArgumentNullException(nameof(solver));
         }
 
-
-        public virtual double GetConcreteTension(Point2d point)
-        {
-            return _sectionSolver.CalculateSigmaC(StrainPlane.GetStrain(point));   
-        }
-
-        public virtual (Point2d point, double tension)[] GetConcreteVerticesTension()
-        {
-            return _section.Shape.GetPoints2d().Select(i => (i, _sectionSolver.CalculateSigmaC(StrainPlane.GetStrain(i)))).ToArray();
-        }
+		#region Rebar
 
         public virtual double GetRebarTension(ReinforcedConcreteRebar rebar)
         {            
@@ -64,6 +55,141 @@ namespace GPC.Checkers.Concrete.Results
             return _section.Rebars.Select(i => (i, GetRebarTension(phi, i))).ToArray();
         }
 
+        public virtual bool GetRebarTension(ReinforcedConcreteRebar rebar, out double tension)
+		{
+			try
+			{
+                tension = GetRebarTension(rebar);
+                return true;
+			}
+            catch (Exception)
+			{
+                tension = double.NaN;
+                return false;
+			}
+		}
+
+        public virtual bool GetRebarsTension(out (ReinforcedConcreteRebar rebar, double tension)[] rebarTensionAssociation)
+		{
+            try
+            {
+                rebarTensionAssociation = GetRebarsTension();
+                return true;
+            }
+            catch (Exception)
+            {
+                rebarTensionAssociation = null;
+                return false;
+            }
+        }
+
+        public virtual bool GetRebarTension(double phi, ReinforcedConcreteRebar rebar, out double tension)
+        {
+            try
+            {
+                tension = GetRebarTension(phi, rebar);
+                return true;
+            }
+            catch (Exception)
+            {
+                tension = double.NaN;
+                return false;
+            }
+        }
+
+        public virtual bool GetRebarsTension(double phi, out (ReinforcedConcreteRebar rebar, double tension)[] rebarTensionAssociation)
+        {
+            try
+            {
+                rebarTensionAssociation = GetRebarsTension(phi);
+                return true;
+            }
+            catch (Exception)
+            {
+                rebarTensionAssociation = null;
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Concrete
+
+        public virtual double GetConcreteTension(Point2d point)
+        {
+            return _sectionSolver.CalculateSigmaC(StrainPlane.GetStrain(point));   
+        }
+
+        public virtual (Point2d point, double tension)[] GetConcreteVerticesTension()
+        {
+            return _section.Shape.GetPoints2d().Select(i => (i, _sectionSolver.CalculateSigmaC(StrainPlane.GetStrain(i)))).ToArray();
+        }
+
+        public virtual double GetConcreteTension(double n, Point2d point)
+        {
+            return _sectionSolver.CalculateElasticSigmaC(StrainPlane.GetStrain(point));
+        }
+
+        public virtual (Point2d point, double tension)[] GetConcreteVerticesTension(double n)
+        {
+            return _section.Shape.GetPoints2d().Select(i => (i, _sectionSolver.CalculateElasticSigmaC(StrainPlane.GetStrain(i)))).ToArray();
+        }
+
+        public virtual bool GetConcreteTension(Point2d point, out double tension)
+		{
+			try
+			{
+                tension = GetConcreteTension(point);
+                return true;
+			}
+			catch
+			{
+                tension = double.NaN;
+                return false;
+			}
+		}
+
+        public virtual bool GetConcreteVerticesTension(out (Point2d point, double tension)[] verticesTensionAssociation)
+		{
+			try
+			{
+                verticesTensionAssociation = GetConcreteVerticesTension();
+                return true;
+            }
+			catch
+			{
+                verticesTensionAssociation = null;
+                return false;
+			}
+		}
+
+        public virtual bool GetConcreteTension(double n, Point2d point, out double tension)
+		{
+			try
+			{
+                tension = GetConcreteTension(n, point);
+                return true;
+			}
+			catch (Exception)
+			{
+                tension = double.NaN;
+                return false;
+			}
+		}
+
+        public virtual bool GetConcreteVerticesTension(double n, (Point2d point, double tension)[] verticesTensionAssociation)
+		{
+			try
+			{
+                verticesTensionAssociation = GetConcreteVerticesTension(n);
+                return true;
+            }
+			catch
+			{
+                verticesTensionAssociation= null;
+                return false;
+			}
+		}
 
         public double[] GetVerticesStrain()
         {
@@ -83,16 +209,9 @@ namespace GPC.Checkers.Concrete.Results
             return strains;
         }
 
-        public virtual (Point2d point, double tension)[] GetConcreteVerticesTension(double n)
-        {
-            return _section.Shape.GetPoints2d().Select(i => (i, _sectionSolver.CalculateElasticSigmaC(StrainPlane.GetStrain(i)))).ToArray();
-        }
-        public virtual double GetConcreteTension(double n, Point2d point)
-        {
-            return _sectionSolver.CalculateElasticSigmaC(StrainPlane.GetStrain(point));
-        }
+		#endregion
 
-        public List<string> GetLog()
+		public List<string> GetLog()
         {
             return _sectionSolver.GetLog();
         }
