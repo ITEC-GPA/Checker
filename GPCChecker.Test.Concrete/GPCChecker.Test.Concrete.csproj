@@ -116,10 +116,6 @@
       <Name>GPCChecker.Concrete</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="gmsh-4.8.dll" />
-    <Content Include="UnsafeEx.dll" />
-  </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.484.1\build\GMsh.Net.targets')" />
