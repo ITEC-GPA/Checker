@@ -177,7 +177,7 @@ namespace GPC.Checkers.Concrete.Results
 			}
 		}
 
-        public virtual bool GetConcreteVerticesTension(double n, (Point2d point, double tension)[] verticesTensionAssociation)
+        public virtual bool GetConcreteVerticesTension(double n, out (Point2d point, double tension)[] verticesTensionAssociation)
 		{
 			try
 			{
