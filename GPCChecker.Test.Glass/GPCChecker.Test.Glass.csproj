@@ -53,8 +53,8 @@
     <Reference Include="GPCGeometry, Version=1.1.3.2, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCGeometry.1.1.3.2\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.1.4.7, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.1.4.7\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.1.4.8, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.1.4.8\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.7, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.7\lib\net472\GPCTestUtilities.dll</HintPath>
@@ -107,6 +107,10 @@
       <Project>{19977875-dc88-47e0-92c9-d9ace7ce4f3d}</Project>
       <Name>GPCChecker.Glass</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="gmsh-4.8.dll" />
+    <Content Include="UnsafeEx.dll" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
