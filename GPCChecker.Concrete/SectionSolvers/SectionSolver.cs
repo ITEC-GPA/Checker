@@ -176,7 +176,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
-            _failureAnalysisAngularTolerance = 1e-2;
+            _failureAnalysisAngularTolerance = 0.5e-3;
 
             _considerTensileConcrete = considerTensileConcrete;
             _tetaDiscretization = 32;
