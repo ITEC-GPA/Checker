@@ -1165,33 +1165,38 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             // Valori di primo tentativo
             FailureZones failureIndex;
-            double immersione;
+            double eta;
             double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
-            if(adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
-			{
+            if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
+            {
                 failureIndex = FailureZones.F1;
-                immersione = 0.75;
+                eta = 0.75;
             }
             else if (adimOutputForces.N > 0.0)
             {
                 failureIndex = FailureZones.F3A;
-                immersione = 0.25;
-            }             
+                eta = 0.25;
+            }
             else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
-			{
+            {
                 failureIndex = FailureZones.F5;
-                immersione = 1.0;
-            }                
+                eta = 1.0;
+            }
+            else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-2 && Math.Abs(adimOutputForces.My) < 1e-2)
+            {
+                failureIndex = FailureZones.F5;
+                eta = 0.5;
+            }
             else if (Math.Abs(adimOutputForces.N) < 1e-5)
             {
                 failureIndex = FailureZones.F3A;
-                immersione = 0.5;
+                eta = 0.5;
             }
             else
             {
-                failureIndex = FailureZones.F3B;
-                immersione = 0.5;
+                failureIndex = FailureZones.F5;
+                eta = 0.2;
             }
 
             int id = 1;
@@ -1202,14 +1207,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var p3 = GetP3(distances, analysisType);
             var p4 = GetP4(distances, analysisType, materialType);
 
-            StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, p1, p2, p3, p4, id);
+            StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, id);
 
             teta = strainPlane.Teta;
 
             ForceTuple forces = CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
             ForceTuple adimIncrement;
 
-            (double deltaTeta, double deltaImmersione, Vector3d distanceToTarget) increment;
+            (double deltaTeta, double deltaEta, Vector3d distanceToTarget) increment;
 
             double angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000, 
                 targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
@@ -1222,7 +1227,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     {
                         try
                         {
-                            increment = CalculateIncrement(forces, strainPlane, failureIndex, immersione, targetLocalForces, angle, 
+                            increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, targetLocalForces, angle, 
                                 analysisType, materialType, rebarIsInsideAssociation);
                         }
                         catch (Exception e)
@@ -1268,6 +1273,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         p4 = GetP4(distances, analysisType, materialType);
 
                         strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, p1, p2, p3, p4, id);
+                        strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, id);
                         forces = CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
 
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
