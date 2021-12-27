@@ -1238,32 +1238,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             return null;
                         }
 
-                        increment.deltaImmersione = increment.deltaImmersione > 0.4 ? 0.4 : increment.deltaImmersione;
-                        increment.deltaImmersione = increment.deltaImmersione < -0.4 ? -0.4 : increment.deltaImmersione;
-
-                        increment.deltaTeta = increment.deltaTeta > Math.PI / 8.0 ? Math.PI / 8.0 : increment.deltaTeta;
-                        increment.deltaTeta = increment.deltaTeta < -Math.PI / 8.0 ? -Math.PI / 8.0 : increment.deltaTeta;
-
-                        // piano di nuovo tentativo
-                        id++;
-                        teta += increment.deltaTeta;
-
-                        immersione += (increment.deltaImmersione - (int)increment.deltaImmersione);
-                        failureIndex += (int)increment.deltaImmersione;
-
-                        if (immersione < 0.0)
-                        {
-                            immersione++;
-                            failureIndex--;
-                        }
-                        if (immersione > 1.0)
-                        {
-                            immersione--;
-                            failureIndex++;
-                        }
-
-                        failureIndex = (int)failureIndex < 1 ? FailureZones.F1 : failureIndex;
-                        failureIndex = (int)failureIndex > 7 ? FailureZones.F5 : failureIndex;
+                        SetIncrement(analysisType, materialType, ref failureIndex, ref teta, ref eta, increment.deltaTeta, increment.deltaEta);
 
                         distances = CalculateMaxMinSectionDistances(teta);
 
@@ -1272,7 +1247,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         p3 = GetP3(distances, analysisType);
                         p4 = GetP4(distances, analysisType, materialType);
 
-                        strainPlane = CalculateStrainPlane(teta, failureIndex, immersione, p1, p2, p3, p4, id);
+                        id++;
                         strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, id);
                         forces = CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
 
@@ -1297,7 +1272,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
         }
 
-        protected (double deltaTeta, double deltaImmersione, Vector3d distanceToTarget) CalculateIncrement(ForceTuple iterationPoint,
+        protected (double deltaTeta, double deltaEta, Vector3d distanceToTarget) CalculateIncrement(ForceTuple iterationPoint,
             StrainPlane inputStrainPlane, FailureZones inputFailureZone, double inputImmersioneNelCampo, ForceTuple externalForces, 
             double deltaAngle, FailureDomainAnalysisTypes analysisType, MaterialTypes materialType, Dictionary<int, bool> rebarIsInsideAssociation)
         {
@@ -1508,30 +1483,182 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double dT;
                 double dE;
 
-                if (dTeta > 0.01)
-                    dT = Math.Pow(dTeta, 0.5);
-                else if (dTeta > 0.001)
-                    dT = Math.Pow(dTeta, 0.3);
+                if (dTeta >= 0.01)
+                    dT = 0.05;
+                else if (dTeta >= 0.001)
+                    dT = 0.15;
                 else
-                    dT = Math.Pow(dTeta, 0.2);
+                    dT = 0.25;
 
-                if (dEta > 0.01)
-                    dE = Math.Pow(dEta, 0.5);
-                else if (dEta > 0.001)
-                    dE = Math.Pow(dEta, 0.3);
+                if (materialType == MaterialTypes.Concrete)
+                {
+                    if (inputFailureZone != FailureZones.F3A)
+                    {
+                        if (dEta >= 0.01)
+                            dE = 0.15;
+                        else if (dEta >= 0.001)
+                            dE = 0.25;
+                        else
+                            dE = 0.35;
+                    }
+                    else if (inputFailureZone != FailureZones.F3B)
+                    {
+                        if (dEta >= 0.01)
+                            dE = 0.1;
+                        else if (dEta >= 0.001)
+                            dE = 0.2;
+                        else
+                            dE = 0.3;
+                    }
+                    else
+                    {
+                        if (dEta >= 0.01)
+                            dE = 0.25;
+                        else if (dEta >= 0.001)
+                            dE = 0.35;
+                        else
+                            dE = 0.5;
+                    }
+                }
                 else
-                    dE = Math.Pow(dEta, 0.2);
-
-                if (Math.Abs(results[1, 0]) < 0.01)
-                    dE = 0.5;
-
-
+                {
+                    if (inputFailureZone != FailureZones.F3A)
+                    {
+                        if (dEta >= 0.01)
+                            dE = 0.05;
+                        else if (dEta >= 0.001)
+                            dE = 0.1;
+                        else
+                            dE = 0.2;
+                    }
+                    else if (inputFailureZone != FailureZones.F3B)
+                    {
+                        if (dEta >= 0.01)
+                            dE = 0.1;
+                        else if (dEta >= 0.001)
+                            dE = 0.2;
+                        else
+                            dE = 0.3;
+                    }
+                    else
+                    {
+                        if (dEta >= 0.01)
+                            dE = 0.2;
+                        else if (dEta >= 0.001)
+                            dE = 0.3;
+                        else
+                            dE = 0.4;
+                    }
+                }
                 double deltaTeta = results[0, 0] * dT / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorTeta), 1.0));
-                double deltaImmersione = results[1, 0] * dE / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorEta), 1.0));
+                double deltaEta = results[1, 0] * dE / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorEta), 1.0));
+
+                if (inputFailureZone == FailureZones.F2A || inputFailureZone == FailureZones.F2B ||
+                    inputFailureZone == FailureZones.F4 || inputFailureZone == FailureZones.F5)
+                    deltaEta *= 2;
 
 
-                return (deltaTeta, deltaImmersione, displacementVector);
+                return (deltaTeta, deltaEta, displacementVector);
             }
+        }
+
+        protected void SetIncrement(FailureDomainAnalysisTypes analysisType, MaterialTypes materialType, ref FailureZones failureZone, 
+            ref double teta, ref double eta, double deltaTeta, double deltaEta)
+		{
+            deltaEta = deltaEta > 0.4 ? 0.4 : deltaEta;
+            deltaEta = deltaEta < -0.3 ? -0.3 : deltaEta;
+
+            deltaTeta = deltaTeta > Math.PI / 8.0 ? Math.PI / 8.0 : deltaTeta;
+            deltaTeta = deltaTeta < -Math.PI / 8.0 ? -Math.PI / 8.0 : deltaTeta;
+
+            // piano di nuovo tentativo
+            teta += deltaTeta;
+
+            eta += (deltaEta - (int)deltaEta);
+            failureZone += (int)deltaEta;
+
+            if (analysisType == FailureDomainAnalysisTypes.Plastic && materialType == MaterialTypes.Concrete)
+            {
+                if (eta < 0.0)
+                {
+                    eta++;                    
+                    failureZone--;
+
+                }
+                if (eta > 1.0)
+                {
+                    eta--;
+                    failureZone++;
+                }
+            }
+            else if (analysisType == FailureDomainAnalysisTypes.Plastic && materialType == MaterialTypes.FRC)
+            {
+                if (eta < 0.0)
+                {
+                    eta++;
+                    failureZone--;
+
+                    if (failureZone == FailureZones.F4)
+                        failureZone--;
+                }
+                if (eta > 1.0)
+                {
+                    eta--;
+                    failureZone++;
+
+                    if (failureZone == FailureZones.F4)
+                        failureZone++;
+                }
+            }
+            else if (analysisType == FailureDomainAnalysisTypes.Elastic && materialType == MaterialTypes.Concrete)
+            {
+                if (eta < 0.0)
+                {
+                    eta++;
+                    failureZone--;
+
+                    if (failureZone == FailureZones.F3B || failureZone == FailureZones.F2B)
+                        failureZone--;
+                }
+                if (eta > 1.0)
+                {
+                    eta--;
+                    failureZone++;
+
+                    if (failureZone == FailureZones.F4 || failureZone == FailureZones.F2B)
+                        failureZone++;
+                }
+            }
+            else if (analysisType == FailureDomainAnalysisTypes.Elastic && materialType == MaterialTypes.FRC)
+            {
+                if (eta < 0.0)
+                {
+                    eta++;
+                    failureZone--;
+
+                    if (failureZone == FailureZones.F4)
+                        failureZone--;
+
+                    if (failureZone == FailureZones.F3B || failureZone == FailureZones.F2B)
+                        failureZone--;
+                }
+                if (eta > 1.0)
+                {
+                    eta--;
+                    failureZone++;
+
+                    if (failureZone == FailureZones.F3B)
+                        failureZone++;
+
+                    if (failureZone == FailureZones.F4 || failureZone == FailureZones.F2B)
+                        failureZone++;
+                }
+            }
+            else
+                throw new Exception();
+
+            failureZone = (int)failureZone < 1 ? FailureZones.F1 : failureZone;
+            failureZone = (int)failureZone > 7 ? FailureZones.F5 : failureZone;
         }
 
         #endregion
