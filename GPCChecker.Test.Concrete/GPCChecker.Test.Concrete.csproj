@@ -92,6 +92,7 @@
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FailureDomainCheckFRCTest.cs" />
     <Compile Include="FailureDomainPSCTest.cs" />
     <Compile Include="FailureDomainFRCTest.cs" />
     <Compile Include="FailureDomainRCTest.cs" />

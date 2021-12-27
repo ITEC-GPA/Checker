@@ -365,7 +365,8 @@ namespace ConcreteTests
 					Console.WriteLine($"Point {i} = {Math.Round(failureDomainPoints[i].Point.X / 1000000)}, " +
 						$"{Math.Round(failureDomainPoints[i].Point.Y / 1000000)}, " +
 						$"{Math.Round(failureDomainPoints[i].Point.Z / 1000)}");
-			
+                    Console.WriteLine($"Number of iteraction: {failureDomainPoints[i].StrainPlane.Id} \n");
+
 
                     Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance);
                     Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance);
@@ -386,6 +387,80 @@ namespace ConcreteTests
                     return false;
                 }
                     
+            }
+
+            return true;
+        }
+
+        protected bool CommonAssertDomainPointMethodFRC(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
+            CoordinateSystem coordinateSystem, double adimTolerance = 0.005, double[] factor = null)
+        {
+            if (factor == null)
+                factor = new double[] { 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5 };
+
+            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard, true);
+            FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
+            ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
+            int j = 0;
+
+            try
+            {
+                for (j = 0; j < factor.Length; j++)
+                {
+                    testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
+                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem));
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Fail to calculate domain point {j}, {e.Message}");
+                return false;
+            }
+
+
+            for (int i = 0; i < factor.Length; i++)
+            {
+                Console.WriteLine($"External Force = {Math.Round(testForces[i].M1 / 1000000)}, " +
+                    $"{Math.Round(testForces[i].M2 / 1000000)}, " +
+                    $"{Math.Round(testForces[i].N / 1000)}");
+
+                if (failureDomainPoints[i] != null)
+                {
+                    ForceTuple adimForces = solver.ConvertToAdimForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
+                        failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X,
+                        failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y));
+
+                    Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance,
+                        $"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
+                    Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance,
+                        $"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
+                    Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance,
+                        $"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
+
+                    Console.WriteLine($"Point {i} = {Math.Round(failureDomainPoints[i].Point.X / 1000000)}, " +
+                        $"{Math.Round(failureDomainPoints[i].Point.Y / 1000000)}, " +
+                        $"{Math.Round(failureDomainPoints[i].Point.Z / 1000)}");
+                    Console.WriteLine($"Number of iteraction: {failureDomainPoints[i].StrainPlane.Id} \n");
+
+                    Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance);
+                    Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance);
+                    Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance);
+
+                    if (force.N != 0)
+                        Assert.IsTrue(Math.Sign(force.N) == Math.Sign(failureDomainPoints[i].Point.Z));
+                    if (force.M1 != 0)
+                        Assert.IsTrue(Math.Sign(force.M1) == Math.Sign(failureDomainPoints[i].Point.X));
+                    if (force.M2 != 0)
+                        Assert.IsTrue(Math.Sign(force.M2) == Math.Sign(failureDomainPoints[i].Point.Y));
+                }
+                else
+                {
+                    Console.WriteLine($"Fail to calculate strain plane for force {i} = {Math.Round(testForces[i].M1 / 1000000)}, " +
+                    $"{Math.Round(testForces[i].M2 / 1000000)}, " +
+                    $"{Math.Round(testForces[i].N / 1000)}");
+                    return false;
+                }
+
             }
 
             return true;
