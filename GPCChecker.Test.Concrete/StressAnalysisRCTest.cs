@@ -207,7 +207,7 @@ namespace ConcreteTests
 			{
 				new ResultBeamForces(-100 * 1000, 0, 0, 0, 150 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(-885 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
-				new ResultBeamForces(0 * 1000, 0, 0, 0, 100 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 30 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(-500 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(-500 * 1000, 0, 0, 0, -200 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(-200 * 1000, 0, 0, 0, -80 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section)),

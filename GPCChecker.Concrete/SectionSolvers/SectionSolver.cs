@@ -1191,12 +1191,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else if (Math.Abs(adimOutputForces.N) < 1e-5)
             {
                 failureIndex = FailureZones.F3A;
-                eta = 0.5;
+                eta = 0.75;
             }
             else
             {
                 failureIndex = FailureZones.F5;
-                eta = 0.2;
+                eta = 0.1;
             }
 
             int id = 1;

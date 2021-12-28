@@ -56,7 +56,7 @@ namespace ConcreteTests
             ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300, ConcreteMaterialEN1992.C25_30);
             concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
-            ResultBeamForces force = new ResultBeamForces(-100 * 1000, 20, 30, 40, 10 * 1000000, 60 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular));
+            ResultBeamForces force = new ResultBeamForces(-100 * 1000, 20, 30, 40, 3 * 1000000, 2 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular));
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute,

@@ -311,9 +311,7 @@ namespace ConcreteTests
 				new Point2d(0, h)
 			}));
 
-			ConcreteMaterialEN1992 concreteMaterial = GetLinearConcreteMaterial(elasticModulus);
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, RebarMaterial.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
@@ -329,7 +327,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(450, 550, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(new ShapeEx(shape, GetLinearConcreteMaterial(elasticModulus)));
 			section.AddRebars(rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -368,7 +366,6 @@ namespace ConcreteTests
 			};
 
 			CommonAssertsVCA(result[0], section, expConcreteTensions, expRebarTensions);
-
 		}
 				
 	}

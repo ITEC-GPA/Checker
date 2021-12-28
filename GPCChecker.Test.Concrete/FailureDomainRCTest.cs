@@ -533,9 +533,9 @@ namespace ConcreteTests
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
-			ExportToGmsh(section);
-			ExportToGmsh(plasticFailureDomain.Domain);
-			ExportToGmsh(elasticFailureDomain.Domain);
+			//ExportToGmsh(section);
+			//ExportToGmsh(plasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain);
 
 			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
