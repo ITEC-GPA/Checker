@@ -1227,7 +1227,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     {
                         try
                         {
-                            increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, targetLocalForces, angle, 
+                            increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, targetLocalForces, angle,
                                 analysisType, materialType, rebarIsInsideAssociation);
                         }
                         catch (Exception e)
@@ -1263,8 +1263,25 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     }
                     else
                     {
-                        _log.Add("Fail to calculate point on domain");
-                        return null;
+                        FailureDomain.FailureDomainPoint domainPoint = null;
+                        try
+                        {
+                            FailureDomain.FailureDomainPoint domainPointBuffer = CalculateDomainPoint(targetLocalForces, analysisType,
+                                materialType, 10 * angularTolerance, 10 * distanceTolerance);
+
+                            if (domainPointBuffer != null)
+                                domainPoint = domainPointBuffer;
+                            else
+							{
+                                _log.Add("Fail to calculate point on domain");
+                                return domainPoint;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            _log.Add("Fail to calculate point on domain");
+                            return domainPoint;
+                        }
                     }
                 } while (angle > angularTolerance);
             }
