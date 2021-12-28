@@ -349,7 +349,7 @@ namespace ConcreteTests
 			for (int i = 0; i < forces.Length; i++)
 			{
 				Console.WriteLine($"Force {i}");
-				Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section)), $"Force {i} fail");
+				Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01), $"Force {i} fail");
 			}
 
 		}

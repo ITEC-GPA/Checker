@@ -1492,71 +1492,45 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 if (materialType == MaterialTypes.Concrete)
                 {
-                    if (inputFailureZone != FailureZones.F3A)
+                    if (inputFailureZone == FailureZones.F3A)
                     {
                         if (dEta >= 0.01)
-                            dE = 0.15;
+                            dE = 0.25;
                         else if (dEta >= 0.001)
                             dE = 0.25;
                         else
-                            dE = 0.35;
+                            dE = 0.5;
                     }
-                    else if (inputFailureZone != FailureZones.F3B)
+                    else if (inputFailureZone == FailureZones.F3B)
                     {
                         if (dEta >= 0.01)
-                            dE = 0.1;
+                            dE = 0.25;
                         else if (dEta >= 0.001)
-                            dE = 0.2;
+                            dE = 0.25;
                         else
-                            dE = 0.3;
+                            dE = 0.5;
                     }
                     else
                     {
-                        if (dEta >= 0.01)
-                            dE = 0.25;
-                        else if (dEta >= 0.001)
-                            dE = 0.35;
-                        else
-                            dE = 0.5;
+                        dE = 0.5;
                     }
                 }
                 else
                 {
-                    if (inputFailureZone != FailureZones.F3A)
-                    {
-                        if (dEta >= 0.01)
-                            dE = 0.05;
-                        else if (dEta >= 0.001)
-                            dE = 0.1;
-                        else
-                            dE = 0.2;
-                    }
-                    else if (inputFailureZone != FailureZones.F3B)
-                    {
-                        if (dEta >= 0.01)
-                            dE = 0.1;
-                        else if (dEta >= 0.001)
-                            dE = 0.2;
-                        else
-                            dE = 0.3;
-                    }
+                    if (inputFailureZone == FailureZones.F3B)                        
+                        dE = 0.1;
+                    
                     else
                     {
                         if (dEta >= 0.01)
-                            dE = 0.2;
-                        else if (dEta >= 0.001)
-                            dE = 0.3;
+                            dE = 0.25;
                         else
-                            dE = 0.4;
+                            dE = 0.5;
                     }
                 }
+
                 double deltaTeta = results[0, 0] * dT / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorTeta), 1.0));
                 double deltaEta = results[1, 0] * dE / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorEta), 1.0));
-
-                if (inputFailureZone == FailureZones.F2A || inputFailureZone == FailureZones.F2B ||
-                    inputFailureZone == FailureZones.F4 || inputFailureZone == FailureZones.F5)
-                    deltaEta *= 2;
-
 
                 return (deltaTeta, deltaEta, displacementVector);
             }
@@ -1600,6 +1574,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                     if (failureZone == FailureZones.F4)
                         failureZone--;
+
+                    if (failureZone == FailureZones.F3A)					
+                        eta = 0.98;                    
                 }
                 if (eta > 1.0)
                 {
