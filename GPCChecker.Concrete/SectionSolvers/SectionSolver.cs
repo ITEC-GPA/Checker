@@ -28,10 +28,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		/// </summary>
 		protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizations =
         {
-            (FailureZones.F1, 1),
+            (FailureZones.F1, 0),
             (FailureZones.F2A, 1),
             (FailureZones.F2B, 1),
-            (FailureZones.F3A, 25),
+            (FailureZones.F3A, 30),
             (FailureZones.F3B, 3),
             (FailureZones.F4, 2),
             (FailureZones.F5, 4)
@@ -45,7 +45,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F1, 2),
             (FailureZones.F2A, 5),
             (FailureZones.F2B, 5),
-            (FailureZones.F3A, 20),
+            (FailureZones.F3A, 25),
             (FailureZones.F3B, 0),
             (FailureZones.F5, 4)
         };
@@ -58,7 +58,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F1, 2),
             (FailureZones.F2A, 5),
             (FailureZones.F2B, 5),
-            (FailureZones.F3A, 20),
+            (FailureZones.F3A, 25),
             (FailureZones.F3B, 0),
             (FailureZones.F5, 4)
         };
