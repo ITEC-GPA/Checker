@@ -1698,15 +1698,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                                 try
                                 {
-                                    (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
+                                    (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) =
                                         CalculateIncrementStressAnalysis(strainPlane, localForces - iterationForces, 
                                         rebarIsInsideAssociation);
 
                                     // piano di nuovo tentativo
                                     id++;
-                                    chiX += increment.deltaChiX;
-                                    chiY += increment.deltaChiY;
-                                    strainReferencePoint += increment.deltaStrainRefPoint;
+                                    chiX += deltaChiX;
+                                    chiY += deltaChiY;
+                                    strainReferencePoint += deltaStrainRefPoint;
                                     strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
                                     iterationForces = CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
@@ -1872,15 +1872,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     {
                         try
                         {
-                            (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) increment =
+                            (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) =
                                 CalculateIncrementLinearStressAnalysis(psi, strainPlane, localForces - iterationForces,
                                 rebarIsInsideAssociation);
 
                             // piano di nuovo tentativo
                             id++;
-                            chiX += increment.deltaChiX;
-                            chiY += increment.deltaChiY;
-                            strainReferencePoint += increment.deltaStrainRefPoint;
+                            chiX += deltaChiX;
+                            chiY += deltaChiY;
+                            strainReferencePoint += deltaStrainRefPoint;
                             strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
                             iterationForces = CalculateForceResultant(psi, strainPlane, rebarIsInsideAssociation);
