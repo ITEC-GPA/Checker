@@ -36,12 +36,13 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			FailureDomainResult elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
 			//ShowDomainPoints(plasticFailureDomain.Domain);
 			//ExportToGmsh(plasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain.RebuildFailureDomain());
 
 			//Mesh mesh = plasticFailureDomain.Domain.GetMesh();
 			//ExportToGmsh(mesh);
