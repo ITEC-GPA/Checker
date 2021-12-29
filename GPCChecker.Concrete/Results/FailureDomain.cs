@@ -16,14 +16,18 @@ namespace GPC.Checkers.Concrete.Results
 		protected readonly int _axialForceSubdivision;
 		protected readonly int _tetaSubdivision;
 		protected readonly FailureDomainPoint[][] _domainPoints;
+		protected readonly SectionSolver.FailureDomainAnalysisTypes _analysisType;
 
 		public FailureDomainPoint[][] DomainPoints => _domainPoints;
 
-		public FailureDomain(FailureDomainPoint[][] domainPoints)
+		internal SectionSolver.FailureDomainAnalysisTypes FailureDomainAnalysisTypes => _analysisType;
+
+		public FailureDomain(FailureDomainPoint[][] domainPoints, SectionSolver.FailureDomainAnalysisTypes analysisType)
 		{
 			_domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
 			_axialForceSubdivision = 50;
 			_tetaSubdivision = domainPoints.Length;
+			_analysisType = analysisType;
 		}
 
 		public Mesh GetMesh()
@@ -199,7 +203,7 @@ namespace GPC.Checkers.Concrete.Results
 			return mesh;
 		}
 
-		protected FailureDomain RebuildFailureDomain(int axialForceSubdivision = 20, int tetaSubdivion = 32, double tolerance = 0.01)
+		public FailureDomain RebuildFailureDomain(int axialForceSubdivision = 20, int tetaSubdivion = 32, double tolerance = 0.01)
 		{
 			double deltaN = (_domainPoints[0][0].NRd - _domainPoints[0][_domainPoints[0].Length - 1].NRd) / axialForceSubdivision;
 			FailureDomainPoint[][] newDomain = new FailureDomainPoint[tetaSubdivion][];
@@ -225,7 +229,7 @@ namespace GPC.Checkers.Concrete.Results
 								mxRd = _domainPoints[dTeta][i].MxRd;
 								myRd = _domainPoints[dTeta][i].MyRd;
 							}
-							else if(i + 2 < _domainPoints[dTeta].Length)
+							else if(i + 2 < _domainPoints[dTeta].Length && _analysisType == SectionSolver.FailureDomainAnalysisTypes.Plastic)
 							{
 								mxRd = Interpolation.GetQuadraticInterpolation(
 									_domainPoints[dTeta][i].NRd, _domainPoints[dTeta][i + 1].NRd, _domainPoints[dTeta][i + 2].NRd, 
@@ -251,7 +255,7 @@ namespace GPC.Checkers.Concrete.Results
 				}
 			}
 
-			return new FailureDomain(newDomain);
+			return new FailureDomain(newDomain, _analysisType);
 		}
 
 		[Serializable]

@@ -29,8 +29,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizations =
         {
             (FailureZones.F1, 0),
-            (FailureZones.F2A, 1),
-            (FailureZones.F2B, 1),
+            (FailureZones.F2A, 0),
+            (FailureZones.F2B, 0),
             (FailureZones.F3A, 30),
             (FailureZones.F3B, 3),
             (FailureZones.F4, 2),
@@ -242,8 +242,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
                 zoneDiscretization, FailureDomainAnalysisTypes.Elastic, materialType);
 
-            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem), null, this, Standard,
-                FailureDomainAnalysisTypes.Elastic, forceReferencePointCoordinateSystem, Id);
+            return new FailureDomainResult(ConcreteSection, 
+                CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem, FailureDomainAnalysisTypes.Elastic),
+                null, this, Standard, forceReferencePointCoordinateSystem, Id);
         }
 
         public virtual FailureDomainResult GetPlasticFailureDomainResult(CoordinateSystem forceReferencePointCoordinateSystem)
@@ -273,8 +274,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
                 zoneDiscretization, FailureDomainAnalysisTypes.Plastic, materialType);
 
-            return new FailureDomainResult(ConcreteSection, CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem), null, this, Standard,
-                FailureDomainAnalysisTypes.Plastic, forceReferencePointCoordinateSystem, Id);
+            return new FailureDomainResult(ConcreteSection, 
+                CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem, FailureDomainAnalysisTypes.Plastic), null, this, Standard,
+                forceReferencePointCoordinateSystem, Id);
         }
 
         public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, CoordinateSystem forceReferencePointCoordinateSystem)
@@ -928,7 +930,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         /// <param name="momentsDiscretizations">Number of discretizations of X-axis and Y-axis (moment around Z-axis)</param>
         /// <param name="normalDiscretizations">Number of discretizations of Z-axis (axial force)</param>
-        protected virtual FailureDomain CalculateFailureDomain((StrainPlane, FailureZones)[][] strainPlanes, CoordinateSystem forceCoordinateSystem)
+        protected virtual FailureDomain CalculateFailureDomain((StrainPlane, FailureZones)[][] strainPlanes, CoordinateSystem forceCoordinateSystem,
+            FailureDomainAnalysisTypes analysisType)
         {
             FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[strainPlanes.Length][];
             Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
@@ -956,7 +959,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 return null;
             }
 
-            return new FailureDomain(domainPoints);
+            return new FailureDomain(domainPoints, analysisType);
         }
 
         protected virtual (StrainPlane, FailureZones)[][] CalculateDesignFailureStrainPlanes(int tetaDiscretizations, (FailureZones, int)[] zoneSubdivision,
