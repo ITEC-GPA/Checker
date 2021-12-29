@@ -42,7 +42,7 @@ namespace ConcreteTests
 			//ShowDomainPoints(plasticFailureDomain.Domain);
 			//ExportToGmsh(plasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain);
-			//ExportToGmsh(elasticFailureDomain.Domain.RebuildFailureDomain());
+			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
 
 			//Mesh mesh = plasticFailureDomain.Domain.GetMesh();
 			//ExportToGmsh(mesh);

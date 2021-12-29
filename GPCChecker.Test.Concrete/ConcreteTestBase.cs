@@ -933,7 +933,7 @@ namespace ConcreteTests
 
             GmshNet.Gmsh.Model.Mesh.Generate(0);
             GmshNet.Gmsh.Model.Mesh.Generate(1);
-            GmshNet.Gmsh.Model.Mesh.Generate(2);
+            //GmshNet.Gmsh.Model.Mesh.Generate(2);
 
             GmshNet.Gmsh.Model.Occ.Synchronize();
 
