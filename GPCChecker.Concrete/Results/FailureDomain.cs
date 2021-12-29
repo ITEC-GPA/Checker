@@ -185,7 +185,7 @@ namespace GPC.Checkers.Concrete.Results
 					mesh.Faces.Build(new MeshFace
 					(
 						pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-						pointIdAssociation[pointVertexAssociation[domainPoint[0][j].Point]],
+						pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]],
 						pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]]), progressPlateId++
 					);
 
@@ -203,7 +203,7 @@ namespace GPC.Checkers.Concrete.Results
 			return mesh;
 		}
 
-		public FailureDomain RebuildFailureDomain(int axialForceSubdivision = 20, int tetaSubdivion = 32, double tolerance = 0.01)
+		protected FailureDomain RebuildFailureDomain(int axialForceSubdivision = 20, int tetaSubdivion = 32, double tolerance = 0.01)
 		{
 			double deltaN = (_domainPoints[0][0].NRd - _domainPoints[0][_domainPoints[0].Length - 1].NRd) / axialForceSubdivision;
 			FailureDomainPoint[][] newDomain = new FailureDomainPoint[tetaSubdivion][];

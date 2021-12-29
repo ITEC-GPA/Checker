@@ -23,6 +23,8 @@ namespace GPC.Checkers.Concrete.Results
 
         public FailureDomain Domain => _failureDomain;
 
+        internal SectionSolver.FailureDomainAnalysisTypes FailureDomainAnalysisType => _failureDomain.FailureDomainAnalysisTypes;
+
         public FailureDomainResult(
             IConcreteSection section,
             FailureDomain failureDomain,
