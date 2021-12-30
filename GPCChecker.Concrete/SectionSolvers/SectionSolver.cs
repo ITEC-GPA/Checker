@@ -19,7 +19,7 @@ using MathNet.Numerics.LinearAlgebra;
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
     [Serializable]
-    public abstract class SectionSolver : ModelObjectId
+    public abstract class SectionSolver : ModelObjectId, ISerializable
     {
 		#region Public enum 
 
@@ -159,16 +159,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
+        #region Properties
+
         public IConcreteSection ConcreteSection => _concreteSection;
 
         public ConcreteMaterial ConcreteMaterial => _concreteSection.ConcreteMaterial;
 
         public Standard Standard => _standard;
 
-
         public bool ConsiderTensileConcrete { get => _considerTensileConcrete; internal set => _considerTensileConcrete = value; }
 
-        internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id)
+		#endregion
+
+		#region Constructor
+
+		internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id)
             : base(id)
         {
             _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
@@ -192,12 +197,25 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected SectionSolver(SerializationInfo info, StreamingContext context)
         {
             _concreteSection = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
+            _standard = (Standard)info.GetValue("Standard", typeof(Standard));
+            _log = (List<string>)info.GetValue("Log", typeof(List<string>));
+            _stressAnalysisTolerance = info.GetDouble("StressAnalysisTolerance");
+            _failureAnalysisAngularTolerance = info.GetDouble("FailureAnalysisAngularTolerance");
+            _tetaDiscretization = info.GetInt32("TetaDiscretization");
+            _gaussIntegrationQuadLowPoints = info.GetInt32("GaussIntegrationQuadLowPoints");
+            _gaussIntegrationQuadMidPoints = info.GetInt32("GaussIntegrationQuadMidPoints");
+            _gaussIntegrationQuadHighPoints = info.GetInt32("GaussIntegrationQuadHighPoints");
+            _gaussIntegrationTriLowPoints = info.GetInt32("GaussIntegrationTriLowPoints");
+            _gaussIntegrationTriMidPoints = info.GetInt32("GaussIntegrationTriMidPoints");
+            _gaussIntegrationTriHighPoints = info.GetInt32("GaussIntegrationTriHighPoints");
+            _considerTensileConcrete = info.GetBoolean("ConsiderTensileConcrete");
         }
 
+		#endregion
 
-        #region Abstract Method
+		#region Abstract Method
 
-        protected abstract double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar);
+		protected abstract double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar);
         protected abstract double GetDesignYieldingStrainRebar(int rebar);
         protected abstract double GetDesignUltimateStrainRebar(ReinforcedConcreteRebar rebar);
         protected abstract double GetDesignUltimateStrainRebar(int rebar);
@@ -225,7 +243,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             MaterialTypes materialType;
             (FailureZones, int)[] zoneDiscretization;
 
-            if (ConcreteMaterial.IsFiberReinforced())
+            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
                 materialType = MaterialTypes.FRC;
             else
                 materialType = MaterialTypes.Concrete;
@@ -244,7 +262,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return new FailureDomainResult(ConcreteSection, 
                 CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem, FailureDomainAnalysisTypes.Elastic),
-                null, this, Standard, forceReferencePointCoordinateSystem, Id);
+                null, this, _standard, forceReferencePointCoordinateSystem, Id);
         }
 
         public virtual FailureDomainResult GetPlasticFailureDomainResult(CoordinateSystem forceReferencePointCoordinateSystem)
@@ -252,7 +270,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             MaterialTypes materialType;
             (FailureZones, int)[] zoneDiscretization;
 
-            if (ConcreteMaterial.IsFiberReinforced())
+            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
                 materialType = MaterialTypes.FRC;
             else
                 materialType = MaterialTypes.Concrete;
@@ -275,7 +293,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 zoneDiscretization, FailureDomainAnalysisTypes.Plastic, materialType);
 
             return new FailureDomainResult(ConcreteSection, 
-                CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem, FailureDomainAnalysisTypes.Plastic), null, this, Standard,
+                CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem, FailureDomainAnalysisTypes.Plastic), null, this, _standard,
                 forceReferencePointCoordinateSystem, Id);
         }
 
@@ -283,7 +301,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             MaterialTypes materialType;
 
-            if (ConcreteMaterial.IsFiberReinforced())
+            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
                 materialType = MaterialTypes.FRC;
             else
                 materialType = MaterialTypes.Concrete;
@@ -294,7 +312,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
                     CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePointCoordinateSystem), materialType,
-                    _stressAnalysisTolerance), this, Standard, Id);
+                    _stressAnalysisTolerance), this, _standard, Id);
             });
 
             return stressAnalysisResults;
@@ -304,14 +322,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             MaterialTypes materialType;
 
-            if (ConcreteMaterial.IsFiberReinforced())
+            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
                 materialType = MaterialTypes.FRC;
             else
                 materialType = MaterialTypes.Concrete;
 
             return new StressAnalysisResult(ConcreteSection, force,
                     CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(forceReferencePointCoordinateSystem), materialType,
-                    _stressAnalysisTolerance), this, Standard, Id);
+                    _stressAnalysisTolerance), this, _standard, Id);
         }
 
         public virtual StressAnalysisResult[] GetLinearStressAnalysisResults(ResultBeamForces[] force, double psi, CoordinateSystem forceReferencePointCoordinateSystem)
@@ -322,7 +340,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
                     CalculateStrainPlaneLinearStressAnalysis(force[i].ConvertToForceTuple(forceReferencePointCoordinateSystem), psi,
-                    _stressAnalysisTolerance), this, Standard, Id);
+                    _stressAnalysisTolerance), this, _standard, Id);
             });
 
             return stressAnalysisResults;
@@ -332,14 +350,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             return new StressAnalysisResult(ConcreteSection, force,
                 CalculateStrainPlaneLinearStressAnalysis(force.ConvertToForceTuple(forceReferencePointCoordinateSystem), psi,
-                _stressAnalysisTolerance), this, Standard, Id);
+                _stressAnalysisTolerance), this, _standard, Id);
         }
 
         internal virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple targetLocalForces)
 		{
             MaterialTypes materialType;
 
-            if (ConcreteMaterial.IsFiberReinforced())
+            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
                 materialType = MaterialTypes.FRC;
             else
                 materialType = MaterialTypes.Concrete;
@@ -351,7 +369,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             MaterialTypes materialType;
 
-            if (ConcreteMaterial.IsFiberReinforced())
+            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
                 materialType = MaterialTypes.FRC;
             else
                 materialType = MaterialTypes.Concrete;
@@ -673,7 +691,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
             {
                 // trazione
-                if (ConsiderTensileConcrete)
+                if (_considerTensileConcrete)
                 {
                     return _concreteSection.ConcreteMaterial.E * strain;
                 }
@@ -2051,6 +2069,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public override bool Equals(object obj)
         {
+            if (ReferenceEquals(this, obj))
+                return true;
+
             return obj is SectionSolver solver && _concreteSection.Equals(solver._concreteSection);
         }
 
@@ -2058,7 +2079,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             unchecked
             {
-                return 23 + EqualityComparer<IConcreteSection>.Default.GetHashCode(_concreteSection);
+                int hashCode = 23;
+                hashCode = hashCode * -17 + base.GetHashCode();
+                hashCode = hashCode * -17 + EqualityComparer<IConcreteSection>.Default.GetHashCode(_concreteSection);
+                hashCode = hashCode * -17 + _standard.GetHashCode();
+                return hashCode;
             }
         }
 
@@ -2066,15 +2091,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             base.GetObjectData(info, context);
             info.AddValue("ConcreteSection", _concreteSection);
+            info.AddValue("Standard", _standard);
             info.AddValue("Log", _log);
+            info.AddValue("StressAnalysisTolerance", _stressAnalysisTolerance);
+            info.AddValue("FailureAnalysisAngularTolerance", _failureAnalysisAngularTolerance);
+            info.AddValue("TetaDiscretization", _tetaDiscretization);
+            info.AddValue("GaussIntegrationQuadLowPoints", _gaussIntegrationQuadLowPoints);
+            info.AddValue("GaussIntegrationQuadMidPoints", _gaussIntegrationQuadMidPoints);
+            info.AddValue("GaussIntegrationQuadHighPoints", _gaussIntegrationQuadHighPoints);
+            info.AddValue("GaussIntegrationTriLowPoints", _gaussIntegrationTriLowPoints);
+            info.AddValue("GaussIntegrationTriMidPoints", _gaussIntegrationTriMidPoints);
+            info.AddValue("GaussIntegrationTriHighPoints", _gaussIntegrationTriHighPoints);
+            info.AddValue("ConsiderTensileConcrete", _considerTensileConcrete);
         }
-
-        #endregion
-
+        
         public List<string> GetLog()
         {
             return _log;
         }
+
+        #endregion
 
     }
 }

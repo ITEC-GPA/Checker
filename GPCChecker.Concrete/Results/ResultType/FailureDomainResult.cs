@@ -7,13 +7,16 @@ using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
-
 
 namespace GPC.Checkers.Concrete.Results
 {
-    public class FailureDomainResult : CheckerResultType
+    [Serializable]
+    public class FailureDomainResult : CheckerResultType, ISerializable
     {
+        #region Variables
+
         protected readonly SectionSolver _sectionSolver;
         protected readonly FailureDomain _failureDomain;
         protected List<FailureDomain.FailureDomainForce> _forces;
@@ -21,18 +24,20 @@ namespace GPC.Checkers.Concrete.Results
 
         protected int _failureSectionSubdivision;
 
+        #endregion
+
+        #region Properties
+
         public FailureDomain Domain => _failureDomain;
 
         internal SectionSolver.FailureDomainAnalysisTypes FailureDomainAnalysisType => _failureDomain.FailureDomainAnalysisTypes;
 
-        public FailureDomainResult(
-            IConcreteSection section,
-            FailureDomain failureDomain,
-            IEnumerable<ResultBeamForces> forces,
-            SectionSolver solver,
-            Standard standard,
-            CoordinateSystem coordinateSystem,
-            int id = IDUNASSIGNED)
+		#endregion
+
+		#region Constructor
+
+		public FailureDomainResult(IConcreteSection section, FailureDomain failureDomain, IEnumerable<ResultBeamForces> forces,
+            SectionSolver solver, Standard standard, CoordinateSystem coordinateSystem, int id = IDUNASSIGNED)
             : base(section, standard, id)
         {
             _failureDomain = failureDomain ?? throw new ArgumentNullException(nameof(failureDomain));
@@ -58,16 +63,28 @@ namespace GPC.Checkers.Concrete.Results
             _failureSectionSubdivision = 20; 
         }
 
-        #region Public Async Methods
+		protected FailureDomainResult(SerializationInfo info, StreamingContext context) 
+            : base(info, context)
+		{
+            _sectionSolver = (SectionSolver)info.GetValue("SectionSolver", typeof(SectionSolver));
+            _failureDomain = (FailureDomain)info.GetValue("FailureDomain", typeof(FailureDomain));
+            _coordinateSystem = (CoordinateSystem)info.GetValue("CoordinateSystem", typeof(CoordinateSystem));
+            _forces = (List<FailureDomain.FailureDomainForce>)info.GetValue("Forces", typeof(List<FailureDomain.FailureDomainForce>));
+            _failureSectionSubdivision = info.GetInt32("Subdivision");
+        }
 
-        /// <summary>
-        /// Adds a new single force asynchronously
-        /// </summary>
-        /// <param name="forces">The force to add</param>
-        /// <returns>The corresponding domain point</returns>
-        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
-        /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
-        public async Task<FailureDomain.FailureDomainPoint> AddForceAsync(ResultBeamForces forces)
+		#endregion
+
+		#region Public Async Methods
+
+		/// <summary>
+		/// Adds a new single force asynchronously
+		/// </summary>
+		/// <param name="forces">The force to add</param>
+		/// <returns>The corresponding domain point</returns>
+		/// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
+		/// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
+		public async Task<FailureDomain.FailureDomainPoint> AddForceAsync(ResultBeamForces forces)
         {
             if (forces is null)
             {
@@ -329,7 +346,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="forces">Input forces</param>
         /// <returns>New FailureDomain2d</returns>
         /// <exception cref="ArgumentException"></exception>
-        internal virtual FailureDomain2d CalculateDomainConstantAxialForce(ForceTuple forces)
+        protected virtual FailureDomain2d CalculateDomainConstantAxialForce(ForceTuple forces)
         {
             if (forces == null)
                 throw new ArgumentException();
@@ -373,7 +390,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="forces"></param>
         /// <returns>New FailureDomain2d</returns>
         /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
-        internal virtual FailureDomain2d CalculateFailureDomainCostantMomentsRatio(ForceTuple forces)
+        protected virtual FailureDomain2d CalculateFailureDomainCostantMomentsRatio(ForceTuple forces)
 		{
             if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainAnalysisTypes.Plastic)
                 return CalculatePlasticDomainCostantMomentsRatio(forces, _failureSectionSubdivision);
@@ -447,14 +464,16 @@ namespace GPC.Checkers.Concrete.Results
             return forceTuples;
         }
 
-        #endregion
+		#endregion
 
-        /// <summary>
-        /// Tells if there is a force with the given id
-        /// </summary>
-        /// <param name="id">The id to check</param>
-        /// <returns>True if the force exists</returns>
-        public bool ContainsForceWithId(int id)
+		#region Enumerator Methods
+
+		/// <summary>
+		/// Tells if there is a force with the given id
+		/// </summary>
+		/// <param name="id">The id to check</param>
+		/// <returns>True if the force exists</returns>
+		public bool ContainsForceWithId(int id)
         {
             return _forces.Any(force => force.Id == id);
         }
@@ -469,9 +488,60 @@ namespace GPC.Checkers.Concrete.Results
             return _forces.ToArray();
         }
 
-        public List<string> GetLog()
+		#endregion
+
+		#region Equals, hashcode, operators
+
+		public List<string> GetLog()
 		{
             return _sectionSolver.GetLog();
 		}
-    }
+
+		public override bool Equals(object obj)
+		{
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            return obj is FailureDomainResult result &&
+				   base.Equals(obj) &&
+				   EqualityComparer<SectionSolver>.Default.Equals(_sectionSolver, result._sectionSolver) &&
+				   EqualityComparer<FailureDomain>.Default.Equals(_failureDomain, result._failureDomain) &&
+				   EqualityComparer<CoordinateSystem>.Default.Equals(_coordinateSystem, result._coordinateSystem);
+		}
+
+		public override int GetHashCode()
+		{
+            unchecked
+            {
+                int hashCode = 23;
+                hashCode = hashCode * -17 + base.GetHashCode();
+                hashCode = hashCode * -17 + _sectionSolver.GetHashCode();
+                hashCode = hashCode * -17 + _failureDomain.GetHashCode();
+                hashCode = hashCode * -17 + _coordinateSystem.GetHashCode();
+                return hashCode;
+            }
+        }
+
+		public override void GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			base.GetObjectData(info, context);
+            info.AddValue("SectionSolver", _sectionSolver);
+            info.AddValue("FailureDomain", _failureDomain);
+            info.AddValue("CoordinateSystem", _coordinateSystem);
+            info.AddValue("Forces", _forces);
+            info.AddValue("Subdivision", _failureSectionSubdivision);
+        }
+
+        public static bool operator ==(FailureDomainResult left, FailureDomainResult right)
+		{
+			return EqualityComparer<FailureDomainResult>.Default.Equals(left, right);
+		}
+
+		public static bool operator !=(FailureDomainResult left, FailureDomainResult right)
+		{
+			return !(left == right);
+		}
+
+		#endregion
+	}
 }

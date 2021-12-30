@@ -11,11 +11,15 @@ namespace GPC.Checkers.Concrete.Attributes
     [Serializable]
     public class SectionCheckerAttribute : ModelObjectId, ISerializable
     {
-        
+        #region Variables
+
         protected readonly IConcreteSection _section;
         protected readonly ResultBeamForces[] _uLSresults;
         protected readonly ResultBeamForces[] _sLSresults;
 
+        #endregion
+
+        #region Properties
 
         public IConcreteSection Section => _section;
 
@@ -23,6 +27,9 @@ namespace GPC.Checkers.Concrete.Attributes
 
         public ResultBeamForces[] SLSResults => _sLSresults;
 
+        #endregion
+
+        #region Constructor
 
         public SectionCheckerAttribute(IConcreteSection section, IEnumerable<ResultBeamForces> slsResults, IEnumerable<ResultBeamForces> ulsResults, int id = ModelObjectId.IDUNASSIGNED)
             : base(id)
@@ -45,6 +52,9 @@ namespace GPC.Checkers.Concrete.Attributes
             _uLSresults = (ResultBeamForces[])info.GetValue("ULSResult", typeof(ResultBeamForces[]));
         }
 
+        #endregion
+
+        #region Equals - hashcode - operators - serialization
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
@@ -83,5 +93,7 @@ namespace GPC.Checkers.Concrete.Attributes
                 return hashCode;
             }
         }
-    }
+
+		#endregion
+	}
 }

@@ -15,15 +15,23 @@ namespace GPC.Checkers.Concrete.Results
     [Serializable]
     public class StressAnalysisResult : CheckerResultType, ISerializable
     {
+        #region Variables
 
         protected readonly ResultBeamForces _force;
         protected readonly StrainPlane _strainPlane;
         protected readonly SectionSolver _sectionSolver;
 
+        #endregion
+
+        #region Properties
+
         public ResultBeamForces Force => _force;
 
         public StrainPlane StrainPlane => _strainPlane;
 
+        #endregion
+
+        #region Constructor
 
         public StressAnalysisResult(IConcreteSection section, ResultBeamForces force, StrainPlane strainPlane, SectionSolver solver, Standard standard, int id = IDUNASSIGNED)
             : base(section, standard, id)
@@ -33,7 +41,17 @@ namespace GPC.Checkers.Concrete.Results
             _sectionSolver = solver ?? throw new ArgumentNullException(nameof(solver));
         }
 
-		#region Rebar
+		protected StressAnalysisResult(SerializationInfo info, StreamingContext context) 
+            : base(info, context)
+		{
+            _force = (ResultBeamForces)info.GetValue("Force", typeof(ResultBeamForces));
+            _strainPlane = (StrainPlane)info.GetValue("StrainPlane", typeof(StrainPlane));
+            _sectionSolver = (SectionSolver)info.GetValue("SectionSolver", typeof(SectionSolver));
+        }
+
+        #endregion
+
+        #region Rebar
 
         public virtual double GetRebarTension(ReinforcedConcreteRebar rebar)
         {            
@@ -209,9 +227,11 @@ namespace GPC.Checkers.Concrete.Results
             return strains;
         }
 
-		#endregion
+        #endregion
 
-		public List<string> GetLog()
+        #region Equals, hashcode, operators
+
+        public List<string> GetLog()
         {
             return _sectionSolver.GetLog();
         }
@@ -242,5 +262,15 @@ namespace GPC.Checkers.Concrete.Results
             hashCode = hashCode * -1521134295 + EqualityComparer<SectionSolver>.Default.GetHashCode(_sectionSolver);
             return hashCode;
         }
+
+		public override void GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			base.GetObjectData(info, context);
+            info.AddValue("Force", _force);
+            info.AddValue("StrainPlane", _strainPlane);
+            info.AddValue("SectionSolver", _sectionSolver);
+        }
+
+        #endregion
     }
 }

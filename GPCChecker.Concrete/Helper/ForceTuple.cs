@@ -15,10 +15,15 @@ namespace GPC.Checkers.Concrete.Helper
     /// </summary>
     public struct ForceTuple : IEquatable<ForceTuple>
     {
+        #region Variables
+
         private readonly double _N;
         private readonly double _Mx;
         private readonly double _My;
 
+        #endregion
+
+        #region Properties
 
         public double N => _N;
 
@@ -26,6 +31,9 @@ namespace GPC.Checkers.Concrete.Helper
 
         public double My => _My;
 
+        #endregion
+
+        #region Constructor
 
         internal ForceTuple(double N, double Mx, double My)
         {
@@ -34,9 +42,11 @@ namespace GPC.Checkers.Concrete.Helper
             _My = My;
         }
 
-        #region Operators
+		#endregion
 
-        public static bool operator ==(ForceTuple left, ForceTuple right)
+		#region Operators
+
+		public static bool operator ==(ForceTuple left, ForceTuple right)
         {
             return left.Equals(right);
         }

@@ -11,28 +11,49 @@ using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Concrete.Results
 {
-	public class FailureDomain : ModelObject
+	[Serializable]
+	public class FailureDomain : ModelObject, ISerializable
 	{
+		#region Variables
+
 		protected readonly int _axialForceSubdivision;
-		protected readonly int _tetaSubdivision;
 		protected readonly FailureDomainPoint[][] _domainPoints;
 		protected readonly SectionSolver.FailureDomainAnalysisTypes _analysisType;
+
+		#endregion
+
+		#region Properties
 
 		public FailureDomainPoint[][] DomainPoints => _domainPoints;
 
 		internal SectionSolver.FailureDomainAnalysisTypes FailureDomainAnalysisTypes => _analysisType;
 
+		#endregion
+
+		#region Constructor
+
 		public FailureDomain(FailureDomainPoint[][] domainPoints, SectionSolver.FailureDomainAnalysisTypes analysisType)
 		{
 			_domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
 			_axialForceSubdivision = 50;
-			_tetaSubdivision = domainPoints.Length;
 			_analysisType = analysisType;
 		}
 
+		protected FailureDomain(SerializationInfo info, StreamingContext context) 
+			: base(info, context)
+		{
+			_axialForceSubdivision = info.GetInt32("AxialForceSubdivision");
+			_analysisType = (SectionSolver.FailureDomainAnalysisTypes)info.GetValue("AnalysisType", typeof(SectionSolver.FailureDomainAnalysisTypes));
+			_domainPoints = (FailureDomainPoint[][])info.GetValue("FailureDomainPoints", typeof(FailureDomainPoint[][]));
+		}
+
+		#endregion
+
+		#region Mesh Method
+
 		public Mesh GetMesh()
 		{
-			return GetMesh(RebuildFailureDomain(_axialForceSubdivision, _tetaSubdivision));
+			return GetMesh(RefineFailureDomainAlongTeta(RebuildFailureDomainAlongZAxis(this, _axialForceSubdivision)));
 		}
 
 		protected Mesh GetMesh(FailureDomain failureDomain)
@@ -203,51 +224,58 @@ namespace GPC.Checkers.Concrete.Results
 			return mesh;
 		}
 
-		protected FailureDomain RebuildFailureDomain(int axialForceSubdivision = 20, int tetaSubdivion = 32, double tolerance = 0.01)
+		protected FailureDomain RefineFailureDomainAlongTeta(FailureDomain failureDomain)
 		{
-			double deltaN = (_domainPoints[0][0].NRd - _domainPoints[0][_domainPoints[0].Length - 1].NRd) / axialForceSubdivision;
-			FailureDomainPoint[][] newDomain = new FailureDomainPoint[tetaSubdivion][];
+			// TODO: implementare 
+			return failureDomain;
+		}	
 
-			for (int dTeta = 0; dTeta < tetaSubdivion; dTeta++)
+		protected FailureDomain RebuildFailureDomainAlongZAxis(FailureDomain failureDomain, int axialForceSubdivision = 20, double tolerance = 0.01)
+		{
+			double deltaN = (failureDomain.DomainPoints[0][0].NRd - failureDomain.DomainPoints[0][failureDomain.DomainPoints[0].Length - 1].NRd) / 
+				axialForceSubdivision;
+			FailureDomainPoint[][] newDomain = new FailureDomainPoint[failureDomain.DomainPoints.Length][];
+
+			for (int dTeta = 0; dTeta < failureDomain.DomainPoints.Length; dTeta++)
 			{
 				int[] startingCount = new int[axialForceSubdivision + 1];
 				newDomain[dTeta] = new FailureDomainPoint[axialForceSubdivision + 1];
 
 				for (int dEta = 0; dEta < axialForceSubdivision + 1; dEta++)
 				{
-					double nRd = _domainPoints[0][0].NRd - dEta * deltaN;
+					double nRd = failureDomain.DomainPoints[0][0].NRd - dEta * deltaN;
 					double mxRd;
 					double myRd;
 
-					for (int i = startingCount[dEta]; i < _domainPoints[dTeta].Length; i++)
+					for (int i = startingCount[dEta]; i < failureDomain.DomainPoints[dTeta].Length; i++)
 					{
-						if (_domainPoints[dTeta][i].NRd >= nRd - tolerance &&
-							_domainPoints[dTeta][i + 1].NRd <= nRd + tolerance)
+						if (failureDomain.DomainPoints[dTeta][i].NRd >= nRd - tolerance &&
+							failureDomain.DomainPoints[dTeta][i + 1].NRd <= nRd + tolerance)
 						{
-							if (Math.Abs(_domainPoints[dTeta][i].NRd - _domainPoints[dTeta][i + 1].NRd) < tolerance)
+							if (Math.Abs(failureDomain.DomainPoints[dTeta][i].NRd - failureDomain.DomainPoints[dTeta][i + 1].NRd) < tolerance)
 							{
-								mxRd = _domainPoints[dTeta][i].MxRd;
-								myRd = _domainPoints[dTeta][i].MyRd;
+								mxRd = failureDomain.DomainPoints[dTeta][i].MxRd;
+								myRd = failureDomain.DomainPoints[dTeta][i].MyRd;
 							}
-							else if(i + 2 < _domainPoints[dTeta].Length && _analysisType == SectionSolver.FailureDomainAnalysisTypes.Plastic)
+							else if(i + 2 < failureDomain.DomainPoints[dTeta].Length && _analysisType == SectionSolver.FailureDomainAnalysisTypes.Plastic)
 							{
 								mxRd = Interpolation.GetQuadraticInterpolation(
-									_domainPoints[dTeta][i].NRd, _domainPoints[dTeta][i + 1].NRd, _domainPoints[dTeta][i + 2].NRd, 
-									_domainPoints[dTeta][i].MxRd, _domainPoints[dTeta][i + 1].MxRd, _domainPoints[dTeta][i + 2].MxRd, nRd);
+									failureDomain.DomainPoints[dTeta][i].NRd, failureDomain.DomainPoints[dTeta][i + 1].NRd, failureDomain.DomainPoints[dTeta][i + 2].NRd,
+									failureDomain.DomainPoints[dTeta][i].MxRd, failureDomain.DomainPoints[dTeta][i + 1].MxRd, failureDomain.DomainPoints[dTeta][i + 2].MxRd, nRd);
 								myRd = Interpolation.GetQuadraticInterpolation(
-									_domainPoints[dTeta][i].NRd, _domainPoints[dTeta][i + 1].NRd, _domainPoints[dTeta][i + 2].NRd,
-									_domainPoints[dTeta][i].MyRd, _domainPoints[dTeta][i + 1].MyRd, _domainPoints[dTeta][i + 2].MyRd, nRd);
+									failureDomain.DomainPoints[dTeta][i].NRd, failureDomain.DomainPoints[dTeta][i + 1].NRd, failureDomain.DomainPoints[dTeta][i + 2].NRd,
+									failureDomain.DomainPoints[dTeta][i].MyRd, failureDomain.DomainPoints[dTeta][i + 1].MyRd, failureDomain.DomainPoints[dTeta][i + 2].MyRd, nRd);
 							}
 							else
 							{
-								mxRd = Interpolation.GetLinearInterpolation(_domainPoints[dTeta][i].NRd,
-									_domainPoints[dTeta][i + 1].NRd, _domainPoints[dTeta][i].MxRd, _domainPoints[dTeta][i + 1].MxRd, nRd);
-								myRd = Interpolation.GetLinearInterpolation(_domainPoints[dTeta][i].NRd,
-									_domainPoints[dTeta][i + 1].NRd, _domainPoints[dTeta][i].MyRd, _domainPoints[dTeta][i + 1].MyRd, nRd);
+								mxRd = Interpolation.GetLinearInterpolation(failureDomain.DomainPoints[dTeta][i].NRd,
+									failureDomain.DomainPoints[dTeta][i + 1].NRd, failureDomain.DomainPoints[dTeta][i].MxRd, failureDomain.DomainPoints[dTeta][i + 1].MxRd, nRd);
+								myRd = Interpolation.GetLinearInterpolation(failureDomain.DomainPoints[dTeta][i].NRd,
+									failureDomain.DomainPoints[dTeta][i + 1].NRd, failureDomain.DomainPoints[dTeta][i].MyRd, failureDomain.DomainPoints[dTeta][i + 1].MyRd, nRd);
 							}
 
-							newDomain[dTeta][dEta] = new FailureDomainPoint(new ForceTuple(nRd, mxRd, myRd), _domainPoints[dTeta][i].FailureIndex,
-								_domainPoints[dTeta][i].StrainPlane);
+							newDomain[dTeta][dEta] = new FailureDomainPoint(new ForceTuple(nRd, mxRd, myRd), failureDomain.DomainPoints[dTeta][i].FailureIndex,
+								failureDomain.DomainPoints[dTeta][i].StrainPlane);
 							startingCount[dEta] = i;
 							break;
 						}
@@ -258,12 +286,62 @@ namespace GPC.Checkers.Concrete.Results
 			return new FailureDomain(newDomain, _analysisType);
 		}
 
+		#endregion
+
+		#region Equals, hashcode, operators
+
+		public override bool Equals(object obj)
+		{
+			if (ReferenceEquals(this, obj))
+				return true;
+
+			return obj is FailureDomain domain &&
+				   base.Equals(obj) &&
+				   EqualityComparer<FailureDomainPoint[][]>.Default.Equals(_domainPoints, domain._domainPoints) &&
+				   _analysisType == domain._analysisType;
+		}
+
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				int hashCode = 23;
+				hashCode = hashCode * -17 + base.GetHashCode();
+				hashCode = hashCode * -17 + EqualityComparer<FailureDomainPoint[][]>.Default.GetHashCode(_domainPoints);
+				hashCode = hashCode * -17 + _analysisType.GetHashCode();
+				return hashCode;
+			}
+		}
+
+		public override void GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			base.GetObjectData(info, context);
+			info.AddValue("AxialForceSubdivision", _axialForceSubdivision);
+			info.AddValue("AnalysisType", _analysisType);
+			info.AddValue("FailureDomainPoints", _domainPoints);
+		}
+
+		#endregion
+
+
+		#region FailureDomainForce
+
 		[Serializable]
 		public sealed class FailureDomainForce : ResultBeamForces, ISerializable, IEquatable<FailureDomainForce>
 		{
+			#region Variables
+
 			private readonly FailureDomainPoint _failureDomainPoint;
 
+			#endregion
+
+			#region Properties
+
 			public FailureDomainPoint FailureDomainPoint => _failureDomainPoint;
+
+			#endregion
+
+			#region Constructor
 
 			public FailureDomainForce(ResultBeamForces forces, FailureDomainPoint failureDomainPoint)
 				: base(forces.N, forces.V1, forces.V2, forces.T, forces.M1, forces.M2, forces.CoordinateSystem, forces.Id)
@@ -276,6 +354,10 @@ namespace GPC.Checkers.Concrete.Results
 			{
 				_failureDomainPoint = (FailureDomainPoint)info.GetValue("FailureDomainPoint", typeof(FailureDomainPoint));
 			}
+
+			#endregion
+
+			#region Equals, hashcode, operators
 
 			public override void GetObjectData(SerializationInfo info, StreamingContext context)
 			{
@@ -311,14 +393,27 @@ namespace GPC.Checkers.Concrete.Results
 			{
 				return !(left == right);
 			}
+
+			#endregion
 		}
+
+		#endregion
+
+
+		#region FailureDomainPoint
 
 		[Serializable]
 		public sealed class FailureDomainPoint : ISerializable, IEquatable<FailureDomainPoint>
 		{
+			#region Variables
+
 			private readonly ForceTuple _forceTuple;
 			private readonly SectionSolver.FailureZones _failureIndex;
 			private readonly StrainPlane _strainPlane;
+
+			#endregion
+
+			#region Properties
 
 			public double NRd => _forceTuple.N;
 
@@ -335,6 +430,9 @@ namespace GPC.Checkers.Concrete.Results
 			/// <inheritdoc cref="SectionSolver.FailureZones"/>
 			public SectionSolver.FailureZones FailureIndex => _failureIndex;
 
+			#endregion
+
+			#region Constructor
 
 			internal FailureDomainPoint(ForceTuple forceTuple, SectionSolver.FailureZones failureIndex, StrainPlane strainPlane)
 			{
@@ -349,6 +447,10 @@ namespace GPC.Checkers.Concrete.Results
 				_strainPlane = (StrainPlane)info.GetValue("StrainPlane", typeof(StrainPlane));
 				_failureIndex = (SectionSolver.FailureZones)info.GetValue("FailureIndex", typeof(SectionSolver.FailureZones));
 			}
+
+			#endregion
+
+			#region Equals, hashcode, operators
 
 			public void GetObjectData(SerializationInfo info, StreamingContext context)
 			{
@@ -389,6 +491,10 @@ namespace GPC.Checkers.Concrete.Results
 			{
 				return !(left == right);
 			}
+
+			#endregion
 		}
+
+		#endregion
 	}
 }

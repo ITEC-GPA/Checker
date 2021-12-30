@@ -17,19 +17,18 @@ using GPC.Model.Standards;
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
     [Serializable]
-    internal class SectionSolverModelCode2010 : SectionSolver
+    internal class SectionSolverModelCode2010 : SectionSolver, ISerializable
     {
+		#region Properties
 
-        public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
+		public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
 
         public ConcreteMaterialModelCode2010 ConcreteMaterialModelCode2010 => (ConcreteMaterialModelCode2010)_concreteSection.ConcreteMaterial;
 
-        #region Properties
-
-        /// <summary>
-        /// Design compressive strength for persistent design
-        /// </summary>
-        public double Fcd => CalculateFcd();
+		/// <summary>
+		/// Design compressive strength for persistent design
+		/// </summary>
+		public double Fcd => CalculateFcd();
 
         /// <summary>
         /// Design tensile strength for persistent design
@@ -51,17 +50,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         public double ECd => CalculateECd();
 
-        #endregion
+		#endregion
 
-        internal SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
+		#region Constructor
+
+		internal SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
             : base(section, standard, considerTensileConcrete, id)
         {
 
         }
 
-        #region Protected Override 
+		protected SectionSolverModelCode2010(SerializationInfo info, StreamingContext context) 
+            : base(info, context)
+		{
+		}
 
-        protected override double GetFck()
+		#endregion
+
+		#region Protected Solver Override 
+
+		protected override double GetFck()
         {
             return ConcreteMaterialModelCode2010.Fck;
         }
@@ -122,7 +130,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
             {
                 // trazione
-                if (ConsiderTensileConcrete)
+                if (_considerTensileConcrete)
                 {
                     return ConcreteMaterialModelCode2010.GetStress(strain) * Math.Abs(CalculateFctd() / ConcreteMaterialModelCode2010.Fctk05);
                 }
@@ -151,10 +159,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
-
         #endregion
 
-        #region Protected Concrete 
+        #region Protected Design Concrete 
 
         protected double CalculateFcd()
         {
@@ -202,7 +209,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region Protected Rebars
+        #region Protected Design Rebars
 
         /// <returns>The design rebar yielding stress</returns>
         protected double CalculateFyd(RebarMaterial material)
@@ -248,7 +255,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return material.StrainU * StandardModelCode2010.SteelCoefficientStrainTension;
         }
 
+
         #endregion
 
-    }
+        #region Equals, hashcode, operators
+
+        public override bool Equals(object obj)
+		{
+			return base.Equals(obj);
+		}
+
+		public override int GetHashCode()
+		{
+			return base.GetHashCode();
+		}
+
+		public override void GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			base.GetObjectData(info, context);
+		}
+
+		#endregion
+	}
 }
