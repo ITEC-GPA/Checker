@@ -32,9 +32,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F2A, 0),
             (FailureZones.F2B, 0),
             (FailureZones.F3A, 30),
-            (FailureZones.F3B, 3),
-            (FailureZones.F4, 2),
-            (FailureZones.F5, 4)
+            (FailureZones.F3B, 5),
+            (FailureZones.F4, 4)
+        };
+
+        /// <summary>
+        /// Rapresent the discretization of the axial force in the solver for elastic analysis
+        /// </summary>
+        protected readonly (FailureZones, int)[] _elasticFailureZonesDiscretizations =
+        {
+            (FailureZones.F1, 2),
+            (FailureZones.F2A, 5),
+            (FailureZones.F3A, 10),
+            (FailureZones.F4, 5)
         };
 
         /// <summary>
@@ -47,7 +57,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F2B, 5),
             (FailureZones.F3A, 25),
             (FailureZones.F3B, 0),
-            (FailureZones.F5, 4)
+            (FailureZones.F4, 4)
+        };
+
+        /// <summary>
+        /// Rapresent the discretization of the axial force in the solver for elastic analysis for FRC material
+        /// </summary>
+        protected readonly (FailureZones, int)[] _elasticFailureZonesDiscretizationsFRC =
+        {
+            (FailureZones.F1, 3),
+            (FailureZones.F2A, 5),
+            (FailureZones.F3A, 5),
+            (FailureZones.F4, 5)
         };
 
         /// <summary>
@@ -60,30 +81,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F2B, 5),
             (FailureZones.F3A, 25),
             (FailureZones.F3B, 0),
-            (FailureZones.F5, 4)
-        };
-
-        /// <summary>
-        /// Rapresent the discretization of the axial force in the solver for elastic analysis
-        /// </summary>
-        protected readonly (FailureZones, int)[] _elasticFailureZonesDiscretizations =
-        {
-            (FailureZones.F1, 1),
-            (FailureZones.F2A, 5),
-            (FailureZones.F3A, 5),
-            (FailureZones.F4, 3),
-            (FailureZones.F5, 5)
-        };
-
-        /// <summary>
-        /// Rapresent the discretization of the axial force in the solver for elastic analysis for FRC material
-        /// </summary>
-        protected readonly (FailureZones, int)[] _elasticFailureZonesDiscretizationsFRC =
-        {
-            (FailureZones.F1, 3),
-            (FailureZones.F2A, 5),
-            (FailureZones.F3A, 5),
-            (FailureZones.F5, 5)
+            (FailureZones.F4, 4)
         };
 
         public enum FailureZones
@@ -114,14 +112,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             F3B = 5,
 
             /// <summary>
-            /// Around P2. From 0 to 0 
-            /// </summary>
-            F4 = 6,
-
-            /// <summary>
             /// Around P3. From 0 to espCyCost 
             /// </summary>
-            F5 = 7,
+            F4 = 6,
         }
 
         public enum MaterialTypes
@@ -1040,7 +1033,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     case FailureZones.F2B:
                     case FailureZones.F3A:
                     case FailureZones.F3B:
-                    case FailureZones.F4:
                         {
                             for (int j = 0; j < subdivision; j++)
                             {
@@ -1052,7 +1044,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             break;
                         }
 
-                    case FailureZones.F5:
+                    case FailureZones.F4:
                         {
                             for (int j = 0; j < subdivision; j++)
                             {
@@ -1137,22 +1129,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 case FailureZones.F3B:
 
                     chiSx = (p4.epsilon + Math.Abs(p2.epsilon)) / p4.distanceFromBaricentre;
-                    chiDx = Math.Abs(p2.epsilon) / p4.distanceFromBaricentre;
-
-                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                    return new StrainPlane(p2.point, teta, chi, p2.epsilon, id);
-
-
-                case FailureZones.F4:
-
-                    chiSx = Math.Abs(p2.epsilon) / p4.distanceFromBaricentre;
                     chiDx = Math.Abs(p2.epsilon) / p3.distanceFromBaricentre;
 
                     chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
                     return new StrainPlane(p2.point, teta, chi, p2.epsilon, id);
 
 
-                case FailureZones.F5:
+                case FailureZones.F4:
 
                     chiSx = Math.Abs(p2.epsilon) / p3.distanceFromBaricentre;
                     chiDx = 0.0;
@@ -1201,12 +1184,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
             {
-                failureIndex = FailureZones.F5;
+                failureIndex = FailureZones.F4;
                 eta = 1.0;
             }
             else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-2 && Math.Abs(adimOutputForces.My) < 1e-2)
             {
-                failureIndex = FailureZones.F5;
+                failureIndex = FailureZones.F4;
                 eta = 0.5;
             }
             else if (Math.Abs(adimOutputForces.N) < 1e-5)
@@ -1216,7 +1199,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             else
             {
-                failureIndex = FailureZones.F5;
+                failureIndex = FailureZones.F4;
                 eta = 0.1;
             }
 
@@ -1345,11 +1328,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 case FailureZones.F3B:
                     dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.00001);
                     dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.000001);
-                    break;
-
-                case FailureZones.F4:
-                    dTeta = Math.Max(Math.Min(deltaAngle, 0.1), 0.0001);
-                    dEta = Math.Max(Math.Min(deltaAngle, 0.1), 0.00001);
                     break;
 
                 default:
@@ -1610,9 +1588,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     eta++;
                     failureZone--;
 
-                    if (failureZone == FailureZones.F4)
-                        failureZone--;
-
                     if (failureZone == FailureZones.F3A)					
                         eta = 0.98;                    
                 }
@@ -1620,9 +1595,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 {
                     eta--;
                     failureZone++;
-
-                    if (failureZone == FailureZones.F4)
-                        failureZone++;
                 }
             }
             else if (analysisType == FailureDomainAnalysisTypes.Elastic && materialType == MaterialTypes.Concrete)
@@ -1640,7 +1612,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     eta--;
                     failureZone++;
 
-                    if (failureZone == FailureZones.F4 || failureZone == FailureZones.F2B)
+                    if (failureZone == FailureZones.F2B)
                         failureZone++;
                 }
             }
@@ -1650,9 +1622,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 {
                     eta++;
                     failureZone--;
-
-                    if (failureZone == FailureZones.F4)
-                        failureZone--;
 
                     if (failureZone == FailureZones.F3B || failureZone == FailureZones.F2B)
                         failureZone--;
@@ -1665,7 +1634,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     if (failureZone == FailureZones.F3B)
                         failureZone++;
 
-                    if (failureZone == FailureZones.F4 || failureZone == FailureZones.F2B)
+                    if (failureZone == FailureZones.F2B)
                         failureZone++;
                 }
             }
@@ -1673,7 +1642,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 throw new Exception();
 
             failureZone = (int)failureZone < 1 ? FailureZones.F1 : failureZone;
-            failureZone = (int)failureZone > 7 ? FailureZones.F5 : failureZone;
+            failureZone = (int)failureZone > 6 ? FailureZones.F4 : failureZone;
         }
 
         #endregion
