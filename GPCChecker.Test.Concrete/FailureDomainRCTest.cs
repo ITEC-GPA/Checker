@@ -41,7 +41,7 @@ namespace ConcreteTests
 
 			//ShowDomainPoints(plasticFailureDomain.Domain);
 			//ExportToGmsh(plasticFailureDomain.Domain);
-			//ExportToGmsh(elasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
 			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
 
 			//Mesh mesh = plasticFailureDomain.Domain.GetMesh();
@@ -621,8 +621,8 @@ namespace ConcreteTests
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
-			ExportToGmsh(plasticFailureDomain.Domain);
-			ExportToGmsh(elasticFailureDomain.Domain);
+			//ExportToGmsh(plasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain);
 
 			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
@@ -1091,7 +1091,6 @@ namespace ConcreteTests
 				-2493.36	-114.279	0			0
 			*/
 		}
-
 
 	}
 }
