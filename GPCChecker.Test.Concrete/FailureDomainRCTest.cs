@@ -861,6 +861,62 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		[TestCategory("Rebars out of section")]
+		public void RectangularSectionTest14()
+		{
+			double rebarDiameter = 26;
+
+			// sezione rettangolare 300x500
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(400, 0),
+				new Point2d(400, 400),
+				new Point2d(0, 400)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(-100, -100, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(-50, -50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
+
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 350, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(-50, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(-100, 500, 0)),
+
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(450, -50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(500, -100, 0)),
+
+
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 350, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(450, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(500, 500, 0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+
+			ShowDomainPoints(plasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
+			ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(elasticFailureDomain.Domain);
+		}
+
+		[TestMethod]
 		public void SquareSectionTest1()
 		{
 			double rebarDiameter = 18;

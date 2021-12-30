@@ -28,14 +28,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		/// </summary>
 		protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizations =
         {
-            (FailureZones.F1, 0),
-            (FailureZones.F2A, 0),
-            (FailureZones.F2B, 0),
+            (FailureZones.F1, 1),
+            (FailureZones.F2A, 1),
+            (FailureZones.F2B, 1),
             (FailureZones.F3A, 30),
             (FailureZones.F3B, 5),
             (FailureZones.F4, 4)
         };
-
+        
         /// <summary>
         /// Rapresent the discretization of the axial force in the solver for elastic analysis
         /// </summary>
@@ -56,7 +56,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F2A, 5),
             (FailureZones.F2B, 5),
             (FailureZones.F3A, 25),
-            (FailureZones.F3B, 0),
+            (FailureZones.F3B, 1),
             (FailureZones.F4, 4)
         };
 
@@ -80,7 +80,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F2A, 5),
             (FailureZones.F2B, 5),
             (FailureZones.F3A, 25),
-            (FailureZones.F3B, 0),
+            (FailureZones.F3B, 1),
             (FailureZones.F4, 4)
         };
 

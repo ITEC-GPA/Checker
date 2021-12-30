@@ -257,7 +257,9 @@ namespace GPC.Checkers.Concrete.Results
 								mxRd = failureDomain.DomainPoints[dTeta][i].MxRd;
 								myRd = failureDomain.DomainPoints[dTeta][i].MyRd;
 							}
-							else if(i + 2 < failureDomain.DomainPoints[dTeta].Length && _analysisType == SectionSolver.FailureDomainAnalysisTypes.Plastic)
+							else if(i + 2 < failureDomain.DomainPoints[dTeta].Length && 
+								_analysisType == SectionSolver.FailureDomainAnalysisTypes.Plastic &&
+								failureDomain.DomainPoints[dTeta][i].NRd < 0.0)
 							{
 								mxRd = Interpolation.GetQuadraticInterpolation(
 									failureDomain.DomainPoints[dTeta][i].NRd, failureDomain.DomainPoints[dTeta][i + 1].NRd, failureDomain.DomainPoints[dTeta][i + 2].NRd,
