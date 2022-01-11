@@ -42,7 +42,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -72,7 +72,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -124,7 +124,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -154,7 +154,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -188,7 +188,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -222,7 +222,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -277,7 +277,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -316,7 +316,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -365,7 +365,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -421,7 +421,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -668,7 +668,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -692,7 +692,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -722,7 +722,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -755,7 +755,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -781,7 +781,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -807,7 +807,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 	}

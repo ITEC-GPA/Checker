@@ -270,7 +270,7 @@ namespace ConcreteTests
 
 		#region Common Asserts
 
-		protected bool SLSCommonAssertModelCode(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
+		protected bool TensionAnalysisCommonAssertModelCode(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
             StandardModelCode2010 standard)
         {
             SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
@@ -316,7 +316,39 @@ namespace ConcreteTests
             return true;
         }
 
-		protected bool CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard, 
+        protected bool LinearAnalysisCommonAssertModelCode(double phi, StressAnalysisResult result)
+        {
+            List<string> log = result.GetLog();
+            foreach (string s in log)
+                Console.WriteLine($"{s}");
+
+            if (log.Count > 0)
+                return false;
+
+            if (result.StrainPlane != null)
+            {
+                (Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension(phi);
+                (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result.GetRebarsTension(phi);
+
+                Console.WriteLine($"Tensions associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} ");
+
+                for (int i = 0; i < rebarTensions.Length; i++)
+                    Console.WriteLine($"Rebar {i}: {rebarTensions[i].rebar.Position.X}, {rebarTensions[i].rebar.Position.Y}. " +
+                        $"Tension = {Math.Round(rebarTensions[i].tension, 2)}");
+
+                for (int i = 0; i < concreteTensions.Length; i++)
+                    Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
+            }
+            else
+            {
+                Console.WriteLine($"Result {result.Id} associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} don't find strain plane." +
+                    $"Point is external");
+            }
+
+            return true;
+        }
+
+        protected bool CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard, 
             CoordinateSystem coordinateSystem, double adimTolerance = 0.005,
 			double[] factor = null)
 		{

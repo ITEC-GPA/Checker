@@ -36,8 +36,8 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			FailureDomainResult elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			sectionChecker.GetPlasticFailureDomainResult();
+			sectionChecker.GetElasticFailureDomainResult();
 
 			//ShowDomainPoints(plasticFailureDomain.Domain);
 			//ExportToGmsh(plasticFailureDomain.Domain);
@@ -531,8 +531,8 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			sectionChecker.GetPlasticFailureDomainResult();
+			sectionChecker.GetElasticFailureDomainResult();
 
 			//ExportToGmsh(section);
 			//ExportToGmsh(plasticFailureDomain.Domain);
@@ -618,8 +618,8 @@ namespace ConcreteTests
 				Vector2d.XAxis, Vector2d.YAxis));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			sectionChecker.GetPlasticFailureDomainResult();
+			sectionChecker.GetElasticFailureDomainResult();
 
 			//ExportToGmsh(plasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain);
@@ -761,8 +761,8 @@ namespace ConcreteTests
 				Vector2d.XAxis, Vector2d.YAxis));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			sectionChecker.GetPlasticFailureDomainResult();
+			sectionChecker.GetElasticFailureDomainResult();
 
 			//ExportToGmsh(plasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain);
@@ -855,6 +855,7 @@ namespace ConcreteTests
 			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
 			ShowDomainPoints(plasticFailureDomain.Domain);
+			ShowDomainPoints(elasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
 			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
 			//ExportToGmsh(elasticFailureDomain.Domain);
@@ -911,8 +912,8 @@ namespace ConcreteTests
 			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
 			ShowDomainPoints(plasticFailureDomain.Domain);
-			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
-			ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
+			ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
 			//ExportToGmsh(elasticFailureDomain.Domain);
 		}
 
