@@ -698,7 +698,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         internal double CalculateElasticSigmaS(double psi, ReinforcedConcreteRebar rebar, double strain)
         {
-            return _concreteSection.ConcreteMaterial.E * (rebar.RebarMaterial.E / (_concreteSection.ConcreteMaterial.E / (1 + psi))) * (strain + rebar.EpsilonP);
+            return rebar.RebarMaterial.E * (1 + psi) * strain + rebar.RebarMaterial.E * rebar.EpsilonP;
         }
 
         protected virtual (double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, 
