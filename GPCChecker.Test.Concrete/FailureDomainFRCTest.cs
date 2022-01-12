@@ -360,13 +360,15 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
-			//ShowDomainPoints(plasticFailureDomain.Domain);
+			ShowDomainPoints(plasticFailureDomain.Domain);
+			ShowDomainPoints(elasticFailureDomain.Domain);
 			//ExportToGmsh(plasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain);
 		}

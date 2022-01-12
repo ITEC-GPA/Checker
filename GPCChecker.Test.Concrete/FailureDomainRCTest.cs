@@ -408,11 +408,12 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			ShowDomainPoints(failureDomain.Domain);
+			ShowDomainPoints(sectionChecker.GetPlasticFailureDomainResult().Domain);
+			ShowDomainPoints(sectionChecker.GetElasticFailureDomainResult().Domain);
 			//ExportToGmsh(failureDomain.Domain);
 
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
@@ -912,7 +913,8 @@ namespace ConcreteTests
 			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
 			ShowDomainPoints(plasticFailureDomain.Domain);
-			ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
+			ShowDomainPoints(elasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
 			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
 			//ExportToGmsh(elasticFailureDomain.Domain);
 		}
