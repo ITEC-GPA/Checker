@@ -17,7 +17,6 @@ namespace GPC.Checkers.Concrete.Checkers
     [Serializable]
     public class SectionCheckerModelCode2010 : SectionChecker, ISerializable
     {
-
         public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
 
         public SectionOptionsModelCode2010 SectionCheckerOptionsModelCode2010 => (SectionOptionsModelCode2010)_options;
@@ -211,21 +210,26 @@ namespace GPC.Checkers.Concrete.Checkers
             return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
         }
 
-		#endregion
+        #endregion
 
-		public class SectionOptionsModelCode2010 : SectionOptions
+
+        [Serializable]
+        public class SectionOptionsModelCode2010 : SectionOptions, ISerializable
         {
-
-            public SectionOptionsModelCode2010()
-                : base()
-            {
-
-            }
-
             public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem)
                 : base(coordinateSystem)
             {
 
+            }
+
+            protected SectionOptionsModelCode2010(SerializationInfo info, StreamingContext context)
+                :base(info, context) 
+            {
+            }
+
+            public override void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                base.GetObjectData(info, context);
             }
         }
     }

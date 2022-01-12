@@ -42,8 +42,17 @@ namespace GPC.Checkers.Concrete.Checkers
             _options = (Options)info.GetValue("Options", typeof(Options));
         }
 
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("Standard", _standard);
+            info.AddValue("Options", _options);
+        }
+
         #endregion
 
+        [Serializable]
         public abstract class Options
         {
 
