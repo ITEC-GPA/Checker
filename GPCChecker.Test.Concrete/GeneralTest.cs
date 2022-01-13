@@ -4,12 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Materials;
 using GPC.Model.Results;
@@ -17,8 +17,6 @@ using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
-using GPC.TestUtilities;
-using GPC.Utilities.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ConcreteTests
@@ -26,31 +24,6 @@ namespace ConcreteTests
     [TestClass]
     public class GeneralTest : ConcreteTestBase
     {
-        private bool SerializationClassesCommonAsserts(object objToTest)
-        {
-            bool check = true;
-            
-            using (var ms = new MemoryStream())
-            {
-                var formatter = new BinaryFormatter();
-                formatter.Serialize(ms, objToTest);
-                ms.Position = 0;
-
-                var oggettoDeserializzato = formatter.Deserialize(ms);
-
-                if (objToTest == oggettoDeserializzato)
-                {
-                    Console.WriteLine($"Class {objToTest.ToString().Replace("GPC.Checkers.Concrete.", "")} is serializable");
-                }
-                else
-                {
-                    Console.WriteLine($"Warning: Class {objToTest.GetType()} is not serializable");
-                    check = false;
-                }
-            }
-            return check;
-        }
-
 		#region Async test
 
 		[TestMethod]
@@ -65,7 +38,7 @@ namespace ConcreteTests
 
             List<ResultBeamForces> forces = new List<ResultBeamForces>();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 10; i++)
             {
                 forces.Add(new ResultBeamForces(-100 * 1000, 20, 30, 40, 50 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular)));
             }
@@ -107,10 +80,10 @@ namespace ConcreteTests
 		#region Serializable Test
 
 		[TestMethod]
-        public void SerializableTest1()
+        public void SerializableNameSpaceAttributes()
         {
             string assemblyName = "GPCChecker.Concrete";
-            string nameSpace = "GPC.Checkers.Concrete.SectionSolvers";
+            string nameSpace = "GPC.Checkers.Concrete.Attributes";
 
             var assembly = Assembly.Load(assemblyName);
             var classes = assembly.GetTypes().Where(a => a.IsClass && a.Namespace != null && a.Namespace.Contains(nameSpace)).ToList();
@@ -122,7 +95,7 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        public void SerializableTest2()
+        public void SerializableNameSpaceCheckers()
         {
             string assemblyName = "GPCChecker.Concrete";
             string nameSpace = "GPC.Checkers.Concrete.Checkers";
@@ -137,7 +110,7 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        public void SerializableTest3()
+        public void SerializableNameSpaceResults()
         {
             string assemblyName = "GPCChecker.Concrete";
             string nameSpace = "GPC.Checkers.Concrete.Results";
@@ -152,7 +125,7 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        public void SerializableTest4()
+        public void SerializableNameSpaceSectionSolvers()
         {
             string assemblyName = "GPCChecker.Concrete";
             string nameSpace = "GPC.Checkers.Concrete.SectionSolvers";
@@ -166,6 +139,47 @@ namespace ConcreteTests
             }
         }
 
-		#endregion
-	}
+        [TestMethod]
+        public void SerializationSectionSolverModelCode2010Test()
+        {
+            bool check = true;
+
+            SectionSolverModelCode2010 s = new SectionSolverModelCode2010(GetRectangularSection4Rebars(), new StandardEN1992p11());
+
+            using (var ms = new MemoryStream())
+            {
+                var formatter = new BinaryFormatter();
+                formatter.Serialize(ms, s);
+                ms.Position = 0;
+
+                var casted = formatter.Deserialize(ms);
+                SectionSolverModelCode2010 oggettoDeserializzato = (SectionSolverModelCode2010)casted;
+
+                if (s.Equals(oggettoDeserializzato))
+                {
+                    if(s.ConcreteMaterial != oggettoDeserializzato.ConcreteMaterial ||
+                        s.ConcreteMaterialModelCode2010 != oggettoDeserializzato.ConcreteMaterialModelCode2010 ||
+                        s.ConcreteSection.Shape != oggettoDeserializzato.ConcreteSection.Shape ||
+                        s.ConsiderTensileConcrete != oggettoDeserializzato.ConsiderTensileConcrete)
+                        check = false;
+                    for (int i = 0; i < s.ConcreteSection.Rebars.Count(); i++)
+                        if (s.ConcreteSection.Rebars.ToArray()[i] != oggettoDeserializzato.ConcreteSection.Rebars.ToArray()[i])
+                            check = false;
+                }
+                else
+                {
+                    check = false;
+                }
+            }
+
+            if (check)
+                Console.WriteLine($"Class {s} is serializable");
+            else
+                Console.WriteLine($"Warning: Class {s} is not serializable");
+
+            Assert.IsTrue(check);
+        }               
+
+        #endregion
+    }
 }

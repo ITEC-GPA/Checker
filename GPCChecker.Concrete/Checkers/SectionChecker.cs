@@ -31,7 +31,8 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <param name="id"></param>
         /// <param name="solver"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionOptions options, Standard standard, SectionSolver solver, int id = IDUNASSIGNED)
+        public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionOptions options, Standard standard, 
+            SectionSolver solver, int id = IDUNASSIGNED)
             : base(standard, options, id)
         {
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
@@ -22,9 +24,8 @@ namespace ConcreteTests
         #region Section Construction Methods
 
         protected ReinforcedConcreteSection GetRectangularSection4Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
-            ConcreteMaterialModelCode2010 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
         {
-
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
@@ -57,7 +58,7 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection8Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            ConcreteMaterialModelCode2010 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
@@ -96,7 +97,7 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection2SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
-            int numberOfRebars = 4, ConcreteMaterialModelCode2010 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
@@ -133,7 +134,7 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection4SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            int numberOfRebarsTopBottomSide = 4, int numberOfRebarsLateralSide = 4, ConcreteMaterialModelCode2010 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebarsTopBottomSide = 4, int numberOfRebarsLateralSide = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
@@ -179,7 +180,7 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSectionBottomSideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            int numberOfRebars = 4, ConcreteMaterialModelCode2010 concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
@@ -266,11 +267,36 @@ namespace ConcreteTests
             return boundingBox;
 		}
 
-		#endregion
+        protected bool SerializationClassesCommonAsserts(object objToTest)
+        {
+            bool check = true;
 
-		#region Common Asserts
+            using (var ms = new MemoryStream())
+            {
+                var formatter = new BinaryFormatter();
+                formatter.Serialize(ms, objToTest);
+                ms.Position = 0;
 
-		protected bool TensionAnalysisCommonAssertModelCode(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
+                var oggettoDeserializzato = formatter.Deserialize(ms);
+
+                if (objToTest == oggettoDeserializzato)
+                {
+                    Console.WriteLine($"Class {objToTest.ToString().Replace("GPC.Checkers.Concrete.", "")} is serializable");
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: Class {objToTest.GetType()} is not serializable");
+                    check = false;
+                }
+            }
+            return check;
+        }
+
+        #endregion
+
+        #region Common Asserts
+
+        protected bool TensionAnalysisCommonAssertModelCode(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
             StandardModelCode2010 standard)
         {
             SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
@@ -1032,7 +1058,8 @@ namespace ConcreteTests
 
 		internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
         {
-            internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = -1)
+            internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, 
+                bool considerTensileConcrete = false, int id = -1)
                 : base(section, standard, considerTensileConcrete, id)
             {
             }

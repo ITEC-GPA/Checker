@@ -188,6 +188,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)
+            :base(info, context)
         {
             _concreteSection = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
@@ -1998,29 +1999,31 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual ResultBeamForces GetLocalForces(ResultBeamForces externalForces, Vector2d forceReferencePoint)
         {
-            return new ResultBeamForces(externalForces.N,
-                                        externalForces.V1,
-                                        externalForces.V2,
-                                        externalForces.T,
-                                        externalForces.M1 + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
-                                        externalForces.M2 + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X),
-                                        new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
+            return new ResultBeamForces(
+                externalForces.N,
+                externalForces.V1,
+                externalForces.V2,
+                externalForces.T,
+                externalForces.M1 + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
+                externalForces.M2 + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X),
+                new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
         }
 
         protected ForceTuple GetLocalForces(ForceTuple externalForces, Vector2d forceReferencePoint)
         {
             return new ForceTuple(externalForces.N,
-                                  externalForces.Mx + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
-                                  externalForces.My + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X));
+                externalForces.Mx + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
+                externalForces.My + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X));
         }
 
         protected virtual ResultBeamForces GetExternalForces(ResultBeamForces localForces, CoordinateSystem forceReferenceCoordinateSystem)
         {
-            return new ResultBeamForces(localForces.N,
-                                        localForces.V1,
-                                        localForces.V2,
-                                        localForces.T,
-                                        localForces.M1 + localForces.N * (forceReferenceCoordinateSystem.Origin.Y - ConcreteSection.Centroid.Y),
+            return new ResultBeamForces(
+                localForces.N,
+                localForces.V1,
+                localForces.V2,
+                localForces.T,
+                localForces.M1 + localForces.N * (forceReferenceCoordinateSystem.Origin.Y - ConcreteSection.Centroid.Y),
                                         localForces.M2 + localForces.N * (forceReferenceCoordinateSystem.Origin.X - ConcreteSection.Centroid.X),
                                         new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
         }
