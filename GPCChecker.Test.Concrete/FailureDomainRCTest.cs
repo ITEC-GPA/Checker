@@ -920,6 +920,28 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		[TestCategory("")]
+		public void RectangularSectionTest15()
+		{
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialACI318.Fc3000, RebarMaterial.Grade60);
+			StandardACI318 standard = new StandardACI318();
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions =
+				new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
+			SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard);
+
+			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+
+			ShowDomainPoints(plasticFailureDomain.Domain);
+			ShowDomainPoints(elasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
+			ExportToGmsh(plasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain);
+		}
+
+		[TestMethod]
 		public void SquareSectionTest1()
 		{
 			double rebarDiameter = 18;

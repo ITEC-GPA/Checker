@@ -228,6 +228,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <returns>The design steel stress related to <paramref name="strain"/></returns>
         internal abstract double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain);
 
+        protected abstract double GetReductionFactor(StrainPlane strainPlane);
+
         #endregion
 
         #region Public method
@@ -504,7 +506,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             try
             {
-                return IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation);
+                return (IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation)) * 
+                    GetReductionFactor(strainPlane);
             }
             catch (Exception e)
             {
@@ -522,7 +525,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             try
             {
-                return IntegrateSectionStress(strainPlane.Item1) + IntegrateRebarStress(strainPlane.Item1, rebarIsInsideAssociation);
+                return (IntegrateSectionStress(strainPlane.Item1) + IntegrateRebarStress(strainPlane.Item1, rebarIsInsideAssociation)) *
+                    GetReductionFactor(strainPlane.Item1);
             }
             catch (Exception e)
             {
@@ -2024,15 +2028,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 localForces.V2,
                 localForces.T,
                 localForces.M1 + localForces.N * (forceReferenceCoordinateSystem.Origin.Y - ConcreteSection.Centroid.Y),
-                                        localForces.M2 + localForces.N * (forceReferenceCoordinateSystem.Origin.X - ConcreteSection.Centroid.X),
-                                        new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
+                localForces.M2 + localForces.N * (forceReferenceCoordinateSystem.Origin.X - ConcreteSection.Centroid.X),
+                new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
         }
 
         protected virtual ForceTuple GetExternalForces(ForceTuple forceTuple, CoordinateSystem forceReferenceCoordinateSystem)
         {
             return new ForceTuple(forceTuple.N,
-                                  forceTuple.Mx + forceTuple.N * (forceReferenceCoordinateSystem.Origin.Y - ConcreteSection.Centroid.Y),
-                                  forceTuple.My - forceTuple.N * (forceReferenceCoordinateSystem.Origin.X - ConcreteSection.Centroid.X));
+                forceTuple.Mx + forceTuple.N * (forceReferenceCoordinateSystem.Origin.Y - ConcreteSection.Centroid.Y),
+                forceTuple.My - forceTuple.N * (forceReferenceCoordinateSystem.Origin.X - ConcreteSection.Centroid.X));
         }
 
         #endregion

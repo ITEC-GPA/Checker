@@ -159,6 +159,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
+        protected override double GetReductionFactor(StrainPlane strainPlane)
+        {
+            return 1.0;
+        }
+
         #endregion
 
         #region Protected Design Concrete 
@@ -254,7 +259,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             return material.StrainU * StandardModelCode2010.SteelCoefficientStrainTension;
         }
-
 
         #endregion
 
