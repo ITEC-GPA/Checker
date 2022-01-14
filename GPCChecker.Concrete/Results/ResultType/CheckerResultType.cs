@@ -12,20 +12,27 @@ using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Results
 {
-
     [Serializable]
     public abstract class CheckerResultType : ModelObjectId, ISerializable
     {
+        #region Variables
+
         protected readonly IConcreteSection _section;
         protected readonly Standard _standard;
 
+        #endregion
+
+        #region Properties
 
         public IConcreteSection ConcreteSection => _section;
+
         public Standard Standard => _standard;
 
+		#endregion
 
+		#region Constructor
 
-        public CheckerResultType(IConcreteSection section, Standard standard, int id = IDUNASSIGNED)
+		public CheckerResultType(IConcreteSection section, Standard standard, int id = IDUNASSIGNED)
             : base(id)
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
@@ -39,6 +46,9 @@ namespace GPC.Checkers.Concrete.Results
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
         }
 
+        #endregion
+
+        #region Equals, hashcode, operators
 
         public override bool Equals(object obj)
         {
@@ -66,5 +76,6 @@ namespace GPC.Checkers.Concrete.Results
             info.AddValue("Standard", _standard);
         }
 
-    }
+		#endregion
+	}
 }

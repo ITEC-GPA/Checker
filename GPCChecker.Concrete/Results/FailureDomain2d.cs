@@ -10,11 +10,18 @@ using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Concrete.Results
 {
-	public class FailureDomain2d : ModelObject
+	[Serializable]
+	public class FailureDomain2d : ModelObject, ISerializable
 	{
+		#region Variables
+
 		protected readonly FailureDomain.FailureDomainPoint[] _domainPoints;
 		protected readonly Dictionary<FailureDomain.FailureDomainPoint, Point2d> _domainPoints2dAssociation;
 		protected readonly FailureDomainResult2d.DomainTypes _domainType;
+
+		#endregion
+
+		#region Properties
 
 		internal FailureDomain.FailureDomainPoint[] DomainPoints => _domainPoints;
 		
@@ -22,7 +29,10 @@ namespace GPC.Checkers.Concrete.Results
 		/// Dictionary of association between 3d domain points and 2d domain points
 		/// </summary>
 		internal Dictionary<FailureDomain.FailureDomainPoint, Point2d> DomainPoints2dAssociation => _domainPoints2dAssociation;
-				
+
+		#endregion
+
+		#region Constructor
 
 		internal FailureDomain2d(FailureDomain.FailureDomainPoint[] domainPoints, FailureDomainResult2d.DomainTypes domainType)
 		{
@@ -31,6 +41,19 @@ namespace GPC.Checkers.Concrete.Results
 			_domainPoints2dAssociation = new Dictionary<FailureDomain.FailureDomainPoint, Point2d>();
 			CalculateDomainPoints2dAssociation();
 		}
+
+		protected FailureDomain2d(SerializationInfo info, StreamingContext context) 
+			: base(info, context)
+		{
+			_domainPoints = (FailureDomain.FailureDomainPoint[])info.GetValue("FailureDomainPoints", typeof(FailureDomain.FailureDomainPoint[]));
+			_domainType = (FailureDomainResult2d.DomainTypes)info.GetValue("DomainType", typeof(FailureDomainResult2d.DomainTypes));
+			_domainPoints2dAssociation = (Dictionary<FailureDomain.FailureDomainPoint, Point2d>)info.GetValue("DomainPoints2dAssociation", 
+				typeof(Dictionary<FailureDomain.FailureDomainPoint, Point2d>));
+		}
+
+		#endregion
+
+		#region Internal Methods
 
 		/// <summary>
 		/// Return the domain point for input 2d forces <paramref name="point"/>
@@ -141,5 +164,42 @@ namespace GPC.Checkers.Concrete.Results
 				return coordinateSystem;
 			}
 		}
+
+		#endregion
+
+		#region Equals, hashcode, operators
+
+		public override void GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			base.GetObjectData(info, context);
+			info.AddValue("FailureDomainPoints", _domainPoints);
+			info.AddValue("DomainType", _domainType);
+			info.AddValue("DomainPoints2dAssociation", _domainPoints2dAssociation);
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (ReferenceEquals(this, obj))
+				return true;
+
+			return obj is FailureDomain2d domain &&
+				   base.Equals(obj) &&
+				   EqualityComparer<FailureDomain.FailureDomainPoint[]>.Default.Equals(_domainPoints, domain._domainPoints) &&
+				   _domainType == domain._domainType;
+		}
+
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				int hashCode = 23;
+				hashCode = hashCode * -17 + base.GetHashCode();
+				hashCode = hashCode * -17 + EqualityComparer<FailureDomain.FailureDomainPoint[]>.Default.GetHashCode(_domainPoints);
+				hashCode = hashCode * -17 + _domainType.GetHashCode();
+				return hashCode;
+			}
+		}
+
+		#endregion
 	}
 }

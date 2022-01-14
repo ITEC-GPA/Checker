@@ -195,7 +195,7 @@ namespace ConcreteTests
 			FailureDomain.FailureDomainPoint domainPoint = plasticFailureDomain.AddForce(new ResultBeamForces(0, 0, 0, 0, 10 * 1000000, 0,
 				GetLocalCoordinateSystem(section), 1));
 
-			Point3d expDomainPoint = new Point3d(49 * 1000000, 0, 0);
+			Point3d expDomainPoint = new Point3d(54 * 1000000, 0, 0);
 
 			Assert.IsTrue(Math.Abs(expDomainPoint.X - domainPoint.MxRd) / domainPoint.MxRd * 100 < 5);
 		}
@@ -360,13 +360,15 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
-			//ShowDomainPoints(plasticFailureDomain.Domain);
+			ShowDomainPoints(plasticFailureDomain.Domain);
+			ShowDomainPoints(elasticFailureDomain.Domain);
 			//ExportToGmsh(plasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain);
 		}

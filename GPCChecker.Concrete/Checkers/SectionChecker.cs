@@ -31,7 +31,8 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <param name="id"></param>
         /// <param name="solver"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionOptions options, Standard standard, SectionSolver solver, int id = IDUNASSIGNED)
+        public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionOptions options, Standard standard, 
+            SectionSolver solver, int id = IDUNASSIGNED)
             : base(standard, options, id)
         {
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
@@ -116,9 +117,11 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The stress analysis results</returns>
         internal abstract StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double phi);
 
-		#endregion
+        #endregion
 
-		public abstract class SectionOptions : Options
+
+        [Serializable]
+        public abstract class SectionOptions : Options, ISerializable
         {
             public CoordinateSystem ForceReferenceCoordinateSystem { get; }
 
@@ -130,6 +133,11 @@ namespace GPC.Checkers.Concrete.Checkers
             public SectionOptions(CoordinateSystem forceReferencePointCoordinateSystem)
             {
                 ForceReferenceCoordinateSystem = forceReferencePointCoordinateSystem;
+            }
+
+            protected SectionOptions(SerializationInfo info, StreamingContext context) 
+            {
+                ForceReferenceCoordinateSystem = (CoordinateSystem)info.GetValue("ForceReferenceCoordinateSystem", typeof(CoordinateSystem));
             }
 
             public override bool Equals(object obj)
@@ -145,6 +153,11 @@ namespace GPC.Checkers.Concrete.Checkers
                     hashCode = hashCode * -23 + ForceReferenceCoordinateSystem.GetHashCode();
                     return hashCode; 
                 }
+            }
+
+            public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                info.AddValue("ForceReferenceCoordinateSystem", ForceReferenceCoordinateSystem);
             }
 
             public static bool operator ==(SectionOptions left, SectionOptions right)

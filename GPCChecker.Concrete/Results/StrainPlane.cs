@@ -13,16 +13,21 @@ namespace GPC.Checkers.Concrete.Results
     [Serializable]
     public sealed class StrainPlane : ModelObjectId, ISerializable, IEquatable<StrainPlane>
     {
+        #region Variables
 
         private readonly Point2d _referencePoint;
         private readonly double _chiY;
         private readonly double _chiX;
         private readonly double _strainReferencePoint;
 
-        /// <summary>
-        /// The point where is set <see cref="StrainReferencePoint"/>
-        /// </summary>
-        public Point2d ReferencePoint => _referencePoint;
+		#endregion
+
+		#region Properties
+
+		/// <summary>
+		/// The point where is set <see cref="StrainReferencePoint"/>
+		/// </summary>
+		public Point2d ReferencePoint => _referencePoint;
 
         /// <summary>
         /// The angle between the strain plane and the plane of section
@@ -39,11 +44,19 @@ namespace GPC.Checkers.Concrete.Results
         /// </summary>
         public double StrainReferencePoint => _strainReferencePoint;
 
+        /// <summary>
+        /// The curvature of the strain plane along X axis
+        /// </summary>
         public double ChiX => _chiX;
 
+        /// <summary>
+        /// The curvature of the strain plane along Y axis
+        /// </summary>
         public double ChiY => _chiY;
 
+        #endregion
 
+        #region Constructor
 
         public StrainPlane(Point2d centerOfStrainPlane, double teta, double chi, double epsilonCenterOfStrainPlane, int id = IDUNASSIGNED, string name = "")
             : base(id, name)
@@ -63,7 +76,7 @@ namespace GPC.Checkers.Concrete.Results
             _strainReferencePoint = epsilonCenterOfStrainPlane;
         }
 
-        private StrainPlane(SerializationInfo info, StreamingContext context)
+        internal StrainPlane(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             _referencePoint = (Point2d)info.GetValue("ReferecePoint", typeof(Point2d));
@@ -72,7 +85,38 @@ namespace GPC.Checkers.Concrete.Results
             _strainReferencePoint = info.GetDouble("StrainReferencePoint");
         }
 
-        private double CalculateTeta()
+		#endregion
+
+		#region Public Methods
+
+		public double GetStrain(Point2d point)
+        {
+            return _strainReferencePoint + ChiX * (point.X - _referencePoint.X) + ChiY * (point.Y - _referencePoint.Y);
+        }
+
+        public Line2d GetNeutralAxisRespectCentroid()
+		{
+            if (_chiX == 0 && _chiY == 0)
+                return null;
+            else if (_chiY == 0 && _chiX != 0)
+            {
+                return new Line2d(new Point2d(-StrainReferencePoint / _chiX, 100.0), new Point2d(-StrainReferencePoint / _chiX, -100.0));
+            }
+            else if (_chiX == 0 && _chiY != 0)
+            {
+                return new Line2d(new Point2d(100.0, -StrainReferencePoint / _chiY), new Point2d(-100.0, -StrainReferencePoint / _chiY));
+            }
+            else
+            {
+                return new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY), new Point2d(-StrainReferencePoint / _chiX, 0.0));
+            }
+        }
+
+		#endregion
+
+		#region Private Methods
+
+		private double CalculateTeta()
         {
             if (_chiY != 0)
 			{
@@ -100,30 +144,11 @@ namespace GPC.Checkers.Concrete.Results
                 return -ChiY / Math.Cos(Teta);
         }
 
-        public double GetStrain(Point2d point)
-        {
-            return _strainReferencePoint + ChiX * (point.X - _referencePoint.X) + ChiY * (point.Y - _referencePoint.Y);
-        }
+		#endregion
 
-        public Line2d GetNeutralAxisRespectCentroid()
-		{
-            if (_chiX == 0 && _chiY == 0)
-                return null;
-            else if (_chiY == 0 && _chiX != 0)
-            {
-                return new Line2d(new Point2d(-StrainReferencePoint / _chiX, 100.0), new Point2d(-StrainReferencePoint / _chiX, -100.0));
-            }
-            else if (_chiX == 0 && _chiY != 0)
-            {
-                return new Line2d(new Point2d(100.0, -StrainReferencePoint / _chiY), new Point2d(-100.0, -StrainReferencePoint / _chiY));
-            }
-            else
-            {
-                return new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY), new Point2d(-StrainReferencePoint / _chiX, 0.0));
-            }
-        }
+		#region Equals, hashcode, operators
 
-        public bool Equals(StrainPlane other)
+		public bool Equals(StrainPlane other)
         {
             return !(other is null) &&
                    EqualityComparer<Point2d>.Default.Equals(_referencePoint, other._referencePoint) &&
@@ -159,6 +184,6 @@ namespace GPC.Checkers.Concrete.Results
             info.AddValue("StrainReferencePoint", _strainReferencePoint, typeof(double));
         }
 
-
-    }
+		#endregion
+	}
 }

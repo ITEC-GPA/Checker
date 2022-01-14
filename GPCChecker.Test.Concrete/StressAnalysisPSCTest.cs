@@ -60,7 +60,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
 		[TestMethod]
@@ -91,7 +91,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(350, 450,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(450, 450,0)),
-				new ReinforcedConcreteRebar(rebarP, new Point3d(250, 250, 0), 0.007045) };
+				new ReinforcedConcreteRebar(rebarP, new Point3d(250, 250, 0), 1400) };
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 			section.AddRebars(rebars);
@@ -117,7 +117,97 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+		}
+
+		[TestMethod]
+		public void SquareSectionPrestressed3()
+		{
+			double rebarDiameter = 14;
+			double rebarDiameterPrestress = 26;
+			double phi = 1.55;
+
+			// SquareSectionPrestressed2
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {
+				new Point2d(0, 0),
+				new Point2d(400, 0),
+				new Point2d(400, 400),
+				new Point2d(0, 400) }));
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C35_45);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, RebarMaterial.B450C);
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1620));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
+				new ReinforcedConcreteRebar(rebar, new Point3d(40,40,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(40, 360, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(360, 40, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(360, 360, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(150, 40,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(150, 360,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 40,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 360,0)),
+				new ReinforcedConcreteRebar(rebarP, new Point3d(200, 100, 0), 1400) };
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 200 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			StressAnalysisResult[] slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
+
+			for (int i = 0; i < slsResult.Length; i++)
+				Assert.IsTrue(LinearAnalysisCommonAssertModelCode(phi, slsResult[i]));
+		}
+
+		[TestMethod]
+		public void SquareSectionPrestressed4()
+		{
+			double rebarDiameterPrestress = 26;
+			double phi = 1.287;
+
+			// SquareSectionPrestressed2
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[] {
+				new Point2d(0, 0),
+				new Point2d(400, 0),
+				new Point2d(400, 400),
+				new Point2d(0, 400) }));
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1620));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
+				new ReinforcedConcreteRebar(rebarP, new Point2d(200, 200), 1400) };
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			StressAnalysisResult[] slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
+
+			for (int i = 0; i < slsResult.Length; i++)
+				Assert.IsTrue(LinearAnalysisCommonAssertModelCode(phi, slsResult[i]));
 		}
 
 		[TestMethod]
@@ -146,7 +236,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(150, 650,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 650,0)),
 				new ReinforcedConcreteRebar(rebar, new Point3d(350, 650,0)),
-				new ReinforcedConcreteRebar(rebarP, new Point3d(200, 350, 0), 0.007045) };
+				new ReinforcedConcreteRebar(rebarP, new Point3d(200, 350, 0), 1400) };
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 			section.AddRebars(rebars);
@@ -172,7 +262,7 @@ namespace ConcreteTests
 			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
 
 			for (int i = 0; i < slsResult.Length; i++)
-				Assert.IsTrue(SLSCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 	}
 }

@@ -36,12 +36,13 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			sectionChecker.GetPlasticFailureDomainResult();
+			sectionChecker.GetElasticFailureDomainResult();
 
 			//ShowDomainPoints(plasticFailureDomain.Domain);
 			//ExportToGmsh(plasticFailureDomain.Domain);
-			//ExportToGmsh(elasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
 
 			//Mesh mesh = plasticFailureDomain.Domain.GetMesh();
 			//ExportToGmsh(mesh);
@@ -407,11 +408,12 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			ShowDomainPoints(failureDomain.Domain);
+			ShowDomainPoints(sectionChecker.GetPlasticFailureDomainResult().Domain);
+			ShowDomainPoints(sectionChecker.GetElasticFailureDomainResult().Domain);
 			//ExportToGmsh(failureDomain.Domain);
 
 			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
@@ -530,8 +532,8 @@ namespace ConcreteTests
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			sectionChecker.GetPlasticFailureDomainResult();
+			sectionChecker.GetElasticFailureDomainResult();
 
 			//ExportToGmsh(section);
 			//ExportToGmsh(plasticFailureDomain.Domain);
@@ -617,11 +619,11 @@ namespace ConcreteTests
 				Vector2d.XAxis, Vector2d.YAxis));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			sectionChecker.GetPlasticFailureDomainResult();
+			sectionChecker.GetElasticFailureDomainResult();
 
-			ExportToGmsh(plasticFailureDomain.Domain);
-			ExportToGmsh(elasticFailureDomain.Domain);
+			//ExportToGmsh(plasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain);
 
 			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
@@ -760,8 +762,8 @@ namespace ConcreteTests
 				Vector2d.XAxis, Vector2d.YAxis));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
-			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			sectionChecker.GetPlasticFailureDomainResult();
+			sectionChecker.GetElasticFailureDomainResult();
 
 			//ExportToGmsh(plasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain);
@@ -813,6 +815,154 @@ namespace ConcreteTests
 			Point3d min = new Point3d(-47.2 * 1000000, 0, -315 * 1000);
 
 			CommonAssertsDomainBoundingBox(section, plasticFailureDomain.Domain, max, min);
+		}
+
+		[TestMethod]
+		[TestCategory("Rebars out of section")]
+		public void RectangularSectionTest13()
+		{
+			double rebarDiameter = 16;
+
+			// sezione rettangolare 300x500
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(300, 0),
+				new Point2d(300, 300),
+				new Point2d(0, 300)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 350, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 350, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, -50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, -50, 0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+
+			ShowDomainPoints(plasticFailureDomain.Domain);
+			ShowDomainPoints(elasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(elasticFailureDomain.Domain);
+		}
+
+		[TestMethod]
+		[TestCategory("Rebars out of section")]
+		public void RectangularSectionTest14()
+		{
+			double rebarDiameter = 26;
+
+			// sezione rettangolare 300x500
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(400, 0),
+				new Point2d(400, 400),
+				new Point2d(0, 400)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(-100, -100, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(-50, -50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
+
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 350, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(-50, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(-100, 500, 0)),
+
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(450, -50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(500, -100, 0)),
+
+
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 350, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(450, 450, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(500, 500, 0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+
+			ShowDomainPoints(plasticFailureDomain.Domain);
+			ShowDomainPoints(elasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(elasticFailureDomain.Domain);
+		}
+
+		[TestMethod]
+		[TestCategory("")]
+		public void RectangularSectionTest15()
+		{
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialACI318.Fc3000, RebarMaterial.Grade60);
+			StandardACI318 standard = new StandardACI318();
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions =
+				new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
+			SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard);
+
+			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+
+			ShowDomainPoints(plasticFailureDomain.Domain);
+			ShowDomainPoints(elasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(elasticFailureDomain.Domain);
+		}
+
+		[TestMethod]
+		[TestCategory("Rebars out of section")]
+		public void RectangularSectionTest16()
+		{
+			double rebarDiameter = 16;
+
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(10000, 3000, rebarDiameter, 50, 60);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+
+			ShowDomainPoints(plasticFailureDomain.Domain);
+			ShowDomainPoints(elasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(elasticFailureDomain.Domain);
 		}
 
 		[TestMethod]
@@ -1090,7 +1240,6 @@ namespace ConcreteTests
 				-2493.36	-114.279	0			0
 			*/
 		}
-
 
 	}
 }

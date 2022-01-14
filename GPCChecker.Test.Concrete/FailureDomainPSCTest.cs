@@ -41,11 +41,12 @@ namespace ConcreteTests
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
             var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            //ShowDomainPoints(failureDomain.Domain);
+            ShowDomainPoints(failureDomain.Domain);
             //ExportToGmsh(failureDomain.Domain);
 
             //// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
@@ -116,8 +117,9 @@ namespace ConcreteTests
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
             var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);
@@ -214,8 +216,9 @@ namespace ConcreteTests
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
             var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);

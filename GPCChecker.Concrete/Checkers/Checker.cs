@@ -9,19 +9,25 @@ using GPC.Model.Standards;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
-
     [Serializable]
     public abstract class Checker : ModelObjectId, ISerializable
     {
+        #region Variables
 
         protected readonly Standard _standard;
         protected readonly Options _options;
 
+        #endregion
+
+        #region Properties
 
         public Standard Standard => _standard;
 
         public Options CheckerOptions => _options;
 
+        #endregion
+
+        #region Constructor
 
         public Checker(Standard standard, Options options, int id) 
             : base(id)
@@ -37,6 +43,16 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
 
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("Standard", _standard);
+            info.AddValue("Options", _options);
+        }
+
+        #endregion
+
+        [Serializable]
         public abstract class Options
         {
 
