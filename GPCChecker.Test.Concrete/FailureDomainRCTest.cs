@@ -937,7 +937,7 @@ namespace ConcreteTests
 			ShowDomainPoints(plasticFailureDomain.Domain);
 			ShowDomainPoints(elasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
-			ExportToGmsh(plasticFailureDomain.Domain);
+			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
 			//ExportToGmsh(elasticFailureDomain.Domain);
 		}
 
@@ -961,7 +961,7 @@ namespace ConcreteTests
 			ShowDomainPoints(plasticFailureDomain.Domain);
 			ShowDomainPoints(elasticFailureDomain.Domain);
 			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
-			ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
+			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
 			//ExportToGmsh(elasticFailureDomain.Domain);
 		}
 
