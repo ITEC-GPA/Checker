@@ -164,6 +164,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return 1.0;
         }
 
+        protected override ForceTuple CalculatePureCompressionReduction(ForceTuple force)
+        {
+            return force;
+        }
+
         #endregion
 
         #region Protected Design Concrete 

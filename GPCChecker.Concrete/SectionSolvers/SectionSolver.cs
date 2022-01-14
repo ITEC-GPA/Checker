@@ -230,6 +230,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected abstract double GetReductionFactor(StrainPlane strainPlane);
 
+        protected abstract ForceTuple CalculatePureCompressionReduction(ForceTuple force);
+
         #endregion
 
         #region Public method
@@ -506,8 +508,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             try
             {
-                return (IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation)) * 
-                    GetReductionFactor(strainPlane);
+                return CalculatePureCompressionReduction((IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation)) * 
+                    GetReductionFactor(strainPlane));
             }
             catch (Exception e)
             {
@@ -523,17 +525,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <returns>The forces in the local reference system</returns>
         protected virtual ForceTuple CalculateForceResultant((StrainPlane, FailureZones) strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
-            try
-            {
-                return (IntegrateSectionStress(strainPlane.Item1) + IntegrateRebarStress(strainPlane.Item1, rebarIsInsideAssociation)) *
-                    GetReductionFactor(strainPlane.Item1);
-            }
-            catch (Exception e)
-            {
-                _log.Add(e.Message);
-                _log.Add(e.InnerException.Message);
-                return new ForceTuple();
-            }
+            return CalculateForceResultant(strainPlane.Item1, rebarIsInsideAssociation);
         }
 
         /// <summary>

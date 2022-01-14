@@ -121,19 +121,35 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected override double GetReductionFactor(StrainPlane strainPlane)
         {
             var distances = CalculateMaxMinSectionDistances(strainPlane.Teta);
-
             double strain = strainPlane.GetStrain(ConcreteSection.GetRebarById(distances.dMinRebarId).Position);
 
             if (strain < GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)))
                 return StandardACI318.PhiCTied;
-            else if (strain > GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)))
+            else if (strain > GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)) + 
+                StandardACI318.PhiDeformationTransitionIncrement)
                 return StandardACI318.PhiT;
             else
                 return Utilities.Maths.Interpolation.GetLinearInterpolation(
                     GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)),
-                    GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)) + StandardACI318.PhiDeformationTransitionIncrement,
+                    GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)) + 
+                    StandardACI318.PhiDeformationTransitionIncrement,
                     StandardACI318.PhiCTied, StandardACI318.PhiT,
                     strain);
+        }
+
+        protected override ForceTuple CalculatePureCompressionReduction(ForceTuple force)
+        {
+            double fyA = 0;
+            foreach (ReinforcedConcreteRebar rebar in ConcreteSection.GetRebars())
+                fyA += rebar.Area * rebar.RebarMaterial.Fyk;
+
+            double limit = 0.80 * (0.85 * ConcreteMaterialACI318.Fc *
+                (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
+
+            if(force.N < limit)
+                return new ForceTuple(limit, force.Mx, force.My);
+            else
+                return force;
         }
 
         #endregion
@@ -182,7 +198,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-		#region Equals, hashcode, operators
+		#region Equals hashcode operators
 
 		public override bool Equals(object obj)
 		{
