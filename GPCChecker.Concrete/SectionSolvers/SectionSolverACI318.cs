@@ -17,7 +17,7 @@ using GPC.Model.Standards;
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
 	[Serializable]
-	internal class SectionSolverACI318 : SectionSolver, ISerializable
+	public class SectionSolverACI318 : SectionSolver, ISerializable
 	{
 		#region Properties
 

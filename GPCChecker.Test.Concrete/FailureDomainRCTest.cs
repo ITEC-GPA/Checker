@@ -1145,6 +1145,43 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		public void CHSSectionTest2()
+		{
+			double rebarDiameter = 18;
+			double externalDiameter = 1000;
+			double internalDiameter = 800;
+
+			Polygon2d fill = new Polygon2d(externalDiameter);
+			Polygon2d hole = new Polygon2d(internalDiameter);
+
+			Polygon2d rebarPoligon = new Polygon2d((externalDiameter + internalDiameter) / 2.0);
+
+			ConcreteMaterialModelCode2010FRC concrete = new ConcreteMaterialModelCode2010FRC("Test", 45,
+				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.ParabolaRectangle, 0.1, 0.1, 0.00001, 0.002,
+				ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear);
+
+			ShapeEx shapeEx = new ShapeEx(fill, concrete, new Polygon2d[] { hole });
+			RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, RebarMaterial.B500C);
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+
+			for (int i = 0; i < rebarPoligon.Count; i++)
+			{
+				section.AddRebar(new ReinforcedConcreteRebar(rebarSection, rebarPoligon[i]));
+			}
+
+			StandardEN1992p11 standard = new StandardEN1992p11();
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			ShowDomainPoints(failureDomain.Domain);
+			ExportToGmsh(failureDomain.Domain);			
+		}
+
+		[TestMethod]
 		public void SectionTTest1()
 		{
 			double rebarDiameter = 26;

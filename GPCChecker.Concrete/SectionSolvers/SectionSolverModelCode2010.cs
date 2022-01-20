@@ -17,7 +17,7 @@ using GPC.Model.Standards;
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
     [Serializable]
-    internal class SectionSolverModelCode2010 : SectionSolver, ISerializable
+    public class SectionSolverModelCode2010 : SectionSolver, ISerializable
     {
 		#region Properties
 
@@ -54,7 +54,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#region Constructor
 
-		internal SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
+		public SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
             : base(section, standard, considerTensileConcrete, id)
         {
 

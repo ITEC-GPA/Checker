@@ -35,12 +35,19 @@ namespace GPC.Checkers.Concrete.Checkers
 
         }
 
-		#endregion
+        public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptionsModelCode2010 options,
+            StandardModelCode2010 standard, SectionSolverModelCode2010 solver)
+            : base(checkerAttribute, options, standard, solver)
+		{
 
-		#region Public Async
+		}
 
-		/// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResultAsync"/>
-		public async override Task<FailureDomainResult> GetPlasticFailureDomainResultAsync()
+        #endregion
+
+        #region Public Async
+
+        /// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResultAsync"/>
+        public async override Task<FailureDomainResult> GetPlasticFailureDomainResultAsync()
         {
             return await Task.Run(() =>
             {

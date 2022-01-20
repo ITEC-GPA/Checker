@@ -141,7 +141,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected Standard _standard;
 
         protected List<string> _log;
-        protected readonly int _tetaDiscretization;
+        protected int _tetaDiscretization;
 
         protected int _gaussIntegrationQuadLowPoints;
         protected int _gaussIntegrationQuadMidPoints;
