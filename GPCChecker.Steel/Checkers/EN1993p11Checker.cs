@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -34,11 +34,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-
-        #region Variables
-
-        protected double _epsilon;
-
+        #region Properties
 
         public StandardEN1993p11 EN1993P11 => (StandardEN1993p11)_standard;
 
@@ -56,19 +52,21 @@ namespace GPC.Checkers.Steel.Checkers
 
         public double Fu => Material.Fu;
 
-        public double Epsilon => _epsilon;
+        public double Epsilon => Math.Sqrt(235 / Fy);
 
-        #endregion
+		#endregion
 
+		#region Constructor
 
-        public EN1993p11Checker(BeamCheckerAttributes attributes, EN1993p11Checker.EN1993p11Options options, StandardEN1993p11 standardEN1993P11) 
+		public EN1993p11Checker(BeamCheckerAttributes attributes, EN1993p11Checker.EN1993p11Options options, StandardEN1993p11 standardEN1993P11) 
             : base(attributes, options, standardEN1993P11)
         {
-            _epsilon = Math.Sqrt(235 / Fy);        //value of Epsilon for section classification
+
         }
 
+		#endregion
 
-        public override void PerformCheck()
+		public override void PerformCheck()
         {
             _beamStationResults = PerformCheck(_beamCheckersAttributes.Sections, _beamCheckersAttributes.Results, (EN1993p11Options)_options);
         }
@@ -477,8 +475,6 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         #region Private Method
-
-
 
         #region Axial Tension/Compression
 
@@ -967,36 +963,36 @@ namespace GPC.Checkers.Steel.Checkers
             if (section is SteelSectionH sectionH)
                 if (sectionH.SectionType == Section.SectionTypes.Rolled)
                 {
-                    if (sectionH.HeightWeb / sectionH.ThicknessWeb > 72.0 * _epsilon / n)
+                    if (sectionH.HeightWeb / sectionH.ThicknessWeb > 72.0 * Epsilon / n)
                         return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
                 }
                 else
                 {
-                    if (sectionH.HeightWeb / sectionH.ThicknessWeb > 72.0 * _epsilon / n)
+                    if (sectionH.HeightWeb / sectionH.ThicknessWeb > 72.0 * Epsilon / n)
                         return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
                 }
             if (section is SteelSectionRHS sectionRHS)
                 if (sectionRHS.SectionType == Section.SectionTypes.Rolled)
                 {
-                    if (sectionRHS.ThicknessWebLeft / sectionRHS.Heightinternal > 72.0 * _epsilon / n ||
-                        sectionRHS.ThicknessWebRight / sectionRHS.Heightinternal > 72.0 * _epsilon / n)
+                    if (sectionRHS.ThicknessWebLeft / sectionRHS.Heightinternal > 72.0 * Epsilon / n ||
+                        sectionRHS.ThicknessWebRight / sectionRHS.Heightinternal > 72.0 * Epsilon / n)
                         return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
                 }
                 else
                 {
-                    if (sectionRHS.ThicknessWebLeft / sectionRHS.Heightinternal > 72.0 * _epsilon / n ||
-                        sectionRHS.ThicknessWebRight / sectionRHS.Heightinternal > 72.0 * _epsilon / n)
+                    if (sectionRHS.ThicknessWebLeft / sectionRHS.Heightinternal > 72.0 * Epsilon / n ||
+                        sectionRHS.ThicknessWebRight / sectionRHS.Heightinternal > 72.0 * Epsilon / n)
                         return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
                 }
             if (section is SteelSectionC sectionC)
                 if (sectionC.SectionType == Section.SectionTypes.Rolled)
                 {
-                    if (sectionC.HeightWeb / sectionC.ThicknessWeb > 72.0 * _epsilon / n)
+                    if (sectionC.HeightWeb / sectionC.ThicknessWeb > 72.0 * Epsilon / n)
                         return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
                 }
                 else
                 {
-                    if (sectionC.HeightWeb / sectionC.ThicknessWeb > 72.0 * _epsilon / n)
+                    if (sectionC.HeightWeb / sectionC.ThicknessWeb > 72.0 * Epsilon / n)
                         return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
                 }
 
@@ -2502,13 +2498,13 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected SectionClass GetClassCHSBending(double diameter, double thickness)
         {
-            if (diameter / thickness <= 50.0 * _epsilon * _epsilon)
+            if (diameter / thickness <= 50.0 * Epsilon * Epsilon)
                 return SectionClass.Class1;
 
-            else if (diameter / thickness <= 70.0 * _epsilon * _epsilon)
+            else if (diameter / thickness <= 70.0 * Epsilon * Epsilon)
                 return SectionClass.Class2;
 
-            else if (diameter / thickness <= 90.0 * _epsilon * _epsilon)
+            else if (diameter / thickness <= 90.0 * Epsilon * Epsilon)
                 return SectionClass.Class3;
 
             else
@@ -2519,13 +2515,13 @@ namespace GPC.Checkers.Steel.Checkers
         {
             double ratio = length / thickness;
 
-            if (ratio <= 9.0 * _epsilon)
+            if (ratio <= 9.0 * Epsilon)
                 return SectionClass.Class1;
 
-            else if (ratio <= 10.0 * _epsilon)
+            else if (ratio <= 10.0 * Epsilon)
                 return SectionClass.Class2;
 
-            else if (ratio <= 14.0 * _epsilon)
+            else if (ratio <= 14.0 * Epsilon)
                 return SectionClass.Class3;
 
             else
@@ -2543,17 +2539,17 @@ namespace GPC.Checkers.Steel.Checkers
 
             if (alpha > 0.5 && alpha < 1)
             {
-                if (ctRatio <= 396.0 * _epsilon / (13.0 * alpha - 1.0))
+                if (ctRatio <= 396.0 * Epsilon / (13.0 * alpha - 1.0))
                     return SectionClass.Class1;
 
-                else if (ctRatio <= 456.0 * _epsilon / (13.0 * alpha - 1.0))
+                else if (ctRatio <= 456.0 * Epsilon / (13.0 * alpha - 1.0))
                     return SectionClass.Class2;
 
                 else
                 {
                     if (psi > -1)
                     {
-                        if (ctRatio <= 42.0 * _epsilon / (0.67 + 0.33 * psi))
+                        if (ctRatio <= 42.0 * Epsilon / (0.67 + 0.33 * psi))
                             return SectionClass.Class3;
 
                         else
@@ -2562,7 +2558,7 @@ namespace GPC.Checkers.Steel.Checkers
 
                     else if (psi <= -1)
                     {
-                        if (ctRatio <= 62.0 * _epsilon * (1 - psi) * Math.Sqrt(-psi))
+                        if (ctRatio <= 62.0 * Epsilon * (1 - psi) * Math.Sqrt(-psi))
                             return SectionClass.Class3;
 
                         else
@@ -2575,17 +2571,17 @@ namespace GPC.Checkers.Steel.Checkers
 
             else if (alpha <= 0.5 && alpha > 0)
             {
-                if (ctRatio <= 36.0 * _epsilon / alpha)
+                if (ctRatio <= 36.0 * Epsilon / alpha)
                     return SectionClass.Class1;
 
-                else if (ctRatio <= 41.5 * _epsilon / alpha)
+                else if (ctRatio <= 41.5 * Epsilon / alpha)
                     return SectionClass.Class2;
 
                 else
                 {
                     if (psi > -1)
                     {
-                        if (ctRatio <= 42.0 * _epsilon / (0.67 + 0.33 * psi))
+                        if (ctRatio <= 42.0 * Epsilon / (0.67 + 0.33 * psi))
                             return SectionClass.Class3;
 
                         else
@@ -2593,7 +2589,7 @@ namespace GPC.Checkers.Steel.Checkers
                     }
                     else if (psi <= -1)
                     {
-                        if (ctRatio <= 62.0 * _epsilon * (1 - psi) * Math.Sqrt(-psi))
+                        if (ctRatio <= 62.0 * Epsilon * (1 - psi) * Math.Sqrt(-psi))
                             return SectionClass.Class3;
 
                         else
@@ -2608,7 +2604,7 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 if (psi > -1)
                 {
-                    if (ctRatio <= 42.0 * _epsilon / (0.67 + 0.33 * psi))
+                    if (ctRatio <= 42.0 * Epsilon / (0.67 + 0.33 * psi))
                         return SectionClass.Class3;
 
                     else
@@ -2616,7 +2612,7 @@ namespace GPC.Checkers.Steel.Checkers
                 }
                 else if (psi <= -1)
                 {
-                    if (ctRatio <= 62.0 * _epsilon * (1 - psi) * Math.Sqrt(-psi))
+                    if (ctRatio <= 62.0 * Epsilon * (1 - psi) * Math.Sqrt(-psi))
                         return SectionClass.Class3;
 
                     else
@@ -2635,13 +2631,13 @@ namespace GPC.Checkers.Steel.Checkers
         {
             double ctRatio = length / thickness;
 
-            if (ctRatio <= 33.0 * _epsilon)
+            if (ctRatio <= 33.0 * Epsilon)
                 return SectionClass.Class1;
 
-            else if (ctRatio <= 38.0 * _epsilon)
+            else if (ctRatio <= 38.0 * Epsilon)
                 return SectionClass.Class2;
 
-            else if (ctRatio <= 42.0 * _epsilon)
+            else if (ctRatio <= 42.0 * Epsilon)
                 return SectionClass.Class3;
 
             else
@@ -2774,7 +2770,6 @@ namespace GPC.Checkers.Steel.Checkers
 
             #endregion
 
-
             #region Variables
 
             private SupportConditions _supportCondition;
@@ -2787,7 +2782,6 @@ namespace GPC.Checkers.Steel.Checkers
             private double _psi2;   // distribuzione dei momenti lungo la trave
 
             #endregion
-
 
             #region Properties
 
@@ -2812,7 +2806,6 @@ namespace GPC.Checkers.Steel.Checkers
             public double Psi2Axis { get => _psi2; set => _psi2 = value; } 
 
             #endregion
-
 
             #region Constructor
 
@@ -2843,7 +2836,6 @@ namespace GPC.Checkers.Steel.Checkers
             }
 
             #endregion
-
 
             #region Setter
 
