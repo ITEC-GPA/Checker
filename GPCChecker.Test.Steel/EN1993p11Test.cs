@@ -548,6 +548,136 @@ namespace SteelTests
         }
 
         [TestMethod]
+        public void CHSSectionTest1()
+        {
+            /*
+			 Eurocode 3-2005 STEEL SECTION CHECK    (Flexural Details for Combo and Station)
+ Units  :  KN, m, C
+
+ Frame :  1        X Mid:  0.        Combo:  N+M1+M2 SLU TRACDesign Type:  Beam                 
+ Length:  1.       Y Mid:  0.        Shape:  CHS             Frame Type:  DCH-MRF            
+ Loc   :  1.       Z Mid:  0.        Class:  Class 2         Rolled : No                      
+
+ Country=CEN Default                 Combination=Eq. 6.10                  Reliability=Class 2                 
+ Interaction=Method 1 (Annex A)      MultiResponse=Envelopes               P-Delta Done? No                    
+ Consider Torsion? No                
+
+ GammaM0=1.        GammaM1=1.        GammaM2=1.25      
+ An/Ag=1.          RLLF=1.           PLLF=0.75         D/C Lim=0.95      
+
+ Aeff=0.012        eNy=0.            eNz=0.            
+ A=0.012           Iyy=2.331E-04     iyy=0.138         Wel,yy=0.001        Weff,yy=0.001     
+ It=4.662E-04      Izz=2.331E-04     izz=0.138         Wel,zz=0.001        Weff,zz=0.001     
+ Iw=0.             Iyz=0.            h=0.4             Wpl,yy=0.002        Av,y=0.008        
+ E=210000000.      fy=355000.        fu=510000.        Wpl,zz=0.002        Av,z=0.008        
+
+
+ STRESS CHECK FORCES & MOMENTS
+	 Location             Ned      Med,yy      Med,zz       Ved,z       Ved,y         Ted
+	 1.                  100.        100.       -100.        -50.         50.          0.
+
+ PMM DEMAND/CAPACITY RATIO   (Governing Equation EC3 6.2.1(7))
+	 D/C Ratio:    0.285 = 0.023 + sqrt[(0.185)^2 + (0.185)^2  ] <         0.95          OK
+						= (NEd/NRd) + sqrt[(My,Ed/My,Rd)^2 + (Mz,Ed/Mz,Rd)^2]       (EC3 6.2.1(7))  
+
+ BASIC FACTORS
+	 Buckling Mode   K Factor    L Factor       Lcr/i
+	 Major (y-y)           1.          1.        7.25
+	 Major Braced          1.          1.        7.25
+	 Minor (z-z)           1.          1.        7.25
+	 Minor Braced          1.          1.        7.25
+	 LTB                   1.          1.        7.25
+
+ AXIAL FORCE DESIGN
+						  Ned       Nc,Rd       Nt,Rd
+						Force    Capacity    Capacity
+	 Axial               100.    4349.535    4349.535
+
+					   Npl,Rd       Nu,Rd       Ncr,T      Ncr,TF       An/Ag
+					 4349.535    4499.012  989601.686  483123.525          1.
+
+				Curve   Alpha         Ncr   LambdaBar         Phi         Chi       Nb,Rd
+	 Major (y-y)    c    0.49  483123.525       0.095       0.479          1.    4349.535
+	 MajorB(y-y)    c    0.49  483123.525       0.095       0.479          1.    4349.535
+	 Minor (z-z)    c    0.49  483123.525       0.095       0.479          1.    4349.535
+	 MinorB(z-z)    c    0.49  483123.525       0.095       0.479          1.    4349.535
+	 Torsional TF   c    0.49  483123.525       0.095       0.479          1.    4349.535
+
+ MOMENT DESIGN
+						  Med    Med,span       Mc,Rd       Mv,Rd       Mn,Rd       Mb,Rd
+					   Moment      Moment    Capacity    Capacity    Capacity    Capacity
+	 Major (y-y)         100.        100.     540.073     540.073     540.073     540.073
+	 Minor (z-z)        -100.       -100.     540.073     540.073     540.073
+
+					  Section      Flange         Web     Epsilon       Alpha         Psi
+	 Compactness      Class 2     Class 2     Class 2       0.814       0.465      -1.046
+
+				Curve AlphaLT LambdaBarLT       PhiLT       ChiLT          Iw         Mcr
+	 LTB            d    0.76       0.055       0.446          1.          0.  178276.967
+
+	 Factors      kw       C1          C2          C3
+				   1.   1.322          0.       0.728
+				   za      zs          zg          zz          zj
+				  0.2      0.         0.2          0.          0.
+
+	 Factors  aLT         bLT         cLT         dLT         eLT        MueY        MueZ
+			   0.          0.          0.          0.          0.          1.          1.
+
+			  nPL          wy          wz         Cyy         Cyz         Czy         Czz
+			   0.       1.305       1.305          1.          1.          1.          1.
+
+			  Cmy         Cmz        CmLT         kyy         kyz         kzy         kzz
+			0.895       0.895          1.       0.895       0.537       0.537       0.895  
+			 */
+
+            double L = 1000;
+            double diameter = 400;
+            double thickness = 10;
+            double? psiz = 0.5;
+
+            SteelSectionCHS circularSect = new SteelSectionCHS(diameter, thickness, SteelMaterial.S355, string.Empty);
+
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { 
+                new ResultBeamForces(100 * 1000, 50 * 1000, 50 * 1000, 0, -100 * 1e6, 100 * 1e6, CoordinateSystem.Global) };
+            LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
+
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(circularSect, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
+
+            EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
+                EN1993p11Checker.EN1993p11Options.SupportConditions.EndsRestrained, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.EndsRestrained,
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.EndsRestrained,
+                psiz, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
+
+            StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
+            EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
+
+            EN1993P11Checker.PerformCheck();
+
+            Assert.AreEqual(EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity / (4349.535 * 1000.0), 1, 0.01);
+            Assert.AreEqual(EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity / (540.073 * 1e6), 1, 0.03);
+            Assert.AreEqual(EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity / (540.073 * 1e6), 1, 0.03);
+                        
+
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling1, 0.001);
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling2, 0.001);
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling, 0.001);
+
+            Assert.AreEqual(0.895, EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx, 0.005);
+            Assert.AreEqual(0.537, EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy, 0.005);
+            Assert.AreEqual(0.537, EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx, 0.005);
+            Assert.AreEqual(0.895, EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy, 0.005);
+
+            Assert.AreEqual(483123.525 * 1000, EN1993P11Checker.EN1993p11BeamStationResults[0].NCr1, 0.1);
+            Assert.AreEqual(483123.525 * 1000, EN1993P11Checker.EN1993p11BeamStationResults[0].NCr2, 0.1);
+
+            //Assert.AreEqual(0.479, checker.Phiy, 0.001);
+            //Assert.AreEqual(0.479, checker.Phiz, 0.01);
+            //Assert.AreEqual(0.479, checker.PhiLT, 0.001); //SAP calcola in modo diverso non documentato
+        }
+
+	    [TestMethod]
         public void SectionHLateralTorsionalBucklingExample1()
         {
             double L = 5000;
