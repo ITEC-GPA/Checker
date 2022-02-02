@@ -103,8 +103,6 @@ namespace GPC.Checkers.Steel.Checkers
 
                             stationResults[index] = new EN1993p11BeamStationResult(steelSection[i], resultLocationStation,
                                 beamResult[k].Case, (StandardEN1993p11)_standard, (EN1993p11Options)_options, BeamName);
-                            //ResultBeamForces[] resultBeamForces = beamResult[k].Results.Cast<ResultBeamForces>().ToArray();
-
 
                             SectionClass axialCompSectionClass;
                             SectionClass bendingCompSectionClass;
@@ -133,7 +131,6 @@ namespace GPC.Checkers.Steel.Checkers
                             double bucklingInteraction1;
                             double bucklingInteraction2;
                             double flextureTorsionInteraction;
-
 
                             axialCompSectionClass = CalculateSectionClassDueToCompression(rbf, steelSection[i]);
                             bendingCompSectionClass = CalculateSectionClassDueToBending(rbf, steelSection[i]);
@@ -496,7 +493,7 @@ namespace GPC.Checkers.Steel.Checkers
         private double CalculateAxialCompressionCapacity(SectionClass sectionClass, ISteelSection section)
         {
             if (sectionClass != SectionClass.Class4)
-                return section.Area * Fy / EN1993P11.GammaM0;
+                return section.Area * Fy / GammaM0;
             else
                 return GetAreaNet(section) * Fy / GammaM0;
         }
@@ -2414,7 +2411,8 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 if (section is SteelSectionH sectionH)
                 {
-                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionH.LenghtTopFlange/2 - sectionH.R, sectionH.ThicknessTopFlange),
+                    return SetWorstClass(new SectionClass[] {
+                        GetClassCompressedOuterPlate(sectionH.LenghtTopFlange/2 - sectionH.R, sectionH.ThicknessTopFlange),
                         GetClassCompressedOuterPlate(sectionH.LenghtBottomFlange/2 - sectionH.R, sectionH.ThicknessBottomFlange),
                         GetClassCompressedInnerPlate(sectionH.D, sectionH.ThicknessWeb)});
                 }
@@ -2426,15 +2424,17 @@ namespace GPC.Checkers.Steel.Checkers
 
                 else if (section is SteelSectionRHS sectionRHS)
                 {
-                    SectionClass sectionClass1Axis = SetWorstClass(new SectionClass[] {GetClassCompressedInnerPlate(sectionRHS.BaseInternal, sectionRHS.ThicknessTop),
-                                                            GetClassCompressedInnerPlate(sectionRHS.BaseInternal, sectionRHS.ThicknessBottom) });
+                    SectionClass sectionClass1Axis = SetWorstClass(new SectionClass[] {
+                        GetClassCompressedInnerPlate(sectionRHS.BaseInternal, sectionRHS.ThicknessTop),
+                        GetClassCompressedInnerPlate(sectionRHS.BaseInternal, sectionRHS.ThicknessBottom) });
 
                     sectionClass1Axis = SetWorstClass(new SectionClass[] {sectionClass1Axis,
                         GetClassBendingInnerPlate(resultBeamForces, sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, section, sectionClass1Axis),
                         GetClassBendingInnerPlate(resultBeamForces, sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight, section, sectionClass1Axis)});
 
-                    SectionClass sectionClass2Axis = SetWorstClass(new SectionClass[] {GetClassCompressedInnerPlate(sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight),
-                                                            GetClassCompressedInnerPlate(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft) });
+                    SectionClass sectionClass2Axis = SetWorstClass(new SectionClass[] {
+                        GetClassCompressedInnerPlate(sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight),
+                        GetClassCompressedInnerPlate(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft) });
 
                     sectionClass2Axis = SetWorstClass(new SectionClass[] {sectionClass2Axis,
                         GetClassBendingInnerPlate(resultBeamForces, sectionRHS.BaseInternal, sectionRHS.ThicknessTop, section, sectionClass2Axis),
@@ -2451,13 +2451,15 @@ namespace GPC.Checkers.Steel.Checkers
 
                 else if (section is SteelSectionC sectionC)
                 {
-                    SectionClass sectionClass1Axis = SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionC.LengthTop - sectionC.R1, sectionC.ThicknessTop),
+                    SectionClass sectionClass1Axis = SetWorstClass(new SectionClass[] {
+                        GetClassCompressedOuterPlate(sectionC.LengthTop - sectionC.R1, sectionC.ThicknessTop),
                         GetClassCompressedOuterPlate(sectionC.LengthBottom - sectionC.R1, sectionC.ThicknessBottom)});
 
                     sectionClass1Axis = SetWorstClass(sectionClass1Axis,
                         GetClassBendingInnerPlate(resultBeamForces, sectionC.HeightWeb - 2 * sectionC.R1, sectionC.ThicknessWeb, section, sectionClass1Axis));
 
-                    SectionClass sectionClass2Axis = SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionC.LengthTop - sectionC.R1, sectionC.ThicknessTop),
+                    SectionClass sectionClass2Axis = SetWorstClass(new SectionClass[] {
+                        GetClassCompressedOuterPlate(sectionC.LengthTop - sectionC.R1, sectionC.ThicknessTop),
                         GetClassCompressedOuterPlate(sectionC.LengthBottom - sectionC.R1, sectionC.ThicknessBottom),
                         GetClassCompressedInnerPlate(sectionC.HeightWeb - 2 * sectionC.R1, sectionC.ThicknessWeb)});
 
@@ -2466,8 +2468,9 @@ namespace GPC.Checkers.Steel.Checkers
 
                 else if (section is SteelSectionL sectionL)
                 {
-                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionL.HorizontalLegLength, sectionL.HorizontalLegThickness),
-                                                            GetClassCompressedOuterPlate(sectionL.VerticalLegLength, sectionL.VerticalLegThickness)});
+                    return SetWorstClass(new SectionClass[] {
+                        GetClassCompressedOuterPlate(sectionL.HorizontalLegLength, sectionL.HorizontalLegThickness),
+                        GetClassCompressedOuterPlate(sectionL.VerticalLegLength, sectionL.VerticalLegThickness)});
                 }
 
                 else
@@ -2511,7 +2514,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected SectionClass GetClassBendingInnerPlate(ResultBeamForces resultBeamForces, double length, double thickness, ISteelSection section, SectionClass sectionClass)
         {
-            double alpha = - resultBeamForces.N / (4.0 * thickness * Fy * length) + 0.5;
+            double alpha = - resultBeamForces.N / (2.0 * thickness * Fy * length) + 0.5;
             double ctRatio = length / thickness;
 
             double psi = 1;
