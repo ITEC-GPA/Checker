@@ -401,16 +401,16 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        protected EN1993p11BeamStationResult(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case,
+        protected EN1993p11BeamStationResult(ISteelSection section, ResultLocationStation resultLocationStation, ILoadCase Case,
             EN1993p11Checker.EN1993p11Options checkerOptions, StandardEN1993p11 standard, string name = "") 
-            : this(section, forces, station, Case, standard, checkerOptions, name)
+            : this(section, resultLocationStation, Case, standard, checkerOptions, name)
         {
 
         }
 
-        internal EN1993p11BeamStationResult(ISteelSection section, ResultBeamForces forces, ResultStation station, ILoadCase Case, 
+        internal EN1993p11BeamStationResult(ISteelSection section, ResultLocationStation resultLocationStation, ILoadCase Case, 
             StandardEN1993p11 standard, EN1993p11Checker.EN1993p11Options checkerOptions, string name = "") 
-            : base(section, forces, station, Case, standard, checkerOptions, name)
+            : base(section, resultLocationStation, Case, standard, checkerOptions, name)
         {
 
         }
