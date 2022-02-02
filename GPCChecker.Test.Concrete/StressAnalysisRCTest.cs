@@ -425,6 +425,56 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		public void RectangularSectionTest16()
+		{
+			double rebarDiameter = 6;
+			double height = 80;
+			double width = 1000;
+			double copriferro = 25;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(width, 0),
+				new Point2d(width, height),
+				new Point2d(0, height)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialModelCode2010FRC($"FCM {45}-3.5", 45,
+				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.ParabolaRectangle,
+				0.45 * 0.92, 0.3 * 0.76, 0.00003, 0.02, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear));
+			RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, RebarMaterial.B500C);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(100, copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(300, copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(500, copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(700, copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(900, copriferro, 0)),
+			};
+
+			section.AddRebars(rebars);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 2.5 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
+
+			for (int i = 0; i < slsResult.Length; i++)
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+		}
+
+		[TestMethod]
 		[TestCategory("Force reference point not in centroid")]
 		public void RectangularSectionTest11()
 		{
