@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -1079,27 +1079,30 @@ namespace GPC.Checkers.Steel.Checkers
                 return sech.Area - (sech.LenghtTopFlange * sech.ThicknessTopFlange) - (sech.LenghtBottomFlange * sech.ThicknessBottomFlange) +
                     (sech.ThicknessWeb + 2 * sech.R) * (sech.ThicknessTopFlange + sech.ThicknessBottomFlange) / 2;
 
-            if (section is SteelSectionH secH && secH.SectionType == Section.SectionTypes.Welded)
+            else if (section is SteelSectionH secH && secH.SectionType == Section.SectionTypes.Welded)
                 return secH.ThicknessWeb * secH.HeightWeb;
 
-            if (section is SteelSectionC secC && secC.SectionType == Section.SectionTypes.Rolled)
+            else if (section is SteelSectionC secC && secC.SectionType == Section.SectionTypes.Rolled)
                 return secC.Area - (secC.LengthTop * secC.ThicknessTop) - (secC.LengthBottom * secC.ThicknessBottom) +
                     (secC.ThicknessWeb + 2 * secC.R1) * (secC.ThicknessTop + secC.ThicknessBottom) / 2;
 
-            if (section is SteelSectionC sectC && sectC.SectionType == Section.SectionTypes.Welded)
+            else if (section is SteelSectionC sectC && sectC.SectionType == Section.SectionTypes.Welded)
                 return sectC.ThicknessWeb * (sectC.Height - sectC.ThicknessBottom - sectC.ThicknessTop);
 
-            if (section is SteelSectionRHS sectionRHS && sectionRHS.SectionType == Section.SectionTypes.Welded)
+            else if (section is SteelSectionRHS sectionRHS && sectionRHS.SectionType == Section.SectionTypes.Welded)
                 return (sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight) * sectionRHS.Heightinternal;
 
-            if (section is SteelSectionRHS sectionRhs && sectionRhs.SectionType == Section.SectionTypes.Rolled)
+            else if (section is SteelSectionRHS sectionRhs && sectionRhs.SectionType == Section.SectionTypes.Rolled)
                 return sectionRhs.Area * sectionRhs.Height / (sectionRhs.Base + sectionRhs.Height);
 
-            if (section is SteelSectionCHS sectionCHS)
+            else if (section is SteelSectionCHS sectionCHS)
                 return 2 * sectionCHS.Area / Math.PI;
 
-            if (section is SteelSectionT sectionT)
+            else if (section is SteelSectionT sectionT)
                 return 0.9 * sectionT.Area * (sectionT.LenghtFlange - sectionT.ThicknessFlange);
+
+            else if (section is SteelSectionL sectionL)
+                return sectionL.HorizontalLegLength * sectionL.HorizontalLegThickness;
 
             else
                 throw new NotImplementedException("GetShearArea: not implemented section");
@@ -1113,20 +1116,23 @@ namespace GPC.Checkers.Steel.Checkers
             if (section is SteelSectionH sech)
                 return sech.LenghtTopFlange * sech.ThicknessTopFlange + sech.LenghtBottomFlange * sech.ThicknessBottomFlange;
 
-            if (section is SteelSectionC secC)
+            else if (section is SteelSectionC secC)
                 return secC.LengthTop * secC.ThicknessTop + secC.LengthBottom * secC.ThicknessBottom;
 
-            if (section is SteelSectionRHS sectionRHS && sectionRHS.SectionType == Section.SectionTypes.Welded)
+            else if (section is SteelSectionRHS sectionRHS && sectionRHS.SectionType == Section.SectionTypes.Welded)
                 return sectionRHS.Area - (sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight) * sectionRHS.Heightinternal;
 
-            if (section is SteelSectionRHS sectionRhs && sectionRhs.SectionType == Section.SectionTypes.Rolled)
+            else if (section is SteelSectionRHS sectionRhs && sectionRhs.SectionType == Section.SectionTypes.Rolled)
                 return sectionRhs.Area * sectionRhs.Base / (sectionRhs.Base + sectionRhs.Height);
 
-            if (section is SteelSectionCHS sectionCHS)
+            else if (section is SteelSectionCHS sectionCHS)
                 return 2 * sectionCHS.Area / Math.PI;
 
-            if (section is SteelSectionT sectionT)
+            else if (section is SteelSectionT sectionT)
                 return sectionT.LenghtFlange * sectionT.ThicknessFlange;
+
+            else if (section is SteelSectionL sectionL)
+                return sectionL.VerticalLegLength * sectionL.VerticalLegThickness;
 
             else
                 throw new NotImplementedException("GetShearArea: not implemented section");
@@ -1385,7 +1391,9 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 double lambdaLT = Math.Pow(section.Wpl1 * Fy / Mcr, 0.5);
                 double lambdaT;
-                if (lambdaLT >= 0.5 && lambdaLT < 0.75)
+                if (lambdaLT < 0.50)
+                    return Math.Pow(section.Wpl1 * Fy / Mcr, 0.5);
+                else if (lambdaLT >= 0.5 && lambdaLT < 0.75)
                     lambdaT = 1.11 - lambdaLT;
                 else if (lambdaLT >= 0.75 && lambdaLT < 1.14)
                     lambdaT = 0.69 - 0.44 * lambdaLT;
