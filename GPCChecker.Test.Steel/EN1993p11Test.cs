@@ -106,17 +106,18 @@ namespace SteelTests
 
             double L = 1000;
 
-            SteelSectionRHS sectionRHS = new SteelSectionRHS(400, 200, 8, 8, 15, 15, new SteelMaterial("S355", 210000, 0.3, 355, 510, 7850), string.Empty);
+            SteelSectionRHS sectionRHS = new SteelSectionRHS(400, 200, 8, 8, 15, 15, SteelMaterial.S355, string.Empty);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(100 * 1e3, 50 * 1e3, 50 * 1e3, 0, -100 * 1e6, 100 * 1e6, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
             double psiy = 0.5;
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionRHS, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 1, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionRHS, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded, 
                 EN1993p11Checker.EN1993p11Options.SupportConditions.EndsRestrained, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds, 
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, psiy, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds,
+                psiy, 1, 1, 1, 1, 1, 1, 1, 1, 1);
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
 
@@ -163,18 +164,19 @@ namespace SteelTests
             double webThickness = 8.5;
             double r = 27.0;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness,width, flangeThickness, width, flangeThickness, new SteelMaterial("S355", 210000, 0.3, 275, 430, 7850), 
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness,width, flangeThickness, width, flangeThickness, SteelMaterial.S355, 
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-1320 * 1000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
             double psiy = 0.5;
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.EndsRestrained, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, psiy, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                psiy, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1);
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
 
@@ -202,16 +204,17 @@ namespace SteelTests
             double webThickness = 7.9;
             double r = 10.2;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S355", 210000, 0.3, 355, 510, 7850),
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S355,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1);
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
 
@@ -236,16 +239,17 @@ namespace SteelTests
             double webThickness = 8.0;
             double r = 7.6;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S275", 210000, 0.3, 275, 430, 7850),
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S275,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-400 * 1000, 0, 0, 0, 32.36 * 1e6, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.OneSideRestrained_OneSideHinged, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 1, 1, 1, 0.85, 1, 0.85, 1, 1, 1, 1, 1);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                1, 1, 1, 0.85, 1, 0.85, 1, 1, 1, 1, 1);
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
 
@@ -279,16 +283,17 @@ namespace SteelTests
             double webThickness = 7.1;
             double r = 15.0;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S355", 210000, 0.3, 275, 430, 7850),
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S355,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 0, 0, 64.4 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.Constant,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, null, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                null, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1);
 
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
@@ -317,18 +322,19 @@ namespace SteelTests
             double webThickness = 7.1;
             double r = 15.0;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S355", 210000, 0.3, 275, 430, 7850),
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S355,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 0, 0, 66.0 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
             double psiy = 1;
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.SingleForce,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, psiy, 1, 1, 1, 1, 1, 1, 0.5, 1, 0.5, 1, 0.5, 1, 1, 1, 
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                psiy, 1, 1, 1, 1, 1, 1, 0.5, 1, 0.5, 1, 0.5, 1, 1, 1, 
                 EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.TopSection);
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
@@ -355,18 +361,19 @@ namespace SteelTests
             double webThickness = 10.0;
             double r = 16.0;
 
-            SteelSectionC sectionC = new SteelSectionC(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S355", 210000, 0.3, 275, 430, 7850),
+            SteelSectionC sectionC = new SteelSectionC(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S355,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 0, 0, 64.40 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
             double psiy = 1;
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionC, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionC, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.Constant,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, psiy, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                psiy, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
 
@@ -396,18 +403,19 @@ namespace SteelTests
             double webThickness = 7.1;
             double r = 15.0;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S235", 210000, 0.3, 235, 430, 7850),
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S235,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-380*1000, 0, 0, 0, 120 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
             double psiy = 0;
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, psiy, 0, 1, 1, 0.25, 0.25, 1, 1, 1, 0.1, 0.1, 1, 1, 1, 1);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                psiy, 0, 1, 1, 0.25, 0.25, 1, 1, 1, 0.1, 0.1, 1, 1, 1, 1);
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
 
@@ -432,18 +440,20 @@ namespace SteelTests
             double webThickness = 7.1;
             double r = 15.0;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S235", 210000, 0.3, 235, 430, 7850),
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S235,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-190.0 * 1000, 0, 0, 0, 78.0 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
             double psiy = 0;
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+                EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
             StandardUNIEN1993p11 standard = new StandardUNIEN1993p11();
             EN1993p11Checker Checker = new EN1993p11Checker(beamCheckerAttributes, options, standard);
 
@@ -473,11 +483,11 @@ namespace SteelTests
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-400.0 * 1000, 0, 0, 0, 71.0 * 1000000, 30 * 1000000, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
             double psiy = 0;
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.Constant,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
                 EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
@@ -511,16 +521,17 @@ namespace SteelTests
             double psix = 0.5;
             double psiy = 0.5;
 
-            SteelSectionCHS section = new SteelSectionCHS(diameter, thickness, new SteelMaterial("S355", 210000, 0.3, 355, 510, 7850),
+            SteelSectionCHS section = new SteelSectionCHS(diameter, thickness, SteelMaterial.S355,
                 string.Empty, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(N, V1, V2, T, M1, M2, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(section, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(section, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.EndsRestrained, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, psix, psiy, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                psix, psiy, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
                 EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
 
             StandardUNIEN1993p11 standard = new StandardUNIEN1993p11();
@@ -547,18 +558,20 @@ namespace SteelTests
             double webThickness = 7.2;
             double r = 7.6;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S275", 210000, 0.3, 275, 430, 7850),
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S275,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-380 * 1000, 0, 0, 0, 120 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
             double psiy = 1;
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+                EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
 
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
@@ -581,16 +594,18 @@ namespace SteelTests
             double webThickness = 7.9;
             double r = 8.9;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S275", 210000, 0.3, 275, 430, 7850),
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S275,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-380 * 1000, 0, 0, 0, 120 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 0, 0, 1, 1, 1, 1, 1, 1, 0.5, 1, 0.5, 1, 1, 1, 1, EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                0, 0, 1, 1, 1, 1, 1, 1, 0.5, 1, 0.5, 1, 1, 1, 1, 
+                EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
 
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
@@ -613,18 +628,20 @@ namespace SteelTests
             double webThickness = 7.2;
             double r = 7.6;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S275", 210000, 0.3, 275, 430, 7850),
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S275,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-380 * 1000, 0, 0, 0, 120 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
             double psiy = 1;
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.Constant,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+                EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
 
@@ -646,16 +663,18 @@ namespace SteelTests
             double webThickness = 7.2;
             double r = 7.6;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S275", 210000, 0.3, 275, 430, 7850),
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S275,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 90000, 0, 0, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.Constant,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+                EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
 
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
@@ -680,16 +699,18 @@ namespace SteelTests
             double webThickness = 5.7;
             double r = 7.6;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, new SteelMaterial("S275", 210000, 0.3, 275, 430, 7850),
+            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterial.S275,
                 string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 100000, 0, 0, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-            ResultStation[] resultStation = new ResultStation[] { new ResultStation(1, 0, L) };
 
-            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultBeamForces, resultStation, CoordinateSystem.Global) });
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
+            BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.Constant,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+                EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
 
             StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
             EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamCheckerAttributes, options, standardEN1993P11);
