@@ -1251,50 +1251,38 @@ namespace GPC.Checkers.Steel.Checkers
             if (loadCondition != EN1993p11Options.LoadConditions.NotDirectlyLoaded)
             {
                 if (supportCondition == EN1993p11Options.SupportConditions.HingesAtEnds && 
-                    loadCondition == EN1993p11Options.LoadConditions.Constant)
-                {
+                    loadCondition == EN1993p11Options.LoadConditions.Constant)                
                     kc = 0.94;
-                }
+                
                 else if (supportCondition == EN1993p11Options.SupportConditions.EndsRestrained && 
-                    loadCondition == EN1993p11Options.LoadConditions.Constant)
-                {
+                    loadCondition == EN1993p11Options.LoadConditions.Constant)                
                     kc = 0.90;
-                }
+                
                 else if (supportCondition == EN1993p11Options.SupportConditions.OneSideRestrained_OneSideHinged && 
-                    loadCondition == EN1993p11Options.LoadConditions.Constant)
-                {
+                    loadCondition == EN1993p11Options.LoadConditions.Constant)                
                     kc = 0.91;
-                }
+                
                 else if (supportCondition == EN1993p11Options.SupportConditions.HingesAtEnds && 
-                    loadCondition == EN1993p11Options.LoadConditions.SingleForce)
-                {
+                    loadCondition == EN1993p11Options.LoadConditions.SingleForce)                
                     kc = 0.86;
-                }
+                
                 else if (supportCondition == EN1993p11Options.SupportConditions.EndsRestrained && 
-                    loadCondition == EN1993p11Options.LoadConditions.SingleForce)
-                {
+                    loadCondition == EN1993p11Options.LoadConditions.SingleForce)                
                     kc = 0.77;
-                }
+                
                 else if (supportCondition == EN1993p11Options.SupportConditions.OneSideRestrained_OneSideHinged && 
-                    loadCondition == EN1993p11Options.LoadConditions.SingleForce)
-                {
+                    loadCondition == EN1993p11Options.LoadConditions.SingleForce)                
                     kc = 0.82;
-                }
-                else
-                {
-                    throw new Exception("Lateral Torsional Buckling not implemented this combinations of SupportCondition and LoadCondition ");
-                }
+                
+                else                
+                    throw new Exception("Lateral Torsional Buckling not implemented this combinations of SupportCondition and LoadCondition ");                
             }
             else
             {
-                if (psi.HasValue)
-                {
-                    kc = 1.0 / (1.33 - 0.33 * psi.Value);
-                }
-                else
-                {
-                    throw new Exception("Se a psi value = M(x=0)/M(x=L)");
-                }
+                if (psi.HasValue)                
+                    kc = 1.0 / (1.33 - 0.33 * psi.Value);                
+                else                
+                    throw new Exception("Se a psi value = M(x=0)/M(x=L)");                
             }
             return kc;
         }
@@ -1486,10 +1474,8 @@ namespace GPC.Checkers.Steel.Checkers
                                 c1 = 1.348;
                                 c2 = 0.630;
                             }
-                            else
-                            {
-                                throw new NotSupportedException("Load condition + Support not yet supported in calculation of C1 and C2 for McrLT");
-                            }
+                            else                            
+                                throw new NotSupportedException("Load condition + Support not yet supported in calculation of C1 and C2 for McrLT");                            
                         }
                         else if (supportCondition == EN1993p11Options.SupportConditions.EndsRestrained)
                         {
@@ -1507,11 +1493,9 @@ namespace GPC.Checkers.Steel.Checkers
                             }
                             else
                                 throw new NotSupportedException("Load condition + Support not yet supported in calculation of C1 and C2 for McrLT");
-
                         }
                         else
                             throw new Exception("McrLT: SupportCondition not supported");
-
                     }
                     else if (loadCondition == EN1993p11Options.LoadConditions.NotDirectlyLoaded) //Beam not directly loaded but with bending moment at the ends
                     {
@@ -1533,13 +1517,12 @@ namespace GPC.Checkers.Steel.Checkers
                         }
                         else
                             throw new Exception("Set the value of psi = M(x=0)/M(x=L)");
-
                     }
                     else
                         throw new Exception("Load condition + Support not yet supported in calculation of C1 and C2 for McrLT");
                 }
 
-                else if (section.IsSymmetricAlongXLocalAxis || section is SteelSectionC)
+                else if (section.IsSymmetricAlongYLocalAxis || section is SteelSectionC)
                 {
                     /* note: use of Mcr also for C sections came from :
                     Lateral-torsional Buckling of Steel Channel Beams
@@ -1591,22 +1574,18 @@ namespace GPC.Checkers.Steel.Checkers
                             zj = 0; //z centroid = z shear center + integral is 0 due to symmetry
                             GetC1C2C3ForMcr(supportCondition, loadCondition, k, psi, psif, out c1, out c2, out c3);
                         }
-                        else
-                        {
-                            throw new Exception("Section not yet supported for calculation of McrLT");
-                        }
+                        else                        
+                            throw new Exception("Section not yet supported for calculation of McrLT");                        
                     }
                     else if (section is SteelSectionT sectionT)
                     {
                         double psif;
-                        if (forces.M1 > 0)
-                        {
+                        if (forces.M1 > 0)                        
                             psif = 1;
-                        }
+                        
                         else
-                        {
                             psif = -1;
-                        }
+                        
 
                         //calculation of Wagner coefficiente: zj = zs - 0.5 integral((y^2 + z^2) * z dA) / Jy
                         //needed for for Mcr calculation
@@ -1640,24 +1619,18 @@ namespace GPC.Checkers.Steel.Checkers
                             }
                         }
                         zj = (sectionT.ShearCenter.Y - sectionT.Centroid.Y) - 0.5 * integral / sectionT.J11;
-                        if (forces.M1 < 0)
-                        {
-                            zj = -zj; //check this   
-                        }
+                        if (forces.M1 < 0)                        
+                            zj = -zj; //check this                           
 
                         //this should be used if -0.9 < psif < 0.9. There is no data...so...what to do?
                         GetC1C2C3ForMcr(supportCondition, loadCondition, k, psi, psif, out c1, out c2, out c3);
                     }
-                    else
-                    {
-                        throw new Exception("Section not yet supported for calculation of McrLT");
-                    }
+                    else                    
+                        throw new Exception("Section not yet supported for calculation of McrLT");                    
                 }
 
-                else //NO sysmmetry
-                {
-                    throw new Exception("McrLT can not be calculated without symmetry");
-                }
+                else //NO sysmmetry                
+                    throw new Exception("McrLT can not be calculated without symmetry");                
             }
 
             else
