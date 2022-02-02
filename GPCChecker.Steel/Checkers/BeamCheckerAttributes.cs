@@ -47,23 +47,23 @@ namespace GPC.Checkers.Steel.Checkers
 
             _results = beamResults ?? throw new ArgumentException("Input resultBeamForces can not be null");
 
-            for(int i = 0; i < beamResults.Length; i++)            
-                for(int c = 0; c < beamResults[i].Results.Length; c++)                
-                    if(!(beamResults[i].Results[c] is ResultBeamForces))
-                        throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
+            //for(int i = 0; i < beamResults.Length; i++)            
+            //    for(int c = 0; c < beamResults[i].ResultLocations.Length; c++)                
+            //        if(!(beamResults[i].ResultLocations[c].ResultTypes is ResultBeamForces))
+            //            throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
 
 
-            if (beamResults.Select(i => i.Points.Length).Distinct().Count() > 1)
-            {
-                throw new ArgumentException("Different beam station number");
-            }
+            //if (beamResults.Select(i => i.Points.Length).Distinct().Count() > 1)
+            //{
+            //    throw new ArgumentException("Different beam station number");
+            //}
                         
             if (beamResults.Select(i => i.Length).Distinct().Count() > 1)
             {
                 throw new ArgumentException("Different beam result lenght");
             }
 
-            _sections = Enumerable.Repeat(section, beamResults.First().Points.Length).ToArray();
+            _sections = Enumerable.Repeat(section, beamResults.FirstOrDefault().ResultLocations.FirstOrDefault().ResultTypes.Length).ToArray();
         }
 
 
@@ -73,24 +73,24 @@ namespace GPC.Checkers.Steel.Checkers
             _results = beamResults ?? throw new ArgumentException("Input resultBeamForces can not be null");
             _sections = sections ?? throw new ArgumentException("Input sections can not be null");
 
+            //TODO: implementare
+            //for (int i = 0; i < beamResults.Length; i++)
+            //    for (int c = 0; c < beamResults[i].Results.Length; c++)
+            //        if (!(beamResults[i].Results[c] is ResultBeamForces))
+            //            throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
 
-            for (int i = 0; i < beamResults.Length; i++)
-                for (int c = 0; c < beamResults[i].Results.Length; c++)
-                    if (!(beamResults[i].Results[c] is ResultBeamForces))
-                        throw new ArgumentException("Input BeamResult.Results must be ResultBeamForces");
-
-            if (beamResults.Select(i => i.Points.Length).Distinct().Count() > 1)
-            {
-                throw new ArgumentException("Different beam station number");
-            }
+            //if (beamResults.Select(i => i.Points.Length).Distinct().Count() > 1)
+            //{
+            //    throw new ArgumentException("Different beam station number");
+            //}
                         
-            if (beamResults.Select(i => i.Length).Distinct().Count() > 1)
-            {
-                throw new ArgumentException("Different beam result lenght");
-            }
+            //if (beamResults.Select(i => i.Length).Distinct().Count() > 1)
+            //{
+            //    throw new ArgumentException("Different beam result lenght");
+            //}
 
-            if (sections.Length != beamResults.First().Points.Length)
-                throw new ArgumentException("Sections number different than station number");
+            //if (sections.Length != beamResults.First().Points.Length)
+            //    throw new ArgumentException("Sections number different than station number");
         }
 
         public BeamCheckerAttributes(SerializationInfo info, StreamingContext context) 

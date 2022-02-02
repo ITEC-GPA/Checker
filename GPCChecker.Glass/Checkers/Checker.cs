@@ -22,7 +22,7 @@ using MMLoadCaseBase = GPC.Model.LoadCases.LoadCaseBase;
 
 namespace GPC.Checkers.Glasses.Checkers
 {
-    public abstract class Checker : Common.Checker
+    public abstract class Checker
     {
         protected GlassSurface _glassSurface;
         protected FemModelWrapper _femModel;
@@ -50,7 +50,7 @@ namespace GPC.Checkers.Glasses.Checkers
             _options = modelOptions ?? throw new ArgumentNullException(nameof(modelOptions));
         }
 
-        public abstract override string GetCheckerName();
+        public abstract string GetCheckerName();
 
 
         #region Public method

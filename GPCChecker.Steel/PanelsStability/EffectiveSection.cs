@@ -9,6 +9,8 @@
     Overview:  Class 4 - Effective Section Properties
 \* ========================================================================= */
 
+#if NEVER
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1043,3 +1045,5 @@ namespace GPCChecker.Steel.PanelsStability
 
 
 }
+
+#endif

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>GPC Engineering SpA</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+	<projectUrl>https://github.com/ITEC-GPA/Checker</projectUrl>
+    <description>Library to perform the concrete and reinforced concrete section check</description>
+    <releaseNotes>First release.</releaseNotes>
+    <copyright>$copyright$</copyright>
+    <tags>GPC Checks</tags>
+  </metadata>
+</package>

@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Model.Materials;
 
+#if NEVER
+
 namespace GPCChecker.Steel.PanelsStability
 {
     public class StiffenedPanel
@@ -39,7 +41,7 @@ namespace GPCChecker.Steel.PanelsStability
         ///         |    |
         /// (0, 0)  |____| (+tw, 0)
 
-        #region Variable
+#region Variable
         protected List<UnstiffenedPanel> _PanelArray;
         protected List<FlatStiffener> _StiffenerArray;
 
@@ -72,9 +74,9 @@ namespace GPCChecker.Steel.PanelsStability
         protected double _teff;
         protected double _Atotgross;
         protected double _CU;
-        #endregion
+#endregion
 
-        #region Properties
+#region Properties
         public List<UnstiffenedPanel> PanelArray
         {
             get => _PanelArray;
@@ -209,9 +211,9 @@ namespace GPCChecker.Steel.PanelsStability
             get => _SigmaE;
             private set => _SigmaE = value;
         }
-        #endregion
+#endregion
 
-        #region Public Constructors
+#region Public Constructors
         public StiffenedPanel(Code code, int stiffNum, List<UnstiffenedPanel> panelarray, List<FlatStiffener> __StiffenerArray, double phi, double __fy = 355, double __E = 210000, double __ni = 0.3, double b = 0)
         {
             _PanelArray = new List<UnstiffenedPanel>();
@@ -243,13 +245,13 @@ namespace GPCChecker.Steel.PanelsStability
             }
             CalcPanelProperties(phi);
         }
-        #endregion
+#endregion
 
-        #region FIELD_DECONSTRUCTORS
+#region FIELD_DECONSTRUCTORS
 
-        #endregion
+#endregion
 
-        #region FIELD_METHODS
+#region FIELD_METHODS
         private void CalcPanelProperties(double phi)
         {
             _SigmaE = Math.Pow(Math.PI, 2.0) * _E / (12.0 * (1 - _ni * _ni)) * Math.Pow((_t / _b), 2.0);
@@ -560,6 +562,7 @@ namespace GPCChecker.Steel.PanelsStability
 
             return Output;
         }
-        #endregion
+#endregion
     }
 }
+#endif

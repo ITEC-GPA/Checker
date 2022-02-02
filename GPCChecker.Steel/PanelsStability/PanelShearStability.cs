@@ -5,11 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Model.Materials;
 
+#if NEVER
+
 namespace GPCChecker.Steel.PanelsStability
 {
     public class PanelShearStability
     {
-        #region Variables
+#region Variables
         protected double _tw;
         protected double _hw;
         protected double _twLim;
@@ -29,9 +31,9 @@ namespace GPCChecker.Steel.PanelsStability
 
         protected WebStiffedType _webStiffenedType;
         protected StiffenerTransversalType _transverseStiffenerType;
-        #endregion
+#endregion
 
-        #region Properties
+#region Properties
         public double Tw => _tw;
         public double Hw => _hw;
         public double twLim => _twLim;
@@ -44,12 +46,12 @@ namespace GPCChecker.Steel.PanelsStability
         public double TauCr => _tauCr;
         public double Lambdaw => _lambdaw;
         public double Chiw => _chiw;
-        #endregion
+#endregion
 
-        #region Commands
-        #endregion
+#region Commands
+#endregion
 
-        #region Public Costructors
+#region Public Costructors
         public PanelShearStability(double hw, double tw, double Ldiaf, double E, double ni, double fy, 
             WebStiffedType webStiffenedType = WebStiffedType.Unstiffened,
             StiffenerTransversalType transverseStiffenerType = StiffenerTransversalType.Rigid)       
@@ -65,9 +67,9 @@ namespace GPCChecker.Steel.PanelsStability
 
             CalculateShearPanelStability();
         }
-        #endregion
+#endregion
 
-        #region Public Methods Specific
+#region Public Methods Specific
         protected void CalculateShearPanelStability()
         {
             _epsilon = Math.Sqrt(235 / _fy);
@@ -150,13 +152,15 @@ namespace GPCChecker.Steel.PanelsStability
                 }
             }
         }
-        #endregion
+#endregion
 
 
-        #region Protected Methods Specific
-        #endregion
+#region Protected Methods Specific
+#endregion
 
-        #region Public Methods Override
-        #endregion
+#region Public Methods Override
+#endregion
     }
 }
+
+#endif
