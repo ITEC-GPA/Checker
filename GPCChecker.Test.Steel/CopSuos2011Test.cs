@@ -40,16 +40,7 @@ namespace SteelTests
 				Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad,
 				1, 1, 1, 1, 1, 1, 1, 1, 1);
 			BeamCheckerAttributes cop2011BeamCheckerOptions = new BeamCheckerAttributes(steelSectionH[0], beamResults);
-
-            for(int j = 0; j < checkers.Count(); j++)
-            {
-                Assert.IsTrue(checkers[j].Cop2011BeamStationResults.Count() == 1);
-                Assert.IsTrue(checkers[j].Cop2011BeamStationResults.Count() == 1);                
-                Assert.IsTrue(checkers[j].Cop2011BeamStationResults[0].Station == resultStations[0]);
-                Assert.IsTrue(checkers[j].Cop2011BeamStationResults[0].ResultBeamForce == resultBeamForces[0]);
-                Assert.IsTrue(checkers[j].Cop2011BeamStationResults[0].WorkingRatio >= 0.01);
-            }    
-        }
+        
 			StandardCopSuos2011 standardCopSuos2011 = new StandardCopSuos2011();
 
 			int iterations = 10;

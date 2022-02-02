@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -2314,8 +2314,8 @@ namespace GPC.Checkers.Steel.Checkers
 
                 else if (section is SteelSectionL sectionL)
                 {
-                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionL.LengthHor, sectionL.ThicknessHor),
-                                                            GetClassCompressedOuterPlate(sectionL.LengthVert, sectionL.ThicknessVert)});
+                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionL.HorizontalLegLength, sectionL.HorizontalLegThickness),
+                                                            GetClassCompressedOuterPlate(sectionL.VerticalLegLength, sectionL.VerticalLegThickness)});
                 }
 
                 else
@@ -2397,8 +2397,8 @@ namespace GPC.Checkers.Steel.Checkers
 
                 else if (section is SteelSectionL sectionL)
                 {
-                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionL.LengthHor, sectionL.ThicknessHor),
-                                                            GetClassCompressedOuterPlate(sectionL.LengthVert, sectionL.ThicknessVert)});
+                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionL.HorizontalLegLength, sectionL.HorizontalLegThickness),
+                                                            GetClassCompressedOuterPlate(sectionL.VerticalLegLength, sectionL.VerticalLegThickness)});
                 }
 
                 else
@@ -2466,8 +2466,8 @@ namespace GPC.Checkers.Steel.Checkers
 
                 else if (section is SteelSectionL sectionL)
                 {
-                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionL.LengthHor, sectionL.ThicknessHor),
-                                                            GetClassCompressedOuterPlate(sectionL.LengthVert, sectionL.ThicknessVert)});
+                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionL.HorizontalLegLength, sectionL.HorizontalLegThickness),
+                                                            GetClassCompressedOuterPlate(sectionL.VerticalLegLength, sectionL.VerticalLegThickness)});
                 }
 
                 else
