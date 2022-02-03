@@ -314,7 +314,7 @@ namespace SteelTests
 
             BeamCheckerAttributes beamCheckerAttributes355 = new BeamCheckerAttributes(section355, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
 
-            StandardUNIEN1993p11 standard = new StandardUNIEN1993p11();
+            StandardEN1993p11 standard = new StandardEN1993p11();
             EN1993p11Checker checker355 = new EN1993p11Checker(beamCheckerAttributes355, options, standard);
 
             checker355.PerformCheck();
@@ -327,6 +327,45 @@ namespace SteelTests
             Assert.IsTrue(checker355.EN1993p11BeamStationResults[4].AxialCompressionClass == EN1993p11Checker.SectionClass.Class1);
         }
 
+        [TestMethod]
+        public void SectionRHSClasstification2()
+        {
+            //Cordova cap. 2 pag. 75
+            //in hot formed h = H - 2 * t - (0.5+0.5) * t
+            //in favour of safety h = H - 2 t, for this reason a value of 0.95 * Ned has been used to take this tolerance
+            double h = 350;
+            double b = 250;
+            double t = 10;
+
+            SteelSectionRHS section355 = new SteelSectionRHS(h, b, t, t, t, t, SteelMaterial.S355, string.Empty);
+
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] {
+                new ResultBeamForces(-1300e3, 0, 0, 0, 0, 0, CoordinateSystem.Global),
+                new ResultBeamForces(-1700e3, 0, 0, 0, 0, 0, CoordinateSystem.Global),
+                new ResultBeamForces(-2160e3, 0, 0, 0, 0, 0, CoordinateSystem.Global),
+                new ResultBeamForces(0, 0, 0, 0, 1e6, 0, CoordinateSystem.Global),
+                new ResultBeamForces(0, 0, 0, 0, 0, 1e6, CoordinateSystem.Global),
+            };
+            LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
+
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, 5000) };
+            EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
+                EN1993p11Checker.EN1993p11Options.SupportConditions.EndsRestrained, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 1, 1);
+
+            BeamCheckerAttributes beamCheckerAttributes355 = new BeamCheckerAttributes(section355, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
+
+            StandardEN1993p11 standard = new StandardEN1993p11();
+            EN1993p11Checker checker355 = new EN1993p11Checker(beamCheckerAttributes355, options, standard);
+
+            checker355.PerformCheck();
+
+            Assert.IsTrue(checker355.EN1993p11BeamStationResults[0].AxialCompressionClass == EN1993p11Checker.SectionClass.Class1);
+            Assert.IsTrue(checker355.EN1993p11BeamStationResults[1].AxialCompressionClass == EN1993p11Checker.SectionClass.Class2);
+            Assert.IsTrue(checker355.EN1993p11BeamStationResults[2].AxialCompressionClass == EN1993p11Checker.SectionClass.Class3);
+            Assert.IsTrue(checker355.EN1993p11BeamStationResults[3].AxialCompressionClass == EN1993p11Checker.SectionClass.Class1);
+            Assert.IsTrue(checker355.EN1993p11BeamStationResults[4].AxialCompressionClass == EN1993p11Checker.SectionClass.Class3);            
+        }
 
         #endregion
 
@@ -670,8 +709,10 @@ namespace SteelTests
             BeamCheckerAttributes beamCheckerAttributes = new BeamCheckerAttributes(sectionH, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
             EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.Constant,
                 EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
-            StandardUNIEN1993p11 standard = new StandardUNIEN1993p11();
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 
+                psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+                EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
+            StandardEN1993p11 standard = new StandardEN1993p11();
             EN1993p11Checker Checker = new EN1993p11Checker(beamCheckerAttributes, options, standard);
 
             Checker.PerformCheck();
@@ -1111,6 +1152,56 @@ namespace SteelTests
             Assert.AreEqual(0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy, 1, 0.01);
         }
 
+        [TestMethod]
+        public void SectionHClasstification1()
+        {
+            SteelSectionH section275 = new SteelSectionH(270, 8.0, 280, 13.0, 280, 13.0, SteelMaterial.S420, string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, 24);
+
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] {
+                new ResultBeamForces(-1000e3, 0, 0, 0, 0, 0, CoordinateSystem.Global),
+            };
+            LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
+
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, 5000) };
+            EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
+                EN1993p11Checker.EN1993p11Options.SupportConditions.EndsRestrained, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 1, 1);
+
+            BeamCheckerAttributes beamCheckerAttributes355 = new BeamCheckerAttributes(section275, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
+
+            StandardUNIEN1993p11 standard = new StandardUNIEN1993p11();
+            EN1993p11Checker checker355 = new EN1993p11Checker(beamCheckerAttributes355, options, standard);
+
+            checker355.PerformCheck();
+
+            Assert.IsTrue(checker355.EN1993p11BeamStationResults[0].AxialCompressionClass == EN1993p11Checker.SectionClass.Class3);
+        }
+
+        [TestMethod]
+        public void SectionHClasstification2()
+        {
+            SteelSectionH section275 = new SteelSectionH(550,11.1,210, 17.2, 210, 17.2, SteelMaterial.S275, string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, 24);
+
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] {
+                new ResultBeamForces(-1000e3, 0, 0, 0, 0, 0, CoordinateSystem.Global),
+            };
+            LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
+
+            ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, 5000) };
+            EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
+                EN1993p11Checker.EN1993p11Options.SupportConditions.EndsRestrained, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 1, 1);
+
+            BeamCheckerAttributes beamCheckerAttributes355 = new BeamCheckerAttributes(section275, new BeamResult[] { new BeamResult(loadCase, resultLocationStations) });
+
+            StandardUNIEN1993p11 standard = new StandardUNIEN1993p11();
+            EN1993p11Checker checker355 = new EN1993p11Checker(beamCheckerAttributes355, options, standard);
+
+            checker355.PerformCheck();
+
+            Assert.IsTrue(checker355.EN1993p11BeamStationResults[0].AxialCompressionClass == EN1993p11Checker.SectionClass.Class4);
+        }
+
         #endregion
 
         #region Section CHS
@@ -1248,24 +1339,15 @@ namespace SteelTests
         [TestMethod]
         public void SectionCHSInteraction1()
         {
-            double L = 1000;
-
+            double L = 6000;
             double diameter = 400;
             double thickness = 10;
-
-            double N = 100 * 1000;
-            double V1 = 50 * 1000;
-            double V2 = 50 * 1000;
-            double M1 = -100 * 1e6;
-            double M2 = 100 * 1e6;
-            double T = 0;
-
             double psix = 0.5;
             double psiy = 0.5;
 
             SteelSectionCHS section = new SteelSectionCHS(diameter, thickness, SteelMaterial.S355,
                 string.Empty, Section.FormedTypes.HotFinished);
-            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(N, V1, V2, T, M1, M2, CoordinateSystem.Global) };
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-100 * 1000, 50 * 1000, 50 * 1000, 0, -100 * 1e6, 100 * 1e6, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
             ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, 0.0, L) };
@@ -1276,13 +1358,13 @@ namespace SteelTests
                 psix, psiy, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                 EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
 
-            StandardUNIEN1993p11 standard = new StandardUNIEN1993p11();
+            StandardEN1993p11 standard = new StandardEN1993p11();
             EN1993p11Checker Checker = new EN1993p11Checker(beamCheckerAttributes, options, standard);
 
             Checker.PerformCheck();
 
-            double expAxialBuckling1 = 483123.525 * 1000;
-            double expAxialBuckling2 = 483123.525 * 1000;
+            double expAxialBuckling1 = 4349535;
+            double expAxialBuckling2 = 4349535;
 
             Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity - expAxialBuckling1) / expAxialBuckling1 * 100) < 1);
             Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].AxialBuckling2Capacity - expAxialBuckling2) / expAxialBuckling2 * 100) < 1);

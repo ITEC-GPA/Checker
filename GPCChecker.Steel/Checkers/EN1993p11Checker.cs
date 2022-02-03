@@ -135,19 +135,14 @@ namespace GPC.Checkers.Steel.Checkers
                             axialCompSectionClass = CalculateSectionClassDueToCompression(rbf, steelSection[i]);
                             bendingCompSectionClass = CalculateSectionClassDueToBending(rbf, steelSection[i]);
 
-                            if (rbf.N >= 0.0)
+                            if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) >= 0.0)
                                 sectionClass = bendingCompSectionClass;
                             else
                             {
-                                if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)
-                                {
-                                    if (((Section)steelSection[i]).GetMaxSigma(rbf.N, rbf.M1, rbf.M2) > 0.0)
-                                        sectionClass = CalculateSectionClassDueToCombinedBendingAndCompression(rbf, steelSection[i]);
-                                    else
-                                        sectionClass = axialCompSectionClass;
-                                }
+                                if (((Section)steelSection[i]).GetMaxSigma(rbf.N, rbf.M1, rbf.M2) > 0.0)
+                                    sectionClass = CalculateSectionClassDueToCombinedBendingAndCompression(rbf, steelSection[i]);
                                 else
-                                    sectionClass = bendingCompSectionClass;
+                                    sectionClass = axialCompSectionClass;
                             }
 
                             axialTensionRd = CalculateAxialTensionCapacity(steelSection[i]);
@@ -2428,24 +2423,25 @@ namespace GPC.Checkers.Steel.Checkers
                         GetClassCompressedInnerPlate(sectionRHS.BaseInternal, sectionRHS.ThicknessTop),
                         GetClassCompressedInnerPlate(sectionRHS.BaseInternal, sectionRHS.ThicknessBottom) });
 
-                    sectionClass1Axis = SetWorstClass(new SectionClass[] {sectionClass1Axis,
-                        GetClassBendingInnerPlate(resultBeamForces, sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, section, sectionClass1Axis),
-                        GetClassBendingInnerPlate(resultBeamForces, sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight, section, sectionClass1Axis)});
+                    //sectionClass1Axis = SetWorstClass(new SectionClass[] {sectionClass1Axis,
+                    //    GetClassBendingInnerPlate(resultBeamForces, sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, section, sectionClass1Axis),
+                    //    GetClassBendingInnerPlate(resultBeamForces, sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight, section, sectionClass1Axis)});
 
                     SectionClass sectionClass2Axis = SetWorstClass(new SectionClass[] {
                         GetClassCompressedInnerPlate(sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight),
                         GetClassCompressedInnerPlate(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft) });
 
-                    sectionClass2Axis = SetWorstClass(new SectionClass[] {sectionClass2Axis,
-                        GetClassBendingInnerPlate(resultBeamForces, sectionRHS.BaseInternal, sectionRHS.ThicknessTop, section, sectionClass2Axis),
-                        GetClassBendingInnerPlate(resultBeamForces, sectionRHS.BaseInternal, sectionRHS.ThicknessBottom, section, sectionClass2Axis)});
+                    //sectionClass2Axis = SetWorstClass(new SectionClass[] {sectionClass2Axis,
+                    //    GetClassBendingInnerPlate(resultBeamForces, sectionRHS.BaseInternal, sectionRHS.ThicknessTop, section, sectionClass2Axis),
+                    //    GetClassBendingInnerPlate(resultBeamForces, sectionRHS.BaseInternal, sectionRHS.ThicknessBottom, section, sectionClass2Axis)});
 
                     return SetWorstClass(sectionClass1Axis, sectionClass2Axis);
                 }
 
                 else if (section is SteelSectionT sectionT)
                 {
-                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionT.LenghtFlange/2, sectionT.ThicknessFlange),
+                    return SetWorstClass(new SectionClass[] {
+                        GetClassCompressedOuterPlate(sectionT.LenghtFlange/2, sectionT.ThicknessFlange),
                         GetClassCompressedOuterPlate(sectionT.HeightWeb, sectionT.ThicknessWeb)});
                 }
 
