@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
@@ -149,8 +149,8 @@ namespace GPC.Checkers.Concrete.Results
 					mesh.Faces.Build(new MeshFace
 					(
 						pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-						pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j].Point]],
-						pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j + 1].Point]]), progressPlateId++
+						pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j].Point]]), progressPlateId++
 					);
 
 					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
@@ -206,8 +206,8 @@ namespace GPC.Checkers.Concrete.Results
 					mesh.Faces.Build(new MeshFace
 					(
 						pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-						pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]],
-						pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]]), progressPlateId++
+						pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]],
+						pointIdAssociation[pointVertexAssociation[domainPoint[0][j].Point]]), progressPlateId++
 					);
 
 					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
@@ -325,7 +325,6 @@ namespace GPC.Checkers.Concrete.Results
 
 		#endregion
 
-
 		#region FailureDomainForce
 
 		[Serializable]
@@ -400,7 +399,6 @@ namespace GPC.Checkers.Concrete.Results
 		}
 
 		#endregion
-
 
 		#region FailureDomainPoint
 
