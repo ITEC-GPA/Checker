@@ -54,6 +54,7 @@ namespace GPC.Checkers.Steel.Results
 
         protected double _py;
         protected double _epsilon;
+        protected double _beta;
 
         protected Cop2011Checker.SectionClass _axialCompressionClass;
         protected Cop2011Checker.SectionClass _bendingCompressionClass;
@@ -83,7 +84,6 @@ namespace GPC.Checkers.Steel.Results
         protected double _shearArea2;
 
         #endregion
-
 
         #region Properties
 
@@ -248,6 +248,11 @@ namespace GPC.Checkers.Steel.Results
         public double Epsilon => _epsilon;
 
         /// <summary>
+        /// The reduced design strength coefficient for effective stress method for slender cross-sections in §7.7
+        /// </summary>
+        public double Beta => _beta;
+
+        /// <summary>
         /// Buckling curve about 1principal axis for axial buckling check (Chapter 8.7.6)
         /// </summary>
         public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve1 => _bucklingCurve1;
@@ -349,7 +354,6 @@ namespace GPC.Checkers.Steel.Results
 
         #endregion
 
-
         #region Constructor
 
         protected Cop2011BeamStationResults(ISteelSection section, ResultLocationStation resultLocationStation, ILoadCase Case,
@@ -416,10 +420,11 @@ namespace GPC.Checkers.Steel.Results
             _lenghtLateralTorsionalBuckling = lenghtLateralTorsionalBuckling;
         }
 
-        internal void SetPy(double py, double epsilon)
+        internal void SetPy(double py, double epsilon, double beta)
         {
             _py = py;
             _epsilon = epsilon;
+            _beta = beta;
         }
 
         internal void SetResultsForReportLTB(double lambdaLTBuckling, double lambda0LTBuckling, double pELTBuckling, double phiLTBuckling, double pBLTBuckling)
