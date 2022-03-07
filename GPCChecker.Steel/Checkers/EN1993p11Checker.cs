@@ -44,7 +44,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         public double GammaM2 => EN1993P11.GammaM2;
 
-        public SteelMaterial Material => _beamCheckersAttributes.Sections.FirstOrDefault().SteelMaterial;
+        public SteelMaterial Material => _beamCheckerAttributes.Sections.FirstOrDefault().SteelMaterial;
 
         public EN1993p11BeamStationResult[] EN1993p11BeamStationResults => _beamStationResults.Cast<EN1993p11BeamStationResult>().ToArray();
 
@@ -68,14 +68,14 @@ namespace GPC.Checkers.Steel.Checkers
 
 		public override void PerformCheck()
         {
-            _beamStationResults = PerformCheck(_beamCheckersAttributes.Sections, _beamCheckersAttributes.Results, (EN1993p11Options)_options);
+            _beamStationResults = PerformCheck(_beamCheckerAttributes.Sections, _beamCheckerAttributes.Results, (EN1993p11Options)_options);
         }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _beamStationResults = PerformCheck(_beamCheckersAttributes.Sections, _beamCheckersAttributes.Results, (EN1993p11Options)_options);
+                _beamStationResults = PerformCheck(_beamCheckerAttributes.Sections, _beamCheckerAttributes.Results, (EN1993p11Options)_options);
             });
         }
 
@@ -2056,7 +2056,7 @@ namespace GPC.Checkers.Steel.Checkers
             else
             {
                 if (deflection.HasValue && MEdMax.HasValue)                
-                    return 1.0 + (Math.PI * Math.PI * Material.E * Math.Abs(deflection.Value) / (_beamCheckersAttributes.Length * _beamCheckersAttributes.Length * MEdMax.Value) - 1.0) * NEd / Ncr;
+                    return 1.0 + (Math.PI * Math.PI * Material.E * Math.Abs(deflection.Value) / (_beamCheckerAttributes.Length * _beamCheckerAttributes.Length * MEdMax.Value) - 1.0) * NEd / Ncr;
                 
                 else                
                     throw new Exception("Set delta and Mmax - Table A.2 EN 1993-1-1. Not yet implemented");                

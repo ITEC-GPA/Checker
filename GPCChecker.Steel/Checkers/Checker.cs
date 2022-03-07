@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,20 +23,19 @@ namespace GPC.Checkers.Steel.Checkers
     {
         #region Variables
 
-        protected readonly BeamCheckerAttributes _beamCheckersAttributes;
-
-        protected BeamStationResults[] _beamStationResults;
+        protected readonly BeamCheckerAttributes _beamCheckerAttributes;
         protected readonly Standard _standard;
         protected readonly Options _options;
+
+        protected BeamStationResults[] _beamStationResults;
 
         protected List<string> _errorLog;
 
         #endregion
 
-
         #region Properties
 
-        public BeamCheckerAttributes BeamCheckersAttribute => _beamCheckersAttributes;
+        public BeamCheckerAttributes BeamCheckersAttribute => _beamCheckerAttributes;
 
         public BeamStationResults[] BeamStationCheckerResults => _beamStationResults; 
 
@@ -44,11 +43,11 @@ namespace GPC.Checkers.Steel.Checkers
 
         public Options CheckerOptions => _options;
 
-        public double BeamLength => _beamCheckersAttributes.Length;
+        public double BeamLength => _beamCheckerAttributes.Length;
 
         public ILoadCase[] LoadCases => GetLoadCases();
 
-        public string BeamName => _beamCheckersAttributes.Name;
+        public string BeamName => _beamCheckerAttributes.Name;
 
 
         #endregion
@@ -75,7 +74,7 @@ namespace GPC.Checkers.Steel.Checkers
                 throw new ArgumentNullException(nameof(options));
             }
 
-            _beamCheckersAttributes = beamCheckerAttributes;
+            _beamCheckerAttributes = beamCheckerAttributes;
             _options = options;
 
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
