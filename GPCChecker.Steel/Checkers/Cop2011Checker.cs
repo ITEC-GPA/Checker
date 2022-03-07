@@ -36,44 +36,64 @@ namespace GPC.Checkers.Steel.Checkers
         #region Variables
 
         protected double _py;
+        protected double _beta;
         protected double _epsilon;
 
         #endregion
 
-
         #region Properties
 
+        /// <summary>
+        /// The design strength
+        /// </summary>
         internal double Py => _py;
 
+        /// <summary>
+        /// The reduced design strength coefficient for effective stress method for slender cross-sections in §7.7
+        /// </summary>
+        internal double Beta => _beta;
+
+        /// <summary>
+        /// Parameter for section classification
+        /// </summary>
         internal double Epsilon => _epsilon;
 
+        /// <summary>
+        /// Array of Cop2011BeamStationResults
+        /// </summary>
         public Cop2011BeamStationResults[] Cop2011BeamStationResults => _beamStationResults.Cast<Cop2011BeamStationResults>().ToArray();
 
-        #endregion
+		#endregion
 
+		#region Constructor
 
-        public Cop2011Checker(BeamCheckerAttributes attributes, Cop2011Checker.Cop2011Options options, StandardCopSuos2011 standard)
+		public Cop2011Checker(BeamCheckerAttributes attributes, Cop2011Checker.Cop2011Options options, StandardCopSuos2011 standard)
             : base(attributes, options, standard)
         {
             _py = GetPy(attributes.Sections.Select(i => i.SteelMaterial.Fyk).Min(), attributes.Sections.Select(i => i.SteelMaterial.Fu).Min());
+            _beta = 1.0;
             _epsilon = Math.Sqrt(275 / _py);        //value of Epsilon for section classification            
         }
 
 
-        public override void PerformCheck()
-        {
-            _beamStationResults = PerformCheck(_beamCheckersAttributes.Sections, _beamCheckersAttributes.Results);
-        }
+		#endregion
 
+		#region Public Methods
+
+		public override void PerformCheck()
+        {
+            _beamStationResults = PerformCheck(_beamCheckerAttributes.Sections, _beamCheckerAttributes.Results);
+        }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _beamStationResults = PerformCheck(_beamCheckersAttributes.Sections, _beamCheckersAttributes.Results);
+                _beamStationResults = PerformCheck(_beamCheckerAttributes.Sections, _beamCheckerAttributes.Results);
             });
         }
 
+		#endregion
 
 
         /// <param name="steelSection">section of each station</param>
