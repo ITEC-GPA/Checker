@@ -12,6 +12,7 @@ using GPC.Model.Sections.Steel;
 using GPC.Model.Results;
 using GPC.Model.Materials;
 using GPC.Model.Sections;
+using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Steel.Checkers
 {
@@ -75,6 +76,13 @@ namespace GPC.Checkers.Steel.Checkers
             _epsilon = Math.Sqrt(275 / _py);        //value of Epsilon for section classification            
         }
 
+		public Cop2011Checker(SerializationInfo info, StreamingContext context) 
+            : base(info, context)
+		{
+            _py = info.GetDouble("Py");
+            _beta = info.GetDouble("Beta");
+            _epsilon = info.GetDouble("Epsilon");
+        }
 
 		#endregion
 
@@ -1864,6 +1872,44 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
+        #region Equals, hashcode, operators
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            return obj is Cop2011Checker checker &&
+				   base.Equals(obj) &&
+				   _py == checker._py &&
+				   _beta == checker._beta &&
+				   _epsilon == checker._epsilon;
+		}
+
+		public override int GetHashCode()
+		{
+            unchecked
+            {
+                int hashCode = 23;
+                hashCode = hashCode * -17 + base.GetHashCode();
+                hashCode = hashCode * -17 + _py.GetHashCode();
+                hashCode = hashCode * -17 + _beta.GetHashCode();
+                hashCode = hashCode * -17 + _epsilon.GetHashCode();
+                return hashCode;
+            }
+		}
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("Epsilon", _epsilon);
+            info.AddValue("Beta", _beta);
+            info.AddValue("Py", _py);
+        }
+
+        #endregion
+
+        #region Nested class Options
 
         public class Cop2011Options : Options
         {
@@ -1907,14 +1953,12 @@ namespace GPC.Checkers.Steel.Checkers
 
             #endregion
 
-
             #region Variables
 
             protected SteelClasses _steelClass;
             protected LateralTorsionalBucklingConditions _lateralTorsionalBucklingConditions;
 
             #endregion
-
 
             #region Properties
 
@@ -1923,7 +1967,6 @@ namespace GPC.Checkers.Steel.Checkers
             public LateralTorsionalBucklingConditions LateralTorsionalBucklingCondition { get => _lateralTorsionalBucklingConditions; internal set => _lateralTorsionalBucklingConditions = value; }
 
             #endregion
-
 
             #region Constructor
 
@@ -1941,7 +1984,6 @@ namespace GPC.Checkers.Steel.Checkers
 
             #endregion
 
-
             #region Setter
 
             public void SetSteelClass(SteelClasses steelGrade)
@@ -1957,5 +1999,6 @@ namespace GPC.Checkers.Steel.Checkers
             #endregion
         }
 
-    }
+		#endregion
+	}
 }
