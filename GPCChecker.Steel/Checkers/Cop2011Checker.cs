@@ -1140,7 +1140,7 @@ namespace GPC.Checkers.Steel.Checkers
             else if (sectionClass == SectionClass.Class3)
                 bw = section.Wel1 / section.Wpl1;
             else        //class4
-                bw = section.Wel1 * _beta / section.Wpl1;
+                bw = section.Wel1 / section.Wpl1;
 
             if (section is SectionCHS || section is SectionRHS)
             {
@@ -1397,7 +1397,7 @@ namespace GPC.Checkers.Steel.Checkers
                     return SectionClass.Class3;
                 else
                 {
-                    strengthReduction = Math.Pow(Math.Abs((15.0 * Epsilon) / ctRatio), 2.0);
+                    strengthReduction = Math.Abs((15.0 * Epsilon) / ctRatio);
                     return SectionClass.Class4;
                 }
             }
@@ -1411,7 +1411,7 @@ namespace GPC.Checkers.Steel.Checkers
                     return SectionClass.Class3;
                 else
                 {
-                    strengthReduction = Math.Pow(Math.Abs((13.0 * Epsilon) / ctRatio), 2.0);
+                    strengthReduction = Math.Abs((13.0 * Epsilon) / ctRatio);
                     return SectionClass.Class4;
                 }
             }
@@ -1434,7 +1434,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
             else
             {
-                strengthReduction = Math.Pow(Math.Abs((13.0 * Epsilon) / ctRatio), 2.0);
+                strengthReduction = Math.Abs((13.0 * Epsilon) / ctRatio);
                 return SectionClass.Class4;
             }
         }
@@ -1458,7 +1458,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
             else
             {
-                strengthReduction = Math.Pow(Math.Abs((40.0 * Epsilon) / ctRatio), 2.0);
+                strengthReduction = Math.Abs((40.0 * Epsilon) / ctRatio);
                 return SectionClass.Class4;
             }
         }
@@ -1478,7 +1478,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
             else
             {
-                strengthReduction = Math.Pow(Math.Abs((40.0 * Epsilon) / ctRatio), 2.0);
+                strengthReduction = Math.Abs((40.0 * Epsilon) / ctRatio);
                 return SectionClass.Class4;
             }
         }
@@ -1506,7 +1506,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
             else
             {
-                strengthReduction = Math.Pow(Math.Abs(Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 40.0 * Epsilon) / ctRatio), 2.0);
+                strengthReduction = Math.Abs(Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 40.0 * Epsilon) / ctRatio);
                 return SectionClass.Class4;
             }
         }
@@ -1528,7 +1528,7 @@ namespace GPC.Checkers.Steel.Checkers
                     return SectionClass.Class3;
                 else
                 {
-                    strengthReduction = Math.Pow(Math.Abs(Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 40.0 * Epsilon) / ctRatio), 2.0);
+                    strengthReduction = Math.Abs(Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 40.0 * Epsilon) / ctRatio);
                     return SectionClass.Class4;
                 }
             }
@@ -1538,7 +1538,7 @@ namespace GPC.Checkers.Steel.Checkers
                     return SectionClass.Class3;
                 else
                 {
-                    strengthReduction = Math.Pow(Math.Abs(Math.Max(105.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 35.0 * Epsilon) / ctRatio), 2.0);
+                    strengthReduction = Math.Abs(Math.Max(105.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 35.0 * Epsilon) / ctRatio);
                     return SectionClass.Class4;
                 }
             }
@@ -1563,7 +1563,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
             else
             {
-                strengthReduction = Math.Pow(Math.Abs(140 * Epsilon * Epsilon / ctRatio), 2.0);
+                strengthReduction = Math.Abs(140 * Epsilon * Epsilon / ctRatio);
                 return SectionClass.Class4;
             }
         }
@@ -1583,7 +1583,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
             else
             {
-                strengthReduction = Math.Pow(Math.Abs(80 * Epsilon * Epsilon / ctRatio), 2.0);
+                strengthReduction = Math.Abs(80 * Epsilon * Epsilon / ctRatio);
                 return SectionClass.Class4;
             }
         }
@@ -1609,7 +1609,7 @@ namespace GPC.Checkers.Steel.Checkers
                     return SectionClass.Class3;
                 else
                 {
-                    strengthReduction = Math.Pow(Math.Abs(40.0 * Epsilon / ctRatio), 2.0);
+                    strengthReduction = Math.Abs(40.0 * Epsilon / ctRatio);
                     return SectionClass.Class4;
                 }
             }
@@ -1623,7 +1623,7 @@ namespace GPC.Checkers.Steel.Checkers
                     return SectionClass.Class3;
                 else
                 {
-                    strengthReduction = Math.Pow(Math.Abs(35.0 * Epsilon / ctRatio), 2.0);
+                    strengthReduction = Math.Abs(35.0 * Epsilon / ctRatio);
                     return SectionClass.Class4;
                 }
             }
@@ -1652,7 +1652,7 @@ namespace GPC.Checkers.Steel.Checkers
                     return SectionClass.Class3;
                 else
                 {
-                    strengthReduction = Math.Pow(Math.Abs(Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR1(section, resultBeamForces)), 40.0 * Epsilon) / ctRatio), 2.0);
+                    strengthReduction = Math.Abs(Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR1(section, resultBeamForces)), 40.0 * Epsilon) / ctRatio);
                     return SectionClass.Class4;
                 }
             }
@@ -1666,7 +1666,7 @@ namespace GPC.Checkers.Steel.Checkers
                     return SectionClass.Class3;
                 else
                 {
-                    strengthReduction = Math.Pow(Math.Abs(Math.Max(105 * Epsilon / (1 + 2 * GetR1(section, resultBeamForces)), 35.0 * Epsilon) / ctRatio), 2.0);
+                    strengthReduction = Math.Abs(Math.Max(105 * Epsilon / (1 + 2 * GetR1(section, resultBeamForces)), 35.0 * Epsilon) / ctRatio);
                     return SectionClass.Class4;
                 }
             }
@@ -1688,7 +1688,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
             else
             {
-                strengthReduction = Math.Pow(Math.Abs(Math.Min(Math.Min(Math.Min(15.0 * Epsilon / btRatio, 15.0 * Epsilon / ctRatio), 24.0 * Epsilon / (b + d) / t), 1.0)), 2.0);
+                strengthReduction = Math.Abs(Math.Min(Math.Min(Math.Min(15.0 * Epsilon / btRatio, 15.0 * Epsilon / ctRatio), 24.0 * Epsilon / (b + d) / t), 1.0));
                 return SectionClass.Class4;
             }
         }
@@ -1710,7 +1710,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
             else
             {
-                strengthReduction = Math.Pow(Math.Abs(Math.Min(Math.Min(15.0 * Epsilon / btRatio, 15.0 * Epsilon / dtRatio), 1.0)), 2.0);
+                strengthReduction = Math.Abs(Math.Min(Math.Min(15.0 * Epsilon / btRatio, 15.0 * Epsilon / dtRatio), 1.0));
                 return SectionClass.Class4;
             }
         }
@@ -1731,7 +1731,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
             else
             {
-                strengthReduction = Math.Pow(Math.Abs(15.0 * Epsilon / btRatio), 2.0);
+                strengthReduction = Math.Abs(15.0 * Epsilon / btRatio);
                 return SectionClass.Class4;
             }
         }
@@ -1752,7 +1752,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
             else
             {
-                strengthReduction = Math.Pow(Math.Abs(18.0 * Epsilon / dtRatio), 2.0);
+                strengthReduction = Math.Abs(18.0 * Epsilon / dtRatio);
                 return SectionClass.Class4;
             }
         }
@@ -1769,7 +1769,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
             else
             {
-                strengthReduction = Math.Pow(Math.Abs(40.0 * Epsilon / dtRatio), 2.0);
+                strengthReduction = Math.Abs(40.0 * Epsilon / dtRatio);
                 return SectionClass.Class4;
             }
         }
