@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -52,7 +52,6 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-
         #region Constructor
 
         public Checker(BeamCheckerAttributes beamCheckerAttributes, Options options, Standard standard, string name = "")
@@ -81,19 +80,19 @@ namespace GPC.Checkers.Steel.Checkers
             _errorLog = new List<string>();
         }
 
-        protected Checker(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-            // TODO: implementare 
-            throw new NotImplementedException();
-        }
+		protected Checker(SerializationInfo info, StreamingContext context) 
+            : base(info, context)
+		{
+            _standard = (Standard)info.GetValue("Standard", typeof(Standard));
+            _options = (Options)info.GetValue("Options", typeof(Options));
+            _beamCheckerAttributes = (BeamCheckerAttributes)info.GetValue("BeamCheckerAttributes", typeof(BeamCheckerAttributes));
+		}
 
+		#endregion
 
-        #endregion
+		#region Public abstract method
 
-
-        #region Public abstract method
-
-        public abstract void PerformCheck();
+		public abstract void PerformCheck();
 
         #endregion
 
@@ -102,7 +101,9 @@ namespace GPC.Checkers.Steel.Checkers
             return _errorLog;
         }
 
-        public double GetLengthAxialBuckling1()
+		#region Length
+
+		public double GetLengthAxialBuckling1()
         {
             return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck1 * CheckerOptions.EffectiveLengthFactorAxialBuck1;
         }
@@ -137,10 +138,12 @@ namespace GPC.Checkers.Steel.Checkers
             return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment2 * CheckerOptions.EffectiveLengthFactorCriticalMoment2;
         }
 
-        /// <returns>The unique ILoadCases array</returns>
-        private ILoadCase[] GetLoadCases()
+		#endregion
+
+		/// <returns>The unique ILoadCases array</returns>
+		private ILoadCase[] GetLoadCases()
         {
-            return _beamCheckersAttributes.Results.Select(i => i.Case).Distinct().ToArray();
+            return _beamCheckerAttributes.Results.Select(i => i.Case).Distinct().ToArray();
         }
 
         protected double GetWorkingRatio(double force, double capacity)
@@ -158,25 +161,44 @@ namespace GPC.Checkers.Steel.Checkers
             return result;
         }
 
+        #region Equals - hashcode - operators - serialization
+
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            // TODO: implementare 
-            throw new NotImplementedException();            
+		{
+            base.GetObjectData(info, context);
+            info.AddValue("Standard", _standard);
+            info.AddValue("Options", _options);
+            info.AddValue("BeamCheckerAttributes", _beamCheckerAttributes);
         }
 
-        public override bool Equals(object obj)
-        {
-            // TODO: implementare 
-            throw new NotImplementedException();
+		public override bool Equals(object obj)
+		{
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            return obj is Checker checker &&
+                base.Equals(obj) &&
+                _standard.Equals(checker._standard) &&
+                _options.Equals(checker._options) &&
+                _beamCheckerAttributes.Equals(checker._beamCheckerAttributes);
+		}
+
+		public override int GetHashCode()
+		{
+            unchecked
+            {
+                int hashCode = 23;
+                hashCode = hashCode * -17 + base.GetHashCode();                
+                hashCode = hashCode * -17 + _standard.GetHashCode();
+                hashCode = hashCode * -17 + _options.GetHashCode();
+                hashCode = hashCode * -17 + _beamCheckerAttributes.GetHashCode();
+                return hashCode;
+            }
         }
 
-        public override int GetHashCode()
-        {
-            // TODO: implementare 
-            throw new NotImplementedException();
-        }
+		#endregion
 
-        public abstract class Options
+		public abstract class Options
         {
             #region Variables
 
@@ -200,7 +222,6 @@ namespace GPC.Checkers.Steel.Checkers
             protected double _mLT;
 
             #endregion
-
 
             #region Properties
 
@@ -271,7 +292,6 @@ namespace GPC.Checkers.Steel.Checkers
 
             #endregion
 
-
             #region Constructor
 
             public Options(double unbracedLengthFactorAxialBuck1 = 1, double effectiveLengthFactorAxialBuck1 = 1,
@@ -338,7 +358,6 @@ namespace GPC.Checkers.Steel.Checkers
 
 
             #endregion
-
 
             #region Setter
 
