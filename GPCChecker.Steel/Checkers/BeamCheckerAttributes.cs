@@ -138,7 +138,5 @@ namespace GPC.Checkers.Steel.Checkers
                 return hashCode;
             }
         }
-
-
     }
 }

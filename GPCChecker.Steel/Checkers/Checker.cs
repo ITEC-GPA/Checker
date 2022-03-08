@@ -45,8 +45,14 @@ namespace GPC.Checkers.Steel.Checkers
 
         public double BeamLength => _beamCheckerAttributes.Length;
 
+        /// <summary>
+        /// The unique ILoadCases array
+        /// </summary>
         public ILoadCase[] LoadCases => GetLoadCases();
 
+        /// <summary>
+        /// Name of the beam
+        /// </summary>
         public string BeamName => _beamCheckerAttributes.Name;
 
 
@@ -96,11 +102,6 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-        public List<string> GetErrorLog()
-        {
-            return _errorLog;
-        }
-
 		#region Length
 
 		public double GetLengthAxialBuckling1()
@@ -139,6 +140,11 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
 		#endregion
+
+        public List<string> GetErrorLog()
+        {
+            return _errorLog;
+        }
 
 		/// <returns>The unique ILoadCases array</returns>
 		private ILoadCase[] GetLoadCases()
@@ -197,6 +203,8 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
 		#endregion
+
+		#region Nested Class Options
 
 		public abstract class Options
         {
@@ -454,5 +462,7 @@ namespace GPC.Checkers.Steel.Checkers
 
             #endregion
         }
-    }
+
+		#endregion
+	}
 }
