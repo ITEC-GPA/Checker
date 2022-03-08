@@ -296,10 +296,10 @@ namespace GPC.Checkers.Steel.Checkers
                         }
                         catch (Exception e)
                         {
-                            _errorLog.Add($"Fail check beam {BeamName}, \n " +
-                                $"station {((ResultLocationStation)beamResult[k].ResultLocations[i]).DistanceFromStartPoint} mm from start point, \n" +
-                                $"combination {beamResult[k].Case.Name}. \n" +
-                                $"Error: {e.Message}");
+                            _errorLog.Add($"Fail check beam {BeamName}, \n" +
+                                $"Station {((ResultLocationStation)beamResult[k].ResultLocations[i]).DistanceFromStartPoint} mm from start point, \n" +
+                                $"Combination {beamResult[k].Case.Name}. \n" +
+                                $"Error: {e.Message}. \n \n");
                         }
                     }
                 }

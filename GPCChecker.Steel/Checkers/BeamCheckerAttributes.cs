@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -58,10 +58,8 @@ namespace GPC.Checkers.Steel.Checkers
             //    throw new ArgumentException("Different beam station number");
             //}
                         
-            if (beamResults.Select(i => i.Length).Distinct().Count() > 1)
-            {
-                throw new ArgumentException("Different beam result lenght");
-            }
+            if (beamResults.Select(i => i.Length).Distinct().Count() > 1)            
+                throw new ArgumentException("Different beam result lenght");            
 
             _sections = Enumerable.Repeat(section, beamResults.FirstOrDefault().ResultLocations.FirstOrDefault().ResultTypes.Length).ToArray();
         }
