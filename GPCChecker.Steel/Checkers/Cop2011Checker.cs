@@ -113,12 +113,16 @@ namespace GPC.Checkers.Steel.Checkers
             Cop2011BeamStationResults[] stationResults = new Cop2011BeamStationResults[steelSection.Length * beamResult.Select(i => i.ResultLocations.Length).Sum()];
             int index = 0;
 
+            double py = _py;
+
             for (int k = 0; k < beamResult.Length; k++)
             {
                 for (int j = 0; j < beamResult[k].ResultLocations.Length; j++)
                 {
                     for (int i = 0; i < beamResult[k].ResultLocations[j].ResultTypes.Length; i++)
                     {
+                        _py = py;
+
                         try
                         {
                             ResultBeamForces rbf = (ResultBeamForces)beamResult[k].ResultLocations[j].ResultTypes[i];
@@ -297,9 +301,9 @@ namespace GPC.Checkers.Steel.Checkers
                         catch (Exception e)
                         {
                             _errorLog.Add($"Fail check beam {BeamName}, \n" +
-                                $"Station {((ResultLocationStation)beamResult[k].ResultLocations[i]).DistanceFromStartPoint} mm from start point, \n" +
+                                $"Station {((ResultLocationStation)beamResult[k].ResultLocations[j]).DistanceFromStartPoint} mm from start point, \n" +
                                 $"Combination {beamResult[k].Case.Name}. \n" +
-                                $"Error: {e.Message}. \n \n");
+                                $"Error: {e.Message}. \n");
                         }
                     }
                 }
