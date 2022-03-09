@@ -122,6 +122,7 @@ namespace GPC.Checkers.Steel.Checkers
                     for (int i = 0; i < beamResult[k].ResultLocations[j].ResultTypes.Length; i++)
                     {
                         _py = py;
+                        _beta = 1.0;
 
                         try
                         {
