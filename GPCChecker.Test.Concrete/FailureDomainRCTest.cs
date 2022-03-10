@@ -1178,7 +1178,7 @@ namespace ConcreteTests
 
 			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			ShowDomainPoints(failureDomain.Domain);
-			ExportToGmsh(failureDomain.Domain);			
+			//ExportToGmsh(failureDomain.Domain);			
 		}
 
 		[TestMethod]

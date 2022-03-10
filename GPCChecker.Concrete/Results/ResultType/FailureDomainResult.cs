@@ -245,9 +245,35 @@ namespace GPC.Checkers.Concrete.Results
             return failureDomain2D;
         }
 
+        /// <summary>
+        /// Calculate a new single force asynchronously
+        /// </summary>
+        /// <param name="forces">The force to add</param>
+        /// <returns>The corresponding domain point</returns>
+        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
+        /// <remarks>Force is not added to list of forces</remarks>
+        public async Task<FailureDomain.FailureDomainPoint> CalculateForceAsync(ResultBeamForces forces)
+		{
+            if (forces is null)
+            {
+                throw new ArgumentNullException(nameof(forces));
+            }
+
+            FailureDomain.FailureDomainPoint failureDomainPoint = null;
+
+            await Task.Run(() => {
+                if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainAnalysisTypes.Plastic)
+                    failureDomainPoint = _sectionSolver.CalculatePlasticDomainPoint(forces.ConvertToForceTuple(_coordinateSystem));
+                else
+                    failureDomainPoint = _sectionSolver.CalculateElasticDomainPoint(forces.ConvertToForceTuple(_coordinateSystem));
+            });
+
+            return failureDomainPoint;
+        }
+
         #endregion
 
-        #region Internal Methods
+        #region Public Methods
 
         /// <summary>
         /// Adds a new single force
@@ -256,7 +282,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <returns>The corresponding domain point</returns>
         /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
         /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
-        internal FailureDomain.FailureDomainPoint AddForce(ResultBeamForces forces)
+        public FailureDomain.FailureDomainPoint AddForce(ResultBeamForces forces)
         {
             if (forces is null || forces.Id == -1)
             {
@@ -286,7 +312,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <returns>The corresponding points in the domain</returns>
         /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
         /// <exception cref="ArgumentException">Thrown when forces contains items with Id == -1</exception>
-        internal FailureDomain.FailureDomainPoint[] AddForces(ResultBeamForces[] forces)
+        public FailureDomain.FailureDomainPoint[] AddForces(ResultBeamForces[] forces)
         {
             if (forces is null)
             {
@@ -317,12 +343,35 @@ namespace GPC.Checkers.Concrete.Results
         }
 
         /// <summary>
+        /// Calculate a new single force
+        /// </summary>
+        /// <param name="forces">The force to add</param>
+        /// <returns>The corresponding domain point</returns>
+        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
+        /// <remarks>Force is not added to list of forces</remarks>
+        public FailureDomain.FailureDomainPoint CalculateForce(ResultBeamForces forces)
+        {
+            if (forces is null)
+            {
+                throw new ArgumentNullException(nameof(forces));
+            }
+
+			FailureDomain.FailureDomainPoint failureDomainPoint;
+			if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainAnalysisTypes.Plastic)
+                    failureDomainPoint = _sectionSolver.CalculatePlasticDomainPoint(forces.ConvertToForceTuple(_coordinateSystem));
+                else
+                    failureDomainPoint = _sectionSolver.CalculateElasticDomainPoint(forces.ConvertToForceTuple(_coordinateSystem));
+
+            return failureDomainPoint;
+        }
+
+        /// <summary>
         /// Calculate the failure domain 2d with costant value of axial force
         /// </summary>
         /// <param name="forces">Input forces</param>
         /// <returns>New FailureDomain2d</returns>
         /// <exception cref="ArgumentException"></exception>
-        internal virtual FailureDomainResult2d CalculateDomainConstantAxialForce(ResultBeamForces forces)
+        public virtual FailureDomainResult2d CalculateDomainConstantAxialForce(ResultBeamForces forces)
         {
             return new FailureDomainResult2d(_section, CalculateDomainConstantAxialForce(forces.ConvertToForceTuple(_coordinateSystem)), 
                 new ResultBeamForces[] { forces }, _sectionSolver, _standard, FailureDomainResult2d.DomainTypes.CostantN, _coordinateSystem);
@@ -334,7 +383,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="forces"></param>
         /// <returns>New FailureDomain2d</returns>
         /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
-        internal virtual FailureDomainResult2d CalculateFailureDomainCostantMomentsRatio(ResultBeamForces forces)
+        public virtual FailureDomainResult2d CalculateFailureDomainCostantMomentsRatio(ResultBeamForces forces)
         {
             return new FailureDomainResult2d(_section, CalculateFailureDomainCostantMomentsRatio(forces.ConvertToForceTuple(_coordinateSystem)),
                 new ResultBeamForces[] { forces }, _sectionSolver, _standard, FailureDomainResult2d.DomainTypes.CostantMxMy, _coordinateSystem);
