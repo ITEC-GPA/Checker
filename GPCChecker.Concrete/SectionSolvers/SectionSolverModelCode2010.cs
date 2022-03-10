@@ -23,7 +23,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
 
-        public ConcreteMaterialModelCode2010 ConcreteMaterialModelCode2010 => (ConcreteMaterialModelCode2010)_concreteSection.ConcreteMaterial;
+        public ConcreteMaterialCommon ConcreteMaterialModelCode2010 => (ConcreteMaterialCommon)_concreteSection.ConcreteMaterial;
 
 		/// <summary>
 		/// Design compressive strength for persistent design
@@ -178,7 +178,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var material = ConcreteMaterialModelCode2010;
             var standard = StandardModelCode2010;
 
-            if (material.CompressionStressStrainDiagram == ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.StressBlock)
+            if (material.CompressionStressStrainDiagram == ConcreteMaterialCommon.CompressionStressStrainDiagrams.StressBlock)
             {
                 if (material.Fck > 90)
                     throw new ArgumentException("Fck > 90 not supported by Stress block");
@@ -222,13 +222,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         #region Protected Design Rebars
 
         /// <returns>The design rebar yielding stress</returns>
-        protected double CalculateFyd(RebarMaterial material)
+        protected double CalculateFyd(SteelMaterial material)
         {
             return material.Fyk / StandardModelCode2010.GammaS;
         }
 
         /// <returns>The design rebar stress related to <paramref name="strain"/></returns>
-        protected double CalculateDesignStressRebar(double strain, RebarMaterial material)
+        protected double CalculateDesignStressRebar(double strain, SteelMaterial material)
         {
             if (strain < CalculateDesignYieldingStrainRebar(material))
             {
@@ -250,17 +250,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return ConcreteSection.GetRebarById(rebarId).RebarMaterial.StrainU * StandardModelCode2010.SteelCoefficientStrainTension;
         }
 
-        protected double CalculateDesignYieldingStressRebar(RebarMaterial material)
+        protected double CalculateDesignYieldingStressRebar(SteelMaterial material)
         {
             return material.Fyk / StandardModelCode2010.GammaS;
         }
 
-        protected double CalculateDesignYieldingStrainRebar(RebarMaterial material)
+        protected double CalculateDesignYieldingStrainRebar(SteelMaterial material)
         {
             return CalculateDesignYieldingStressRebar(material) / material.E;
         }
 
-        protected double CalculateDesignUltimateStrainRebar(RebarMaterial material)
+        protected double CalculateDesignUltimateStrainRebar(SteelMaterial material)
         {
             return material.StrainU * StandardModelCode2010.SteelCoefficientStrainTension;
         }

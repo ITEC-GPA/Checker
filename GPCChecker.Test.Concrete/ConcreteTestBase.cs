@@ -24,13 +24,13 @@ namespace ConcreteTests
         #region Section Construction Methods
 
         protected ReinforcedConcreteSection GetRectangularSection4Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
-            ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -58,14 +58,14 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection8Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -97,14 +97,14 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection2SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
-            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -134,14 +134,14 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection4SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            int numberOfRebarsTopBottomSide = 4, int numberOfRebarsLateralSide = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebarsTopBottomSide = 4, int numberOfRebarsLateralSide = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -180,14 +180,14 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSectionBottomSideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {

@@ -70,7 +70,7 @@ namespace SteelTests
             double h = 1400 + 2 * tf;
             double b = 400;
 
-            SteelSectionH sec = new SteelSectionH(h, tw, b, tf, b, tf, new SteelMaterial("steel", 200000, 0.3, 355, 510, 7850), string.Empty, 
+            SteelSectionH sec = new SteelSectionH(h, tw, b, tf, b, tf, SteelMaterial.S355, string.Empty, 
                 Section.SectionTypes.Welded);
 
             double A = sec.Area;
@@ -93,7 +93,7 @@ namespace SteelTests
             double b = 220;
             double r = 24;
 
-            SteelSectionH sec = new SteelSectionH(h, tw, b, tf, b, tf, new SteelMaterial("S275", 206000, 0.3, 275, 430, 7850), string.Empty, 
+            SteelSectionH sec = new SteelSectionH(h, tw, b, tf, b, tf, SteelMaterial.S275, string.Empty, 
                 Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
 
             ResultBeamForces resultBeamForces = new ResultBeamForces(-3800 * 1e3, 0.0, 0.0, 0.0, 600 * 1e6, 0.0, CoordinateSystem.Global);
@@ -117,7 +117,7 @@ namespace SteelTests
             double b = 300;
             double r = 30;
 
-            SteelSectionH sec = new SteelSectionH(h, tw, b, tf, b, tf, new SteelMaterial("S275", 206000, 0.3, 235, 430, 7850), string.Empty,
+            SteelSectionH sec = new SteelSectionH(h, tw, b, tf, b, tf, SteelMaterial.S275, string.Empty,
                 Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
 
             ResultBeamForces resultBeamForces = new ResultBeamForces(-6100 * 1e3, 0.0, 0.0, 0.0, 600 * 1e6, 0.0, CoordinateSystem.Global);
@@ -136,7 +136,7 @@ namespace SteelTests
             double b = 600;
             double r = 30;
 
-            SteelSectionRHS sec = new SteelSectionRHS(h, b, t, t, t, t, new SteelMaterial("S275", 206000, 0.3, 275, 430, 7850), string.Empty, r, Section.FormedTypes.HotFinished, Section.SectionTypes.Rolled);
+            SteelSectionRHS sec = new SteelSectionRHS(h, b, t, t, t, t, SteelMaterial.S275, string.Empty, r, Section.FormedTypes.HotFinished, Section.SectionTypes.Rolled);
 
             ResultBeamForces resultBeamForces = new ResultBeamForces(-610 * 1e3, 0.0, 0.0, 0.0, 0.0, 0.0, CoordinateSystem.Global);
             ECClass4ThinWallSection class4 = new ECClass4ThinWallSection(sec, resultBeamForces);

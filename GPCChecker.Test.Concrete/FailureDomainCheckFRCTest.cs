@@ -29,7 +29,7 @@ namespace ConcreteTests
 			double concreteCover = 50;
 
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, 
-				ConcreteMaterialModelCode2010FRC.C30_37_10);
+				ConcreteMaterialModelCode2010.C30_37_10);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -61,7 +61,7 @@ namespace ConcreteTests
 			double concreteCover = 50;
 
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, 
-				ConcreteMaterialModelCode2010FRC.C30_37_10);
+				ConcreteMaterialModelCode2010.C30_37_10);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -93,7 +93,7 @@ namespace ConcreteTests
 			double concreteCover = 50;
 
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, 
-				ConcreteMaterialModelCode2010FRC.C30_37_10);
+				ConcreteMaterialModelCode2010.C30_37_10);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -126,7 +126,7 @@ namespace ConcreteTests
 			double concreteCover = 50;
 
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, 
-				ConcreteMaterialModelCode2010FRC.C30_37_10);
+				ConcreteMaterialModelCode2010.C30_37_10);
 
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
@@ -161,7 +161,7 @@ namespace ConcreteTests
 			int numberOfSideRebar = 3;
 
 			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, concreteCover, 
-				numberOfSideRebar, ConcreteMaterialModelCode2010FRC.C30_37_10);
+				numberOfSideRebar, ConcreteMaterialModelCode2010.C30_37_10);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -195,7 +195,7 @@ namespace ConcreteTests
 			int numberOfSideRebar = 3;
 
 			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, concreteCover, 
-				numberOfSideRebar, ConcreteMaterialModelCode2010FRC.C30_37_10);
+				numberOfSideRebar, ConcreteMaterialModelCode2010.C30_37_10);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -224,7 +224,7 @@ namespace ConcreteTests
 			double concreteCover = 50;
 
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover, 
-				ConcreteMaterialModelCode2010FRC.C30_37_10);
+				ConcreteMaterialModelCode2010.C30_37_10);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -254,7 +254,7 @@ namespace ConcreteTests
 			int numberOfSideRebars = 5;
 
 			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, concreteCover,
-				numberOfSideRebars, ConcreteMaterialModelCode2010FRC.C30_37_10);
+				numberOfSideRebars, ConcreteMaterialModelCode2010.C30_37_10);
 
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -285,7 +285,7 @@ namespace ConcreteTests
 			int numberOfSideRebars = 5;
 
 			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, concreteCover, 
-				numberOfSideRebars, ConcreteMaterialModelCode2010FRC.C30_37_10);
+				numberOfSideRebars, ConcreteMaterialModelCode2010.C30_37_10);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -325,7 +325,7 @@ namespace ConcreteTests
 			int numberOfSideRebars = 5;
 
 			ReinforcedConcreteSection section = GetRectangularSection4SideRebars(width, height, rebarDiameter, concreteCover, numberOfSideRebars,
-				numberOfSideRebars, ConcreteMaterialModelCode2010FRC.C30_37_10);
+				numberOfSideRebars, ConcreteMaterialModelCode2010.C30_37_10);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -370,10 +370,10 @@ namespace ConcreteTests
 				new Point2d(0, height)
 			}));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialModelCode2010FRC($"FCM {45}-3.5", 45, 
+			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialModelCode2010($"FCM {45}-3.5", 45, 
 				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.ParabolaRectangle,
-				0.45 * 0.92, 0.3 * 0.76, 0.00003, 0.02, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear));
-			RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, RebarMaterial.B500C);
+				0.45 * 0.92, 0.3 * 0.76, 0.00003, 0.02, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC));
+			RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, SteelMaterial.B500C);
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -408,7 +408,7 @@ namespace ConcreteTests
 			double concreteCover = 50;
 
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, width, rebarDiameter, concreteCover, 
-				ConcreteMaterialModelCode2010FRC.C30_37_10);
+				ConcreteMaterialModelCode2010.C30_37_10);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -432,7 +432,7 @@ namespace ConcreteTests
 			double width = 300;
 			double concreteCover = 50;
 
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, width, rebarDiameter, concreteCover, ConcreteMaterialModelCode2010FRC.C30_37_10);
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, width, rebarDiameter, concreteCover, ConcreteMaterialModelCode2010.C30_37_10);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -461,7 +461,7 @@ namespace ConcreteTests
 			int numberOfSideRebars = 5;
 
 			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(height, height, rebarDiameter, concreteCover, 
-				numberOfSideRebars, ConcreteMaterialModelCode2010FRC.C30_37_10);
+				numberOfSideRebars, ConcreteMaterialModelCode2010.C30_37_10);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -487,7 +487,7 @@ namespace ConcreteTests
 			int numberOfSideRebars = 5;
 
 			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(height, height, rebarDiameter, concreteCover, 
-				numberOfSideRebars, ConcreteMaterialModelCode2010FRC.C30_37_10);
+				numberOfSideRebars, ConcreteMaterialModelCode2010.C30_37_10);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -516,7 +516,7 @@ namespace ConcreteTests
 			int numberOfSideRebars = 5;
 
 			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(height, height, rebarDiameter, concreteCover,
-				numberOfSideRebars, ConcreteMaterialModelCode2010FRC.C30_37_10);
+				numberOfSideRebars, ConcreteMaterialModelCode2010.C30_37_10);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			ResultBeamForces[] forces = new ResultBeamForces[]

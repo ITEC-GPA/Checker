@@ -157,13 +157,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         #region Protected Design Rebars
 
         /// <returns>The design rebar yielding stress</returns>
-        protected double CalculateFyd(RebarMaterial material)
+        protected double CalculateFyd(SteelMaterial material)
         {
             return material.Fyk;
         }
 
         /// <returns>The design rebar stress related to <paramref name="strain"/></returns>
-        protected double CalculateDesignStressRebar(double strain, RebarMaterial material)
+        protected double CalculateDesignStressRebar(double strain, SteelMaterial material)
         {
             if (strain < CalculateDesignYieldingStrainRebar(material))            
                 return material.CalculateStress(strain);            
@@ -181,17 +181,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return ConcreteSection.GetRebarById(rebarId).RebarMaterial.StrainU;
         }
 
-        protected double CalculateDesignYieldingStressRebar(RebarMaterial material)
+        protected double CalculateDesignYieldingStressRebar(SteelMaterial material)
         {
             return material.Fyk;
         }
 
-        protected double CalculateDesignYieldingStrainRebar(RebarMaterial material)
+        protected double CalculateDesignYieldingStrainRebar(SteelMaterial material)
         {
             return CalculateDesignYieldingStressRebar(material) / material.E;
         }
 
-        protected double CalculateDesignUltimateStrainRebar(RebarMaterial material)
+        protected double CalculateDesignUltimateStrainRebar(SteelMaterial material)
         {
             return material.StrainU;
         }

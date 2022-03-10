@@ -29,8 +29,8 @@ namespace ConcreteTests
 				new Point2d(0, 300) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
-			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1800));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterial.Y1620CHardening);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
@@ -77,8 +77,8 @@ namespace ConcreteTests
 				new Point2d(0, 500) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
-			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1800));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterial.Y1620CHardening);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
@@ -135,8 +135,8 @@ namespace ConcreteTests
 				new Point2d(0, 400) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C35_45);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, RebarMaterial.B450C);
-			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1620));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterial.Y1620C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
 				new ReinforcedConcreteRebar(rebar, new Point3d(40,40,0)),
@@ -184,7 +184,7 @@ namespace ConcreteTests
 				new Point2d(0, 400) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
-			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1620));
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterial.Y1620C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
 				new ReinforcedConcreteRebar(rebarP, new Point2d(200, 200), 1400) };
@@ -224,8 +224,8 @@ namespace ConcreteTests
 				new Point2d(0, 700) }));
 
 			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
-			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1800));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterial.Y1620CHardening);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
