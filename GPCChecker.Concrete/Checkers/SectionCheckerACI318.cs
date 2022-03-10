@@ -161,7 +161,7 @@ namespace GPC.Checkers.Concrete.Checkers
         #region Internal
 
         /// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResult"/>
-        internal override FailureDomainResult GetPlasticFailureDomainResult()
+        public override FailureDomainResult GetPlasticFailureDomainResult()
         {
             var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
 
@@ -172,7 +172,7 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResult"/>
-        internal override FailureDomainResult GetElasticFailureDomainResult()
+        public override FailureDomainResult GetElasticFailureDomainResult()
         {
             var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
 
@@ -183,7 +183,7 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <inheritdoc cref="SectionChecker.GetStressAnalysisResult"/>
-        internal override StressAnalysisResult[] GetStressAnalysisResult()
+        public override StressAnalysisResult[] GetStressAnalysisResult()
         {
             if (_checkerAttributes.SLSResults is null)
                 return null;
@@ -192,7 +192,7 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(double)"/>
-        internal override StressAnalysisResult[] GetLinearStressAnalysisResult(double psi)
+        public override StressAnalysisResult[] GetLinearStressAnalysisResult(double psi)
         {
 
             if (_checkerAttributes.SLSResults is null)
@@ -203,13 +203,13 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <inheritdoc cref="SectionChecker.GetStressAnalysisResult(ResultBeamForces)"/>
-        internal override StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
+        public override StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
 		{
             return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(ResultBeamForces, double)"/>
-        internal override StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi)
+        public override StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi)
 		{
             return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
         }

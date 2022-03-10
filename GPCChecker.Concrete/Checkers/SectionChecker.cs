@@ -85,37 +85,37 @@ namespace GPC.Checkers.Concrete.Checkers
         /// Calculate the plastic failure domain and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-        internal abstract FailureDomainResult GetPlasticFailureDomainResult();
+        public abstract FailureDomainResult GetPlasticFailureDomainResult();
 
         /// <summary>
         /// Calculate the elastic failure domain and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-        internal abstract FailureDomainResult GetElasticFailureDomainResult();
+        public abstract FailureDomainResult GetElasticFailureDomainResult();
 
         /// <summary>
         /// Calculate the stress analysis for each forces
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        internal abstract StressAnalysisResult[] GetStressAnalysisResult();
+        public abstract StressAnalysisResult[] GetStressAnalysisResult();
 
         /// <summary>
         /// Calculate the stress analysis for <paramref name="forces"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        internal abstract StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces);
+        public abstract StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces);
 
         /// <summary>
         /// Calculate the stress analysis for each forces with creep coefficient <paramref name="phi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        internal abstract StressAnalysisResult[] GetLinearStressAnalysisResult(double phi);
+        public abstract StressAnalysisResult[] GetLinearStressAnalysisResult(double phi);
 
         /// <summary>
         /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="phi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        internal abstract StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double phi);
+        public abstract StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double phi);
 
         #endregion
 
