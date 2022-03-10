@@ -117,12 +117,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             F4 = 6,
         }
 
-        public enum MaterialTypes
-		{
-            Concrete,
-            FRC,
-		}
-
         public enum FailureDomainAnalysisTypes
 		{
             Elastic,
@@ -238,25 +232,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual FailureDomainResult GetElasticFailureDomainResult(CoordinateSystem forceReferencePointCoordinateSystem)
         {
-            MaterialTypes materialType;
             (FailureZones, int)[] zoneDiscretization;
 
-            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
-                materialType = MaterialTypes.FRC;
-            else
-                materialType = MaterialTypes.Concrete;
-
-            if (materialType == MaterialTypes.Concrete)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
                 zoneDiscretization = _elasticFailureZonesDiscretizations;
             else
                 zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
 
-            if (materialType == MaterialTypes.Concrete)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
-                zoneDiscretization, FailureDomainAnalysisTypes.Elastic, materialType);
+                zoneDiscretization, FailureDomainAnalysisTypes.Elastic);
 
             return new FailureDomainResult(ConcreteSection, 
                 CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem, FailureDomainAnalysisTypes.Elastic),
@@ -265,15 +253,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual FailureDomainResult GetPlasticFailureDomainResult(CoordinateSystem forceReferencePointCoordinateSystem)
         {
-            MaterialTypes materialType;
             (FailureZones, int)[] zoneDiscretization;
 
-            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
-                materialType = MaterialTypes.FRC;
-            else
-                materialType = MaterialTypes.Concrete;
-
-            if (materialType == MaterialTypes.Concrete)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
                 zoneDiscretization = _plasticFailureZonesDiscretizations;
             else
 			{
@@ -283,12 +265,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebars;
             }
 
-            if (materialType == MaterialTypes.Concrete)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
-                zoneDiscretization, FailureDomainAnalysisTypes.Plastic, materialType);
+                zoneDiscretization, FailureDomainAnalysisTypes.Plastic);
 
             return new FailureDomainResult(ConcreteSection, 
                 CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem, FailureDomainAnalysisTypes.Plastic), null, this, _standard,
@@ -297,19 +279,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, CoordinateSystem forceReferencePointCoordinateSystem)
         {
-            MaterialTypes materialType;
-
-            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
-                materialType = MaterialTypes.FRC;
-            else
-                materialType = MaterialTypes.Concrete;
-
             StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
 
             Parallel.For(0, force.Length, (i) =>
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
-                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePointCoordinateSystem), materialType,
+                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(forceReferencePointCoordinateSystem), 
                     _stressAnalysisTolerance), this, _standard, Id);
             });
 
@@ -318,15 +293,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual StressAnalysisResult GetStressAnalysisResult(ResultBeamForces force, CoordinateSystem forceReferencePointCoordinateSystem)
         {
-            MaterialTypes materialType;
-
-            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
-                materialType = MaterialTypes.FRC;
-            else
-                materialType = MaterialTypes.Concrete;
-
             return new StressAnalysisResult(ConcreteSection, force,
-                    CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(forceReferencePointCoordinateSystem), materialType,
+                    CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(forceReferencePointCoordinateSystem), 
                     _stressAnalysisTolerance), this, _standard, Id);
         }
 
@@ -353,26 +321,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         internal virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple targetLocalForces)
 		{
-            MaterialTypes materialType;
-
-            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
-                materialType = MaterialTypes.FRC;
-            else
-                materialType = MaterialTypes.Concrete;
-
-            return CalculateDomainPoint(targetLocalForces, FailureDomainAnalysisTypes.Plastic, materialType, _failureAnalysisAngularTolerance);
+            return CalculateDomainPoint(targetLocalForces, FailureDomainAnalysisTypes.Plastic, _failureAnalysisAngularTolerance);
 		}
 
         internal virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple targetLocalForces)
         {
-            MaterialTypes materialType;
-
-            if (_concreteSection.ConcreteMaterial.IsFiberReinforced())
-                materialType = MaterialTypes.FRC;
-            else
-                materialType = MaterialTypes.Concrete;
-
-            return CalculateDomainPoint(targetLocalForces, FailureDomainAnalysisTypes.Elastic, materialType, _failureAnalysisAngularTolerance);
+            return CalculateDomainPoint(targetLocalForces, FailureDomainAnalysisTypes.Elastic, _failureAnalysisAngularTolerance);
         }
 
         #endregion
@@ -790,11 +744,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP1((double teta, int dMinRebarId, double dminRebar,
             int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
-            FailureDomainAnalysisTypes analysisType, MaterialTypes materialType)
+            FailureDomainAnalysisTypes analysisType)
         {
-            switch (materialType)
+            switch (_concreteSection.ConcreteMaterial.ConcreteType)
             {
-                case MaterialTypes.Concrete:
+                case ConcreteMaterial.ConcreteTypes.Normal:
 
                     switch (analysisType)
                     {
@@ -812,7 +766,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             return (0.0, null, 0.0);
                     }
 
-                case MaterialTypes.FRC:
+                case ConcreteMaterial.ConcreteTypes.FRC:
 
                     switch (analysisType)
                     {
@@ -884,11 +838,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP4((double teta, int dMinRebarId, double dminRebar,
             int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
-            FailureDomainAnalysisTypes analysisType, MaterialTypes materialType)
+            FailureDomainAnalysisTypes analysisType)
         {
-            switch (materialType)
+            switch (_concreteSection.ConcreteMaterial.ConcreteType)
             {
-                case MaterialTypes.Concrete:
+                case ConcreteMaterial.ConcreteTypes.Normal:
 
                     switch (analysisType)
                     {
@@ -906,7 +860,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             return (0.0, null, 0.0);
                     }
 
-                case MaterialTypes.FRC:
+                case ConcreteMaterial.ConcreteTypes.FRC:
 
                     switch (analysisType)
                     {
@@ -971,7 +925,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         protected virtual (StrainPlane, FailureZones)[][] CalculateDesignFailureStrainPlanes(int tetaDiscretizations, (FailureZones, int)[] zoneSubdivision,
-            FailureDomainAnalysisTypes analysisType, MaterialTypes materialType)
+            FailureDomainAnalysisTypes analysisType)
         {
             if (tetaDiscretizations < 2)
                 return null;
@@ -984,7 +938,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 Parallel.For(0, tetaDiscretizations, (i) =>
                 {
-                    strainPlanes[i] = CalculateFailureStrainPlanes((i * deltaTeta), zoneSubdivision, analysisType, materialType);
+                    strainPlanes[i] = CalculateFailureStrainPlanes((i * deltaTeta), zoneSubdivision, analysisType);
                 });
             }
             catch (Exception e)
@@ -1005,16 +959,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="zoneSubdivision">Number of subdivision for each failure zone</param>
         /// <returns></returns>
         protected virtual (StrainPlane, FailureZones)[] CalculateFailureStrainPlanes(double teta, (FailureZones, int)[] zoneSubdivision, 
-            FailureDomainAnalysisTypes analysisType, MaterialTypes materialType)
+            FailureDomainAnalysisTypes analysisType)
         {
             (StrainPlane, FailureZones)[] strainPlanes = new (StrainPlane, FailureZones)[zoneSubdivision.Select(i => i.Item2).Sum() + zoneSubdivision.Length + 1];
 
             var sectionDistances = CalculateMaxMinSectionDistances(teta);
 
-            var p1 = GetP1(sectionDistances, analysisType, materialType);
+            var p1 = GetP1(sectionDistances, analysisType);
             var p2 = GetP2(sectionDistances, analysisType);
             var p3 = GetP3(sectionDistances, analysisType);
-            var p4 = GetP4(sectionDistances, analysisType, materialType);
+            var p4 = GetP4(sectionDistances, analysisType);
 
             int subIndex = 0;
 
@@ -1151,13 +1105,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         #region Protected method - Point on failure domain
 
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(Vector3d vector, FailureDomainAnalysisTypes analysisType,
-            MaterialTypes materialType, double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
+            double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
 		{
-            return CalculateDomainPoint(vector, analysisType, materialType, angularTolerance, distanceTolerance);
+            return CalculateDomainPoint(vector, analysisType, angularTolerance, distanceTolerance);
         }
 
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, FailureDomainAnalysisTypes analysisType, 
-            MaterialTypes materialType, double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
+            double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
         {
             Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
 
@@ -1203,10 +1157,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             int id = 1;
             var distances = CalculateMaxMinSectionDistances(teta);
 
-            var p1 = GetP1(distances, analysisType, materialType);
+            var p1 = GetP1(distances, analysisType);
             var p2 = GetP2(distances, analysisType);
             var p3 = GetP3(distances, analysisType);
-            var p4 = GetP4(distances, analysisType, materialType);
+            var p4 = GetP4(distances, analysisType);
 
             StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, id);
 
@@ -1229,7 +1183,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         try
                         {
                             increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, targetLocalForces, angle,
-                                analysisType, materialType, rebarIsInsideAssociation);
+                                analysisType, rebarIsInsideAssociation);
                         }
                         catch (Exception e)
                         {
@@ -1239,14 +1193,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             return null;
                         }
 
-                        SetIncrement(analysisType, materialType, ref failureIndex, ref teta, ref eta, increment.deltaTeta, increment.deltaEta);
+                        SetIncrement(analysisType, ref failureIndex, ref teta, ref eta, increment.deltaTeta, increment.deltaEta);
 
                         distances = CalculateMaxMinSectionDistances(teta);
 
-                        p1 = GetP1(distances, analysisType, materialType);
+                        p1 = GetP1(distances, analysisType);
                         p2 = GetP2(distances, analysisType);
                         p3 = GetP3(distances, analysisType);
-                        p4 = GetP4(distances, analysisType, materialType);
+                        p4 = GetP4(distances, analysisType);
 
                         id++;
                         strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, id);
@@ -1268,7 +1222,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         try
                         {
                             FailureDomain.FailureDomainPoint domainPointBuffer = CalculateDomainPoint(targetLocalForces, analysisType,
-                                materialType, 10 * angularTolerance, 10 * distanceTolerance);
+                                10 * angularTolerance, 10 * distanceTolerance);
 
                             if (domainPointBuffer != null)
                                 domainPoint = domainPointBuffer;
@@ -1292,7 +1246,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected (double deltaTeta, double deltaEta, Vector3d distanceToTarget) CalculateIncrement(ForceTuple iterationPoint,
             StrainPlane inputStrainPlane, FailureZones inputFailureZone, double inputImmersioneNelCampo, ForceTuple externalForces, 
-            double deltaAngle, FailureDomainAnalysisTypes analysisType, MaterialTypes materialType, Dictionary<int, bool> rebarIsInsideAssociation)
+            double deltaAngle, FailureDomainAnalysisTypes analysisType, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             var adimIteractionPoint = ConvertToAdimensionalForces(iterationPoint);
             Line3d externalForcesLine = new Line3d(new Point3d(0, 0, 0), externalForces);
@@ -1358,15 +1312,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     var distancesPlusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta + dTetaBuffer);
                     var distancesMinusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta - dTetaBuffer);
 
-                    var p1PlusTeta = GetP1(distancesPlusTeta, analysisType, materialType);
+                    var p1PlusTeta = GetP1(distancesPlusTeta, analysisType);
                     var p2PlusTeta = GetP2(distancesPlusTeta, analysisType);
                     var p3PlusTeta = GetP3(distancesPlusTeta, analysisType);
-                    var p4PlusTeta = GetP4(distancesPlusTeta, analysisType, materialType);
+                    var p4PlusTeta = GetP4(distancesPlusTeta, analysisType);
 
-                    var p1MinusTeta = GetP1(distancesMinusTeta, analysisType, materialType);
+                    var p1MinusTeta = GetP1(distancesMinusTeta, analysisType);
                     var p2MinusTeta = GetP2(distancesMinusTeta, analysisType);
                     var p3MinusTeta = GetP3(distancesMinusTeta, analysisType);
-                    var p4MinusTeta = GetP4(distancesMinusTeta, analysisType, materialType);
+                    var p4MinusTeta = GetP4(distancesMinusTeta, analysisType);
 
                     StrainPlane strainPlanePlusdTeta = CalculateStrainPlane(distancesPlusTeta.teta, inputFailureZone,
                         inputImmersioneNelCampo, p1PlusTeta, p2PlusTeta, p3PlusTeta, p4PlusTeta);
@@ -1412,10 +1366,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 {
                     var distances = CalculateMaxMinSectionDistances(inputStrainPlane.Teta);
 
-                    var p1Eta = GetP1(distances, analysisType, materialType);
+                    var p1Eta = GetP1(distances, analysisType);
                     var p2Eta = GetP2(distances, analysisType);
                     var p3Eta = GetP3(distances, analysisType);
-                    var p4Eta = GetP4(distances, analysisType, materialType);
+                    var p4Eta = GetP4(distances, analysisType);
 
                     StrainPlane strainPlanePlusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZone,
                         Math.Min(inputImmersioneNelCampo + dEtaBuffer, 1.0), p1Eta, p2Eta, p3Eta, p4Eta);
@@ -1503,7 +1457,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else
                     dT = 0.25;
 
-                if (materialType == MaterialTypes.Concrete)
+                if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
                 {
                     if (inputFailureZone == FailureZones.F3A)
                     {
@@ -1549,7 +1503,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
-        protected void SetIncrement(FailureDomainAnalysisTypes analysisType, MaterialTypes materialType, ref FailureZones failureZone, 
+        protected void SetIncrement(FailureDomainAnalysisTypes analysisType, ref FailureZones failureZone, 
             ref double teta, ref double eta, double deltaTeta, double deltaEta)
 		{
             deltaEta = deltaEta > 0.4 ? 0.4 : deltaEta;
@@ -1564,7 +1518,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             eta += (deltaEta - (int)deltaEta);
             failureZone += (int)deltaEta;
 
-            if (analysisType == FailureDomainAnalysisTypes.Plastic && materialType == MaterialTypes.Concrete)
+            if (analysisType == FailureDomainAnalysisTypes.Plastic && _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
             {
                 if (eta < 0.0)
                 {
@@ -1578,7 +1532,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     failureZone++;
                 }
             }
-            else if (analysisType == FailureDomainAnalysisTypes.Plastic && materialType == MaterialTypes.FRC)
+            else if (analysisType == FailureDomainAnalysisTypes.Plastic && _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC)
             {
                 if (eta < 0.0)
                 {
@@ -1594,7 +1548,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     failureZone++;
                 }
             }
-            else if (analysisType == FailureDomainAnalysisTypes.Elastic && materialType == MaterialTypes.Concrete)
+            else if (analysisType == FailureDomainAnalysisTypes.Elastic && _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
             {
                 if (eta < 0.0)
                 {
@@ -1613,7 +1567,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         failureZone++;
                 }
             }
-            else if (analysisType == FailureDomainAnalysisTypes.Elastic && materialType == MaterialTypes.FRC)
+            else if (analysisType == FailureDomainAnalysisTypes.Elastic && _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC)
             {
                 if (eta < 0.0)
                 {
@@ -1646,7 +1600,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Protected method - Stress SLS
 
-        protected StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple localForces, MaterialTypes materialType, double tolerance = 1e-5)
+        protected StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple localForces, double tolerance = 1e-5)
         {
             Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
             ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
@@ -1669,7 +1623,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance * tolerance)
             {
                 FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, 
-                    FailureDomainAnalysisTypes.Plastic, materialType, 2.0 * _failureAnalysisAngularTolerance);
+                    FailureDomainAnalysisTypes.Plastic, 2.0 * _failureAnalysisAngularTolerance);
 
                 if(pointOnDomain != null)
 				{
