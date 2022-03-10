@@ -12,6 +12,7 @@ using GPC.Model.Sections.Steel;
 using GPC.Model.Results;
 using GPC.Model.Materials;
 using GPC.Model.Sections;
+using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Steel.Checkers
 {
@@ -36,53 +37,83 @@ namespace GPC.Checkers.Steel.Checkers
         #region Variables
 
         protected double _py;
+        protected double _beta;
         protected double _epsilon;
 
         #endregion
 
-
         #region Properties
 
+        /// <summary>
+        /// The design strength
+        /// </summary>
         internal double Py => _py;
 
+        /// <summary>
+        /// The reduced design strength coefficient for effective stress method for slender cross-sections in §7.7
+        /// </summary>
+        internal double Beta => _beta;
+
+        /// <summary>
+        /// Parameter for section classification
+        /// </summary>
         internal double Epsilon => _epsilon;
 
+        /// <summary>
+        /// Array of Cop2011BeamStationResults
+        /// </summary>
         public Cop2011BeamStationResults[] Cop2011BeamStationResults => _beamStationResults.Cast<Cop2011BeamStationResults>().ToArray();
 
-        #endregion
+		#endregion
 
+		#region Constructor
 
-        public Cop2011Checker(BeamCheckerAttributes attributes, Cop2011Checker.Cop2011Options options, StandardCopSuos2011 standard)
+		public Cop2011Checker(BeamCheckerAttributes attributes, Cop2011Checker.Cop2011Options options, StandardCopSuos2011 standard)
             : base(attributes, options, standard)
         {
             _py = GetPy(attributes.Sections.Select(i => i.SteelMaterial.Fyk).Min(), attributes.Sections.Select(i => i.SteelMaterial.Fu).Min());
+            _beta = 1.0;
             _epsilon = Math.Sqrt(275 / _py);        //value of Epsilon for section classification            
         }
 
-
-        public override void PerformCheck()
-        {
-            _beamStationResults = PerformCheck(_beamCheckersAttributes.Sections, _beamCheckersAttributes.Results);
+		public Cop2011Checker(SerializationInfo info, StreamingContext context) 
+            : base(info, context)
+		{
+            _py = info.GetDouble("Py");
+            _beta = info.GetDouble("Beta");
+            _epsilon = info.GetDouble("Epsilon");
         }
 
+		#endregion
+
+		#region Public Methods
+
+		public override void PerformCheck()
+        {
+            _beamStationResults = PerformCheck(_beamCheckerAttributes.Sections, _beamCheckerAttributes.Results);
+        }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _beamStationResults = PerformCheck(_beamCheckersAttributes.Sections, _beamCheckersAttributes.Results);
+                _beamStationResults = PerformCheck(_beamCheckerAttributes.Sections, _beamCheckerAttributes.Results);
             });
         }
 
+		#endregion
 
+		#region Private PerformCheck Method
 
-        /// <param name="steelSection">section of each station</param>
-        /// <param name="beamResult">result for each station and loadcase</param>
-        /// <returns></returns>
-        private Cop2011BeamStationResults[] PerformCheck(ISteelSection[] steelSection, BeamResult[] beamResult)
+		/// <param name="steelSection">section of each station</param>
+		/// <param name="beamResult">result for each station and loadcase</param>
+		/// <returns></returns>
+		protected Cop2011BeamStationResults[] PerformCheck(ISteelSection[] steelSection, BeamResult[] beamResult)
         {
             Cop2011BeamStationResults[] stationResults = new Cop2011BeamStationResults[steelSection.Length * beamResult.Select(i => i.ResultLocations.Length).Sum()];
             int index = 0;
+
+            double py = _py;
 
             for (int k = 0; k < beamResult.Length; k++)
             {
@@ -90,6 +121,9 @@ namespace GPC.Checkers.Steel.Checkers
                 {
                     for (int i = 0; i < beamResult[k].ResultLocations[j].ResultTypes.Length; i++)
                     {
+                        _py = py;
+                        _beta = 1.0;
+
                         try
                         {
                             ResultBeamForces rbf = (ResultBeamForces)beamResult[k].ResultLocations[j].ResultTypes[i];
@@ -104,9 +138,13 @@ namespace GPC.Checkers.Steel.Checkers
 
                             SectionClass axialCompSectionClass = CalculateSectionClassDueToCompression(rbf, steelSection[i]);
                             SectionClass bendingCompSectionClass = CalculateSectionClassDueToBending(rbf, steelSection[i]);
+                            SectionClass sectionClass = SetWorstClass(axialCompSectionClass, bendingCompSectionClass);
+
+                            if (_beta < 1.0)
+                                _py *= Math.Pow(_beta, 2.0);
 
                             stationResults[index].SetClasses(axialCompSectionClass, bendingCompSectionClass);
-                            stationResults[index].SetBucklingLenght(GetLenghtAxialBuckling1(), GetLenghtAxialBuckling2(), GetLenghtLatTorsBuckling());
+                            stationResults[index].SetBucklingLenght(GetLengthAxialBuckling1(), GetLengthAxialBuckling2(), GetLengthLatTorsBuckling());
 
                             double axialTensionRd = CalculateAxialTensionCapacity(steelSection[i]);
                             double axialTensionWR = GetWorkingRatio(Math.Max(rbf.N, 0), axialTensionRd);
@@ -120,7 +158,7 @@ namespace GPC.Checkers.Steel.Checkers
                             double shear2Rd = CalculateShear2Capacity(rbf, steelSection[i]);
                             double shear2WR = GetWorkingRatio(Math.Abs(rbf.V2), shear2Rd);
 
-                            double axialBuck1Rd = CalculateAxialBucklingCapacity1Axis(axialCompSectionClass, steelSection[i]);
+                            double axialBuck1Rd = CalculateAxialBucklingCapacity1Axis(steelSection[i]);
                             double axialBuck1WR;
 
                             if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)
@@ -128,7 +166,7 @@ namespace GPC.Checkers.Steel.Checkers
                             else
                                 axialBuck1WR = 0.001;
 
-                            double axialBuck2Rd = CalculateAxialBucklingCapacity2Axis(axialCompSectionClass, steelSection[i]);
+                            double axialBuck2Rd = CalculateAxialBucklingCapacity2Axis(steelSection[i]);
                             double axialBuck2WR;
 
                             if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)
@@ -178,26 +216,20 @@ namespace GPC.Checkers.Steel.Checkers
                             // equazione 8.78 cap. 8.9.2
                             if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)      // compressione
                             {
-                                SectionClass sectionClass = SetWorstClass(axialCompSectionClass, bendingCompSectionClass);
-                                if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
-                                {
-                                    double result = Math.Abs(rbf.N / axialCompressionRd) +
-                                         Math.Abs(rbf.M1 / CalculateBendingMoment1Capacity(rbf, bendingCompSectionClass, steelSection[i])) +
-                                         Math.Abs(rbf.M2 / CalculateBendingMoment2Capacity(rbf, bendingCompSectionClass, steelSection[i]));
+                                double result = Math.Abs(rbf.N / axialCompressionRd) +
+                                         Math.Abs(rbf.M1 / bending1Rd) +
+                                         Math.Abs(rbf.M2 / bending2Rd);
 
-                                    if (result < 0.001)
-                                        interaction878WR = 0.001;
-                                    else
-                                        interaction878WR = result;
-                                }
+                                if (result < 0.001)
+                                    interaction878WR = 0.001;
                                 else
-                                    interaction878WR = 0.001;     //TODO: implementare CalculateInteractionWR per classe 4
+                                    interaction878WR = result;
                             }
                             else
                             {
                                 double result = Math.Abs(rbf.N / axialTensionRd) +
-                                         Math.Abs(rbf.M1 / CalculateBendingMoment1Capacity(rbf, bendingCompSectionClass, steelSection[i])) +
-                                         Math.Abs(rbf.M2 / CalculateBendingMoment2Capacity(rbf, bendingCompSectionClass, steelSection[i]));
+                                         Math.Abs(rbf.M1 / bending1Rd) +
+                                         Math.Abs(rbf.M2 / bending2Rd);
 
                                 if (result < 0.001)
                                     interaction878WR = 0.001;
@@ -228,8 +260,8 @@ namespace GPC.Checkers.Steel.Checkers
                             if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)
                             {
                                 // <= Pc segnato cap 8.9.2
-                                double result = Math.Abs(Math.Min(rbf.N, 0) / Math.Min(CalculateAxialBucklingCapacity1AxisForInteraction(axialCompSectionClass, steelSection[i]),
-                                    CalculateAxialBucklingCapacity2AxisForInteraction(axialCompSectionClass, steelSection[i]))) +
+                                double result = Math.Abs(Math.Min(rbf.N, 0) / Math.Min(CalculateAxialBucklingCapacity1AxisForInteraction(steelSection[i]),
+                                    CalculateAxialBucklingCapacity2AxisForInteraction(steelSection[i]))) +
                                     Math.Abs(_options.UniformMomentFactorm1 * rbf.M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass, steelSection[i])) +
                                     Math.Abs(_options.UniformMomentFactorm1 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass, steelSection[i]));
 
@@ -249,7 +281,7 @@ namespace GPC.Checkers.Steel.Checkers
                                 shear1WR, shear2WR, bending1WR, bending2WR, latTorsWR,
                                 interaction878WR, interaction879WR, interaction880WR, interaction881WR);
 
-                            stationResults[index].SetPy(_py, _epsilon);
+                            stationResults[index].SetPy(_py, _epsilon, _beta);
 
                             stationResults[index].SetResultsForReportAxialBuckling(GetBucklingCurveXXAxis(steelSection[i]), GetBucklingCurveYYAxis(steelSection[i]),
                                 CalculateLambdaAxialBuckling1Axis(steelSection[i]), CalculateLambdaAxialBuckling2Axis(steelSection[i]),
@@ -269,10 +301,10 @@ namespace GPC.Checkers.Steel.Checkers
                         }
                         catch (Exception e)
                         {
-                            _errorLog.Add($"Fail check beam {BeamName}, \n " +
-                                $"station {((ResultLocationStation)beamResult[k].ResultLocations[i]).DistanceFromStartPoint} mm from start point, \n" +
-                                $"combination {beamResult[k].Case.Name}. \n" +
-                                $"Error: {e.Message}");
+                            _errorLog.Add($"Fail check beam {BeamName}, \n" +
+                                $"Station {((ResultLocationStation)beamResult[k].ResultLocations[j]).DistanceFromStartPoint} mm from start point, \n" +
+                                $"Combination {beamResult[k].Case.Name}. \n" +
+                                $"Error: {e.Message}. \n");
                         }
                     }
                 }
@@ -281,44 +313,27 @@ namespace GPC.Checkers.Steel.Checkers
             return stationResults;
         }
 
+		#endregion
 
-        private double GetWorkingRatio(double force, double capacity)
+		#region Section Private Method
+
+		#region Axial Tension
+
+		private double CalculateAxialTensionCapacity(ISteelSection section)
         {
-            double result = Math.Abs(force / capacity);
-
-            if (Math.Abs(capacity) < 0.01)
-                throw new ArgumentException("Capacity can not be null");
-
-            if (Math.Abs(force) < 0.001)
-                return 0.001;
-            if (result < 0.001)
-                return 0.001;
-
-            return result;
-        }
-
-        #region Section Private Method
-
-
-        #region Axial Tension
-
-        private double CalculateAxialTensionCapacity(ISteelSection section)
-        {
-            return Py * GetEffettiveArea(section);
+            return Py * section.Area;
         }
 
         #endregion
-
 
         #region Axial Compression
 
         private double CalculateAxialCompression(ISteelSection section)
         {
-            return Py * GetEffettiveArea(section);
+            return Py * section.Area;
         }
 
         #endregion
-
 
         #region Axial Buckling
 
@@ -326,70 +341,36 @@ namespace GPC.Checkers.Steel.Checkers
         /// CopSuos2011 Chapter 8.7.5
         /// </summary>
         /// <returns></returns>
-        private double CalculateAxialBucklingCapacity1Axis(SectionClass sectionClass, ISteelSection section)
+        private double CalculateAxialBucklingCapacity1Axis(ISteelSection section)
         {
-            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
-                return section.Area * CalculatePCompression1Axis(section);
-
-            else
-                return GetEffettiveArea(section) * CalculatePCompressionReduced1xis(section);
+            return section.Area * CalculatePCompression1Axis(section);
         }
 
         /// <summary>
         /// CopSuos2011 Chapter 8.7.5
         /// </summary>
         /// <returns></returns>
-        private double CalculateAxialBucklingCapacity2Axis(SectionClass sectionClass, ISteelSection section)
+        private double CalculateAxialBucklingCapacity2Axis(ISteelSection section)
         {
-            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
-                return section.Area * CalculatePCompression2Axis(section);
-
-            else
-                return GetEffettiveArea(section) * CalculatePCompressionReduces2Axis(section);
+            return section.Area * CalculatePCompression2Axis(section);
         }
 
         /// <summary>
         /// CopSuos2011 Chapter 8.9.2
         /// </summary>
         /// <returns></returns>
-        private double CalculateAxialBucklingCapacity1AxisForInteraction(SectionClass sectionClass, ISteelSection section)
+        private double CalculateAxialBucklingCapacity1AxisForInteraction(ISteelSection section)
         {
-            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
-                return section.Area * CalculatePCompressionReduced1AxisForInteraction(section);
-
-            else
-                return GetEffettiveArea(section) * CalculatePCompressionReduced1xis(section);
+            return section.Area * CalculatePCompressionReduced1AxisForInteraction(section);
         }
 
         /// <summary>
         /// CopSuos2011 Chapter 8.9.2
         /// </summary>
         /// <returns></returns>
-        private double CalculateAxialBucklingCapacity2AxisForInteraction(SectionClass sectionClass, ISteelSection section)
+        private double CalculateAxialBucklingCapacity2AxisForInteraction(ISteelSection section)
         {
-            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
-                return section.Area * CalculatePCompressionReduces2AxisForInteraction(section);
-
-            else
-                return GetEffettiveArea(section) * CalculatePCompressionReduces2Axis(section);
-        }
-
-        /// <summary>
-        /// CopSuos2011 Chapter 8.7.5
-        /// </summary>
-        private double CalculatePCompressionReduced1xis(ISteelSection section)
-        {
-            return CalculatePCompression1Axis(section) * GetLenghtAxialBuckling1() / section.R11 *
-                Math.Sqrt(GetEffettiveArea(section) / section.Area);
-        }
-
-        /// <summary>
-        /// CopSuos2011 Chapter 8.7.5
-        /// </summary>
-        private double CalculatePCompressionReduces2Axis(ISteelSection section)
-        {
-            return CalculatePCompression2Axis(section) * GetLenghtAxialBuckling2() / section.R22 *
-                Math.Sqrt(GetEffettiveArea(section) / section.Area);
+            return section.Area * CalculatePCompressionReduces2AxisForInteraction(section);
         }
 
         /// <summary>
@@ -397,8 +378,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         private double CalculatePCompressionReduced1AxisForInteraction(ISteelSection section)
         {
-            return CalculatePCompression1Axis(section) * GetEffectiveLenghtAxialBuckling1() / section.R11 *
-                Math.Sqrt(GetEffettiveArea(section) / section.Area);
+            return CalculatePCompression1Axis(section) * GetEffectiveLengthAxialBuckling1() / section.R11;
         }
 
         /// <summary>
@@ -406,8 +386,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         private double CalculatePCompressionReduces2AxisForInteraction(ISteelSection section)
         {
-            return CalculatePCompression2Axis(section) * GetEffectiveLenghtAxialBuckling2() / section.R22 *
-                Math.Sqrt(GetEffettiveArea(section) / section.Area);
+            return CalculatePCompression2Axis(section) * GetEffectiveLengthAxialBuckling2() / section.R22;
         }
 
         private double CalculatePCompression1Axis(ISteelSection section)
@@ -437,7 +416,7 @@ namespace GPC.Checkers.Steel.Checkers
         private double CalculatePhiforAxialBuckling1Axis(ISteelSection section)
         {
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
-            double lambdaXAxis = GetLenghtAxialBuckling1() / section.R11;
+            double lambdaXAxis = GetLengthAxialBuckling1() / section.R11;
             double nForAxialBuckXAxis = Math.Max(GetAlphaBucklingCurveXXAxis(section) * (lambdaXAxis - lambda0) / 1000, 0);
             double py = Py;
 
@@ -452,7 +431,7 @@ namespace GPC.Checkers.Steel.Checkers
         private double CalculatePhiforAxialBuckling2Axis(ISteelSection section)
         {
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
-            double lambdaYAxis = GetLenghtAxialBuckling2() / section.R22;
+            double lambdaYAxis = GetLengthAxialBuckling2() / section.R22;
             double nForAxialBuck = Math.Max(GetAlphaBucklingCurveYYAxis(section) * (lambdaYAxis - lambda0) / 1000, 0);
             double py = Py;
 
@@ -464,14 +443,14 @@ namespace GPC.Checkers.Steel.Checkers
         private double CalculateNForAxialBuckling2Axis(ISteelSection section)
         {
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
-            double lambdaYAxis = GetLenghtAxialBuckling2() / section.R22;
+            double lambdaYAxis = GetLengthAxialBuckling2() / section.R22;
             return Math.Max(GetAlphaBucklingCurveYYAxis(section) * (lambdaYAxis - lambda0) / 1000, 0);
         }
 
         private double CalculateNForAxialBuckling1Axis(ISteelSection section)
         {
             double lambda0 = 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
-            double lambdaXAxis = GetLenghtAxialBuckling1() / section.R11;
+            double lambdaXAxis = GetLengthAxialBuckling1() / section.R11;
             return Math.Max(GetAlphaBucklingCurveXXAxis(section) * (lambdaXAxis - lambda0) / 1000, 0);
         }
 
@@ -480,36 +459,26 @@ namespace GPC.Checkers.Steel.Checkers
             return 0.2 * Math.Pow(Math.Pow(Math.PI, 2) * ((Section)section).GetE() / Py, 0.5);
         }
 
-        private double CalculateLambda2ForAxialBuckling(ISteelSection section)
-        {
-            return GetLenghtAxialBuckling2() / section.R22; 
-        }
-
-        private double CalculateLambda1ForAxialBuckling(ISteelSection section)
-        {
-            return GetLenghtAxialBuckling1() / section.R11;
-        }
-
         private double CalculatePeForAxialBuckling1Axis(ISteelSection section)
         {
-            double lambda1Axis = GetLenghtAxialBuckling1() / section.R11;
+            double lambda1Axis = GetLengthAxialBuckling1() / section.R11;
             return (Math.Pow(Math.PI, 2) * section.SteelMaterial.E) / (Math.Pow(lambda1Axis, 2));
         }
 
         private double CalculatePeForAxialBuckling2Axis(ISteelSection section)
         {
-            double lambda2Axis = GetLenghtAxialBuckling2() / section.R22;
+            double lambda2Axis = GetLengthAxialBuckling2() / section.R22;
             return (Math.Pow(Math.PI, 2) * section.SteelMaterial.E) / (Math.Pow(lambda2Axis, 2));
         }
 
         private double CalculateLambdaAxialBuckling2Axis(ISteelSection section)
         {
-            return GetLenghtAxialBuckling2() / section.R22; 
+            return GetLengthAxialBuckling2() / section.R22; 
         }
 
         private double CalculateLambdaAxialBuckling1Axis(ISteelSection section)
         {
-            return GetLenghtAxialBuckling1() / section.R11;
+            return GetLengthAxialBuckling1() / section.R11;
         }
 
         /// <summary>
@@ -705,7 +674,6 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-
         #region Shear Capacity
 
         /// <summary>
@@ -816,27 +784,21 @@ namespace GPC.Checkers.Steel.Checkers
                 {
                     double sigmaStVenant = Math.Abs(resultBeamForces.T) / section.Jt;
                     double reduction = Math.Sqrt(1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3)))));
-                    reduction = Math.Min(reduction, 1.0);
-                    reduction = Math.Max(reduction, 0.0);
-                    return reduction;
+                    return Math.Max(Math.Min(reduction, 1.0), 0.0); 
                 }
                 else if (section is SteelSectionC)
                 {
                     double sigmaStVenant = Math.Abs(resultBeamForces.T) / section.Jt;
                     double sigmaWarp = resultBeamForces.T / section.Jw;
                     double reduction = Math.Sqrt(1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))))) - (sigmaWarp / (1.25 * (Py / Math.Sqrt(3))));
-                    reduction = Math.Min(reduction, 1.0);
-                    reduction = Math.Max(reduction, 0.0);
-                    return reduction;
+                    return Math.Max(Math.Min(reduction, 1.0), 0.0);
                 }
                 else if (section is SteelSectionCHS sectionCHS)
                 {
                     double omega = Math.PI * Math.Pow((sectionCHS.Diameter / 2.0 - sectionCHS.Thickness / 2.0), 2.0);
                     double sigmaStVenant = Math.Abs(resultBeamForces.T) / (2.0 * omega * sectionCHS.Thickness);
                     double reduction = 1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))));
-                    reduction = Math.Min(reduction, 1.0);
-                    reduction = Math.Max(reduction, 0.0);
-                    return reduction;
+                    return Math.Max(Math.Min(reduction, 1.0), 0.0);
                 }
                 else if (section is SteelSectionRHS sectionRHS)
                 {
@@ -845,9 +807,7 @@ namespace GPC.Checkers.Steel.Checkers
                     double sigmaStVenant = Math.Abs(resultBeamForces.T) / (2.0 * omega *
                         (sectionRHS.ThicknessBottom + sectionRHS.ThicknessTop + sectionRHS.ThicknessWebRight + sectionRHS.ThicknessWebLeft) / 4.0);
                     double reduction = 1 - (sigmaStVenant / (1.25 * (Py / Math.Sqrt(3))));
-                    reduction = Math.Min(reduction, 1.0);
-                    reduction = Math.Max(reduction, 0.0);
-                    return reduction;
+                    return Math.Max(Math.Min(reduction, 1.0), 0.0);
                 }
                 else
                     throw new NotImplementedException("Not implemented section for Torsional moment");
@@ -886,31 +846,29 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-
         #region Bending Moment Capacity
 
         private double CalculateBendingMoment1Capacity(ResultBeamForces resultBeamForces, SectionClass sectionClass, ISteelSection section)
         {
-            if ((Math.Abs(resultBeamForces.V2) < 0.6 * CalculateShear2Capacity(resultBeamForces, section)) ||
-                (Math.Abs(resultBeamForces.V2) < 0.5 * CalculateShear2Capacity(resultBeamForces, section)))   // low shear condition
+            if ((Math.Abs(resultBeamForces.V2) < 0.6 * CalculateShear2Capacity(resultBeamForces, section)))   // low shear condition
             {
                 if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
                     return Math.Min(Py * section.Wpl1, 1.2 * Py * section.Wel1);
                 else if (sectionClass == SectionClass.Class3)
                     return Py * section.Wel1;
                 else        // SectionClass.Class4
-                    return Py * CalculateEffettiveElasticModulus();       // TODO: implementare Wel effettivo (vedi 8.2.2)
+                    return Py * section.Wel1;
             }
             else // high shear condition
             {
                 double rhoMomentShearInteraction = Math.Pow((2 * resultBeamForces.V2 / CalculateShear2Capacity(resultBeamForces, section)) - 1, 2);
                 if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
                     return Math.Min(Py * (section.Wpl1 - rhoMomentShearInteraction * CalculatePlasticModulusShearXAxis(section)),
-                                    1.2 * Py * (section.Wel1 - rhoMomentShearInteraction * CalculatePlasticModulusShearXAxis(section) / 1.5));
+                        1.2 * Py * (section.Wel1 - rhoMomentShearInteraction * CalculatePlasticModulusShearXAxis(section) / 1.5));
                 else if (sectionClass == SectionClass.Class3)
                     return Py * (section.Wel1 - rhoMomentShearInteraction * CalculatePlasticModulusShearXAxis(section) / 1.5);
                 else        // SectionClass.Class4
-                    return Py * (CalculateEffettiveElasticModulus() - rhoMomentShearInteraction * CalculatePlasticModulusShearXAxis(section) / 1.5);
+                    return Py * (section.Wel1 - rhoMomentShearInteraction * CalculatePlasticModulusShearXAxis(section) / 1.5);
             }
         }
 
@@ -925,7 +883,6 @@ namespace GPC.Checkers.Steel.Checkers
                 return (1.0 / 4.0) * sech.Height * Math.Pow(sech.ThicknessWeb, 2);
             if (section is SteelSectionH secH && secH.SectionType == Model.Sections.Section.SectionTypes.Welded)
                 return (1.0 / 4.0) * secH.HeightWeb * Math.Pow(secH.ThicknessWeb, 2);
-
             if (section is SteelSectionC secC && secC.SectionType == Section.SectionTypes.Rolled)
                 return (1.0 / 4.0) * secC.ThicknessWeb * Math.Pow(secC.Height, 2);
             if (section is SteelSectionRHS sectionRHS)
@@ -938,33 +895,27 @@ namespace GPC.Checkers.Steel.Checkers
                 throw new NotImplementedException("GetShearArea: not implemented section");
         }
 
-        private double CalculateEffettiveElasticModulus()
-        {
-            return 1.0;     //TODO: implementare CalculateEffettiveElasticModulus
-        }
-
         private double CalculateBendingMoment2Capacity(ResultBeamForces resultBeamForces, SectionClass sectionClass, ISteelSection section)
         {
-            if ((Math.Abs(resultBeamForces.V1) < 0.6 * CalculateShear1Capacity(resultBeamForces, section)) ||
-                (Math.Abs(resultBeamForces.V1) < 0.5 * CalculateShear1Capacity(resultBeamForces, section)))   // low shear condition
+            if ((Math.Abs(resultBeamForces.V1) < 0.6 * CalculateShear1Capacity(resultBeamForces, section)))   // low shear condition
             {
                 if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
-                    return Math.Min(Py * ((Section)section).Wpl2, 1.2 * Py * ((Section)section).Wel2);
+                    return Math.Min(Py * section.Wpl2, 1.2 * Py * section.Wel2);
                 else if (sectionClass == SectionClass.Class3)
-                    return Py * ((Section)section).Wel2;
+                    return Py * section.Wel2;
                 else        // SectionClass.Class4
-                    return Py * CalculateEffettiveElasticModulus();       // TODO: implementare Wel effettivo (vedi 8.2.2)
+                    return Py * section.Wel2;
             }
             else // high shear condition
             {
                 double rhoMomentShearInteraction = Math.Pow((2 * resultBeamForces.V1 / CalculateShear1Capacity(resultBeamForces, section)) - 1, 2);
                 if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
-                    return Math.Min(Py * (((Section)section).Wpl2 - rhoMomentShearInteraction * CalculatePlasticModulusShearYAxis(section)),
-                                    1.2 * Py * (((Section)section).Wel2 - rhoMomentShearInteraction * CalculatePlasticModulusShearYAxis(section) / 1.5));
+                    return Math.Min(Py * (section.Wpl2 - rhoMomentShearInteraction * CalculatePlasticModulusShearYAxis(section)),
+                        1.2 * Py * (section.Wel2 - rhoMomentShearInteraction * CalculatePlasticModulusShearYAxis(section) / 1.5));
                 else if (sectionClass == SectionClass.Class3)
-                    return Py * (((Section)section).Wel2 - rhoMomentShearInteraction * CalculatePlasticModulusShearYAxis(section) / 1.5);
+                    return Py * (section.Wel2 - rhoMomentShearInteraction * CalculatePlasticModulusShearYAxis(section) / 1.5);
                 else        // SectionClass.Class4
-                    return Py * (CalculateEffettiveElasticModulus() - rhoMomentShearInteraction * CalculatePlasticModulusShearYAxis(section) / 1.5);
+                    return Py * (section.Wel2 - rhoMomentShearInteraction * CalculatePlasticModulusShearYAxis(section) / 1.5);
             }
         }
 
@@ -992,22 +943,15 @@ namespace GPC.Checkers.Steel.Checkers
 
         private double CalculateBendingMoment1ElasticCapacity(SectionClass sectionClass, ISteelSection section)
         {
-            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
-                return Py * ((Section)section).Wel1;
-            else        // SectionClass.Class4
-                return Py * CalculateEffettiveElasticModulus();       // TODO: implementare Wel effettivo (vedi 8.2.2)            
+            return Py * section.Wel1;
         }
 
         private double CalculateBendingMoment2ElasticCapacity(SectionClass sectionClass, ISteelSection section)
         {
-            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2 || sectionClass == SectionClass.Class3)
-                return Py * ((Section)section).Wel2;
-            else        // SectionClass.Class4
-                return Py * CalculateEffettiveElasticModulus();       // TODO: implementare Wel effettivo (vedi 8.2.2)            
+            return Py * section.Wel2; 
         }
 
         #endregion
-
 
         #region Lateral Torsional Bucking Capacity
 
@@ -1019,11 +963,11 @@ namespace GPC.Checkers.Steel.Checkers
         private double CalculateLateralTorsionalBucklingMomentCapacity(SectionClass sectionClass, ISteelSection section)
         {
             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
-                return CalculatePbForLatTorsBuckling(sectionClass, section) * ((Section)section).Wpl1;
+                return CalculatePbForLatTorsBuckling(sectionClass, section) * section.Wpl1;
             else if (sectionClass == SectionClass.Class3)
-                return CalculatePbForLatTorsBuckling(sectionClass, section) * ((Section)section).Wel1;
+                return CalculatePbForLatTorsBuckling(sectionClass, section) * section.Wel1;
             else
-                throw new NotImplementedException("Calculate Lateral-Torsional Buckling Moment Capacity: not implemented Section Class 4");
+                return CalculatePbForLatTorsBuckling(sectionClass, section) * section.Wel1;
         }
 
         private double CalculatePbForLatTorsBuckling(SectionClass sectionClass, ISteelSection section)
@@ -1201,7 +1145,7 @@ namespace GPC.Checkers.Steel.Checkers
             else if (sectionClass == SectionClass.Class3)
                 bw = section.Wel1 / section.Wpl1;
             else        //class4
-                bw = CalculateEffettiveElasticModulus() / section.Wpl1;
+                bw = section.Wel1 / section.Wpl1;
 
             if (section is SectionCHS || section is SectionRHS)
             {
@@ -1249,13 +1193,13 @@ namespace GPC.Checkers.Steel.Checkers
             // CopSuos2011 Chapter 8.3.4
             double le;
             if (((Cop2011Checker.Cop2011Options)_options).LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default)
-                le = GetLenghtLatTorsBuckling();
+                le = GetLengthLatTorsBuckling();
             else if (((Cop2011Checker.Cop2011Options)_options).LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.FullyRestrained)
-                le = 0.8 * GetLenghtLatTorsBuckling();
+                le = 0.8 * GetLengthLatTorsBuckling();
             else if (((Cop2011Checker.Cop2011Options)_options).LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Unrestrained)
-                le = 1.2 * GetLenghtLatTorsBuckling() + 2 * section.Height;
+                le = 1.2 * GetLengthLatTorsBuckling() + 2 * section.Height;
             else if (((Cop2011Checker.Cop2011Options)_options).LateralTorsionalBucklingCondition == Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.DestabilizingLoad)
-                le = 1.2 * GetLenghtLatTorsBuckling();
+                le = 1.2 * GetLengthLatTorsBuckling();
             else
                 throw new NotImplementedException("GetLeForLatTorsBuckling: not implemented LateralTorsionalBucklingConditions");
 
@@ -1263,7 +1207,6 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         #endregion
-
 
         #region Section Class
 
@@ -1276,54 +1219,91 @@ namespace GPC.Checkers.Steel.Checkers
             if (((Section)section).GetMinSigma(resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2) < 0.0)
             {
                 if (section is SectionH sectionH)
-                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterFlangeBending(sectionH.LenghtTopFlange / 2.0, sectionH.ThicknessTopFlange, section),
-                                                                            GetClassCompressedOuterFlangeBending(sectionH.LenghtBottomFlange / 2.0, sectionH.ThicknessBottomFlange, section),
-                                                                            GetClassCompressedWebBendingMoment(sectionH.HeightWeb, sectionH.ThicknessWeb, resultBeamForces, section)});
-
+                {
+                    SectionClass sectionClass = SetWorstClass(new SectionClass[] {
+                        GetClassCompressedOuterFlangeBending(sectionH.LenghtTopFlange / 2.0, sectionH.ThicknessTopFlange, section, out double reduction1),
+                        GetClassCompressedOuterFlangeBending(sectionH.LenghtBottomFlange / 2.0, sectionH.ThicknessBottomFlange, section, out double reduction2),
+                        GetClassCompressedWebBendingMoment(sectionH.HeightWeb, sectionH.ThicknessWeb, resultBeamForces, section, out double reduction3)});
+                    _beta = Math.Min(Math.Min(Math.Min(reduction1, reduction2), reduction3), _beta);
+                    return sectionClass;
+                }
                 else if (section is SectionCHS sectionCHS)
-                    return GetClassCHSBending(sectionCHS.Diameter, sectionCHS.Thickness);
-
+                {
+                    SectionClass sectionClass = GetClassCHSBending(sectionCHS.Diameter, sectionCHS.Thickness, out double reduction1);
+                    _beta = Math.Min(reduction1, _beta);
+                    return sectionClass;
+                }
                 else if (section is SectionRHS sectionRHS)
                 {
                     if (Math.Abs(resultBeamForces.M2) >= Math.Abs(resultBeamForces.M1))
                     {
                         //flange are load with constant load     //classification webs                           //from equilibrium of Σ sigma = Ned
                         if (sectionRHS.ThicknessTop == sectionRHS.ThicknessBottom && sectionRHS.ThicknessWebLeft == sectionRHS.ThicknessWebRight)
-                            return SetWorstClass(new SectionClass[] { GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, resultBeamForces, section),
-                                                                    GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessBottom, sectionRHS.Heightinternal, section)});
+                        {
+                            SectionClass sectionClass = SetWorstClass(new SectionClass[] {
+                                GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, resultBeamForces, section, out double reduction1),
+                                GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessBottom, sectionRHS.Heightinternal, section, out double reduction2)});
+                            _beta = Math.Min(Math.Min(reduction1, reduction2), _beta);
+                            return sectionClass;
+                        }
                         else
-                            return SetWorstClass(new SectionClass[] {GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessBottom, sectionRHS.Heightinternal, section),
-                                                                    GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessTop, sectionRHS.Heightinternal, section),
-                                                                    GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, resultBeamForces, section),
-                                                                    GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight, resultBeamForces, section) });
+                        {
+                            SectionClass sectionClass = SetWorstClass(new SectionClass[] {
+                                GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessBottom, sectionRHS.Heightinternal, section, out double reduction1),
+                                GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessTop, sectionRHS.Heightinternal, section, out double reduction2),
+                                GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, resultBeamForces, section, out double reduction3),
+                                GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight, resultBeamForces, section, out double reduction4) });
+                            _beta = Math.Min(Math.Min(Math.Min(Math.Min(reduction1, reduction2), reduction3), reduction4), _beta);
+                            return sectionClass;
+                        }
                     }
-
                     else // if (Math.Abs(resultBeamForces.M1) >= Math.Abs(resultBeamForces.M2))
                     {
                         if (sectionRHS.ThicknessWebLeft == sectionRHS.ThicknessWebRight && sectionRHS.ThicknessTop == sectionRHS.ThicknessBottom)
-                            return SetWorstClass(new SectionClass[]{ GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, resultBeamForces, section),
-                                                                    GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessTop, sectionRHS.Heightinternal, section)});
+                        {
+                            SectionClass sectionClass = SetWorstClass(new SectionClass[]{
+                                GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, resultBeamForces, section, out double reduction1),
+                                GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessTop, sectionRHS.Heightinternal, section, out double reduction2)});
+                            _beta = Math.Min(Math.Min(reduction1, reduction2), _beta);
+                            return sectionClass;
+                        }
                         else
-                            return SetWorstClass(new SectionClass[] { GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessTop, sectionRHS.Heightinternal, section),
-                                                                    GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessBottom, sectionRHS.Heightinternal, section),
-                                                                    GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, resultBeamForces, section),
-                                                                    GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight, resultBeamForces, section) });
+                        {
+                            SectionClass sectionClass = SetWorstClass(new SectionClass[] {
+                                GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessTop, sectionRHS.Heightinternal, section, out double reduction1),
+                                GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessBottom, sectionRHS.Heightinternal, section, out double reduction2),
+                                GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, resultBeamForces, section, out double reduction3),
+                                GetClassCompressedWebRHS(sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight, resultBeamForces, section, out double reduction4) });
+                            _beta = Math.Min(Math.Min(Math.Min(Math.Min(reduction1, reduction2), reduction3), reduction4), _beta);
+                            return sectionClass;
+                        }
                     }
                 }
-
                 else if (section is SectionT sectionT)
-                    return SetWorstClass(new SectionClass[]{ GetClassCompressedOuterFlangeBending(sectionT.LenghtFlange / 2, sectionT.ThicknessFlange / 2, section),
-                                                                        GetClassCompressedStemT(sectionT.Height, sectionT.ThicknessWeb) });
-
+                {
+                    SectionClass sectionClass = SetWorstClass(new SectionClass[]{
+                        GetClassCompressedOuterFlangeBending(sectionT.LenghtFlange / 2, sectionT.ThicknessFlange / 2, section, out double reduction1),
+                        GetClassCompressedStemT(sectionT.Height, sectionT.ThicknessWeb, out double reduction2) });
+                    _beta = Math.Min(Math.Min(reduction1, reduction2), _beta);
+                    return sectionClass;
+                }
                 else if (section is SectionC sectionC)
-                    return SetWorstClass(new SectionClass[]{ GetClassCompressedWebChannel(sectionC.HeightWeb / 2, sectionC.ThicknessWeb / 2),
-                                                                        GetClassCompressedOuterFlangeBending(sectionC.LengthBottom, sectionC.ThicknessBottom, section),
-                                                                        GetClassCompressedOuterFlangeBending(sectionC.LengthTop, sectionC.ThicknessTop, section)});
-
+                {
+                    SectionClass sectionClass = SetWorstClass(new SectionClass[]{
+                        GetClassCompressedWebChannel(sectionC.HeightWeb / 2, sectionC.ThicknessWeb / 2, out double reduction1),
+                        GetClassCompressedOuterFlangeBending(sectionC.LengthBottom, sectionC.ThicknessBottom, section, out double reduction2),
+                        GetClassCompressedOuterFlangeBending(sectionC.LengthTop, sectionC.ThicknessTop, section, out double reduction3)});
+                    _beta = Math.Min(Math.Min(Math.Min(reduction1, reduction2), reduction3), _beta);
+                    return sectionClass;
+                }
                 else if (section is SectionL sectionL)
-                    return SetWorstClass(new SectionClass[]{ GetClassCompressedOutstandLeg(sectionL.HorizontalLegLength, sectionL.HorizontalLegThickness),
-                                                                        GetClassCompressedOutstandLeg(sectionL.VerticalLegLength, sectionL.VerticalLegThickness)});
-
+                {
+                    SectionClass sectionClass = SetWorstClass(new SectionClass[]{
+                        GetClassCompressedOutstandLeg(sectionL.HorizontalLegLength, sectionL.HorizontalLegThickness, out double reduction1),
+                        GetClassCompressedOutstandLeg(sectionL.VerticalLegLength, sectionL.VerticalLegThickness, out double reduction2)});
+                    _beta = Math.Min(Math.Min(reduction1, reduction2), _beta);
+                    return sectionClass;
+                }
                 else
                     throw new NotImplementedException("CalculateSectionClassException: not implemented Section");
             }
@@ -1340,32 +1320,56 @@ namespace GPC.Checkers.Steel.Checkers
             if (((Section)section).GetMinSigma(resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2) < 0.0)
             {
                 if (section is SectionH sectionH)
-                    return SetWorstClass(new SectionClass[]{ GetClassCompressedWebAxialCompression(sectionH.HeightWeb, sectionH.ThicknessWeb, resultBeamForces, section),
-                                                                        GetClassCompressedOuterFlangeAxial(sectionH.LenghtTopFlange / 2.0, sectionH.ThicknessTopFlange),
-                                                                        GetClassCompressedOuterFlangeAxial(sectionH.LenghtBottomFlange / 2.0, sectionH.ThicknessBottomFlange) });
-
+                {
+                    SectionClass sectionClass = SetWorstClass(new SectionClass[]{
+                        GetClassCompressedWebAxialCompression(sectionH.HeightWeb, sectionH.ThicknessWeb, resultBeamForces, section, out double reduction1),
+                        GetClassCompressedOuterFlangeAxial(sectionH.LenghtTopFlange / 2.0, sectionH.ThicknessTopFlange, out double reduction2),
+                        GetClassCompressedOuterFlangeAxial(sectionH.LenghtBottomFlange / 2.0, sectionH.ThicknessBottomFlange, out double reduction3) });
+                    _beta = Math.Min(Math.Min(Math.Min(reduction1, reduction2), reduction3), _beta);
+                    return sectionClass;
+                }
                 else if (section is SectionCHS sectionCHS)
-                    return GetClassCHSAxialCompression(sectionCHS.Diameter, sectionCHS.Thickness);
+                {
+                    SectionClass sectionClass = GetClassCHSAxialCompression(sectionCHS.Diameter, sectionCHS.Thickness, out double reduction1);
+                    _beta = Math.Min(reduction1, _beta);
+                    return sectionClass;
+                }
 
                 else if (section is SectionRHS sectionRHS)
-                    return SetWorstClass(new SectionClass[] { GetClassCompressedWebAxialCompression(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, resultBeamForces, section),
-                                                                        GetClassCompressedWebAxialCompression(sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight, resultBeamForces, section),
-                                                                        GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessTop, sectionRHS.Heightinternal, section),
-                                                                        GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessBottom, sectionRHS.Heightinternal, section) });
-
+                {
+                    SectionClass sectionClass = SetWorstClass(new SectionClass[] {
+                        GetClassCompressedWebAxialCompression(sectionRHS.Heightinternal, sectionRHS.ThicknessWebLeft, resultBeamForces, section, out double reduction1),
+                        GetClassCompressedWebAxialCompression(sectionRHS.Heightinternal, sectionRHS.ThicknessWebRight, resultBeamForces, section, out double reduction2),
+                        GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessTop, sectionRHS.Heightinternal, section, out double reduction3),
+                        GetClassCompressedFlangeRHS(sectionRHS.BaseInternal, sectionRHS.ThicknessBottom, sectionRHS.Heightinternal, section, out double reduction4) });
+                    _beta = Math.Min(Math.Min(Math.Min(Math.Min(reduction1, reduction2), reduction3), reduction4), _beta);
+                    return sectionClass;
+                }
                 else if (section is SectionT sectionT)
-                    return SetWorstClass(new SectionClass[]{ GetClassCompressedOuterFlangeAxial(sectionT.LenghtFlange / 2, sectionT.ThicknessFlange / 2),
-                                                                    GetClassCompressedStemT(sectionT.Height, sectionT.ThicknessWeb) });
-
+                {
+                    SectionClass sectionClass = SetWorstClass(new SectionClass[]{
+                        GetClassCompressedOuterFlangeAxial(sectionT.LenghtFlange / 2, sectionT.ThicknessFlange / 2, out double reduction1),
+                        GetClassCompressedStemT(sectionT.Height, sectionT.ThicknessWeb, out double reduction2) });
+                    _beta = Math.Min(Math.Min(reduction1, reduction2), _beta);
+                    return sectionClass;
+                }
                 else if (section is SectionC sectionC)
-                    return SetWorstClass(new SectionClass[]{ GetClassCompressedWebChannel(sectionC.HeightWeb / 2, sectionC.ThicknessWeb / 2),
-                                                                    GetClassCompressedOuterFlangeAxial(sectionC.LengthBottom, sectionC.ThicknessBottom),
-                                                                    GetClassCompressedOuterFlangeAxial(sectionC.LengthTop, sectionC.ThicknessTop)});
-
+                {
+                    SectionClass sectionClass = SetWorstClass(new SectionClass[]{
+                        GetClassCompressedWebChannel(sectionC.HeightWeb / 2, sectionC.ThicknessWeb / 2, out double reduction1),
+                        GetClassCompressedOuterFlangeAxial(sectionC.LengthBottom, sectionC.ThicknessBottom, out double reduction2),
+                        GetClassCompressedOuterFlangeAxial(sectionC.LengthTop, sectionC.ThicknessTop, out double reduction3)});
+                    _beta = Math.Min(Math.Min(Math.Min(reduction1, reduction2), reduction3), _beta);
+                    return sectionClass;
+                }
                 else if (section is SectionL sectionL)
-                    return SetWorstClass(new SectionClass[]{ GetClassCompressedOuterFlangeAxial(sectionL.HorizontalLegLength, sectionL.HorizontalLegThickness),
-                                                                    GetClassCompressedOuterFlangeAxial(sectionL.VerticalLegLength, sectionL.VerticalLegThickness)});
-
+                {
+                    SectionClass sectionClass = SetWorstClass(new SectionClass[]{
+                        GetClassCompressedOuterFlangeAxial(sectionL.HorizontalLegLength, sectionL.HorizontalLegThickness, out double reduction1),
+                        GetClassCompressedOuterFlangeAxial(sectionL.VerticalLegLength, sectionL.VerticalLegThickness, out double reduction2)});
+                    _beta = Math.Min(Math.Min(reduction1, reduction2), _beta);
+                    return sectionClass;
+                }
                 else
                     throw new NotImplementedException("CalculateSectionClassException: not implemented Section");
             }
@@ -1373,18 +1377,20 @@ namespace GPC.Checkers.Steel.Checkers
                 return SectionClass.Class3;
         }
 
-        /// <summary>
-        /// CopSuos2011 Table 7.1 Flange, outstand element, bending moment
-        /// </summary>
-        /// <param name="b"></param>
-        /// <param name="t"></param>
-        /// <param name="section"></param>
-        /// <returns></returns>
-        private SectionClass GetClassCompressedOuterFlangeBending(double b, double t, ISteelSection section)
+		/// <summary>
+		/// CopSuos2011 Table 7.1 Flange, outstand element, bending moment
+		/// </summary>
+		/// <param name="b"></param>
+		/// <param name="t"></param>
+		/// <param name="section"></param>
+		/// <param name="strengthReduction"></param>
+		/// <returns></returns>
+		private SectionClass GetClassCompressedOuterFlangeBending(double b, double t, ISteelSection section, out double strengthReduction)
         {
             if (t <= 0 || b <= 0)
                 throw new ArgumentException();
 
+            strengthReduction = 1;
             double ctRatio = b / t;
             if (section.SectionType == Section.SectionTypes.Rolled)
             {
@@ -1395,7 +1401,10 @@ namespace GPC.Checkers.Steel.Checkers
                 else if (ctRatio <= 15.0 * Epsilon)
                     return SectionClass.Class3;
                 else
+                {
+                    strengthReduction = Math.Abs((15.0 * Epsilon) / ctRatio);
                     return SectionClass.Class4;
+                }
             }
             else if (section.SectionType == Section.SectionTypes.Welded)
             {
@@ -1406,7 +1415,10 @@ namespace GPC.Checkers.Steel.Checkers
                 else if (ctRatio <= 13.0 * Epsilon)
                     return SectionClass.Class3;
                 else
+                {
+                    strengthReduction = Math.Abs((13.0 * Epsilon) / ctRatio);
                     return SectionClass.Class4;
+                }
             }
             else
                 throw new NotImplementedException("Calculate Section Class Exception: not implemented Section for GetClassCompressedOuterFlangeBending");
@@ -1416,27 +1428,32 @@ namespace GPC.Checkers.Steel.Checkers
         /// CopSuos2011 Table 7.1 Flange, outstand element, axial compression
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedOuterFlangeAxial(double b, double t)
+        private SectionClass GetClassCompressedOuterFlangeAxial(double b, double t, out double strengthReduction)
         {
             if (t <= 0 || b <= 0)
                 throw new ArgumentException();
 
+            strengthReduction = 1;
             double ctRatio = b / t;
             if (ctRatio <= 13.0 * Epsilon)
                 return SectionClass.Class3;
             else
+            {
+                strengthReduction = Math.Abs((13.0 * Epsilon) / ctRatio);
                 return SectionClass.Class4;
+            }
         }
 
         /// <summary>
         /// CopSuos2011 Table 7.1 Flange, internal element, bending moment
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedInternalFlangeBending(double b, double t)
+        private SectionClass GetClassCompressedInternalFlangeBending(double b, double t, out double strengthReduction)
         {
             if (t <= 0 || b <= 0)
                 throw new ArgumentException();
 
+            strengthReduction = 1;
             double ctRatio = b / t;
             if (ctRatio <= 28.0 * Epsilon)
                 return SectionClass.Class1;
@@ -1445,70 +1462,113 @@ namespace GPC.Checkers.Steel.Checkers
             else if (ctRatio <= 40.0 * Epsilon)
                 return SectionClass.Class3;
             else
+            {
+                strengthReduction = Math.Abs((40.0 * Epsilon) / ctRatio);
                 return SectionClass.Class4;
+            }
         }
 
         /// <summary>
         /// CopSuos2011 Table 7.1 Flange, internal element, axial compression
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedInternalFlangeAxial(double b, double t)
+        private SectionClass GetClassCompressedInternalFlangeAxial(double b, double t, out double strengthReduction)
         {
             if (t <= 0 || b <= 0)
                 throw new ArgumentException();
 
+            strengthReduction = 1;
             double ctRatio = b / t;
             if (ctRatio <= 40.0 * Epsilon)
                 return SectionClass.Class3;
             else
+            {
+                strengthReduction = Math.Abs((40.0 * Epsilon) / ctRatio);
                 return SectionClass.Class4;
+            }
         }
 
         /// <summary>
         /// CopSuos2011 Table 7.1 Web of I, H, Box section. Generally
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedWebBendingMoment(double b, double t, ResultBeamForces resultBeamForces, ISteelSection section)
+        private SectionClass GetClassCompressedWebBendingMoment(double b, double t, ResultBeamForces resultBeamForces, ISteelSection section, out double strengthReduction)
         {
             if (t <= 0 || b <= 0)
                 throw new ArgumentException();
 
+            strengthReduction = 1;
             double ctRatio = b / t;
-            if (ctRatio <= Math.Max(80.0 * Epsilon / (1 + GetR1(section, resultBeamForces)), 40 * Epsilon))
+            if (ctRatio <= Math.Max(80.0 * Epsilon / (1.0 + GetR1(section, resultBeamForces)), 40.0 * Epsilon))
                 return SectionClass.Class1;
             if (GetR1(section, resultBeamForces) <= 0 &&
-                (ctRatio <= Math.Max(100 * Epsilon / (1 + GetR1(section, resultBeamForces)), 40 * Epsilon)))
+                (ctRatio <= Math.Max(100.0 * Epsilon / (1.0 + GetR1(section, resultBeamForces)), 40.0 * Epsilon)))
                 return SectionClass.Class2;
             if (GetR1(section, resultBeamForces) >= 0 &&
-                (ctRatio <= Math.Max(100 * Epsilon / (1 + 1.5 * GetR1(section, resultBeamForces)), 40 * Epsilon)))
+                (ctRatio <= Math.Max(100.0 * Epsilon / (1.0 + 1.5 * GetR1(section, resultBeamForces)), 40.0 * Epsilon)))
                 return SectionClass.Class2;
-            else if (ctRatio <= Math.Max(120 * Epsilon / (1 + 2 * GetR2(resultBeamForces, section)), 40 * Epsilon))
+            else if (ctRatio <= Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 40.0 * Epsilon))
                 return SectionClass.Class3;
             else
+            {
+                strengthReduction = Math.Abs(Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 40.0 * Epsilon) / ctRatio);
                 return SectionClass.Class4;
+            }
         }
 
         /// <summary>
         /// CopSuos2011 Table 7.1 Web of I, H, Box section. Axial Compression
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedWebAxialCompression(double b, double t, ResultBeamForces resultBeamForces, ISteelSection section)
+        private SectionClass GetClassCompressedWebAxialCompression(double b, double t, ResultBeamForces resultBeamForces, ISteelSection section, out double strengthReduction)
         {
             if (t <= 0 || b <= 0)
                 throw new ArgumentException();
-            
-            double ctRatio = b / t;
 
+            strengthReduction = 1;
+            double ctRatio = b / t;            
             if (section.FormedType == Section.FormedTypes.HotFinished)
             {
-                if (ctRatio <= Math.Max(120 * Epsilon / (1 + 2.0 * GetR2(resultBeamForces, section)), 40.0 * Epsilon))
+                if (ctRatio <= Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 40.0 * Epsilon))
                     return SectionClass.Class3;
-                return SectionClass.Class4;
+                else
+                {
+                    strengthReduction = Math.Abs(Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 40.0 * Epsilon) / ctRatio);
+                    return SectionClass.Class4;
+                }
             }
             else
             {
-                if (ctRatio <= Math.Max(105 * Epsilon / (1 + 2.0 * GetR2(resultBeamForces, section)), 35.0 * Epsilon))
+                if (ctRatio <= Math.Max(105.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 35.0 * Epsilon))
                     return SectionClass.Class3;
+                else
+                {
+                    strengthReduction = Math.Abs(Math.Max(105.0 * Epsilon / (1.0 + 2.0 * GetR2(resultBeamForces, section)), 35.0 * Epsilon) / ctRatio);
+                    return SectionClass.Class4;
+                }
+            }
+        }
+
+        /// <summary>
+        /// CopSuos2011 Table 7.2 CHS Classification
+        /// </summary>
+        /// <returns></returns>
+        private SectionClass GetClassCHSBending(double d, double t, out double strengthReduction)
+        {
+            if (t <= 0 || d <= 0)
+                throw new ArgumentException();
+
+            strengthReduction = 1;
+            double ctRatio = d / t;
+            if (ctRatio <= 40.0 * Epsilon * Epsilon)
+                return SectionClass.Class1;
+            else if (ctRatio <= 50.0 * Epsilon * Epsilon)
+                return SectionClass.Class2;
+            else if (ctRatio <= 140 * Epsilon * Epsilon)
+                return SectionClass.Class3;
+            else
+            {
+                strengthReduction = Math.Abs(140 * Epsilon * Epsilon / ctRatio);
                 return SectionClass.Class4;
             }
         }
@@ -1517,46 +1577,33 @@ namespace GPC.Checkers.Steel.Checkers
         /// CopSuos2011 Table 7.2 CHS Classification
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCHSBending(double d, double t)
+        private SectionClass GetClassCHSAxialCompression(double d, double t, out double strengthReduction)
         {
             if (t <= 0 || d <= 0)
                 throw new ArgumentException();
 
-            if (d / t <= 40.0 * Epsilon * Epsilon)
-                return SectionClass.Class1;
-            else if (d / t <= 50.0 * Epsilon * Epsilon)
-                return SectionClass.Class2;
-            else if (d / t <= 140 * Epsilon * Epsilon)
+            strengthReduction = 1;
+            double ctRatio = d / t;
+            if (ctRatio <= 80.0 * Epsilon * Epsilon)
                 return SectionClass.Class3;
             else
+            {
+                strengthReduction = Math.Abs(80 * Epsilon * Epsilon / ctRatio);
                 return SectionClass.Class4;
-        }
-
-        /// <summary>
-        /// CopSuos2011 Table 7.2 CHS Classification
-        /// </summary>
-        /// <returns></returns>
-        private SectionClass GetClassCHSAxialCompression(double d, double t)
-        {
-            if (t <= 0 || d <= 0)
-                throw new ArgumentException();
-
-            if (d / t <= 80.0 * Epsilon * Epsilon)
-                return SectionClass.Class3;
-            else
-                return SectionClass.Class4;
+            }
         }
 
         /// <summary>
         /// CopSuos2011 Table 7.2 Flange
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedFlangeRHS(double b, double t, double d, ISteelSection section)
+        private SectionClass GetClassCompressedFlangeRHS(double b, double t, double d, ISteelSection section, out double strengthReduction)
         {
             if (t <= 0 || d <= 0)
                 throw new ArgumentException();
 
             double ctRatio = b / t;
+            strengthReduction = 1;
             if (section.FormedType == Section.FormedTypes.HotFinished)
             {
                 if (ctRatio <= Math.Min(28.0 * Epsilon, 80 * Epsilon - d / t))
@@ -1566,7 +1613,10 @@ namespace GPC.Checkers.Steel.Checkers
                 else if (ctRatio <= 40.0 * Epsilon)
                     return SectionClass.Class3;
                 else
+                {
+                    strengthReduction = Math.Abs(40.0 * Epsilon / ctRatio);
                     return SectionClass.Class4;
+                }
             }
             else if (section.FormedType == Section.FormedTypes.ColdFormed)
             {
@@ -1577,7 +1627,10 @@ namespace GPC.Checkers.Steel.Checkers
                 else if (ctRatio <= 35.0 * Epsilon)
                     return SectionClass.Class3;
                 else
+                {
+                    strengthReduction = Math.Abs(35.0 * Epsilon / ctRatio);
                     return SectionClass.Class4;
+                }
             }
             else
                 throw new NotImplementedException("CalculateSectionClassException: not implemented Section for GetClassCompressedFlangeRHS");
@@ -1587,33 +1640,40 @@ namespace GPC.Checkers.Steel.Checkers
         /// CopSuos2011 Table 7.2 Web
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedWebRHS(double d, double t, ResultBeamForces resultBeamForces, ISteelSection section)
+        private SectionClass GetClassCompressedWebRHS(double d, double t, ResultBeamForces resultBeamForces, ISteelSection section, out double strengthReduction)
         {
             if (t <= 0 || d <= 0)
                 throw new ArgumentException();
 
             double ctRatio = d / t;
+            strengthReduction = 1;
             if (section.FormedType == Section.FormedTypes.HotFinished)
             {
-                if (ctRatio <= Math.Max(64.0 * Epsilon / (1 + 0.6 * GetR1(section, resultBeamForces)), 40.0 * Epsilon))
+                if (ctRatio <= Math.Max(64.0 * Epsilon / (1.0 + 0.6 * GetR1(section, resultBeamForces)), 40.0 * Epsilon))
                     return SectionClass.Class1;
-                else if (ctRatio <= Math.Max(80.0 * Epsilon / (1 + GetR1(section, resultBeamForces)), 40.0 * Epsilon))
+                else if (ctRatio <= Math.Max(80.0 * Epsilon / (1.0 + GetR1(section, resultBeamForces)), 40.0 * Epsilon))
                     return SectionClass.Class2;
-                else if (ctRatio <= Math.Max(120.0 * Epsilon / (1 + 2 * GetR1(section, resultBeamForces)), 40.0 * Epsilon))
+                else if (ctRatio <= Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR1(section, resultBeamForces)), 40.0 * Epsilon))
                     return SectionClass.Class3;
                 else
+                {
+                    strengthReduction = Math.Abs(Math.Max(120.0 * Epsilon / (1.0 + 2.0 * GetR1(section, resultBeamForces)), 40.0 * Epsilon) / ctRatio);
                     return SectionClass.Class4;
+                }
             }
             else if (section.FormedType == Section.FormedTypes.ColdFormed)
             {
-                if (ctRatio <= Math.Max(56.0 * Epsilon / (1 + 0.6 * GetR1(section, resultBeamForces)), 35.0 * Epsilon))
+                if (ctRatio <= Math.Max(56.0 * Epsilon / (1.0 + 0.6 * GetR1(section, resultBeamForces)), 35.0 * Epsilon))
                     return SectionClass.Class1;
-                else if (ctRatio <= Math.Max(70.0 * Epsilon / (1 + GetR1(section, resultBeamForces)), 35.0 * Epsilon))
+                else if (ctRatio <= Math.Max(70.0 * Epsilon / (1.0 + GetR1(section, resultBeamForces)), 35.0 * Epsilon))
                     return SectionClass.Class2;
-                else if (ctRatio <= Math.Max(105 * Epsilon / (1 + 2 * GetR1(section, resultBeamForces)), 35.0 * Epsilon))
+                else if (ctRatio <= Math.Max(105 * Epsilon / (1.0 + 2.0 * GetR1(section, resultBeamForces)), 35.0 * Epsilon))
                     return SectionClass.Class3;
                 else
+                {
+                    strengthReduction = Math.Abs(Math.Max(105 * Epsilon / (1 + 2 * GetR1(section, resultBeamForces)), 35.0 * Epsilon) / ctRatio);
                     return SectionClass.Class4;
+                }
             }
             else
                 throw new NotImplementedException("CalculateSectionClassException: not implemented Section for GetClassCompressedWebRHS");
@@ -1623,67 +1683,100 @@ namespace GPC.Checkers.Steel.Checkers
         /// CopSuos2011 Table 7.2 Angle, compression due to bending and axial compression
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedAngleWithAxialCompression(double b, double d, double t)
+        private SectionClass GetClassCompressedAngleWithAxialCompression(double b, double d, double t, out double strengthReduction)
         {
-            if (b / t < 15.0 * Epsilon && d / t < 15.0 * Epsilon && (b + d) / t < 24.0 * Epsilon)
+            double ctRatio = d / t;
+            double btRatio = b / t;
+            strengthReduction = 1;
+
+            if (btRatio < 15.0 * Epsilon && ctRatio < 15.0 * Epsilon && (b + d) / t < 24.0 * Epsilon)
                 return SectionClass.Class3;
-            return SectionClass.Class4;
+            else
+            {
+                strengthReduction = Math.Abs(Math.Min(Math.Min(Math.Min(15.0 * Epsilon / btRatio, 15.0 * Epsilon / ctRatio), 24.0 * Epsilon / (b + d) / t), 1.0));
+                return SectionClass.Class4;
+            }
         }
 
         /// <summary>
         /// CopSuos2011 Table 7.2 Angle, compression due to bending
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedAngleOnlyBending(double b, double d, double t)
+        private SectionClass GetClassCompressedAngleOnlyBending(double b, double d, double t, out double strengthReduction)
         {
-            if (b / t < 9.0 * Epsilon && d / t < 9.0 * Epsilon)
+            double dtRatio = d / t;
+            double btRatio = b / t;
+            strengthReduction = 1;
+            if (btRatio < 9.0 * Epsilon && dtRatio < 9.0 * Epsilon)
                 return SectionClass.Class1;
-            if (b / t < 10.0 * Epsilon && d / t < 10.0 * Epsilon)
+            else if (btRatio < 10.0 * Epsilon && dtRatio < 10.0 * Epsilon)
                 return SectionClass.Class2;
-            if (b / t < 15.0 * Epsilon && d / t < 15.0 * Epsilon)
+            else if (btRatio < 15.0 * Epsilon && dtRatio < 15.0 * Epsilon)
                 return SectionClass.Class3;
-            return SectionClass.Class4;
+            else
+            {
+                strengthReduction = Math.Abs(Math.Min(Math.Min(15.0 * Epsilon / btRatio, 15.0 * Epsilon / dtRatio), 1.0));
+                return SectionClass.Class4;
+            }
         }
 
         /// <summary>
         /// CopSuos2011 Table 7.2 Outstand Leg of an angle 
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedOutstandLeg(double b, double t)
+        private SectionClass GetClassCompressedOutstandLeg(double b, double t, out double strengthReduction)
         {
-            if (b / t < 9.0 * Epsilon)
+            double btRatio = b / t;
+            strengthReduction = 1;
+            if (btRatio < 9.0 * Epsilon)
                 return SectionClass.Class1;
-            if (b / t < 10.0 * Epsilon)
+            else if (btRatio < 10.0 * Epsilon)
                 return SectionClass.Class2;
-            if (b / t < 15.0 * Epsilon)
+            else if (btRatio < 15.0 * Epsilon)
                 return SectionClass.Class3;
-            return SectionClass.Class4;
+            else
+            {
+                strengthReduction = Math.Abs(15.0 * Epsilon / btRatio);
+                return SectionClass.Class4;
+            }
         }
 
         /// <summary>
         /// CopSuos2011 Table 7.2 Stem of a T section
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedStemT(double d, double t)
+        private SectionClass GetClassCompressedStemT(double d, double t, out double strengthReduction)
         {
-            if (d / t < 8.0 * Epsilon)
+            double dtRatio = d / t;
+            strengthReduction = 1;
+            if (dtRatio < 8.0 * Epsilon)
                 return SectionClass.Class1;
-            if (d / t < 9.0 * Epsilon)
+            else if (dtRatio < 9.0 * Epsilon)
                 return SectionClass.Class2;
-            if (d / t < 18.0 * Epsilon)
+            else if (dtRatio < 18.0 * Epsilon)
                 return SectionClass.Class3;
-            return SectionClass.Class4;
+            else
+            {
+                strengthReduction = Math.Abs(18.0 * Epsilon / dtRatio);
+                return SectionClass.Class4;
+            }
         }
 
         /// <summary>
         /// CopSuos2011 Table 7.1 Channel of a C section
         /// </summary>
         /// <returns></returns>
-        private SectionClass GetClassCompressedWebChannel(double d, double t)
+        private SectionClass GetClassCompressedWebChannel(double d, double t, out double strengthReduction)
         {
+            double dtRatio = d / t;
+            strengthReduction = 1;
             if (d / t < 40.0 * Epsilon)
                 return SectionClass.Class3;
-            return SectionClass.Class4;
+            else
+            {
+                strengthReduction = Math.Abs(40.0 * Epsilon / dtRatio);
+                return SectionClass.Class4;
+            }
         }
 
         /// <summary>
@@ -1773,13 +1866,7 @@ namespace GPC.Checkers.Steel.Checkers
                 throw new NotImplementedException("Cop2011 R2 factor (§7.3) not supported Section type");
         }
 
-        private double GetEffettiveArea(ISteelSection section)
-        {
-            return section.Area;      //TODO: implementare GetEffettiveArea()
-        }
-
         #endregion
-
 
         #region py
 
@@ -1857,6 +1944,44 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
+        #region Equals, hashcode, operators
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            return obj is Cop2011Checker checker &&
+				   base.Equals(obj) &&
+				   _py == checker._py &&
+				   _beta == checker._beta &&
+				   _epsilon == checker._epsilon;
+		}
+
+		public override int GetHashCode()
+		{
+            unchecked
+            {
+                int hashCode = 23;
+                hashCode = hashCode * -17 + base.GetHashCode();
+                hashCode = hashCode * -17 + _py.GetHashCode();
+                hashCode = hashCode * -17 + _beta.GetHashCode();
+                hashCode = hashCode * -17 + _epsilon.GetHashCode();
+                return hashCode;
+            }
+		}
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("Epsilon", _epsilon);
+            info.AddValue("Beta", _beta);
+            info.AddValue("Py", _py);
+        }
+
+        #endregion
+
+        #region Nested class Options
 
         public class Cop2011Options : Options
         {
@@ -1900,14 +2025,12 @@ namespace GPC.Checkers.Steel.Checkers
 
             #endregion
 
-
             #region Variables
 
             protected SteelClasses _steelClass;
             protected LateralTorsionalBucklingConditions _lateralTorsionalBucklingConditions;
 
             #endregion
-
 
             #region Properties
 
@@ -1916,7 +2039,6 @@ namespace GPC.Checkers.Steel.Checkers
             public LateralTorsionalBucklingConditions LateralTorsionalBucklingCondition { get => _lateralTorsionalBucklingConditions; internal set => _lateralTorsionalBucklingConditions = value; }
 
             #endregion
-
 
             #region Constructor
 
@@ -1934,7 +2056,6 @@ namespace GPC.Checkers.Steel.Checkers
 
             #endregion
 
-
             #region Setter
 
             public void SetSteelClass(SteelClasses steelGrade)
@@ -1950,5 +2071,6 @@ namespace GPC.Checkers.Steel.Checkers
             #endregion
         }
 
-    }
+		#endregion
+	}
 }

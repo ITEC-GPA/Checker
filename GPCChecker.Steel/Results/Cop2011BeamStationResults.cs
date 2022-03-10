@@ -54,6 +54,7 @@ namespace GPC.Checkers.Steel.Results
 
         protected double _py;
         protected double _epsilon;
+        protected double _beta;
 
         protected Cop2011Checker.SectionClass _axialCompressionClass;
         protected Cop2011Checker.SectionClass _bendingCompressionClass;
@@ -84,27 +85,56 @@ namespace GPC.Checkers.Steel.Results
 
         #endregion
 
-
         #region Properties
 
+        /// <summary>
+        /// Axial tension working ratio. Return 0.001 if the section is compressed
+        /// </summary>
         public double AxialTensionWorkingRatio => _axialTensionWorkingRatio;
 
+        /// <summary>
+        /// Axial pure compression (with no buckling) working ratio. Return 0.001 if the section is tensed
+        /// </summary>
         public double AxialCompressionWorkingRatio => _axialCompressionWorkingRatio;
 
+        /// <summary>
+        /// Axial buckling working ratio about 1-principal axis
+        /// </summary>
         public double AxialBuckling1WorkingRatio => _axialBuckling1WorkingRatio;
 
+        /// <summary>
+        /// Axial buckling working ratio about 2-principal axis
+        /// </summary>
         public double AxialBuckling2WorkingRatio => _axialBuckling2WorkingRatio;
 
+        /// <summary>
+        /// Shear working ratio about 1-principal axis
+        /// </summary>
         public double Shear1WorkingRatio => _shear1WorkingRatio;
 
+        /// <summary>
+        /// Shear working ratio about 2-principal axis
+        /// </summary>
         public double Shear2WorkingRatio => _shear2WorkingRatio;
 
+        /// <summary>
+        /// Bending moment working ratio about 1-principal axis
+        /// </summary>
         public double BendingMoment1WorkingRatio => _bendingMoment1WorkingRatio;
 
+        /// <summary>
+        /// Bending moment working ratio about 2-principal axis
+        /// </summary>
         public double BendingMoment2WorkingRatio => _bendingMoment2WorkingRatio;
 
+        /// <summary>
+        /// Torque moment working ratio
+        /// </summary>
         public double TorsionalMomentWorkingRatio => _torsionalMomentWorkingRatio;
 
+        /// <summary>
+        /// Lateral torsional working ratio
+        /// </summary>
         public double LateralTorsionalBucklingWorkingRatio => _lateraTorsionalBucklingWorkingRatio;
         
         /// <summary>
@@ -127,84 +157,202 @@ namespace GPC.Checkers.Steel.Results
         /// </summary>
         public double PMMWorkingRatioLateralTorsionalBuckling => _pMMWorkingRatioLateralTorsionalBuckling;
 
+        /// <summary>
+        /// The max working ratio 
+        /// </summary>
         public double WorkingRatio => GetMaxWorkingRatio();
 
+        /// <summary>
+        /// Axial tension capacity
+        /// </summary>
         public double AxialTensionCapacity => _axialTensionRd;
 
+        /// <summary>
+        /// Axial compression capacity
+        /// </summary>
         public double AxialCompressionCapacity => _axialCompressionRd;
 
+        /// <summary>
+        /// Axial buckling about 1-principal axis capacity
+        /// </summary>
         public double AxialBuckling1Capacity => _axialBuckling1Rd;
 
+        /// <summary>
+        /// Axial buckling about 2-principal axis capacity
+        /// </summary>
         public double AxialBuckling2Capacity => _axialBuckling2Rd;
 
+        /// <summary>
+        /// Shear about 1-principal axis capacity
+        /// </summary>
         public double Shear1Capacity => _shear1Rd;
 
+        /// <summary>
+        /// Shear about 2-principal axis capacity
+        /// </summary>
         public double Shear2Capacity => _shear2Rd;
 
+        /// <summary>
+        /// Bending moment about 1-principal axis capacity
+        /// </summary>
         public double BendingMoment1Capacity => _bendingMoment1Rd;
 
+        /// <summary>
+        /// Bending moment about 2-principal axis capacity
+        /// </summary>
         public double BendingMoment2Capacity => _bendingMoment2Rd;
 
+        /// <summary>
+        /// Torque moment capacity
+        /// </summary>
         public double TorsionMomentCapacity => _torsionalMomentRd;
 
+        /// <summary>
+        /// Lateral torsional buckling capacity
+        /// </summary>
         public double LateralTosionalBucklingCapacity => _lateralTorsionalMomentRd;
 
-        public double LenghtAxialBuckling1 => _lenghtAxialBuckling1;
+        /// <summary>
+        /// Length for axial buckling about 1-principal axis check
+        /// </summary>
+        public double LengthAxialBuckling1 => _lenghtAxialBuckling1;
 
-        public double LenghtAxialBuckling2 => _lenghtAxialBuckling2;
+        /// <summary>
+        /// Length for axial buckling about 2-principal axis check
+        /// </summary>
+        public double LengthAxialBuckling2 => _lenghtAxialBuckling2;
 
-        public double LenghtLaterlaTorsionalBuckling => _lenghtLateralTorsionalBuckling;
+        /// <summary>
+        /// Length for lateral torsional buckling check
+        /// </summary>
+        public double LengthLaterlaTorsionalBuckling => _lenghtLateralTorsionalBuckling;
 
+        /// <summary>
+        /// Pure compression section class. <see cref="Cop2011Checker.SectionClass"/>
+        /// </summary>
         public Cop2011Checker.SectionClass AxialCompressionClass => _axialCompressionClass;
 
+        /// <summary>
+        /// Pure bending section class. <see cref="Cop2011Checker.SectionClass"/>
+        /// </summary>
         public Cop2011Checker.SectionClass BendingCompressionClass => _bendingCompressionClass;
 
+        /// <summary>
+        /// The design strength
+        /// </summary>
         public double Py => _py;
 
+        /// <summary>
+        /// The parameter for section classification (Chapter 7.2)
+        /// </summary>
         public double Epsilon => _epsilon;
 
+        /// <summary>
+        /// The reduced design strength coefficient for effective stress method for slender cross-sections in §7.7
+        /// </summary>
+        public double Beta => _beta;
+
+        /// <summary>
+        /// Buckling curve about 1principal axis for axial buckling check (Chapter 8.7.6)
+        /// </summary>
         public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve1 => _bucklingCurve1;
 
+        /// <summary>
+        /// Buckling curve about 2-principal axis for axial buckling check (Chapter 8.7.6)
+        /// </summary>
         public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve2 => _bucklingCurve2;
 
+        /// <summary>
+        /// Lambda about 1-principal axis for axial buckling check
+        /// </summary>
         public double LambdaAxialBuckling1 => _lambdaAxialBuckling1;
 
+        /// <summary>
+        /// Lambda about 2-principal axis for axial buckling check
+        /// </summary>
         public double LambdaAxialBuckling2 => _lambdaAxialBuckling2;
 
+        /// <summary>
+        /// Lambda0 about 1-principal axis for axial buckling check (Appendix 8.4)
+        /// </summary>
         public double Lambda0AxialBuckling => _lambda0AxialBuckling;
 
+        /// <summary>
+        /// Perry factor about 1-principal axis for axial buckling check (Appendix 8.4)
+        /// </summary>
         public double NAxialBuckling1 => _nAxialBuckling1;
 
+        /// <summary>
+        /// Perry factor about 2-principal axis for axial buckling check (Appendix 8.4)
+        /// </summary>
         public double NAxialBuckling2 => _nAxialBuckling2;
 
+        /// <summary>
+        /// PE about 1-principal axis for axial buckling check (Appendix 8.4)
+        /// </summary>
         public double PEAxialBuckling1 => _pEAxialBuckling1;
 
+        /// <summary>
+        /// PE about 2-principal axis for axial buckling check (Appendix 8.4)
+        /// </summary>
         public double PEAxialBuckling2 => _pEAxialBuckling2;
 
+        /// <summary>
+        /// PhiC about 1-principal axis for axial buckling check (Appendix 8.4)
+        /// </summary>
         public double PhiCAxialBuckling1 => _phiCAxialBuckling1;
 
+        /// <summary>
+        /// PhiC about 2-principal axis for axial buckling check (Appendix 8.4)
+        /// </summary>
         public double PhiCAxialBuckling2 => _phiCAxialBuckling2;
 
+        /// <summary>
+        /// Design strength about 1-principal axis for axial buckling check (Appendix 8.4)
+        /// </summary>
         public double PCAxialBuckling1 => _pCAxialBuckling1;
 
+        /// <summary>
+        /// Design strength about 2-principal axis for axial buckling check (Appendix 8.4)
+        /// </summary>
         public double PCAxialBuckling2 => _pCAxialBuckling2;
 
+        /// <summary>
+        /// Lambda for lateral torsiona buckling check (Appendix 8.1)
+        /// </summary>
         public double LambdaLateralTorsionalBuckling => _lambdaLTBuckling;
 
+        /// <summary>
+        /// Lambda0 for lateral torsiona buckling check (Appendix 8.1)
+        /// </summary>
         public double Lambda0LateralTorsionalBuckling => _lambda0LTBuckling;
 
+        /// <summary>
+        /// PE for lateral torsiona buckling check (Appendix 8.1)
+        /// </summary>
         public double PELateralTorsionalBuckling => _pELTBuckling;
 
+        /// <summary>
+        /// Phi for lateral torsiona buckling check (Appendix 8.1)
+        /// </summary>
         public double PhiLateralTorsionalBuckling => _phiLTBuckling;
 
+        /// <summary>
+        /// Design strength for lateral torsiona buckling check (Appendix 8.1)
+        /// </summary>
         public double PBLateralTorsionalBuckling => _pBLTBuckling;
 
+        /// <summary>
+        /// Shear area about 1-principal axis (Chapter 8.2.1)
+        /// </summary>
         public double ShearArea1 => _shearArea1;
 
+        /// <summary>
+        /// Shear area about 2-principal axis (Chapter 8.2.1)
+        /// </summary>
         public double ShearArea2 => _shearArea2;
 
         #endregion
-
 
         #region Constructor
 
@@ -270,13 +418,13 @@ namespace GPC.Checkers.Steel.Results
             _lenghtAxialBuckling1 = axialBuckling1; 
             _lenghtAxialBuckling2 = axialBuckling2;
             _lenghtLateralTorsionalBuckling = lenghtLateralTorsionalBuckling;
-
         }
 
-        internal void SetPy(double py, double epsilon)
+        internal void SetPy(double py, double epsilon, double beta)
         {
             _py = py;
             _epsilon = epsilon;
+            _beta = beta;
         }
 
         internal void SetResultsForReportLTB(double lambdaLTBuckling, double lambda0LTBuckling, double pELTBuckling, double phiLTBuckling, double pBLTBuckling)
@@ -324,7 +472,6 @@ namespace GPC.Checkers.Steel.Results
         }
 
         #endregion
-
-        
+                
     }
 }

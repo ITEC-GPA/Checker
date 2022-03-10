@@ -227,7 +227,7 @@ namespace ConcreteTests
 		{
             double elasticModulusFactor = 0.85 / 1.5;
 
-            return new ConcreteMaterialEN1992("", 0.0,
+            return new ConcreteMaterialEN1992("", -0.002, 0.0,
                 new StressStrainTable(new double[] { 0, -elasticModulus / elasticModulusFactor, -2.0 * elasticModulus / elasticModulusFactor }, new double[] { 0, -0.001, -0.002 }),
                 new StressStrainTable(new double[] { 0, 0 }, new double[] { 0, 0.001 }));
         }
@@ -237,7 +237,7 @@ namespace ConcreteTests
             double elasticModulusFactor = 0.85 / 1.5;
             double elasticModulusFactorTens = 1.0 / 1.5;
 
-            return new ConcreteMaterialEN1992("", 0.0,
+            return new ConcreteMaterialEN1992("", -0.002, 0.0,
                 new StressStrainTable(new double[] { 0, -elasticModulus / elasticModulusFactor, -2.0 * elasticModulus / elasticModulusFactor }, new double[] { 0, -0.001, -0.002 }),
                 new StressStrainTable(new double[] { 0, elasticModulus / elasticModulusFactorTens }, new double[] { 0, 0.001 }));
         }
