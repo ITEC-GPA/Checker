@@ -9,6 +9,7 @@ using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace ConcreteTests
 {
@@ -860,5 +861,62 @@ namespace ConcreteTests
 				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
 		}
 
+		[TestMethod]
+		public void NeutralAxisTest1()
+		{
+			double rebarDiameter = 20;
+			double height = 400;
+			double width = 400;
+			double concreteCover = 40;
+			double phi = 1.36;
+
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C25_30);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 0 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -10 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -10 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 0 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, 0 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, 10 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, -10 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, 10 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, -10 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, 0 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
+
+			StressAnalysisResult[] slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
+
+			for (int i = 10; i < slsResult.Length; i++)
+			{
+				Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectCentroid();
+
+				Assert.IsTrue(neutralAxis.GetLength() > 1);
+				Assert.IsTrue(Math.Abs(neutralAxis.Start.DistanceTo(neutralAxis.End)) > 1);
+			}
+
+			slsResult = sectionChecker.GetStressAnalysisResult();
+
+			for (int i = 10; i < slsResult.Length; i++)
+			{
+				Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectCentroid();
+
+				Assert.IsTrue(neutralAxis.GetLength() > 1);
+				Assert.IsTrue(Math.Abs(neutralAxis.Start.DistanceTo(neutralAxis.End)) > 1);
+			}
+		}
 	}
 }
