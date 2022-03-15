@@ -122,22 +122,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <inheritdoc cref="SectionSolver.CalculateSigmaC(double)"/>
         internal override double CalculateSigmaC(double strain)
         {
-            if (strain < 0)
-            {
+            if (strain < 0)            
                 // compressione
-                return ConcreteMaterialModelCode2010.CalculateDesignStressConcrete(StandardModelCode2010, strain);
-            }
+                return ConcreteMaterialModelCode2010.CalculateDesignStressConcrete(StandardModelCode2010, strain);            
             else
             {
                 // trazione
-                if (_considerTensileConcrete)
-                {
-                    return ConcreteMaterialModelCode2010.CalculateDesignStressConcrete(StandardModelCode2010, strain);
-                }
-                else
-                {
-                    return 0;
-                }
+                if (_considerTensileConcrete)                
+                    return ConcreteMaterialModelCode2010.CalculateDesignStressConcrete(StandardModelCode2010, strain);                
+                else                
+                    return 0;                
             }
         }
 
