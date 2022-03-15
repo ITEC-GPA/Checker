@@ -23,7 +23,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
 
-        public ConcreteMaterialCommon ConcreteMaterialModelCode2010 => (ConcreteMaterialCommon)_concreteSection.ConcreteMaterial;
+        public ConcreteMaterialEuropeanCommon ConcreteMaterialModelCode2010 => (ConcreteMaterialEuropeanCommon)_concreteSection.ConcreteMaterial;
 
 		/// <summary>
 		/// Design compressive strength for persistent design
@@ -125,14 +125,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             if (strain < 0)
             {
                 // compressione
-                return StandardModelCode2010.CalculateSigmaC(ConcreteMaterialModelCode2010, strain);
+                return ConcreteMaterialModelCode2010.CalculateDesignStressConcrete(StandardModelCode2010, strain);
             }
             else
             {
                 // trazione
                 if (_considerTensileConcrete)
                 {
-                    return StandardModelCode2010.CalculateSigmaC(ConcreteMaterialModelCode2010, strain);
+                    return ConcreteMaterialModelCode2010.CalculateDesignStressConcrete(StandardModelCode2010, strain);
                 }
                 else
                 {
@@ -163,27 +163,27 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected double CalculateFcd()
         {
-            return StandardModelCode2010.CalculateFcd(ConcreteMaterialModelCode2010);
+            return ConcreteMaterialModelCode2010.CalculateFcd(StandardModelCode2010);
         }
 
         protected double CalculateFctd()
         {
-            return StandardModelCode2010.CalculateFctd(ConcreteMaterialModelCode2010);
+            return ConcreteMaterialModelCode2010.CalculateFctd(StandardModelCode2010);
         }
 
         protected double CalculateFcdAccidental()
         {
-            return StandardModelCode2010.CalculateFcdAccidental(ConcreteMaterialModelCode2010);
+            return ConcreteMaterialModelCode2010.CalculateFcdAccidental(StandardModelCode2010);
         }
 
         protected double CalculateFctdAccidental()
         {
-            return StandardModelCode2010.CalculateFctdAccidental(ConcreteMaterialModelCode2010);
+            return ConcreteMaterialModelCode2010.CalculateFctdAccidental(StandardModelCode2010);
         }
 
         protected double CalculateECd()
         {
-            return StandardModelCode2010.CalculateECd(ConcreteMaterialModelCode2010);
+            return ConcreteMaterialModelCode2010.CalculateECd(StandardModelCode2010);
         }
 
         #endregion
