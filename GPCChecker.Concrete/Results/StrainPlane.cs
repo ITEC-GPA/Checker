@@ -95,34 +95,18 @@ namespace GPC.Checkers.Concrete.Results
         }
 
         public Line2d GetNeutralAxisRespectCentroid()
-		{
-			Line2d line =  new Line2d(new Point2d(0, (-1 - _chiY / _strainReferencePoint * 0) * StrainReferencePoint / _chiX),
-                    new Point2d((-1 - _chiX / _strainReferencePoint * -0) * StrainReferencePoint / _chiY, -0));
-            if (line.GetLength() > 1)
-                return line;
-            else
-            {
-                line = new Line2d(new Point2d(-1000, (-1 - _chiY / _strainReferencePoint * -1000) * StrainReferencePoint / _chiX),
-                    new Point2d((-1 - _chiX / _strainReferencePoint * -1000) * StrainReferencePoint / _chiY, -1000));
-                if (line.GetLength() > 1)
-                    return line;
-                else
-                {
-                    line = new Line2d(new Point2d(1000, (-1 - _chiY / _strainReferencePoint * 1000) * StrainReferencePoint / _chiX),
-                        new Point2d((-1 - _chiX / _strainReferencePoint * -1000) * StrainReferencePoint / _chiY, -1000));
-                    if (line.GetLength() > 1)
-                        return line;
-                    else
-                        return null;
-                }
-            }
+        {
+            if (_chiX == 0 && _chiY == 0)
+                return null;
+
+            return new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY), new Point2d(-StrainReferencePoint / _chiX, 0.0));
         }
 
-		#endregion
+        #endregion
 
-		#region Private Methods
+        #region Private Methods
 
-		private double CalculateTeta()
+        private double CalculateTeta()
         {
             if (_chiY != 0)
 			{

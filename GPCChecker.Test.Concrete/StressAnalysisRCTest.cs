@@ -897,12 +897,13 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
-
+			//ExportToGmsh(section);
 			StressAnalysisResult[] slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
 
 			for (int i = 10; i < slsResult.Length; i++)
 			{
 				Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectCentroid();
+				neutralAxis.Move(section.Centroid.X, section.Centroid.Y);
 
 				Assert.IsTrue(neutralAxis.GetLength() > 1);
 				Assert.IsTrue(Math.Abs(neutralAxis.Start.DistanceTo(neutralAxis.End)) > 1);
@@ -913,6 +914,7 @@ namespace ConcreteTests
 			for (int i = 10; i < slsResult.Length; i++)
 			{
 				Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectCentroid();
+				neutralAxis.Move(section.Centroid.X, section.Centroid.Y);
 
 				Assert.IsTrue(neutralAxis.GetLength() > 1);
 				Assert.IsTrue(Math.Abs(neutralAxis.Start.DistanceTo(neutralAxis.End)) > 1);
