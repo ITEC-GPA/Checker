@@ -67,6 +67,27 @@ namespace GPC.Checkers.Concrete.Checkers
             });
         }
 
+        /// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResult2dAsync"/>
+        public async override Task<FailureDomainResult2d> GetPlasticFailureDomainResult2dAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
+
+                    if (_checkerAttributes.ULSResults != null)
+                        failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+                    return failureDomainResult;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            });
+        }
+
         /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResultAsync"/>
         public async override Task<FailureDomainResult> GetElasticFailureDomainResultAsync()
         {
@@ -75,6 +96,27 @@ namespace GPC.Checkers.Concrete.Checkers
                 try
                 {
                     var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
+
+                    if (_checkerAttributes.ULSResults != null)
+                        failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+                    return failureDomainResult;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            });
+        }
+
+        /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResult2dAsync"/>
+        public async override Task<FailureDomainResult2d> GetElasticFailureDomainResult2dAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -193,6 +235,26 @@ namespace GPC.Checkers.Concrete.Checkers
             return failureDomainResult;
         }
 
+        public override FailureDomainResult2d GetPlasticFailureDomainResult2d()
+        {
+            var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
+
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
+        }
+
+        public override FailureDomainResult2d GetElasticFailureDomainResult2d()
+        {
+            var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
+
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
+        }
+
         /// <inheritdoc cref="SectionChecker.GetStressAnalysisResult"/>
         public override StressAnalysisResult[] GetStressAnalysisResult()
         {
@@ -205,7 +267,6 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(double)"/>
         public override StressAnalysisResult[] GetLinearStressAnalysisResult(double psi)
         {
-
             if (_checkerAttributes.SLSResults is null)
                 return null;
 
@@ -224,10 +285,10 @@ namespace GPC.Checkers.Concrete.Checkers
             return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem);
         }
 
-        #endregion
+		#endregion
 
 
-        [Serializable]
+		[Serializable]
         public class SectionOptionsModelCode2010 : SectionOptions, ISerializable
         {
             public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem)

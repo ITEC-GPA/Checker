@@ -48,10 +48,23 @@ namespace GPC.Checkers.Concrete.Checkers
 		public abstract Task<FailureDomainResult> GetPlasticFailureDomainResultAsync();
 
         /// <summary>
+        /// Calculate the plastic failure domain 2d and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        public abstract Task<FailureDomainResult2d> GetPlasticFailureDomainResult2dAsync();
+
+
+        /// <summary>
         /// Calculate the elastic failure domain and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
         public abstract Task<FailureDomainResult> GetElasticFailureDomainResultAsync();
+
+        /// <summary>
+        /// Calculate the elastic failure domain2d and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        public abstract Task<FailureDomainResult2d> GetElasticFailureDomainResult2dAsync();
 
         /// <summary>
         /// Calculate the stress analysis for each forces
@@ -79,7 +92,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #endregion
 
-        #region Internal Method
+        #region Public Method
 
         /// <summary>
         /// Calculate the plastic failure domain and calculate the domain point for each forces
@@ -92,6 +105,18 @@ namespace GPC.Checkers.Concrete.Checkers
         /// </summary>
         /// <returns>The failure domain results</returns>
         public abstract FailureDomainResult GetElasticFailureDomainResult();
+
+        /// <summary>
+        /// Calculate the plastic failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        public abstract FailureDomainResult2d GetPlasticFailureDomainResult2d();
+
+        /// <summary>
+        /// Calculate the elastic failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        public abstract FailureDomainResult2d GetElasticFailureDomainResult2d();
 
         /// <summary>
         /// Calculate the stress analysis for each forces

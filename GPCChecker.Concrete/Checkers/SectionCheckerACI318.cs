@@ -54,6 +54,27 @@ namespace GPC.Checkers.Concrete.Checkers
             });
         }
 
+        /// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResultAsync"/>
+        public async override Task<FailureDomainResult2d> GetPlasticFailureDomainResult2dAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+
+                    if (_checkerAttributes.ULSResults != null)
+                        failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+                    return failureDomainResult;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            });
+        }
+
         /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResultAsync"/>
         public async override Task<FailureDomainResult> GetElasticFailureDomainResultAsync()
         {
@@ -62,6 +83,27 @@ namespace GPC.Checkers.Concrete.Checkers
                 try
                 {
                     var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+
+                    if (_checkerAttributes.ULSResults != null)
+                        failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+                    return failureDomainResult;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            });
+        }
+
+        /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResult2dAsync"/>
+        public async override Task<FailureDomainResult2d> GetElasticFailureDomainResult2dAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -171,10 +213,32 @@ namespace GPC.Checkers.Concrete.Checkers
             return failureDomainResult;
         }
 
+        /// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResult2d"/>
+        public override FailureDomainResult2d GetPlasticFailureDomainResult2d()
+        {
+            var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
+        }
+
         /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResult"/>
         public override FailureDomainResult GetElasticFailureDomainResult()
         {
             var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
+        }
+
+        /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResult2d"/>
+        public override FailureDomainResult2d GetElasticFailureDomainResult2d()
+        {
+            var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);

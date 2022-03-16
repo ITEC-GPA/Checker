@@ -246,8 +246,29 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
                 zoneDiscretization, FailureDomainAnalysisTypes.Elastic);
 
-            return new FailureDomainResult(ConcreteSection, 
+            return new FailureDomainResult(ConcreteSection,
                 CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem, FailureDomainAnalysisTypes.Elastic),
+                null, this, _standard, forceReferencePointCoordinateSystem, Id);
+        }
+
+        public virtual FailureDomainResult2d GetElasticFailureDomainResult2d(CoordinateSystem forceReferencePointCoordinateSystem)
+        {
+            (FailureZones, int)[] zoneDiscretization;
+
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+                zoneDiscretization = _elasticFailureZonesDiscretizations;
+            else
+                zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
+
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+                if (ConcreteSection.RebarsCount == 0)
+                    return null;
+
+            (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(2,
+                zoneDiscretization, FailureDomainAnalysisTypes.Elastic);
+
+            return new FailureDomainResult2d(ConcreteSection,
+                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem, FailureDomainAnalysisTypes.Elastic)),
                 null, this, _standard, forceReferencePointCoordinateSystem, Id);
         }
 
@@ -274,6 +295,32 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return new FailureDomainResult(ConcreteSection, 
                 CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem, FailureDomainAnalysisTypes.Plastic), null, this, _standard,
+                forceReferencePointCoordinateSystem, Id);
+        }
+
+        public virtual FailureDomainResult2d GetPlasticFailureDomainResult2d(CoordinateSystem forceReferencePointCoordinateSystem)
+        {
+            (FailureZones, int)[] zoneDiscretization;
+
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+                zoneDiscretization = _plasticFailureZonesDiscretizations;
+            else
+            {
+                if (ConcreteSection.RebarsCount != 0)
+                    zoneDiscretization = _plasticFailureZonesDiscretizationsFRC;
+                else
+                    zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebars;
+            }
+
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+                if (ConcreteSection.RebarsCount == 0)
+                    return null;
+
+            (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(2,
+                zoneDiscretization, FailureDomainAnalysisTypes.Plastic);
+
+            return new FailureDomainResult2d(ConcreteSection,
+                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, forceReferencePointCoordinateSystem, FailureDomainAnalysisTypes.Plastic)), null, this, _standard,
                 forceReferencePointCoordinateSystem, Id);
         }
 
@@ -1099,6 +1146,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     return null;
             }
         }
+
+        protected virtual FailureDomain2d ConvertFailureDomain3dTo2d(FailureDomain failureDomain)
+		{
+            if (failureDomain == null)
+                throw new ArgumentNullException();
+            if (failureDomain.DomainPoints.Length != 2)
+                throw new ArgumentException();
+
+			FailureDomain.FailureDomainPoint[] domainPointPositive = failureDomain.DomainPoints[0];
+			FailureDomain.FailureDomainPoint[] domainPointNevative = failureDomain.DomainPoints[1];
+            Array.Reverse(domainPointNevative);
+
+            List<FailureDomain.FailureDomainPoint> domainPoints = domainPointPositive.ToList();
+            domainPoints.AddRange(domainPointNevative);
+
+            return new FailureDomain2d(domainPoints.ToArray(), FailureDomainResult2d.DomainTypes.CostantMxMy);
+		}
 
         #endregion
 
