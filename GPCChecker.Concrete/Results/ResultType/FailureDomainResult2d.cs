@@ -1,4 +1,4 @@
-using GPC.Checkers.Concrete.Helper;
+﻿using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Results;
@@ -114,19 +114,19 @@ namespace GPC.Checkers.Concrete.Results
 
             FailureDomain.FailureDomainPoint[] failureDomainPoint = null;
 
-            await Task.Run(() => {
-
+            await Task.Run(() => 
+            {
                 var forcesList = forces.ToList();
                 failureDomainPoint = new FailureDomain.FailureDomainPoint[forcesList.Count];
 
-                for (int i = 0; i < forcesList.Count(); i++)
+                Parallel.For(0, forces.Count(), (i) =>
                 {
                     var point = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forcesList[i]));
                     _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point.failureDomainPoint));
 
                     _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point.failureDomainPoint));
                     failureDomainPoint[i] = point.failureDomainPoint;
-                }
+                });
             });
 
             return failureDomainPoint;
@@ -160,8 +160,8 @@ namespace GPC.Checkers.Concrete.Results
 
             FailureDomain.FailureDomainPoint failureDomainPoint = null;
 
-            await Task.Run(() => {
-
+            await Task.Run(() => 
+            {
                 var point = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
 
                 _forces.RemoveAt(index);
@@ -187,9 +187,9 @@ namespace GPC.Checkers.Concrete.Results
             if (forces is null || forces.Id == -1)            
                 throw new ArgumentNullException(nameof(forces));            
             else if (forces.Id == -1)            
-                throw new ArgumentException(nameof(forces));            
+                throw new ArgumentException(nameof(forces));
 
-            var point = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
+			(FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) point = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
             _forces.Add(new FailureDomain.FailureDomainForce(forces, point.failureDomainPoint));
 
             return point.failureDomainPoint;
@@ -211,8 +211,10 @@ namespace GPC.Checkers.Concrete.Results
 
             var failureDomainPoint = new FailureDomain.FailureDomainPoint[forces.Length];
 
-            for (int i = 0; i < forces.Count(); i++)            
-                failureDomainPoint[i] = AddForce(forces[i]);            
+            Parallel.For(0, forces.Count(), (i) =>
+            {
+                failureDomainPoint[i] = AddForce(forces[i]);
+            });
 
             return failureDomainPoint;
         }
