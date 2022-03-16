@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Results;
@@ -35,7 +35,6 @@ namespace GPC.Checkers.Concrete.Results
             IEnumerable<ResultBeamForces> forces,
             SectionSolver solver,
             Standard standard,
-            DomainTypes domainType,
             CoordinateSystem coordinateSystem,
             int id = IDUNASSIGNED)
             : base(section, standard, id)
@@ -43,7 +42,7 @@ namespace GPC.Checkers.Concrete.Results
             _failureDomain2d = failureDomain ?? throw new ArgumentNullException(nameof(failureDomain));
             _sectionSolver = solver ?? throw new ArgumentNullException(nameof(solver));
             _forces = new List<FailureDomain.FailureDomainForce>();
-            _domainType = domainType;
+            _domainType = failureDomain.DomainType;
             _coordinateSystem = coordinateSystem;
             if (forces != null)
             {

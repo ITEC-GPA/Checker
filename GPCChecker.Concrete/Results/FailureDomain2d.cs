@@ -30,6 +30,8 @@ namespace GPC.Checkers.Concrete.Results
 		/// </summary>
 		internal Dictionary<FailureDomain.FailureDomainPoint, Point2d> DomainPoints2dAssociation => _domainPoints2dAssociation;
 
+		internal FailureDomainResult2d.DomainTypes DomainType => _domainType;
+
 		#endregion
 
 		#region Constructor

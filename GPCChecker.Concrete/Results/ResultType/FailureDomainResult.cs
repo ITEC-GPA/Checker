@@ -374,7 +374,7 @@ namespace GPC.Checkers.Concrete.Results
         public virtual FailureDomainResult2d CalculateDomainConstantAxialForce(ResultBeamForces forces)
         {
             return new FailureDomainResult2d(_section, CalculateDomainConstantAxialForce(forces.ConvertToForceTuple(_coordinateSystem)), 
-                new ResultBeamForces[] { forces }, _sectionSolver, _standard, FailureDomainResult2d.DomainTypes.CostantN, _coordinateSystem);
+                new ResultBeamForces[] { forces }, _sectionSolver, _standard, _coordinateSystem);
         }
 
         /// <summary>
@@ -386,7 +386,7 @@ namespace GPC.Checkers.Concrete.Results
         public virtual FailureDomainResult2d CalculateFailureDomainCostantMomentsRatio(ResultBeamForces forces)
         {
             return new FailureDomainResult2d(_section, CalculateFailureDomainCostantMomentsRatio(forces.ConvertToForceTuple(_coordinateSystem)),
-                new ResultBeamForces[] { forces }, _sectionSolver, _standard, FailureDomainResult2d.DomainTypes.CostantMxMy, _coordinateSystem);
+                new ResultBeamForces[] { forces }, _sectionSolver, _standard, _coordinateSystem);
         }
 
         /// <summary>
