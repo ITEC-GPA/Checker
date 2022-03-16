@@ -1187,10 +1187,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double eta;
             double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
-            if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
+            if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
             {
-                failureIndex = FailureZones.F1;
-                eta = 0.75;
+                failureIndex = FailureZones.F3A;
+                eta = 0.1;
+            }
+            else if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
+            {
+                failureIndex = FailureZones.F3A;
+                eta = 0.15;
             }
             else if (adimOutputForces.N > 0.0)
             {
@@ -1418,7 +1423,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     tetaCounter++;
                 }
                 else
-                    return (+0.1, -0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                {
+                    if (inputFailureZone == FailureZones.F1)
+                        return (+0.1, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                    else
+                        return (+0.1, +0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                }
 
             } while (dNdTeta == 0.0 || (dMxdTeta == 0.0 && dMydTeta == 0.0));
 
@@ -1466,7 +1476,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     etaCounter++;
                 }
                 else
-                    return (0.0, -0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                {
+                    if (inputFailureZone == FailureZones.F1)
+                        return (+0.1, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                    else
+                        return (+0.1, +0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                }
 
             } while (dNdImm == 0.0 || (dMxdImm == 0.0 && dMydImm == 0.0));
 
@@ -1490,7 +1505,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (!intersect)
             {
-                return (0.1, 0.3, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                if (inputFailureZone == FailureZones.F1)
+                    return (+0.1, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                else
+                    return (+0.1, +0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
             }
             else
             {
@@ -1570,8 +1588,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected void SetIncrement(FailureDomainAnalysisTypes analysisType, ref FailureZones failureZone, 
             ref double teta, ref double eta, double deltaTeta, double deltaEta)
 		{
-            deltaEta = deltaEta > 0.4 ? 0.4 : deltaEta;
-            deltaEta = deltaEta < -0.3 ? -0.3 : deltaEta;
+            deltaEta = deltaEta > 0.42 ? 0.42 : deltaEta;
+            deltaEta = deltaEta < -0.32 ? -0.32 : deltaEta;
 
             deltaTeta = deltaTeta > Math.PI / 8.0 ? Math.PI / 8.0 : deltaTeta;
             deltaTeta = deltaTeta < -Math.PI / 8.0 ? -Math.PI / 8.0 : deltaTeta;

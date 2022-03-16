@@ -350,6 +350,258 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		public void RectangularSectionTest11()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 600;
+			double concreteCover = 50;
+			int numberOfSideRebars = 5;
+
+			ReinforcedConcreteSection section = GetRectangularSection4SideRebars(width, height, rebarDiameter, concreteCover, numberOfSideRebars, numberOfSideRebars, ConcreteMaterialEN1992.C45_55);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -10 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -20 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -30 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -40 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, +10 * 1000000, +10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -20 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, +20 * 1000000, +20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -30 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+			};
+
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01), $"Force {i} fail");
+			}
+		}
+
+		[TestMethod]
+		public void RectangularSectionTest12()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 600;
+			double concreteCover = 50;
+			int numberOfSideRebars = 5;
+
+			ReinforcedConcreteSection section = GetRectangularSection4SideRebars(width, height, rebarDiameter, concreteCover, numberOfSideRebars, numberOfSideRebars, ConcreteMaterialEN1992.C45_55);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(10 * 1000, 0, 0, 0, -10 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, -20 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, -30 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, -40 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, -0 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, -0 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, -0 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, -0 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, +10 * 1000000, +10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, -20 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, +20 * 1000000, +20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, -30 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+			};
+
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01), $"Force {i} fail");
+			}
+		}
+
+		[TestMethod]
+		public void RectangularSectionTest13()
+		{
+			double rebarDiameter = 26;
+			double height = 500;
+			double width = 600;
+			double concreteCover = 50;
+			int numberOfSideRebars = 5;
+
+			ReinforcedConcreteSection section = GetRectangularSection4SideRebars(width, height, rebarDiameter, concreteCover, numberOfSideRebars, numberOfSideRebars, ConcreteMaterialEN1992.C45_55);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -10 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -20 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -30 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -40 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, +10 * 1000000, +10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -20 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, +20 * 1000000, +20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -30 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+			};
+
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01), $"Force {i} fail");
+			}
+		}
+
+		[TestMethod]
+		public void RectangularSectionTest14()
+		{
+			double rebarDiameter = 18;
+			double height = 400;
+			double width = 400;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(width, 0),
+				new Point2d(width, height),
+				new Point2d(0, height)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,350,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350,350,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(300, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+			//ExportToGmsh(section);
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(100 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -10 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -20 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -30 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -40 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, +10 * 1000000, +10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -20 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, +20 * 1000000, +20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, -30 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(100 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -10 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -20 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -30 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -40 * 1000000, -0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -40 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, +10 * 1000000, +10 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -20 * 1000000, -20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, +20 * 1000000, +20 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, -30 * 1000000, -30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				new ResultBeamForces(250 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+			};
+
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01), $"Force {i} fail");
+			}
+		}
+
+		[TestMethod]
+		public void RectangularSectionTest15()
+		{
+			double rebarDiameter = 18;
+			double height = 400;
+			double width = 400;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(width, 0),
+				new Point2d(width, height),
+				new Point2d(0, height)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(300, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, -10 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, -20 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, -30 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, -40 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, -0 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, +10 * 1000000, +10 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, -20 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, +20 * 1000000, +20 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, -30 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(100 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, -10 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, -20 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, -30 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, -40 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, -0 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, +10 * 1000000, +10 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, -20 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, +20 * 1000000, +20 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, -30 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),
+				//new ResultBeamForces(250 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, GetLocalCoordinateSystem(section)),
+			};
+
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01), $"Force {i} fail");
+			}
+		}
+
+		[TestMethod]
 		public void SquareSectionTest1()
 		{
 			double rebarDiameter = 20;
