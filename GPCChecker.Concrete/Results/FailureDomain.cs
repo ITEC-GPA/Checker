@@ -26,7 +26,7 @@ namespace GPC.Checkers.Concrete.Results
 
 		public FailureDomainPoint[][] DomainPoints => _domainPoints;
 
-		internal SectionSolver.FailureDomainAnalysisTypes FailureDomainAnalysisTypes => _analysisType;
+		public SectionSolver.FailureDomainAnalysisTypes FailureDomainAnalysisTypes => _analysisType;
 
 		#endregion
 

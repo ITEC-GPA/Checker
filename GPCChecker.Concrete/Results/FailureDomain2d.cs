@@ -23,20 +23,20 @@ namespace GPC.Checkers.Concrete.Results
 
 		#region Properties
 
-		internal FailureDomain.FailureDomainPoint[] DomainPoints => _domainPoints;
-		
+		public FailureDomain.FailureDomainPoint[] DomainPoints => _domainPoints;
+
 		/// <summary>
 		/// Dictionary of association between 3d domain points and 2d domain points
 		/// </summary>
-		internal Dictionary<FailureDomain.FailureDomainPoint, Point2d> DomainPoints2dAssociation => _domainPoints2dAssociation;
+		public Dictionary<FailureDomain.FailureDomainPoint, Point2d> DomainPoints2dAssociation => _domainPoints2dAssociation;
 
-		internal FailureDomainResult2d.DomainTypes DomainType => _domainType;
+		public FailureDomainResult2d.DomainTypes DomainType => _domainType;
 
 		#endregion
 
 		#region Constructor
 
-		internal FailureDomain2d(FailureDomain.FailureDomainPoint[] domainPoints, FailureDomainResult2d.DomainTypes domainType)
+		public FailureDomain2d(FailureDomain.FailureDomainPoint[] domainPoints, FailureDomainResult2d.DomainTypes domainType)
 		{
 			_domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
 			_domainType = domainType;
