@@ -16,7 +16,7 @@ namespace GPC.Checkers.Concrete.Results
 	{
 		#region Variables
 
-		protected readonly int _axialForceSubdivision;
+		protected int _axialForceSubdivision;
 		protected readonly FailureDomainPoint[][] _domainPoints;
 		protected readonly SectionSolver.FailureDomainAnalysisTypes _analysisType;
 
@@ -50,6 +50,11 @@ namespace GPC.Checkers.Concrete.Results
 		#endregion
 
 		#region Mesh Method
+
+		public void SetAxialForceSubdivision(int subdivision)
+		{
+			_axialForceSubdivision = subdivision;
+		}
 
 		public Mesh GetMesh()
 		{

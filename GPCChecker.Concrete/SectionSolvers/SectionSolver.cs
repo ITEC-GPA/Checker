@@ -171,7 +171,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _failureAnalysisAngularTolerance = 1.8e-3;
 
             _considerTensileConcrete = considerTensileConcrete;
-            _tetaDiscretization = 32;
+            _tetaDiscretization = 16;
 
             _gaussIntegrationQuadLowPoints = 12;
             _gaussIntegrationQuadMidPoints = 49;
@@ -380,7 +380,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#region Public Setter
 
-		public void SetTetaDiscretization(double teta)
+		public void SetTetaDiscretization(int teta)
 		{
             _tetaDiscretization = teta;
 		}
