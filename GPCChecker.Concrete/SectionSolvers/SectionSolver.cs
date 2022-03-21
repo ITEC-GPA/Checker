@@ -168,7 +168,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
-            _failureAnalysisAngularTolerance = 1e-3;
+            _failureAnalysisAngularTolerance = 1.8e-3;
 
             _considerTensileConcrete = considerTensileConcrete;
             _tetaDiscretization = 32;
@@ -1205,7 +1205,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
             {
                 failureIndex = FailureZones.F4;
-                eta = 1.0;
+                eta = 0.9;
             }
             else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-2 && Math.Abs(adimOutputForces.My) < 1e-2)
             {
@@ -1220,7 +1220,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
             {
                 failureIndex = FailureZones.F4;
-                eta = 0.1;
+                eta = 0.2;
             }
 
             int id = 1;
@@ -1532,8 +1532,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double dT;
                 double dE;
 
-                if (dTeta >= 0.01)
+                if (dTeta >= 0.011)
                     dT = 0.05;
+                else if (dTeta == 0.01)
+                    dT = 0.1;
                 else if (dTeta >= 0.001)
                     dT = 0.15;
                 else
