@@ -376,20 +376,29 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return CalculateDomainPoint(targetLocalForces, FailureDomainAnalysisTypes.Elastic, _failureAnalysisAngularTolerance);
         }
 
-        #endregion
+		#endregion
 
-        #region Protected method - SectionIntegration
+		#region Public Setter
 
-        /// <summary>
-        /// Calculate the stress resultant of the concrete part
-        /// </summary>
-        /// <param name="strainPlane">The strain plane</param>
-        /// <returns>
-        /// <para>The axial force resultant</para>
-        /// <para>The bending moment about X-axis resultant</para>
-        /// <para>The bending moment about Y-axis resultant</para>
-        /// </returns>
-        protected virtual ForceTuple IntegrateSectionStress(StrainPlane strainPlane)
+		public void SetTetaDiscretization(double teta)
+		{
+            _tetaDiscretization = teta;
+		}
+
+		#endregion
+
+		#region Protected method - SectionIntegration
+
+		/// <summary>
+		/// Calculate the stress resultant of the concrete part
+		/// </summary>
+		/// <param name="strainPlane">The strain plane</param>
+		/// <returns>
+		/// <para>The axial force resultant</para>
+		/// <para>The bending moment about X-axis resultant</para>
+		/// <para>The bending moment about Y-axis resultant</para>
+		/// </returns>
+		protected virtual ForceTuple IntegrateSectionStress(StrainPlane strainPlane)
         {
             double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
             double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
