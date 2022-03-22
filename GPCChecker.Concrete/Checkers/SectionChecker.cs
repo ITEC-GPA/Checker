@@ -24,6 +24,8 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public SectionOptions SectionCheckerOptions => (SectionOptions)_options;
 
+        public SectionSolver SectionSolver => _solver;
+
 
         /// <param name="checkerAttribute">This rapresent one section and multiple forces applied</param>
         /// <param name="options"></param>
