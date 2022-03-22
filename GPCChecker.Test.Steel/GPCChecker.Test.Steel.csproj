@@ -65,8 +65,8 @@
     <Reference Include="GPCGeometry, Version=1.1.3.7, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\GPCGeometry.1.1.3.7\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.1.6.6, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.1.6.6\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.1.6.7, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.1.6.7\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.7, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.7\lib\net472\GPCTestUtilities.dll</HintPath>
