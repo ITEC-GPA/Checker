@@ -261,10 +261,18 @@ namespace GPC.Checkers.Concrete.Results
 							newDomain[dTeta][dEta] = minPoint;
 							break;
 						}
+						else if (i == 0 && _analysisType == SectionSolver.FailureDomainAnalysisTypes.Plastic)
+						{
+							newDomain[dTeta][dEta] = maxPoint;
+							startingCount[dEta + 1] = i + 1;
+							break;
+						}
 						else
 						{
-							if (failureDomain.DomainPoints[dTeta][i].NRd >= nRd - tolerance &&
-								failureDomain.DomainPoints[dTeta][i + 1].NRd <= nRd + tolerance)
+							if ((failureDomain.DomainPoints[dTeta][i].NRd >= nRd - tolerance &&
+								failureDomain.DomainPoints[dTeta][i + 1].NRd <= nRd + tolerance) ||
+								(failureDomain.DomainPoints[dTeta][i].NRd <= nRd - tolerance &&
+								failureDomain.DomainPoints[dTeta][i + 1].NRd >= nRd + tolerance))
 							{
 								if (Math.Abs(failureDomain.DomainPoints[dTeta][i].NRd - failureDomain.DomainPoints[dTeta][i + 1].NRd) < tolerance)
 								{
