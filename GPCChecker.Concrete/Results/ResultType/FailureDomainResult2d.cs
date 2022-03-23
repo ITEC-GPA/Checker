@@ -24,7 +24,7 @@ namespace GPC.Checkers.Concrete.Results
         protected readonly SectionSolver _sectionSolver;
         protected readonly FailureDomain2d _failureDomain2d;
         protected readonly DomainTypes _domainType;
-        protected readonly CoordinateSystem _coordinateSystem;
+        protected readonly Checkers.SectionChecker.SectionOptions _sectionOption;
         protected List<FailureDomain.FailureDomainForce> _forces;
 
         public FailureDomain2d Domain => _failureDomain2d;
@@ -35,7 +35,7 @@ namespace GPC.Checkers.Concrete.Results
             IEnumerable<ResultBeamForces> forces,
             SectionSolver solver,
             Standard standard,
-            CoordinateSystem coordinateSystem,
+            Checkers.SectionChecker.SectionOptions options,
             int id = IDUNASSIGNED)
             : base(section, standard, id)
         {
@@ -43,7 +43,7 @@ namespace GPC.Checkers.Concrete.Results
             _sectionSolver = solver ?? throw new ArgumentNullException(nameof(solver));
             _forces = new List<FailureDomain.FailureDomainForce>();
             _domainType = failureDomain.DomainType;
-            _coordinateSystem = coordinateSystem;
+            _sectionOption = options;
             if (forces != null)
             {
                 var forcesList = forces.ToList();
@@ -61,7 +61,7 @@ namespace GPC.Checkers.Concrete.Results
             _sectionSolver = (SectionSolver)info.GetValue("SectionSolver", typeof(SectionSolver));
             _failureDomain2d = (FailureDomain2d)info.GetValue("FailureDomain2d", typeof(FailureDomain2d));
             _domainType = (DomainTypes)info.GetValue("DomainTypes", typeof(DomainTypes));
-            _coordinateSystem = (CoordinateSystem)info.GetValue("CoordinateSystem", typeof(CoordinateSystem));
+            _sectionOption = (Checkers.SectionChecker.SectionOptions)info.GetValue("SectionOption", typeof(Checkers.SectionChecker.SectionOptions));
             _forces = (List<FailureDomain.FailureDomainForce>)info.GetValue("Forces", typeof(List<FailureDomain.FailureDomainForce>));
         }
 
@@ -226,7 +226,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <returns></returns>
         protected Point2d ConvertForceToPoint(ResultBeamForces force)
 		{
-            ForceTuple forceTuple = force.ConvertToForceTuple(_coordinateSystem);
+            ForceTuple forceTuple = force.ConvertToForceTuple(_sectionOption.ForceReferenceCoordinateSystem);
 
             if (_domainType == DomainTypes.CostantN)            
                 return new Point2d(forceTuple.Mx, forceTuple.My);            
@@ -277,7 +277,7 @@ namespace GPC.Checkers.Concrete.Results
                    EqualityComparer<SectionSolver>.Default.Equals(_sectionSolver, result._sectionSolver) &&
                    EqualityComparer<FailureDomain2d>.Default.Equals(_failureDomain2d, result._failureDomain2d) &&
                    EqualityComparer<DomainTypes>.Default.Equals(_domainType, result._domainType) &&
-                   EqualityComparer<CoordinateSystem>.Default.Equals(_coordinateSystem, result._coordinateSystem);
+                   EqualityComparer<Checkers.SectionChecker.SectionOptions>.Default.Equals(_sectionOption, result._sectionOption);
         }
 
         public override int GetHashCode()
@@ -289,7 +289,7 @@ namespace GPC.Checkers.Concrete.Results
                 hashCode = hashCode * -17 + _sectionSolver.GetHashCode();
                 hashCode = hashCode * -17 + _failureDomain2d.GetHashCode();
                 hashCode = hashCode * -17 + _domainType.GetHashCode();
-                hashCode = hashCode * -17 + _coordinateSystem.GetHashCode();
+                hashCode = hashCode * -17 + _sectionOption.GetHashCode();
                 return hashCode;
             }
         }
@@ -300,7 +300,7 @@ namespace GPC.Checkers.Concrete.Results
             info.AddValue("SectionSolver", _sectionSolver);
             info.AddValue("FailureDomain2d", _failureDomain2d);
             info.AddValue("DomainTypes", _domainType);
-            info.AddValue("CoordinateSystem", _coordinateSystem);
+            info.AddValue("SectionOption", _sectionOption);
             info.AddValue("Forces", _forces);
         }
 
