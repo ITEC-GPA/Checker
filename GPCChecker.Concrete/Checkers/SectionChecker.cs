@@ -55,7 +55,6 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The failure domain results</returns>
         public abstract Task<FailureDomainResult2d> GetPlasticFailureDomainResult2dAsync();
 
-
         /// <summary>
         /// Calculate the elastic failure domain and calculate the domain point for each forces
         /// </summary>
@@ -152,24 +151,30 @@ namespace GPC.Checkers.Concrete.Checkers
         {
             public CoordinateSystem ForceReferenceCoordinateSystem { get; }
 
+            public SectionSolver.FailureAnalysisTypes FailureAnalysisType;
+
             public SectionOptions()
             {
                 ForceReferenceCoordinateSystem = CoordinateSystem.Global;
             }
 
-            public SectionOptions(CoordinateSystem forceReferencePointCoordinateSystem)
+            public SectionOptions(CoordinateSystem forceReferencePointCoordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType)
             {
                 ForceReferenceCoordinateSystem = forceReferencePointCoordinateSystem;
+                FailureAnalysisType = failureAnalysisType;
             }
 
             protected SectionOptions(SerializationInfo info, StreamingContext context) 
             {
                 ForceReferenceCoordinateSystem = (CoordinateSystem)info.GetValue("ForceReferenceCoordinateSystem", typeof(CoordinateSystem));
+                FailureAnalysisType = (SectionSolver.FailureAnalysisTypes)info.GetValue("FailureAnalysisType", typeof(SectionSolver.FailureAnalysisTypes));
             }
 
             public override bool Equals(object obj)
             {
-                return obj is SectionOptions options && ForceReferenceCoordinateSystem.Equals(options.ForceReferenceCoordinateSystem);
+                return obj is SectionOptions options && 
+                    ForceReferenceCoordinateSystem.Equals(options.ForceReferenceCoordinateSystem) &&
+                    FailureAnalysisType.Equals(options.FailureAnalysisType);
             }
 
             public override int GetHashCode()
@@ -178,6 +183,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     int hashCode = -17;
                     hashCode = hashCode * -23 + ForceReferenceCoordinateSystem.GetHashCode();
+                    hashCode = hashCode * -23 + FailureAnalysisType.GetHashCode();
                     return hashCode; 
                 }
             }
@@ -185,6 +191,7 @@ namespace GPC.Checkers.Concrete.Checkers
             public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
             {
                 info.AddValue("ForceReferenceCoordinateSystem", ForceReferenceCoordinateSystem);
+                info.AddValue("FailureAnalysisType", FailureAnalysisType);
             }
 
             public static bool operator ==(SectionOptions left, SectionOptions right)
