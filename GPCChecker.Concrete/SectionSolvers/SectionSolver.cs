@@ -117,11 +117,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             F4 = 6,
         }
 
-        public enum FailureDomainAnalysisTypes
+        public enum FailureDomainTypes
 		{
             Elastic,
             Plastic,
 		}
+
+        public enum FailureAnalysisTypes
+        {
+            CostantN,
+            CostantForceRatio,
+        }
 
         #endregion
 
