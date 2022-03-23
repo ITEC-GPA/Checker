@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
@@ -38,13 +39,13 @@ namespace ConcreteTests
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular, forces.ToArray(), null);
 			SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(concreteSectionRectangular, new StandardEN1992p11());
 
-			var slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray(), GetLocalCoordinateSystem(concreteSectionRectangular));
+			var slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray(), 
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)));
 
 			Action ac0 = new Action(() =>
 				{
 					sectionSolverModelCode2010Test.IntegrateSectionStressTest(slsResult.Select(i => i.StrainPlane).First());
-				}
-			);
+				});
 						
 			var bb0 = MeasureTime.FunctionExecutionTime(20, ac0, true); ;
 
@@ -60,7 +61,7 @@ namespace ConcreteTests
 
 			Action ac0 = new Action(() =>
 			{
-				solver.GetPlasticFailureDomainResult(GetLocalCoordinateSystem(section));
+				solver.GetPlasticFailureDomainResult(new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section)));
 			});
 
 			var bb0 = MeasureTime.FunctionExecutionTime(10, ac0, true); ;

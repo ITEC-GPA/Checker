@@ -221,7 +221,7 @@ namespace ConcreteTests
 		protected CoordinateSystem GetLocalCoordinateSystem(IConcreteSection section)
 		{
             return new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis);
-		}
+        }
 
         protected ConcreteMaterialEN1992 GetLinearConcreteMaterial(double elasticModulus)
 		{
@@ -374,8 +374,8 @@ namespace ConcreteTests
             return true;
         }
 
-        protected bool CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard, 
-            CoordinateSystem coordinateSystem, double adimTolerance = 0.005,
+        protected bool CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
+			GPC.Checkers.Concrete.Checkers.SectionChecker.SectionOptions options, double adimTolerance = 0.005,
 			double[] factor = null)
 		{
 			if (factor == null)
@@ -390,8 +390,11 @@ namespace ConcreteTests
 			{
 				for (j = 0; j < factor.Length; j++)
 				{
-					testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-					failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem));
+                    if(options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.CostantForceRatio)
+                        testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
+                    else
+                        testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
+                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem), options.FailureAnalysisType);
 				}
 			}
 			catch (Exception e)
@@ -420,9 +423,9 @@ namespace ConcreteTests
 					Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance,
 						$"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
 
-					Console.WriteLine($"Point {i} = {Math.Round(failureDomainPoints[i].Point.X / 1000000)}, " +
-						$"{Math.Round(failureDomainPoints[i].Point.Y / 1000000)}, " +
-						$"{Math.Round(failureDomainPoints[i].Point.Z / 1000)}");
+					Console.WriteLine($"Point {i} = {Math.Round(failureDomainPoints[i].Point.X / 1000000, 2)}, " +
+						$"{Math.Round(failureDomainPoints[i].Point.Y / 1000000, 2)}, " +
+						$"{Math.Round(failureDomainPoints[i].Point.Z / 1000, 2)}");
                     Console.WriteLine($"Number of iteraction: {failureDomainPoints[i].StrainPlane.Id} \n");
 
 
@@ -1089,9 +1092,10 @@ namespace ConcreteTests
                 return base.CalculateStressRebar(rebar, strain);
             }
 
-            internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces)
+            internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces,
+                FailureAnalysisTypes failureAnalysisType = FailureAnalysisTypes.CostantForceRatio)
             {
-                return base.CalculatePlasticDomainPoint(targetLocalForces);
+                return base.CalculatePlasticDomainPoint(targetLocalForces, failureAnalysisType);
             }
 
             internal ForceTuple IntegrateSectionStressTest(StrainPlane strainPlane)

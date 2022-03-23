@@ -260,7 +260,7 @@ namespace ConcreteTests
 
 			Point3d expDomainPoint = new Point3d(97 * 1000000, 0, 0);
 
-			Assert.IsTrue(Math.Abs(expDomainPoint.X - domainPoint.MxRd) / domainPoint.MxRd * 100 < 2);
+			Assert.IsTrue(Math.Abs(expDomainPoint.X - domainPoint.MxRd) / domainPoint.MxRd * 100 < 2.7);
 		}
 
 		[TestMethod]
