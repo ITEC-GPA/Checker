@@ -18,7 +18,7 @@ namespace GPC.Checkers.Concrete.Results
 
 		protected int _axialForceSubdivision;
 		protected readonly FailureDomainPoint[][] _domainPoints;
-		protected readonly SectionSolver.FailureDomainAnalysisTypes _analysisType;
+		protected readonly SectionSolver.FailureDomainTypes _analysisType;
 
 		#endregion
 
@@ -26,13 +26,14 @@ namespace GPC.Checkers.Concrete.Results
 
 		public FailureDomainPoint[][] DomainPoints => _domainPoints;
 
-		public SectionSolver.FailureDomainAnalysisTypes FailureDomainAnalysisTypes => _analysisType;
+		public SectionSolver.FailureDomainTypes FailureDomainAnalysisTypes => _analysisType;
+
 
 		#endregion
 
 		#region Constructor
 
-		public FailureDomain(FailureDomainPoint[][] domainPoints, SectionSolver.FailureDomainAnalysisTypes analysisType)
+		public FailureDomain(FailureDomainPoint[][] domainPoints, SectionSolver.FailureDomainTypes analysisType)
 		{
 			_domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
 			_axialForceSubdivision = 50;
@@ -43,7 +44,7 @@ namespace GPC.Checkers.Concrete.Results
 			: base(info, context)
 		{
 			_axialForceSubdivision = info.GetInt32("AxialForceSubdivision");
-			_analysisType = (SectionSolver.FailureDomainAnalysisTypes)info.GetValue("AnalysisType", typeof(SectionSolver.FailureDomainAnalysisTypes));
+			_analysisType = (SectionSolver.FailureDomainTypes)info.GetValue("AnalysisType", typeof(SectionSolver.FailureDomainTypes));
 			_domainPoints = (FailureDomainPoint[][])info.GetValue("FailureDomainPoints", typeof(FailureDomainPoint[][]));
 		}
 
@@ -261,7 +262,7 @@ namespace GPC.Checkers.Concrete.Results
 							newDomain[dTeta][dEta] = minPoint;
 							break;
 						}
-						else if (i == 0 && _analysisType == SectionSolver.FailureDomainAnalysisTypes.Plastic)
+						else if (i == 0 && _analysisType == SectionSolver.FailureDomainTypes.Plastic)
 						{
 							newDomain[dTeta][dEta] = maxPoint;
 							startingCount[dEta + 1] = i + 1;
@@ -280,7 +281,7 @@ namespace GPC.Checkers.Concrete.Results
 									myRd = failureDomain.DomainPoints[dTeta][i].MyRd;
 								}
 								else if (i + 2 < failureDomain.DomainPoints[dTeta].Length &&
-									_analysisType == SectionSolver.FailureDomainAnalysisTypes.Plastic &&
+									_analysisType == SectionSolver.FailureDomainTypes.Plastic &&
 									failureDomain.DomainPoints[dTeta][i].NRd < 0.0)
 								{
 									mxRd = Interpolation.GetQuadraticInterpolation(
