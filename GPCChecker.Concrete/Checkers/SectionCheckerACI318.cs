@@ -40,7 +40,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+                    var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsACI318);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -61,7 +61,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+                    var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptionsACI318);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -82,7 +82,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+                    var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsACI318);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -103,7 +103,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+                    var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptionsACI318);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -128,8 +128,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, 
-                        SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+                    return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsACI318);
                 }
                 catch (Exception)
                 {
@@ -149,7 +148,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 { 
-                    return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+                    return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsACI318);
                 }
                 catch (Exception)
                 {
@@ -169,8 +168,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 { 
-                    return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, 
-                        SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+                    return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, SectionCheckerOptionsACI318);
                 }
                 catch (Exception)
                 {
@@ -189,7 +187,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+                    return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsACI318);
                 }
                 catch (Exception)
                 {
@@ -205,7 +203,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResult"/>
         public override FailureDomainResult GetPlasticFailureDomainResult()
         {
-            var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+            var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsACI318);
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -216,7 +214,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResult2d"/>
         public override FailureDomainResult2d GetPlasticFailureDomainResult2d()
         {
-            var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+            var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptionsACI318);
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -227,7 +225,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResult"/>
         public override FailureDomainResult GetElasticFailureDomainResult()
         {
-            var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+            var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsACI318);
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -238,7 +236,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResult2d"/>
         public override FailureDomainResult2d GetElasticFailureDomainResult2d()
         {
-            var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+            var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptionsACI318);
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -252,7 +250,7 @@ namespace GPC.Checkers.Concrete.Checkers
             if (_checkerAttributes.SLSResults is null)
                 return null;
 
-            return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+            return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptionsACI318);
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(double)"/>
@@ -263,19 +261,19 @@ namespace GPC.Checkers.Concrete.Checkers
                 return null;
 
             return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, 
-                SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+                SectionCheckerOptionsACI318);
         }
 
         /// <inheritdoc cref="SectionChecker.GetStressAnalysisResult(ResultBeamForces)"/>
         public override StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
 		{
-            return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+            return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsACI318);
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(ResultBeamForces, double)"/>
         public override StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi)
 		{
-            return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem);
+            return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsACI318);
         }
 
         #endregion
@@ -284,8 +282,8 @@ namespace GPC.Checkers.Concrete.Checkers
         [Serializable]
         public class SectionOptionsStandardACI318 : SectionOptions, ISerializable
         {
-            public SectionOptionsStandardACI318(CoordinateSystem coordinateSystem)
-                : base(coordinateSystem)
+            public SectionOptionsStandardACI318(CoordinateSystem coordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType = SectionSolver.FailureAnalysisTypes.CostantForceRatio)
+                : base(coordinateSystem, failureAnalysisType)
             {
 
             }
