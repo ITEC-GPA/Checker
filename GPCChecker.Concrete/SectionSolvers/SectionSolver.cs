@@ -392,11 +392,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return CalculateDomainPoint(targetLocalForces, FailureDomainTypes.Elastic, failureAnalysisType, _failureAnalysisAngularTolerance);
         }
 
-		#endregion
+        #endregion
 
-		#region Public Setter
+        #region Public Setter
 
-		public void SetTetaDiscretization(int teta)
+        public void SetTetaDiscretization(int teta)
 		{
             _tetaDiscretization = teta;
 		}
@@ -1193,13 +1193,153 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Protected method - Point on failure domain
 
-        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(Vector3d vector, FailureDomainAnalysisTypes analysisType,
+        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, FailureDomainTypes analysisType, FailureAnalysisTypes failureAnalysisType,
+            double angularTolerance = 1e-3)
+		{
+            if (failureAnalysisType == FailureAnalysisTypes.CostantForceRatio)
+                return CalculateDomainPoint(targetLocalForces, analysisType, angularTolerance);
+            else if (failureAnalysisType == FailureAnalysisTypes.CostantN)
+                return CalculateDomainPointCostantN(targetLocalForces, analysisType, angularTolerance);
+            else
+                return null;
+		}
+
+        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPointCostantN(ForceTuple targetLocalForces, FailureDomainTypes analysisType,
             double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
 		{
-            return CalculateDomainPoint(vector, analysisType, angularTolerance, distanceTolerance);
+            Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
+
+            ForceTuple adimOutputForces = ConvertToAdimensionalForces(targetLocalForces);
+            Vector3d vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, 0.0);
+
+            // Valori di primo tentativo
+            FailureZones failureIndex;
+            double eta;
+            double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
+
+            if (adimOutputForces.N > 0.0)
+            {
+                failureIndex = FailureZones.F3A;
+                eta = 0.1;
+            }
+            else if (adimOutputForces.N < 0.2)
+            {
+                failureIndex = FailureZones.F3A;
+                eta = 0.75;
+            }
+            else if (adimOutputForces.N < 0.4)
+            {
+                failureIndex = FailureZones.F4;
+                eta = 0.25;
+            }
+            else if (adimOutputForces.N < 0.6)
+            {
+                failureIndex = FailureZones.F4;
+                eta = 0.5;
+            }
+            else if (adimOutputForces.N < 1)
+            {
+                failureIndex = FailureZones.F4;
+                eta = 0.75;
+            }
+            else
+            {
+                failureIndex = FailureZones.F3A;
+                eta = 0.5;
+            }
+
+            int id = 1;
+            var distances = CalculateMaxMinSectionDistances(teta);
+
+            var p1 = GetP1(distances, analysisType);
+            var p2 = GetP2(distances, analysisType);
+            var p3 = GetP3(distances, analysisType);
+            var p4 = GetP4(distances, analysisType);
+
+            StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, id);
+
+            teta = strainPlane.Teta;
+
+            ForceTuple forces = CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
+
+            (double deltaTeta, double deltaEta, Vector3d distanceToTarget) increment;
+
+            double angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
+                targetLocalForces.My / 1000000, 0));
+            ForceTuple adimIncrement = ConvertToAdimensionalForces(forces-targetLocalForces);
+
+            if (Math.Abs(angle) > angularTolerance || Math.Abs(adimIncrement.N) > distanceTolerance)
+            {
+                do
+                {
+                    if (id < 100)
+                    {
+                        Line3d externalForcesLine = new Line3d(new Point3d(0, 0, targetLocalForces.N), targetLocalForces);
+                        try
+                        {
+                            increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, externalForcesLine, angle,
+                                analysisType, rebarIsInsideAssociation);
+                        }
+                        catch (Exception e)
+                        {
+                            _log.Add(e.Message);
+                            if (e.InnerException != null)
+                                _log.Add(e.InnerException.Message);
+                            return null;
+                        }
+
+                        SetIncrement(analysisType, ref failureIndex, ref teta, ref eta, increment.deltaTeta, increment.deltaEta);
+
+                        distances = CalculateMaxMinSectionDistances(teta);
+
+                        p1 = GetP1(distances, analysisType);
+                        p2 = GetP2(distances, analysisType);
+                        p3 = GetP3(distances, analysisType);
+                        p4 = GetP4(distances, analysisType);
+
+                        id++;
+                        strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, id);
+                        forces = CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
+
+                        ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
+                        adimIncrement = ConvertToAdimensionalForces(incrementForce);
+
+                        angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(vectorEd);
+
+                        if ((Math.Abs(adimIncrement.N) < distanceTolerance &&
+                            Math.Abs(adimIncrement.Mx) < distanceTolerance &&
+                            Math.Abs(adimIncrement.My) < distanceTolerance))
+                            break;
+                    }
+                    else
+                    {
+                        FailureDomain.FailureDomainPoint domainPoint = null;
+                        try
+                        {
+                            FailureDomain.FailureDomainPoint domainPointBuffer = CalculateDomainPoint(targetLocalForces, analysisType,
+                                10 * angularTolerance, 10 * distanceTolerance);
+
+                            if (domainPointBuffer != null)
+                                domainPoint = domainPointBuffer;
+                            else
+                            {
+                                _log.Add("Fail to calculate point on domain");
+                                return domainPoint;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            _log.Add("Fail to calculate point on domain");
+                            return domainPoint;
+                        }
+                    }
+                } while (Math.Abs(angle) > angularTolerance || Math.Abs(adimIncrement.N) > distanceTolerance);
+            }
+
+            return new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
         }
 
-        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, FailureDomainAnalysisTypes analysisType, 
+        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, FailureDomainTypes analysisType, 
             double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
         {
             Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
@@ -1268,15 +1408,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000, 
                 targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
 
-            if (angle > angularTolerance)
+            if (Math.Abs(angle) > angularTolerance)
             {
                 do
                 {
                     if (id < 100)
                     {
+                        Line3d externalForcesLine = new Line3d(new Point3d(0, 0, 0), targetLocalForces);
                         try
                         {
-                            increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, targetLocalForces, angle,
+                            increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, externalForcesLine, angle,
                                 analysisType, rebarIsInsideAssociation);
                         }
                         catch (Exception e)
@@ -1332,18 +1473,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             return domainPoint;
                         }
                     }
-                } while (angle > angularTolerance);
+                } while (Math.Abs(angle) > angularTolerance);
             }
 
             return new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
         }
 
         protected (double deltaTeta, double deltaEta, Vector3d distanceToTarget) CalculateIncrement(ForceTuple iterationPoint,
-            StrainPlane inputStrainPlane, FailureZones inputFailureZone, double inputImmersioneNelCampo, ForceTuple externalForces, 
-            double deltaAngle, FailureDomainAnalysisTypes analysisType, Dictionary<int, bool> rebarIsInsideAssociation)
+            StrainPlane inputStrainPlane, FailureZones inputFailureZone, double inputImmersioneNelCampo, Line3d externalForcesLine, 
+            double deltaAngle, FailureDomainTypes analysisType, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             var adimIteractionPoint = ConvertToAdimensionalForces(iterationPoint);
-            Line3d externalForcesLine = new Line3d(new Point3d(0, 0, 0), externalForces);
 
             double dTeta;
             double dEta;
