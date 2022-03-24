@@ -106,7 +106,7 @@ namespace ConcreteTests
 				new Point2d(0, 500)
 			}));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -122,7 +122,7 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 			section.AddRebars(rebars);
-			StandardEN1992p11 standard = new StandardEN1992p11();
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
@@ -137,44 +137,44 @@ namespace ConcreteTests
 
 			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
-				-1238.07	-167.946	0			0
-				-1238.07	-167.946	0			0
-				-1238.07	-167.946	0			0
-				-1238.07	-167.946	0			0
-				-1210.06	-161.031	0			0
-				-1154.63	-147.587	0			0
-				-1099.66	-134.642	0			0
-				-1049.25	-123.146	0			0
-				23.2394		93.24		0			0
-				1553.29		391.791		0			0
-				1731.92		417.183		0			0
-				2029.99		450.008		0			0
-				2627.37		479.864		0			0
-				2998.8		461.326		0			0
-				3485.28		422.426		0			0
-				4171.02		330.734		0			0
-				4631.74		247.27		0			0
-				4930.56		192.712		0			0
-				5063.07		167.946		0			0
-				5063.07		167.946		0			0
-				4713.18		99.7023		0			0
-				4178.29		-2.06773	0			0
-				3481.51		-132.744	0			0
-				2465.78		-290.433	0			0
-				1649.33		-395.329	0			0
-				947.912		-479.864	0			0
-				350.534		-450.008	0			0
-				52.4623		-417.183	0			0
-				-126.174	-391.791	0			0
-				-755.328	-273.418	0			0
-				-1049.25	-212.745	0			0
-				-1099.66	-201.25		0			0
-				-1154.63	-188.305	0			0
-				-1210.06	-174.861	0			0
-				-1238.07	-167.946	0			0
-				-1238.07	-167.946	0			0
-				-1238.07	-167.946	0			0
-				-1238.07	-167.946	0			0
+				-1454.46	124.668	
+				-1454.46	124.668	
+				-1454.46	124.668	
+				-1454.46	124.668	
+				-1426.44	131.583	
+				-1371.02	145.027	
+				-1316.05	157.972	
+				-1265.64	169.468	
+				-771.089	270.266	
+				90.2149		435.069	
+				268.851		460.461	
+				566.922		493.286	
+				1164.3		523.141	
+				1865.72		438.607	
+				2682.17		333.71	
+				3697.9		176.022	
+				4394.68		45.3455		
+				4929.56		-56.4245	
+				5279.46		-124.668	
+				5279.46		-124.668	
+				5090.94		-160.638	
+				4731.28		-227.362	
+				4209.73		-322.992	
+				3438.95		-431.69		
+				2867.45		-487.597	
+				2410.98		-523.141	
+				1813.6		-493.286	
+				1515.53		-460.461	
+				1336.9		-435.069	
+				-193.149	-136.518	
+				-1265.64	79.8686		
+				-1316.05	91.3644		
+				-1371.02	104.309		
+				-1426.44	117.753		
+				-1454.46	124.668		
+				-1454.46	124.668		
+				-1454.46	124.668		
+				-1454.46	124.668		
 			*/
 		}
 
