@@ -138,7 +138,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <inheritdoc cref="SectionSolver.CalculateStressRebar(ReinforcedConcreteRebar, double)"/>
         internal override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
         {
-            return StandardModelCode2010.CalculateDesignStressRebar(strain, rebar.RebarMaterial);
+            return StandardModelCode2010.CalculateDesignStressRebar(rebar, strain);
         }
 
         protected override double GetReductionFactor(StrainPlane strainPlane)
