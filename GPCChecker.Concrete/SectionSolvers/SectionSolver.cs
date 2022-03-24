@@ -174,7 +174,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
-            _failureAnalysisAngularTolerance = 1.8e-3;
+            _failureAnalysisAngularTolerance = 1.0e-3;
 
             _considerTensileConcrete = considerTensileConcrete;
             _tetaDiscretization = 16;
@@ -1313,11 +1313,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
                 targetLocalForces.My / 1000000, 0));
 
-            bool axialForceCheck = false;
-            if (Math.Abs(adimIncrement.N) < distanceTolerance)
-                axialForceCheck = true;
+            bool exit = false;
+            if (failureAnalysisType == FailureAnalysisTypes.CostantN)
+            {
+                if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
+                    exit = true;
+            }
+            else if (failureAnalysisType == FailureAnalysisTypes.CostantForceRatio)
+            {
+                if (Math.Abs(angle) < angularTolerance)
+                    exit = true;
+            }
 
-            if (Math.Abs(angle) > angularTolerance || axialForceCheck)
+
+            if (!exit)
             {
                 do
                 {
@@ -1366,7 +1375,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         if ((Math.Abs(adimIncrement.N) < distanceTolerance &&
                             Math.Abs(adimIncrement.Mx) < distanceTolerance &&
                             Math.Abs(adimIncrement.My) < distanceTolerance))
-                            break;
+                            break;                   
                     }
                     else
                     {
@@ -1390,7 +1399,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             return domainPoint;
                         }
                     }
-                } while (Math.Abs(angle) > angularTolerance || axialForceCheck);
+
+                    if (failureAnalysisType == FailureAnalysisTypes.CostantN)
+                    {
+                        if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
+                            exit = true;
+                    }
+                    else if (failureAnalysisType == FailureAnalysisTypes.CostantForceRatio)
+                    {
+                        if (Math.Abs(angle) < angularTolerance)
+                            exit = true;
+                    }
+
+                } while (!exit);
             }
 
             return new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
@@ -1789,7 +1810,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance * tolerance)
             {
                 FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, 
-                    FailureDomainTypes.Plastic, FailureAnalysisTypes.CostantN, 2.0 * _failureAnalysisAngularTolerance);
+                    FailureDomainTypes.Plastic, FailureAnalysisTypes.CostantForceRatio, 2.0 * _failureAnalysisAngularTolerance);
 
                 if(pointOnDomain != null)
 				{
