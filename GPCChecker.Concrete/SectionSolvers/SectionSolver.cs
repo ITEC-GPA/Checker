@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -125,8 +126,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public enum FailureAnalysisTypes
         {
-            CostantN,
-            CostantForceRatio,
+            [Description("Costant axial force and moment eccentricity")]
+            ConstantN,
+            [Description("Costant moment eccentricity")]
+            ConstantForceRatio,
         }
 
         #endregion
@@ -1206,9 +1209,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             ForceTuple adimOutputForces = ConvertToAdimensionalForces(targetLocalForces);
             
             Vector3d vectorEd = null;
-            if (failureAnalysisType == FailureAnalysisTypes.CostantForceRatio)
+            if (failureAnalysisType == FailureAnalysisTypes.ConstantForceRatio)
                 vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, targetLocalForces.N / 1000);
-            else if (failureAnalysisType == FailureAnalysisTypes.CostantN)
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
                 vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, 0.0);
 
             // Valori di primo tentativo
@@ -1216,7 +1219,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double eta = 0.5;
             double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
-            if (failureAnalysisType == FailureAnalysisTypes.CostantForceRatio)
+            if (failureAnalysisType == FailureAnalysisTypes.ConstantForceRatio)
             {
                 if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
                 {
@@ -1254,7 +1257,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     eta = 0.2;
                 }
             }
-            else if (failureAnalysisType == FailureAnalysisTypes.CostantN)
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
 			{
                 if (adimOutputForces.N > 0.0)
                 {
@@ -1306,20 +1309,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (double deltaTeta, double deltaEta, Vector3d distanceToTarget) increment;
 
             double angle = -1;
-            if (failureAnalysisType == FailureAnalysisTypes.CostantForceRatio)
+            if (failureAnalysisType == FailureAnalysisTypes.ConstantForceRatio)
                 angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000, 
                     targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
-            else if (failureAnalysisType == FailureAnalysisTypes.CostantN)
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
                 angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
                 targetLocalForces.My / 1000000, 0));
 
             bool exit = false;
-            if (failureAnalysisType == FailureAnalysisTypes.CostantN)
+            if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
             {
                 if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
                     exit = true;
             }
-            else if (failureAnalysisType == FailureAnalysisTypes.CostantForceRatio)
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantForceRatio)
             {
                 if (Math.Abs(angle) < angularTolerance)
                     exit = true;
@@ -1333,9 +1336,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     if (id < 100)
                     {
                         Line3d externalForcesLine = null;
-                        if (failureAnalysisType == FailureAnalysisTypes.CostantForceRatio)
+                        if (failureAnalysisType == FailureAnalysisTypes.ConstantForceRatio)
                             externalForcesLine = new Line3d(new Point3d(0, 0, 0), targetLocalForces);
-                        else if (failureAnalysisType == FailureAnalysisTypes.CostantN)
+                        else if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
                             externalForcesLine = new Line3d(new Point3d(0, 0, targetLocalForces.N), targetLocalForces);
 
                         try
@@ -1367,9 +1370,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
                         adimIncrement = ConvertToAdimensionalForces(incrementForce);
 
-                        if (failureAnalysisType == FailureAnalysisTypes.CostantForceRatio)
+                        if (failureAnalysisType == FailureAnalysisTypes.ConstantForceRatio)
                             angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
-                        else if (failureAnalysisType == FailureAnalysisTypes.CostantN)
+                        else if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
                             angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(vectorEd);
 
                         if ((Math.Abs(adimIncrement.N) < distanceTolerance &&
@@ -1400,12 +1403,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         }
                     }
 
-                    if (failureAnalysisType == FailureAnalysisTypes.CostantN)
+                    if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
                     {
                         if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
                             exit = true;
                     }
-                    else if (failureAnalysisType == FailureAnalysisTypes.CostantForceRatio)
+                    else if (failureAnalysisType == FailureAnalysisTypes.ConstantForceRatio)
                     {
                         if (Math.Abs(angle) < angularTolerance)
                             exit = true;
@@ -1810,7 +1813,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance * tolerance)
             {
                 FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, 
-                    FailureDomainTypes.Plastic, FailureAnalysisTypes.CostantForceRatio, 2.0 * _failureAnalysisAngularTolerance);
+                    FailureDomainTypes.Plastic, FailureAnalysisTypes.ConstantForceRatio, 2.0 * _failureAnalysisAngularTolerance);
 
                 if(pointOnDomain != null)
 				{

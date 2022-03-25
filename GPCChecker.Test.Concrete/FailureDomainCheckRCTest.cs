@@ -635,7 +635,7 @@ namespace ConcreteTests
 			for (int i = 0; i < forces.Length; i++)
 			{
 				CommonAssertDomainPointMethod(section, forces[i], standard, 
-					new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.CostantN));
+					new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN));
 			}
 		}
 

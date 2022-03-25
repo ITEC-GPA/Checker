@@ -390,7 +390,7 @@ namespace ConcreteTests
 			{
 				for (j = 0; j < factor.Length; j++)
 				{
-                    if(options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.CostantForceRatio)
+                    if(options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantForceRatio)
                         testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
                     else
                         testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
@@ -1093,7 +1093,7 @@ namespace ConcreteTests
             }
 
             internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces,
-                FailureAnalysisTypes failureAnalysisType = FailureAnalysisTypes.CostantForceRatio)
+                FailureAnalysisTypes failureAnalysisType = FailureAnalysisTypes.ConstantForceRatio)
             {
                 return base.CalculatePlasticDomainPoint(targetLocalForces, failureAnalysisType);
             }

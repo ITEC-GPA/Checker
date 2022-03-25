@@ -291,7 +291,7 @@ namespace GPC.Checkers.Concrete.Checkers
 		[Serializable]
         public class SectionOptionsModelCode2010 : SectionOptions, ISerializable
         {
-            public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType = SectionSolver.FailureAnalysisTypes.CostantForceRatio)
+            public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantForceRatio)
                 : base(coordinateSystem, failureAnalysisType)
             {
 
