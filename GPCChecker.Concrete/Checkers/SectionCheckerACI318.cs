@@ -282,7 +282,7 @@ namespace GPC.Checkers.Concrete.Checkers
         [Serializable]
         public class SectionOptionsStandardACI318 : SectionOptions, ISerializable
         {
-            public SectionOptionsStandardACI318(CoordinateSystem coordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantForceRatio)
+            public SectionOptionsStandardACI318(CoordinateSystem coordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantEccentricity)
                 : base(coordinateSystem, failureAnalysisType)
             {
 
