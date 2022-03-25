@@ -5,8 +5,8 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using GPC.Checkers.Concrete.Helper;
-using GPC.Checkers.Concrete.Results;
+using MathNet.Numerics.LinearAlgebra;
+using GPC.Utilities.Converters;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model;
@@ -15,7 +15,8 @@ using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
-using MathNet.Numerics.LinearAlgebra;
+using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Results;
 
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
@@ -124,10 +125,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Plastic,
 		}
 
+        [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum FailureAnalysisTypes
         {
             [Description("Costant axial force and eccentricity")]
             ConstantN,
+
             [Description("Costant eccentricity")]
             ConstantEccentricity,
         }
