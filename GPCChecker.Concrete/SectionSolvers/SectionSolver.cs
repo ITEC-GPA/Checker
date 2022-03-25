@@ -128,10 +128,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum FailureAnalysisTypes
         {
-            [Description("Costant axial force and eccentricity")]
+            [Description("Constant axial force and eccentricity")]
             ConstantN,
 
-            [Description("Costant eccentricity")]
+            [Description("Constant eccentricity")]
             ConstantEccentricity,
         }
 
