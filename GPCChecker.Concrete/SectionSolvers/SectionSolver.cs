@@ -1227,17 +1227,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
                 {
                     failureIndex = FailureZones.F3A;
-                    eta = 0.1;
+                    eta = 0.25;
                 }
                 else if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
                 {
                     failureIndex = FailureZones.F3A;
-                    eta = 0.15;
+                    eta = 0.35;
                 }
                 else if (adimOutputForces.N > 0.0)
                 {
                     failureIndex = FailureZones.F3A;
-                    eta = 0.25;
+                    eta = 0.75;
                 }
                 else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
                 {
@@ -1252,7 +1252,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else if (Math.Abs(adimOutputForces.N) < 1e-5)
                 {
                     failureIndex = FailureZones.F3A;
-                    eta = 0.75;
+                    eta = 0.85;
                 }
                 else
                 {
@@ -1293,6 +1293,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     eta = 0.5;
                 }
             }
+            if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
+            {
+                if (ConcreteSection.Centroid.Y - ConcreteSection.GetHomogenizedCentroid(out _, out _).Y > 0)
+                    teta = Math.PI;
+            }
 
             int id = 1;
             var distances = CalculateMaxMinSectionDistances(teta);
@@ -1305,6 +1310,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, id);
 
             teta = strainPlane.Teta;
+
 
             ForceTuple forces = CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
             ForceTuple adimIncrement = ConvertToAdimensionalForces(forces - targetLocalForces);
@@ -1485,7 +1491,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // derivate parziali rispetto a teta
             do
             {
-                if (tetaCounter < 50)
+                if (tetaCounter < 10)
                 {
                     var distancesPlusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta + dTetaBuffer);
                     var distancesMinusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta - dTetaBuffer);
@@ -1534,9 +1540,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else
                 {
                     if (inputFailureZone == FailureZones.F1)
-                        return (+0.1, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                        return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                     else
-                        return (+0.1, +0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                        return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 }
 
             } while (dNdTeta == 0.0 || (dMxdTeta == 0.0 && dMydTeta == 0.0));
@@ -1545,7 +1551,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // derivate parziali rispetto a immersione nel campo
             do
             {
-                if (etaCounter < 50)
+                if (etaCounter < 10)
                 {
                     var distances = CalculateMaxMinSectionDistances(inputStrainPlane.Teta);
 
@@ -1587,9 +1593,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else
                 {
                     if (inputFailureZone == FailureZones.F1)
-                        return (+0.1, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                        return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                     else
-                        return (+0.1, +0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                        return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 }
 
             } while (dNdImm == 0.0 || (dMxdImm == 0.0 && dMydImm == 0.0));
@@ -1615,9 +1621,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             if (!intersect)
             {
                 if (inputFailureZone == FailureZones.F1)
-                    return (+0.1, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                    return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 else
-                    return (+0.1, +0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                    return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
             }
             else
             {
@@ -1657,11 +1663,22 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         if (dEta >= 0.01)
                             dE = 0.25;
                         else if (dEta >= 0.001)
+                            dE = 0.35;
+                        else if (dEta >= 0.0005)
+                            dE = 0.5;
+                        else
+                            dE = 0.75;
+                    }
+                    else if (inputFailureZone == FailureZones.F3B)
+                    {
+                        if (dEta >= 0.01)
+                            dE = 0.25;
+                        else if (dEta >= 0.001)
                             dE = 0.25;
                         else
                             dE = 0.5;
                     }
-                    else if (inputFailureZone == FailureZones.F3B)
+                    else if (inputFailureZone == FailureZones.F2B)
                     {
                         if (dEta >= 0.01)
                             dE = 0.25;
@@ -1702,8 +1719,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             deltaEta = deltaEta > 0.42 ? 0.42 : deltaEta;
             deltaEta = deltaEta < -0.32 ? -0.32 : deltaEta;
 
-            deltaTeta = deltaTeta > Math.PI / 8.0 ? Math.PI / 8.0 : deltaTeta;
-            deltaTeta = deltaTeta < -Math.PI / 8.0 ? -Math.PI / 8.0 : deltaTeta;
+            deltaTeta = deltaTeta > Math.PI / 7.0 ? Math.PI / 7.0 : deltaTeta;
+            deltaTeta = deltaTeta < -Math.PI / 7.0 ? -Math.PI / 7.0 : deltaTeta;
 
             // piano di nuovo tentativo
             teta += deltaTeta;
@@ -1816,7 +1833,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance * tolerance)
             {
                 FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, 
-                    FailureDomainTypes.Plastic, FailureAnalysisTypes.ConstantEccentricity, 2.0 * _failureAnalysisAngularTolerance);
+                    FailureDomainTypes.Plastic, FailureAnalysisTypes.ConstantEccentricity, 5.0 * _failureAnalysisAngularTolerance);
 
                 if(pointOnDomain != null)
 				{
