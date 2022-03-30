@@ -862,6 +862,60 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		public void SquareSectionTest7()
+		{
+			double rebarDiameter = 20;
+			double height = 400;
+			double width = 400;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(width, 0),
+				new Point2d(width, height),
+				new Point2d(0, height)
+			}));
+
+			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C35_45;
+			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(100,50,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(300, 50,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 350,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(200,350,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350,350,0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(10 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, 20 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(10 * 1000, 0, 0, 0, 50 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
+			};
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			//ExportToGmsh(section);
+			StressAnalysisResult[] slsResult = sectionChecker.GetStressAnalysisResult();
+
+			for (int i = 0; i < slsResult.Length; i++)
+				Assert.IsTrue(TensionAnalysisCommonAssertModelCode(slsResult[i], section, forces[i], standard));
+		}
+
+		[TestMethod]
 		public void NeutralAxisTest1()
 		{
 			double rebarDiameter = 20;
