@@ -113,7 +113,7 @@ namespace GPC.Checkers.Concrete.Results
 
 			if (index != -1)
 			{
-				int endIndex = index;
+				int endIndex = index + 1;
 				if (index == _domainPoints.Length - 1)
 					endIndex = 0;
 				Line2d line = new Line2d(new Point2d(0, 0), new Point2d(x, y));
