@@ -113,8 +113,11 @@ namespace GPC.Checkers.Concrete.Results
 
 			if (index != -1)
 			{
+				int endIndex = index;
+				if (index == _domainPoints.Length - 1)
+					endIndex = 0;
 				Line2d line = new Line2d(new Point2d(0, 0), new Point2d(x, y));
-				Line2d edge = new Line2d(_domainPoints2dAssociation[_domainPoints[index]], _domainPoints2dAssociation[_domainPoints[index + 1]]);
+				Line2d edge = new Line2d(_domainPoints2dAssociation[_domainPoints[index]], _domainPoints2dAssociation[_domainPoints[endIndex]]);
 
 				if (edge.GetIntersectionWithInfiniteLine(line, out Point2d intersection))
 				{
