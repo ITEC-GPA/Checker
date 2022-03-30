@@ -640,6 +640,36 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		public void RectangularSectionTest17()
+		{
+			double rebarDiameter = 18;
+			double height = 500;
+			double width = 300;
+
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, 50, ConcreteMaterialEN1992.C25_30, SteelMaterial.B450C);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-500 * 1000, 0, 0, 0, 20 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, 80 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, -80 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, 80 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, -80 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section)),				
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 20 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -20 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 20 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -20 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section)),
+			};
+
+			for (int i = 0; i < forces.Length; i++)
+			{
+				CommonAssertDomainPointMethod(section, forces[i], standard,
+					new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantMxMy));
+			}
+		}
+
+		[TestMethod]
 		public void SquareSectionTest1()
 		{
 			double rebarDiameter = 20;
@@ -954,11 +984,11 @@ namespace ConcreteTests
 			ForceTuple expForce = new ForceTuple(-3147 * 1000, 314.7 * 1000000, 0);
 			double expWR = 0.32;
 
-			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForce, forces2d[0], expWR);
 
-			//ExportToGmsh(failureDomainResult2d.Domain,
-			//	new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
-			//	new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+			ExportToGmsh(failureDomainResult2d.Domain,
+				new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
+				new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForce, forces2d[0], expWR);
 		}
 
 		[TestMethod]

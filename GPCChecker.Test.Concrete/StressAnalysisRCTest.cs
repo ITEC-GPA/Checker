@@ -899,9 +899,18 @@ namespace ConcreteTests
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 			ResultBeamForces[] forces = new ResultBeamForces[]
 			{
-				new ResultBeamForces(10 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
-				new ResultBeamForces(10 * 1000, 0, 0, 0, 20 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
-				new ResultBeamForces(10 * 1000, 0, 0, 0, 50 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 20 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -20 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -50 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, -50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 20 * 1000000, -50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -50 * 1000000, -50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -20 * 1000000, -50 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, -50 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section)),
 			};
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);

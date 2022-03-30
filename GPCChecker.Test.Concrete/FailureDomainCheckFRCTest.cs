@@ -378,6 +378,11 @@ namespace ConcreteTests
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(100, height - copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(300, height - copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(500, height - copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(700, height - copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(900, height - copriferro, 0)),
 				new ReinforcedConcreteRebar(rebarSection, new Point3d(100, copriferro, 0)),
 				new ReinforcedConcreteRebar(rebarSection, new Point3d(300, copriferro, 0)),
 				new ReinforcedConcreteRebar(rebarSection, new Point3d(500, copriferro, 0)),
@@ -390,7 +395,7 @@ namespace ConcreteTests
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
 			{
-				new ResultBeamForces(0 * 1000, 0, 0, 0, 2 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 20 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
 			};
 
 			for (int i = 0; i < forces.Length; i++)
