@@ -133,6 +133,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             [Description("Constant eccentricity")]
             ConstantEccentricity,
+
+            [Description("Constant bending moments")]
+            ConstantMxMy,
         }
 
         #endregion
@@ -1293,6 +1296,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     eta = 0.5;
                 }
             }
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
+            {
+                if (adimOutputForces.N > 0.0)
+                {
+                    failureIndex = FailureZones.F3A;
+                    eta = 0.1;
+                }
+                else
+                {
+                    failureIndex = FailureZones.F4;
+                    eta = 0.5;
+                }                
+            }
             if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
             {
                 if (ConcreteSection.Centroid.Y - ConcreteSection.GetHomogenizedCentroid(out _, out _).Y > 0)
@@ -1324,6 +1340,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
                 angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
                 targetLocalForces.My / 1000000, 0));
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
+                angle = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
+                targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
 
             bool exit = false;
             if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
@@ -1334,6 +1353,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else if (failureAnalysisType == FailureAnalysisTypes.ConstantEccentricity)
             {
                 if (Math.Abs(angle) < angularTolerance)
+                    exit = true;
+            }
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
+            {
+                if (Math.Abs(adimIncrement.Mx) < distanceTolerance && Math.Abs(adimIncrement.My) < distanceTolerance)
                     exit = true;
             }
 
@@ -1349,6 +1373,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             externalForcesLine = new Line3d(new Point3d(0, 0, 0), targetLocalForces);
                         else if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
                             externalForcesLine = new Line3d(new Point3d(0, 0, targetLocalForces.N), targetLocalForces);
+                        else if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
+                            externalForcesLine = new Line3d(new Point3d(targetLocalForces.Mx, targetLocalForces.My, 0), 
+                                new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N - 1000));
 
                         try
                         {
@@ -1420,6 +1447,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else if (failureAnalysisType == FailureAnalysisTypes.ConstantEccentricity)
                     {
                         if (Math.Abs(angle) < angularTolerance)
+                            exit = true;
+                    }
+                    else if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
+                    {
+                        if (Math.Abs(adimIncrement.Mx) < distanceTolerance && 
+                            Math.Abs(adimIncrement.My) < distanceTolerance)
                             exit = true;
                     }
 
@@ -1647,8 +1680,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double dT;
                 double dE;
 
-                if (dTeta >= 0.011)
-                    dT = 0.05;
+                if (dTeta >= 0.010)
+                    dT = 0.5;
                 else if (dTeta == 0.01)
                     dT = 0.1;
                 else if (dTeta >= 0.001)
@@ -1694,7 +1727,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
                 else
                 {
-                    if (inputFailureZone == FailureZones.F3B)                        
+                    if (inputFailureZone == FailureZones.F3A || inputFailureZone == FailureZones.F2A ||
+                        inputFailureZone == FailureZones.F2B)
+                    {
+                        if (dEta >= 0.01)
+                            dE = 0.15;
+                        else if (dEta >= 0.001)
+                            dE = 0.25;
+                        else if (dEta >= 0.0005)
+                            dE = 0.35;
+                        else
+                            dE = 0.5;
+                    }
+                    else if (inputFailureZone == FailureZones.F3B)                        
                         dE = 0.1;
                     
                     else
