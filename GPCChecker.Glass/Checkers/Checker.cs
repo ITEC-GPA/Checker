@@ -7,8 +7,8 @@ using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Wrappers;
 using GPC.Geometry.Meshes;
 using GPC.Model.Combinations;
-using GPC.Model.FEM;
-using GPC.Model.FEM.Properties;
+using GPC.Model.Fem;
+using GPC.Model.Fem.Properties;
 using GPC.Model.Glasses;
 using GPC.Model.Loads;
 using GPC.Model.Materials;
@@ -235,7 +235,7 @@ namespace GPC.Checkers.Glasses.Checkers
                 // COMBINAZIONI LINEARI - NO STAGE
                 // STRAUS: LINEAR LOAD COMBINATION TABLE
 
-                femModel.AnalysisType = (Model.FEM.FemModel.AnalysisTypes)analysisType;
+                femModel.AnalysisType = (Model.Fem.FemModel.AnalysisTypes)analysisType;
                 femModel.AddCombinations(combinations);
             }
             else if (analysisType == Prototype.AnalysisTypes.NonLinearStaticAnalysis)
@@ -243,7 +243,7 @@ namespace GPC.Checkers.Glasses.Checkers
                 // COMBINAZIONI NON LINEARI - NO STAGE
                 // STRAUS: MONOSTAGE, INCREMENTI COME COMBINAZIONI NON LINEARI
 
-                femModel.AnalysisType = (Model.FEM.FemModel.AnalysisTypes)analysisType;
+                femModel.AnalysisType = (Model.Fem.FemModel.AnalysisTypes)analysisType;
 
                 Stage stage = femModel.AddStageAsCopyOfModel("Stage1", femModel.AnalysisType);
                 bool ret = stage.AddCombinations(combinations);
@@ -414,7 +414,7 @@ namespace GPC.Checkers.Glasses.Checkers
                                 throw new ArgumentException(); // In teoria non è possibile che vada in eccezione perchè i nomi delle proprietà sono uniche e quindi vengono sempre aggiunti
                         }
 
-                        var minProperty = properties.OrderBy(j => ((Model.FEM.Materials.OrthotropicFemMaterial)j.Material).G12).FirstOrDefault(); // Prendo la proprietà con i G minimo per ogni layer e la uso come proprietà iniziale
+                        var minProperty = properties.OrderBy(j => ((Model.Fem.Materials.OrthotropicFemMaterial)j.Material).G12).FirstOrDefault(); // Prendo la proprietà con i G minimo per ogni layer e la uso come proprietà iniziale
 
                         var indexes = femModel.AddMesh(
                             meshes[i],
@@ -490,7 +490,7 @@ namespace GPC.Checkers.Glasses.Checkers
                     // LINEARE
                     // Stage lineari per cambiare proprietà all'interlayer
                     // va creato uno stage per ogni loadcase
-                    femModel.AnalysisType = (Model.FEM.FemModel.AnalysisTypes)analysisType;
+                    femModel.AnalysisType = (Model.Fem.FemModel.AnalysisTypes)analysisType;
 
                     // O(nlc * n^2)
                     // Ciclo i loadcase unici
@@ -507,7 +507,7 @@ namespace GPC.Checkers.Glasses.Checkers
                     //foreach (var loadCase in combinations.SelectMany(i => i.GetLoadCases()).Select(i => i as MMLoadCaseBase).Where(i => i != null).Distinct()) // ciclo su loadcase unici
                     Parallel.For(0, loadCases.Length, (n) =>
                     {
-                        Stage stagelc = femModel.AddStage(loadCases[n].Name, (Model.FEM.FemModel.AnalysisTypes)analysisType);
+                        Stage stagelc = femModel.AddStage(loadCases[n].Name, (Model.Fem.FemModel.AnalysisTypes)analysisType);
 
                         // aggiunge gli elementi allo stage e cambia le proprietà dell'interlayer
                         for (int i = 0; i < glassPackage.Length; i++)
@@ -590,7 +590,7 @@ namespace GPC.Checkers.Glasses.Checkers
                             List<Combination> matchedCombinations = combinationsToProcess
                                                 .Where(i => i.ContainsLoadCaseCoefficients(longTermLoadCaseCoefficients)).ToList(); // contiene la prima combo, questa lista contiene tutte le combo che hanno gli stessi LT e stessi coeff della combo di partenza
 
-                            Stage stage1 = femModel.AddStage($"Stage {index++} LT", Model.FEM.FemModel.AnalysisTypes.NonLinear);
+                            Stage stage1 = femModel.AddStage($"Stage {index++} LT", Model.Fem.FemModel.AnalysisTypes.NonLinear);
 
                             var ltCombination = (Combination)firstCombo.CloneEmpty();
                             ltCombination.AddLoadCaseCoefficients(longTermLoadCaseCoefficients);
@@ -616,7 +616,7 @@ namespace GPC.Checkers.Glasses.Checkers
 
                                     if (stage2 is null)
                                     {
-                                        stage2 = femModel.AddStage($"Stage {index++} ST", Model.FEM.FemModel.AnalysisTypes.NonLinear, true);
+                                        stage2 = femModel.AddStage($"Stage {index++} ST", Model.Fem.FemModel.AnalysisTypes.NonLinear, true);
 
                                         var lcLTLowerG = longTermLoadCasesFiltered.GetLowerGvalueLoadCase(intMat);
                                         var lcSTLowerG = stCombinations.SelectMany(i => i.GetIGlassLoadCase()).Distinct().GetLowerGvalueLoadCase(intMat);

@@ -5,11 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Checkers.Glasses.Models;
 using GPC.Converters;
-
-using GPC.Model.FEM;
+using GPC.Model.Fem;
 using GPC.Checkers.Glasses.FemModels;
-using GPC.Model.FEM.FiniteElements;
-using GPC.Model.FEM.Properties;
+using GPC.Model.Fem.FiniteElements;
+using GPC.Model.Fem.Properties;
 using St7ApiWrapper;
 
 namespace GPC.Checkers.Glasses.Converters
@@ -148,7 +147,7 @@ namespace GPC.Checkers.Glasses.Converters
                 if (property is InterlayerBrickProperty inp)
                 {
 
-                    if (inp.Material is Model.FEM.Materials.IsotropicFemMaterial iso)
+                    if (inp.Material is Model.Fem.Materials.IsotropicFemMaterial iso)
                     {
                         aw.NewBrickProperty(mid, st7PropId, St7ApiConst.kMaterialTypeIsotropic, inp.Name);
                         double[] doubles = new double[8];
@@ -165,7 +164,7 @@ namespace GPC.Checkers.Glasses.Converters
 
                         aw.SetBrickAddBubbleFunction(mid, st7PropId, ModelAnalysisOptions.Instance.Straus7BrickBubbleFunction);
                     }
-                    else if (inp.Material is Model.FEM.Materials.OrthotropicFemMaterial orto)
+                    else if (inp.Material is Model.Fem.Materials.OrthotropicFemMaterial orto)
                     {
                         aw.NewBrickProperty(mid, st7PropId, St7ApiConst.kMaterialTypeOrthotropic, inp.Name);
 
@@ -197,7 +196,7 @@ namespace GPC.Checkers.Glasses.Converters
         {
             int st7StageId = _stageMap.Values.DefaultIfEmpty(0).Max();
 
-            foreach (Model.FEM.Stage stage in femModel.GetStages())
+            foreach (Model.Fem.Stage stage in femModel.GetStages())
             {
                 aw.AddStage(mid, stage.Name, new int[] { stage.Morph ? St7ApiConst.btTrue : St7ApiConst.btFalse, St7ApiConst.btFalse, St7ApiConst.btFalse });
                 _stageMap.Add(stage.Id, ++st7StageId);
@@ -246,7 +245,7 @@ namespace GPC.Checkers.Glasses.Converters
         {
 
             int progressiveID = 1;
-            foreach (Model.FEM.Stage stage in femModel.GetStages().OrderBy(i => _stageMap[i.Id]))
+            foreach (Model.Fem.Stage stage in femModel.GetStages().OrderBy(i => _stageMap[i.Id]))
             {
                 int comboIndex = 1;
 

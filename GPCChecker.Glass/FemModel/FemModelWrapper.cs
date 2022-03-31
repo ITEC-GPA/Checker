@@ -3,9 +3,9 @@ using GPC.Checkers.Glasses.Models;
 using GPC.Checkers.Glasses.Results;
 using GPC.Geometry;
 using GPC.Model.Combinations;
-using GPC.Model.FEM.Attributes;
-using GPC.Model.FEM.FiniteElements;
-using GPC.Model.FEM.Properties;
+using GPC.Model.Fem.Attributes;
+using GPC.Model.Fem.FiniteElements;
+using GPC.Model.Fem.Properties;
 using GPC.Model.Restrains;
 using GPC.Model.Results;
 using St7ApiWrapper;
@@ -23,7 +23,7 @@ using System.Runtime.Serialization;
 namespace GPC.Checkers.Glasses.FemModels
 {
     [Serializable]
-    public class FemModelWrapper : Model.FEM.FemModel, ISerializable
+    public class FemModelWrapper : Model.Fem.FemModel, ISerializable
     {
 
         private readonly string _st7ServerIp;
@@ -283,11 +283,11 @@ namespace GPC.Checkers.Glasses.FemModels
                 en2.MoveNext();
                 var id2 = en2.Current;
 
-                Model.FEM.Node node1 = _nodes[id1];//.GetByIndex(nodeIdMap[id1]);
-                Model.FEM.Node node2 = _nodes[id2];//.GetByIndex(nodeIdMap[id2]);
+                Model.Fem.Node node1 = _nodes[id1];//.GetByIndex(nodeIdMap[id1]);
+                Model.Fem.Node node2 = _nodes[id2];//.GetByIndex(nodeIdMap[id2]);
 
                 if (node1!= null && node2 != null)
-                    AddCostrain(new Model.FEM.Costrains.RigidLink(node1, node2));
+                    AddCostrain(new Model.Fem.Costrains.RigidLink(node1, node2));
             }
         }
 
