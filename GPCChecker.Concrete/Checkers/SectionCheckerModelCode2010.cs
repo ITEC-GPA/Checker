@@ -297,6 +297,12 @@ namespace GPC.Checkers.Concrete.Checkers
 
             }
 
+            public SectionOptionsModelCode2010()
+                : base(CoordinateSystem.Global, SectionSolver.FailureAnalysisTypes.ConstantEccentricity)
+            {
+
+            }
+
             protected SectionOptionsModelCode2010(SerializationInfo info, StreamingContext context)
                 :base(info, context) 
             {
