@@ -1230,32 +1230,32 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
                 {
                     failureIndex = FailureZones.F3A;
-                    eta = 0.25;
+                    eta = 0.65;
                 }
                 else if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
                 {
                     failureIndex = FailureZones.F3A;
-                    eta = 0.35;
+                    eta = 0.85;
                 }
                 else if (adimOutputForces.N > 0.0)
                 {
                     failureIndex = FailureZones.F3A;
-                    eta = 0.75;
+                    eta = 0.95;
                 }
-                else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
+                else if (Math.Abs(adimOutputForces.N) < 1e-5)
                 {
-                    failureIndex = FailureZones.F4;
-                    eta = 0.9;
+                    failureIndex = FailureZones.F3A;
+                    eta = 0.90;
                 }
                 else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-2 && Math.Abs(adimOutputForces.My) < 1e-2)
                 {
                     failureIndex = FailureZones.F4;
                     eta = 0.5;
                 }
-                else if (Math.Abs(adimOutputForces.N) < 1e-5)
+                else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
                 {
-                    failureIndex = FailureZones.F3A;
-                    eta = 0.85;
+                    failureIndex = FailureZones.F4;
+                    eta = 0.9;
                 }
                 else
                 {
@@ -1268,12 +1268,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (adimOutputForces.N > 0.0)
                 {
                     failureIndex = FailureZones.F3A;
-                    eta = 0.1;
+                    eta = 0.85;
                 }
                 else if (adimOutputForces.N < 0.2)
                 {
                     failureIndex = FailureZones.F3A;
-                    eta = 0.75;
+                    eta = 0.9;
                 }
                 else if (adimOutputForces.N < 0.4)
                 {
@@ -1293,7 +1293,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else
                 {
                     failureIndex = FailureZones.F3A;
-                    eta = 0.5;
+                    eta = 0.95;
                 }
             }
             else if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
