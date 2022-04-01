@@ -136,6 +136,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             [Description("Constant bending moments")]
             ConstantMxMy,
+
+            [Description("Constant axial force and bending moment about X axis")]
+            ConstantNMx,
+
+            [Description("Constant axial force and bending moment about Y axis")]
+            ConstantNMy,
         }
 
         #endregion
@@ -1219,6 +1225,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, targetLocalForces.N / 1000);
             else if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
                 vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, 0.0);
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMx)
+                vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, 0, targetLocalForces.N / 1000);
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMy)
+                vectorEd = new Vector3d(0, targetLocalForces.My / 1000000, targetLocalForces.N / 1000);
 
             // Valori di primo tentativo
             FailureZones failureIndex = FailureZones.F3A;
@@ -1263,7 +1273,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     eta = 0.2;
                 }
             }
-            else if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantN || 
+                failureAnalysisType == FailureAnalysisTypes.ConstantNMx ||
+                failureAnalysisType == FailureAnalysisTypes.ConstantNMy)
 			{
                 if (adimOutputForces.N > 0.0)
                 {
@@ -1343,6 +1355,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
                 angle = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
                 targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMx)
+                angle = new Vector3d(targetLocalForces.Mx / 1000000, forces.My / 1000000, targetLocalForces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
+                targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMy)
+                angle = new Vector3d(forces.Mx / 1000000, targetLocalForces.My / 1000000, targetLocalForces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
+                targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
 
             bool exit = false;
             if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
@@ -1358,6 +1376,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
             {
                 if (Math.Abs(adimIncrement.Mx) < distanceTolerance && Math.Abs(adimIncrement.My) < distanceTolerance)
+                    exit = true;
+            }
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMx)
+            {
+                if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(adimIncrement.Mx) < distanceTolerance)
+                    exit = true;
+            }
+            else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMy)
+            {
+                if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(adimIncrement.My) < distanceTolerance)
                     exit = true;
             }
 
@@ -1376,6 +1404,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         else if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
                             externalForcesLine = new Line3d(new Point3d(targetLocalForces.Mx, targetLocalForces.My, 0), 
                                 new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N - 1000));
+                        else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMx)
+                            externalForcesLine = new Line3d(new Point3d(targetLocalForces.Mx, 0, targetLocalForces.N),
+                                new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N));
+                        else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMy)
+                            externalForcesLine = new Line3d(new Point3d(0, targetLocalForces.My, targetLocalForces.N),
+                                new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N));
 
                         try
                         {
@@ -1410,6 +1444,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
                         else if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
                             angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(vectorEd);
+                        else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMx)
+                            angle = new Vector3d(forces.Mx / 1000000, 0, forces.N / 1000).AngleTo(vectorEd);
+                        else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMy)
+                            angle = new Vector3d(0, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
 
                         if ((Math.Abs(adimIncrement.N) < distanceTolerance &&
                             Math.Abs(adimIncrement.Mx) < distanceTolerance &&
@@ -1439,20 +1477,34 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         }
                     }
 
-                    if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
-                    {
-                        if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
-                            exit = true;
-                    }
-                    else if (failureAnalysisType == FailureAnalysisTypes.ConstantEccentricity)
+                    if (failureAnalysisType == FailureAnalysisTypes.ConstantEccentricity)
                     {
                         if (Math.Abs(angle) < angularTolerance)
+                            exit = true;
+                    }
+                    else if (failureAnalysisType == FailureAnalysisTypes.ConstantN)
+                    {
+                        if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
                             exit = true;
                     }
                     else if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
                     {
                         if (Math.Abs(adimIncrement.Mx) < distanceTolerance && 
                             Math.Abs(adimIncrement.My) < distanceTolerance)
+                            exit = true;
+                    }
+                    else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMx)
+                    {
+                        if (Math.Abs(adimIncrement.N) < distanceTolerance &&
+                            Math.Abs(adimIncrement.Mx) < distanceTolerance &&
+                            Math.Abs(angle) < angularTolerance)
+                            exit = true;
+                    }
+                    else if (failureAnalysisType == FailureAnalysisTypes.ConstantNMy)
+                    {
+                        if (Math.Abs(adimIncrement.N) < distanceTolerance &&
+                            Math.Abs(adimIncrement.My) < distanceTolerance &&
+                            Math.Abs(angle) < angularTolerance)
                             exit = true;
                     }
 
