@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -396,6 +396,11 @@ namespace ConcreteTests
                         testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
                     else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantMxMy)
                         testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, force.M1, force.M2, force.CoordinateSystem);
+                    else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantNMx)
+                        testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, force.M1, factor[j] * force.M2, force.CoordinateSystem);
+                    else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantNMy)
+                        testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, force.M2, force.CoordinateSystem);
+
                     failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem), options.FailureAnalysisType);
 				}
 			}

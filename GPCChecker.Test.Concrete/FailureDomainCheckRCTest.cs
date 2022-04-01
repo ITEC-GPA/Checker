@@ -1073,6 +1073,131 @@ namespace ConcreteTests
 			}
 		}
 
+		[TestMethod]
+		public void RectangularSectionTest24()
+		{
+			double rebarDiameter = 20;
+			double height = 400;
+			double width = 400;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(width, 0),
+				new Point2d(width, height),
+				new Point2d(0, height)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,350,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350,350,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(300, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantNMy);
+
+			double n = -300 * 1000;
+			double Mx = 20 * 1000000;
+			double My = 20 * 1000000;
+			int iter = 2;
+
+			List<ResultBeamForces> list = new List<ResultBeamForces>();
+			for (int k = 0; k < iter; k++)
+			{
+				for (int i = -iter; i < iter; i++)
+				{
+					for (int j = -iter; j < iter; j++)
+					{
+						if (i != 0 && j != 0)
+							list.Add(new ResultBeamForces(n * k, 0, 0, 0, Mx * i, My * j, GetLocalCoordinateSystem(section)));
+					}
+				}
+			}
+
+			ResultBeamForces[] forces = list.ToArray();
+
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005, new double[] { 1.0, 1.5, 2.0 }),
+					$"Force {i} fail");
+			}
+		}
+
+		[TestMethod]
+		public void RectangularSectionTest25()
+		{
+			double rebarDiameter = 20;
+			double height = 400;
+			double width = 400;
+
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(width, 0),
+				new Point2d(width, height),
+				new Point2d(0, height)
+			}));
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,350,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350,350,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(300, 50, 0)),
+				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			StandardEN1992p11 standard = new StandardEN1992p11();
+
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantNMx);
+
+			double n = -300 * 1000;
+			double Mx = 20 * 1000000;
+			double My = 20 * 1000000;
+			int iter = 2;
+
+			List<ResultBeamForces> list = new List<ResultBeamForces>();
+			for (int k = 0; k < iter; k++)
+			{
+				for (int i = -iter; i < iter; i++)
+				{
+					for (int j = -iter; j < iter; j++)
+					{
+						if (i != 0 && j != 0)
+							list.Add(new ResultBeamForces(n * k, 0, 0, 0, Mx * i, My * j, GetLocalCoordinateSystem(section)));
+					}
+				}
+			}
+
+			ResultBeamForces[] forces = list.ToArray();
+
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005, new double[] { 1.0, 1.5, 2.0 }),
+					$"Force {i} fail");
+			}
+		}
 
 		[TestMethod]
 		public void SquareSectionTest1()
