@@ -1733,7 +1733,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double dE;
 
                 if (dTeta >= 0.010)
-                    dT = 0.5;
+                    dT = 0.05;
                 else if (dTeta == 0.01)
                     dT = 0.1;
                 else if (dTeta >= 0.001)
@@ -1750,9 +1750,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         else if (dEta >= 0.001)
                             dE = 0.35;
                         else if (dEta >= 0.0005)
-                            dE = 0.5;
+                            dE = 0.45;
                         else
-                            dE = 0.75;
+                            dE = 0.5;
                     }
                     else if (inputFailureZone == FailureZones.F3B)
                     {
@@ -1763,10 +1763,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         else
                             dE = 0.5;
                     }
-                    else if (inputFailureZone == FailureZones.F2B)
+                    else if (inputFailureZone == FailureZones.F2B || inputFailureZone == FailureZones.F2A)
                     {
                         if (dEta >= 0.01)
-                            dE = 0.25;
+                            dE = 0.20;
                         else if (dEta >= 0.001)
                             dE = 0.25;
                         else
