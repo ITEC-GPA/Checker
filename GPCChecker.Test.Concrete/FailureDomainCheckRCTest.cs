@@ -1212,7 +1212,7 @@ namespace ConcreteTests
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
 			{
-				new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-500 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
 			};
 
 			for (int i = 0; i < forces.Length; i++)
