@@ -401,7 +401,8 @@ namespace ConcreteTests
                     else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantNMy)
                         testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, force.M2, force.CoordinateSystem);
 
-                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem), options.FailureAnalysisType);
+                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem), 
+                        options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 				}
 			}
 			catch (Exception e)
@@ -476,7 +477,7 @@ namespace ConcreteTests
                 for (j = 0; j < factor.Length; j++)
                 {
                     testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem));
+                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem), coordinateSystem);
                 }
             }
             catch (Exception e)
@@ -1099,10 +1100,10 @@ namespace ConcreteTests
                 return base.CalculateStressRebar(rebar, strain);
             }
 
-            internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces,
+            internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
                 FailureAnalysisTypes failureAnalysisType = FailureAnalysisTypes.ConstantEccentricity)
             {
-                return base.CalculatePlasticDomainPoint(targetLocalForces, failureAnalysisType);
+                return base.CalculatePlasticDomainPoint(targetLocalForces, coordinateSystem, failureAnalysisType);
             }
 
             internal ForceTuple IntegrateSectionStressTest(StrainPlane strainPlane)

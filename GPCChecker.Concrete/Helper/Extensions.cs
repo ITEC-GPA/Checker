@@ -30,6 +30,5 @@ namespace GPC.Checkers.Concrete.Helper
                     forcesConverted.M2 - forcesConverted.N * eccentricity.X);
             }
         }
-
     }
 }

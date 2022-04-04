@@ -1202,6 +1202,28 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		public void RectangularSectionTest26()
+		{
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, ConcreteMaterialEN1992.C25_30, SteelMaterial.B450C);
+			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+			CoordinateSystem cs = new CoordinateSystem(new Point3d(150, 150, 0), Vector2d.XAxis, Vector2d.YAxis);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+
+			ResultBeamForces[] forces = new ResultBeamForces[]
+			{
+				new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+			};
+
+			for (int i = 0; i < forces.Length; i++)
+			{
+				Console.WriteLine($"Force {i}");
+				Assert.IsTrue(CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005, new double[] { 1.0 }),
+					$"Force {i} fail");
+			}
+		}
+
+		[TestMethod]
 		public void SquareSectionTest1()
 		{
 			double rebarDiameter = 20;
