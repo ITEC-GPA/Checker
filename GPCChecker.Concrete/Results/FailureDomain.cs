@@ -18,7 +18,7 @@ namespace GPC.Checkers.Concrete.Results
 
 		protected int _axialForceSubdivision;
 		protected readonly FailureDomainPoint[][] _domainPoints;
-		protected readonly SectionSolver.FailureDomainTypes _analysisType;
+		protected SectionSolver.FailureDomainTypes _analysisType;
 
 		#endregion
 
@@ -27,7 +27,6 @@ namespace GPC.Checkers.Concrete.Results
 		public FailureDomainPoint[][] DomainPoints => _domainPoints;
 
 		public SectionSolver.FailureDomainTypes FailureDomainAnalysisTypes => _analysisType;
-
 
 		#endregion
 
@@ -51,11 +50,6 @@ namespace GPC.Checkers.Concrete.Results
 		#endregion
 
 		#region Mesh Method
-
-		public void SetAxialForceSubdivision(int subdivision)
-		{
-			_axialForceSubdivision = subdivision;
-		}
 
 		public Mesh GetMesh()
 		{
@@ -238,7 +232,7 @@ namespace GPC.Checkers.Concrete.Results
 
 		protected FailureDomain RebuildFailureDomainAlongZAxis(FailureDomain failureDomain, int axialForceSubdivision = 20, double tolerance = 0.1)
 		{
-			var limits = GetAxialForceLimits(out FailureDomainPoint maxPoint, out FailureDomainPoint minPoint);
+			(double maximum, double minimum) limits = GetAxialForceLimits(out FailureDomainPoint maxPoint, out FailureDomainPoint minPoint);
 
 			double deltaN = (limits.maximum - limits.minimum) /axialForceSubdivision;
 
@@ -544,6 +538,20 @@ namespace GPC.Checkers.Concrete.Results
 			}
 
 			#endregion
+		}
+
+		#endregion
+
+		#region Setter
+
+		public void SetFailureDomainType(SectionSolver.FailureDomainTypes failureDomainType)
+		{
+			_analysisType= failureDomainType;
+		}
+
+		public void SetAxialForceSubdivision(int subdivision)
+		{
+			_axialForceSubdivision = subdivision;
 		}
 
 		#endregion

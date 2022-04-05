@@ -36,6 +36,8 @@ namespace GPC.Checkers.Concrete.Results
 
         public SectionSolver.FailureAnalysisTypes FailureAnalysisType => _sectionOption.FailureAnalysisType;
 
+        public CoordinateSystem SectionLocalCoordinateSystem => new CoordinateSystem(ConcreteSection.Centroid, Vector2d.XAxis, Vector2d.YAxis);
+
         #endregion
 
         #region Constructor
@@ -393,13 +395,17 @@ namespace GPC.Checkers.Concrete.Results
                 new ResultBeamForces[] { forces }, _sectionSolver, _standard, _sectionOption);
         }
 
-        /// <summary>
-        /// Calculate the failure domain 2d with costant value of axial force
-        /// </summary>
-        /// <param name="forces">Input forces</param>
-        /// <returns>New FailureDomain2d</returns>
-        /// <exception cref="ArgumentException"></exception>
-        protected virtual FailureDomain2d CalculateDomainConstantAxialForce(ForceTuple forces)
+		#endregion
+
+		#region Protected Methods
+
+		/// <summary>
+		/// Calculate the failure domain 2d with costant value of axial force
+		/// </summary>
+		/// <param name="forces">Input forces</param>
+		/// <returns>New FailureDomain2d</returns>
+		/// <exception cref="ArgumentException"></exception>
+		protected virtual FailureDomain2d CalculateDomainConstantAxialForce(ForceTuple forces)
         {
             if (forces == null)
                 throw new ArgumentException();
@@ -596,5 +602,19 @@ namespace GPC.Checkers.Concrete.Results
 		}
 
 		#endregion
-	}
+
+		#region Setter
+
+        public void SetFailureDomainType(SectionSolver.FailureDomainTypes failureDomainType)
+		{
+            _failureDomain.SetFailureDomainType(failureDomainType);
+        }
+
+        public void SetFailureAnalysisType(SectionSolver.FailureAnalysisTypes failureAnalysisTypes)
+        {
+            _sectionOption.FailureAnalysisType = failureAnalysisTypes;
+        }
+
+        #endregion
+    }
 }

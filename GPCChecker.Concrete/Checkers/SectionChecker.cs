@@ -149,9 +149,9 @@ namespace GPC.Checkers.Concrete.Checkers
         [Serializable]
         public abstract class SectionOptions : Options, ISerializable
         {
-            public CoordinateSystem ForceReferenceCoordinateSystem { get; }
+            public CoordinateSystem ForceReferenceCoordinateSystem { get; set; }
 
-            public SectionSolver.FailureAnalysisTypes FailureAnalysisType;
+            public SectionSolver.FailureAnalysisTypes FailureAnalysisType { get; set; }
 
             public SectionOptions()
             {
