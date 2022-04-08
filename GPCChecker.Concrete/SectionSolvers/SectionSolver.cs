@@ -1472,9 +1472,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                 failureDomainType, failureAnalysisType, 10 * angularTolerance, 10 * distanceTolerance);
 
                             if (domainPointBuffer != null)
+                            {
                                 domainPoint = domainPointBuffer;
+                                exit = true;
+                            }
                             else
-							{
+                            {
                                 _log.Add("Fail to calculate point on domain");
                                 return domainPoint;
                             }
@@ -1739,11 +1742,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double dT;
                 double dE;
 
-                if (dTeta >= 0.010)
+                if (dTeta > 0.010)
                     dT = 0.05;
                 else if (dTeta == 0.01)
                     dT = 0.1;
-                else if (dTeta >= 0.001)
+                else if (dTeta > 0.001)
                     dT = 0.15;
                 else
                     dT = 0.25;
