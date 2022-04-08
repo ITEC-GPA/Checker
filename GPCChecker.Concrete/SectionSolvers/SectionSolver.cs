@@ -1212,6 +1212,28 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             FailureDomainTypes failureDomainType, FailureAnalysisTypes failureAnalysisType,
             double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
         {
+            switch (failureAnalysisType)
+            {
+                case FailureAnalysisTypes.ConstantEccentricity:                    
+                    break;
+                case FailureAnalysisTypes.ConstantN:
+                    if (targetLocalForces.Mx == 0 && targetLocalForces.My == 0)
+                        return null;
+                    break;
+                case FailureAnalysisTypes.ConstantNMx:
+                    if (targetLocalForces.My == 0)
+                        return null;
+                    break;
+                case FailureAnalysisTypes.ConstantNMy:
+                    if (targetLocalForces.Mx == 0)
+                        return null;
+                    break;
+                case FailureAnalysisTypes.ConstantMxMy:
+                    break;
+                default:
+                    break;
+            }
+
             Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
 
             ForceTuple adimOutputForces = ConvertToAdimensionalForces(targetLocalForces);
