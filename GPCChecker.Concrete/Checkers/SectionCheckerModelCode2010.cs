@@ -151,7 +151,7 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResultAsync(ResultBeamForces, double)"/>
-        public async override Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double psi)
+        public async override Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double psi, double psiTendon = 0)
         {
 
             if (forces is null)
@@ -161,7 +161,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 { 
-                    return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsModelCode2010);
+                    return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptionsModelCode2010);
                 }
                 catch (Exception)
                 {
@@ -171,7 +171,7 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResultAsync(double)"/>
-        public async override Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double psi)
+        public async override Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double psi, double psiTendon = 0)
         {
 
             if (_checkerAttributes.SLSResults is null)
@@ -181,7 +181,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 { 
-                    return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, SectionCheckerOptionsModelCode2010);
+                    return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, psiTendon, SectionCheckerOptionsModelCode2010);
                 }
                 catch (Exception)
                 {
@@ -265,12 +265,12 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(double)"/>
-        public override StressAnalysisResult[] GetLinearStressAnalysisResult(double psi)
+        public override StressAnalysisResult[] GetLinearStressAnalysisResult(double psi, double psiTendon = 0)
         {
             if (_checkerAttributes.SLSResults is null)
                 return null;
 
-            return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, SectionCheckerOptionsModelCode2010);
+            return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, psiTendon, SectionCheckerOptionsModelCode2010);
         }
 
         /// <inheritdoc cref="SectionChecker.GetStressAnalysisResult(ResultBeamForces)"/>
@@ -280,9 +280,9 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(ResultBeamForces, double)"/>
-        public override StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi)
+        public override StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi, double psiTendon = 0)
 		{
-            return _solver.GetLinearStressAnalysisResult(forces, psi, SectionCheckerOptionsModelCode2010);
+            return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptionsModelCode2010);
         }
 
 		#endregion

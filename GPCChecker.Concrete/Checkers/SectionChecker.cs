@@ -80,16 +80,16 @@ namespace GPC.Checkers.Concrete.Checkers
         public abstract Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces);
 
         /// <summary>
-        /// Calculate the stress analysis for each forces with creep coefficient <paramref name="phi"/>
+        /// Calculate the stress analysis for each forces with creep coefficient <paramref name="psi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        public abstract Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double phi);
+        public abstract Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double psi, double psiTendon = 0);
 
         /// <summary>
-        /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="phi"/>
+        /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="psi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        public abstract Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double phi);
+        public abstract Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double psi, double psiTendon = 0);
 
         #endregion
 
@@ -135,13 +135,13 @@ namespace GPC.Checkers.Concrete.Checkers
         /// Calculate the stress analysis for each forces with creep coefficient <paramref name="phi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        public abstract StressAnalysisResult[] GetLinearStressAnalysisResult(double phi);
+        public abstract StressAnalysisResult[] GetLinearStressAnalysisResult(double phi, double psiTendon = 0);
 
         /// <summary>
         /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="phi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        public abstract StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double phi);
+        public abstract StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double phi, double psiTendon = 0);
 
         #endregion
 
