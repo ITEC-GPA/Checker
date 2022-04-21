@@ -223,32 +223,51 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="forces"></param>
         /// <returns>New FailureDomain2d</returns>
         /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
-        public async Task<FailureDomain2d> CalculatePlasticDomainConstantMomentsRatioAsync(ResultBeamForces forces)
+        public async Task<FailureDomain2d> CalculateDomainConstantMomentsRatioAsync(ResultBeamForces forces)
         {
             FailureDomain2d failureDomain2D = null;
 
             await Task.Run(() => {
-                failureDomain2D = CalculateFailureDomainCostantMomentsRatio(forces.ConvertToForceTuple(CoordinateSystem));
+                failureDomain2D = CalculateFailureDomainConstantMomentsRatio(forces.ConvertToForceTuple(CoordinateSystem));
             });
 
             return failureDomain2D;
         }
 
         /// <summary>
-        /// Calculate the elastic failure domain 2d with costant ratio between Mx and My
+        /// Calculate the failure domain 2d with costant value of axial force
+        /// </summary>
+        /// <param name="forces">Input forces</param>
+        /// <returns>New FailureDomain2d</returns>
+        /// <exception cref="ArgumentException"></exception>
+        public virtual async Task<FailureDomainResult2d> CalculateFailureDomainResultConstantAxialForceAsync(ResultBeamForces forces)
+        {
+            FailureDomainResult2d failureDomainForces = null;
+
+            await Task.Run(() => {
+                failureDomainForces = new FailureDomainResult2d(_section, CalculateDomainConstantAxialForce(forces.ConvertToForceTuple(CoordinateSystem)),
+                new ResultBeamForces[] { forces }, _sectionSolver, _standard, _sectionOption);
+            });
+
+            return failureDomainForces;
+        }
+
+        /// <summary>
+        /// Calculate the failure domain 2d with costant ratio between Mx and My
         /// </summary>
         /// <param name="forces"></param>
         /// <returns>New FailureDomain2d</returns>
         /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
-        public async Task<FailureDomain2d> CalculateElasticDomainConstantMomentsRatioAsync(ResultBeamForces forces)
+        public virtual async Task<FailureDomainResult2d> CalculateFailureDomainResultConstantMomentsRatioAsync(ResultBeamForces forces)
         {
-            FailureDomain2d failureDomain2D = null;
+            FailureDomainResult2d failureDomainForces = null;
 
             await Task.Run(() => {
-                failureDomain2D = CalculateElasticDomainMomentsRatio(forces.ConvertToForceTuple(CoordinateSystem));
+                failureDomainForces = new FailureDomainResult2d(_section, CalculateFailureDomainConstantMomentsRatio(forces.ConvertToForceTuple(CoordinateSystem)),
+                new ResultBeamForces[] { forces }, _sectionSolver, _standard, _sectionOption);
             });
 
-            return failureDomain2D;
+            return failureDomainForces;
         }
 
         /// <summary>
@@ -389,9 +408,9 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="forces"></param>
         /// <returns>New FailureDomain2d</returns>
         /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
-        public virtual FailureDomainResult2d CalculateFailureDomainCostantMomentsRatio(ResultBeamForces forces)
+        public virtual FailureDomainResult2d CalculateDomainConstantMomentsRatio(ResultBeamForces forces)
         {
-            return new FailureDomainResult2d(_section, CalculateFailureDomainCostantMomentsRatio(forces.ConvertToForceTuple(CoordinateSystem)),
+            return new FailureDomainResult2d(_section, CalculateFailureDomainConstantMomentsRatio(forces.ConvertToForceTuple(CoordinateSystem)),
                 new ResultBeamForces[] { forces }, _sectionSolver, _standard, _sectionOption);
         }
 
@@ -440,7 +459,7 @@ namespace GPC.Checkers.Concrete.Results
                 }
             }
 
-            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.CostantN);
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantN);
         }
 
         /// <summary>
@@ -449,7 +468,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="forces"></param>
         /// <returns>New FailureDomain2d</returns>
         /// <remarks>Only Mx and My of <paramref name="forces"/> are used</remarks>
-        protected virtual FailureDomain2d CalculateFailureDomainCostantMomentsRatio(ForceTuple forces)
+        protected virtual FailureDomain2d CalculateFailureDomainConstantMomentsRatio(ForceTuple forces)
 		{
             if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
                 return CalculatePlasticDomainCostantMomentsRatio(forces, _failureSectionSubdivision);
@@ -467,10 +486,10 @@ namespace GPC.Checkers.Concrete.Results
 
             Parallel.For(0, forceTuples.Length, (i) =>
             {
-                points[i] = _sectionSolver.CalculatePlasticDomainPoint(forceTuples[i], CoordinateSystem, FailureAnalysisType);
+                points[i] = _sectionSolver.CalculatePlasticDomainPoint(forceTuples[i], CoordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
             });
 
-            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.CostantMxMy);
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);
         }
 
         protected virtual FailureDomain2d CalculateElasticDomainMomentsRatio(ForceTuple forces, int subdivision = 10)
@@ -484,10 +503,10 @@ namespace GPC.Checkers.Concrete.Results
 
             Parallel.For(0, forceTuples.Length, (i) =>
             {
-                points[i] = _sectionSolver.CalculateElasticDomainPoint(forceTuples[i], CoordinateSystem, FailureAnalysisType);
+                points[i] = _sectionSolver.CalculateElasticDomainPoint(forceTuples[i], CoordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
             });
 
-            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.CostantMxMy);
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);
         }
 
         protected ForceTuple[] CalculateRadialForces(ForceTuple forces, int subdivision = 10)
