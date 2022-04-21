@@ -1481,7 +1481,7 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C35_45);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
-			ResultBeamForces force = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section));
+			ResultBeamForces force = new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section));
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
@@ -1489,7 +1489,8 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
-			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantAxialForce(force);
+			//FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantAxialForce(force);
+			FailureDomainResult2d failureDomainResult2d = sectionChecker.GetPlasticFailureDomainResult2d();
 
 			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
@@ -1531,7 +1532,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
-			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateFailureDomainCostantMomentsRatio(force);
+			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantMomentsRatio(force);
 			failureDomainResult2d.AddForce(force);
 			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
@@ -1563,7 +1564,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
-			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateFailureDomainCostantMomentsRatio(force);
+			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantMomentsRatio(force);
 
 			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
@@ -1596,7 +1597,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
-			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateFailureDomainCostantMomentsRatio(force);
+			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantMomentsRatio(force);
 
 			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 

@@ -1199,7 +1199,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             List<FailureDomain.FailureDomainPoint> domainPoints = domainPointPositive.ToList();
             domainPoints.AddRange(domainPointNevative);
 
-            return new FailureDomain2d(domainPoints.ToArray(), FailureDomainResult2d.DomainTypes.CostantMxMy);
+            return new FailureDomain2d(domainPoints.ToArray(), FailureDomainResult2d.DomainTypes.ConstantMxMy);
 		}
 
         #endregion

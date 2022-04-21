@@ -4,8 +4,10 @@ using GPC.Geometry;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
+using GPC.Utilities.Converters;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -15,10 +17,14 @@ namespace GPC.Checkers.Concrete.Results
     [Serializable]
     public class FailureDomainResult2d : CheckerResultType, ISerializable
     {
+        [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum DomainTypes
 		{
-            CostantN,
-            CostantMxMy,
+            [Description("Constant axial force")]
+            ConstantN,
+
+            [Description("Constant eccentricity")]
+            ConstantMxMy,
 		}
 
         protected readonly SectionSolver _sectionSolver;
@@ -228,7 +234,7 @@ namespace GPC.Checkers.Concrete.Results
 		{
             ForceTuple forceTuple = force.ConvertToForceTuple(_sectionOption.ForceReferenceCoordinateSystem);
 
-            if (_domainType == DomainTypes.CostantN)            
+            if (_domainType == DomainTypes.ConstantN)            
                 return new Point2d(forceTuple.Mx, forceTuple.My);            
             else            
                 return new Point2d(Math.Sqrt(Math.Pow(forceTuple.Mx, 2) + Math.Pow(forceTuple.My, 2)), forceTuple.N);            

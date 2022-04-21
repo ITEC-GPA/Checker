@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
@@ -121,7 +121,7 @@ namespace GPC.Checkers.Concrete.Results
 
 				if (edge.GetIntersectionWithInfiniteLine(line, out Point2d intersection))
 				{
-					if (_domainType == FailureDomainResult2d.DomainTypes.CostantN)
+					if (_domainType == FailureDomainResult2d.DomainTypes.ConstantN)
 						return (new FailureDomain.FailureDomainPoint(new ForceTuple(_domainPoints[index].NRd, intersection.X, intersection.Y),
 							_domainPoints[index].FailureIndex, _domainPoints[index].StrainPlane), intersection);
 					else
@@ -141,7 +141,7 @@ namespace GPC.Checkers.Concrete.Results
 		protected void CalculateDomainPoints2dAssociation()
 		{
 			// caso N costante
-			if(_domainType == FailureDomainResult2d.DomainTypes.CostantN)
+			if(_domainType == FailureDomainResult2d.DomainTypes.ConstantN)
 			{
 				for (int i = 0; i < _domainPoints.Length; i++)
 					_domainPoints2dAssociation.Add(_domainPoints[i], new Point2d(_domainPoints[i].MxRd, _domainPoints[i].MyRd));
@@ -156,7 +156,7 @@ namespace GPC.Checkers.Concrete.Results
 
 		protected CoordinateSystem GetCoordinateSystem()
 		{
-			if (_domainType == FailureDomainResult2d.DomainTypes.CostantN)
+			if (_domainType == FailureDomainResult2d.DomainTypes.ConstantN)
 			{
 				return new CoordinateSystem(new Point3d(0, 0, _domainPoints[0].NRd), Vector3d.XAxis, Vector3d.YAxis);
 			}
