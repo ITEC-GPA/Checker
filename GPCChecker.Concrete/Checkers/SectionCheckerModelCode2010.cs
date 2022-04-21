@@ -285,10 +285,20 @@ namespace GPC.Checkers.Concrete.Checkers
             return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptionsModelCode2010);
         }
 
-		#endregion
+        public override FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force)
+        {
+            return _solver.CalculatePlasticDomainPoint(force, SectionCheckerOptionsModelCode2010);
+        }
+
+        public override FailureDomain.FailureDomainPoint CalculateElasticFailureDomainPoint(ResultBeamForces force)
+        {
+            return _solver.CalculateElasticDomainPoint(force, SectionCheckerOptionsModelCode2010);
+        }
+
+        #endregion
 
 
-		[Serializable]
+        [Serializable]
         public class SectionOptionsModelCode2010 : SectionOptions, ISerializable
         {
             public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantEccentricity)

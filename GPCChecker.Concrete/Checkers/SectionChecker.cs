@@ -143,6 +143,10 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The stress analysis results</returns>
         public abstract StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double phi, double psiTendon = 0);
 
+        public abstract FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force);
+
+        public abstract FailureDomain.FailureDomainPoint CalculateElasticFailureDomainPoint(ResultBeamForces force);
+
         #endregion
 
 

@@ -389,13 +389,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 _stressAnalysisTolerance), this, _standard, Id);
         }
 
-        internal virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple force,
+        public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
+		{
+            return CalculatePlasticDomainPoint(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem), sectionOption.ForceReferenceCoordinateSystem, sectionOption.FailureAnalysisType);
+        }
+
+        public virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
+        {
+            return CalculateElasticDomainPoint(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem), sectionOption.ForceReferenceCoordinateSystem, sectionOption.FailureAnalysisType);
+        }
+
+        public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple force,
             CoordinateSystem coordinateSystem, FailureAnalysisTypes failureAnalysisType)
 		{
             return CalculateDomainPoint(force, coordinateSystem, FailureDomainTypes.Plastic, failureAnalysisType, _failureAnalysisAngularTolerance);
 		}
 
-        internal virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, CoordinateSystem coordinateSystem,
+        public virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, CoordinateSystem coordinateSystem,
             FailureAnalysisTypes failureAnalysisType)
         {
             return CalculateDomainPoint(force, coordinateSystem, FailureDomainTypes.Elastic, failureAnalysisType, _failureAnalysisAngularTolerance);
@@ -1965,7 +1975,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance * tolerance)
             {
                 FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, coordinateSystem,
-                    FailureDomainTypes.Plastic, FailureAnalysisTypes.ConstantEccentricity, 5.0 * _failureAnalysisAngularTolerance);
+                    FailureDomainTypes.Plastic, FailureAnalysisTypes.ConstantEccentricity, 5.0 * _failureAnalysisAngularTolerance, 5.0 * _stressAnalysisTolerance);
 
                 if(pointOnDomain != null)
 				{

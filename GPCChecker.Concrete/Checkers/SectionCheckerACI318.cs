@@ -276,6 +276,16 @@ namespace GPC.Checkers.Concrete.Checkers
             return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptionsACI318);
         }
 
+        public override FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force)
+		{
+            return _solver.CalculatePlasticDomainPoint(force, SectionCheckerOptionsACI318);
+        }
+
+        public override FailureDomain.FailureDomainPoint CalculateElasticFailureDomainPoint(ResultBeamForces force)
+        {
+            return _solver.CalculateElasticDomainPoint(force, SectionCheckerOptionsACI318);
+        }
+
         #endregion
 
 
