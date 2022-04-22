@@ -513,30 +513,35 @@ namespace GPC.Checkers.Concrete.Results
 		{
             ForceTuple[] forceTuples = new ForceTuple[2 * subdivision];
 
-            double nMax = ConcreteSection.AreaRebars * ConcreteSection.Rebars.FirstOrDefault().RebarMaterial.Fyk / 2.0;
-            double nMin = ConcreteSection.Area * ConcreteSection.ConcreteMaterial.StressStrainTableCompression.GetMinimumStress() / 4.0;
+            double nMax;
+            if(ConcreteSection.RebarsCount > 0)
+                nMax = ConcreteSection.AreaRebars * ConcreteSection.Rebars.FirstOrDefault().RebarMaterial.Fyk / 2.0;
+            else
+                nMax = ConcreteSection.Area * ConcreteSection.ConcreteMaterial.StressStrainTableTension.GetMaximumStress() / 2.0;
+
+            double nMin = ConcreteSection.Area * ConcreteSection.ConcreteMaterial.StressStrainTableCompression.GetMinimumStress() / 8.0;
             
             for (int i = 0; i < subdivision / 2.0; i++)
             {
                 forceTuples[i] = new ForceTuple(
                     Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.Mx, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.My, i));
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.Mx * 2, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.My * 2, i));
 
                 forceTuples[subdivision / 2 + i] = new ForceTuple(
                     Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.Mx, 0.0, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.My, 0.0, i));
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.Mx * 2, 0.0, i),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.My * 2, 0.0, i));
 
                 forceTuples[2 * subdivision - 1 - i] = new ForceTuple(
                     Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i + 1),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.Mx, i + 1),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.My, i + 1));
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.Mx * 2, i + 1),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.My * 2, i + 1));
 
                 forceTuples[subdivision / 2 + subdivision - 1 - i] = new ForceTuple(
                     Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i + 1),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.Mx, 0.0, i + 1),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.My, 0.0, i + 1));
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.Mx * 2, 0.0, i + 1),
+                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.My * 2, 0.0, i + 1));
             }
 
             return forceTuples;
@@ -633,6 +638,11 @@ namespace GPC.Checkers.Concrete.Results
         {
             _sectionOption.FailureAnalysisType = failureAnalysisTypes;
         }
+
+        public void SetFailureDomain2dSubdivision(int subdivision)
+		{
+            _failureSectionSubdivision = subdivision;
+		}
 
         #endregion
     }
