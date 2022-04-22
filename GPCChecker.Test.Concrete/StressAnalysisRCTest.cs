@@ -965,7 +965,7 @@ namespace ConcreteTests
 
 			for (int i = 10; i < slsResult.Length; i++)
 			{
-				Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectCentroid();
+				Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectReferencePoint();
 				neutralAxis.Move(section.Centroid.X, section.Centroid.Y);
 
 				Assert.IsTrue(neutralAxis.GetLength() > 1);
@@ -976,7 +976,7 @@ namespace ConcreteTests
 
 			for (int i = 10; i < slsResult.Length; i++)
 			{
-				Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectCentroid();
+				Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectReferencePoint();
 				neutralAxis.Move(section.Centroid.X, section.Centroid.Y);
 
 				Assert.IsTrue(neutralAxis.GetLength() > 1);
