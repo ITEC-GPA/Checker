@@ -434,7 +434,8 @@ namespace GPC.Checkers.Concrete.Results
 
             FailureDomain.FailureDomainPoint[] points = new FailureDomain.FailureDomainPoint[_failureDomain.DomainPoints.Length];
 
-            for (int i = 0; i < _failureDomain.DomainPoints.Length; i++)
+            Parallel.For(0, _failureDomain.DomainPoints.Length, (i, state) =>
+            //for (int i = 0; i < _failureDomain.DomainPoints.Length; i++)
             {
                 for (int j = 1; j < _failureDomain.DomainPoints[i].Length; j++)
                 {
@@ -457,7 +458,7 @@ namespace GPC.Checkers.Concrete.Results
                         break;
                     }
                 }
-            }
+            });
 
             return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantN);
         }
