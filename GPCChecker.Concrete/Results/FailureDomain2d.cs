@@ -153,12 +153,18 @@ namespace GPC.Checkers.Concrete.Results
 					if (_domainPoints[i] != null)
 					{
 						double sign = +1;
-						if(i > 0)
-						if (i >= _domainPoints.Length / 2)
-							sign = -1;
-
-						_domainPoints2dAssociation.Add(_domainPoints[i],
-							new Point2d(sign * Math.Sqrt(Math.Pow(_domainPoints[i].MxRd, 2) + Math.Pow(_domainPoints[i].MyRd, 2)), _domainPoints[i].NRd));
+						if (i > 0)
+						{
+							if (Math.Abs(_domainPoints[i].MxRd) < 1 && Math.Abs(_domainPoints[i].MyRd) < 1)
+								sign = +1;
+							else if (Math.Abs(_domainPoints[i].MxRd) > 1)
+								sign *= Math.Sign(_domainPoints[i].MxRd);
+							else if (Math.Abs(_domainPoints[i].MyRd) > 1)
+								sign *= Math.Sign(_domainPoints[i].MyRd);
+						}
+						if(!_domainPoints2dAssociation.ContainsKey(_domainPoints[i]))
+							_domainPoints2dAssociation.Add(_domainPoints[i],
+								new Point2d(sign * Math.Sqrt(Math.Pow(_domainPoints[i].MxRd, 2) + Math.Pow(_domainPoints[i].MyRd, 2)), _domainPoints[i].NRd));
 					}
 			}
 		}
