@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Results;
@@ -94,7 +94,9 @@ namespace GPC.Checkers.Concrete.Results
             FailureDomain.FailureDomainPoint failureDomainPoint = null;
 
             await Task.Run(() => {
-                _forces.Add(new FailureDomain.FailureDomainForce(forces, _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces)).failureDomainPoint));
+                (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) point = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
+                _forces.Add(new FailureDomain.FailureDomainForce(forces, point.failureDomainPoint));
+                failureDomainPoint = point.failureDomainPoint;
             });
 
             return failureDomainPoint;
@@ -172,6 +174,7 @@ namespace GPC.Checkers.Concrete.Results
 
                 _forces.RemoveAt(index);
                 _forces.Insert(index, new FailureDomain.FailureDomainForce(forces, point.failureDomainPoint));
+                failureDomainPoint = point.failureDomainPoint;
             });
 
             return failureDomainPoint;

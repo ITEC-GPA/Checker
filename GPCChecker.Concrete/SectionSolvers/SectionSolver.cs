@@ -720,7 +720,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <returns>The design concrete stress related to <paramref name="strain"/> with linear elastic stress-strain diagram</returns>
-        internal double CalculateElasticSigmaC(double strain)
+        public double CalculateElasticSigmaC(double strain)
         {
             if (strain < 0)
             {
@@ -742,7 +742,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         }
 
-        internal double CalculateElasticSigmaS(double psi, ReinforcedConcreteRebar rebar, double strain)
+        public double CalculateElasticSigmaS(double psi, ReinforcedConcreteRebar rebar, double strain)
         {
             return rebar.RebarMaterial.E * (1 + psi) * strain + rebar.RebarMaterial.E * rebar.EpsilonP;
         }
@@ -1377,7 +1377,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, id);
 
             teta = strainPlane.Teta;
-
 
             ForceTuple forces = GetExternalForces(CalculateForceResultant(strainPlane, rebarIsInsideAssociation), coordinateSystem);
             ForceTuple adimIncrement = ConvertToAdimensionalForces(forces - targetLocalForces);
