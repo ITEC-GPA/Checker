@@ -1066,10 +1066,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             int subIndex = 0;
 
-            foreach ((FailureZones, int) zone in zoneSubdivision)
+			for (int i = 0; i < zoneSubdivision.Length; i++)
             {
-                FailureZones failureZones = zone.Item1;
-                int subdivision = zone.Item2 + 1;
+				FailureZones failureZones = zoneSubdivision[i].Item1;
+                int subdivision = zoneSubdivision[i].Item2 + 1;
 
                 switch (failureZones)
                 {

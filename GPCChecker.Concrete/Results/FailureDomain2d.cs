@@ -102,9 +102,13 @@ namespace GPC.Checkers.Concrete.Results
 				double t1 = Math.Atan2(point1.Y, point1.X);
 				if (t1 < 0)
 					t1 += 2 * Math.PI;
+				if(t1 >= 2 * Math.PI)
+					t1 -= 2 * Math.PI;
 				double t2 = Math.Atan2(point2.Y, point2.X);
 				if (t2 < 0)
 					t2 += 2 * Math.PI;
+				if (t2 >= 2 * Math.PI)
+					t2 -= 2 * Math.PI;
 
 				if (Math.Abs(t1 - teta) < GeometryBase.Tolerance ||
 					(Math.Abs(Math.Abs(t1 + teta) - Math.PI) < GeometryBase.Tolerance && Math.Abs(Math.Abs(t1) - Math.PI) < GeometryBase.Tolerance))
