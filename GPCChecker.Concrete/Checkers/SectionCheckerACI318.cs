@@ -55,13 +55,13 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <inheritdoc cref="SectionChecker.GetPlasticFailureDomainResultAsync"/>
-        public async override Task<FailureDomainResult2d> GetPlasticFailureDomainResult2dAsync()
+        public async override Task<FailureDomainResult2d> GetPlasticFailureDomainResult2dAsync(double teta = 0)
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptionsACI318);
+                    var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptionsACI318, teta);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -97,13 +97,13 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <inheritdoc cref="SectionChecker.GetElasticFailureDomainResult2dAsync"/>
-        public async override Task<FailureDomainResult2d> GetElasticFailureDomainResult2dAsync()
+        public async override Task<FailureDomainResult2d> GetElasticFailureDomainResult2dAsync(double teta = 0)
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptionsACI318);
+                    var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptionsACI318, teta);
 
                     if (_checkerAttributes.ULSResults != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);

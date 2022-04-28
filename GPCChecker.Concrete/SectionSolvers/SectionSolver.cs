@@ -272,7 +272,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 null, this, _standard, sectionOption, Id);
         }
 
-        public virtual FailureDomainResult2d GetElasticFailureDomainResult2d(Checkers.SectionChecker.SectionOptions sectionOption)
+        public virtual FailureDomainResult2d GetElasticFailureDomainResult2d(Checkers.SectionChecker.SectionOptions sectionOption, double angle = 0)
         {
             (FailureZones, int)[] zoneDiscretization;
 
@@ -286,7 +286,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     return null;
 
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(2,
-                zoneDiscretization, FailureDomainTypes.Elastic);
+                zoneDiscretization, FailureDomainTypes.Elastic, angle);
 
             return new FailureDomainResult2d(ConcreteSection,
                 ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic).RebuildFailureDomain()),
@@ -319,7 +319,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 sectionOption, Id);
         }
 
-        public virtual FailureDomainResult2d GetPlasticFailureDomainResult2d(Checkers.SectionChecker.SectionOptions sectionOption)
+        public virtual FailureDomainResult2d GetPlasticFailureDomainResult2d(Checkers.SectionChecker.SectionOptions sectionOption, double angle = 0)
         {
             (FailureZones, int)[] zoneDiscretization;
 
@@ -338,7 +338,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     return null;
 
             (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(2,
-                zoneDiscretization, FailureDomainTypes.Plastic);
+                zoneDiscretization, FailureDomainTypes.Plastic, angle);
 
             return new FailureDomainResult2d(ConcreteSection,
                 ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic).RebuildFailureDomain()), null, this, _standard,
@@ -1020,20 +1020,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         protected virtual (StrainPlane, FailureZones)[][] CalculateDesignFailureStrainPlanes(int tetaDiscretizations, (FailureZones, int)[] zoneSubdivision,
-            FailureDomainTypes failureDomainType)
+            FailureDomainTypes failureDomainType, double initialAngle = 0)
         {
             if (tetaDiscretizations < 2)
                 return null;
 
             double deltaTeta = 2 * Math.PI / (tetaDiscretizations);
-
             (StrainPlane, FailureZones)[][] strainPlanes = new (StrainPlane, FailureZones)[tetaDiscretizations][];
 
             try
             {
                 Parallel.For(0, tetaDiscretizations, (i) =>
                 {
-                    strainPlanes[i] = CalculateFailureStrainPlanes((i * deltaTeta), zoneSubdivision, failureDomainType);
+                    strainPlanes[i] = CalculateFailureStrainPlanes((initialAngle + i * deltaTeta), zoneSubdivision, failureDomainType);
                 });
             }
             catch (Exception e)

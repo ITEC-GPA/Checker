@@ -53,7 +53,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// Calculate the plastic failure domain 2d and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-        public abstract Task<FailureDomainResult2d> GetPlasticFailureDomainResult2dAsync();
+        public abstract Task<FailureDomainResult2d> GetPlasticFailureDomainResult2dAsync(double teta = 0);
 
         /// <summary>
         /// Calculate the elastic failure domain and calculate the domain point for each forces
@@ -65,7 +65,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// Calculate the elastic failure domain2d and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-        public abstract Task<FailureDomainResult2d> GetElasticFailureDomainResult2dAsync();
+        public abstract Task<FailureDomainResult2d> GetElasticFailureDomainResult2dAsync(double teta = 0);
 
         /// <summary>
         /// Calculate the stress analysis for each forces
