@@ -234,13 +234,13 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="force">The force to convert</param>
         /// <returns></returns>
         protected Point2d ConvertForceToPoint(ResultBeamForces force)
-		{
+        {
             ForceTuple forceTuple = force.ConvertToForceTuple(_sectionOption.ForceReferenceCoordinateSystem);
 
-            if (_domainType == DomainTypes.ConstantN)            
-                return new Point2d(forceTuple.Mx, forceTuple.My);            
+            if (_domainType == DomainTypes.ConstantN)
+                return new Point2d(forceTuple.Mx, forceTuple.My);
             else            
-                return new Point2d(Math.Sqrt(Math.Pow(forceTuple.Mx, 2) + Math.Pow(forceTuple.My, 2)), forceTuple.N);            
+                return new Point2d(forceTuple.N, forceTuple.Mx);            
         }
 
 		#endregion

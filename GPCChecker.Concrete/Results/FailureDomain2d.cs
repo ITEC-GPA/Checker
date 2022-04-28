@@ -76,6 +76,9 @@ namespace GPC.Checkers.Concrete.Results
 		protected (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) GetDomainPoint(double x, double y)
 		{
 			double teta = Math.Atan2(y, x);
+			if (teta < 0)
+				teta += 2 * Math.PI;
+
 			int index = -1;
 
 			for (int i = 0; i < _domainPoints.Length; i++)
@@ -97,24 +100,28 @@ namespace GPC.Checkers.Concrete.Results
 				}
 
 				double t1 = Math.Atan2(point1.Y, point1.X);
+				if (t1 < 0)
+					t1 += 2 * Math.PI;
 				double t2 = Math.Atan2(point2.Y, point2.X);
+				if (t2 < 0)
+					t2 += 2 * Math.PI;
 
-				if (Math.Abs(t1 - teta) < GeometryBase.Tolerance || (Math.Abs(t1 + teta) < GeometryBase.Tolerance && Math.Abs(t1 + Math.PI) < GeometryBase.Tolerance))
+				if (Math.Abs(t1 - teta) < GeometryBase.Tolerance ||
+					(Math.Abs(Math.Abs(t1 + teta) - Math.PI) < GeometryBase.Tolerance && Math.Abs(Math.Abs(t1) - Math.PI) < GeometryBase.Tolerance))
 				{
-					if (_domainType == FailureDomainResult2d.DomainTypes.ConstantN)
-						return (new FailureDomain.FailureDomainPoint(new ForceTuple(_domainPoints[i].NRd, point1.X, point1.Y),
+					return (new FailureDomain.FailureDomainPoint(new ForceTuple(_domainPoints[i].NRd, _domainPoints[i].MxRd, _domainPoints[i].MyRd),
 						_domainPoints[i].FailureIndex, _domainPoints[i].StrainPlane), point1);
 				}
-				if (Math.Abs(t2 - teta) < GeometryBase.Tolerance || (Math.Abs(t2 + teta) < GeometryBase.Tolerance && Math.Abs(t2 + Math.PI) < GeometryBase.Tolerance))
+				if (Math.Abs(t2 - teta) < GeometryBase.Tolerance || 
+					(Math.Abs(Math.Abs(t2 + teta) - Math.PI) < GeometryBase.Tolerance && Math.Abs(Math.Abs(t2) - Math.PI) < GeometryBase.Tolerance))
 				{
-					if (_domainType == FailureDomainResult2d.DomainTypes.ConstantN)
-						return (new FailureDomain.FailureDomainPoint(new ForceTuple(_domainPoints[i].NRd, point2.X, point2.Y),
+					return (new FailureDomain.FailureDomainPoint(new ForceTuple(_domainPoints[ind].NRd, _domainPoints[ind].MxRd, _domainPoints[ind].MyRd),
 						_domainPoints[ind].FailureIndex, _domainPoints[ind].StrainPlane), point2);
 				}
 
 				if (Math.Sign(teta - t1) != Math.Sign(teta - t2) && 
-					((Math.Sign(x) == Math.Sign(point1.X) || Math.Abs(point1.X) < 1) && 
-					((Math.Sign(y) == Math.Sign(point1.Y)) || Math.Abs(point1.Y) < 1)))
+					((Math.Sign(x) == Math.Sign(point1.X) || x == 0 || Math.Abs(point1.X) < 1) && 
+					((Math.Sign(y) == Math.Sign(point1.Y)) || y == 0 || Math.Abs(point1.Y) < 1)))
 				{
 					if(Math.Abs(teta) > Math.Abs(t1) && Math.Abs(teta) < Math.Abs(t2) ||
 						Math.Abs(teta) < Math.Abs(t1) && Math.Abs(teta) > Math.Abs(t2))
@@ -142,7 +149,7 @@ namespace GPC.Checkers.Concrete.Results
 					{
 						CoordinateSystem coordinateSystem = GetCoordinateSystem();
 						var pointGlobalCoordinate = coordinateSystem.ToGlobal(intersection);
-						return (new FailureDomain.FailureDomainPoint(new ForceTuple(intersection.Y, pointGlobalCoordinate.X, pointGlobalCoordinate.Y), 
+						return (new FailureDomain.FailureDomainPoint(new ForceTuple(pointGlobalCoordinate.X, pointGlobalCoordinate.Y, pointGlobalCoordinate.Z), 
 							_domainPoints[index].FailureIndex, _domainPoints[index].StrainPlane), intersection);
 					}
 				}
