@@ -289,7 +289,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 zoneDiscretization, FailureDomainTypes.Elastic);
 
             return new FailureDomainResult2d(ConcreteSection,
-                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic)),
+                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic).RebuildFailureDomain()),
                 null, this, _standard, sectionOption, Id);
         }
 
@@ -341,7 +341,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 zoneDiscretization, FailureDomainTypes.Plastic);
 
             return new FailureDomainResult2d(ConcreteSection,
-                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic)), null, this, _standard,
+                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic).RebuildFailureDomain()), null, this, _standard,
                 sectionOption, Id);
         }
 

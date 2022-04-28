@@ -53,7 +53,17 @@ namespace GPC.Checkers.Concrete.Results
 
 		public Mesh GetMesh()
 		{
-			return GetMesh(RefineFailureDomainAlongTeta(RebuildFailureDomainAlongZAxis(this, _axialForceSubdivision)));
+			return GetMesh(RebuildFailureDomain());
+		}
+
+		internal FailureDomain RebuildFailureDomain(int axialForceSubdivision = 50)
+		{
+			return RefineFailureDomainAlongTeta(RebuildFailureDomainAlongZAxis(this, axialForceSubdivision));
+		}
+
+		public FailureDomain RebuildFailureDomain()
+		{
+			return RebuildFailureDomain(_axialForceSubdivision);
 		}
 
 		protected Mesh GetMesh(FailureDomain failureDomain)
@@ -230,7 +240,7 @@ namespace GPC.Checkers.Concrete.Results
 			return failureDomain;
 		}	
 
-		protected FailureDomain RebuildFailureDomainAlongZAxis(FailureDomain failureDomain, int axialForceSubdivision = 20, double tolerance = 0.1)
+		protected FailureDomain RebuildFailureDomainAlongZAxis(FailureDomain failureDomain, int axialForceSubdivision = 50, double tolerance = 0.1)
 		{
 			(double maximum, double minimum) limits = GetAxialForceLimits(out FailureDomainPoint maxPoint, out FailureDomainPoint minPoint);
 

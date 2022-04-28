@@ -424,7 +424,7 @@ namespace GPC.Checkers.Concrete.Results
 		/// <param name="forces">Input forces</param>
 		/// <returns>New FailureDomain2d</returns>
 		/// <exception cref="ArgumentException"></exception>
-		protected virtual FailureDomain2d CalculateDomainConstantAxialForce(ForceTuple forces)
+		protected virtual FailureDomain2d CalculateDomainConstantAxialForce(ForceTuple forces, int axialForceSubdivision = 50)
         {
             if (forces == null)
                 throw new ArgumentException();
@@ -432,28 +432,29 @@ namespace GPC.Checkers.Concrete.Results
             if (forces.N > _failureDomain.DomainPoints.FirstOrDefault().FirstOrDefault().NRd || forces.N < _failureDomain.DomainPoints.LastOrDefault().LastOrDefault().NRd)
                 return null;
 
-            FailureDomain.FailureDomainPoint[] points = new FailureDomain.FailureDomainPoint[_failureDomain.DomainPoints.Length];
+			FailureDomain failureDomain = _failureDomain.RebuildFailureDomain(axialForceSubdivision);
 
-            Parallel.For(0, _failureDomain.DomainPoints.Length, (i, state) =>
-            //for (int i = 0; i < _failureDomain.DomainPoints.Length; i++)
+            FailureDomain.FailureDomainPoint[] points = new FailureDomain.FailureDomainPoint[failureDomain.DomainPoints.Length];
+
+            Parallel.For(0, failureDomain.DomainPoints.Length, (i, state) =>
             {
-                for (int j = 1; j < _failureDomain.DomainPoints[i].Length; j++)
+                for (int j = 1; j < failureDomain.DomainPoints[i].Length; j++)
                 {
-                    if (forces.N == _failureDomain.DomainPoints[i][j].NRd)
+                    if (forces.N == failureDomain.DomainPoints[i][j].NRd)
                     {
-                        points[i] = _failureDomain.DomainPoints[i][j];
+                        points[i] = failureDomain.DomainPoints[i][j];
                         break;
                     }
 
-                    if (forces.N > _failureDomain.DomainPoints[i][j].NRd && forces.N < _failureDomain.DomainPoints[i][j - 1].NRd)
+                    if (forces.N > failureDomain.DomainPoints[i][j].NRd && forces.N < failureDomain.DomainPoints[i][j - 1].NRd)
                     {
-                        double mx = Utilities.Maths.Interpolation.GetLinearInterpolation(_failureDomain.DomainPoints[i][j - 1].NRd, _failureDomain.DomainPoints[i][j].NRd,
-                            _failureDomain.DomainPoints[i][j - 1].MxRd, _failureDomain.DomainPoints[i][j].MxRd, forces.N);
-                        double my = Utilities.Maths.Interpolation.GetLinearInterpolation(_failureDomain.DomainPoints[i][j - 1].NRd, _failureDomain.DomainPoints[i][j].NRd,
-                            _failureDomain.DomainPoints[i][j - 1].MyRd, _failureDomain.DomainPoints[i][j].MyRd, forces.N);
+                        double mx = Utilities.Maths.Interpolation.GetLinearInterpolation(failureDomain.DomainPoints[i][j - 1].NRd, failureDomain.DomainPoints[i][j].NRd,
+                            failureDomain.DomainPoints[i][j - 1].MxRd, failureDomain.DomainPoints[i][j].MxRd, forces.N);
+                        double my = Utilities.Maths.Interpolation.GetLinearInterpolation(failureDomain.DomainPoints[i][j - 1].NRd, failureDomain.DomainPoints[i][j].NRd,
+                            failureDomain.DomainPoints[i][j - 1].MyRd, failureDomain.DomainPoints[i][j].MyRd, forces.N);
 
                         points[i] = new FailureDomain.FailureDomainPoint(new ForceTuple(forces.N, mx, my),
-                            _failureDomain.DomainPoints[i][j].FailureIndex, _failureDomain.DomainPoints[i][j].StrainPlane);
+                            failureDomain.DomainPoints[i][j].FailureIndex, failureDomain.DomainPoints[i][j].StrainPlane);
 
                         break;
                     }
