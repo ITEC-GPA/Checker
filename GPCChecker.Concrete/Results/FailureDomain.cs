@@ -552,6 +552,86 @@ namespace GPC.Checkers.Concrete.Results
 
 		#endregion
 
+		#region FailureDomainPoint2d
+
+		public sealed class FailureDomainPoint2d : ISerializable, IEquatable<FailureDomainPoint2d>
+		{
+			#region Variables
+
+			private readonly FailureDomainForce _failureDomainForce;
+			private readonly Point2d _point2d;
+
+			#endregion
+
+			#region Properties
+
+			public FailureDomainForce FailureDomainForce => _failureDomainForce;
+
+			public Point3d Point2d => _point2d;
+
+			#endregion
+
+			#region Constructor
+
+			internal FailureDomainPoint2d(FailureDomainForce failureDomainForce, Point2d point2D)
+			{
+				_failureDomainForce = failureDomainForce;
+				_point2d = point2D;
+			}
+
+			internal FailureDomainPoint2d(SerializationInfo info, StreamingContext context)
+			{
+				_failureDomainForce = (FailureDomainForce)info.GetValue("FailureDomainForce", typeof(FailureDomainForce));
+				_point2d = (Point2d)info.GetValue("Point2d", typeof(Point2d));
+			}
+
+			#endregion
+
+			#region Equals, hashcode, operators
+
+			public void GetObjectData(SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue("FailureDomainForce", _failureDomainForce, typeof(FailureDomainForce));
+				info.AddValue("Point2d", _point2d, typeof(Point2d));
+			}
+
+			public override bool Equals(object obj)
+			{
+				return Equals((FailureDomainPoint)obj);
+			}
+
+			public bool Equals(FailureDomainPoint2d other)
+			{
+				return other != null && _failureDomainForce.Equals(other._failureDomainForce) &&
+					_point2d == other._point2d;
+			}
+
+			public override int GetHashCode()
+			{
+				unchecked
+				{
+					int hashCode = 17;
+					hashCode = hashCode * -23 + _point2d.GetHashCode();
+					hashCode = hashCode * -23 + _failureDomainForce.GetHashCode();
+					return hashCode;
+				}
+			}
+
+			public static bool operator ==(FailureDomainPoint2d left, FailureDomainPoint2d right)
+			{
+				return EqualityComparer<FailureDomainPoint2d>.Default.Equals(left, right);
+			}
+
+			public static bool operator !=(FailureDomainPoint2d left, FailureDomainPoint2d right)
+			{
+				return !(left == right);
+			}
+
+			#endregion
+		}
+
+		#endregion
+
 		#region Setter
 
 		public void SetFailureDomainType(SectionSolver.FailureDomainTypes failureDomainType)
