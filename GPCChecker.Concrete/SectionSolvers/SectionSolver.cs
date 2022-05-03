@@ -888,22 +888,49 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
             FailureDomainTypes analysisType)
         {
-            switch (analysisType)
+            switch (_concreteSection.ConcreteMaterial.ConcreteType)
             {
-                case FailureDomainTypes.Elastic:
+                case ConcreteMaterial.ConcreteTypes.Normal:
 
-                    return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
-                        (distances.dmaxConcrete - distances.dminRebar));
+                    switch (analysisType)
+                    {
+                        case FailureDomainTypes.Elastic:
 
-                case FailureDomainTypes.Plastic:
+                            return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+                                (distances.dmaxConcrete - distances.dminRebar));
 
-                    return (GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
-                        (distances.dmaxConcrete - distances.dminRebar));
+                        case FailureDomainTypes.Plastic:
+
+                            return (GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+                                (distances.dmaxConcrete - distances.dminRebar));
+
+                        default:
+                            return (0.0, null, 0.0);
+                    }
+
+                case ConcreteMaterial.ConcreteTypes.FRC:
+
+                    switch (analysisType)
+                    {
+                        case FailureDomainTypes.Elastic:
+
+                            return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+                                (distances.dmaxConcrete - distances.dminConcrete));
+
+                        case FailureDomainTypes.Plastic:
+
+                            return (GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+                                (distances.dmaxConcrete - distances.dminConcrete));
+
+                        default:
+                            return (0.0, null, 0.0);
+                    }
 
                 default:
                     return (0.0, null, 0.0);
-            }
+            }            
         }
+   
 
         protected (double epsilon, Point2d point, double distanceFromBaricentre) GetP3((double teta, int dMinRebarId, double dminRebar,
             int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
