@@ -1418,7 +1418,7 @@ namespace ConcreteTests
 			FailureDomain.FailureDomainForce[] forces = result.GetFailureDomainForces();
 
 			FailureDomainResult2d failureDomainResult2d = result.CalculateDomainConstantAxialForce(force);
-			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+			FailureDomain.FailureDomainPoint2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
 			ForceTuple expForceConstantMxMy = new ForceTuple(-676 * 1000, 496.21 * 1000000, -113.2 * 1000000);
 			ForceTuple expForceConstantN = new ForceTuple(-512.2 * 1000, 487.2 * 1000000, -111 * 1000000);
@@ -1426,7 +1426,7 @@ namespace ConcreteTests
 			double expWR1 = 0.7689;
 			double expWR2 = 1.0 / 1.3;
 
-			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForceConstantN, forces2d[0], expWR1);
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForceConstantN, forces2d[0].FailureDomainForce, expWR1);
 			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForceConstantMxMy, forces[0], expWR2);
 
 			//ExportToGmsh(failureDomainResult2d.Domain,
@@ -1454,7 +1454,7 @@ namespace ConcreteTests
 			FailureDomain.FailureDomainForce[] forces = result.GetFailureDomainForces();
 
 			FailureDomainResult2d failureDomainResult2d = result.CalculateDomainConstantAxialForce(force);
-			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+			FailureDomain.FailureDomainPoint2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
 			ForceTuple expForceConstantMxMy = new ForceTuple(-676 * 1000, 496.21 * 1000000, -113.2 * 1000000);
 			ForceTuple expForceConstantN = new ForceTuple(-512.2 * 1000, 487.2 * 1000000, -111 * 1000000);
@@ -1462,7 +1462,7 @@ namespace ConcreteTests
 			double expWR1 = 0.7689;
 			double expWR2 = 1.0 / 1.3;
 
-			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForceConstantN, forces2d[0], expWR1);
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForceConstantN, forces2d[0].FailureDomainForce, expWR1);
 			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForceConstantMxMy, forces[0], expWR2);
 
 			//ExportToGmsh(failureDomainResult2d.Domain,
@@ -1492,7 +1492,7 @@ namespace ConcreteTests
 			//FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantAxialForce(force);
 			FailureDomainResult2d failureDomainResult2d = sectionChecker.GetPlasticFailureDomainResult2d();
 
-			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+			FailureDomain.FailureDomainPoint2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
 			//ExportToGmsh(failureDomainResult2d.Domain,
 			//	new Line3d[] { new Line3d(new Point3d(0, 0, force.N), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
@@ -1502,9 +1502,9 @@ namespace ConcreteTests
 				$"MXed = {Math.Round(force.M1 / 1000000, 2)}, " +
 				$"MYed = {Math.Round(force.M2 / 1000000, 2)}");
 
-			Console.WriteLine($"NRD = {Math.Round(forces2d[0].FailureDomainPoint.NRd / 1000, 2)}, " +
-				$"MXRD = {Math.Round(forces2d[0].FailureDomainPoint.MxRd / 1000000, 2)}, " +
-				$"MYRD = {Math.Round(forces2d[0].FailureDomainPoint.MyRd / 1000000, 2)}");
+			Console.WriteLine($"NRD = {Math.Round(forces2d[0].FailureDomainForce.FailureDomainPoint.NRd / 1000, 2)}, " +
+				$"MXRD = {Math.Round(forces2d[0].FailureDomainForce.FailureDomainPoint.MxRd / 1000000, 2)}, " +
+				$"MYRD = {Math.Round(forces2d[0].FailureDomainForce.FailureDomainPoint.MyRd / 1000000, 2)}");
 
 			//var failureDomainPoint = failureDomainResult.GetDomainPointConstantAxialForce(forces);
 
@@ -1534,7 +1534,7 @@ namespace ConcreteTests
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
 			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantMomentsRatio(force);
 			failureDomainResult2d.AddForce(force);
-			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+			FailureDomain.FailureDomainPoint2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
 			ForceTuple expForce = new ForceTuple(-3147 * 1000, 314.7 * 1000000, 0);
 			double expWR = 0.32;
@@ -1542,7 +1542,7 @@ namespace ConcreteTests
 			//ExportToGmsh(failureDomainResult2d.Domain,
 			//	new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
 			//	new Point3d[] { forces2d[0].FailureDomainPoint.Point, new Point3d(force.M1, force.M2, force.N) });
-			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForce, forces2d[0], expWR);
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForce, forces2d[0].FailureDomainForce, expWR);
 		}
 
 		[TestMethod]
@@ -1566,12 +1566,12 @@ namespace ConcreteTests
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
 			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantMomentsRatio(force);
 
-			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+			FailureDomain.FailureDomainPoint2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
 			ForceTuple expForce = new ForceTuple(-4000 * 1000, 400 * 1000000, 0);
 			double expWR = 0.25;
 
-			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForce, forces2d[0], expWR);
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForce, forces2d[0].FailureDomainForce, expWR);
 
 			//ExportToGmsh(failureDomainResult2d.Domain,
 			//	new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
@@ -1599,12 +1599,12 @@ namespace ConcreteTests
 			FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
 			FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantMomentsRatio(force);
 
-			FailureDomain.FailureDomainForce[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+			FailureDomain.FailureDomainPoint2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
 			ForceTuple expForce = new ForceTuple(-4000 * 1000, 0, 400 * 1000000);
 			double expWR = 0.25;
 
-			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForce, forces2d[0], expWR);
+			CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForce, forces2d[0].FailureDomainForce, expWR);
 
 			//ExportToGmsh(failureDomainResult2d.Domain,
 			//	new Line3d[] { new Line3d(new Point3d(0, 0, 0), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
