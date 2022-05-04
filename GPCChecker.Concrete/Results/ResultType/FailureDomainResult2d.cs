@@ -174,9 +174,9 @@ namespace GPC.Checkers.Concrete.Results
             {
                 (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
                 FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forces, domainPoint.failureDomainPoint);
+                failureDomainPoint2d = new FailureDomain.FailureDomainPoint2d(domainForce, domainPoint.point2D);
                 _forces.RemoveAt(index);
                 _forces.Insert(index, failureDomainPoint2d);
-                failureDomainPoint2d = new FailureDomain.FailureDomainPoint2d(domainForce, domainPoint.point2D);
             });
 
             return failureDomainPoint2d;
