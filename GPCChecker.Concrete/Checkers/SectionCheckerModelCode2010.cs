@@ -55,7 +55,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptionsModelCode2010);
 
-                    if (_checkerAttributes.ULSResults != null)
+                    if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
 
                     return failureDomainResult;
@@ -76,7 +76,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptionsModelCode2010, teta);
 
-                    if (_checkerAttributes.ULSResults != null)
+                    if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
 
                     return failureDomainResult;
@@ -97,7 +97,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptionsModelCode2010);
 
-                    if (_checkerAttributes.ULSResults != null)
+                    if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
 
                     return failureDomainResult;
@@ -118,7 +118,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptionsModelCode2010, teta);
 
-                    if (_checkerAttributes.ULSResults != null)
+                    if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
 
                     return failureDomainResult;
