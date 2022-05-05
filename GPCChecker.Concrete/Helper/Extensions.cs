@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using GPC.Geometry;
 using GPC.Model.Results;
+using GPC.Model.Sections;
+using GPC.Model.Sections.Concrete;
 
 namespace GPC.Checkers.Concrete.Helper
 {
@@ -31,5 +33,15 @@ namespace GPC.Checkers.Concrete.Helper
             }
         }
 
+        public static ForceTuple ConvertToForceTuple(this ResultBeamForces resultBeamForces, IConcreteSection section)
+        {
+            CoordinateSystem sectionCS = new CoordinateSystem(section.Centroid, Vector2d.XAxis, Vector2d.YAxis);
+
+            Vector3d eccentricity = resultBeamForces.CoordinateSystem.Origin.VectorTo(sectionCS.Origin);
+            ResultBeamForces forcesConverted = resultBeamForces.ToCoordinateSystem(sectionCS);
+
+            return new ForceTuple(forcesConverted.N, forcesConverted.M1 + forcesConverted.N * eccentricity.Y,
+                forcesConverted.M2 - forcesConverted.N * eccentricity.X);
+        }
     }
 }

@@ -23,18 +23,20 @@ namespace GPC.Checkers.Concrete.Results
 
 		#region Properties
 
-		internal FailureDomain.FailureDomainPoint[] DomainPoints => _domainPoints;
-		
+		public FailureDomain.FailureDomainPoint[] DomainPoints => _domainPoints;
+
 		/// <summary>
 		/// Dictionary of association between 3d domain points and 2d domain points
 		/// </summary>
-		internal Dictionary<FailureDomain.FailureDomainPoint, Point2d> DomainPoints2dAssociation => _domainPoints2dAssociation;
+		public Dictionary<FailureDomain.FailureDomainPoint, Point2d> DomainPoints2dAssociation => _domainPoints2dAssociation;
+
+		public FailureDomainResult2d.DomainTypes DomainType => _domainType;
 
 		#endregion
 
 		#region Constructor
 
-		internal FailureDomain2d(FailureDomain.FailureDomainPoint[] domainPoints, FailureDomainResult2d.DomainTypes domainType)
+		public FailureDomain2d(FailureDomain.FailureDomainPoint[] domainPoints, FailureDomainResult2d.DomainTypes domainType)
 		{
 			_domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
 			_domainType = domainType;
@@ -73,32 +75,57 @@ namespace GPC.Checkers.Concrete.Results
 		/// <returns></returns>
 		protected (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) GetDomainPoint(double x, double y)
 		{
-			double teta = Math.Atan2(x, y);
+			double teta = Math.Atan2(y, x);
+			if (teta < 0)
+				teta += 2 * Math.PI;
+
 			int index = -1;
 
 			for (int i = 0; i < _domainPoints.Length; i++)
 			{
 				Point2d point1;
 				Point2d point2;
-
+				int ind;
 				if(i != _domainPoints.Length - 1)
 				{
 					point1 = _domainPoints2dAssociation[_domainPoints[i]];
 					point2 = _domainPoints2dAssociation[_domainPoints[i + 1]];
+					ind = i + 1;
 				}
 				else
 				{
 					point1 = _domainPoints2dAssociation[_domainPoints[i]];
 					point2 = _domainPoints2dAssociation[_domainPoints[0]];
+					ind = 0;
 				}
 
+				double t1 = Math.Atan2(point1.Y, point1.X);
+				if (t1 < 0)
+					t1 += 2 * Math.PI;
+				if(t1 >= 2 * Math.PI)
+					t1 -= 2 * Math.PI;
+				double t2 = Math.Atan2(point2.Y, point2.X);
+				if (t2 < 0)
+					t2 += 2 * Math.PI;
+				if (t2 >= 2 * Math.PI)
+					t2 -= 2 * Math.PI;
 
-				double t1 = Math.Atan2(point1.X, point1.Y);
-				double t2 = Math.Atan2(point2.X, point2.Y);
+				if (Math.Abs(t1 - teta) < GeometryBase.Tolerance ||
+					(Math.Abs(Math.Abs(t1 + teta) - Math.PI) < GeometryBase.Tolerance && Math.Abs(Math.Abs(t1) - Math.PI) < GeometryBase.Tolerance))
+				{
+					return (new FailureDomain.FailureDomainPoint(new ForceTuple(_domainPoints[i].NRd, _domainPoints[i].MxRd, _domainPoints[i].MyRd),
+						_domainPoints[i].FailureIndex, _domainPoints[i].StrainPlane), point1);
+				}
+				if (Math.Abs(t2 - teta) < GeometryBase.Tolerance || 
+					(Math.Abs(Math.Abs(t2 + teta) - Math.PI) < GeometryBase.Tolerance && Math.Abs(Math.Abs(t2) - Math.PI) < GeometryBase.Tolerance))
+				{
+					return (new FailureDomain.FailureDomainPoint(new ForceTuple(_domainPoints[ind].NRd, _domainPoints[ind].MxRd, _domainPoints[ind].MyRd),
+						_domainPoints[ind].FailureIndex, _domainPoints[ind].StrainPlane), point2);
+				}
 
 				if (Math.Sign(teta - t1) != Math.Sign(teta - t2) && 
-					((Math.Sign(x) == Math.Sign(point1.X) || Math.Abs(point1.X) < 1) && 
-					((Math.Sign(y) == Math.Sign(point1.Y)) || Math.Abs(point1.Y) < 1)))
+					((Math.Sign(x) == Math.Sign(point1.X) || x == 0 || Math.Abs(point1.X) < 1) && 
+					((Math.Sign(y) == Math.Sign(point1.Y)) || y == 0 || Math.Abs(point1.Y) < 1)))
 				{
 					if(Math.Abs(teta) > Math.Abs(t1) && Math.Abs(teta) < Math.Abs(t2) ||
 						Math.Abs(teta) < Math.Abs(t1) && Math.Abs(teta) > Math.Abs(t2))
@@ -111,19 +138,22 @@ namespace GPC.Checkers.Concrete.Results
 
 			if (index != -1)
 			{
+				int endIndex = index + 1;
+				if (index == _domainPoints.Length - 1)
+					endIndex = 0;
 				Line2d line = new Line2d(new Point2d(0, 0), new Point2d(x, y));
-				Line2d edge = new Line2d(_domainPoints2dAssociation[_domainPoints[index]], _domainPoints2dAssociation[_domainPoints[index + 1]]);
+				Line2d edge = new Line2d(_domainPoints2dAssociation[_domainPoints[index]], _domainPoints2dAssociation[_domainPoints[endIndex]]);
 
 				if (edge.GetIntersectionWithInfiniteLine(line, out Point2d intersection))
 				{
-					if (_domainType == FailureDomainResult2d.DomainTypes.CostantN)
+					if (_domainType == FailureDomainResult2d.DomainTypes.ConstantN)
 						return (new FailureDomain.FailureDomainPoint(new ForceTuple(_domainPoints[index].NRd, intersection.X, intersection.Y),
 							_domainPoints[index].FailureIndex, _domainPoints[index].StrainPlane), intersection);
 					else
 					{
 						CoordinateSystem coordinateSystem = GetCoordinateSystem();
 						var pointGlobalCoordinate = coordinateSystem.ToGlobal(intersection);
-						return (new FailureDomain.FailureDomainPoint(new ForceTuple(intersection.Y, pointGlobalCoordinate.X, pointGlobalCoordinate.Y), 
+						return (new FailureDomain.FailureDomainPoint(new ForceTuple(pointGlobalCoordinate.X, pointGlobalCoordinate.Y, pointGlobalCoordinate.Z), 
 							_domainPoints[index].FailureIndex, _domainPoints[index].StrainPlane), intersection);
 					}
 				}
@@ -136,22 +166,36 @@ namespace GPC.Checkers.Concrete.Results
 		protected void CalculateDomainPoints2dAssociation()
 		{
 			// caso N costante
-			if(_domainType == FailureDomainResult2d.DomainTypes.CostantN)
+			if(_domainType == FailureDomainResult2d.DomainTypes.ConstantN)
 			{
 				for (int i = 0; i < _domainPoints.Length; i++)
-					_domainPoints2dAssociation.Add(_domainPoints[i], new Point2d(_domainPoints[i].MxRd, _domainPoints[i].MyRd));
+					if (_domainPoints[i] != null)
+						_domainPoints2dAssociation.Add(_domainPoints[i], new Point2d(_domainPoints[i].MxRd, _domainPoints[i].MyRd));
 			}
 			else // caso Mx/My costante
 			{
 				for (int i = 0; i < _domainPoints.Length; i++)
-					_domainPoints2dAssociation.Add(_domainPoints[i],
-						new Point2d(Math.Sqrt(Math.Pow(_domainPoints[i].MxRd, 2) + Math.Pow(_domainPoints[i].MyRd, 2)), _domainPoints[i].NRd));				
+					if (_domainPoints[i] != null)
+					{
+						double sign = +1;
+
+						if (Math.Abs(_domainPoints[i].MxRd) < 1 && Math.Abs(_domainPoints[i].MyRd) < 1)
+							sign = +1;
+						else if (Math.Abs(_domainPoints[i].MxRd) > 1)
+							sign *= Math.Sign(_domainPoints[i].MxRd);
+						else if (Math.Abs(_domainPoints[i].MyRd) > 1)
+							sign *= Math.Sign(_domainPoints[i].MyRd);
+
+						if (!_domainPoints2dAssociation.ContainsKey(_domainPoints[i]))
+							_domainPoints2dAssociation.Add(_domainPoints[i],
+								new Point2d(_domainPoints[i].NRd, sign * Math.Sqrt(Math.Pow(_domainPoints[i].MxRd, 2) + Math.Pow(_domainPoints[i].MyRd, 2))));
+					}
 			}
 		}
 
 		protected CoordinateSystem GetCoordinateSystem()
 		{
-			if (_domainType == FailureDomainResult2d.DomainTypes.CostantN)
+			if (_domainType == FailureDomainResult2d.DomainTypes.ConstantN)
 			{
 				return new CoordinateSystem(new Point3d(0, 0, _domainPoints[0].NRd), Vector3d.XAxis, Vector3d.YAxis);
 			}

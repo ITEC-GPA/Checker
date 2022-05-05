@@ -15,8 +15,8 @@ namespace GPC.Checkers.Steel.Checkers
     {
 
 
-        public EuroCodeChecker(BeamCheckerAttributes attributes, Options options, StandardEN1990 standardEN1990)
-            : base(attributes, options, standardEN1990)
+        public EuroCodeChecker(BeamCheckerAttributes attributes, Options options, Standard standard)
+            : base(attributes, options, standard)
         {
 
         }

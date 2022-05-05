@@ -24,6 +24,8 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public SectionOptions SectionCheckerOptions => (SectionOptions)_options;
 
+        public SectionSolver SectionSolver => _solver;
+
 
         /// <param name="checkerAttribute">This rapresent one section and multiple forces applied</param>
         /// <param name="options"></param>
@@ -48,10 +50,22 @@ namespace GPC.Checkers.Concrete.Checkers
 		public abstract Task<FailureDomainResult> GetPlasticFailureDomainResultAsync();
 
         /// <summary>
+        /// Calculate the plastic failure domain 2d and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        public abstract Task<FailureDomainResult2d> GetPlasticFailureDomainResult2dAsync(double teta = 0);
+
+        /// <summary>
         /// Calculate the elastic failure domain and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
         public abstract Task<FailureDomainResult> GetElasticFailureDomainResultAsync();
+
+        /// <summary>
+        /// Calculate the elastic failure domain2d and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        public abstract Task<FailureDomainResult2d> GetElasticFailureDomainResult2dAsync(double teta = 0);
 
         /// <summary>
         /// Calculate the stress analysis for each forces
@@ -66,56 +80,72 @@ namespace GPC.Checkers.Concrete.Checkers
         public abstract Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces);
 
         /// <summary>
-        /// Calculate the stress analysis for each forces with creep coefficient <paramref name="phi"/>
+        /// Calculate the stress analysis for each forces with creep coefficient <paramref name="psi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        public abstract Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double phi);
+        public abstract Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double psi, double psiTendon = 0);
 
         /// <summary>
-        /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="phi"/>
+        /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="psi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        public abstract Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double phi);
+        public abstract Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double psi, double psiTendon = 0);
 
         #endregion
 
-        #region Internal Method
+        #region Public Method
 
         /// <summary>
         /// Calculate the plastic failure domain and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-        internal abstract FailureDomainResult GetPlasticFailureDomainResult();
+        public abstract FailureDomainResult GetPlasticFailureDomainResult();
 
         /// <summary>
         /// Calculate the elastic failure domain and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-        internal abstract FailureDomainResult GetElasticFailureDomainResult();
+        public abstract FailureDomainResult GetElasticFailureDomainResult();
+
+        /// <summary>
+        /// Calculate the plastic failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        public abstract FailureDomainResult2d GetPlasticFailureDomainResult2d();
+
+        /// <summary>
+        /// Calculate the elastic failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        public abstract FailureDomainResult2d GetElasticFailureDomainResult2d();
 
         /// <summary>
         /// Calculate the stress analysis for each forces
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        internal abstract StressAnalysisResult[] GetStressAnalysisResult();
+        public abstract StressAnalysisResult[] GetStressAnalysisResult();
 
         /// <summary>
         /// Calculate the stress analysis for <paramref name="forces"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        internal abstract StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces);
+        public abstract StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces);
 
         /// <summary>
         /// Calculate the stress analysis for each forces with creep coefficient <paramref name="phi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        internal abstract StressAnalysisResult[] GetLinearStressAnalysisResult(double phi);
+        public abstract StressAnalysisResult[] GetLinearStressAnalysisResult(double phi, double psiTendon = 0);
 
         /// <summary>
         /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="phi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        internal abstract StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double phi);
+        public abstract StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double phi, double psiTendon = 0);
+
+        public abstract FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force);
+
+        public abstract FailureDomain.FailureDomainPoint CalculateElasticFailureDomainPoint(ResultBeamForces force);
 
         #endregion
 
@@ -123,26 +153,32 @@ namespace GPC.Checkers.Concrete.Checkers
         [Serializable]
         public abstract class SectionOptions : Options, ISerializable
         {
-            public CoordinateSystem ForceReferenceCoordinateSystem { get; }
+            public CoordinateSystem ForceReferenceCoordinateSystem { get; set; }
+
+            public SectionSolver.FailureAnalysisTypes FailureAnalysisType { get; set; }
 
             public SectionOptions()
             {
                 ForceReferenceCoordinateSystem = CoordinateSystem.Global;
             }
 
-            public SectionOptions(CoordinateSystem forceReferencePointCoordinateSystem)
+            public SectionOptions(CoordinateSystem forceReferencePointCoordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType)
             {
                 ForceReferenceCoordinateSystem = forceReferencePointCoordinateSystem;
+                FailureAnalysisType = failureAnalysisType;
             }
 
             protected SectionOptions(SerializationInfo info, StreamingContext context) 
             {
                 ForceReferenceCoordinateSystem = (CoordinateSystem)info.GetValue("ForceReferenceCoordinateSystem", typeof(CoordinateSystem));
+                FailureAnalysisType = (SectionSolver.FailureAnalysisTypes)info.GetValue("FailureAnalysisType", typeof(SectionSolver.FailureAnalysisTypes));
             }
 
             public override bool Equals(object obj)
             {
-                return obj is SectionOptions options && ForceReferenceCoordinateSystem.Equals(options.ForceReferenceCoordinateSystem);
+                return obj is SectionOptions options && 
+                    ForceReferenceCoordinateSystem.Equals(options.ForceReferenceCoordinateSystem) &&
+                    FailureAnalysisType.Equals(options.FailureAnalysisType);
             }
 
             public override int GetHashCode()
@@ -151,6 +187,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     int hashCode = -17;
                     hashCode = hashCode * -23 + ForceReferenceCoordinateSystem.GetHashCode();
+                    hashCode = hashCode * -23 + FailureAnalysisType.GetHashCode();
                     return hashCode; 
                 }
             }
@@ -158,6 +195,7 @@ namespace GPC.Checkers.Concrete.Checkers
             public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
             {
                 info.AddValue("ForceReferenceCoordinateSystem", ForceReferenceCoordinateSystem);
+                info.AddValue("FailureAnalysisType", FailureAnalysisType);
             }
 
             public static bool operator ==(SectionOptions left, SectionOptions right)

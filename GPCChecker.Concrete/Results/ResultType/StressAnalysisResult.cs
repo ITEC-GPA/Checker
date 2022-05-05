@@ -73,6 +73,22 @@ namespace GPC.Checkers.Concrete.Results
             return _section.Rebars.Select(i => (i, GetRebarTension(phi, i))).ToArray();
         }
 
+        public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension(double phi, double phiTendon)
+        {
+            (ReinforcedConcreteRebar rebar, double tension)[] results = new (ReinforcedConcreteRebar rebar, double tension)[_section.RebarsCount];
+            var array = _section.Rebars.ToArray();
+
+            for (int i = 0; i < _section.RebarsCount; i++)
+			{
+                if (array[i].EpsilonP != 0)
+                    results[i] = (array[i], GetRebarTension(phiTendon, array[i]));
+                else
+                    results[i] = (array[i], GetRebarTension(phi, array[i]));
+            }
+
+            return results;
+        }
+
         public virtual bool GetRebarTension(ReinforcedConcreteRebar rebar, out double tension)
 		{
 			try
@@ -129,6 +145,20 @@ namespace GPC.Checkers.Concrete.Results
             }
         }
 
+        public virtual bool GetRebarsTension(double phi, double phiTendon, out (ReinforcedConcreteRebar rebar, double tension)[] rebarTensionAssociation)
+        {
+            try
+            {
+                rebarTensionAssociation = GetRebarsTension(phi, phiTendon);
+                return true;
+            }
+            catch (Exception)
+            {
+                rebarTensionAssociation = null;
+                return false;
+            }
+        }
+
         #endregion
 
         #region Concrete
@@ -143,12 +173,12 @@ namespace GPC.Checkers.Concrete.Results
             return _section.Shape.GetPoints2d().Select(i => (i, _sectionSolver.CalculateSigmaC(StrainPlane.GetStrain(i)))).ToArray();
         }
 
-        public virtual double GetConcreteTension(double n, Point2d point)
+        public virtual double GetConcreteTension(double psi, Point2d point)
         {
             return _sectionSolver.CalculateElasticSigmaC(StrainPlane.GetStrain(point));
         }
 
-        public virtual (Point2d point, double tension)[] GetConcreteVerticesTension(double n)
+        public virtual (Point2d point, double tension)[] GetConcreteVerticesTension(double psi)
         {
             return _section.Shape.GetPoints2d().Select(i => (i, _sectionSolver.CalculateElasticSigmaC(StrainPlane.GetStrain(i)))).ToArray();
         }

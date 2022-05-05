@@ -6,7 +6,7 @@ using GPC.Checkers.Glasses.Wrappers;
 using GPC.Checkers.Glasses.FemModels;
 using GPC.Model.Loads;
 using GPC.Model.Elements;
-using GPC.Model.FEM.Properties;
+using GPC.Model.Fem.Properties;
 using GPC.Checkers.Glasses.Glasses;
 using GPC.Model.Glasses;
 using GPC.Geometry.Meshes;

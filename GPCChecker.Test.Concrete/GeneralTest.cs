@@ -13,7 +13,6 @@ using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Materials;
 using GPC.Model.Results;
-using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
@@ -29,7 +28,7 @@ namespace ConcreteTests
 		[TestMethod]
         public void AsyncTest1()
         {
-            RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, new RebarMaterial("", 450));
+            RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterial.B450C);
 
             ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300,
                 new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
@@ -56,7 +55,7 @@ namespace ConcreteTests
         [TestMethod]
         public void AsyncTest2()
         {
-            RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, new RebarMaterial("", 450));
+            RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterial.B450C);
             ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300, ConcreteMaterialEN1992.C25_30);
             concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
@@ -75,11 +74,33 @@ namespace ConcreteTests
             Assert.IsTrue(stressResult.Result.Force.M2 == force.M2);
         }
 
-		#endregion
+        [TestMethod]
+        public void AsyncTest3()
+        {
+            RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterial.B450C);
+            ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300, ConcreteMaterialEN1992.C25_30);
+            concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
-		#region Serializable Test
+            ResultBeamForces force = new ResultBeamForces(-100 * 1000, 20, 30, 40, 3 * 1000000, 2 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular));
 
-		[TestMethod]
+            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular);
+            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute,
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());
+
+            var stressResult = sectionChecker.GetStressAnalysisResultAsync(force);
+
+            Task.WaitAll(new[] { stressResult });
+
+            Assert.IsTrue(stressResult.Result.Force.N == force.N);
+            Assert.IsTrue(stressResult.Result.Force.M1 == force.M1);
+            Assert.IsTrue(stressResult.Result.Force.M2 == force.M2);
+        }
+
+        #endregion
+
+        #region Serializable Test
+
+        [TestMethod]
         public void SerializableNameSpaceAttributes()
         {
             string assemblyName = "GPCChecker.Concrete";
@@ -178,7 +199,42 @@ namespace ConcreteTests
                 Console.WriteLine($"Warning: Class {s} is not serializable");
 
             Assert.IsTrue(check);
-        }               
+        }
+
+        #endregion
+
+        #region Generic Test
+
+        [TestMethod]
+        public void GenericTest1()
+        {
+            RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterial.B450C);
+            ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300, ConcreteMaterialEN1992.C25_30);
+            concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
+
+            ResultBeamForces force = new ResultBeamForces(-100 * 1000, 20, 30, 40, 3 * 1000000, 2 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular));
+
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = null;
+            sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+            sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular));
+            sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+
+            SectionCheckerAttribute sectionCheckerAttribute = null;
+            sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular);
+
+            SectionCheckerModelCode2010 sectionChecker = null;
+            SectionCheckerModelCode2010 sectionChecker2 = null;
+
+            Assert.IsTrue(sectionChecker == sectionChecker2);
+
+            sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute,
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());            
+            sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute,
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());
+
+            sectionChecker2 = new SectionCheckerModelCode2010(sectionCheckerAttribute,
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());
+        }
 
         #endregion
     }

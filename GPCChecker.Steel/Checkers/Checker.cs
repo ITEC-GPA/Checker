@@ -23,20 +23,19 @@ namespace GPC.Checkers.Steel.Checkers
     {
         #region Variables
 
-        protected readonly BeamCheckerAttributes _beamCheckersAttributes;
-
-        protected BeamStationResults[] _beamStationResults;
+        protected readonly BeamCheckerAttributes _beamCheckerAttributes;
         protected readonly Standard _standard;
         protected readonly Options _options;
+
+        protected BeamStationResults[] _beamStationResults;
 
         protected List<string> _errorLog;
 
         #endregion
 
-
         #region Properties
 
-        public BeamCheckerAttributes BeamCheckersAttribute => _beamCheckersAttributes;
+        public BeamCheckerAttributes BeamCheckersAttribute => _beamCheckerAttributes;
 
         public BeamStationResults[] BeamStationCheckerResults => _beamStationResults; 
 
@@ -44,15 +43,20 @@ namespace GPC.Checkers.Steel.Checkers
 
         public Options CheckerOptions => _options;
 
-        public double BeamLength => _beamCheckersAttributes.Length;
+        public double BeamLength => _beamCheckerAttributes.Length;
 
+        /// <summary>
+        /// The unique ILoadCases array
+        /// </summary>
         public ILoadCase[] LoadCases => GetLoadCases();
 
-        public string BeamName => _beamCheckersAttributes.Name;
+        /// <summary>
+        /// Name of the beam
+        /// </summary>
+        public string BeamName => _beamCheckerAttributes.Name;
 
 
         #endregion
-
 
         #region Constructor
 
@@ -75,113 +79,157 @@ namespace GPC.Checkers.Steel.Checkers
                 throw new ArgumentNullException(nameof(options));
             }
 
-            _beamCheckersAttributes = beamCheckerAttributes;
+            _beamCheckerAttributes = beamCheckerAttributes;
             _options = options;
 
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
             _errorLog = new List<string>();
         }
 
-        protected Checker(SerializationInfo info, StreamingContext context) : base(info, context)
+		protected Checker(SerializationInfo info, StreamingContext context) 
+            : base(info, context)
+		{
+            _standard = (Standard)info.GetValue("Standard", typeof(Standard));
+            _options = (Options)info.GetValue("Options", typeof(Options));
+            _beamCheckerAttributes = (BeamCheckerAttributes)info.GetValue("BeamCheckerAttributes", typeof(BeamCheckerAttributes));
+		}
+
+		#endregion
+
+		#region Public abstract method
+
+		public abstract void PerformCheck();
+
+        #endregion
+
+		#region Length
+
+		public double GetLengthAxialBuckling1()
         {
-            // TODO: implementare 
-            throw new NotImplementedException();
+            return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck1 * CheckerOptions.EffectiveLengthFactorAxialBuck1;
         }
 
+        public double GetLengthAxialBuckling2()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck2 * CheckerOptions.EffectiveLengthFactorAxialBuck2;
+        }
 
-        #endregion
+        public double GetEffectiveLengthAxialBuckling1()
+        {
+            return BeamLength * CheckerOptions.EffectiveLengthFactorAxialBuck1;
+        }
 
+        public double GetEffectiveLengthAxialBuckling2()
+        {
+            return BeamLength * CheckerOptions.EffectiveLengthFactorAxialBuck2;
+        }
 
-        #region Public abstract method
+        public double GetLengthLatTorsBuckling()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorLatTorsBuck * CheckerOptions.EffectiveLengthFactorLatTorsBuck;
+        }
 
-        public abstract void PerformCheck();
+        public double GetLengthCriticalMoment1()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment1 * CheckerOptions.EffectiveLengthFactorCriticalMoment1;
+        }
 
-        #endregion
+        public double GetLengthCriticalMoment2()
+        {
+            return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment2 * CheckerOptions.EffectiveLengthFactorCriticalMoment2;
+        }
+
+		#endregion
 
         public List<string> GetErrorLog()
         {
             return _errorLog;
         }
 
-        public double GetLenghtAxialBuckling1()
+		/// <returns>The unique ILoadCases array</returns>
+		private ILoadCase[] GetLoadCases()
         {
-            return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck1 * CheckerOptions.EffectiveLengthFactorAxialBuck1;
+            return _beamCheckerAttributes.Results.Select(i => i.Case).Distinct().ToArray();
         }
 
-        public double GetLenghtAxialBuckling2()
+        protected double GetWorkingRatio(double force, double capacity)
         {
-            return BeamLength * CheckerOptions.UnbracedLengthFactorAxialBuck2 * CheckerOptions.EffectiveLengthFactorAxialBuck2;
+            double result = Math.Abs(force / capacity);
+
+            if (Math.Abs(capacity) < 0.01)
+                throw new ArgumentException("Capacity can not be null");
+
+            if (Math.Abs(force) < 0.001)
+                return 0.001;
+            if (result < 0.001)
+                return 0.001;
+
+            return result;
         }
 
-        public double GetEffectiveLenghtAxialBuckling1()
-        {
-            return BeamLength * CheckerOptions.EffectiveLengthFactorAxialBuck1;
-        }
-
-        public double GetEffectiveLenghtAxialBuckling2()
-        {
-            return BeamLength * CheckerOptions.EffectiveLengthFactorAxialBuck2;
-        }
-
-        public double GetLenghtLatTorsBuckling()
-        {
-            return BeamLength * CheckerOptions.UnbracedLengthFactorLatTorsBuck * CheckerOptions.EffectiveLengthFactorLatTorsBuck;
-        }
-
-        public double GetLenghtCriticalMoment1()
-        {
-            return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment1 * CheckerOptions.EffectiveLengthFactorCriticalMoment1;
-        }
-
-        public double GetLenghtCriticalMoment2()
-        {
-            return BeamLength * CheckerOptions.UnbracedLengthFactorCriticalMoment2 * CheckerOptions.EffectiveLengthFactorCriticalMoment2;
-        }
-
-        /// <returns>The unique ILoadCases array</returns>
-        private ILoadCase[] GetLoadCases()
-        {
-            return _beamCheckersAttributes.Results.Select(i => i.Case).Distinct().ToArray();
-        }              
+        #region Equals - hashcode - operators - serialization
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            // TODO: implementare 
-            throw new NotImplementedException();            
+		{
+            base.GetObjectData(info, context);
+            info.AddValue("Standard", _standard);
+            info.AddValue("Options", _options);
+            info.AddValue("BeamCheckerAttributes", _beamCheckerAttributes);
         }
 
-        public override bool Equals(object obj)
-        {
-            // TODO: implementare 
-            throw new NotImplementedException();
+		public override bool Equals(object obj)
+		{
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            return obj is Checker checker &&
+                base.Equals(obj) &&
+                _standard.Equals(checker._standard) &&
+                _options.Equals(checker._options) &&
+                _beamCheckerAttributes.Equals(checker._beamCheckerAttributes);
+		}
+
+		public override int GetHashCode()
+		{
+            unchecked
+            {
+                int hashCode = 23;
+                hashCode = hashCode * -17 + base.GetHashCode();                
+                hashCode = hashCode * -17 + _standard.GetHashCode();
+                hashCode = hashCode * -17 + _options.GetHashCode();
+                hashCode = hashCode * -17 + _beamCheckerAttributes.GetHashCode();
+                return hashCode;
+            }
         }
 
-        public override int GetHashCode()
-        {
-            // TODO: implementare 
-            throw new NotImplementedException();
-        }
+		#endregion
 
-        public abstract class Options
+		#region Nested Class Options
+
+		public abstract class Options
         {
             #region Variables
 
             protected double _kAxialBuckling1;
-            protected double _kAxialBuckling2;
-            protected double _kLatTorsBuckling;
-            protected double _kCriticalMoment1;
-            protected double _kCriticalMoment2;
             protected double _mAxialBuckling1;
+
+            protected double _kAxialBuckling2;
             protected double _mAxialBuckling2;
+
+            protected double _kLatTorsBuckling;
             protected double _mLatTorsBuckling;
+
+            protected double _kCriticalMoment1;
             protected double _mCriticalMoment1;
+
+            protected double _kCriticalMoment2;
             protected double _mCriticalMoment2;
+
             protected double _m1;
             protected double _m2;
             protected double _mLT;
 
             #endregion
-
 
             #region Properties
 
@@ -252,7 +300,6 @@ namespace GPC.Checkers.Steel.Checkers
 
             #endregion
 
-
             #region Constructor
 
             public Options(double unbracedLengthFactorAxialBuck1 = 1, double effectiveLengthFactorAxialBuck1 = 1,
@@ -319,7 +366,6 @@ namespace GPC.Checkers.Steel.Checkers
 
 
             #endregion
-
 
             #region Setter
 
@@ -416,5 +462,7 @@ namespace GPC.Checkers.Steel.Checkers
 
             #endregion
         }
-    }
+
+		#endregion
+	}
 }

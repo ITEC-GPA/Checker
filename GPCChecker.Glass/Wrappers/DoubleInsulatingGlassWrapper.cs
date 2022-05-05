@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GPC.Model.Glasses;
-using GPC.Model.FEM.Materials;
-using GPC.Model.FEM.Properties;
+using GPC.Model.Fem.Materials;
+using GPC.Model.Fem.Properties;
 using GPC.Model.Combinations;
 using GPC.Model.Restrains;
 using GPC.Model.FreedomCases;
@@ -315,11 +315,11 @@ namespace GPC.Checkers.Glasses.Wrappers
             // CREAZIONE MODELLO
             FemModels.FemModelWrapper femModelExternal = new FemModels.FemModelWrapper("BAMNumericalExternal")
             {
-                AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear
+                AnalysisType = Model.Fem.FemModel.AnalysisTypes.Linear
             };
             FemModels.FemModelWrapper femModelInternal = new FemModels.FemModelWrapper("BAMNumericalInternal")
             {
-                AnalysisType = Model.FEM.FemModel.AnalysisTypes.Linear
+                AnalysisType = Model.Fem.FemModel.AnalysisTypes.Linear
             };
 
             IsotropicFemMaterial material = new IsotropicFemMaterial(GetMinimumElasticModulus(), GetMinimumPoissonRatio(), 0, GetMaximumDensity());
@@ -386,8 +386,8 @@ namespace GPC.Checkers.Glasses.Wrappers
             femModelInternal.Solve();
 
 
-            Model.FEM.FiniteElements.FiniteElement[] elementsExt = femModelExternal.GetElements();
-            Model.FEM.FiniteElements.FiniteElement[] elementsInt = femModelInternal.GetElements();
+            Model.Fem.FiniteElements.FiniteElement[] elementsExt = femModelExternal.GetElements();
+            Model.Fem.FiniteElements.FiniteElement[] elementsInt = femModelInternal.GetElements();
 
             // CALCOLO DEL COEFFICIENTE PSI NUMERICO
 
@@ -532,7 +532,7 @@ namespace GPC.Checkers.Glasses.Wrappers
             return glassLoadCaseNormalAreaLoadMap;
         }
 
-        protected async Task<(double psiAreaIntegral, Dictionary<string, double> loadPsiIntegral)> CalculateBAMIntegral(Model.FEM.FiniteElements.FiniteElement[] elements, Combination referenceCombination, string uniformPressureLoadCaseName)
+        protected async Task<(double psiAreaIntegral, Dictionary<string, double> loadPsiIntegral)> CalculateBAMIntegral(Model.Fem.FiniteElements.FiniteElement[] elements, Combination referenceCombination, string uniformPressureLoadCaseName)
         {
 
             ConcurrentBag<double> psiAreaIntegral = new ConcurrentBag<double>();
@@ -540,7 +540,7 @@ namespace GPC.Checkers.Glasses.Wrappers
 
             Action<int> action = new Action<int>((index) =>
             {
-                if (elements[index] is Model.FEM.FiniteElements.Plate plate)
+                if (elements[index] is Model.Fem.FiniteElements.Plate plate)
                 {
                     // Spostamenti del caso di pressione uniforme unitaria. Servono per calcolare la funziona di forma PSI
 

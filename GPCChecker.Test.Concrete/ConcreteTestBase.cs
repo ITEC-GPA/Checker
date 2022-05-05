@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -24,13 +24,13 @@ namespace ConcreteTests
         #region Section Construction Methods
 
         protected ReinforcedConcreteSection GetRectangularSection4Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
-            ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -58,14 +58,14 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection8Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -97,14 +97,14 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection2SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
-            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -134,14 +134,14 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection4SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            int numberOfRebarsTopBottomSide = 4, int numberOfRebarsLateralSide = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebarsTopBottomSide = 4, int numberOfRebarsLateralSide = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -180,14 +180,14 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSectionBottomSideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -221,13 +221,13 @@ namespace ConcreteTests
 		protected CoordinateSystem GetLocalCoordinateSystem(IConcreteSection section)
 		{
             return new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis);
-		}
+        }
 
         protected ConcreteMaterialEN1992 GetLinearConcreteMaterial(double elasticModulus)
 		{
             double elasticModulusFactor = 0.85 / 1.5;
 
-            return new ConcreteMaterialEN1992("", 0.0,
+            return new ConcreteMaterialEN1992("", -0.002, 0.0,
                 new StressStrainTable(new double[] { 0, -elasticModulus / elasticModulusFactor, -2.0 * elasticModulus / elasticModulusFactor }, new double[] { 0, -0.001, -0.002 }),
                 new StressStrainTable(new double[] { 0, 0 }, new double[] { 0, 0.001 }));
         }
@@ -237,7 +237,7 @@ namespace ConcreteTests
             double elasticModulusFactor = 0.85 / 1.5;
             double elasticModulusFactorTens = 1.0 / 1.5;
 
-            return new ConcreteMaterialEN1992("", 0.0,
+            return new ConcreteMaterialEN1992("", -0.002, 0.0,
                 new StressStrainTable(new double[] { 0, -elasticModulus / elasticModulusFactor, -2.0 * elasticModulus / elasticModulusFactor }, new double[] { 0, -0.001, -0.002 }),
                 new StressStrainTable(new double[] { 0, elasticModulus / elasticModulusFactorTens }, new double[] { 0, 0.001 }));
         }
@@ -374,8 +374,8 @@ namespace ConcreteTests
             return true;
         }
 
-        protected bool CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard, 
-            CoordinateSystem coordinateSystem, double adimTolerance = 0.005,
+        protected bool CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
+			GPC.Checkers.Concrete.Checkers.SectionChecker.SectionOptions options, double adimTolerance = 0.005,
 			double[] factor = null)
 		{
 			if (factor == null)
@@ -390,8 +390,19 @@ namespace ConcreteTests
 			{
 				for (j = 0; j < factor.Length; j++)
 				{
-					testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-					failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem));
+                    if(options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantEccentricity)
+                        testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
+                    else if(options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantN)
+                        testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
+                    else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantMxMy)
+                        testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, force.M1, force.M2, force.CoordinateSystem);
+                    else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantNMx)
+                        testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, force.M1, factor[j] * force.M2, force.CoordinateSystem);
+                    else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantNMy)
+                        testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, force.M2, force.CoordinateSystem);
+
+                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem), 
+                        options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 				}
 			}
 			catch (Exception e)
@@ -420,9 +431,9 @@ namespace ConcreteTests
 					Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance,
 						$"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
 
-					Console.WriteLine($"Point {i} = {Math.Round(failureDomainPoints[i].Point.X / 1000000)}, " +
-						$"{Math.Round(failureDomainPoints[i].Point.Y / 1000000)}, " +
-						$"{Math.Round(failureDomainPoints[i].Point.Z / 1000)}");
+					Console.WriteLine($"Point {i} = {Math.Round(failureDomainPoints[i].Point.X / 1000000, 2)}, " +
+						$"{Math.Round(failureDomainPoints[i].Point.Y / 1000000, 2)}, " +
+						$"{Math.Round(failureDomainPoints[i].Point.Z / 1000, 2)}");
                     Console.WriteLine($"Number of iteraction: {failureDomainPoints[i].StrainPlane.Id} \n");
 
 
@@ -466,7 +477,7 @@ namespace ConcreteTests
                 for (j = 0; j < factor.Length; j++)
                 {
                     testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem));
+                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem), coordinateSystem);
                 }
             }
             catch (Exception e)
@@ -1089,9 +1100,10 @@ namespace ConcreteTests
                 return base.CalculateStressRebar(rebar, strain);
             }
 
-            internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces)
+            internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
+                FailureAnalysisTypes failureAnalysisType = FailureAnalysisTypes.ConstantEccentricity)
             {
-                return base.CalculatePlasticDomainPoint(targetLocalForces);
+                return base.CalculatePlasticDomainPoint(targetLocalForces, coordinateSystem, failureAnalysisType);
             }
 
             internal ForceTuple IntegrateSectionStressTest(StrainPlane strainPlane)
