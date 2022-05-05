@@ -383,7 +383,7 @@ namespace GPC.Checkers.Concrete.Results
 		#region FailureDomainForce
 
 		[Serializable]
-		public sealed class FailureDomainForce : ResultBeamForces, ISerializable, IEquatable<FailureDomainForce>
+		public class FailureDomainForce : ResultBeamForces, ISerializable
 		{
 			#region Variables
 
@@ -554,18 +554,15 @@ namespace GPC.Checkers.Concrete.Results
 
 		#region FailureDomainPoint2d
 
-		public sealed class FailureDomainPoint2d : ISerializable, IEquatable<FailureDomainPoint2d>
+		public sealed class FailureDomainPoint2d : FailureDomainForce, ISerializable, IEquatable<FailureDomainPoint2d>
 		{
 			#region Variables
 
-			private readonly FailureDomainForce _failureDomainForce;
 			private readonly Point2d _point2d;
 
 			#endregion
 
 			#region Properties
-
-			public FailureDomainForce FailureDomainForce => _failureDomainForce;
 
 			public Point3d Point2d => _point2d;
 
@@ -573,15 +570,21 @@ namespace GPC.Checkers.Concrete.Results
 
 			#region Constructor
 
-			internal FailureDomainPoint2d(FailureDomainForce failureDomainForce, Point2d point2D)
+			internal FailureDomainPoint2d(ResultBeamForces forces, FailureDomainPoint failureDomainPoint, Point2d point2D)
+				:base(forces, failureDomainPoint)
 			{
-				_failureDomainForce = failureDomainForce;
 				_point2d = point2D;
 			}
 
-			internal FailureDomainPoint2d(SerializationInfo info, StreamingContext context)
+			internal FailureDomainPoint2d(FailureDomainForce forces, Point2d point2D)
+				:this(new ResultBeamForces(forces.N, forces.V1, forces.V2, forces.T, forces.M1, forces.M2, forces.CoordinateSystem, forces.Id),forces.FailureDomainPoint, point2D)
 			{
-				_failureDomainForce = (FailureDomainForce)info.GetValue("FailureDomainForce", typeof(FailureDomainForce));
+
+			}
+
+			internal FailureDomainPoint2d(SerializationInfo info, StreamingContext context)
+				:base(info, context)
+			{
 				_point2d = (Point2d)info.GetValue("Point2d", typeof(Point2d));
 			}
 
@@ -589,9 +592,9 @@ namespace GPC.Checkers.Concrete.Results
 
 			#region Equals, hashcode, operators
 
-			public void GetObjectData(SerializationInfo info, StreamingContext context)
+			public override void GetObjectData(SerializationInfo info, StreamingContext context)
 			{
-				info.AddValue("FailureDomainForce", _failureDomainForce, typeof(FailureDomainForce));
+				base.GetObjectData(info, context);
 				info.AddValue("Point2d", _point2d, typeof(Point2d));
 			}
 
@@ -602,7 +605,7 @@ namespace GPC.Checkers.Concrete.Results
 
 			public bool Equals(FailureDomainPoint2d other)
 			{
-				return other != null && _failureDomainForce.Equals(other._failureDomainForce) &&
+				return other != null &&
 					_point2d == other._point2d;
 			}
 
@@ -612,7 +615,6 @@ namespace GPC.Checkers.Concrete.Results
 				{
 					int hashCode = 17;
 					hashCode = hashCode * -23 + _point2d.GetHashCode();
-					hashCode = hashCode * -23 + _failureDomainForce.GetHashCode();
 					return hashCode;
 				}
 			}
