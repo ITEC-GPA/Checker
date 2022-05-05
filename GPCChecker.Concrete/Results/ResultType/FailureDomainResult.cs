@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Results;
@@ -488,7 +488,10 @@ namespace GPC.Checkers.Concrete.Results
 
             Parallel.For(0, forceTuples.Length, (i) =>
             {
-                points[i] = _sectionSolver.CalculatePlasticDomainPoint(forceTuples[i], CoordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+                if(forceTuples[i].Mx != 0 || forceTuples[i].My != 0)
+                    points[i] = _sectionSolver.CalculatePlasticDomainPoint(forceTuples[i], CoordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantN);
+                else
+                    points[i] = _sectionSolver.CalculatePlasticDomainPoint(forceTuples[i], CoordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
             });
 
             return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);
@@ -505,7 +508,10 @@ namespace GPC.Checkers.Concrete.Results
 
             Parallel.For(0, forceTuples.Length, (i) =>
             {
-                points[i] = _sectionSolver.CalculateElasticDomainPoint(forceTuples[i], CoordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+                if (forceTuples[i].Mx != 0 || forceTuples[i].My != 0)
+                    points[i] = _sectionSolver.CalculateElasticDomainPoint(forceTuples[i], CoordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantN);
+                else
+                    points[i] = _sectionSolver.CalculateElasticDomainPoint(forceTuples[i], CoordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
             });
 
             return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);
@@ -515,14 +521,9 @@ namespace GPC.Checkers.Concrete.Results
 		{
             ForceTuple[] forceTuples = new ForceTuple[2 * subdivision];
 
-            double nMax;
-            if(ConcreteSection.RebarsCount > 0)
-                nMax = ConcreteSection.AreaRebars * ConcreteSection.Rebars.FirstOrDefault().RebarMaterial.Fyk / 2.0;
-            else
-                nMax = ConcreteSection.Area * ConcreteSection.ConcreteMaterial.StressStrainTableTension.GetMaximumStress() / 2.0;
-
-            double nMin = ConcreteSection.Area * ConcreteSection.ConcreteMaterial.StressStrainTableCompression.GetMinimumStress() / 8.0;
-            
+            double nMax = Domain.DomainPoints[0].Select(i => i.NRd).Max();
+            double nMin = Domain.DomainPoints[0].Select(i => i.NRd).Min();
+                        
             for (int i = 0; i < subdivision / 2.0; i++)
             {
                 forceTuples[i] = new ForceTuple(
