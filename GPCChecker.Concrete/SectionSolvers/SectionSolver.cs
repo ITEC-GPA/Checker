@@ -2002,8 +2002,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 FailureDomain.FailureDomainPoint pointOnDomain = CalculateDomainPoint(localForces, coordinateSystem,
                     FailureDomainTypes.Plastic, FailureAnalysisTypes.ConstantEccentricity, 5.0 * _failureAnalysisAngularTolerance, 5.0 * _stressAnalysisTolerance);
 
-                if(pointOnDomain != null)
-				{
+                if (pointOnDomain != null)
+                {
                     Vector3d vEd = new Vector3d(localForces, Point3d.Origin);
                     Vector3d vRd = new Vector3d(pointOnDomain.Point, Point3d.Origin);
 
@@ -2016,7 +2016,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                 try
                                 {
                                     (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) =
-                                        CalculateIncrementStressAnalysis(strainPlane, localForces - iterationForces, 
+                                        CalculateIncrementStressAnalysis(strainPlane, localForces - iterationForces,
                                         rebarIsInsideAssociation, null, null);
 
                                     // piano di nuovo tentativo
@@ -2034,33 +2034,33 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                     _log.Add(e.Message);
                                     if (e.InnerException != null)
                                         _log.Add(e.InnerException.Message);
-                                    throw;
+                                    _log.Add("Fail to calculate find strain plane");
+                                    return null;
                                 }
-                            }
                             else
-                            {
-                                _log.Add("Fail to calculate find strain plane");
-                                return null;
-                            }
+                                {
+                                    _log.Add("Fail to calculate find strain plane");
+                                    return null;
+                                }
 
-                        } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
-                             Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
-                             Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance);
+                            } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
+                                 Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
+                                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance) ;
+                        }
+                    else
+                        {
+                            return null;
+                        }
                     }
                     else
                     {
+                        _log.Add("Fail to calculate find strain plane");
                         return null;
                     }
                 }
-                else
-                {
-                    _log.Add("Fail to calculate find strain plane");
-                    return null;
-                }
-            }
 
-            return strainPlane;
-        }
+                return strainPlane;
+            }
 
         protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementStressAnalysis(StrainPlane inputStrainPlane, ForceTuple forceTuple,
             Dictionary<int, bool> rebarIsInsideAssociation, double? psiRebars, double? psiTendon)
