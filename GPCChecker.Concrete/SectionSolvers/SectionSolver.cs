@@ -1242,6 +1242,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Protected method - Point on failure domain
 
+        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(Vector3d vector, CoordinateSystem coordinateSystem,
+            FailureDomainTypes failureDomainType, FailureAnalysisTypes failureAnalysisType)
+        {
+            return CalculateDomainPoint(new ForceTuple(vector.Z, vector.X, vector.Y), coordinateSystem, failureDomainType, failureAnalysisType, _failureAnalysisAngularTolerance);
+        }
+
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
             FailureDomainTypes failureDomainType, FailureAnalysisTypes failureAnalysisType)
 		{
@@ -2037,30 +2043,31 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                     _log.Add("Fail to calculate find strain plane");
                                     return null;
                                 }
+                            }
                             else
-                                {
-                                    _log.Add("Fail to calculate find strain plane");
-                                    return null;
-                                }
+                            {
+                                _log.Add("Fail to calculate find strain plane");
+                                return null;
+                            }
 
-                            } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
+                        } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
                                  Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
-                                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance) ;
-                        }
-                    else
-                        {
-                            return null;
-                        }
+                                 Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance);
                     }
                     else
                     {
-                        _log.Add("Fail to calculate find strain plane");
                         return null;
                     }
                 }
-
-                return strainPlane;
+                else
+                {
+                    _log.Add("Fail to calculate find strain plane");
+                    return null;
+                }
             }
+
+            return strainPlane;
+        }
 
         protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementStressAnalysis(StrainPlane inputStrainPlane, ForceTuple forceTuple,
             Dictionary<int, bool> rebarIsInsideAssociation, double? psiRebars, double? psiTendon)
