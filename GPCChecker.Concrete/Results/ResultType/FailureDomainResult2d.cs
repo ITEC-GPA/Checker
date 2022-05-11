@@ -162,7 +162,7 @@ namespace GPC.Checkers.Concrete.Results
                 throw new ArgumentException(nameof(forces));
             }
 
-            int index = _forces.FindIndex(f => f.FailureDomainForce.Id == id);
+            int index = _forces.FindIndex(f => f.Id == id);
             if (index < 0)
             {
                 throw new KeyNotFoundException(nameof(id));
@@ -251,7 +251,7 @@ namespace GPC.Checkers.Concrete.Results
                 throw new ArgumentException(nameof(forces));
             }
 
-            int index = _forces.FindIndex(f => f.FailureDomainForce.Id == id);
+            int index = _forces.FindIndex(f => f.Id == id);
             if (index < 0)
             {
                 throw new KeyNotFoundException(nameof(id));
@@ -293,7 +293,7 @@ namespace GPC.Checkers.Concrete.Results
 		/// <returns>True if the force exists</returns>
 		public bool ContainsForceWithId(int id)
         {
-            return _forces.Any(force => force.FailureDomainForce.Id == id);
+            return _forces.Any(force => force.Id == id);
         }
 
         public IEnumerator<FailureDomain.FailureDomainPoint2d> GetEnumerator()

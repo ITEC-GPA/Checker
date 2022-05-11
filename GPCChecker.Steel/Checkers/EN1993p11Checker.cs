@@ -79,10 +79,11 @@ namespace GPC.Checkers.Steel.Checkers
             });
         }
 
-        /// <param name="steelSection">section of each station</param>
-        /// <param name="beamResult">result for each station and loadcase</param>
-        /// <returns></returns>
-        protected EN1993p11BeamStationResult[] PerformCheck(ISteelSection[] steelSection, BeamResult[] beamResult, EN1993p11Options options)
+		/// <param name="steelSection">section of each station</param>
+		/// <param name="beamResult">result for each station and loadcase</param>
+		/// <param name="options"></param>
+		/// <returns></returns>
+		protected EN1993p11BeamStationResult[] PerformCheck(ISteelSection[] steelSection, BeamResult[] beamResult, EN1993p11Options options)
         {
             EN1993p11BeamStationResult[] stationResults = new EN1993p11BeamStationResult[steelSection.Length * beamResult.Select(i => i.ResultLocations.Length).Sum()];
             int index = 0;

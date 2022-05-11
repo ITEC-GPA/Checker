@@ -33,7 +33,7 @@ namespace ConcreteTests
 			double omega = 0.25;
 
 			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -69,7 +69,7 @@ namespace ConcreteTests
 			double omega = 0.37;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C40_50;
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -105,7 +105,7 @@ namespace ConcreteTests
 			double omega = 0.36;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C50_60;
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -142,7 +142,7 @@ namespace ConcreteTests
 
 
 			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -177,7 +177,7 @@ namespace ConcreteTests
 			double omega = 0.17;
 
 			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -212,7 +212,7 @@ namespace ConcreteTests
 			double omega = 0.60;
 
 			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -248,7 +248,7 @@ namespace ConcreteTests
 			double omega = 0.40;
 
 			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -286,7 +286,7 @@ namespace ConcreteTests
 			double omega = 0.40;
 
 			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -324,7 +324,7 @@ namespace ConcreteTests
 			double omega = 0.60;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C40_50;
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -362,7 +362,7 @@ namespace ConcreteTests
 			double omega = 0.60;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C40_50;
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -399,7 +399,7 @@ namespace ConcreteTests
 			double omega = 0.45;
 
 			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -437,7 +437,7 @@ namespace ConcreteTests
 			double omega = 0.45;
 
 			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -475,7 +475,7 @@ namespace ConcreteTests
 			double omega = 0.30;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C40_50;
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -513,7 +513,7 @@ namespace ConcreteTests
 			double omega = 0.30;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C40_50;
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			// si calcola un diametro equivalente all'omega di input
@@ -566,8 +566,8 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("RebarMat", 200000, 534, 630));
-			RebarSectionCircular rebarComp = new RebarSectionCircular(10, new SteelMaterial("RebarMat", 200000, 534, 630));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("RebarMat", 200000, 534, 630, 0.1, SteelMaterial.SteelTypes.Rebar));
+			RebarSectionCircular rebarComp = new RebarSectionCircular(10, new SteelMaterial("RebarMat", 200000, 534, 630, 0.1, SteelMaterial.SteelTypes.Rebar));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{

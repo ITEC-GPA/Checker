@@ -7,6 +7,7 @@ using GPC.Model.Results;
 using GPC.Utilities.Maths;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Concrete.Results
@@ -35,7 +36,7 @@ namespace GPC.Checkers.Concrete.Results
 		public FailureDomain(FailureDomainPoint[][] domainPoints, SectionSolver.FailureDomainTypes analysisType)
 		{
 			_domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
-			_axialForceSubdivision = 50;
+			_axialForceSubdivision = 100;
 			_analysisType = analysisType;
 		}
 
@@ -319,14 +320,15 @@ namespace GPC.Checkers.Concrete.Results
 
 		protected (double maximum, double minimum) GetAxialForceLimits(out FailureDomainPoint maximumPoint, out FailureDomainPoint minimumPoint)
 		{
-			double min = 0;
-			double max = 0;
-			minimumPoint = new FailureDomainPoint(new ForceTuple(), SectionSolver.FailureZones.F1, new StrainPlane(0, 0, Point2d.Origin, 0));
-			maximumPoint = new FailureDomainPoint(new ForceTuple(), SectionSolver.FailureZones.F1, new StrainPlane(0, 0, Point2d.Origin, 0));
+			maximumPoint = DomainPoints[0][0];
+			minimumPoint = DomainPoints[0][DomainPoints[0].Length - 1];
+
+			double min = minimumPoint.NRd;
+			double max = maximumPoint.NRd;
 
 			for (int i = 0; i < DomainPoints.Length; i++)
 			{
-				for(int j = 0; j < DomainPoints[i].Length; j++)
+				for (int j = 0; j < DomainPoints[i].Length; j++)
 				{
 					if (DomainPoints[i][j].NRd < min)
 					{
@@ -340,6 +342,45 @@ namespace GPC.Checkers.Concrete.Results
 					}
 				}
 			}
+
+			List< FailureDomainPoint > minList = new List<FailureDomainPoint>();
+			List< FailureDomainPoint > maxList = new List<FailureDomainPoint>();
+
+			for (int i = 0; i < DomainPoints.Length; i++)
+			{
+				for (int j = 0; j < DomainPoints[i].Length; j++)
+				{
+					if (Math.Abs(DomainPoints[i][j].NRd - min) < 1000)					
+						minList.Add(DomainPoints[i][j]);
+
+					if (Math.Abs(DomainPoints[i][j].NRd - max) < 1000)					
+						maxList.Add(DomainPoints[i][j]);					
+				}
+			}
+
+			if (minList.Count > 0)
+			{
+				ForceTuple forceMin = new ForceTuple(minList.Select(i => i.NRd).Average(), minList.Select(i => i.MxRd).Average(), minList.Select(i => i.MyRd).Average());
+				StrainPlane strainPlane = new StrainPlane(new Point2d(
+					minList.Select(i => i.StrainPlane.ReferencePoint.X).Average(),
+					minList.Select(i => i.StrainPlane.ReferencePoint.Y).Average()),
+					minList.Select(i => i.StrainPlane.Teta).Average(), 
+					minList.Select(i => i.StrainPlane.Chi).Average(),
+					minList.Select(i => i.StrainPlane.StrainReferencePoint).Average());
+				minimumPoint = new FailureDomainPoint(forceMin, minimumPoint.FailureIndex, strainPlane);
+			}
+			if (maxList.Count > 0)
+			{
+				ForceTuple forceMax = new ForceTuple(maxList.Select(i => i.NRd).Average(), maxList.Select(i => i.MxRd).Average(), maxList.Select(i => i.MyRd).Average());
+				StrainPlane strainPlane = new StrainPlane(new Point2d(
+					maxList.Select(i => i.StrainPlane.ReferencePoint.X).Average(),
+					maxList.Select(i => i.StrainPlane.ReferencePoint.Y).Average()),
+					maxList.Select(i => i.StrainPlane.Teta).Average(), 
+					maxList.Select(i => i.StrainPlane.Chi).Average(),
+					maxList.Select(i => i.StrainPlane.StrainReferencePoint).Average());
+				maximumPoint = new FailureDomainPoint(forceMax, maximumPoint.FailureIndex, strainPlane);
+			}
+
 			return (max, min);
 		}
 
@@ -380,10 +421,26 @@ namespace GPC.Checkers.Concrete.Results
 
 		#endregion
 
+		#region Setter
+
+		public void SetFailureDomainType(SectionSolver.FailureDomainTypes failureDomainType)
+		{
+			_analysisType= failureDomainType;
+		}
+
+		public void SetAxialForceSubdivision(int subdivision)
+		{
+			_axialForceSubdivision = subdivision;
+		}
+
+		#endregion
+
+		#region Nested Class
+
 		#region FailureDomainForce
 
 		[Serializable]
-		public sealed class FailureDomainForce : ResultBeamForces, ISerializable, IEquatable<FailureDomainForce>
+		public class FailureDomainForce : ResultBeamForces, ISerializable
 		{
 			#region Variables
 
@@ -554,18 +611,15 @@ namespace GPC.Checkers.Concrete.Results
 
 		#region FailureDomainPoint2d
 
-		public sealed class FailureDomainPoint2d : ISerializable, IEquatable<FailureDomainPoint2d>
+		public sealed class FailureDomainPoint2d : FailureDomainForce, ISerializable, IEquatable<FailureDomainPoint2d>
 		{
 			#region Variables
 
-			private readonly FailureDomainForce _failureDomainForce;
 			private readonly Point2d _point2d;
 
 			#endregion
 
 			#region Properties
-
-			public FailureDomainForce FailureDomainForce => _failureDomainForce;
 
 			public Point3d Point2d => _point2d;
 
@@ -573,15 +627,21 @@ namespace GPC.Checkers.Concrete.Results
 
 			#region Constructor
 
-			internal FailureDomainPoint2d(FailureDomainForce failureDomainForce, Point2d point2D)
+			internal FailureDomainPoint2d(ResultBeamForces forces, FailureDomainPoint failureDomainPoint, Point2d point2D)
+				:base(forces, failureDomainPoint)
 			{
-				_failureDomainForce = failureDomainForce;
 				_point2d = point2D;
 			}
 
-			internal FailureDomainPoint2d(SerializationInfo info, StreamingContext context)
+			internal FailureDomainPoint2d(FailureDomainForce forces, Point2d point2D)
+				:this(new ResultBeamForces(forces.N, forces.V1, forces.V2, forces.T, forces.M1, forces.M2, forces.CoordinateSystem, forces.Id),forces.FailureDomainPoint, point2D)
 			{
-				_failureDomainForce = (FailureDomainForce)info.GetValue("FailureDomainForce", typeof(FailureDomainForce));
+
+			}
+
+			internal FailureDomainPoint2d(SerializationInfo info, StreamingContext context)
+				:base(info, context)
+			{
 				_point2d = (Point2d)info.GetValue("Point2d", typeof(Point2d));
 			}
 
@@ -589,9 +649,9 @@ namespace GPC.Checkers.Concrete.Results
 
 			#region Equals, hashcode, operators
 
-			public void GetObjectData(SerializationInfo info, StreamingContext context)
+			public override void GetObjectData(SerializationInfo info, StreamingContext context)
 			{
-				info.AddValue("FailureDomainForce", _failureDomainForce, typeof(FailureDomainForce));
+				base.GetObjectData(info, context);
 				info.AddValue("Point2d", _point2d, typeof(Point2d));
 			}
 
@@ -602,7 +662,7 @@ namespace GPC.Checkers.Concrete.Results
 
 			public bool Equals(FailureDomainPoint2d other)
 			{
-				return other != null && _failureDomainForce.Equals(other._failureDomainForce) &&
+				return other != null &&
 					_point2d == other._point2d;
 			}
 
@@ -612,7 +672,6 @@ namespace GPC.Checkers.Concrete.Results
 				{
 					int hashCode = 17;
 					hashCode = hashCode * -23 + _point2d.GetHashCode();
-					hashCode = hashCode * -23 + _failureDomainForce.GetHashCode();
 					return hashCode;
 				}
 			}
@@ -631,18 +690,6 @@ namespace GPC.Checkers.Concrete.Results
 		}
 
 		#endregion
-
-		#region Setter
-
-		public void SetFailureDomainType(SectionSolver.FailureDomainTypes failureDomainType)
-		{
-			_analysisType= failureDomainType;
-		}
-
-		public void SetAxialForceSubdivision(int subdivision)
-		{
-			_axialForceSubdivision = subdivision;
-		}
 
 		#endregion
 	}
