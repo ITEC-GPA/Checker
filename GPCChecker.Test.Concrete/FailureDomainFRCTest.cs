@@ -569,5 +569,26 @@ namespace ConcreteTests
 
 			ExportToGmsh(plasticFailureDomain1.Domain.GetMesh());
 		}
+
+		[TestMethod]
+		public void RectangularSectionTest14()
+		{
+			double height = 400;
+			double width = 400;
+
+			ConcreteSectionRectangular section = new ConcreteSectionRectangular(width, height, ConcreteMaterialModelCode2010.C30_37_25);
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, new StandardModelCode2010(), true);
+
+			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			ShowDomainPoints(elasticFailureDomain.Domain);
+			//ExportToGmsh(elasticFailureDomain.Domain.GetMesh());
+
+			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResultAsync().Result;
+			ShowDomainPoints(plasticFailureDomain.Domain);
+			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
+		}
 	}
 }
