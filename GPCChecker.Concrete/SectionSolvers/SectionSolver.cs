@@ -74,11 +74,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         };
 
         /// <summary>
-        /// Rapresent the discretization of the axial force in the solver for plastic analysis for FRC material with no rebars
+        /// Rapresent the discretization of the axial force in the solver for plastic analysis for FRC material with no rebars and hardening behaviour
         /// </summary>
-        protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizationsFRCNoRebars =
+        protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizationsFRCNoRebarsHardening =
         {
             (FailureZones.F1, 2),
+            (FailureZones.F2A, 5),
+            (FailureZones.F2B, 5),
+            (FailureZones.F3A, 25),
+            (FailureZones.F3B, 1),
+            (FailureZones.F4, 4)
+        };
+
+        /// <summary>
+        /// Rapresent the discretization of the axial force in the solver for plastic analysis for FRC material with no rebars and softening behaviour
+        /// </summary>
+        protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizationsFRCNoRebarsSoftening =
+        {
             (FailureZones.F2A, 5),
             (FailureZones.F2B, 5),
             (FailureZones.F3A, 25),
@@ -300,11 +312,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
                 zoneDiscretization = _plasticFailureZonesDiscretizations;
             else
-			{
-                if(ConcreteSection.RebarsCount != 0)
+            {
+                if (ConcreteSection.RebarsCount != 0)
                     zoneDiscretization = _plasticFailureZonesDiscretizationsFRC;
                 else
-                    zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebars;
+                {
+                    if(_concreteSection.ConcreteMaterial.StressStrainTableTension.IsHardening())
+                        zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebarsHardening;
+                    else
+                        zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebarsSoftening;
+                }
             }
 
             if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
@@ -330,7 +347,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (ConcreteSection.RebarsCount != 0)
                     zoneDiscretization = _plasticFailureZonesDiscretizationsFRC;
                 else
-                    zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebars;
+                {
+                    if (_concreteSection.ConcreteMaterial.StressStrainTableTension.IsHardening())
+                        zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebarsHardening;
+                    else
+                        zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebarsSoftening;
+                }
             }
 
             if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
