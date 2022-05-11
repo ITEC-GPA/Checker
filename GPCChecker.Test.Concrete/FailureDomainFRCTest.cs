@@ -393,5 +393,181 @@ namespace ConcreteTests
 			ShowDomainPoints(plasticFailureDomain.Domain);
 			//ExportToGmsh(plasticFailureDomain.Domain.GetMesh());
 		}
+
+		[TestMethod]
+		public void RectangularSectionTest12()
+		{
+			double height = 400;
+			double width = 400;
+
+			StressStrainTable UHCP1SSTComp = new StressStrainTable(
+				new double[] { 0, -107, -107 }, new double[] { 0, -0.002378, -0.003709 });
+			StressStrainTable UHCP1SSTTens_1 = new StressStrainTable(
+				new double[] { 0, 4, 4, 3.2, 0.0 }, new double[] { 0, 0.000089, 0.002392, 0.011, 0.028 });
+			StressStrainTable UHCP1SSTTens_2 = new StressStrainTable(
+				new double[] { 0, 4, 4, 3.2, 1.6 }, new double[] { 0, 0.000089, 0.002392, 0.011, 0.0195 });
+			StressStrainTable UHCP1SSTTens_3 = new StressStrainTable(
+				new double[] { 0, 4, 4, 3.2 }, new double[] { 0, 0.000089, 0.002392, 0.011 });
+			StressStrainTable UHCP1SSTTens_4 = new StressStrainTable(
+				new double[] { 0, 4, 4 }, new double[] { 0, 0.000089, 0.002392 });
+			StressStrainTable UHCP1SSTTens_5 = new StressStrainTable(
+				new double[] { 0, 4 }, new double[] { 0, 0.000089 });
+			ConcreteMaterialModelCode2010 mat1_1 = new ConcreteMaterialModelCode2010("UHPC 107_1", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_1, ConcreteMaterial.ConcreteTypes.FRC);
+			ConcreteMaterialModelCode2010 mat1_2 = new ConcreteMaterialModelCode2010("UHPC 107_2", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_2, ConcreteMaterial.ConcreteTypes.FRC);
+			ConcreteMaterialModelCode2010 mat1_3 = new ConcreteMaterialModelCode2010("UHPC 107_3", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_3, ConcreteMaterial.ConcreteTypes.FRC);
+			ConcreteMaterialModelCode2010 mat1_4 = new ConcreteMaterialModelCode2010("UHPC 107_4", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_4, ConcreteMaterial.ConcreteTypes.FRC);
+			ConcreteMaterialModelCode2010 mat1_5 = new ConcreteMaterialModelCode2010("UHPC 107_4", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_5, ConcreteMaterial.ConcreteTypes.FRC);
+
+			ConcreteSectionRectangular section1 = new ConcreteSectionRectangular(width, height, mat1_1);
+			SectionCheckerAttribute sectionCheckerAttribute1 = new SectionCheckerAttribute(section1, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions1 =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section1));
+			SectionCheckerModelCode2010 sectionChecker1 = new SectionCheckerModelCode2010(sectionCheckerAttribute1, sectionOptions1, new StandardModelCode2010(), true);
+
+			ConcreteSectionRectangular section2 = new ConcreteSectionRectangular(width, height, mat1_2);
+			SectionCheckerAttribute sectionCheckerAttribute2 = new SectionCheckerAttribute(section2, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions2 =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section2));
+			SectionCheckerModelCode2010 sectionChecker2 = new SectionCheckerModelCode2010(sectionCheckerAttribute2, sectionOptions2, new StandardModelCode2010(), true);
+
+			ConcreteSectionRectangular section3 = new ConcreteSectionRectangular(width, height, mat1_3);
+			SectionCheckerAttribute sectionCheckerAttribute3 = new SectionCheckerAttribute(section3, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions3 =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section3));
+			SectionCheckerModelCode2010 sectionChecker3 = new SectionCheckerModelCode2010(sectionCheckerAttribute3, sectionOptions3, new StandardModelCode2010(), true);
+
+			ConcreteSectionRectangular section4 = new ConcreteSectionRectangular(width, height, mat1_4);
+			SectionCheckerAttribute sectionCheckerAttribute4 = new SectionCheckerAttribute(section4, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions4 =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section4));
+			SectionCheckerModelCode2010 sectionChecker4 = new SectionCheckerModelCode2010(sectionCheckerAttribute4, sectionOptions4, new StandardModelCode2010(), true);
+
+			ConcreteSectionRectangular section5 = new ConcreteSectionRectangular(width, height, mat1_5);
+			SectionCheckerAttribute sectionCheckerAttribute5 = new SectionCheckerAttribute(section5, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions5 =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section4));
+			SectionCheckerModelCode2010 sectionChecker5 = new SectionCheckerModelCode2010(sectionCheckerAttribute5, sectionOptions5, new StandardModelCode2010(), true);
+
+			var plasticFailureDomain1 = sectionChecker1.GetPlasticFailureDomainResult();
+			var plasticFailureDomain2 = sectionChecker2.GetPlasticFailureDomainResult();
+			var plasticFailureDomain3 = sectionChecker3.GetPlasticFailureDomainResult();
+			var plasticFailureDomain4 = sectionChecker4.GetPlasticFailureDomainResult();
+			var plasticFailureDomain5 = sectionChecker5.GetPlasticFailureDomainResult();
+
+			//ShowDomainPoints(plasticFailureDomain1.Domain);
+			//ShowDomainPoints(plasticFailureDomain2.Domain);
+			//ShowDomainPoints(plasticFailureDomain3.Domain);
+			//ShowDomainPoints(plasticFailureDomain4.Domain);
+			ShowDomainPoints(plasticFailureDomain5.Domain);
+
+			ExportToGmsh(new FailureDomain[] { plasticFailureDomain1.Domain, plasticFailureDomain2.Domain, plasticFailureDomain3.Domain, plasticFailureDomain4.Domain, plasticFailureDomain5.Domain });
+		}
+
+		[TestMethod]
+		public void RectangularSectionTest13()
+		{
+			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+			{
+				new Point2d(0, 0),
+				new Point2d(300, 0),
+				new Point2d(300, 200),
+				new Point2d(200, 200),
+				new Point2d(200, 400),
+				new Point2d(100, 400),
+				new Point2d(100, 200),
+				new Point2d(0, 200),
+			}));
+
+			RebarSectionCircular rebar = new RebarSectionCircular(12, SteelMaterial.B450C);
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+{
+				new ReinforcedConcreteRebar(rebar, new Point2d(120, 350)),
+				new ReinforcedConcreteRebar(rebar, new Point2d(180, 350)),
+				new ReinforcedConcreteRebar(rebar, new Point2d(120, 50)),
+				new ReinforcedConcreteRebar(rebar, new Point2d(180, 50)),
+};
+
+			StressStrainTable UHCP1SSTComp = new StressStrainTable(
+				new double[] { 0, -107, -107 }, new double[] { 0, -0.002378, -0.003709 });
+			StressStrainTable UHCP1SSTTens_1 = new StressStrainTable(
+				new double[] { 0, 4, 4, 3.2, 0.0 }, new double[] { 0, 0.000089, 0.002392, 0.011, 0.028 });
+			StressStrainTable UHCP1SSTTens_2 = new StressStrainTable(
+				new double[] { 0, 4, 4, 3.2, 1.6 }, new double[] { 0, 0.000089, 0.002392, 0.011, 0.0195 });
+			StressStrainTable UHCP1SSTTens_3 = new StressStrainTable(
+				new double[] { 0, 4, 4, 3.2 }, new double[] { 0, 0.000089, 0.002392, 0.011 });
+			StressStrainTable UHCP1SSTTens_4 = new StressStrainTable(
+				new double[] { 0, 4, 4 }, new double[] { 0, 0.000089, 0.002392 });
+			StressStrainTable UHCP1SSTTens_5 = new StressStrainTable(
+				new double[] { 0, 4 }, new double[] { 0, 0.000089 });
+			ConcreteMaterialModelCode2010 mat1_1 = new ConcreteMaterialModelCode2010("UHPC 107_1", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_1, ConcreteMaterial.ConcreteTypes.FRC);
+			ConcreteMaterialModelCode2010 mat1_2 = new ConcreteMaterialModelCode2010("UHPC 107_2", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_2, ConcreteMaterial.ConcreteTypes.FRC);
+			ConcreteMaterialModelCode2010 mat1_3 = new ConcreteMaterialModelCode2010("UHPC 107_3", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_3, ConcreteMaterial.ConcreteTypes.FRC);
+			ConcreteMaterialModelCode2010 mat1_4 = new ConcreteMaterialModelCode2010("UHPC 107_4", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_4, ConcreteMaterial.ConcreteTypes.FRC);
+			ConcreteMaterialModelCode2010 mat1_5 = new ConcreteMaterialModelCode2010("UHPC 107_5", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_5, ConcreteMaterial.ConcreteTypes.Normal);
+
+			ShapeEx shapeEx1 = new ShapeEx(shape, mat1_1);
+			ReinforcedConcreteSection section1 = new ReinforcedConcreteSection(shapeEx1);
+			section1.AddRebars(rebars);
+
+			SectionCheckerAttribute sectionCheckerAttribute1 = new SectionCheckerAttribute(section1, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions1 =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section1));
+			SectionCheckerModelCode2010 sectionChecker1 = new SectionCheckerModelCode2010(sectionCheckerAttribute1, sectionOptions1, new StandardModelCode2010(), true);
+
+			ShapeEx shapeEx2 = new ShapeEx(shape, mat1_2);
+			ReinforcedConcreteSection section2 = new ReinforcedConcreteSection(shapeEx2);
+			section2.AddRebars(rebars);
+
+			SectionCheckerAttribute sectionCheckerAttribute2 = new SectionCheckerAttribute(section2, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions2 =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section2));
+			SectionCheckerModelCode2010 sectionChecker2 = new SectionCheckerModelCode2010(sectionCheckerAttribute2, sectionOptions2, new StandardModelCode2010(), true);
+
+			ShapeEx shapeEx3 = new ShapeEx(shape, mat1_3);
+			ReinforcedConcreteSection section3 = new ReinforcedConcreteSection(shapeEx3);
+			section3.AddRebars(rebars);
+
+			SectionCheckerAttribute sectionCheckerAttribute3 = new SectionCheckerAttribute(section3, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions3 =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section3));
+			SectionCheckerModelCode2010 sectionChecker3 = new SectionCheckerModelCode2010(sectionCheckerAttribute3, sectionOptions3, new StandardModelCode2010(), true);
+
+			ShapeEx shapeEx4 = new ShapeEx(shape, mat1_4);
+			ReinforcedConcreteSection section4 = new ReinforcedConcreteSection(shapeEx4);
+			section4.AddRebars(rebars);
+
+			SectionCheckerAttribute sectionCheckerAttribute4 = new SectionCheckerAttribute(section4, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions4 =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section4));
+			SectionCheckerModelCode2010 sectionChecker4 = new SectionCheckerModelCode2010(sectionCheckerAttribute4, sectionOptions4, new StandardModelCode2010(), true);
+
+			ShapeEx shapeEx5 = new ShapeEx(shape, mat1_5);
+			ReinforcedConcreteSection section5 = new ReinforcedConcreteSection(shapeEx5);
+			section5.AddRebars(rebars);
+
+			SectionCheckerAttribute sectionCheckerAttribute5 = new SectionCheckerAttribute(section5, null, null);
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions5 =
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section5));
+			SectionCheckerModelCode2010 sectionChecker5 = new SectionCheckerModelCode2010(sectionCheckerAttribute5, sectionOptions5, new StandardModelCode2010(), true);
+
+			var plasticFailureDomain1 = sectionChecker1.GetPlasticFailureDomainResult();
+			var plasticFailureDomain2 = sectionChecker2.GetPlasticFailureDomainResult();
+			var plasticFailureDomain3 = sectionChecker3.GetPlasticFailureDomainResult();
+			var plasticFailureDomain4 = sectionChecker4.GetPlasticFailureDomainResult();
+			var plasticFailureDomain5 = sectionChecker5.GetPlasticFailureDomainResult();
+
+			//ExportToGmsh(section5);
+			//ShowDomainPoints(plasticFailureDomain1.Domain);
+			//ShowDomainPoints(plasticFailureDomain2.Domain);
+			//ShowDomainPoints(plasticFailureDomain3.Domain);
+			//ShowDomainPoints(plasticFailureDomain4.Domain);
+			//ShowDomainPoints(plasticFailureDomain5.Domain);
+
+			//ExportToGmsh(new FailureDomain[] { plasticFailureDomain1.Domain, plasticFailureDomain2.Domain, 
+			//	plasticFailureDomain3.Domain, plasticFailureDomain4.Domain, plasticFailureDomain5.Domain });
+
+			ExportToGmsh(plasticFailureDomain1.Domain.GetMesh());
+		}
 	}
 }

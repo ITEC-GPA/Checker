@@ -1065,9 +1065,49 @@ namespace ConcreteTests
             GmshNet.Gmsh.Finalize();
         }
 
-		#endregion
+        protected Point3d[] ExportToGmsh(FailureDomain[] failureDomains)
+        {
+            GmshNet.Gmsh.Initialize();
+            List<Point3d> points = new List<Point3d>();
+            for (int f = 0; f < failureDomains.Length; f++)
+            {
+                FailureDomain failureDomain = failureDomains[f];
+                int horizontal = failureDomain.DomainPoints.Length;
 
-		internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
+                for (int i = 0; i < horizontal; i++)
+                {
+                    int vertical = failureDomain.DomainPoints[i].Length;
+
+                    for (int j = 0; j < vertical; j++)
+                    {
+                        if (failureDomain.DomainPoints[i][j] != null)
+                        {
+                            GmshNet.Gmsh.Model.Occ.AddPoint(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+                                failureDomain.DomainPoints[i][j].MyRd / 1000000,
+                                failureDomain.DomainPoints[i][j].NRd / 1000 / 10);
+
+                            points.Add(new Point3d(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+                                failureDomain.DomainPoints[i][j].MyRd / 1000000,
+                                failureDomain.DomainPoints[i][j].NRd / 1000 / 10));
+                        }
+
+                        points.Add(new Point3d(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+                            failureDomain.DomainPoints[i][j].MyRd / 1000000,
+                            failureDomain.DomainPoints[i][j].NRd / 1000 / 10));
+                    }
+                }                
+
+                GmshNet.Gmsh.Model.Occ.Synchronize();
+
+            }
+            GmshNet.Gmsh.Fltk.Run();
+            GmshNet.Gmsh.Finalize();
+            return points.ToArray();
+        }
+
+        #endregion
+
+        internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
         {
             internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, 
                 bool considerTensileConcrete = false, int id = -1)
