@@ -861,7 +861,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP1((double teta, int dMinRebarId, double dminRebar,
             int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
-            FailureDomainTypes analysisType)
+            FailureDomainTypes analysisType, FailureZones failureZone)
         {
             switch (_concreteSection.ConcreteMaterial.ConcreteType)
             {
@@ -870,12 +870,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     switch (analysisType)
                     {
                         case FailureDomainTypes.Elastic:
-
                             return (GetDesignYieldingStrainRebar(distances.dMinRebarId), ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
                                 (distances.dmaxConcrete - distances.dminRebar));
 
                         case FailureDomainTypes.Plastic:
-
                             return (GetDesignUltimateStrainRebar(distances.dMinRebarId), ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
                                 (distances.dmaxConcrete - distances.dminRebar));
 
@@ -888,15 +886,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     switch (analysisType)
                     {
                         case FailureDomainTypes.Elastic:
-
                             return (GetYieldingStrainConcreteTension(), ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
                                 (distances.dmaxConcrete - distances.dminConcrete));
 
                         case FailureDomainTypes.Plastic:
+                            {
+                                double strain = Math.Min(0.02, GetUltimateStrainConcreteTension());
 
-                            return (GetUltimateStrainConcreteTension(), ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
-                                (distances.dmaxConcrete - distances.dminConcrete));
+                                if(failureZone == FailureZones.F1)
+                                    strain = Math.Min(0.01, strain);
 
+                                return (strain, ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
+                                    (distances.dmaxConcrete - distances.dminConcrete));
+                            }
                         default:
                             return (0.0, null, 0.0);
                     }
@@ -917,12 +919,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     switch (analysisType)
                     {
                         case FailureDomainTypes.Elastic:
-
                             return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
                                 (distances.dmaxConcrete - distances.dminRebar));
 
                         case FailureDomainTypes.Plastic:
-
                             return (GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
                                 (distances.dmaxConcrete - distances.dminRebar));
 
@@ -935,12 +935,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     switch (analysisType)
                     {
                         case FailureDomainTypes.Elastic:
-
                             return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
                                 (distances.dmaxConcrete - distances.dminConcrete));
 
-                        case FailureDomainTypes.Plastic:
-
+                        case FailureDomainTypes.Plastic:                            
                             return (GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
                                 (distances.dmaxConcrete - distances.dminConcrete));
 
@@ -961,12 +959,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             switch (analysisType)
             {
                 case FailureDomainTypes.Elastic:
-
                     return (GetYieldingStrainPureCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
                         (distances.dmaxConcrete - distances.dminConcrete));
 
                 case FailureDomainTypes.Plastic:
-
                     double fraction = GetYieldingStrainPureCompression() / GetUltimateStrainConcreteCompression();
                     double heigth = distances.dmaxConcrete - distances.dminConcrete;
 
@@ -1108,7 +1104,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             var sectionDistances = CalculateMaxMinSectionDistances(teta);
 
-            var p1 = GetP1(sectionDistances, failureDomainType);
             var p2 = GetP2(sectionDistances, failureDomainType);
             var p3 = GetP3(sectionDistances, failureDomainType);
             var p4 = GetP4(sectionDistances, failureDomainType);
@@ -1119,6 +1114,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
 				FailureZones failureZones = zoneSubdivision[i].Item1;
                 int subdivision = zoneSubdivision[i].Item2 + 1;
+
+                var p1 = GetP1(sectionDistances, failureDomainType, failureZones);
 
                 switch (failureZones)
                 {
@@ -1275,14 +1272,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		{
             return CalculateDomainPoint(targetLocalForces, coordinateSystem, failureDomainType, failureAnalysisType, _failureAnalysisAngularTolerance);
 		}
-       
+
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
             FailureDomainTypes failureDomainType, FailureAnalysisTypes failureAnalysisType,
             double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
         {
             switch (failureAnalysisType)
             {
-                case FailureAnalysisTypes.ConstantEccentricity:                    
+                case FailureAnalysisTypes.ConstantEccentricity:
                     break;
                 case FailureAnalysisTypes.ConstantN:
                     if (targetLocalForces.Mx == 0 && targetLocalForces.My == 0)
@@ -1305,116 +1302,116 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
 
             ForceTuple adimOutputForces = ConvertToAdimensionalForces(targetLocalForces);
-            
-            Vector3d vectorEd = null;
-			switch (failureAnalysisType)
-			{
-				case FailureAnalysisTypes.ConstantEccentricity:
-					vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, targetLocalForces.N / 1000);
-					break;
-				case FailureAnalysisTypes.ConstantN:
-					vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, 0.0);
-					break;
-				case FailureAnalysisTypes.ConstantNMx:
-					vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, 0, targetLocalForces.N / 1000);
-					break;
-				case FailureAnalysisTypes.ConstantNMy:
-					vectorEd = new Vector3d(0, targetLocalForces.My / 1000000, targetLocalForces.N / 1000);
-					break;
-			}
 
-			// Valori di primo tentativo
-			FailureZones failureIndex = FailureZones.F3A;
+            Vector3d vectorEd = null;
+            switch (failureAnalysisType)
+            {
+                case FailureAnalysisTypes.ConstantEccentricity:
+                    vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, targetLocalForces.N / 1000);
+                    break;
+                case FailureAnalysisTypes.ConstantN:
+                    vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, 0.0);
+                    break;
+                case FailureAnalysisTypes.ConstantNMx:
+                    vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, 0, targetLocalForces.N / 1000);
+                    break;
+                case FailureAnalysisTypes.ConstantNMy:
+                    vectorEd = new Vector3d(0, targetLocalForces.My / 1000000, targetLocalForces.N / 1000);
+                    break;
+            }
+
+            // Valori di primo tentativo
+            FailureZones failureIndex = FailureZones.F3A;
             double eta = 0.5;
             double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
 
-			switch (failureAnalysisType)
-			{
-				case FailureAnalysisTypes.ConstantEccentricity:
-					if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
-					{
-						failureIndex = FailureZones.F3A;
-						eta = 0.65;
-					}
-					else if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
-					{
-						failureIndex = FailureZones.F3A;
-						eta = 0.85;
-					}
-					else if (adimOutputForces.N > 0.0)
-					{
-						failureIndex = FailureZones.F3A;
-						eta = 0.95;
-					}
-					else if (Math.Abs(adimOutputForces.N) < 1e-5)
-					{
-						failureIndex = FailureZones.F3A;
-						eta = 0.90;
-					}
-					else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-2 && Math.Abs(adimOutputForces.My) < 1e-2)
-					{
-						failureIndex = FailureZones.F4;
-						eta = 0.5;
-					}
-					else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
-					{
-						failureIndex = FailureZones.F4;
-						eta = 0.9;
-					}
-					else
-					{
-						failureIndex = FailureZones.F4;
-						eta = 0.2;
-					}
-					break;
-				case FailureAnalysisTypes.ConstantN:
-				case FailureAnalysisTypes.ConstantNMx:
-				case FailureAnalysisTypes.ConstantNMy:
-					if (adimOutputForces.N > 0.0)
-					{
-						failureIndex = FailureZones.F3A;
-						eta = 0.85;
-					}
-					else if (adimOutputForces.N < 0.2)
-					{
-						failureIndex = FailureZones.F3A;
-						eta = 0.9;
-					}
-					else if (adimOutputForces.N < 0.4)
-					{
-						failureIndex = FailureZones.F4;
-						eta = 0.25;
-					}
-					else if (adimOutputForces.N < 0.6)
-					{
-						failureIndex = FailureZones.F4;
-						eta = 0.5;
-					}
-					else if (adimOutputForces.N < 1)
-					{
-						failureIndex = FailureZones.F4;
-						eta = 0.75;
-					}
-					else
-					{
-						failureIndex = FailureZones.F3A;
-						eta = 0.95;
-					}
-					break;
-				case FailureAnalysisTypes.ConstantMxMy:
-					if (adimOutputForces.N > 0.0)
-					{
-						failureIndex = FailureZones.F3A;
-						eta = 0.1;
-					}
-					else
-					{
-						failureIndex = FailureZones.F4;
-						eta = 0.5;
-					}
-					break;
-			}
-			if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
+            switch (failureAnalysisType)
+            {
+                case FailureAnalysisTypes.ConstantEccentricity:
+                    if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.65;
+                    }
+                    else if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.85;
+                    }
+                    else if (adimOutputForces.N > 0.0)
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.95;
+                    }
+                    else if (Math.Abs(adimOutputForces.N) < 1e-5)
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.90;
+                    }
+                    else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-2 && Math.Abs(adimOutputForces.My) < 1e-2)
+                    {
+                        failureIndex = FailureZones.F4;
+                        eta = 0.5;
+                    }
+                    else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
+                    {
+                        failureIndex = FailureZones.F4;
+                        eta = 0.9;
+                    }
+                    else
+                    {
+                        failureIndex = FailureZones.F4;
+                        eta = 0.2;
+                    }
+                    break;
+                case FailureAnalysisTypes.ConstantN:
+                case FailureAnalysisTypes.ConstantNMx:
+                case FailureAnalysisTypes.ConstantNMy:
+                    if (adimOutputForces.N > 0.0)
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.85;
+                    }
+                    else if (adimOutputForces.N < 0.2)
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.9;
+                    }
+                    else if (adimOutputForces.N < 0.4)
+                    {
+                        failureIndex = FailureZones.F4;
+                        eta = 0.25;
+                    }
+                    else if (adimOutputForces.N < 0.6)
+                    {
+                        failureIndex = FailureZones.F4;
+                        eta = 0.5;
+                    }
+                    else if (adimOutputForces.N < 1)
+                    {
+                        failureIndex = FailureZones.F4;
+                        eta = 0.75;
+                    }
+                    else
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.95;
+                    }
+                    break;
+                case FailureAnalysisTypes.ConstantMxMy:
+                    if (adimOutputForces.N > 0.0)
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.1;
+                    }
+                    else
+                    {
+                        failureIndex = FailureZones.F4;
+                        eta = 0.5;
+                    }
+                    break;
+            }
+            if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
             {
                 if (ConcreteSection.Centroid.Y - ConcreteSection.GetHomogenizedCentroid(out _, out _).Y > 0)
                     teta = Math.PI;
@@ -1423,7 +1420,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             int id = 1;
             var distances = CalculateMaxMinSectionDistances(teta);
 
-            var p1 = GetP1(distances, failureDomainType);
+            var p1 = GetP1(distances, failureDomainType, failureIndex);
             var p2 = GetP2(distances, failureDomainType);
             var p3 = GetP3(distances, failureDomainType);
             var p4 = GetP4(distances, failureDomainType);
@@ -1438,40 +1435,40 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (double deltaTeta, double deltaEta, Vector3d distanceToTarget) increment;
 
             double angle = -1;
-			bool exit = false;
-			switch (failureAnalysisType)
-			{
-				case FailureAnalysisTypes.ConstantEccentricity:
-					angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
+            bool exit = false;
+            switch (failureAnalysisType)
+            {
+                case FailureAnalysisTypes.ConstantEccentricity:
+                    angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
                         targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
                     if (Math.Abs(angle) < angularTolerance)
                         exit = true;
                     break;
-				case FailureAnalysisTypes.ConstantN:
-					angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
+                case FailureAnalysisTypes.ConstantN:
+                    angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
                         targetLocalForces.My / 1000000, 0));
                     if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
                         exit = true;
                     break;
-				case FailureAnalysisTypes.ConstantMxMy:
-					angle = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
+                case FailureAnalysisTypes.ConstantMxMy:
+                    angle = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
                         targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
                     if (Math.Abs(adimIncrement.Mx) < distanceTolerance && Math.Abs(adimIncrement.My) < distanceTolerance)
                         exit = true;
                     break;
-				case FailureAnalysisTypes.ConstantNMx:
-					angle = new Vector3d(targetLocalForces.Mx / 1000000, forces.My / 1000000, targetLocalForces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
+                case FailureAnalysisTypes.ConstantNMx:
+                    angle = new Vector3d(targetLocalForces.Mx / 1000000, forces.My / 1000000, targetLocalForces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
                         targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
                     if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(adimIncrement.Mx) < distanceTolerance)
                         exit = true;
                     break;
-				case FailureAnalysisTypes.ConstantNMy:
-					angle = new Vector3d(forces.Mx / 1000000, targetLocalForces.My / 1000000, targetLocalForces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
+                case FailureAnalysisTypes.ConstantNMy:
+                    angle = new Vector3d(forces.Mx / 1000000, targetLocalForces.My / 1000000, targetLocalForces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
                         targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
                     if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(adimIncrement.My) < distanceTolerance)
                         exit = true;
                     break;
-			}
+            }
 
             if (!exit)
             {
@@ -1520,7 +1517,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                         distances = CalculateMaxMinSectionDistances(teta);
 
-                        p1 = GetP1(distances, failureDomainType);
+                        p1 = GetP1(distances, failureDomainType, failureIndex);
                         p2 = GetP2(distances, failureDomainType);
                         p3 = GetP3(distances, failureDomainType);
                         p4 = GetP4(distances, failureDomainType);
@@ -1532,26 +1529,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
                         adimIncrement = ConvertToAdimensionalForces(incrementForce);
 
-						switch (failureAnalysisType)
-						{
-							case FailureAnalysisTypes.ConstantEccentricity:
-								angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
-								break;
-							case FailureAnalysisTypes.ConstantN:
-								angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(vectorEd);
-								break;
-							case FailureAnalysisTypes.ConstantNMx:
-								angle = new Vector3d(forces.Mx / 1000000, 0, forces.N / 1000).AngleTo(vectorEd);
-								break;
-							case FailureAnalysisTypes.ConstantNMy:
-								angle = new Vector3d(0, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
-								break;
-						}
+                        switch (failureAnalysisType)
+                        {
+                            case FailureAnalysisTypes.ConstantEccentricity:
+                                angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
+                                break;
+                            case FailureAnalysisTypes.ConstantN:
+                                angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(vectorEd);
+                                break;
+                            case FailureAnalysisTypes.ConstantNMx:
+                                angle = new Vector3d(forces.Mx / 1000000, 0, forces.N / 1000).AngleTo(vectorEd);
+                                break;
+                            case FailureAnalysisTypes.ConstantNMy:
+                                angle = new Vector3d(0, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
+                                break;
+                        }
 
-						if ((Math.Abs(adimIncrement.N) < distanceTolerance &&
+                        if ((Math.Abs(adimIncrement.N) < distanceTolerance &&
                             Math.Abs(adimIncrement.Mx) < distanceTolerance &&
                             Math.Abs(adimIncrement.My) < distanceTolerance))
-                            break;                   
+                            break;
                     }
                     else
                     {
@@ -1579,36 +1576,36 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         }
                     }
 
-					switch (failureAnalysisType)
-					{
-						case FailureAnalysisTypes.ConstantEccentricity:
-							if (Math.Abs(angle) < angularTolerance)
-								exit = true;
-							break;
-						case FailureAnalysisTypes.ConstantN:
-							if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
-								exit = true;
-							break;
-						case FailureAnalysisTypes.ConstantMxMy:
-							if (Math.Abs(adimIncrement.Mx) < distanceTolerance &&
+                    switch (failureAnalysisType)
+                    {
+                        case FailureAnalysisTypes.ConstantEccentricity:
+                            if (Math.Abs(angle) < angularTolerance)
+                                exit = true;
+                            break;
+                        case FailureAnalysisTypes.ConstantN:
+                            if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
+                                exit = true;
+                            break;
+                        case FailureAnalysisTypes.ConstantMxMy:
+                            if (Math.Abs(adimIncrement.Mx) < distanceTolerance &&
                                 Math.Abs(adimIncrement.My) < distanceTolerance)
-								exit = true;
-							break;
-						case FailureAnalysisTypes.ConstantNMx:
-							if (Math.Abs(adimIncrement.N) < distanceTolerance &&
+                                exit = true;
+                            break;
+                        case FailureAnalysisTypes.ConstantNMx:
+                            if (Math.Abs(adimIncrement.N) < distanceTolerance &&
                                 Math.Abs(adimIncrement.Mx) < distanceTolerance &&
                                 Math.Abs(angle) < angularTolerance)
-								exit = true;
-							break;
-						case FailureAnalysisTypes.ConstantNMy:
-							if (Math.Abs(adimIncrement.N) < distanceTolerance &&
+                                exit = true;
+                            break;
+                        case FailureAnalysisTypes.ConstantNMy:
+                            if (Math.Abs(adimIncrement.N) < distanceTolerance &&
                                 Math.Abs(adimIncrement.My) < distanceTolerance &&
                                 Math.Abs(angle) < angularTolerance)
-								exit = true;
-							break;
-					}
+                                exit = true;
+                            break;
+                    }
 
-				} while (!exit);
+                } while (!exit);
             }
 
             return new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
@@ -1681,12 +1678,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     var distancesPlusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta + dTetaBuffer);
                     var distancesMinusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta - dTetaBuffer);
 
-                    var p1PlusTeta = GetP1(distancesPlusTeta, failureDomainType);
+                    var p1PlusTeta = GetP1(distancesPlusTeta, failureDomainType, inputFailureZone);
                     var p2PlusTeta = GetP2(distancesPlusTeta, failureDomainType);
                     var p3PlusTeta = GetP3(distancesPlusTeta, failureDomainType);
                     var p4PlusTeta = GetP4(distancesPlusTeta, failureDomainType);
 
-                    var p1MinusTeta = GetP1(distancesMinusTeta, failureDomainType);
+                    var p1MinusTeta = GetP1(distancesMinusTeta, failureDomainType, inputFailureZone);
                     var p2MinusTeta = GetP2(distancesMinusTeta, failureDomainType);
                     var p3MinusTeta = GetP3(distancesMinusTeta, failureDomainType);
                     var p4MinusTeta = GetP4(distancesMinusTeta, failureDomainType);
@@ -1740,7 +1737,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 {
                     var distances = CalculateMaxMinSectionDistances(inputStrainPlane.Teta);
 
-                    var p1Eta = GetP1(distances, failureDomainType);
+                    var p1Eta = GetP1(distances, failureDomainType, inputFailureZone);
                     var p2Eta = GetP2(distances, failureDomainType);
                     var p3Eta = GetP3(distances, failureDomainType);
                     var p4Eta = GetP4(distances, failureDomainType);
