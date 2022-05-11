@@ -1451,36 +1451,37 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     break;
 			}
 
-			if (!exit)
+            if (!exit)
             {
+                Line3d externalForcesLine = null;
+                switch (failureAnalysisType)
+                {
+                    case FailureAnalysisTypes.ConstantEccentricity:
+                        externalForcesLine = new Line3d(new Point3d(0, 0, 0), targetLocalForces);
+                        break;
+                    case FailureAnalysisTypes.ConstantN:
+                        externalForcesLine = new Line3d(new Point3d(0, 0, targetLocalForces.N), targetLocalForces);
+                        break;
+                    case FailureAnalysisTypes.ConstantMxMy:
+                        externalForcesLine = new Line3d(new Point3d(targetLocalForces.Mx, targetLocalForces.My, 0),
+                            new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N - 1000));
+                        break;
+                    case FailureAnalysisTypes.ConstantNMx:
+                        externalForcesLine = new Line3d(new Point3d(targetLocalForces.Mx, 0, targetLocalForces.N),
+                            new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N));
+                        break;
+                    case FailureAnalysisTypes.ConstantNMy:
+                        externalForcesLine = new Line3d(new Point3d(0, targetLocalForces.My, targetLocalForces.N),
+                            new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N));
+                        break;
+                }
+
                 do
                 {
                     if (id < 100)
                     {
-                        Line3d externalForcesLine = null;
-						switch (failureAnalysisType)
-						{
-							case FailureAnalysisTypes.ConstantEccentricity:
-								externalForcesLine = new Line3d(new Point3d(0, 0, 0), targetLocalForces);
-								break;
-							case FailureAnalysisTypes.ConstantN:
-								externalForcesLine = new Line3d(new Point3d(0, 0, targetLocalForces.N), targetLocalForces);
-								break;
-							case FailureAnalysisTypes.ConstantMxMy:
-								externalForcesLine = new Line3d(new Point3d(targetLocalForces.Mx, targetLocalForces.My, 0),
-                                    new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N - 1000));
-								break;
-							case FailureAnalysisTypes.ConstantNMx:
-								externalForcesLine = new Line3d(new Point3d(targetLocalForces.Mx, 0, targetLocalForces.N),
-                                    new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N));
-								break;
-							case FailureAnalysisTypes.ConstantNMy:
-								externalForcesLine = new Line3d(new Point3d(0, targetLocalForces.My, targetLocalForces.N),
-                                    new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N));
-								break;
-						}
 
-						try
+                        try
                         {
                             increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, externalForcesLine, angle,
                                 failureDomainType, rebarIsInsideAssociation);
@@ -1909,7 +1910,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 					{
 						eta++;
 						failureZone--;
-
 					}
 					if (eta > 1.0)
 					{
