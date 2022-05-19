@@ -95,12 +95,8 @@ namespace ConcreteTests
                 0, 0, 0, ConcreteMaterialModelCode2010.CementType.ClassN);
             ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 
-            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-            {
-            };
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-            section.AddRebars(rebars);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
