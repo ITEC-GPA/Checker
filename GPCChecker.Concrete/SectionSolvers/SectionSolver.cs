@@ -140,19 +140,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum FailureAnalysisTypes
         {
-            [Description("Constant axial force and eccentricity")]
+            [Description("Constant N and eccentricity")]
             ConstantN,
 
             [Description("Constant eccentricity")]
             ConstantEccentricity,
 
-            [Description("Constant bending moments")]
+            [Description("Constant Mx - My")]
             ConstantMxMy,
 
-            [Description("Constant axial force and bending moment about X axis")]
+            [Description("Constant N and Mx")]
             ConstantNMx,
 
-            [Description("Constant axial force and bending moment about Y axis")]
+            [Description("Constant N and MY")]
             ConstantNMy,
         }
 

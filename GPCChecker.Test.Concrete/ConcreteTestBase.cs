@@ -218,8 +218,43 @@ namespace ConcreteTests
 
         #region Test Utilities Methods
 
-        protected CoordinateSystem GetLocalCoordinateSystem(IConcreteSection section)
+
+        protected ReinforcedConcreteSection GetCircularSection(double diameter = 300, double rebarDiameter = 18, double concreteCover = 50,
+            int numberOfRebars = 16, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
+
+            if (concreteMaterial == null)
+                concreteMaterial = ConcreteMaterialEN1992.C25_30;
+
+            if (rebarMaterial == null)
+                rebarMaterial = SteelMaterial.B450C;
+
+            Shape2d shape = new Shape2d(new Polygon2d(diameter));
+
+            ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
+
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[numberOfRebars];
+
+            var rebarPerimeter = new Polygon2d(diameter - concreteCover*2, numberOfRebars);
+            for (int j = 0; j < rebarPerimeter.Count; j++)
+            {
+                rebars[j] = new ReinforcedConcreteRebar(rebar, rebarPerimeter[j]);
+            }
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+            section.AddRebars(rebars);
+
+            return section;
+        }
+
+        #endregion
+
+        #region Test Utilities Methods
+
+        protected CoordinateSystem GetLocalCoordinateSystem(IConcreteSection section)
+		{
             return new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis);
         }
 
