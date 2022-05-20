@@ -30,19 +30,19 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C45_55);
 
-            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1800));
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800));
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
-                new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 0.007045)
+                new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 1400)
             };
 
             section.AddRebars(rebars);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
             var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
@@ -99,11 +99,11 @@ namespace ConcreteTests
         {
             double rebarDiameter = 20;
             double rebarDiameterPrestress = 20;
-			double height = 500;
-			double width = 300;
-			double concreteCover = 50;
-						
-            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1800));
+            double height = 500;
+            double width = 300;
+            double concreteCover = 50;
+
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800));
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -111,15 +111,15 @@ namespace ConcreteTests
                 new ReinforcedConcreteRebar(rebarP, new Point3d(150, 400, 0), 0.007045)
             };
 
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C45_55);
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C45_55);
             section.AddRebars(rebars);
 
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
             var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);
@@ -190,8 +190,8 @@ namespace ConcreteTests
             }));
 
             ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new RebarMaterial("", 450));
-            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new RebarMaterial("", 200000, 1620, 1800));
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800));
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -216,9 +216,9 @@ namespace ConcreteTests
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
             var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);
@@ -269,5 +269,258 @@ namespace ConcreteTests
 			*/
         }
 
+        [TestMethod]
+        public void RectangularSectionPrestressedTest3()
+        {
+            double rebarDiameter = 20;
+            double rebarDiameterPrestress = 22;
+
+            // sezion a T tovescia 
+            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+            {
+                new Point2d(0, 0),
+                new Point2d(300, 0),
+                new Point2d(300, 500),
+                new Point2d(0, 500),
+            }));
+
+            ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800, 0.035));
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(40, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(113, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(186, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(260, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(40, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(260, 450, 0)),
+                new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 1400)
+            };
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+            section.AddRebars(rebars);
+            //ExportToGmsh(section);
+
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
+            ShowDomainPoints(failureDomain.Domain);
+
+            // Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
+
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
+				NRd			MRd			C3			C4
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+				-3319.17	217.179		0			0
+				-2941.5		414.739		0			0
+				-2355.62	717.257		0			0
+				-1822.17	991.042		0			0
+				-1164.02	1323.95		0			0
+				-209.629	1731.12		0			0
+				167.497		1857.38		0			0
+				1099.1		2029.31		0			0
+				3190.77		2218.48		0			0
+				4502.39		2106.42		0			0
+				6191.82		1893.31		0			0
+				8512.78		1402.98		0			0
+				10248.5		882.735		0			0
+				11445		521.508		0			0
+				12065.4		326.229		0			0
+				12065.4		326.229		0			0
+				11577.1		92.8251		0			0
+				10727.7		-286.162	0			0
+				9554.07		-801.031	0			0
+				7896.03		-1321.98	0			0
+				6526.62		-1642.82	0			0
+				5614.88		-1716.85	0			0
+				2884.1		-1650.42	0			0
+				1343.13		-1398.91	0			0
+				418.76		-1156.47	0			0
+				-2329.51	-230.051	0			0
+				-2714.37	-88.2293	0			0
+				-2891.41	-18.9784	0			0
+				-3085.36	59.9323		0			0
+				-3279.8		141.959		0			0
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+			*/
+        }
+
+        [TestMethod]
+        public void RectangularSectionPrestressedTest4()
+        {
+            double rebarDiameterPrestress = 22;
+
+            // sezion a T tovescia 
+            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+            {
+                new Point2d(0, 0),
+                new Point2d(300, 0),
+                new Point2d(300, 500),
+                new Point2d(0, 500),
+            }));
+
+            ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800, 0.035));
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 1400)
+            };
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+            section.AddRebars(rebars);
+            //ExportToGmsh(section);
+
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
+            ShowDomainPoints(failureDomain.Domain);
+
+            // Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
+
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
+				NRd			MRd			C3			C4
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+				-3319.17	217.179		0			0
+				-2941.5		414.739		0			0
+				-2355.62	717.257		0			0
+				-1822.17	991.042		0			0
+				-1164.02	1323.95		0			0
+				-209.629	1731.12		0			0
+				167.497		1857.38		0			0
+				1099.1		2029.31		0			0
+				3190.77		2218.48		0			0
+				4502.39		2106.42		0			0
+				6191.82		1893.31		0			0
+				8512.78		1402.98		0			0
+				10248.5		882.735		0			0
+				11445		521.508		0			0
+				12065.4		326.229		0			0
+				12065.4		326.229		0			0
+				11577.1		92.8251		0			0
+				10727.7		-286.162	0			0
+				9554.07		-801.031	0			0
+				7896.03		-1321.98	0			0
+				6526.62		-1642.82	0			0
+				5614.88		-1716.85	0			0
+				2884.1		-1650.42	0			0
+				1343.13		-1398.91	0			0
+				418.76		-1156.47	0			0
+				-2329.51	-230.051	0			0
+				-2714.37	-88.2293	0			0
+				-2891.41	-18.9784	0			0
+				-3085.36	59.9323		0			0
+				-3279.8		141.959		0			0
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+				-3378.22	184.358		0			0
+			*/
+        }
+
+        [TestMethod]
+        public void RectangularSectionPrestressedTest5()
+        {
+            double rebarDiameterPrestress = 22;
+            double rebarDiameter = 26;
+
+            // sezion a T tovescia 
+            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+            {
+                new Point2d(0, 0),
+                new Point2d(300, 0),
+                new Point2d(300, 500),
+                new Point2d(0, 500),
+            }));
+
+            ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1620, 0.035));
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0), 0),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0), 0),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0), 0),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0), 0),
+                new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 1400),
+            };
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+            section.AddRebars(rebars);
+            //ExportToGmsh(section);
+
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+
+            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
+            ShowDomainPoints(failureDomain.Domain);
+
+            // Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
+
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
+				NRd			MRd			C3			C4
+				-1401.12	85.5	
+				-1401.12	85.5	
+				-1401.12	85.5	
+				-1401.12	85.5	
+				-1373.1		92.4148	
+				-1317.67	105.859	
+				-1262.71	118.804	
+				-1212.29	130.299	
+				-717.748	231.098	
+				143.556		395.901	
+				322.192		421.293	
+				620.263		454.118	
+				1217.64		483.973	
+				1674.11		448.429	
+				2284.87		386.633	
+				3107.59		270.144	
+				3662.07		169.574	
+				4054.66		97.9095	
+				4276.12		57	
+				4276.12		57	
+				4107.86		17.9905	
+				3768.47		-51.7735
+				3267.18		-150.444
+				2483.43		-257.195
+				1898.94		-311.154
+				1429.49		-344.75	
+				785.849		-307.956
+				441.517		-268.192
+				216.62		-235.861
+				-717.748	-60.0982
+				-1212.29	40.7005	
+				-1262.71	52.1962	
+				-1317.67	65.1409	
+				-1373.1		78.5852	
+				-1401.12	85.5	
+				-1401.12	85.5	
+				-1401.12	85.5	
+				-1401.12	85.5	
+			*/
+        }
     }
 }

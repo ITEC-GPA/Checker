@@ -40,12 +40,24 @@ namespace GPC.Checkers.Steel.Results
 
         public ResultLocationStation Station => _resultLocationStation;
 
+        /// <summary>
+        /// The <see cref="ILoadCase"/> to check
+        /// </summary>
         public ILoadCase LoadCase => _case;
 
+        /// <summary>
+        /// The <see cref="ISteelSection"/> to check
+        /// </summary>
         public ISteelSection Section => _section;
 
+        /// <summary>
+        /// The Standard for the Check
+        /// </summary>
         public Standard Standard => _standard;
 
+        /// <summary>
+        /// The options to perform the check.
+        /// </summary>
         public Checker.Options CheckerOptions => _options;
 
         #endregion

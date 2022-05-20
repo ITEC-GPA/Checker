@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -23,14 +23,14 @@ namespace ConcreteTests
     {
         #region Section Construction Methods
 
-        protected ReinforcedConcreteSection GetRectangularSection4Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
-            ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+        protected ReinforcedConcreteSection GetRectangularSection4Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
+            ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -58,14 +58,14 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection8Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -96,15 +96,15 @@ namespace ConcreteTests
             return section;
         }
 
-        protected ReinforcedConcreteSection GetRectangularSection2SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50, 
-            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+        protected ReinforcedConcreteSection GetRectangularSection2SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
+            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -123,8 +123,8 @@ namespace ConcreteTests
             for (int j = 0; j < numberOfRebars; j++)
             {
                 rebars[j] = new ReinforcedConcreteRebar(rebar, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), concreteCover));
-                rebars[2 * numberOfRebars - 1 - j] = new ReinforcedConcreteRebar(rebar, 
-                    new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), height - concreteCover));                
+                rebars[2 * numberOfRebars - 1 - j] = new ReinforcedConcreteRebar(rebar,
+                    new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), height - concreteCover));
             }
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
@@ -134,14 +134,14 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSection4SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            int numberOfRebarsTopBottomSide = 4, int numberOfRebarsLateralSide = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebarsTopBottomSide = 4, int numberOfRebarsLateralSide = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -159,9 +159,9 @@ namespace ConcreteTests
 
             for (int j = 0; j < numberOfRebarsLateralSide; j++)
             {
-                rebars.Add(new ReinforcedConcreteRebar(rebar, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / 
+                rebars.Add(new ReinforcedConcreteRebar(rebar, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) /
                     (numberOfRebarsLateralSide - 1), concreteCover)));
-                rebars.Add(new ReinforcedConcreteRebar(rebar, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / 
+                rebars.Add(new ReinforcedConcreteRebar(rebar, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) /
                     (numberOfRebarsLateralSide - 1), height - concreteCover)));
             }
 
@@ -180,14 +180,14 @@ namespace ConcreteTests
         }
 
         protected ReinforcedConcreteSection GetRectangularSectionBottomSideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
-            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, RebarMaterial rebarMaterial = null)
+            int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
         {
 
             if (concreteMaterial == null)
                 concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
             if (rebarMaterial == null)
-                rebarMaterial = new RebarMaterial("", 450);
+                rebarMaterial = SteelMaterial.B450C;
 
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
@@ -214,20 +214,55 @@ namespace ConcreteTests
             return section;
         }
 
-		#endregion
+        #endregion
 
-		#region Test Utilities Methods
+        #region Test Utilities Methods
 
-		protected CoordinateSystem GetLocalCoordinateSystem(IConcreteSection section)
+
+        protected ReinforcedConcreteSection GetCircularSection(double diameter = 300, double rebarDiameter = 18, double concreteCover = 50,
+            int numberOfRebars = 16, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
+        {
+
+            if (concreteMaterial == null)
+                concreteMaterial = ConcreteMaterialEN1992.C25_30;
+
+            if (rebarMaterial == null)
+                rebarMaterial = SteelMaterial.B450C;
+
+            Shape2d shape = new Shape2d(new Polygon2d(diameter));
+
+            ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
+
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[numberOfRebars];
+
+            var rebarPerimeter = new Polygon2d(diameter - concreteCover*2, numberOfRebars);
+            for (int j = 0; j < rebarPerimeter.Count; j++)
+            {
+                rebars[j] = new ReinforcedConcreteRebar(rebar, rebarPerimeter[j]);
+            }
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+            section.AddRebars(rebars);
+
+            return section;
+        }
+
+        #endregion
+
+        #region Test Utilities Methods
+
+        protected CoordinateSystem GetLocalCoordinateSystem(IConcreteSection section)
 		{
             return new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis);
-		}
+        }
 
         protected ConcreteMaterialEN1992 GetLinearConcreteMaterial(double elasticModulus)
-		{
+        {
             double elasticModulusFactor = 0.85 / 1.5;
 
-            return new ConcreteMaterialEN1992("", 0.0,
+            return new ConcreteMaterialEN1992("", -0.002, 0.0,
                 new StressStrainTable(new double[] { 0, -elasticModulus / elasticModulusFactor, -2.0 * elasticModulus / elasticModulusFactor }, new double[] { 0, -0.001, -0.002 }),
                 new StressStrainTable(new double[] { 0, 0 }, new double[] { 0, 0.001 }));
         }
@@ -237,7 +272,7 @@ namespace ConcreteTests
             double elasticModulusFactor = 0.85 / 1.5;
             double elasticModulusFactorTens = 1.0 / 1.5;
 
-            return new ConcreteMaterialEN1992("", 0.0,
+            return new ConcreteMaterialEN1992("", -0.002, 0.0,
                 new StressStrainTable(new double[] { 0, -elasticModulus / elasticModulusFactor, -2.0 * elasticModulus / elasticModulusFactor }, new double[] { 0, -0.001, -0.002 }),
                 new StressStrainTable(new double[] { 0, elasticModulus / elasticModulusFactorTens }, new double[] { 0, 0.001 }));
         }
@@ -253,19 +288,19 @@ namespace ConcreteTests
         }
 
         protected virtual BoundingBox3d GetBoundingBox(FailureDomain failureDomain)
-		{
+        {
             BoundingBox3d boundingBox = new BoundingBox3d();
 
-            for(int i = 0; i < failureDomain.DomainPoints.Length; i++)
-			{
-                for(int j = 0; j < failureDomain.DomainPoints[i].Length; j++)
-				{
+            for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
+            {
+                for (int j = 0; j < failureDomain.DomainPoints[i].Length; j++)
+                {
                     boundingBox.Update(failureDomain.DomainPoints[i][j].Point);
-				}
-			}
+                }
+            }
 
             return boundingBox;
-		}
+        }
 
         protected bool SerializationClassesCommonAsserts(object objToTest)
         {
@@ -374,55 +409,66 @@ namespace ConcreteTests
             return true;
         }
 
-        protected bool CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard, 
-            CoordinateSystem coordinateSystem, double adimTolerance = 0.005,
-			double[] factor = null)
-		{
-			if (factor == null)
-				factor = new double[] { 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0 };
+        protected bool CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
+            GPC.Checkers.Concrete.Checkers.SectionChecker.SectionOptions options, double adimTolerance = 0.005,
+            double[] factor = null)
+        {
+            if (factor == null)
+                factor = new double[] { 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0 };
 
-			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
-			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
-			ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
-			int j = 0;
+            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
+            FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
+            ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
+            int j = 0;
 
-			try
-			{
-				for (j = 0; j < factor.Length; j++)
-				{
-					testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-					failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem));
-				}
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine($"Fail to calculate domain point {j}, {e.Message}");
-				return false;
-			}
+            try
+            {
+                for (j = 0; j < factor.Length; j++)
+                {
+                    if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantEccentricity)
+                        testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
+                    else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantN)
+                        testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
+                    else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantMxMy)
+                        testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, force.M1, force.M2, force.CoordinateSystem);
+                    else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantNMx)
+                        testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, force.M1, factor[j] * force.M2, force.CoordinateSystem);
+                    else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantNMy)
+                        testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, force.M2, force.CoordinateSystem);
+
+                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                        options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Fail to calculate domain point {j}, {e.Message}");
+                return false;
+            }
 
 
-			for (int i = 0; i < factor.Length; i++)
-			{
-				Console.WriteLine($"External Force = {Math.Round(testForces[i].M1 / 1000000)}, " +
-					$"{Math.Round(testForces[i].M2 / 1000000)}, " +
-					$"{Math.Round(testForces[i].N / 1000)}");
+            for (int i = 0; i < factor.Length; i++)
+            {
+                Console.WriteLine($"External Force = {Math.Round(testForces[i].M1 / 1000000)}, " +
+                    $"{Math.Round(testForces[i].M2 / 1000000)}, " +
+                    $"{Math.Round(testForces[i].N / 1000)}");
 
-				if (failureDomainPoints[i] != null)
-				{
-					ForceTuple adimForces = solver.ConvertToAdimForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
-						failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X,
-						failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y));
+                if (failureDomainPoints[i] != null)
+                {
+                    ForceTuple adimForces = solver.ConvertToAdimForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
+                        failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X,
+                        failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y));
 
-					Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance, 
-						$"Force {Math.Round(force.N/1000)}, {Math.Round(force.M1/1000000)}, {Math.Round(force.M2/1000000)} fail");
-					Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance,
-						$"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
-					Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance,
-						$"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
+                    Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance,
+                        $"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
+                    Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance,
+                        $"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
+                    Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance,
+                        $"Force {Math.Round(force.N / 1000)}, {Math.Round(force.M1 / 1000000)}, {Math.Round(force.M2 / 1000000)} fail");
 
-					Console.WriteLine($"Point {i} = {Math.Round(failureDomainPoints[i].Point.X / 1000000)}, " +
-						$"{Math.Round(failureDomainPoints[i].Point.Y / 1000000)}, " +
-						$"{Math.Round(failureDomainPoints[i].Point.Z / 1000)}");
+                    Console.WriteLine($"Point {i} = {Math.Round(failureDomainPoints[i].Point.X / 1000000, 2)}, " +
+                        $"{Math.Round(failureDomainPoints[i].Point.Y / 1000000, 2)}, " +
+                        $"{Math.Round(failureDomainPoints[i].Point.Z / 1000, 2)}");
                     Console.WriteLine($"Number of iteraction: {failureDomainPoints[i].StrainPlane.Id} \n");
 
 
@@ -430,7 +476,7 @@ namespace ConcreteTests
                     Assert.IsTrue(Math.Abs(adimForces.Mx) < adimTolerance);
                     Assert.IsTrue(Math.Abs(adimForces.My) < adimTolerance);
 
-                    if(force.N != 0)
+                    if (force.N != 0)
                         Assert.IsTrue(Math.Sign(force.N) == Math.Sign(failureDomainPoints[i].Point.Z));
                     if (force.M1 != 0)
                         Assert.IsTrue(Math.Sign(force.M1) == Math.Sign(failureDomainPoints[i].Point.X));
@@ -438,13 +484,13 @@ namespace ConcreteTests
                         Assert.IsTrue(Math.Sign(force.M2) == Math.Sign(failureDomainPoints[i].Point.Y));
                 }
                 else
-				{
+                {
                     Console.WriteLine($"Fail to calculate strain plane for force {i} = {Math.Round(testForces[i].M1 / 1000000)}, " +
                     $"{Math.Round(testForces[i].M2 / 1000000)}, " +
                     $"{Math.Round(testForces[i].N / 1000)}");
                     return false;
                 }
-                    
+
             }
 
             return true;
@@ -466,7 +512,7 @@ namespace ConcreteTests
                 for (j = 0; j < factor.Length; j++)
                 {
                     testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem));
+                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem), coordinateSystem);
                 }
             }
             catch (Exception e)
@@ -528,9 +574,9 @@ namespace ConcreteTests
         {
             for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
                 for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
-                    Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd/1000000)}, " +
-                                      $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd/1000000)}, " +
-                                      $"{Math.Round(failureDomain.DomainPoints[i][j].NRd/1000)}");
+                    Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd / 1000000)}, " +
+                                      $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd / 1000000)}, " +
+                                      $"{Math.Round(failureDomain.DomainPoints[i][j].NRd / 1000)}");
         }
 
         protected bool CommonAssertsModelCode(IConcreteSection section, StandardModelCode2010 standard, FailureDomain failureDomain, double errorPercentage = 5.0)
@@ -624,7 +670,7 @@ namespace ConcreteTests
 
         protected bool CommonAssertsVCA(StressAnalysisResult result, IConcreteSection section, (Point2d rebar, double tension)[] concreteTensionsCalculate,
             (ReinforcedConcreteRebar rebar, double tension)[] rebarTensionsCalculate, double tolerance = 0.05)
-		{
+        {
             (Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension();
             (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result.GetRebarsTension();
 
@@ -675,7 +721,7 @@ namespace ConcreteTests
         }
 
         protected bool CommonAssertsAbacus(IConcreteSection section, ForceTuple expForce, FailureDomainResult failureDomain, double adimTolerance = 0.05)
-		{
+        {
             bool check = false;
             double distance = double.MaxValue;
             Point3d nearestPoint = new Point3d();
@@ -713,46 +759,48 @@ namespace ConcreteTests
             return check;
         }
 
-        protected bool CommonAssertsDomainCheck(IConcreteSection section, ForceTuple forceEd, ForceTuple expForce, 
+        protected bool CommonAssertsDomainCheck(IConcreteSection section, ForceTuple forceEd, ForceTuple expForce,
             FailureDomain.FailureDomainForce failureDomainForce, double expWR, double errorPercentage = 3)
-		{
+        {
             Console.WriteLine("Design force");
 
-            Console.WriteLine($"Ned = {Math.Round(forceEd.N / 1000, 2)}, " +
+            Console.WriteLine($"\t Ned = {Math.Round(forceEd.N / 1000, 2)}, " +
                 $"MXed = {Math.Round(forceEd.Mx / 1000000, 2)}, " +
                 $"MYed = {Math.Round(forceEd.My / 1000000, 2)}");
 
             Console.WriteLine("Expected force");
 
-            Console.WriteLine($"Ned = {Math.Round(expForce.N / 1000, 2)}, " +
+            Console.WriteLine($"\t Ned = {Math.Round(expForce.N / 1000, 2)}, " +
                 $"MXed = {Math.Round(expForce.Mx / 1000000, 2)}, " +
                 $"MYed = {Math.Round(expForce.My / 1000000, 2)}");
 
             Console.WriteLine("Calculated force on domain");
 
-            Console.WriteLine($"NRD = {Math.Round(failureDomainForce.FailureDomainPoint.NRd / 1000, 2)}, " +
+            Console.WriteLine($"\t NRD = {Math.Round(failureDomainForce.FailureDomainPoint.NRd / 1000, 2)}, " +
                 $"MXRD = {Math.Round(failureDomainForce.FailureDomainPoint.MxRd / 1000000, 2)}, " +
                 $"MYRD = {Math.Round(failureDomainForce.FailureDomainPoint.MyRd / 1000000, 2)}");
 
             Vector3d vRd = new Vector3d(failureDomainForce.FailureDomainPoint.Point.X, failureDomainForce.FailureDomainPoint.Point.Y,
                 failureDomainForce.FailureDomainPoint.Point.Z);
-            Vector3d eRd = new Vector3d(new Point3d(forceEd.Mx, forceEd.My, forceEd.N ));
+            Vector3d eRd = new Vector3d(new Point3d(forceEd.Mx, forceEd.My, forceEd.N));
+
 
             double wr = eRd.Length / vRd.Length;
 
-			ForceTuple adimForce = CalculateAdimensionalForces(section, new ForceTuple(expForce.N - failureDomainForce.FailureDomainPoint.NRd,
+
+            ForceTuple adimForce = CalculateAdimensionalForces(section, new ForceTuple(expForce.N - failureDomainForce.FailureDomainPoint.NRd,
                 expForce.Mx - failureDomainForce.FailureDomainPoint.MxRd, expForce.My - failureDomainForce.FailureDomainPoint.MyRd));
 
-            if (Math.Abs(expForce.N - failureDomainForce.FailureDomainPoint.NRd) > 1000000 * errorPercentage &&
-                adimForce.N > 0.001 * errorPercentage)
+
+            if (Math.Abs(expForce.N - failureDomainForce.FailureDomainPoint.NRd) > 1000000 * errorPercentage && adimForce.N > 0.001 * errorPercentage)
                 Assert.IsTrue(Math.Abs((expForce.N - failureDomainForce.FailureDomainPoint.NRd) / failureDomainForce.FailureDomainPoint.NRd) * 100 < errorPercentage);
 
-            if (Math.Abs(expForce.Mx - failureDomainForce.FailureDomainPoint.MxRd) > 1000000 * errorPercentage &&
-                adimForce.Mx > 0.001 * errorPercentage)
+
+            if (Math.Abs(expForce.Mx - failureDomainForce.FailureDomainPoint.MxRd) > 1000000 * errorPercentage && adimForce.Mx > 0.001 * errorPercentage)
                 Assert.IsTrue(Math.Abs((expForce.Mx - failureDomainForce.FailureDomainPoint.MxRd) / failureDomainForce.FailureDomainPoint.MxRd) * 100 < errorPercentage);
 
-            if(Math.Abs(expForce.My - failureDomainForce.FailureDomainPoint.MyRd) > 1000000 * errorPercentage &&
-                adimForce.My > 0.001 * errorPercentage)
+
+            if (Math.Abs(expForce.My - failureDomainForce.FailureDomainPoint.MyRd) > 1000000 * errorPercentage && adimForce.My > 0.001 * errorPercentage)
                 Assert.IsTrue(Math.Abs((expForce.My - failureDomainForce.FailureDomainPoint.MyRd) / failureDomainForce.FailureDomainPoint.MyRd) * 100 < errorPercentage);
 
             Assert.IsTrue(Math.Abs(wr - expWR) / expWR * 100 < errorPercentage);
@@ -761,7 +809,7 @@ namespace ConcreteTests
         }
 
         protected bool CommonAssertsDomainBoundingBox(IConcreteSection section, FailureDomain failureDomain, Point3d max, Point3d min)
-		{
+        {
             BoundingBox3d bBox = GetBoundingBox(failureDomain);
 
             var maxFT = CalculateAdimensionalForces(section,
@@ -780,11 +828,11 @@ namespace ConcreteTests
             return true;
         }
 
-		#endregion
+        #endregion
 
-		#region Export To Gmsh
+        #region Export To Gmsh
 
-		protected Point3d[] ExportToGmsh(FailureDomain failureDomain, FailureDomain failureDomain2)
+        protected Point3d[] ExportToGmsh(FailureDomain failureDomain, FailureDomain failureDomain2)
         {
             GmshNet.Gmsh.Initialize();
             int horizontal = failureDomain.DomainPoints.GetUpperBound(0);
@@ -827,28 +875,28 @@ namespace ConcreteTests
             return points.ToArray();
         }
 
-		protected Point3d[] ExportToGmsh(FailureDomain failureDomain, Line3d[] lines = null, Point3d[] pointsToTest = null)
-		{
-			GmshNet.Gmsh.Initialize();
-			int horizontal = failureDomain.DomainPoints.Length;
-			List<Point3d> points = new List<Point3d>();
+        protected Point3d[] ExportToGmsh(FailureDomain failureDomain, Line3d[] lines = null, Point3d[] pointsToTest = null)
+        {
+            GmshNet.Gmsh.Initialize();
+            int horizontal = failureDomain.DomainPoints.Length;
+            List<Point3d> points = new List<Point3d>();
 
-			for (int i = 0; i < horizontal; i++)
-			{
-				int vertical = failureDomain.DomainPoints[i].Length;
+            for (int i = 0; i < horizontal; i++)
+            {
+                int vertical = failureDomain.DomainPoints[i].Length;
 
-				for (int j = 0; j < vertical; j++)
-				{
-					if(failureDomain.DomainPoints[i][j] != null)
-					{
-						GmshNet.Gmsh.Model.Occ.AddPoint(failureDomain.DomainPoints[i][j].MxRd / 1000000,
-							failureDomain.DomainPoints[i][j].MyRd / 1000000,
-							failureDomain.DomainPoints[i][j].NRd / 1000 / 10);
+                for (int j = 0; j < vertical; j++)
+                {
+                    if (failureDomain.DomainPoints[i][j] != null)
+                    {
+                        GmshNet.Gmsh.Model.Occ.AddPoint(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+                            failureDomain.DomainPoints[i][j].MyRd / 1000000,
+                            failureDomain.DomainPoints[i][j].NRd / 1000 / 10);
 
-						points.Add(new Point3d(failureDomain.DomainPoints[i][j].MxRd / 1000000,
-							failureDomain.DomainPoints[i][j].MyRd / 1000000,
-							failureDomain.DomainPoints[i][j].NRd / 1000 / 10));
-					}
+                        points.Add(new Point3d(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+                            failureDomain.DomainPoints[i][j].MyRd / 1000000,
+                            failureDomain.DomainPoints[i][j].NRd / 1000 / 10));
+                    }
 
                     points.Add(new Point3d(failureDomain.DomainPoints[i][j].MxRd / 1000000,
                         failureDomain.DomainPoints[i][j].MyRd / 1000000,
@@ -912,10 +960,10 @@ namespace ConcreteTests
                     failureDomain.DomainPoints[i].NRd / 1000 / 10));
             }
 
-            if(lines != null)
-			{
-                for(int i = 0; i < lines.Length; i++)
-				{
+            if (lines != null)
+            {
+                for (int i = 0; i < lines.Length; i++)
+                {
                     int t1 = GmshNet.Gmsh.Model.Occ.AddPoint(lines[i].Start.X / 1000000,
                         lines[i].Start.Y / 1000000,
                         lines[i].Start.Z / 1000 / 10);
@@ -926,10 +974,10 @@ namespace ConcreteTests
 
                     GmshNet.Gmsh.Model.Occ.AddLine(t1, t2);
                 }
-			}
+            }
 
-            if(pointsToTest != null)
-			{
+            if (pointsToTest != null)
+            {
                 for (int i = 0; i < pointsToTest.Length; i++)
                 {
                     GmshNet.Gmsh.Model.Occ.AddPoint(pointsToTest[i].X / 1000000,
@@ -1054,11 +1102,51 @@ namespace ConcreteTests
             GmshNet.Gmsh.Finalize();
         }
 
-		#endregion
-
-		internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
+        protected Point3d[] ExportToGmsh(FailureDomain[] failureDomains)
         {
-            internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, 
+            GmshNet.Gmsh.Initialize();
+            List<Point3d> points = new List<Point3d>();
+            for (int f = 0; f < failureDomains.Length; f++)
+            {
+                FailureDomain failureDomain = failureDomains[f];
+                int horizontal = failureDomain.DomainPoints.Length;
+
+                for (int i = 0; i < horizontal; i++)
+                {
+                    int vertical = failureDomain.DomainPoints[i].Length;
+
+                    for (int j = 0; j < vertical; j++)
+                    {
+                        if (failureDomain.DomainPoints[i][j] != null)
+                        {
+                            GmshNet.Gmsh.Model.Occ.AddPoint(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+                                failureDomain.DomainPoints[i][j].MyRd / 1000000,
+                                failureDomain.DomainPoints[i][j].NRd / 1000 / 10);
+
+                            points.Add(new Point3d(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+                                failureDomain.DomainPoints[i][j].MyRd / 1000000,
+                                failureDomain.DomainPoints[i][j].NRd / 1000 / 10));
+                        }
+
+                        points.Add(new Point3d(failureDomain.DomainPoints[i][j].MxRd / 1000000,
+                            failureDomain.DomainPoints[i][j].MyRd / 1000000,
+                            failureDomain.DomainPoints[i][j].NRd / 1000 / 10));
+                    }
+                }
+
+                GmshNet.Gmsh.Model.Occ.Synchronize();
+
+            }
+            GmshNet.Gmsh.Fltk.Run();
+            GmshNet.Gmsh.Finalize();
+            return points.ToArray();
+        }
+
+        #endregion
+
+        internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
+        {
+            internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard,
                 bool considerTensileConcrete = false, int id = -1)
                 : base(section, standard, considerTensileConcrete, id)
             {
@@ -1089,9 +1177,10 @@ namespace ConcreteTests
                 return base.CalculateStressRebar(rebar, strain);
             }
 
-            internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces)
+            internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
+                FailureAnalysisTypes failureAnalysisType = FailureAnalysisTypes.ConstantEccentricity)
             {
-                return base.CalculatePlasticDomainPoint(targetLocalForces);
+                return base.CalculatePlasticDomainPoint(targetLocalForces, coordinateSystem, failureAnalysisType);
             }
 
             internal ForceTuple IntegrateSectionStressTest(StrainPlane strainPlane)
