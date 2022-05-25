@@ -660,7 +660,7 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 
 		protected void CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
 			SectionChecker.SectionOptions options, double adimTolerance = 0.005,
-			double[] factor = null)
+			double[] factor = null, SectionSolver.FailureDomainTypes failureDomainTypes = SectionSolver.FailureDomainTypes.Plastic)
 		{
 			if (factor == null)
 				factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
@@ -685,8 +685,12 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 					else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantNMy)
 						testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, force.M2, force.CoordinateSystem);
 
-					failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-						options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+					if(failureDomainTypes == SectionSolver.FailureDomainTypes.Plastic)
+						failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+							options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+					else
+						failureDomainPoints[j] = solver.CalculateElasticDomainPoint(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+							options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 				}
 			}
 			catch (Exception e)
@@ -718,6 +722,11 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 						$"{Math.Round(failureDomainPoints[i].Point.Y / 1000000, 2)}, " +
 						$"{Math.Round(failureDomainPoints[i].Point.Z / 1000, 2)}");
 					Console.WriteLine($"Number of iteraction: {failureDomainPoints[i].StrainPlane.Id} \n");
+
+					double wr = new Vector3d(new Point3d(force.M1, force.M2, force.N)).Length /
+						new Vector3d(failureDomainPoints[i].Point).Length;
+
+					Console.WriteLine($"WR: {Math.Round(wr, 3)} \n");
 
 
 					Assert.IsTrue(Math.Abs(adimForces.N) < adimTolerance);
