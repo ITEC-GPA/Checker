@@ -68,7 +68,6 @@ namespace ConcreteTests
 		protected ReinforcedConcreteSection GetRectangularSection8Rebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
 			ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
-
 			if (concreteMaterial == null)
 				concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
@@ -100,7 +99,6 @@ namespace ConcreteTests
 		protected ReinforcedConcreteSection GetRectangularSection2SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
 			int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
-
 			if (concreteMaterial == null)
 				concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
@@ -129,7 +127,6 @@ namespace ConcreteTests
 		protected ReinforcedConcreteSection GetRectangularSection2SideRebars(double width = 300, double height = 500, double topRebarDiameter = 18, int topNumberOfRebars = 4,
 			double bottomRebarDiameter = 18, int bottomNumberOfRebars = 4, double concreteCover = 50, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
-
 			if (concreteMaterial == null)
 				concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
@@ -143,17 +140,13 @@ namespace ConcreteTests
 
 			List<ReinforcedConcreteRebar> rebars = new List<ReinforcedConcreteRebar>();
 
-			for (int j = 0; j < bottomNumberOfRebars; j++)
-			{
+			for (int j = 0; j < bottomNumberOfRebars; j++)			
 				rebars.Add(new ReinforcedConcreteRebar(rebarBottom, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (bottomNumberOfRebars - 1), concreteCover)));
-			}
-
-			for (int j = 0; j < topNumberOfRebars; j++)
-			{
+			
+			for (int j = 0; j < topNumberOfRebars; j++)			
 				rebars.Add(new ReinforcedConcreteRebar(rebarTop,
 					new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (topNumberOfRebars - 1), height - concreteCover)));
-			}
-
+			
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 			section.AddRebars(rebars);
 
@@ -163,7 +156,6 @@ namespace ConcreteTests
 		protected ReinforcedConcreteSection GetRectangularSection4SideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
 			int numberOfRebarsTopBottomSide = 4, int numberOfRebarsLateralSide = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
-
 			if (concreteMaterial == null)
 				concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
@@ -201,7 +193,6 @@ namespace ConcreteTests
 		protected ReinforcedConcreteSection GetRectangularSectionBottomSideRebars(double width = 300, double height = 500, double rebarDiameter = 18, double concreteCover = 50,
 			int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
-
 			if (concreteMaterial == null)
 				concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
@@ -214,11 +205,9 @@ namespace ConcreteTests
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[numberOfRebars];
 
-			for (int j = 0; j < numberOfRebars; j++)
-			{
+			for (int j = 0; j < numberOfRebars; j++)			
 				rebars[j] = new ReinforcedConcreteRebar(rebar, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), concreteCover));
-			}
-
+			
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 			section.AddRebars(rebars);
 
@@ -228,7 +217,6 @@ namespace ConcreteTests
 		protected ReinforcedConcreteSection GetCircularSection(double diameter = 300, double rebarDiameter = 18, double concreteCover = 50,
 			int numberOfRebars = 16, int discretization = 32, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
-
 			if (concreteMaterial == null)
 				concreteMaterial = ConcreteMaterialEN1992.C25_30;
 
@@ -240,14 +228,11 @@ namespace ConcreteTests
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
-
+			Polygon2d rebarPerimeter = new Polygon2d(diameter - concreteCover * 2, numberOfRebars);
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[numberOfRebars];
 
-			var rebarPerimeter = new Polygon2d(diameter - concreteCover * 2, numberOfRebars);
-			for (int j = 0; j < rebarPerimeter.Count; j++)
-			{
-				rebars[j] = new ReinforcedConcreteRebar(rebar, rebarPerimeter[j]);
-			}
+			for (int j = 0; j < rebarPerimeter.Count; j++)			
+				rebars[j] = new ReinforcedConcreteRebar(rebar, rebarPerimeter[j]);			
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 			section.AddRebars(rebars);
