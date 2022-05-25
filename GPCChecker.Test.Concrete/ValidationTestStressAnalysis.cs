@@ -28,18 +28,12 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, GetLinearConcreteMaterial(elasticModulus));
             ReinforcedConcreteRebar[] rebars = section.GetRebars();
 
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
-
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
                 new ResultBeamForces(-500 * 1000, 0, 0, 0, 50 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete());
             StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult();
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
@@ -67,20 +61,14 @@ namespace ConcreteTests
             double elasticModulus = 31.476;
 
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, GetLinearConcreteMaterial(elasticModulus));
-            var rebars = section.GetRebars();
-
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+			ReinforcedConcreteRebar[] rebars = section.GetRebars();
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
                 new ResultBeamForces(-100 * 1000, 0, 0, 0, 50 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete());
             StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult();
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
@@ -108,14 +96,7 @@ namespace ConcreteTests
             double elasticModulus = 34.077;
             double rebarDiameter = 26;
 
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(300, 0),
-                new Point2d(300, 500),
-                new Point2d(0, 500)
-            }));
-
+            Shape2d shape = GetRectangularShape(300, 500);
             ConcreteMaterialEN1992 concreteMaterial = GetLinearConcreteMaterial(elasticModulus);
             ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("", 200000, 450, 450, 0.1, SteelMaterial.SteelTypes.Rebar));
@@ -133,7 +114,6 @@ namespace ConcreteTests
             };
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
             section.AddRebars(rebars);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
@@ -141,11 +121,7 @@ namespace ConcreteTests
                 new ResultBeamForces(-300 * 1000, 0, 0, 0, 50 * 1000000, -50 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete());
             StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult();
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
@@ -178,16 +154,8 @@ namespace ConcreteTests
             double rebarDiameter = 26;
             double h = 500;
 
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(h, 0),
-                new Point2d(h, h),
-                new Point2d(0, h)
-            }));
-
-            ConcreteMaterialEN1992 concreteMaterial = GetLinearConcreteMaterial(elasticModulus);
-            ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+            Shape2d shape = GetRectangularShape(h, h);
+            ShapeEx shapeEx = new ShapeEx(shape, GetLinearConcreteMaterial(elasticModulus));
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -206,18 +174,13 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
             section.AddRebars(rebars);
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
                 new ResultBeamForces(-200 * 1000, 0, 0, 0, 300 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete());
             StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult();
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
@@ -253,20 +216,14 @@ namespace ConcreteTests
             double h = 500;
 
             ReinforcedConcreteSection section = GetRectangularSection2SideRebars(h, h, rebarDiameter, 50, 5, GetLinearConcreteMaterialTensile(elasticModulus));
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
-
-            var rebars = section.GetRebars();
+			ReinforcedConcreteRebar[] rebars = section.GetRebars();
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
                 new ResultBeamForces(0 * 1000, 0, 0, 0, 40 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete(), true);
             StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult();
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
@@ -292,7 +249,6 @@ namespace ConcreteTests
             };
 
             CommonAssertsVCA(result[0], section, expConcreteTensions, expRebarTensions);
-
         }
 
         [TestMethod]
@@ -303,14 +259,7 @@ namespace ConcreteTests
             double rebarDiameter = 16;
             double h = 500;
 
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(h, 0),
-                new Point2d(h, h),
-                new Point2d(0, h)
-            }));
-
+            Shape2d shape = GetRectangularShape(h, h);
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -329,18 +278,13 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(new ShapeEx(shape, GetLinearConcreteMaterial(elasticModulus)));
             section.AddRebars(rebars);
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
                 new ResultBeamForces(-500 * 1000, 0, 0, 0, 200 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, false);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete(), true);
             StressAnalysisResult[] result = sectionChecker.GetStressAnalysisResult();
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
@@ -368,5 +312,559 @@ namespace ConcreteTests
             CommonAssertsVCA(result[0], section, expConcreteTensions, expRebarTensions);
         }
 
+        [TestMethod]
+        [TestCategory("Bridge with 4 Rebars")]
+        public void VCA_7()
+        {
+            double rebarDiameter = 26;
+            double n = 15;
+
+            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992.C25_30);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(950, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(950, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3650, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3650, 1700, 0)),
+            };
+            section.AddRebars(rebars);
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0 * 1000, 0, 0, 0, 2000 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            double psi = GetPsi(n, section);
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete(), true);
+            StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
+
+            (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+            {
+                (section.Shape.Fill[0], -0.6866),
+                (section.Shape.Fill[1], -0.6866),
+                (section.Shape.Fill[2], +1.794),
+                (section.Shape.Fill[3], +1.794),
+                (section.Shape.Fill[4], -0.6866),
+                (section.Shape.Fill[5], -0.6866),
+                (section.Shape.Fill[6], -1.183),
+                (section.Shape.Fill[7], -1.183),
+            };
+
+            (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+            {                
+                (rebars[0], 24.43),
+                (rebars[1], -15.26),
+                (rebars[2], 24.43),
+                (rebars[3], -15.26),
+            };
+
+            CommonAssertsVCA(psi, result[0], section, expConcreteTensions, expRebarTensions);
+        }
+
+        [TestMethod]
+        [TestCategory("Bridge with 4 Rebars")]
+        public void VCA_7_2()
+        {
+            double rebarDiameter = 26;
+            double n = 15;
+
+            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992.C25_30);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(950, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(950, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3650, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3650, 1700, 0)),
+            };
+            section.AddRebars(rebars);
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0 * 1000, 0, 0, 0, 500 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            double psi = GetPsi(n, section);
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete());
+            StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
+
+            (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+            {
+                (section.Shape.Fill[0], 0),
+                (section.Shape.Fill[1], 0),
+                (section.Shape.Fill[2], 0),
+                (section.Shape.Fill[3], 0),
+                (section.Shape.Fill[4], 0),
+                (section.Shape.Fill[5], 0),
+                (section.Shape.Fill[6], -1.24),
+                (section.Shape.Fill[7], -1.24),
+            };
+
+            (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+            {
+                (rebars[0], 282.4),
+                (rebars[1], -0.87),
+                (rebars[2], 282.4),
+                (rebars[3], -0.87),
+            };
+
+            CommonAssertsVCA(psi, result[0], section, expConcreteTensions, expRebarTensions);
+        }
+
+        [TestMethod]
+        [TestCategory("Bridge No Rebars")]
+        public void VCA_8()
+        {
+            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992.C25_30);
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0 * 1000, 0, 0, 0, 2000 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete(), true);
+            StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(1.36);
+
+            (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+            {
+                (section.Shape.Fill[0], -0.6954),
+                (section.Shape.Fill[1], -0.6954),
+                (section.Shape.Fill[2], +1.83),
+                (section.Shape.Fill[3], +1.83),
+                (section.Shape.Fill[4], -0.6954),
+                (section.Shape.Fill[5], -0.6954),
+                (section.Shape.Fill[6], -1.2),
+                (section.Shape.Fill[7], -1.2),
+            };
+
+            (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+            {
+            };
+
+            CommonAssertsVCA(1.36, result[0], section, expConcreteTensions, expRebarTensions);
+        }
+
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void VCA_9()
+        {
+            double rebarDiameter = 26;
+            double n = 15;
+
+            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992.C25_30);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(1000, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1200, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1400, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1600, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3000, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3200, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3400, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3600, 100, 0)),
+                
+                new ReinforcedConcreteRebar(rebar, new Point3d(1000, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1200, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1400, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1600, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3000, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3200, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3400, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3600, 1700, 0)),
+            };
+            section.AddRebars(rebars);
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0 * 1000, 0, 0, 0, 2000 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            double psi = GetPsi(n, section);
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete());
+            StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
+
+            (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+            {
+                (section.Shape.Fill[0], 0),
+                (section.Shape.Fill[1], 0),
+                (section.Shape.Fill[2], 0),
+                (section.Shape.Fill[3], 0),
+                (section.Shape.Fill[4], 0),
+                (section.Shape.Fill[5], 0),
+                (section.Shape.Fill[6], -2.525),
+                (section.Shape.Fill[7], -2.525),
+            };
+
+            (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+            {
+                (rebars[0], 288.5),
+                (rebars[1], 288.5),
+                (rebars[2], 288.5),
+                (rebars[3], 288.5),
+                (rebars[4], 288.5),
+                (rebars[5], 288.5),
+                (rebars[6], 288.5),
+                (rebars[7], 288.5),
+
+                (rebars[8], -18.86),
+                (rebars[9], -18.86),
+                (rebars[10], -18.86),
+                (rebars[11], -18.86),
+                (rebars[12], -18.86),
+                (rebars[13], -18.86),
+                (rebars[14], -18.86),
+                (rebars[15], -18.86),
+            };
+
+            CommonAssertsVCA(psi, result[0], section, expConcreteTensions, expRebarTensions);
+        }
+
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void VCA_9_2()
+        {
+            double rebarDiameter = 26;
+            double n = 15;
+
+            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992.C25_30);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(1000, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1200, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1400, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1600, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3000, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3200, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3400, 100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3600, 100, 0)),
+
+                new ReinforcedConcreteRebar(rebar, new Point3d(1000, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1200, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1400, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1600, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3000, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3200, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3400, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3600, 1700, 0)),
+
+                new ReinforcedConcreteRebar(rebar, new Point3d(1000, 400, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1000, 800, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1000, 1200, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(1000, 1600, 0)),
+
+                new ReinforcedConcreteRebar(rebar, new Point3d(3600, 400, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3600, 800, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3600, 1200, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(3600, 1600, 0)),
+            };
+
+            section.AddRebars(rebars);
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0 * 1000, 0, 0, 0, 2000 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            double psi = GetPsi(n, section);
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete());
+            StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
+
+            (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+            {
+                (section.Shape.Fill[0], 0),
+                (section.Shape.Fill[1], 0),
+                (section.Shape.Fill[2], 0),
+                (section.Shape.Fill[3], 0),
+                (section.Shape.Fill[4], 0),
+                (section.Shape.Fill[5], 0),
+                (section.Shape.Fill[6], -2.41),
+                (section.Shape.Fill[7], -2.41),
+            };
+
+            (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+            {
+                (rebars[0], 231),
+                (rebars[1], 231),
+                (rebars[2], 231),
+                (rebars[3], 231),
+                (rebars[4], 231),
+                (rebars[5], 231),
+                (rebars[6], 231),
+                (rebars[7], 231),
+
+                (rebars[8], -20.44),
+                (rebars[9], -20.44),
+                (rebars[10], -20.44),
+                (rebars[11], -20.44),
+                (rebars[12], -20.44),
+                (rebars[13], -20.44),
+                (rebars[14], -20.44),
+                (rebars[15], -20.44),
+                
+                (rebars[16], 183.9),
+                (rebars[17], 121),
+                (rebars[18], 58.15),
+                (rebars[19], -4.72),
+
+                (rebars[20], 183.9),
+                (rebars[21], 121),
+                (rebars[22], 58.15),
+                (rebars[23], -4.72),
+            };
+
+            CommonAssertsVCA(psi, result[0], section, expConcreteTensions, expRebarTensions);
+        }
+
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void VCA_10()
+        {
+            double rebarDiameter26 = 26;
+            double rebarDiameter20 = 20;
+            double rebarDiameter12 = 12;
+            double n = 15;
+
+            ReinforcedConcreteSection section = GetBridgeShapeWithoutHole(4600, 1800, 3000, 300, ConcreteMaterialEN1992.C25_30);
+            RebarSectionCircular rebar26 = new RebarSectionCircular(rebarDiameter26, SteelMaterial.B450C);
+            RebarSectionCircular rebar20 = new RebarSectionCircular(rebarDiameter20, SteelMaterial.B450C);
+            RebarSectionCircular rebar12 = new RebarSectionCircular(rebarDiameter12, SteelMaterial.B450C);
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar26, new Point3d(1000, 100, 0)),
+                new ReinforcedConcreteRebar(rebar26, new Point3d(1200, 100, 0)),
+                new ReinforcedConcreteRebar(rebar26, new Point3d(1400, 100, 0)),
+                new ReinforcedConcreteRebar(rebar26, new Point3d(1600, 100, 0)),
+                new ReinforcedConcreteRebar(rebar26, new Point3d(3000, 100, 0)),
+                new ReinforcedConcreteRebar(rebar26, new Point3d(3200, 100, 0)),
+                new ReinforcedConcreteRebar(rebar26, new Point3d(3400, 100, 0)),
+                new ReinforcedConcreteRebar(rebar26, new Point3d(3600, 100, 0)),
+
+                new ReinforcedConcreteRebar(rebar20, new Point3d(1000, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar20, new Point3d(1200, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar20, new Point3d(1400, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar20, new Point3d(1600, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar20, new Point3d(3000, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar20, new Point3d(3200, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar20, new Point3d(3400, 1700, 0)),
+                new ReinforcedConcreteRebar(rebar20, new Point3d(3600, 1700, 0)),
+
+                new ReinforcedConcreteRebar(rebar12, new Point3d(1000, 400, 0)),
+                new ReinforcedConcreteRebar(rebar12, new Point3d(1000, 800, 0)),
+                new ReinforcedConcreteRebar(rebar12, new Point3d(1000, 1200, 0)),
+                new ReinforcedConcreteRebar(rebar12, new Point3d(1000, 1600, 0)),
+
+                new ReinforcedConcreteRebar(rebar12, new Point3d(3600, 400, 0)),
+                new ReinforcedConcreteRebar(rebar12, new Point3d(3600, 800, 0)),
+                new ReinforcedConcreteRebar(rebar12, new Point3d(3600, 1200, 0)),
+                new ReinforcedConcreteRebar(rebar12, new Point3d(3600, 1600, 0)),
+            };
+
+            section.AddRebars(rebars);
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0 * 1000, 0, 0, 0, 2000 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            double psi = GetPsi(n, section);
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete());
+            StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
+
+            (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+            {
+                (section.Shape.Fill[0], 0),
+                (section.Shape.Fill[1], 0),
+                (section.Shape.Fill[2], 0),
+                (section.Shape.Fill[3], 0),
+                (section.Shape.Fill[4], 0),
+                (section.Shape.Fill[5], 0),
+                (section.Shape.Fill[6], -2.538),
+                (section.Shape.Fill[7], -2.538),
+            };
+
+            (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+            {
+                (rebars[0], 273.8),
+                (rebars[1], 273.8),
+                (rebars[2], 273.8),
+                (rebars[3], 273.8),
+                (rebars[4], 273.8),
+                (rebars[5], 273.8),
+                (rebars[6], 273.8),
+                (rebars[7], 273.8),
+
+                (rebars[8], -19.73),
+                (rebars[9], -19.73),
+                (rebars[10], -19.73),
+                (rebars[11], -19.73),
+                (rebars[12], -19.73),
+                (rebars[13], -19.73),
+                (rebars[14], -19.73),
+                (rebars[15], -19.73),
+
+                (rebars[16], 218.7),
+                (rebars[17], 145.4),
+                (rebars[18], 71.99),
+                (rebars[19], -1.385),
+
+                (rebars[20], 218.7),
+                (rebars[21], 145.4),
+                (rebars[22], 71.99),
+                (rebars[23], -1.385),
+            };
+
+            CommonAssertsVCA(psi, result[0], section, expConcreteTensions, expRebarTensions);
+        }
+
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void VCA_11()
+        {
+            double n = 15;
+
+            ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 60,
+                10, 14, 13, 14, 10, 14,
+                7, 14,
+                4, 14, 13, 14, 4, 14,
+                ConcreteMaterialEN1992.C25_30, SteelMaterial.B450C);
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0 * 1000, 0, 0, 0, 2000 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            double psi = GetPsi(n, section);
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete());
+            StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
+
+            (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+            {
+                (section.Shape.Fill[0], 0),
+                (section.Shape.Fill[1], 0),
+                (section.Shape.Fill[2], 0),
+                (section.Shape.Fill[3], 0),
+                (section.Shape.Fill[4], 0),
+                (section.Shape.Fill[5], 0),
+                (section.Shape.Fill[6], -1.954),
+                (section.Shape.Fill[7], -1.954),
+            };
+
+            (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+            {
+                //(rebars[0], 231),
+                //(rebars[1], 231),
+                //(rebars[2], 231),
+                //(rebars[3], 231),
+                //(rebars[4], 231),
+                //(rebars[5], 231),
+                //(rebars[6], 231),
+                //(rebars[7], 231),
+
+                //(rebars[8], -20.44),
+                //(rebars[9], -20.44),
+                //(rebars[10], -20.44),
+                //(rebars[11], -20.44),
+                //(rebars[12], -20.44),
+                //(rebars[13], -20.44),
+                //(rebars[14], -20.44),
+                //(rebars[15], -20.44),
+
+                //(rebars[16], 183.9),
+                //(rebars[17], 121),
+                //(rebars[18], 58.15),
+                //(rebars[19], -4.72),
+
+                //(rebars[20], 183.9),
+                //(rebars[21], 121),
+                //(rebars[22], 58.15),
+                //(rebars[23], -4.72),
+            };
+
+            CommonAssertsVCA(psi, result[0], section, expConcreteTensions, expRebarTensions);
+        }
+
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void VCA_12()
+        {
+            double n = 15;
+            double d = 20;
+
+            ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 60,
+                10, d, 13, d, 10, d,
+                7, d,
+                4, d, 13, d, 4, d,
+                ConcreteMaterialEN1992.C25_30, SteelMaterial.B450C);
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0 * 1000, 0, 0, 0, 2000 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            double psi = GetPsi(n, section);
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete());
+            StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
+            StressAnalysisResult[] results = sectionChecker.GetStressAnalysisResult();
+
+            (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
+            {
+                (section.Shape.Fill[0], -0.2128),
+                (section.Shape.Fill[1], -0.2128),
+                (section.Shape.Fill[2], 0),
+                (section.Shape.Fill[3], 0),
+                (section.Shape.Fill[4], -0.2128),
+                (section.Shape.Fill[5], -0.2128),
+                (section.Shape.Fill[6], -1.384),
+                (section.Shape.Fill[7], -1.384),
+            };
+
+            (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
+            {
+                //(rebars[0], 231),
+                //(rebars[1], 231),
+                //(rebars[2], 231),
+                //(rebars[3], 231),
+                //(rebars[4], 231),
+                //(rebars[5], 231),
+                //(rebars[6], 231),
+                //(rebars[7], 231),
+
+                //(rebars[8], -20.44),
+                //(rebars[9], -20.44),
+                //(rebars[10], -20.44),
+                //(rebars[11], -20.44),
+                //(rebars[12], -20.44),
+                //(rebars[13], -20.44),
+                //(rebars[14], -20.44),
+                //(rebars[15], -20.44),
+
+                //(rebars[16], 183.9),
+                //(rebars[17], 121),
+                //(rebars[18], 58.15),
+                //(rebars[19], -4.72),
+
+                //(rebars[20], 183.9),
+                //(rebars[21], 121),
+                //(rebars[22], 58.15),
+                //(rebars[23], -4.72),
+            };
+
+            CommonAssertsVCA(psi, result[0], section, expConcreteTensions, expRebarTensions);
+        }
     }
 }

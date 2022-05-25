@@ -30,7 +30,7 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C45_55);
 
-            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800));
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800, 0.1, SteelMaterial.SteelTypes.Tendon));
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -38,14 +38,9 @@ namespace ConcreteTests
             };
 
             section.AddRebars(rebars);
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
-            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);
             //ExportToGmsh(failureDomain.Domain);
 
@@ -103,7 +98,7 @@ namespace ConcreteTests
             double width = 300;
             double concreteCover = 50;
 
-            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800));
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800, 0.1, SteelMaterial.SteelTypes.Tendon));
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -113,15 +108,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C45_55);
             section.AddRebars(rebars);
+			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
-
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
-            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);
             //ExportToGmsh(failureDomain.Domain);
 
@@ -191,7 +180,7 @@ namespace ConcreteTests
 
             ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
-            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800));
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800, 0.1, SteelMaterial.SteelTypes.Tendon));
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -213,14 +202,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
             section.AddRebars(rebars);
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
-            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);
             //ExportToGmsh(failureDomain.Domain);
 
@@ -286,7 +270,7 @@ namespace ConcreteTests
 
             ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
-            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800, 0.035));
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800, 0.035, SteelMaterial.SteelTypes.Tendon));
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -301,15 +285,10 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
             section.AddRebars(rebars);
-            //ExportToGmsh(section);
 
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);
 
             // Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
@@ -372,7 +351,7 @@ namespace ConcreteTests
             }));
 
             ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
-            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800, 0.035));
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1800, 0.035, SteelMaterial.SteelTypes.Tendon));
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -381,15 +360,11 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
             section.AddRebars(rebars);
-            //ExportToGmsh(section);
+			//ExportToGmsh(section);
 
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
+			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);
 
             // Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
@@ -453,7 +428,7 @@ namespace ConcreteTests
             }));
 
             ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
-            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1620, 0.035));
+            RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterial("", 200000, 1620, 1620, 0.035, SteelMaterial.SteelTypes.Tendon));
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -467,15 +442,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
             section.AddRebars(rebars);
-            //ExportToGmsh(section);
+			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
-            var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
             ShowDomainPoints(failureDomain.Domain);
 
             // Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
