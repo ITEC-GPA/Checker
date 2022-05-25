@@ -1506,6 +1506,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             double angle = -1;
             bool exit = false;
+
             switch (failureAnalysisType)
             {
                 case FailureAnalysisTypes.ConstantEccentricity:
@@ -1626,7 +1627,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         try
                         {
                             FailureDomain.FailureDomainPoint domainPointBuffer = CalculateDomainPoint(targetLocalForces, coordinateSystem,
-                                failureDomainType, failureAnalysisType, 10 * angularTolerance, 10 * distanceTolerance);
+                                failureDomainType, failureAnalysisType, 5 * angularTolerance, 5 * distanceTolerance);
 
                             if (domainPointBuffer != null)
                             {
@@ -1636,7 +1637,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             else
                             {
                                 _log.Add("Fail to calculate point on domain");
-                                return domainPoint;
+                                return null;
                             }
                         }
                         catch (Exception)
@@ -1699,7 +1700,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 case FailureZones.F2A:
                     dTeta = Math.Max(Math.Min(deltaAngle, 0.1), 0.005);
-                    dEta = Math.Max(Math.Min(deltaAngle, 0.1), 0.005);
+                    dEta = Math.Max(Math.Min(deltaAngle, 0.1), 0.001);
                     break;
 
                 case FailureZones.F2B:
@@ -1792,9 +1793,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else
                 {
                     if (inputFailureZone == FailureZones.F1)
-                        return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                        return (+0.5, +0.0, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                     else
-                        return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                        return (+0.1, +0.0, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 }
 
             } while (dNdTeta == 0.0 || (dMxdTeta == 0.0 && dMydTeta == 0.0));
@@ -1845,9 +1846,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else
                 {
                     if (inputFailureZone == FailureZones.F1)
-                        return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                        return (+0.0, +0.5, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                    else if (inputFailureZone == FailureZones.F2A)
+                        return (+0.0, -0.25, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                     else
-                        return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                        return (+0.0, +0.01, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 }
 
             } while (dNdImm == 0.0 || (dMxdImm == 0.0 && dMydImm == 0.0));
@@ -1873,9 +1876,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             if (!intersect)
             {
                 if (inputFailureZone == FailureZones.F1)
-                    return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                    return (+0.5, +0.5, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 else
-                    return (+0.4, +0.4, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                    return (+0.1, +0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
             }
             else
             {
@@ -1913,31 +1916,31 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     if (inputFailureZone == FailureZones.F3A)
                     {
                         if (dEta >= 0.01)
-                            dE = 0.25;
-                        else if (dEta >= 0.001)
                             dE = 0.35;
-                        else if (dEta >= 0.0005)
-                            dE = 0.45;
-                        else
+                        else if (dEta >= 0.001)
                             dE = 0.5;
+                        else if (dEta >= 0.0005)
+                            dE = 0.75;
+                        else
+                            dE = 1.0;
                     }
                     else if (inputFailureZone == FailureZones.F3B)
                     {
                         if (dEta >= 0.01)
-                            dE = 0.25;
+                            dE = 0.35;
                         else if (dEta >= 0.001)
-                            dE = 0.25;
+                            dE = 0.4;
                         else
                             dE = 0.5;
                     }
                     else if (inputFailureZone == FailureZones.F2B || inputFailureZone == FailureZones.F2A)
                     {
                         if (dEta >= 0.01)
-                            dE = 0.20;
+                            dE = 0.3;
                         else if (dEta >= 0.001)
-                            dE = 0.25;
+                            dE = 0.4;
                         else
-                            dE = 0.5;
+                            dE = 0.75;
                     }
                     else
                     {
@@ -2141,25 +2144,41 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Dictionary<int, bool> rebarIsInsideAssociation, double? psiRebars, double? psiTendon)
         {
             ForceTuple forceTupleAdim = ConvertToAdimensionalForces(forceTuple);
+            var bBox = ConcreteSection.Shape.GetBoundingBox();
 
-            double deltaChiXLimit = Math.Abs(GetYieldingStrainPureCompression() / ConcreteSection.Shape.GetBoundingBox().Size.X);
+            double deltaChiXLimit =1.0 / bBox.Size.X;
             double dCX = 0.00001;
             if (forceTupleAdim.Mx != 0)
-                dCX = 0.001 * Math.Max(Math.Abs(forceTupleAdim.Mx), 0.00001);
+            {
+                dCX = 0.01 * Math.Max(Math.Abs(forceTupleAdim.Mx), 0.00001);
+                deltaChiXLimit *= Math.Max(Math.Abs(forceTupleAdim.Mx), 0.001);
+            }
+            else
+                deltaChiXLimit *= Math.Abs(GetYieldingStrainPureCompression());
 
             double dChiX = dCX * deltaChiXLimit;
 
-            double deltaChiYLimit = Math.Abs(GetYieldingStrainPureCompression() / ConcreteSection.Shape.GetBoundingBox().Size.Y);
+            double deltaChiYLimit = 1.0/ bBox.Size.Y;
             double dCY = 0.00001;
             if (forceTupleAdim.My != 0)
-                dCY = 0.001 * Math.Max(Math.Abs(forceTupleAdim.My), 0.00001);
+            {
+                dCY = 0.01 * Math.Max(Math.Abs(forceTupleAdim.My), 0.00001);
+                deltaChiYLimit *= Math.Max(Math.Abs(forceTupleAdim.My), 0.001);
+            }
+            else
+                deltaChiYLimit *= Math.Abs(GetYieldingStrainPureCompression());
 
             double dChiY = dCY * deltaChiYLimit;
 
-            double deltaStrainLimit = 1.0 / ConcreteSection.Area * Math.Abs(GetFck());
+            double deltaStrainLimit = 1.0 / (bBox.Size.X * bBox.Size.Y);
             double dS = 0.00001;
             if (forceTupleAdim.N != 0)
-                dS = 0.0001 * Math.Max(Math.Abs(forceTupleAdim.N), 0.00001);
+            {
+                dS = 0.001 * Math.Max(Math.Abs(forceTupleAdim.N), 0.00001);
+                deltaStrainLimit *= Math.Max(Math.Abs(forceTupleAdim.N), 0.001);
+            }
+            else
+                deltaStrainLimit *= Math.Abs(GetYieldingStrainPureCompression());
 
             double dStrain = dS * deltaStrainLimit;
 
