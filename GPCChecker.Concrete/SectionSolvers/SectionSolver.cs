@@ -17,6 +17,7 @@ using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
+using GPC.Utilities.Extensions;
 
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
@@ -474,6 +475,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     deltaMyArray += forces.My;
                 }
 
+                return new ForceTuple(deltaNArray, -deltaMxArray, deltaMyArray);
             }
             catch (Exception e)
             {
@@ -481,7 +483,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 return new ForceTuple();
             }
 
-            return new ForceTuple(deltaNArray, -deltaMxArray, deltaMyArray);
         }
 
 
@@ -602,9 +603,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             try
             {
-
-                return CalculatePureCompressionReduction((IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation)) *
-                GetReductionFactor(strainPlane));
+                return CalculatePureCompressionReduction((IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation)) * GetReductionFactor(strainPlane));
             }
             catch (Exception e)
             {
@@ -615,7 +614,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
 
-        /// <inheritdoc cref="CalculateForceResultant((StrainPlane, FailureZones), Dictionary{int, bool})"/>
+        /// <inheritdoc cref="CalculateForceResultant(StrainPlane, Dictionary{int, bool})"/>
         protected virtual async Task<ForceTuple> CalculateForceResultantAsync((StrainPlane, FailureZones) strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             return await Task.Run(() => 
@@ -1080,33 +1079,37 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             try
             {
 
-                Task<ForceTuple>[][] tasks = new Task<ForceTuple>[strainPlanes.Length][];
 
-                for (int i = 0; i < strainPlanes.Length; i++)
-                {
-                    tasks[i] = new Task<ForceTuple>[strainPlanes[i].Length];
-
-                    for (int j = 0; j < strainPlanes[i].Length; j++)
-                    {
-                        int arg1 = i;
-                        int arg2 = j;
-
-                        tasks[i][j] = CalculateForceResultantAsync(strainPlanes[arg1][arg2], rebarIsInsideAssociation);
-                    }
-                }
-
-
-                Task.WaitAll(tasks.SelectMany(x => x).ToArray());
-
-
+                (int i, int j, StrainPlane strainPlane)[] indexArray = new (int i, int j, StrainPlane strainPlane)[strainPlanes.Sum(i => i.Length)];
+                int index = 0;
                 for (int i = 0; i < strainPlanes.Length; i++)
                 {
                     domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes[i].Length];
                     for (int j = 0; j < strainPlanes[i].Length; j++)
                     {
-                        domainPoints[i][j] = new FailureDomain.FailureDomainPoint(GetExternalForces(tasks[i][j].Result, forceCoordinateSystem), strainPlanes[i][j].Item2, strainPlanes[i][j].Item1);
+                        indexArray[index++] = (i, j, strainPlanes[i][j].Item1);
+                    }
+                }
+
+                ForceTuple[] results = new ForceTuple[indexArray.Length];
+
+
+                Parallel.ForEach(System.Collections.Concurrent.Partitioner.Create(0, indexArray.Length, 16), (range) =>
+                {
+                    
+                    for (int k = range.Item1; k < range.Item2; k++)
+                    {
+                        results[k] = CalculateForceResultant(strainPlanes[indexArray[k].i][indexArray[k].j].Item1, rebarIsInsideAssociation);
                     }
 
+                });
+
+
+
+                for (int k = 0; k < results.Length; k++)
+                {
+                    domainPoints[indexArray[k].i][indexArray[k].j] =
+                    new FailureDomain.FailureDomainPoint(GetExternalForces(results[k], forceCoordinateSystem), strainPlanes[indexArray[k].i][indexArray[k].j].Item2, strainPlanes[indexArray[k].i][indexArray[k].j].Item1);
                 }
 
 

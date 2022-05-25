@@ -508,8 +508,11 @@ namespace ConcreteTests
                 (rebars[3], 37.87),
             };
 
+
             for (int i = 0; i < slsResult.Length; i++)
                 Assert.IsTrue(CommonAssertsVCA(slsResult[i], section, expConcreteTensions, expRebarTensions, 0.07));
+
+
         }
 
         [TestMethod]

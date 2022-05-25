@@ -35,6 +35,7 @@ namespace GPC.Checkers.Concrete.Helper
 
         #region Constructor
 
+
         internal ForceTuple(double N, double Mx, double My)
         {
             _N = N;
