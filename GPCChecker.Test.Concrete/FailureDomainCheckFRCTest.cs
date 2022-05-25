@@ -46,10 +46,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
             };
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)            
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));            
         }
 
         [TestMethod]
@@ -78,10 +76,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section)), $"Force {i} fail");
-            }
+            for (int i = 0; i < forces.Length; i++)            
+                CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section));            
         }
 
         [TestMethod]
@@ -110,11 +106,9 @@ namespace ConcreteTests
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section),
-                    0.005, new double[] { 1.0 }), $"Force {i} fail");
-            }
+            for (int i = 0; i < forces.Length; i++)            
+                CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section),
+                    0.005, new double[] { 1.0 });            
         }
 
         [TestMethod]
@@ -145,10 +139,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-1500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section))
             };
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)            
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));            
         }
 
         [TestMethod]
@@ -179,10 +171,7 @@ namespace ConcreteTests
 			};
 
             for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section)), $"Force {i} fail");
-            }
+                CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section));            
         }
 
         [TestMethod]
@@ -208,11 +197,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, -120 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section))
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section)), $"Force {i} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -237,11 +223,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, -120 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section)), $"Force {i} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -268,11 +251,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-1800 * 1000, 0, 0, 0, -120 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section)), $"Force {i} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -306,13 +286,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-1800 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01),
-                    $"Force {i} fail");
-            }
-
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section), 0.01);
         }
 
         [TestMethod]
@@ -346,12 +321,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-1800 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01), $"Force {i} fail");
-            }
-
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -398,11 +369,8 @@ namespace ConcreteTests
                 new ResultBeamForces(0 * 1000, 0, 0, 0, 20 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01), $"Force {i} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -425,9 +393,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -452,9 +418,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -478,9 +442,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -507,9 +469,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -542,10 +502,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
-
     }
 }

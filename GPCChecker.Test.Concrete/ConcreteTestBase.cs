@@ -673,12 +673,12 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			return true;
 		}
 
-		protected bool CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
-			GPC.Checkers.Concrete.Checkers.SectionChecker.SectionOptions options, double adimTolerance = 0.005,
+		protected void CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
+			SectionChecker.SectionOptions options, double adimTolerance = 0.005,
 			double[] factor = null)
 		{
 			if (factor == null)
-				factor = new double[] { 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0 };
+				factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
 
 			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
 			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
@@ -707,7 +707,6 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			catch (Exception e)
 			{
 				Console.WriteLine($"Fail to calculate domain point {j}, {e.Message}");
-				return false;
 			}
 
 
@@ -752,19 +751,15 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 					Console.WriteLine($"Fail to calculate strain plane for force {i} = {Math.Round(testForces[i].M1 / 1000000)}, " +
 					$"{Math.Round(testForces[i].M2 / 1000000)}, " +
 					$"{Math.Round(testForces[i].N / 1000)}");
-					return false;
 				}
-
 			}
-
-			return true;
 		}
 
-		protected bool CommonAssertDomainPointMethodFRC(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
+		protected void CommonAssertDomainPointMethodFRC(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
 			CoordinateSystem coordinateSystem, double adimTolerance = 0.005, double[] factor = null)
 		{
 			if (factor == null)
-				factor = new double[] { 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5 };
+				factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
 
 			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard, true);
 			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
@@ -782,7 +777,6 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			catch (Exception e)
 			{
 				Console.WriteLine($"Fail to calculate domain point {j}, {e.Message}");
-				return false;
 			}
 
 
@@ -826,12 +820,8 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 					Console.WriteLine($"Fail to calculate strain plane for force {i} = {Math.Round(testForces[i].M1 / 1000000)}, " +
 					$"{Math.Round(testForces[i].M2 / 1000000)}, " +
 					$"{Math.Round(testForces[i].N / 1000)}");
-					return false;
 				}
-
 			}
-
-			return true;
 		}
 
 		protected void ShowDomainPoints(FailureDomain failureDomain)
