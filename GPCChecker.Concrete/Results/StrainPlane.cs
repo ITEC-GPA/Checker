@@ -94,6 +94,11 @@ namespace GPC.Checkers.Concrete.Results
             return _strainReferencePoint + ChiX * (point.X - _referencePoint.X) + ChiY * (point.Y - _referencePoint.Y);
         }
 
+        public double GetStrain(double x, double y)
+        {
+            return _strainReferencePoint + ChiX * (x - _referencePoint.X) + ChiY * (y - _referencePoint.Y);
+        }
+
         public Line2d GetNeutralAxisRespectReferencePoint()
         {
             if (_chiX == 0 && _chiY == 0)

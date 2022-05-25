@@ -466,6 +466,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             try
             {
 
+
                 for (int i = 0; i < ConcreteSection.Mesh.FacesCount; i++)
                 {
                     var forces = IntegrateFaceStress(ConcreteSection.Mesh.Faces[i + 1], strainPlane);
@@ -533,19 +534,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (face.IsTriangle)
             {
-                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(new Point2d(x, y))), points, gaussPointsTri);
-                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
+                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)),
+                    points, gaussPointsTri);
+                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) *
                     (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
-                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
+                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) *
                     (x - ConcreteSection.Centroid.X), points, gaussPointsTri);
             }
             else if (face.IsQuad)
             {
-                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(new Point2d(x, y))),
+                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)),
                     points, gaussPointsQuad);
-                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
+                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) *
                     (y - ConcreteSection.Centroid.Y), points, gaussPointsQuad);
-                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
+                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) *
                     (x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
             }
             else
@@ -1095,7 +1097,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 ForceTuple[] results = new ForceTuple[indexArray.Length];
 
 
-                Parallel.ForEach(System.Collections.Concurrent.Partitioner.Create(0, indexArray.Length, 16), (range) =>
+                Parallel.ForEach(System.Collections.Concurrent.Partitioner.Create(0, indexArray.Length, 128), (range) =>
                 {
                     
                     for (int k = range.Item1; k < range.Item2; k++)
