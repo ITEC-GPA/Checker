@@ -1261,7 +1261,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         _concreteSection.RebarsCount == 0)
                         chiSx = (p1.epsilon + 0.3 * Math.Abs(p3.epsilon)) / p1.distanceFromBaricentre;
                     else
-                        chiSx = (p1.epsilon + Math.Abs(p3.epsilon)) / p1.distanceFromBaricentre;
+                        chiSx = p1.epsilon / p1.distanceFromBaricentre;
 
                     chiDx = (p1.epsilon + Math.Abs(p3.epsilon)) / p1.distanceFromBaricentre;
 
