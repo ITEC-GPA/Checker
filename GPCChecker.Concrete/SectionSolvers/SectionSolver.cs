@@ -669,7 +669,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (face.IsTriangle)
             {
-                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))), points, gaussPointsTri);
+                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))), 
+                    points, gaussPointsTri);
                 deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
                     (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
                 deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
@@ -2258,7 +2259,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
-            return (results[0, 0] * deltaChiXLimit, results[1, 0] * deltaChiYLimit, results[2, 0] * deltaStrainLimit);
+            return (results[0, 0] * deltaChiXLimit,
+                results[1, 0] * deltaChiYLimit, 
+                results[2, 0] * deltaStrainLimit);
         }
 
         #endregion
