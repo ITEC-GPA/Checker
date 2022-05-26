@@ -1019,41 +1019,28 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             try
             {
+                StrainPlane[] strainPlaneArray = new StrainPlane[strainPlanes.Sum(i => i.Length)];
+                ForceTuple[] results = new ForceTuple[strainPlaneArray.Length];
 
-
-                (int i, int j, StrainPlane strainPlane)[] indexArray = new (int i, int j, StrainPlane strainPlane)[strainPlanes.Sum(i => i.Length)];
-                int index = 0;
                 for (int i = 0; i < strainPlanes.Length; i++)
+                {
+                    for (int j = 0; j < strainPlanes[i].Length; j++)
+                    {
+                        strainPlaneArray[j + i * strainPlanes[i].Length] = strainPlanes[i][j].Item1;
+                    }
+                }
+
+                results = CalculateForceResultant(strainPlaneArray, rebarIsInsideAssociation);
+
+                Parallel.For(0, strainPlanes.Length, (i) =>
                 {
                     domainPoints[i] = new FailureDomain.FailureDomainPoint[strainPlanes[i].Length];
                     for (int j = 0; j < strainPlanes[i].Length; j++)
                     {
-                        indexArray[index++] = (i, j, strainPlanes[i][j].Item1);
+                        domainPoints[i][j] =
+                            new FailureDomain.FailureDomainPoint(GetExternalForces(results[j + i * strainPlanes[i].Length], forceCoordinateSystem), strainPlanes[i][j].Item2, strainPlanes[i][j].Item1);
                     }
-                }
-
-                ForceTuple[] results = new ForceTuple[indexArray.Length];
-
-
-                Parallel.ForEach(System.Collections.Concurrent.Partitioner.Create(0, indexArray.Length, 128), (range) =>
-                {
-                    
-                    for (int k = range.Item1; k < range.Item2; k++)
-                    {
-                        results[k] = CalculateForceResultant(strainPlanes[indexArray[k].i][indexArray[k].j].Item1, rebarIsInsideAssociation);
-                    }
-
                 });
-
-
-
-                for (int k = 0; k < results.Length; k++)
-                {
-                    domainPoints[indexArray[k].i][indexArray[k].j] =
-                    new FailureDomain.FailureDomainPoint(GetExternalForces(results[k], forceCoordinateSystem), strainPlanes[indexArray[k].i][indexArray[k].j].Item2, strainPlanes[indexArray[k].i][indexArray[k].j].Item1);
-                }
-
-
             }
             catch (Exception e)
             {
