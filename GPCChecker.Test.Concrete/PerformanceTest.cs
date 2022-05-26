@@ -55,12 +55,10 @@ namespace ConcreteTests
             Console.WriteLine(bb0);
         }
 
-
         [TestMethod]
         public void FailureDomainTest()
         {
             var section = GetRectangularSection4Rebars();
-
             SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new StandardEN1992p11());
 
             Action ac0 = new Action(() =>
@@ -73,20 +71,14 @@ namespace ConcreteTests
             Console.WriteLine(bb0);
         }
 
-
         [TestMethod]
         public void FailureDomainCircularSection2()
         {
-            var section = GetCircularSection();
-
-
+			ReinforcedConcreteSection section = GetCircularSection();
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section);
 
             SectionCheckerModelCode2010 checker = new SectionCheckerModelCode2010(sectionCheckerAttribute, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardModelCode2010());
-
             checker.SectionSolver.SetTetaDiscretization(16);
-
-            checker.GetPlasticFailureDomainResult();
 
             Action ac0 = new Action(() =>
             {
@@ -96,8 +88,9 @@ namespace ConcreteTests
             var bb0 = MeasureTime.FunctionExecutionTime(2, ac0, true); ;
 
             Console.WriteLine(bb0);
+
+            //ExportToGmsh(checker.GetPlasticFailureDomainResult().Domain.GetMesh());
+
         }
-
-
     }
 }

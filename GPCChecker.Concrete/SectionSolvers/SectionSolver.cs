@@ -442,9 +442,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Public Setter
 
-        public void SetTetaDiscretization(int teta)
+        public void SetTetaDiscretization(int discretization)
 		{
-            _tetaDiscretization = teta;
+            _tetaDiscretization = discretization;
 		}
 
 		#endregion

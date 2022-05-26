@@ -1292,6 +1292,8 @@ namespace ConcreteTests
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, 
                 null, new ResultBeamForces[] { force }, new StandardNTC2018Concrete());
 
+			FailureDomain.FailureDomainPoint forceConstEccentr = sectionChecker.CalculateElasticFailureDomainPoint(force);
+
             FailureDomainResult result = sectionChecker.GetElasticFailureDomainResult();
             FailureDomain.FailureDomainForce[] forces = result.GetFailureDomainForces();
 
