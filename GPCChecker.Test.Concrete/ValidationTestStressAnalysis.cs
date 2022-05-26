@@ -819,7 +819,6 @@ namespace ConcreteTests
 
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, new StandardNTC2018Concrete());
             StressAnalysisResult[] result = sectionChecker.GetLinearStressAnalysisResult(psi);
-            StressAnalysisResult[] results = sectionChecker.GetStressAnalysisResult();
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
             {

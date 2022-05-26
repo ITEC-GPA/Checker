@@ -562,10 +562,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             ForceTuple[] returnValue = new ForceTuple[strainPlanes.Length];
 
-            for (int j = 0; j < strainPlanes.Length; j++)
+            Parallel.ForEach(System.Collections.Concurrent.Partitioner.Create(0, strainPlanes.Length), (range) =>
             {
-                returnValue[j] = IntegrateRebarStress(strainPlanes[j], rebarIsInsideAssociation);
-            }
+                for (int j = range.Item1; j < range.Item2; j++)
+                    returnValue[j] = IntegrateRebarStress(strainPlanes[j], rebarIsInsideAssociation);
+            });
 
             return returnValue;
         }

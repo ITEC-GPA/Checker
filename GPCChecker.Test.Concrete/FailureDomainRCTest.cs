@@ -32,7 +32,6 @@ namespace ConcreteTests
             SectionCheckerModelCode2010 sectionChecker =  GetSectionCheckerModelCode2010(section,  new StandardNTC2018Concrete());
 
             FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
-            //ExportToGmsh(sectionChecker.GetPlasticFailureDomainResult().Domain.GetMesh());
 
             /* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
@@ -537,7 +536,6 @@ namespace ConcreteTests
                 Vector2d.XAxis, Vector2d.YAxis)));
 
             FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            FailureDomainResult elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
             FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
 
@@ -614,8 +612,6 @@ namespace ConcreteTests
             ShowDomainPoints(elasticFailureDomain.Domain);
             CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain);
             CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), elasticFailureDomain.Domain);
-            //ExportToGmsh(plasticFailureDomain.Domain);
-            //ExportToGmsh(elasticFailureDomain.Domain);
 
             Point3d max = new Point3d(238 * 1000000, 0, 1590 * 1000);   // da vca
             Point3d min = new Point3d(-47.2 * 1000000, 0, -315 * 1000);
@@ -700,8 +696,6 @@ namespace ConcreteTests
             ShowDomainPoints(elasticFailureDomain.Domain);
             //CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain);
             //CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), elasticFailureDomain.Domain);
-            //ExportToGmsh(plasticFailureDomain.Domain);
-            //ExportToGmsh(elasticFailureDomain.Domain);
         }
 
         [TestMethod]
@@ -838,8 +832,7 @@ namespace ConcreteTests
             };
 
 
-            ConcreteSectionCircular section = new ConcreteSectionCircular(sectionDiameter,
-                new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+            ConcreteSectionCircular section = new ConcreteSectionCircular(sectionDiameter, ConcreteMaterialEN1992.C45_55);
             section.AddRebars(rebars);
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardEN1992p11());
 
@@ -960,13 +953,10 @@ namespace ConcreteTests
 
             Polygon2d rebarPoligon = new Polygon2d((externalDiameter + internalDiameter) / 2.0);
 
-            ConcreteMaterialModelCode2010 concrete = new ConcreteMaterialModelCode2010("Test", 45,
-                ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.ParabolaRectangle);
-
-            ShapeEx shapeEx = new ShapeEx(fill, concrete, new Polygon2d[] { hole });
-            RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
-
+            ShapeEx shapeEx = new ShapeEx(fill, ConcreteMaterialModelCode2010.C45_55, new Polygon2d[] { hole });
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+
+            RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
 
             for (int i = 0; i < rebarPoligon.Count; i++)
             {
