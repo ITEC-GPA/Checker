@@ -178,6 +178,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected TriangleGaussPoints.GaussPointNumber _gaussIntegrationTriMidPoints;
         protected TriangleGaussPoints.GaussPointNumber _gaussIntegrationTriHighPoints;
 
+        protected GaussIntegration.GlobalCoordinateGaussPoint[][] _globalCoordinateGaussPoints;
+
         #endregion
 
         #region Properties
@@ -213,6 +215,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _gaussIntegrationTriLowPoints = TriangleGaussPoints.GaussPointNumber.Tri6;
             _gaussIntegrationTriMidPoints = TriangleGaussPoints.GaussPointNumber.Tri33;
             _gaussIntegrationTriHighPoints = TriangleGaussPoints.GaussPointNumber.Tri79;
+
+            _globalCoordinateGaussPoints = GetGlobalCoordinateGaussPointsLinearShapeFunction();
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)
@@ -447,113 +451,77 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#region Protected method - SectionIntegration
 
-		/// <summary>
-		/// Calculate the stress resultant of the concrete part
-		/// </summary>
-		/// <param name="strainPlane">The strain plane</param>
-		/// <returns>
-		/// <para>The axial force resultant</para>
-		/// <para>The bending moment about X-axis resultant</para>
-		/// <para>The bending moment about Y-axis resultant</para>
-		/// </returns>
-		protected virtual ForceTuple IntegrateSectionStress(StrainPlane strainPlane)
-        {
+        protected virtual GaussIntegration.GlobalCoordinateGaussPoint[][] GetGlobalCoordinateGaussPointsLinearShapeFunction()
+		{
+            return GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(ConcreteSection.Mesh, _gaussIntegrationQuadHighPoints, _gaussIntegrationTriHighPoints);
+        }
 
-            double deltaNArray = 0;
-            double deltaMxArray = 0;
-            double deltaMyArray = 0;
-            
+        /// <summary>
+        /// Calculate the stress resultant of the concrete part
+        /// </summary>
+        /// <param name="strainPlane">The strain plane</param>
+        /// <returns>
+        /// <para>The axial force resultant</para>
+        /// <para>The bending moment about X-axis resultant</para>
+        /// <para>The bending moment about Y-axis resultant</para>
+        /// </returns>
+        protected virtual ForceTuple IntegrateSectionStress(StrainPlane strainPlane)
+        {
             try
             {
+				double deltaN = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)),
+                    _globalCoordinateGaussPoints);
+				double deltaMx = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y), 
+                    _globalCoordinateGaussPoints);
+				double deltaMy = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X),
+                    _globalCoordinateGaussPoints);
 
-
-                for (int i = 0; i < ConcreteSection.Mesh.FacesCount; i++)
-                {
-                    var forces = IntegrateFaceStress(ConcreteSection.Mesh.Faces[i + 1], strainPlane);
-
-                    deltaNArray += forces.N;
-                    deltaMxArray += forces.Mx;
-                    deltaMyArray += forces.My;
-                }
-
-                return new ForceTuple(deltaNArray, -deltaMxArray, deltaMyArray);
+				return new ForceTuple(deltaN, -deltaMx, deltaMy);
             }
             catch (Exception e)
             {
                 _log.Add(e.Message);
                 return new ForceTuple();
             }
-
         }
 
+        protected virtual ForceTuple[] IntegrateSectionStress(StrainPlane[] strainPlane)
+        {
+            try
+            {
+                ForceTuple[] returnValue = new ForceTuple[strainPlane.Length];
+
+				Func<double, double, double>[] functions = new Func<double, double, double>[strainPlane.Length * 3];
+
+				for (int i = 0; i < strainPlane.Length; i++)
+                {
+                    StrainPlane sp = strainPlane[i];
+                    functions[i * 3] = new Func<double, double, double>((x, y) => CalculateSigmaC(sp.GetStrain(x, y)));
+                    functions[i * 3 + 1] = new Func<double, double, double>((x, y) => CalculateSigmaC(sp.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y));
+                    functions[i * 3 + 2] = new Func<double, double, double>((x, y) => CalculateSigmaC(sp.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X));
+                }
+
+				double[] res = GaussIntegration.IntegrationLinearShapeFunction(functions, _globalCoordinateGaussPoints);
+
+                for (int j = 0; j < strainPlane.Length; j++)
+                    returnValue[j] = new ForceTuple(res[j * 3], res[j * 3 + 1], res[j * 3 + 2]);
+
+                return returnValue;
+            }
+            catch (Exception e)
+            {
+                _log.Add(e.Message);
+                return null;
+            }
+        }
 
         /// <inheritdoc cref="IntegrateSectionStress(StrainPlane)"/>
         protected virtual async Task<ForceTuple> IntegrateSectionStressAsync(StrainPlane strainPlane)
         {
-
             return await Task.Run(() => 
             {
                 return IntegrateSectionStress(strainPlane);            
             });
-
-        }
-
-        /// <summary>
-        /// Calculate the resultants of face <paramref name="face"/>
-        /// </summary>
-        /// <param name="face"></param>
-        /// <param name="strainPlane"></param>
-        protected virtual ForceTuple IntegrateFaceStress(MeshFace face, StrainPlane strainPlane)
-        {
-            Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
-
-            double value = Math.Abs(ConcreteSection.Mesh.GetFaceArea(face) / ConcreteSection.Area);
-
-            TriangleGaussPoints.GaussPointNumber gaussPointsTri;
-            QuadrangleGaussPoints.GaussPointNumber gaussPointsQuad;
-
-            if (value > 0.1)
-            {
-                gaussPointsTri = _gaussIntegrationTriHighPoints;
-                gaussPointsQuad = _gaussIntegrationQuadHighPoints;
-            }
-            else if (value > 0.01)
-            {
-                gaussPointsTri = _gaussIntegrationTriMidPoints;
-                gaussPointsQuad = _gaussIntegrationQuadMidPoints;
-            }
-            else
-            {
-                gaussPointsTri = _gaussIntegrationTriLowPoints;
-                gaussPointsQuad = _gaussIntegrationQuadLowPoints;
-            }
-
-            double deltaN;
-            double deltaMx;
-            double deltaMy;
-
-            if (face.IsTriangle)
-            {
-                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)),
-                    points, gaussPointsTri);
-                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) *
-                    (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
-                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) *
-                    (x - ConcreteSection.Centroid.X), points, gaussPointsTri);
-            }
-            else if (face.IsQuad)
-            {
-                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)),
-                    points, gaussPointsQuad);
-                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) *
-                    (y - ConcreteSection.Centroid.Y), points, gaussPointsQuad);
-                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) *
-                    (x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
-            }
-            else
-                throw new NotSupportedException();
-
-            return new ForceTuple(deltaN, deltaMx, deltaMy);
         }
 
         /// <summary>
@@ -586,6 +554,22 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return new ForceTuple(deltaNArray, -deltaMxArray, deltaMyArray);
         }
 
+        /// <summary>
+        /// Calculate the resultant of all the rebars
+        /// </summary>
+        /// <param name="strainPlanes">The strain plane</param>
+        protected virtual ForceTuple[] IntegrateRebarStress(StrainPlane[] strainPlanes, Dictionary<int, bool> rebarIsInsideAssociation)
+        {
+            ForceTuple[] returnValue = new ForceTuple[strainPlanes.Length];
+
+            for (int j = 0; j < strainPlanes.Length; j++)
+            {
+                returnValue[j] = IntegrateRebarStress(strainPlanes[j], rebarIsInsideAssociation);
+            }
+
+            return returnValue;
+        }
+
         /// <inheritdoc cref="IntegrateRebarStress(StrainPlane, Dictionary<int, bool>)"/>
         protected virtual async Task<ForceTuple> IntegrateRebarStressAsync(StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
@@ -593,9 +577,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 return IntegrateRebarStress(strainPlane, rebarIsInsideAssociation);
             });
-
         }
-
 
         /// <summary>
         /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
@@ -615,6 +597,27 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
+        protected virtual ForceTuple[] CalculateForceResultant(StrainPlane[] strainPlanes, Dictionary<int, bool> rebarIsInsideAssociation)
+        {
+            try
+            {
+                ForceTuple[] returnValue = new ForceTuple[strainPlanes.Length];
+
+                ForceTuple[] concreteStresses = IntegrateSectionStress(strainPlanes);
+				ForceTuple[] rebarStresses = IntegrateRebarStress(strainPlanes, rebarIsInsideAssociation);
+
+                for (int i = 0; i < strainPlanes.Length; i++)
+                    returnValue[i] = CalculatePureCompressionReduction(concreteStresses[i] + rebarStresses[i]) * GetReductionFactor(strainPlanes[i]);
+
+                return returnValue;
+            }
+            catch (Exception e)
+            {
+                _log.Add(e.Message);
+                _log.Add(e.InnerException.Message);
+                return null;
+            }
+        }
 
         /// <inheritdoc cref="CalculateForceResultant(StrainPlane, Dictionary{int, bool})"/>
         protected virtual async Task<ForceTuple> CalculateForceResultantAsync((StrainPlane, FailureZones) strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
@@ -623,7 +626,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 return CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
             });
-
         }
 
         /// <summary>
@@ -633,64 +635,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected virtual ForceTuple CalculateForceResultant((StrainPlane, FailureZones) strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             return CalculateForceResultant(strainPlane.Item1, rebarIsInsideAssociation);
-        }
-
-        /// <summary>
-        /// Calculate the resultants of face <paramref name="face"/>
-        /// </summary>
-        /// <param name="face"></param>
-        /// <param name="strainPlane"></param>
-        protected virtual ForceTuple IntegrateFaceStressLinearElastic(MeshFace face, StrainPlane strainPlane)
-        {
-            Point3d[] points = ConcreteSection.Mesh.GetFacePoints(face);
-
-            double value = Math.Abs(ConcreteSection.Mesh.GetFaceArea(face) / ConcreteSection.Area);
-
-            TriangleGaussPoints.GaussPointNumber gaussPointsTri;
-            QuadrangleGaussPoints.GaussPointNumber gaussPointsQuad;
-
-            if (value > 0.1)
-            {
-                gaussPointsTri = _gaussIntegrationTriHighPoints;
-                gaussPointsQuad = _gaussIntegrationQuadHighPoints;
-            }
-            else if (value > 0.01)
-            {
-                gaussPointsTri = _gaussIntegrationTriMidPoints;
-                gaussPointsQuad = _gaussIntegrationQuadMidPoints;
-            }
-            else
-            {
-                gaussPointsTri = _gaussIntegrationTriLowPoints;
-                gaussPointsQuad = _gaussIntegrationQuadLowPoints;
-            }
-
-            double deltaN;
-            double deltaMx;
-            double deltaMy;
-
-            if (face.IsTriangle)
-            {
-                deltaN = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))), 
-                    points, gaussPointsTri);
-                deltaMx = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
-                    (y - ConcreteSection.Centroid.Y), points, gaussPointsTri);
-                deltaMy = GaussIntegration.IntegrationTriangularLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
-                    (x - ConcreteSection.Centroid.X), points, gaussPointsTri);
-            }
-            else if (face.IsQuad)
-            {
-                deltaN = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))),
-                    points, gaussPointsQuad);
-                deltaMx = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
-                    (y - ConcreteSection.Centroid.Y), points, gaussPointsQuad);
-                deltaMy = GaussIntegration.IntegrationQuadrilateralLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(new Point2d(x, y))) *
-                    (x - ConcreteSection.Centroid.X), points, gaussPointsQuad);
-            }
-            else
-                throw new NotSupportedException();
-
-            return new ForceTuple(deltaN, deltaMx, deltaMy);
         }
 
         /// <summary>
@@ -704,28 +648,22 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </returns>
         protected virtual ForceTuple IntegrateSectionStressLinearElastic(StrainPlane strainPlane)
         {
-            double[] deltaNArray = new double[ConcreteSection.Mesh.FacesCount];
-            double[] deltaMxArray = new double[ConcreteSection.Mesh.FacesCount];
-            double[] deltaMyArray = new double[ConcreteSection.Mesh.FacesCount];
-
             try
             {
-                Parallel.For(0, ConcreteSection.Mesh.FacesCount, (i) =>
-                {
-                    var forces = IntegrateFaceStressLinearElastic(ConcreteSection.Mesh.Faces[i + 1], strainPlane);
+                double deltaN = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(x, y)),
+                    _globalCoordinateGaussPoints);
+                double deltaMx = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y),
+                    _globalCoordinateGaussPoints);
+                double deltaMy = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X),
+                    _globalCoordinateGaussPoints);
 
-                    deltaNArray[i] = forces.N;
-                    deltaMxArray[i] = forces.Mx;
-                    deltaMyArray[i] = forces.My;
-                });
+                return new ForceTuple(deltaN, -deltaMx, deltaMy);
             }
             catch (Exception e)
             {
                 _log.Add(e.Message);
                 return new ForceTuple();
             }
-
-            return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
         }
 
         /// <summary>
