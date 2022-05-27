@@ -557,13 +557,13 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 
 		#region Check
 
-		protected void FailureDomainCommonAssertModelCode(IConcreteSection section, SectionChecker sectionChecker, StandardModelCode2010 standard, double errorPerc = 5)
+		protected void FailureDomainCommonAssertModelCode(IConcreteSection section, SectionChecker sectionChecker, StandardModelCode2010 standard, double errorPerc = 5, bool showDomain = false)
 		{
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
-			CommonAssertsFailureDomainModelCode(section, standard, plasticFailureDomain.Domain, errorPerc);
-			CommonAssertsFailureDomainModelCode(section, standard, elasticFailureDomain.Domain, errorPerc);
+			CommonAssertsFailureDomainModelCode(section, standard, plasticFailureDomain.Domain, errorPerc, showDomain);
+			CommonAssertsFailureDomainModelCode(section, standard, elasticFailureDomain.Domain, errorPerc, showDomain);
 		}
 
 		protected void CheckFailureDomainLimit(ForceTuple force, ForceTuple expForce, double tolerance = 0.1)
@@ -835,7 +835,7 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 								  $"{Math.Round(failureDomain.DomainPoints[i].NRd / 1000)}");
 		}
 
-		protected void CommonAssertsFailureDomainModelCode(IConcreteSection section, StandardModelCode2010 standard, FailureDomain failureDomain, double errorPercentage = 10.0)
+		protected void CommonAssertsFailureDomainModelCode(IConcreteSection section, StandardModelCode2010 standard, FailureDomain failureDomain, double errorPercentage = 10.0, bool showDomain = false)
 		{
 			List<Point3d> failureDomainPoints = new List<Point3d>();
 
@@ -925,6 +925,11 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 				(Math.Abs(NRdMax.X) > 1 && Math.Abs(pureTractionMomentY) > 1));
 
 			ShowDomainPoints(failureDomain);
+
+			if(showDomain)
+			{
+				ExportToGmsh(failureDomain.GetMesh());
+			}
 		}
 
 		protected bool CommonAssertsVCA(StressAnalysisResult result, IConcreteSection section, (Point2d rebar, double tension)[] concreteTensionsCalculate,
