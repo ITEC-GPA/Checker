@@ -586,7 +586,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 				double[] res = GaussIntegration.IntegrationLinearShapeFunction(functions, _globalCoordinateGaussPoints);
 
                 for (int j = 0; j < strainPlane.Length; j++)
-                    returnValue[j] = new ForceTuple(res[j * 3], res[j * 3 + 1], res[j * 3 + 2]);
+                    returnValue[j] = new ForceTuple(res[j * 3], -res[j * 3 + 1], res[j * 3 + 2]);
 
                 return returnValue;
             }

@@ -44,7 +44,7 @@ namespace ConcreteTests
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
             sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
+            
             // coppia Nrd/Mrd per questa combinazione di u/v
             double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
             double Ms = u * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
