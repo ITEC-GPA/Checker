@@ -456,6 +456,88 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(ConcreteSection.Mesh, _gaussIntegrationQuadHighPoints, _gaussIntegrationTriHighPoints);
         }
 
+        #region Force resultant 
+
+        /// <summary>
+        /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
+        /// </summary>
+        /// <returns>The forces in the local reference system</returns>
+        protected virtual ForceTuple CalculateForceResultant(StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
+        {
+            try
+            {
+                return CalculatePureCompressionReduction((IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation)) * GetReductionFactor(strainPlane));
+            }
+            catch (Exception e)
+            {
+                _log.Add(e.Message);
+                _log.Add(e.InnerException.Message);
+                return new ForceTuple();
+            }
+        }
+
+        protected virtual ForceTuple[] CalculateForceResultant(StrainPlane[] strainPlanes, Dictionary<int, bool> rebarIsInsideAssociation)
+        {
+            try
+            {
+                ForceTuple[] returnValue = new ForceTuple[strainPlanes.Length];
+
+                ForceTuple[] concreteStresses = IntegrateSectionStress(strainPlanes);
+                ForceTuple[] rebarStresses = IntegrateRebarStress(strainPlanes, rebarIsInsideAssociation);
+
+                for (int i = 0; i < strainPlanes.Length; i++)
+                    returnValue[i] = CalculatePureCompressionReduction(concreteStresses[i] + rebarStresses[i]) * GetReductionFactor(strainPlanes[i]);
+
+                return returnValue;
+            }
+            catch (Exception e)
+            {
+                _log.Add(e.Message);
+                _log.Add(e.InnerException.Message);
+                return null;
+            }
+        }
+
+        /// <inheritdoc cref="CalculateForceResultant(StrainPlane, Dictionary{int, bool})"/>
+        protected virtual async Task<ForceTuple> CalculateForceResultantAsync((StrainPlane, FailureZones) strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
+        {
+            return await Task.Run(() =>
+            {
+                return CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
+            });
+        }
+
+        /// <summary>
+        /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
+        /// </summary>
+        /// <returns>The forces in the local reference system</returns>
+        protected virtual ForceTuple CalculateForceResultant((StrainPlane, FailureZones) strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
+        {
+            return CalculateForceResultant(strainPlane.Item1, rebarIsInsideAssociation);
+        }
+
+        /// <summary>
+        /// Integrate the stress on the section given by the <paramref name="strainPlane"/> with homogenization coefficient and gives the resultant forces
+        /// </summary>
+        /// <returns>The forces in the local reference system</returns>
+        protected virtual ForceTuple CalculateForceResultant(double psi, double? psiTendon, StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
+        {
+            try
+            {
+                return IntegrateSectionStressLinearElastic(strainPlane) + IntegrateRebarLinearStress(psi, psiTendon, strainPlane, rebarIsInsideAssociation);
+            }
+            catch (Exception e)
+            {
+                _log.Add(e.Message);
+                _log.Add(e.InnerException.Message);
+                return new ForceTuple();
+            }
+        }
+
+        #endregion
+
+        #region Concrete Integration
+
         /// <summary>
         /// Calculate the stress resultant of the concrete part
         /// </summary>
@@ -524,6 +606,33 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             });
         }
 
+        /// <returns>The design concrete stress related to <paramref name="strain"/> with linear elastic stress-strain diagram</returns>
+        public double CalculateElasticSigmaC(double strain)
+        {
+            if (strain < 0)
+            {
+                // compressione
+                return _concreteSection.ConcreteMaterial.E * strain;
+            }
+            else
+            {
+                // trazione
+                if (_considerTensileConcrete)
+                {
+                    return _concreteSection.ConcreteMaterial.E * strain;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
+        }
+
+        #endregion
+
+        #region Rebar Integration
+
         /// <summary>
         /// Calculate the resultant of all the rebars
         /// </summary>
@@ -578,64 +687,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 return IntegrateRebarStress(strainPlane, rebarIsInsideAssociation);
             });
-        }
-
-        /// <summary>
-        /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
-        /// </summary>
-        /// <returns>The forces in the local reference system</returns>
-        protected virtual ForceTuple CalculateForceResultant(StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
-        {
-            try
-            {
-                return CalculatePureCompressionReduction((IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation)) * GetReductionFactor(strainPlane));
-            }
-            catch (Exception e)
-            {
-                _log.Add(e.Message);
-                _log.Add(e.InnerException.Message);
-                return new ForceTuple();
-            }
-        }
-
-        protected virtual ForceTuple[] CalculateForceResultant(StrainPlane[] strainPlanes, Dictionary<int, bool> rebarIsInsideAssociation)
-        {
-            try
-            {
-                ForceTuple[] returnValue = new ForceTuple[strainPlanes.Length];
-
-                ForceTuple[] concreteStresses = IntegrateSectionStress(strainPlanes);
-				ForceTuple[] rebarStresses = IntegrateRebarStress(strainPlanes, rebarIsInsideAssociation);
-
-                for (int i = 0; i < strainPlanes.Length; i++)
-                    returnValue[i] = CalculatePureCompressionReduction(concreteStresses[i] + rebarStresses[i]) * GetReductionFactor(strainPlanes[i]);
-
-                return returnValue;
-            }
-            catch (Exception e)
-            {
-                _log.Add(e.Message);
-                _log.Add(e.InnerException.Message);
-                return null;
-            }
-        }
-
-        /// <inheritdoc cref="CalculateForceResultant(StrainPlane, Dictionary{int, bool})"/>
-        protected virtual async Task<ForceTuple> CalculateForceResultantAsync((StrainPlane, FailureZones) strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
-        {
-            return await Task.Run(() => 
-            {
-                return CalculateForceResultant(strainPlane, rebarIsInsideAssociation);
-            });
-        }
-
-        /// <summary>
-        /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
-        /// </summary>
-        /// <returns>The forces in the local reference system</returns>
-        protected virtual ForceTuple CalculateForceResultant((StrainPlane, FailureZones) strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
-        {
-            return CalculateForceResultant(strainPlane.Item1, rebarIsInsideAssociation);
         }
 
         /// <summary>
@@ -703,51 +754,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
         }
 
-        /// <summary>
-        /// Integrate the stress on the section given by the <paramref name="strainPlane"/> with homogenization coefficient and gives the resultant forces
-        /// </summary>
-        /// <returns>The forces in the local reference system</returns>
-        protected virtual ForceTuple CalculateForceResultant(double psi, double? psiTendon, StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
-        {
-            try
-            {
-                return IntegrateSectionStressLinearElastic(strainPlane) + IntegrateRebarLinearStress(psi, psiTendon, strainPlane, rebarIsInsideAssociation);
-            }
-            catch (Exception e)
-            {
-                _log.Add(e.Message);
-                _log.Add(e.InnerException.Message);
-                return new ForceTuple();
-            }
-        }
-
-        /// <returns>The design concrete stress related to <paramref name="strain"/> with linear elastic stress-strain diagram</returns>
-        public double CalculateElasticSigmaC(double strain)
-        {
-            if (strain < 0)
-            {
-                // compressione
-                return _concreteSection.ConcreteMaterial.E * strain;
-            }
-            else
-            {
-                // trazione
-                if (_considerTensileConcrete)
-                {
-                    return _concreteSection.ConcreteMaterial.E * strain;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-
-        }
-
         public double CalculateElasticSigmaS(double psi, ReinforcedConcreteRebar rebar, double strain)
         {
             return rebar.RebarMaterial.E * (1 + psi) * strain + rebar.RebarMaterial.E * rebar.EpsilonP;
         }
+
+        #endregion
 
         protected virtual (double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, 
             double dminConcrete, int dMaxVertexIndex, double dmaxConcrete)
@@ -1853,9 +1865,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else if (inputFailureZone == FailureZones.F3B)
                     {
                         if (dEta >= 0.01)
-                            dE = 0.35;
+                            dE = 0.25;
                         else if (dEta >= 0.001)
-                            dE = 0.4;
+                            dE = 0.35;
                         else
                             dE = 0.5;
                     }
