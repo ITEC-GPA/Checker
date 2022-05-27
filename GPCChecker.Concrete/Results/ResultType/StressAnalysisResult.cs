@@ -211,11 +211,11 @@ namespace GPC.Checkers.Concrete.Results
 			}
 		}
 
-        public virtual bool GetConcreteTension(double n, Point2d point, out double tension)
+        public virtual bool GetConcreteTension(double psi, Point2d point, out double tension)
 		{
 			try
 			{
-                tension = GetConcreteTension(n, point);
+                tension = GetConcreteTension(psi, point);
                 return true;
 			}
 			catch (Exception)

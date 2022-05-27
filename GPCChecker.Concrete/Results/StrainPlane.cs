@@ -76,7 +76,7 @@ namespace GPC.Checkers.Concrete.Results
             _strainReferencePoint = epsilonCenterOfStrainPlane;
         }
 
-        internal StrainPlane(SerializationInfo info, StreamingContext context)
+        private StrainPlane(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             _referencePoint = (Point2d)info.GetValue("ReferecePoint", typeof(Point2d));
@@ -92,6 +92,11 @@ namespace GPC.Checkers.Concrete.Results
 		public double GetStrain(Point2d point)
         {
             return _strainReferencePoint + ChiX * (point.X - _referencePoint.X) + ChiY * (point.Y - _referencePoint.Y);
+        }
+
+        public double GetStrain(double x, double y)
+        {
+            return _strainReferencePoint + ChiX * (x - _referencePoint.X) + ChiY * (y - _referencePoint.Y);
         }
 
         public Line2d GetNeutralAxisRespectReferencePoint()

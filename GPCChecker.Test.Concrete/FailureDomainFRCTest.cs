@@ -1,20 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
-using GPC.Geometry.Meshes;
 using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
-using GPC.TestUtilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace ConcreteTests
 {
@@ -29,7 +25,7 @@ namespace ConcreteTests
 			double width = 300;
 			double concreteCover = 50;
 
-			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 25, 
+			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 25,
 				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear,
 				1.0, 1.00, 0.00195, 0.01, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC,
 				0, 0, 0, ConcreteMaterialModelCode2010.CementType.ClassN);
@@ -38,7 +34,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
@@ -55,9 +51,9 @@ namespace ConcreteTests
 
 			BoundingBox3d bBox = GetBoundingBox(plasticFailureDomain.Domain);
 
-			var maxFT = CalculateAdimensionalForces(section,
+			ForceTuple maxFT = CalculateAdimensionalForces(section,
 				new ForceTuple(minCompression.Z - bBox.Min.Z, 0, 0));
-			var minFT = CalculateAdimensionalForces(section,
+			ForceTuple minFT = CalculateAdimensionalForces(section,
 				new ForceTuple(maxTraction.Z - bBox.Max.Z, 0, 0));
 
 			Assert.IsTrue(Math.Abs(maxFT.N) < 0.015);
@@ -80,51 +76,31 @@ namespace ConcreteTests
 		public void RectangularSectionTest2()
 		{
 			double h = 500;
+			Shape2d shape = GetRectangularShape(h, h);
 
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-			{
-				new Point2d(0, 0),
-				new Point2d(h, 0),
-				new Point2d(h, h),
-				new Point2d(0, h)
-			}));
-
-			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 25, 
-				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear, 1.0, 1.00, 5E-5, 0.01, 
-				ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC, 
+			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 25,
+				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear, 1.0, 1.00, 5E-5, 0.01,
+				ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC,
 				0, 0, 0, ConcreteMaterialModelCode2010.CementType.ClassN);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-			};
-
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-			section.AddRebars(rebars);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
-
-			ShowDomainPoints(plasticFailureDomain.Domain);
-
-			//ExportToGmsh(plasticFailureDomain.Domain);
-			//ExportToGmsh(elasticFailureDomain.Domain);			
 
 			Point3d maxTraction = new Point3d(0, 0, 166666);
 			Point3d minCompression = new Point3d(0, 0, -3537000);
 
 			BoundingBox3d bBox = GetBoundingBox(plasticFailureDomain.Domain);
 
-			var maxFT = CalculateAdimensionalForces(section,
-				new ForceTuple(minCompression.Z - bBox.Min.Z, 0, 0));
-			var minFT = CalculateAdimensionalForces(section,
-				new ForceTuple(maxTraction.Z - bBox.Max.Z, 0, 0));
+			ForceTuple maxFT = CalculateAdimensionalForces(section, new ForceTuple(minCompression.Z - bBox.Min.Z, 0, 0));
+			ForceTuple minFT = CalculateAdimensionalForces(section, new ForceTuple(maxTraction.Z - bBox.Max.Z, 0, 0));
 
 			Assert.IsTrue(Math.Abs(maxFT.N) < 0.015);
 			Assert.IsTrue(Math.Abs(maxFT.Mx) < 0.01);
@@ -134,12 +110,14 @@ namespace ConcreteTests
 			Assert.IsTrue(Math.Abs(minFT.Mx) < 0.01);
 			Assert.IsTrue(Math.Abs(minFT.My) < 0.01);
 
-			FailureDomain.FailureDomainPoint domainPoint = plasticFailureDomain.AddForce(new ResultBeamForces(0, 0, 0, 0, 10 * 1000000, 0,
-				GetLocalCoordinateSystem(section), 1));
+			FailureDomain.FailureDomainPoint domainPoint = plasticFailureDomain.AddForce(new ResultBeamForces(0, 0, 0, 0, 10 * 1000000, 0, GetLocalCoordinateSystem(section), 1));
 
 			Point3d expDomainPoint = new Point3d(40 * 1000000, 0, 0);
 
-			Assert.IsTrue(Math.Abs(expDomainPoint.X - domainPoint.MxRd) / domainPoint.MxRd * 100 < 5);
+			Console.WriteLine(domainPoint.Point.ToString());
+			Console.WriteLine(Math.Abs(expDomainPoint.X - domainPoint.MxRd) / domainPoint.MxRd * 100);
+
+			Assert.IsTrue(Math.Abs(expDomainPoint.X - domainPoint.MxRd) / domainPoint.MxRd * 100 < 5, domainPoint.Point.ToString());
 		}
 
 		[TestMethod]
@@ -165,7 +143,7 @@ namespace ConcreteTests
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
@@ -182,10 +160,8 @@ namespace ConcreteTests
 
 			BoundingBox3d bBox = GetBoundingBox(plasticFailureDomain.Domain);
 
-			var maxFT = CalculateAdimensionalForces(section,
-				new ForceTuple(minCompression.Z - bBox.Min.Z, 0, 0));
-			var minFT = CalculateAdimensionalForces(section,
-				new ForceTuple(maxTraction.Z - bBox.Max.Z, 0, 0));
+			ForceTuple maxFT = CalculateAdimensionalForces(section, new ForceTuple(minCompression.Z - bBox.Min.Z, 0, 0));
+			ForceTuple minFT = CalculateAdimensionalForces(section, new ForceTuple(maxTraction.Z - bBox.Max.Z, 0, 0));
 
 			Assert.IsTrue(Math.Abs(maxFT.N) < 0.015);
 			Assert.IsTrue(Math.Abs(maxFT.Mx) < 0.01);
@@ -209,42 +185,28 @@ namespace ConcreteTests
 			double height = 1000;
 			double width = 300;
 
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-			{
-				new Point2d(0, 0),
-				new Point2d(width, 0),
-				new Point2d(width, height),
-				new Point2d(0, height)
-			}));
+			Shape2d shape = GetRectangularShape(width, height);
 
-			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 40, ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear,
+			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 40, 
+				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear,
 				 1.0, 1.0, 0.00195, 0.02, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
-			StandardEN1992p11 standard = new StandardEN1992p11();
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
-
+			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardEN1992p11(), true);
 			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			//var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
 			ShowDomainPoints(plasticFailureDomain.Domain);
-
-			//ExportToGmsh(plasticFailureDomain.Domain);
-			//ExportToGmsh(elasticFailureDomain.Domain);			
 
 			Point3d maxTraction = new Point3d(0, 0, 200000);
 			Point3d minCompression = new Point3d(0, 0, -8000000);
 
 			BoundingBox3d bBox = GetBoundingBox(plasticFailureDomain.Domain);
 
-			var maxFT = CalculateAdimensionalForces(section,
-				new ForceTuple(minCompression.Z - bBox.Min.Z, 0, 0));
-			var minFT = CalculateAdimensionalForces(section,
+			ForceTuple maxFT = CalculateAdimensionalForces(section,
+							new ForceTuple(minCompression.Z - bBox.Min.Z, 0, 0));
+			ForceTuple minFT = CalculateAdimensionalForces(section,
 				new ForceTuple(maxTraction.Z - bBox.Max.Z, 0, 0));
 
 			Assert.IsTrue(Math.Abs(maxFT.N) < 0.01);
@@ -360,7 +322,7 @@ namespace ConcreteTests
 			ConcreteSectionRectangular section = new ConcreteSectionRectangular(height, width, concreteMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = 
+			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, new StandardModelCode2010(), true);
 
@@ -454,13 +416,13 @@ namespace ConcreteTests
 			var plasticFailureDomain4 = sectionChecker4.GetPlasticFailureDomainResult();
 			var plasticFailureDomain5 = sectionChecker5.GetPlasticFailureDomainResult();
 
-			//ShowDomainPoints(plasticFailureDomain1.Domain);
-			//ShowDomainPoints(plasticFailureDomain2.Domain);
-			//ShowDomainPoints(plasticFailureDomain3.Domain);
-			//ShowDomainPoints(plasticFailureDomain4.Domain);
+			ShowDomainPoints(plasticFailureDomain1.Domain);
+			ShowDomainPoints(plasticFailureDomain2.Domain);
+			ShowDomainPoints(plasticFailureDomain3.Domain);
+			ShowDomainPoints(plasticFailureDomain4.Domain);
 			ShowDomainPoints(plasticFailureDomain5.Domain);
 
-			ExportToGmsh(new FailureDomain[] { plasticFailureDomain1.Domain, plasticFailureDomain2.Domain, plasticFailureDomain3.Domain, plasticFailureDomain4.Domain, plasticFailureDomain5.Domain });
+			//ExportToGmsh(new FailureDomain[] { plasticFailureDomain1.Domain, plasticFailureDomain2.Domain, plasticFailureDomain3.Domain, plasticFailureDomain4.Domain, plasticFailureDomain5.Domain });
 		}
 
 		[TestMethod]
@@ -557,17 +519,11 @@ namespace ConcreteTests
 			var plasticFailureDomain4 = sectionChecker4.GetPlasticFailureDomainResult();
 			var plasticFailureDomain5 = sectionChecker5.GetPlasticFailureDomainResult();
 
-			//ExportToGmsh(section5);
-			//ShowDomainPoints(plasticFailureDomain1.Domain);
-			//ShowDomainPoints(plasticFailureDomain2.Domain);
-			//ShowDomainPoints(plasticFailureDomain3.Domain);
-			//ShowDomainPoints(plasticFailureDomain4.Domain);
-			//ShowDomainPoints(plasticFailureDomain5.Domain);
-
-			//ExportToGmsh(new FailureDomain[] { plasticFailureDomain1.Domain, plasticFailureDomain2.Domain, 
-			//	plasticFailureDomain3.Domain, plasticFailureDomain4.Domain, plasticFailureDomain5.Domain });
-
-			ExportToGmsh(plasticFailureDomain1.Domain.GetMesh());
+			ShowDomainPoints(plasticFailureDomain1.Domain);
+			ShowDomainPoints(plasticFailureDomain2.Domain);
+			ShowDomainPoints(plasticFailureDomain3.Domain);
+			ShowDomainPoints(plasticFailureDomain4.Domain);
+			ShowDomainPoints(plasticFailureDomain5.Domain);
 		}
 
 		[TestMethod]

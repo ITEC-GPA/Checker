@@ -36,7 +36,7 @@ namespace GPC.Checkers.Concrete.Results
 		public FailureDomain(FailureDomainPoint[][] domainPoints, SectionSolver.FailureDomainTypes analysisType)
 		{
 			_domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
-			_axialForceSubdivision = 100;
+			_axialForceSubdivision = 50;
 			_analysisType = analysisType;
 		}
 
@@ -241,7 +241,7 @@ namespace GPC.Checkers.Concrete.Results
 			return failureDomain;
 		}	
 
-		protected FailureDomain RebuildFailureDomainAlongZAxis(FailureDomain failureDomain, int axialForceSubdivision = 50, double tolerance = 0.1)
+		protected FailureDomain RebuildFailureDomainAlongZAxis(FailureDomain failureDomain, int axialForceSubdivision = 50, double tolerance = 1)
 		{
 			(double maximum, double minimum) limits = GetAxialForceLimits(out FailureDomainPoint maxPoint, out FailureDomainPoint minPoint);
 
@@ -309,7 +309,7 @@ namespace GPC.Checkers.Concrete.Results
 									failureDomain.DomainPoints[dTeta][i].StrainPlane);
 								startingCount[dEta + 1] = i;
 								break;
-							}
+							}							
 						}
 					}
 				}
@@ -330,12 +330,12 @@ namespace GPC.Checkers.Concrete.Results
 			{
 				for (int j = 0; j < DomainPoints[i].Length; j++)
 				{
-					if (DomainPoints[i][j].NRd < min)
+					if (DomainPoints[i][j].NRd <= min)
 					{
 						min = DomainPoints[i][j].NRd;
 						minimumPoint = DomainPoints[i][j];
 					}
-					if (DomainPoints[i][j].NRd > max)
+					if (DomainPoints[i][j].NRd >= max)
 					{
 						max = DomainPoints[i][j].NRd;
 						maximumPoint = DomainPoints[i][j];
@@ -343,42 +343,30 @@ namespace GPC.Checkers.Concrete.Results
 				}
 			}
 
-			List< FailureDomainPoint > minList = new List<FailureDomainPoint>();
-			List< FailureDomainPoint > maxList = new List<FailureDomainPoint>();
+			List<FailureDomainPoint> minList = new List<FailureDomainPoint>();
+			List<FailureDomainPoint> maxList = new List<FailureDomainPoint>();
 
 			for (int i = 0; i < DomainPoints.Length; i++)
 			{
 				for (int j = 0; j < DomainPoints[i].Length; j++)
 				{
-					if (Math.Abs(DomainPoints[i][j].NRd - min) < 1000)					
+					if (Math.Abs(DomainPoints[i][j].NRd - min) < 1000)
 						minList.Add(DomainPoints[i][j]);
 
-					if (Math.Abs(DomainPoints[i][j].NRd - max) < 1000)					
-						maxList.Add(DomainPoints[i][j]);					
+					if (Math.Abs(DomainPoints[i][j].NRd - max) < 1000)
+						maxList.Add(DomainPoints[i][j]);
 				}
 			}
 
 			if (minList.Count > 0)
 			{
 				ForceTuple forceMin = new ForceTuple(minList.Select(i => i.NRd).Average(), minList.Select(i => i.MxRd).Average(), minList.Select(i => i.MyRd).Average());
-				StrainPlane strainPlane = new StrainPlane(new Point2d(
-					minList.Select(i => i.StrainPlane.ReferencePoint.X).Average(),
-					minList.Select(i => i.StrainPlane.ReferencePoint.Y).Average()),
-					minList.Select(i => i.StrainPlane.Teta).Average(), 
-					minList.Select(i => i.StrainPlane.Chi).Average(),
-					minList.Select(i => i.StrainPlane.StrainReferencePoint).Average());
-				minimumPoint = new FailureDomainPoint(forceMin, minimumPoint.FailureIndex, strainPlane);
+				minimumPoint = new FailureDomainPoint(forceMin, minList.FirstOrDefault().FailureIndex, minList.FirstOrDefault().StrainPlane);
 			}
 			if (maxList.Count > 0)
 			{
 				ForceTuple forceMax = new ForceTuple(maxList.Select(i => i.NRd).Average(), maxList.Select(i => i.MxRd).Average(), maxList.Select(i => i.MyRd).Average());
-				StrainPlane strainPlane = new StrainPlane(new Point2d(
-					maxList.Select(i => i.StrainPlane.ReferencePoint.X).Average(),
-					maxList.Select(i => i.StrainPlane.ReferencePoint.Y).Average()),
-					maxList.Select(i => i.StrainPlane.Teta).Average(), 
-					maxList.Select(i => i.StrainPlane.Chi).Average(),
-					maxList.Select(i => i.StrainPlane.StrainReferencePoint).Average());
-				maximumPoint = new FailureDomainPoint(forceMax, maximumPoint.FailureIndex, strainPlane);
+				maximumPoint = new FailureDomainPoint(forceMax, maxList.FirstOrDefault().FailureIndex, maxList.FirstOrDefault().StrainPlane);
 			}
 
 			return (max, min);

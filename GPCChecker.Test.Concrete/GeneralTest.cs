@@ -23,9 +23,9 @@ namespace ConcreteTests
     [TestClass]
     public class GeneralTest : ConcreteTestBase
     {
-		#region Async test
+        #region Async test
 
-		[TestMethod]
+        [TestMethod]
         public void AsyncTest1()
         {
             RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterial.B450C);
@@ -109,10 +109,10 @@ namespace ConcreteTests
             var assembly = Assembly.Load(assemblyName);
             var classes = assembly.GetTypes().Where(a => a.IsClass && a.Namespace != null && a.Namespace.Contains(nameSpace)).ToList();
 
-            foreach(var c in classes)
-			{
+            foreach (var c in classes)
+            {
                 Assert.IsTrue(SerializationClassesCommonAsserts(c));
-            }                
+            }
         }
 
         [TestMethod]
@@ -178,7 +178,7 @@ namespace ConcreteTests
 
                 if (s.Equals(oggettoDeserializzato))
                 {
-                    if(s.ConcreteMaterial != oggettoDeserializzato.ConcreteMaterial ||
+                    if (s.ConcreteMaterial != oggettoDeserializzato.ConcreteMaterial ||
                         s.ConcreteMaterialModelCode2010 != oggettoDeserializzato.ConcreteMaterialModelCode2010 ||
                         s.ConcreteSection.Shape != oggettoDeserializzato.ConcreteSection.Shape ||
                         s.ConsiderTensileConcrete != oggettoDeserializzato.ConsiderTensileConcrete)
@@ -228,7 +228,7 @@ namespace ConcreteTests
             Assert.IsTrue(sectionChecker == sectionChecker2);
 
             sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute,
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());            
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());
             sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute,
                 new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());
 

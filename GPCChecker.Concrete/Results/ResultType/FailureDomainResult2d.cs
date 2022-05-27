@@ -20,7 +20,7 @@ namespace GPC.Checkers.Concrete.Results
         [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum DomainTypes
 		{
-            [Description("Constant axial force")]
+            [Description("Constant N")]
             ConstantN,
 
             [Description("Constant eccentricity")]
