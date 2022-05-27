@@ -985,25 +985,25 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			double distance = double.MaxValue;
 			Point3d nearestPoint = new Point3d();
 
-			for (int i = 0; i < failureDomain.Domain.DomainPoints.GetLength(0); i++)
+			failureDomain.Domain.SetAxialForceSubdivision(100);
+			Mesh mesh = failureDomain.Domain.GetMesh();
+
+			for (int i = 1; i <= mesh.VerticesCount; i++)
 			{
-				for (int j = 0; j < failureDomain.Domain.DomainPoints[i].GetLength(0); j++)
+				double d = new Point3d(mesh.Vertices[i].Point.X / 1000000, mesh.Vertices[i].Point.Y / 1000000,
+					mesh.Vertices[i].Point.Z / 1000).DistanceTo(new Point3d(expForce.Mx / 1000000, expForce.My / 1000000, expForce.N / 1000));
+
+				Point3d dist = mesh.Vertices[i].Point - new Point3d(expForce);
+				ForceTuple f = new ForceTuple(dist.Z, dist.X, dist.Y);
+				ForceTuple adimForces = CalculateAdimensionalForces(section, f);
+
+				if (Math.Abs(adimForces.N) < adimTolerance && Math.Abs(adimForces.Mx) < adimTolerance && Math.Abs(adimForces.My) < adimTolerance)
+					check = true;
+
+				if (d < distance)
 				{
-					double d = new Point3d(failureDomain.Domain.DomainPoints[i][j].Point.X / 1000000, failureDomain.Domain.DomainPoints[i][j].Point.Y / 1000000,
-						failureDomain.Domain.DomainPoints[i][j].Point.Z / 1000).DistanceTo(new Point3d(expForce.Mx / 1000000, expForce.My / 1000000, expForce.N / 1000));
-
-					Point3d dist = failureDomain.Domain.DomainPoints[i][j].Point - new Point3d(expForce);
-					ForceTuple f = new ForceTuple(dist.Z, dist.X, dist.Y);
-					ForceTuple adimForces = CalculateAdimensionalForces(section, f);
-
-					if (Math.Abs(adimForces.N) < adimTolerance && Math.Abs(adimForces.Mx) < adimTolerance && Math.Abs(adimForces.My) < adimTolerance)
-						check = true;
-
-					if (d < distance)
-					{
-						nearestPoint = failureDomain.Domain.DomainPoints[i][j].Point;
-						distance = d;
-					}
+					nearestPoint = mesh.Vertices[i].Point;
+					distance = d;
 				}
 			}
 

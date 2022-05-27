@@ -416,10 +416,10 @@ namespace ConcreteTests
 			var plasticFailureDomain4 = sectionChecker4.GetPlasticFailureDomainResult();
 			var plasticFailureDomain5 = sectionChecker5.GetPlasticFailureDomainResult();
 
-			//ShowDomainPoints(plasticFailureDomain1.Domain);
-			//ShowDomainPoints(plasticFailureDomain2.Domain);
-			//ShowDomainPoints(plasticFailureDomain3.Domain);
-			//ShowDomainPoints(plasticFailureDomain4.Domain);
+			ShowDomainPoints(plasticFailureDomain1.Domain);
+			ShowDomainPoints(plasticFailureDomain2.Domain);
+			ShowDomainPoints(plasticFailureDomain3.Domain);
+			ShowDomainPoints(plasticFailureDomain4.Domain);
 			ShowDomainPoints(plasticFailureDomain5.Domain);
 
 			//ExportToGmsh(new FailureDomain[] { plasticFailureDomain1.Domain, plasticFailureDomain2.Domain, plasticFailureDomain3.Domain, plasticFailureDomain4.Domain, plasticFailureDomain5.Domain });
@@ -519,16 +519,11 @@ namespace ConcreteTests
 			var plasticFailureDomain4 = sectionChecker4.GetPlasticFailureDomainResult();
 			var plasticFailureDomain5 = sectionChecker5.GetPlasticFailureDomainResult();
 
-			//ExportToGmsh(section5);
-			//ShowDomainPoints(plasticFailureDomain1.Domain);
-			//ShowDomainPoints(plasticFailureDomain2.Domain);
-			//ShowDomainPoints(plasticFailureDomain3.Domain);
-			//ShowDomainPoints(plasticFailureDomain4.Domain);
-			//ShowDomainPoints(plasticFailureDomain5.Domain);
-
-			//ExportToGmsh(new FailureDomain[] { plasticFailureDomain1.Domain, plasticFailureDomain2.Domain, 
-			//	plasticFailureDomain3.Domain, plasticFailureDomain4.Domain, plasticFailureDomain5.Domain });
-
+			ShowDomainPoints(plasticFailureDomain1.Domain);
+			ShowDomainPoints(plasticFailureDomain2.Domain);
+			ShowDomainPoints(plasticFailureDomain3.Domain);
+			ShowDomainPoints(plasticFailureDomain4.Domain);
+			ShowDomainPoints(plasticFailureDomain5.Domain);
 		}
 
 		[TestMethod]
