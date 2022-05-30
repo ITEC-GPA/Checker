@@ -945,46 +945,86 @@ namespace ConcreteTests
                 new ResultBeamForces(0 * 1000, 0, 0, 0, 0 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(0 * 1000, 0, 0, 0, -10 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, standard, true);
+
+            CommonAssertNeutralAxis(sectionChecker, section, phi);
+        }
+
+        [TestMethod]
+        public void NeutralAxisTest2()
+        {
+            double rebarDiameter = 20;
+            double height = 400;
+            double width = 400;
+            double concreteCover = 40;
+            double phi = 1.36;
+
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C25_30);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {                
                 new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(0 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(0 * 1000, 0, 0, 0, -10 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(0 * 1000, 0, 0, 0, 0 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, standard, true);
+
+            CommonAssertNeutralAxis(sectionChecker, section, phi);
+        }
+
+        [TestMethod]
+        public void NeutralAxisTest3()
+        {
+            double rebarDiameter = 20;
+            double height = 400;
+            double width = 400;
+            double concreteCover = 40;
+            double phi = 1.36;
+
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C25_30);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
                 new ResultBeamForces(-100 * 1000, 0, 0, 0, 10 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-100 * 1000, 0, 0, 0, 0 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-100 * 1000, 0, 0, 0, 10 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-100 * 1000, 0, 0, 0, -10 * 1000000, 10 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, standard, true);
+
+            CommonAssertNeutralAxis(sectionChecker, section, phi);
+        }
+
+        [TestMethod]
+        public void NeutralAxisTest4()
+        {
+            double rebarDiameter = 20;
+            double height = 400;
+            double width = 400;
+            double concreteCover = 40;
+            double phi = 1.36;
+
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992.C25_30);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
                 new ResultBeamForces(-100 * 1000, 0, 0, 0, 10 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-100 * 1000, 0, 0, 0, -10 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-100 * 1000, 0, 0, 0, -10 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-100 * 1000, 0, 0, 0, 0 * 1000000, -10 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
-            //ExportToGmsh(section);
-            StressAnalysisResult[] slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, standard, true);
 
-            for (int i = 10; i < slsResult.Length; i++)
-            {
-                Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectReferencePoint();
-                neutralAxis.Move(section.Centroid.X, section.Centroid.Y);
-
-                Assert.IsTrue(neutralAxis.GetLength() > 1);
-                Assert.IsTrue(Math.Abs(neutralAxis.Start.DistanceTo(neutralAxis.End)) > 1);
-            }
-
-            slsResult = sectionChecker.GetStressAnalysisResult();
-
-            for (int i = 10; i < slsResult.Length; i++)
-            {
-                Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectReferencePoint();
-                neutralAxis.Move(section.Centroid.X, section.Centroid.Y);
-
-                Assert.IsTrue(neutralAxis.GetLength() > 1);
-                Assert.IsTrue(Math.Abs(neutralAxis.Start.DistanceTo(neutralAxis.End)) > 1);
-            }
+            CommonAssertNeutralAxis(sectionChecker, section, phi);
         }
     }
 }
