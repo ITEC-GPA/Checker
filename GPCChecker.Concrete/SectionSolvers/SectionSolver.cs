@@ -573,20 +573,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 ForceTuple[] returnValue = new ForceTuple[strainPlane.Length];
 
-				Func<double, double, double>[] functions = new Func<double, double, double>[strainPlane.Length * 3];
+                Func<double, double, (double, double, double)>[] functions = new Func<double, double, (double, double, double)>[strainPlane.Length];
 
 				for (int i = 0; i < strainPlane.Length; i++)
                 {
                     StrainPlane sp = strainPlane[i];
-                    functions[i * 3] = new Func<double, double, double>((x, y) => CalculateSigmaC(sp.GetStrain(x, y)));
-                    functions[i * 3 + 1] = new Func<double, double, double>((x, y) => CalculateSigmaC(sp.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y));
-                    functions[i * 3 + 2] = new Func<double, double, double>((x, y) => CalculateSigmaC(sp.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X));
+                    functions[i] = new Func<double, double, (double, double, double)>((x, y) => 
+                    (CalculateSigmaC(sp.GetStrain(x, y)), 
+                    CalculateSigmaC(sp.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y), 
+                    CalculateSigmaC(sp.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X)));
                 }
 
-				double[] res = GaussIntegration.IntegrationLinearShapeFunction(functions, _globalCoordinateGaussPoints);
+				(double, double, double)[] res = GaussIntegration.IntegrationLinearShapeFunction(functions, _globalCoordinateGaussPoints);
 
                 for (int j = 0; j < strainPlane.Length; j++)
-                    returnValue[j] = new ForceTuple(res[j * 3], -res[j * 3 + 1], res[j * 3 + 2]);
+                    returnValue[j] = new ForceTuple(res[j].Item1, -res[j].Item2, res[j].Item3);
 
                 return returnValue;
             }
