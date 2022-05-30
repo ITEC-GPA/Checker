@@ -1092,6 +1092,31 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			return true;
 		}
 
+		protected void CommonAssertNeutralAxis(SectionCheckerModelCode2010 sectionChecker, IConcreteSection section, double phi)
+		{
+			var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
+
+			for (int i = 10; i < slsResult.Length; i++)
+			{
+				Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectReferencePoint();
+				neutralAxis.Move(section.Centroid.X, section.Centroid.Y);
+
+				Assert.IsTrue(neutralAxis.GetLength() > 1);
+				Assert.IsTrue(Math.Abs(neutralAxis.Start.DistanceTo(neutralAxis.End)) > 1);
+			}
+
+			slsResult = sectionChecker.GetStressAnalysisResult();
+
+			for (int i = 10; i < slsResult.Length; i++)
+			{
+				Line2d neutralAxis = slsResult[i].StrainPlane.GetNeutralAxisRespectReferencePoint();
+				neutralAxis.Move(section.Centroid.X, section.Centroid.Y);
+
+				Assert.IsTrue(neutralAxis.GetLength() > 1);
+				Assert.IsTrue(Math.Abs(neutralAxis.Start.DistanceTo(neutralAxis.End)) > 1);
+			}
+		}
+
 		#endregion
 
 		#region Export To Gmsh
