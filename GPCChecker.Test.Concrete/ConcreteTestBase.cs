@@ -408,6 +408,30 @@ namespace ConcreteTests
 			return section;
 		}
 
+		protected ReinforcedConcreteSection GetCHS(double externalDiameter, double thickness, double concreteCover, int numberOfRebars,
+			double rebarDiameter, ConcreteMaterial concreteMaterial = null, SteelMaterial steelMaterial = null, double discretization = 16)
+		{
+			if (steelMaterial == null)
+				steelMaterial = SteelMaterial.B450C;
+			if (concreteMaterial == null)
+				concreteMaterial = ConcreteMaterialModelCode2010.C30_37_10;
+
+			Polygon2d fill = new Polygon2d(externalDiameter, discretization);
+			Polygon2d hole = new Polygon2d(externalDiameter - 2 * thickness, discretization);
+			Shape2d shape2D = new Shape2d(fill, new Polygon2d[] { hole });
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(new ShapeEx(shape2D, concreteMaterial));
+
+			Polygon2d polygon = new Polygon2d(externalDiameter - concreteCover * 2.0, numberOfRebars, section.Centroid);
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[polygon.Count];
+
+			RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, steelMaterial);
+			for (int i = 0; i < polygon.Count; i++)
+				rebars[i] = new ReinforcedConcreteRebar(rebarSection, polygon[i]);
+			section.AddRebars(rebars);
+
+			return section;
+		}
+
 		protected double GetPsi(double n, IConcreteSection section)
 		{
 			return n * section.ConcreteMaterial.E / section.GetRebars()[0].RebarMaterial.E - 1.0;
@@ -749,13 +773,14 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			}
 		}
 
-		protected void CommonAssertDomainPointMethodFRC(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
-			CoordinateSystem coordinateSystem, double adimTolerance = 0.005, double[] factor = null)
+		protected FailureDomain.FailureDomainPoint[] CommonAssertDomainPointMethodFRCMod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
+			CoordinateSystem coordinateSystem, double adimTolerance = 0.005, double[] factor = null, bool considerTensioleConcrete = true, 
+			SectionSolver.FailureAnalysisTypes failureAnalysisTypes = SectionSolver.FailureAnalysisTypes.ConstantEccentricity)
 		{
 			if (factor == null)
 				factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
 
-			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard, true);
+			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard, considerTensioleConcrete);
 			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
 			ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
 			int j = 0;
@@ -765,7 +790,7 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 				for (j = 0; j < factor.Length; j++)
 				{
 					testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-					failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem), coordinateSystem);
+					failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem), coordinateSystem, failureAnalysisTypes);
 				}
 			}
 			catch (Exception e)
@@ -816,6 +841,15 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 					$"{Math.Round(testForces[i].N / 1000)}");
 				}
 			}
+
+			return failureDomainPoints;
+		}
+
+		protected void CommonAssertDomainPointMethodFRC(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
+	CoordinateSystem coordinateSystem, double adimTolerance = 0.005, double[] factor = null, bool considerTensioleConcrete = true,
+	SectionSolver.FailureAnalysisTypes failureAnalysisTypes = SectionSolver.FailureAnalysisTypes.ConstantEccentricity)
+		{
+			var outPut = CommonAssertDomainPointMethodFRCMod(section, force, standard, coordinateSystem, adimTolerance, factor, considerTensioleConcrete, failureAnalysisTypes);
 		}
 
 		protected void ShowDomainPoints(FailureDomain failureDomain)
