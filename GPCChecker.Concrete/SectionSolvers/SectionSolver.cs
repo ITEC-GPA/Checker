@@ -578,10 +578,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 for (int i = 0; i < strainPlane.Length; i++)
                 {
                     StrainPlane sp = strainPlane[i];
-                    functions[i] = new Func<double, double, (double, double, double)>((x, y) =>
-                    (CalculateSigmaC(sp.GetStrain(x, y)),
-                    CalculateSigmaC(sp.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y),
-                    CalculateSigmaC(sp.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X)));
+                    functions[i] = new Func<double, double, (double, double, double)>((x, y) => 
+                        {
+                            var sigmaC = CalculateSigmaC(sp.GetStrain(x, y));
+
+                            return (sigmaC, sigmaC * (y - ConcreteSection.Centroid.Y), sigmaC * (x - ConcreteSection.Centroid.X));
+                        });
                 }
 
                 (double, double, double)[] res = GaussIntegration.IntegrationLinearShapeFunction(functions, _globalCoordinateGaussPoints);
