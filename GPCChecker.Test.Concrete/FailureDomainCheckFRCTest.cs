@@ -716,9 +716,8 @@ namespace ConcreteTests
 
             Console.WriteLine(forceOnDomain.ForceTuple.ToString());
 
-            Assert.AreEqual(forceOnDomain.ForceTuple.N, -800000, 1);
-            Assert.AreEqual(forceOnDomain.ForceTuple.Mx, 8351, 1);
-            Assert.AreEqual(forceOnDomain.ForceTuple.My, -159092037, 1);
+            Assert.AreEqual(forceOnDomain.ForceTuple.N / 1000, -800, 0.5);
+            Assert.AreEqual(forceOnDomain.ForceTuple.My / 1000000, -159.092037, 0.5);
         }
 
         private ResultBeamForces[] GetRandomResultBeamForces(IConcreteSection section)
