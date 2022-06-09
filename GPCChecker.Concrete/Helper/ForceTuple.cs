@@ -35,6 +35,7 @@ namespace GPC.Checkers.Concrete.Helper
 
         #region Constructor
 
+
         internal ForceTuple(double N, double Mx, double My)
         {
             _N = N;
@@ -145,6 +146,11 @@ namespace GPC.Checkers.Concrete.Helper
                 hashCode = hashCode * -23 + _My.GetHashCode();
                 return hashCode;
             }
+        }
+
+        public override string ToString()
+        {
+            return $"N: {_N}; MX: {_Mx}; MY: {_My};";
         }
 
         #endregion

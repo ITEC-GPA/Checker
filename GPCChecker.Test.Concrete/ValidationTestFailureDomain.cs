@@ -41,15 +41,10 @@ namespace ConcreteTests
             double rebarDiameter = Math.Sqrt(4 * (Atot / 4.0) / Math.PI);
 
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(b, h, rebarDiameter, h / 10, concreteMaterial, rebarMaterial);
-
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            //ExportToGmsh(failureDomain.Domain);
-
+            
             // coppia Nrd/Mrd per questa combinazione di u/v
             double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
             double Ms = u * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
@@ -78,13 +73,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(b, h, rebarDiameter, h / 10, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            //ExportToGmsh(failureDomain.Domain);
 
             // coppia Nrd/Mrd per questa combinazione di u/v
             double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -114,13 +105,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            //ExportToGmsh(failureDomain.Domain);
 
             // coppia Nrd/Mrd per questa combinazione di u/v
             double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -151,11 +138,8 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 
             // coppia Nrd/Mrd per questa combinazione di u/v
@@ -186,11 +170,8 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 
             // coppia Nrd/Mrd per questa combinazione di u/v
@@ -221,11 +202,8 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 
             // coppia Nrd/Mrd per questa combinazione di u/v
@@ -257,13 +235,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            //ExportToGmsh(failureDomain.Domain);
 
             // coppia Nrd/Mrd per questa combinazione di u/v
             double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -295,13 +269,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            //ExportToGmsh(failureDomain.Domain);
 
             // coppia Nrd/Mrd per questa combinazione di u/v
             double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -333,13 +303,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            //ExportToGmsh(failureDomain.Domain);
 
             // coppia Nrd/Mrd per questa combinazione di u/v
             double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -371,11 +337,8 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
 
             // coppia Nrd/Mrd per questa combinazione di u/v
@@ -408,13 +371,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            //ExportToGmsh(failureDomain.Domain);
 
             // coppia Nrd/Mrd per questa combinazione di u/v
             double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -446,13 +405,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            //ExportToGmsh(failureDomain.Domain);
 
             // coppia Nrd/Mrd per questa combinazione di u/v
             double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -484,13 +439,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            //ExportToGmsh(failureDomain.Domain);
 
             // coppia Nrd/Mrd per questa combinazione di u/v
             double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
@@ -522,13 +473,9 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
 
-            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(
-                GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
-
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+            sectionChecker.SectionSolver.SetTetaDiscretization(32);
             FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            //ExportToGmsh(failureDomain.Domain);
 
             // coppia Nrd/Mrd per questa combinazione di u/v
             double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;

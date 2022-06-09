@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using GPC.Checkers.Concrete.Attributes;
@@ -11,6 +13,7 @@ using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Materials;
+using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
@@ -52,11 +55,10 @@ namespace ConcreteTests
             Console.WriteLine(bb0);
         }
 
-		[TestMethod]
-		public void FailureDomainTest()
-		{
-			var section = GetRectangularSection4Rebars();
-
+        [TestMethod]
+        public void FailureDomainTest()
+        {
+            var section = GetRectangularSection4Rebars();
             SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new StandardEN1992p11());
 
             Action ac0 = new Action(() =>
@@ -66,35 +68,29 @@ namespace ConcreteTests
 
             var bb0 = MeasureTime.FunctionExecutionTime(10, ac0, true); ;
 
-			Console.WriteLine(bb0);
-		}
+            Console.WriteLine(bb0);
+        }
 
+        [TestMethod]
+        public void FailureDomainCircularSection2()
+        {
+			ReinforcedConcreteSection section = GetCircularSection();
+            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section);
 
-		[TestMethod]
-		public void FailureDomainCircularSection1()
-		{
-			var section = GetCircularSection();
-
-
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section);
-
-			SectionCheckerModelCode2010 checker = new SectionCheckerModelCode2010(sectionCheckerAttribute, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardModelCode2010());
-
-			checker.SectionSolver.SetTetaDiscretization(16);
-
-
-			//checker.GetPlasticFailureDomainResult();
-
-			//System.Diagnostics.Debugger.Break();
+            SectionCheckerModelCode2010 checker = new SectionCheckerModelCode2010(sectionCheckerAttribute, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardModelCode2010());
+            checker.SectionSolver.SetTetaDiscretization(16);
 
             Action ac0 = new Action(() =>
             {
                 checker.GetPlasticFailureDomainResult();
             });
 
-            var bb0 = MeasureTime.FunctionExecutionTime(10, ac0, true); ;
+            var bb0 = MeasureTime.FunctionExecutionTime(2, ac0, true); ;
 
             Console.WriteLine(bb0);
+
+            //ExportToGmsh(checker.GetPlasticFailureDomainResult().Domain.GetMesh());
+
         }
-	}
+    }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using GPC.Geometry;
@@ -76,7 +76,7 @@ namespace GPC.Checkers.Concrete.Results
             _strainReferencePoint = epsilonCenterOfStrainPlane;
         }
 
-        internal StrainPlane(SerializationInfo info, StreamingContext context)
+        private StrainPlane(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             _referencePoint = (Point2d)info.GetValue("ReferecePoint", typeof(Point2d));
@@ -94,17 +94,41 @@ namespace GPC.Checkers.Concrete.Results
             return _strainReferencePoint + ChiX * (point.X - _referencePoint.X) + ChiY * (point.Y - _referencePoint.Y);
         }
 
+        public double GetStrain(double x, double y)
+        {
+            return _strainReferencePoint + ChiX * (x - _referencePoint.X) + ChiY * (y - _referencePoint.Y);
+        }
+
         public Line2d GetNeutralAxisRespectReferencePoint()
         {
             if (_chiX == 0 && _chiY == 0)
                 return null;
-            else if (_chiY == 0 && _chiX != 0)            
-                return new Line2d(new Point2d(-StrainReferencePoint / _chiX, 100.0), new Point2d(-StrainReferencePoint / _chiX, -100.0));            
-            else if (_chiX == 0 && _chiY != 0)            
+            else if (_chiY == 0 && _chiX != 0)
+                return new Line2d(new Point2d(-StrainReferencePoint / _chiX, 100.0), new Point2d(-StrainReferencePoint / _chiX, -100.0));
+            else if (_chiX == 0 && _chiY != 0)
                 return new Line2d(new Point2d(100.0, -StrainReferencePoint / _chiY), new Point2d(-100.0, -StrainReferencePoint / _chiY));
             else
-                return new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY), new Point2d(-StrainReferencePoint / _chiX, 0.0));
+            {
+				Line2d line = new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY), new Point2d(-StrainReferencePoint / _chiX, 0.0));
+				Vector2d vector = line.ToVector();
+                vector.Unitize();
 
+                return new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY), new Point2d(0.0 + vector.X, -StrainReferencePoint / _chiY + vector.Y));
+            }
+        }
+
+
+        public Line2d GetNeutralAxis()
+        {
+            if (_chiX == 0 && _chiY == 0)
+                return null;
+            else if (_chiY == 0 && _chiX != 0)
+                return new Line2d(new Point2d(-StrainReferencePoint / _chiX, 100.0), new Point2d(-StrainReferencePoint / _chiX, -100.0));
+            else if (_chiX == 0 && _chiY != 0)
+                return new Line2d(new Point2d(100.0, -StrainReferencePoint / _chiY), new Point2d(-100.0, -StrainReferencePoint / _chiY));
+            else
+                return new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY + _chiX / _chiY * _referencePoint.X), 
+                    new Point2d(-StrainReferencePoint / _chiX + _chiY / _chiX * _referencePoint.Y, 0.0));
         }
 
         #endregion

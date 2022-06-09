@@ -46,10 +46,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
             };
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)            
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));            
         }
 
         [TestMethod]
@@ -78,10 +76,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section)), $"Force {i} fail");
-            }
+            for (int i = 0; i < forces.Length; i++)            
+                CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section));            
         }
 
         [TestMethod]
@@ -110,11 +106,9 @@ namespace ConcreteTests
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section),
-                    0.005, new double[] { 1.0 }), $"Force {i} fail");
-            }
+            for (int i = 0; i < forces.Length; i++)            
+                CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section),
+                    0.005, new double[] { 1.0 });            
         }
 
         [TestMethod]
@@ -145,10 +139,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-1500 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section))
             };
 
-            for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)            
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));            
         }
 
         [TestMethod]
@@ -179,10 +171,7 @@ namespace ConcreteTests
 			};
 
             for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section)), $"Force {i} fail");
-            }
+                CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section));            
         }
 
         [TestMethod]
@@ -208,11 +197,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, -120 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section))
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section)), $"Force {i} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -237,11 +223,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, -120 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section)), $"Force {i} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -268,11 +251,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-1800 * 1000, 0, 0, 0, -120 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section)), $"Force {i} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -306,13 +286,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-1800 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01),
-                    $"Force {i} fail");
-            }
-
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section), 0.01);
         }
 
         [TestMethod]
@@ -346,12 +321,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-1800 * 1000, 0, 0, 0, +30 * 1000000, +30 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01), $"Force {i} fail");
-            }
-
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -398,11 +369,8 @@ namespace ConcreteTests
                 new ResultBeamForces(0 * 1000, 0, 0, 0, 20 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
-            for (int i = 0; i < forces.Length; i++)
-            {
-                Console.WriteLine($"Force {i}");
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[i], standard, GetLocalCoordinateSystem(section), 0.01), $"Force {i} fail");
-            }
+            for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -425,9 +393,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -452,9 +418,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -478,9 +442,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -507,9 +469,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-            {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
-            }
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
         }
 
         [TestMethod]
@@ -542,10 +502,253 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
+        }
+
+        [TestMethod]
+        public void CircularHole1()
+        {
+            // \\studio\Software_Development\FilesForTesting\Libs\GPCChecker\ConcreteSolver\VCA_file\CHS_D500 
+
+            double rebarDiameter = 16;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 8;
+                        
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter,
+                ConcreteMaterialModelCode2010.C25_30_17);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int j = 0; j < forces.Length; j++)
             {
-                Assert.IsTrue(CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section)), $"Force {j} fail");
+				FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard, 
+                    GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
+                    false, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+                for (int i = 0; i < point.Length; i++)
+                    Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
+            }
+
+            for (int j = 0; j < forces.Length; j++)
+            {
+                FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
+                    GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
+                    true, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+                for (int i = 0; i < point.Length; i++)
+                    Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
             }
         }
 
+        [TestMethod]
+        public void CircularHole2()
+        {
+            double rebarDiameter = 8;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 8;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter,
+                ConcreteMaterialModelCode2010.C30_37_5);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int j = 0; j < forces.Length; j++)
+            {
+                FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
+                    GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
+                    false, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+                for (int i = 0; i < point.Length; i++)
+                    Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
+            }
+
+            for (int j = 0; j < forces.Length; j++)
+            {
+                FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
+                    GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
+                    true, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+                for (int i = 0; i < point.Length; i++)
+                    Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
+            }
+        }
+
+        [TestMethod]
+        public void CircularHole3()
+        {
+            double rebarDiameter = 8;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 16;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter,
+                ConcreteMaterialModelCode2010.C30_37_10);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int j = 0; j < forces.Length; j++)
+            {
+                FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
+                    GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
+                    false, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+                for (int i = 0; i < point.Length; i++)
+                    Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
+            }
+
+            for (int j = 0; j < forces.Length; j++)
+            {
+                FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
+                    GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
+                    true, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+                for (int i = 0; i < point.Length; i++)
+                    Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
+            }
+        }
+
+        [TestMethod]
+        public void CircularHole4()
+        {
+            double rebarDiameter = 8;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 16;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, 
+                numberOfRebars, rebarDiameter, ConcreteMaterialModelCode2010.C30_37_15);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int j = 0; j < forces.Length; j++)
+            {
+                FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
+                    GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
+                    false, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+                for (int i = 0; i < point.Length; i++)
+                    Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
+            }
+
+            for (int j = 0; j < forces.Length; j++)
+            {
+                FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
+                    GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
+                    true, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+                for (int i = 0; i < point.Length; i++)
+                    Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
+            }
+        }
+
+        [TestMethod]
+        public void CircularHole5()
+        {
+            double rebarDiameter = 8;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 16;
+
+            ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", -0.002, 0.0001,
+                new StressStrainTable(new double[] { 0, -50, -50 }, new double[] { 0, -0.002, -0.035 }),
+                new StressStrainTable(new double[] { 0, 5 }, new double[] { 0, 0.001 }), ConcreteMaterial.ConcreteTypes.FRC);
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover,
+                numberOfRebars, rebarDiameter, concreteMaterial);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int j = 0; j < forces.Length; j++)
+            {
+                FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
+                    GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
+                    false, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+                for (int i = 0; i < point.Length; i++)
+                    Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
+            }
+
+            for (int j = 0; j < forces.Length; j++)
+            {
+                FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
+                    GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
+                    true, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+                for (int i = 0; i < point.Length; i++)
+                    Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
+            }
+        }
+
+
+        [TestMethod]
+        public void CircularHole6()
+        {
+            double rebarDiameter = 8;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 12;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter, ConcreteMaterialModelCode2010.C28_35);
+
+            ResultBeamForces force = new ResultBeamForces(-800 * 1000, 0, 0, 0, 0, -100 * 10e6, GetLocalCoordinateSystem(section), 1);
+
+            SectionCheckerModelCode2010 sectionCheckerModelCode2010 = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section),
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), 
+                GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN), new StandardModelCode2010(), false);
+
+            var domain = sectionCheckerModelCode2010.GetPlasticFailureDomainResult();
+
+            var forceOnDomain = domain.AddForce(force);
+            
+            
+
+            Console.WriteLine(section.AngleX1);
+            Console.WriteLine(section.GetHomogeneizedJ22(1));
+            Console.WriteLine(section.GetHomogeneizedJ11(1));
+            Console.WriteLine(section.GetHomogenizedCentroid(1, out _, out _));
+
+            Assert.AreEqual(603.19, section.AreaRebars, 0.1);
+            Assert.AreEqual(122458.7, section.Area, 0.1);
+
+
+            Console.WriteLine(forceOnDomain.ForceTuple.ToString());
+
+            Assert.AreEqual(forceOnDomain.ForceTuple.N / 1000, -800, 0.5);
+            Assert.AreEqual(forceOnDomain.ForceTuple.My / 1000000, -159.092037, 0.5);
+        }
+
+        private ResultBeamForces[] GetRandomResultBeamForces(IConcreteSection section)
+        {
+            return new ResultBeamForces[]
+            {
+                new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-900 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-800 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-700 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-600 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-500 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-400 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-300 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-900 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-800 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-700 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-600 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-500 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-400 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-300 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-900 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-800 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-700 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-600 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-500 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-400 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-300 * 1000, 0, 0, 0, 50 * 1000000, 50 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+        }
     }
 }
