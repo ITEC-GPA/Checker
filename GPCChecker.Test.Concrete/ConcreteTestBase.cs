@@ -846,8 +846,8 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 		}
 
 		protected void CommonAssertDomainPointMethodFRC(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
-	CoordinateSystem coordinateSystem, double adimTolerance = 0.005, double[] factor = null, bool considerTensioleConcrete = true,
-	SectionSolver.FailureAnalysisTypes failureAnalysisTypes = SectionSolver.FailureAnalysisTypes.ConstantEccentricity)
+			CoordinateSystem coordinateSystem, double adimTolerance = 0.005, double[] factor = null, bool considerTensioleConcrete = true,
+			SectionSolver.FailureAnalysisTypes failureAnalysisTypes = SectionSolver.FailureAnalysisTypes.ConstantEccentricity)
 		{
 			var outPut = CommonAssertDomainPointMethodFRCMod(section, force, standard, coordinateSystem, adimTolerance, factor, considerTensioleConcrete, failureAnalysisTypes);
 		}

@@ -148,6 +148,11 @@ namespace GPC.Checkers.Concrete.Helper
             }
         }
 
+        public override string ToString()
+        {
+            return $"N: {_N}; MX: {_Mx}; MY: {_My};";
+        }
+
         #endregion
 
     }
