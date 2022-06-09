@@ -681,6 +681,46 @@ namespace ConcreteTests
             }
         }
 
+
+        [TestMethod]
+        public void CircularHole6()
+        {
+            double rebarDiameter = 8;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 12;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter, ConcreteMaterialModelCode2010.C28_35);
+
+            ResultBeamForces force = new ResultBeamForces(-800 * 1000, 0, 0, 0, 0, -100 * 10e6, GetLocalCoordinateSystem(section), 1);
+
+            SectionCheckerModelCode2010 sectionCheckerModelCode2010 = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section),
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), 
+                GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN), new StandardModelCode2010(), false);
+
+            var domain = sectionCheckerModelCode2010.GetPlasticFailureDomainResult();
+
+            var forceOnDomain = domain.AddForce(force);
+            
+            
+
+            Console.WriteLine(section.AngleX1);
+            Console.WriteLine(section.GetHomogeneizedJ22(1));
+            Console.WriteLine(section.GetHomogeneizedJ11(1));
+            Console.WriteLine(section.GetHomogenizedCentroid(1, out _, out _));
+
+            Assert.AreEqual(603.19, section.AreaRebars, 0.1);
+            Assert.AreEqual(122458.7, section.Area, 0.1);
+
+
+            Console.WriteLine(forceOnDomain.ForceTuple.ToString());
+
+            Assert.AreEqual(forceOnDomain.ForceTuple.N, -800000, 1);
+            Assert.AreEqual(forceOnDomain.ForceTuple.Mx, 8351, 1);
+            Assert.AreEqual(forceOnDomain.ForceTuple.My, -159092037, 1);
+        }
+
         private ResultBeamForces[] GetRandomResultBeamForces(IConcreteSection section)
         {
             return new ResultBeamForces[]

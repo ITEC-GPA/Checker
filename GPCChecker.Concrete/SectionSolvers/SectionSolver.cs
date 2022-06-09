@@ -141,7 +141,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum FailureAnalysisTypes
         {
-            [Description("Constant N and eccentricity")]
+            [Description("Constant N")]
             ConstantN,
 
             [Description("Constant eccentricity")]
