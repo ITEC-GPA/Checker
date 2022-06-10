@@ -409,7 +409,7 @@ namespace ConcreteTests
 		}
 
 		protected ReinforcedConcreteSection GetCHS(double externalDiameter, double thickness, double concreteCover, int numberOfRebars,
-			double rebarDiameter, ConcreteMaterial concreteMaterial = null, SteelMaterial steelMaterial = null, double discretization = 16)
+			double rebarDiameter, ConcreteMaterial concreteMaterial = null, SteelMaterial steelMaterial = null, double discretization = 16, Point2d center = null)
 		{
 			if (steelMaterial == null)
 				steelMaterial = SteelMaterial.B450C;
@@ -418,6 +418,14 @@ namespace ConcreteTests
 
 			Polygon2d fill = new Polygon2d(externalDiameter, discretization);
 			Polygon2d hole = new Polygon2d(externalDiameter - 2 * thickness, discretization);
+
+			if (center != null)
+            {
+				fill.Move(center.X, center.Y);
+				hole.Move(center.X, center.Y);
+            }
+
+
 			Shape2d shape2D = new Shape2d(fill, new Polygon2d[] { hole });
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(new ShapeEx(shape2D, concreteMaterial));
 

@@ -333,8 +333,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
-            (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
-                zoneDiscretization, FailureDomainTypes.Plastic);
+            (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization, zoneDiscretization, FailureDomainTypes.Plastic);
 
             return new FailureDomainResult(ConcreteSection,
                 CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic), null, this, _standard,

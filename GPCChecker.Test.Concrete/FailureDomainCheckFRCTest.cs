@@ -691,34 +691,37 @@ namespace ConcreteTests
             double concreteCover = 50;
             int numberOfRebars = 12;
 
-            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter, ConcreteMaterialModelCode2010.C28_35);
+            ReinforcedConcreteSection section =  GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter, ConcreteMaterialEN1992.C28_35, SteelMaterial.B450C, 16, new Point2d(250,250) ); //GetCircularSection(externalDiameter, rebarDiameter, concreteCover, numberOfRebars); //
 
-            ResultBeamForces force = new ResultBeamForces(-800 * 1000, 0, 0, 0, 0, -100 * 10e6, GetLocalCoordinateSystem(section), 1);
+            var coordinateSystem = new CoordinateSystem(section.Centroid, Vector2d.XAxis, Vector2d.YAxis);
+
+
+            ResultBeamForces force = new ResultBeamForces(-800 * 1000, 0, 0, 0, 0, -100 * 1e6, coordinateSystem, 1);
 
             SectionCheckerModelCode2010 sectionCheckerModelCode2010 = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section),
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), 
-                GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN), new StandardModelCode2010(), false);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010((coordinateSystem), 
+                GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN), 
+                new StandardEN1992p11(), false);
 
             var domain = sectionCheckerModelCode2010.GetPlasticFailureDomainResult();
 
             var forceOnDomain = domain.AddForce(force);
-            
-            
-
-            Console.WriteLine(section.AngleX1);
-            Console.WriteLine(section.GetHomogeneizedJ22(1));
-            Console.WriteLine(section.GetHomogeneizedJ11(1));
-            Console.WriteLine(section.GetHomogenizedCentroid(1, out _, out _));
-
-            Assert.AreEqual(603.19, section.AreaRebars, 0.1);
-            Assert.AreEqual(122458.7, section.Area, 0.1);
 
 
-            Console.WriteLine(forceOnDomain.ForceTuple.ToString());
+            Console.WriteLine($"Area: {section.Area}");
+            Console.WriteLine($"AreaRebars: {section.AreaRebars}");
+            Console.WriteLine($"Input N: {force.N / 1000} Mx: {force.M1 / 1000000} My: {force.M2 / 1000000}");
+            Console.WriteLine($"N: {forceOnDomain.ForceTuple.N / 1000} Mx: {forceOnDomain.ForceTuple.Mx / 1000000} My: {forceOnDomain.ForceTuple.My / 1000000}");
+
+
 
             Assert.AreEqual(forceOnDomain.ForceTuple.N / 1000, -800, 0.5);
             Assert.AreEqual(forceOnDomain.ForceTuple.My / 1000000, -159.092037, 0.5);
+
         }
+
+
+
 
         private ResultBeamForces[] GetRandomResultBeamForces(IConcreteSection section)
         {
