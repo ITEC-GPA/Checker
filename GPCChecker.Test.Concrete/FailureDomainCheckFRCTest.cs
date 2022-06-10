@@ -691,7 +691,7 @@ namespace ConcreteTests
             double concreteCover = 50;
             int numberOfRebars = 12;
 
-            ReinforcedConcreteSection section =  GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter, ConcreteMaterialEN1992.C28_35, SteelMaterial.B450C, 16, new Point2d(250,250) ); //GetCircularSection(externalDiameter, rebarDiameter, concreteCover, numberOfRebars); //
+            ReinforcedConcreteSection section =  GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter, ConcreteMaterialEN1992.C28_35, SteelMaterial.B500C, 32, new Point2d(250,250) ); //GetCircularSection(externalDiameter, rebarDiameter, concreteCover, numberOfRebars); //
 
             var coordinateSystem = new CoordinateSystem(section.Centroid, Vector2d.XAxis, Vector2d.YAxis);
 
@@ -701,7 +701,7 @@ namespace ConcreteTests
             SectionCheckerModelCode2010 sectionCheckerModelCode2010 = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section),
                 new SectionCheckerModelCode2010.SectionOptionsModelCode2010((coordinateSystem), 
                 GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN), 
-                new StandardEN1992p11(), false);
+                new StandardNTC2018Concrete(), false);
 
             var domain = sectionCheckerModelCode2010.GetPlasticFailureDomainResult();
 
@@ -716,7 +716,7 @@ namespace ConcreteTests
 
 
             Assert.AreEqual(forceOnDomain.ForceTuple.N / 1000, -800, 0.5);
-            Assert.AreEqual(forceOnDomain.ForceTuple.My / 1000000, -159.092037, 0.5);
+            Assert.AreEqual(forceOnDomain.ForceTuple.My / 1000000, -150, 1);
 
         }
 
