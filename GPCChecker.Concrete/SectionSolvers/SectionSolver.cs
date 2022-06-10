@@ -333,8 +333,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
-            (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
-                zoneDiscretization, FailureDomainTypes.Plastic);
+            (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization, zoneDiscretization, FailureDomainTypes.Plastic);
 
             return new FailureDomainResult(ConcreteSection,
                 CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic), null, this, _standard,
@@ -551,14 +550,24 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             try
             {
-                double deltaN = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)),
-                    _globalCoordinateGaussPoints);
-                double deltaMx = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y),
-                    _globalCoordinateGaussPoints);
-                double deltaMy = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X),
-                    _globalCoordinateGaussPoints);
+                (double s, double, double) ret = GaussIntegration.IntegrationLinearShapeFunction((x, y) =>
+                {
+                    var s = CalculateSigmaC(strainPlane.GetStrain(x, y));
 
-                return new ForceTuple(deltaN, -deltaMx, deltaMy);
+                    return (s, -s * (y - ConcreteSection.Centroid.Y), s * (x - ConcreteSection.Centroid.X));
+                },
+                _globalCoordinateGaussPoints);
+
+                return new ForceTuple(ret);
+
+
+                //double deltaN = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)), _globalCoordinateGaussPoints);
+                //double deltaMx = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y),
+                //    _globalCoordinateGaussPoints);
+                //double deltaMy = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X),
+                //    _globalCoordinateGaussPoints);
+
+                //return new ForceTuple(deltaN, -deltaMx, deltaMy);
             }
             catch (Exception e)
             {
@@ -1861,9 +1870,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         else if (dEta >= 0.001)
                             dE = 0.5;
                         else if (dEta >= 0.0005)
-                            dE = 0.75;
+                            dE = 0.5;
                         else
-                            dE = 1.0;
+                            dE = 0.5;
                     }
                     else if (inputFailureZone == FailureZones.F3B)
                     {
@@ -1921,8 +1930,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
-        protected void SetIncrement(FailureDomainTypes analysisType, ref FailureZones failureZone,
-            ref double teta, ref double eta, double deltaTeta, double deltaEta)
+        protected void SetIncrement(FailureDomainTypes analysisType, ref FailureZones failureZone, ref double teta, ref double eta, double deltaTeta, double deltaEta)
         {
             deltaEta = deltaEta > 0.42 ? 0.42 : deltaEta;
             deltaEta = deltaEta < -0.32 ? -0.32 : deltaEta;

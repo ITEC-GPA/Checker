@@ -420,6 +420,7 @@ namespace GPC.Checkers.Concrete.Results
             _forces.Clear();
         }
 
+
 		#endregion
 
 		#region Protected Methods
