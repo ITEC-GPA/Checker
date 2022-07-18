@@ -153,7 +153,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             [Description("Constant N and Mx")]
             ConstantNMx,
 
-            [Description("Constant N and MY")]
+            [Description("Constant N and My")]
             ConstantNMy,
         }
 
