@@ -40,7 +40,7 @@ namespace GPC.Checkers.Concrete.Results
 			_analysisType = analysisType;
 		}
 
-		protected FailureDomain(SerializationInfo info, StreamingContext context) 
+		protected FailureDomain(SerializationInfo info, StreamingContext context)
 			: base(info, context)
 		{
 			_axialForceSubdivision = info.GetInt32("AxialForceSubdivision");
@@ -136,7 +136,7 @@ namespace GPC.Checkers.Concrete.Results
 						pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j].Point]]), progressPlateId++
 					);
 
-					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]], 
+					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
 						pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]]), progressEdgeId++);
 
 					mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]],
@@ -239,7 +239,7 @@ namespace GPC.Checkers.Concrete.Results
 		{
 			// TODO: implementare 
 			return failureDomain;
-		}	
+		}
 
 		protected FailureDomain RebuildFailureDomainAlongZAxis(FailureDomain failureDomain, int axialForceSubdivision = 50, double tolerance = 1)
 		{
@@ -271,6 +271,18 @@ namespace GPC.Checkers.Concrete.Results
 						{
 							newDomain[dTeta][dEta] = maxPoint;
 							startingCount[dEta + 1] = i + 1;
+							break;
+						}
+						else if (i > 0 && failureDomain.DomainPoints[dTeta][0].NRd <= nRd)
+						{
+							mxRd = Interpolation.GetLinearInterpolation(maxPoint.NRd, failureDomain.DomainPoints[dTeta][0].NRd,
+								maxPoint.MxRd, failureDomain.DomainPoints[dTeta][0].MxRd, nRd);
+							myRd = Interpolation.GetLinearInterpolation(maxPoint.NRd, failureDomain.DomainPoints[dTeta][0].NRd,
+								maxPoint.MyRd, failureDomain.DomainPoints[dTeta][0].MyRd, nRd);
+
+							newDomain[dTeta][dEta] = new FailureDomainPoint(new ForceTuple(nRd, mxRd, myRd), failureDomain.DomainPoints[dTeta][i].FailureIndex,
+								failureDomain.DomainPoints[dTeta][i].StrainPlane);
+							startingCount[dEta + 1] = i - 1;
 							break;
 						}
 						else
@@ -309,7 +321,7 @@ namespace GPC.Checkers.Concrete.Results
 									failureDomain.DomainPoints[dTeta][i].StrainPlane);
 								startingCount[dEta + 1] = i;
 								break;
-							}							
+							}
 						}
 					}
 				}
