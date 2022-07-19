@@ -89,13 +89,13 @@ namespace GPC.Checkers.Concrete.Results
 
 					MeshVertex mv = new MeshVertex(domainPoint[i][j].Point);
 
-					if(pointVertexAssociation.ContainsKey(domainPoint[i][j].Point))
+					if (pointVertexAssociation.ContainsKey(domainPoint[i][j].Point))
 					{
 						vertexId = pointIdAssociation[mv];
 						commonPoint = true;
 					}
 
-					if(!commonPoint)
+					if (!commonPoint)
 					{
 						if (!pointIdAssociation.ContainsKey(mv))
 						{
@@ -245,7 +245,7 @@ namespace GPC.Checkers.Concrete.Results
 		{
 			(double maximum, double minimum) limits = GetAxialForceLimits(out FailureDomainPoint maxPoint, out FailureDomainPoint minPoint);
 
-			double deltaN = (limits.maximum - limits.minimum) /axialForceSubdivision;
+			double deltaN = (limits.maximum - limits.minimum) / axialForceSubdivision;
 
 			FailureDomainPoint[][] newDomain = new FailureDomainPoint[failureDomain.DomainPoints.Length][];
 
@@ -413,7 +413,7 @@ namespace GPC.Checkers.Concrete.Results
 
 		public void SetFailureDomainType(SectionSolver.FailureDomainTypes failureDomainType)
 		{
-			_analysisType= failureDomainType;
+			_analysisType = failureDomainType;
 		}
 
 		public void SetAxialForceSubdivision(int subdivision)
@@ -496,6 +496,17 @@ namespace GPC.Checkers.Concrete.Results
 			}
 
 			#endregion
+
+			/// <summary>
+			/// Calculate the working ratio 
+			/// </summary>
+			/// <param name="scale_M">Factor for moments units scale</param>
+			/// <param name="scale_N">Factor for axial force units scale</param>
+			/// <returns></returns>
+			public double CalculateWorkingRatio(double scale_M, double scale_N)
+			{
+				return _failureDomainPoint.CalculateWorkingRatio(this, scale_M, scale_N);
+			}
 		}
 
 		#endregion
@@ -549,6 +560,19 @@ namespace GPC.Checkers.Concrete.Results
 			}
 
 			#endregion
+
+			/// <summary>
+			/// Calculate the working ratio for the force <paramref name="resultBeamForce"/> 
+			/// </summary>
+			/// <param name="resultBeamForce"></param>
+			/// <param name="SCALE_M">Factor for moments units scale</param>
+			/// <param name="SCALE_N">Factor for axial force units scale</param>
+			/// <returns></returns>
+			public double CalculateWorkingRatio(ResultBeamForces resultBeamForce, double SCALE_M, double SCALE_N)
+			{
+				return new Vector3d(resultBeamForce.M1 / SCALE_M, resultBeamForce.M2 / SCALE_M, resultBeamForce.N / SCALE_N).Length /
+					((Vector3d)new Point3d(Point.X / SCALE_M, Point.Y / SCALE_M, Point.Z / SCALE_N)).Length;
+			}
 
 			#region Equals, hashcode, operators
 
@@ -616,19 +640,19 @@ namespace GPC.Checkers.Concrete.Results
 			#region Constructor
 
 			internal FailureDomainPoint2d(ResultBeamForces forces, FailureDomainPoint failureDomainPoint, Point2d point2D)
-				:base(forces, failureDomainPoint)
+				: base(forces, failureDomainPoint)
 			{
 				_point2d = point2D;
 			}
 
 			internal FailureDomainPoint2d(FailureDomainForce forces, Point2d point2D)
-				:this(new ResultBeamForces(forces.N, forces.V1, forces.V2, forces.T, forces.M1, forces.M2, forces.CoordinateSystem, forces.Id),forces.FailureDomainPoint, point2D)
+				: this(new ResultBeamForces(forces.N, forces.V1, forces.V2, forces.T, forces.M1, forces.M2, forces.CoordinateSystem, forces.Id), forces.FailureDomainPoint, point2D)
 			{
 
 			}
 
 			internal FailureDomainPoint2d(SerializationInfo info, StreamingContext context)
-				:base(info, context)
+				: base(info, context)
 			{
 				_point2d = (Point2d)info.GetValue("Point2d", typeof(Point2d));
 			}
