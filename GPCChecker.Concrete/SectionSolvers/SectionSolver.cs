@@ -171,12 +171,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected List<string> _log;
         protected int _tetaDiscretization;
 
-        protected QuadrangleGaussPoints.GaussPointNumber _gaussIntegrationQuadLowPoints;
-        protected QuadrangleGaussPoints.GaussPointNumber _gaussIntegrationQuadMidPoints;
-        protected QuadrangleGaussPoints.GaussPointNumber _gaussIntegrationQuadHighPoints;
-        protected TriangleGaussPoints.GaussPointNumber _gaussIntegrationTriLowPoints;
-        protected TriangleGaussPoints.GaussPointNumber _gaussIntegrationTriMidPoints;
-        protected TriangleGaussPoints.GaussPointNumber _gaussIntegrationTriHighPoints;
+        protected QuadrangleGaussPoints.GaussPointNumber _gaussIntegrationQuadPoints;
+        protected TriangleGaussPoints.GaussPointNumber _gaussIntegrationTriPoints;
 
         protected GaussIntegration.GlobalCoordinateGaussPoint[][] _globalCoordinateGaussPoints;
 
@@ -209,12 +205,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _considerTensileConcrete = considerTensileConcrete;
             _tetaDiscretization = 16;
 
-            _gaussIntegrationQuadLowPoints = QuadrangleGaussPoints.GaussPointNumber.Quad12;
-            _gaussIntegrationQuadMidPoints = QuadrangleGaussPoints.GaussPointNumber.Quad49;
-            _gaussIntegrationQuadHighPoints = QuadrangleGaussPoints.GaussPointNumber.Quad400;
-            _gaussIntegrationTriLowPoints = TriangleGaussPoints.GaussPointNumber.Tri6;
-            _gaussIntegrationTriMidPoints = TriangleGaussPoints.GaussPointNumber.Tri33;
-            _gaussIntegrationTriHighPoints = TriangleGaussPoints.GaussPointNumber.Tri79;
+            _gaussIntegrationQuadPoints = QuadrangleGaussPoints.GaussPointNumber.Quad400;
+            _gaussIntegrationTriPoints = TriangleGaussPoints.GaussPointNumber.Tri79;
 
             _globalCoordinateGaussPoints = GetGlobalCoordinateGaussPointsLinearShapeFunction();
         }
@@ -228,12 +220,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _stressAnalysisTolerance = info.GetDouble("StressAnalysisTolerance");
             _failureAnalysisAngularTolerance = info.GetDouble("FailureAnalysisAngularTolerance");
             _tetaDiscretization = info.GetInt32("TetaDiscretization");
-            _gaussIntegrationQuadLowPoints = (QuadrangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationQuadLowPoints", typeof(QuadrangleGaussPoints.GaussPointNumber));
-            _gaussIntegrationQuadMidPoints = (QuadrangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationQuadMidPoints", typeof(QuadrangleGaussPoints.GaussPointNumber));
-            _gaussIntegrationQuadHighPoints = (QuadrangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationQuadHighPoints", typeof(QuadrangleGaussPoints.GaussPointNumber));
-            _gaussIntegrationTriLowPoints = (TriangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationTriLowPoints", typeof(TriangleGaussPoints.GaussPointNumber));
-            _gaussIntegrationTriMidPoints = (TriangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationTriMidPoints", typeof(TriangleGaussPoints.GaussPointNumber));
-            _gaussIntegrationTriHighPoints = (TriangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationTriHighPoints", typeof(TriangleGaussPoints.GaussPointNumber));
+            _gaussIntegrationQuadPoints = (QuadrangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationQuadPoints", typeof(QuadrangleGaussPoints.GaussPointNumber));
+            _gaussIntegrationTriPoints = (TriangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationTriPoints", typeof(TriangleGaussPoints.GaussPointNumber));
             _considerTensileConcrete = info.GetBoolean("ConsiderTensileConcrete");
         }
 
@@ -452,7 +440,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual GaussIntegration.GlobalCoordinateGaussPoint[][] GetGlobalCoordinateGaussPointsLinearShapeFunction()
         {
-            return GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(ConcreteSection.Mesh, _gaussIntegrationQuadHighPoints, _gaussIntegrationTriHighPoints);
+            return GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(ConcreteSection.Mesh, _gaussIntegrationQuadPoints, _gaussIntegrationTriPoints);
         }
 
         #region Force resultant 
@@ -2377,12 +2365,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             info.AddValue("StressAnalysisTolerance", _stressAnalysisTolerance);
             info.AddValue("FailureAnalysisAngularTolerance", _failureAnalysisAngularTolerance);
             info.AddValue("TetaDiscretization", _tetaDiscretization);
-            info.AddValue("GaussIntegrationQuadLowPoints", _gaussIntegrationQuadLowPoints);
-            info.AddValue("GaussIntegrationQuadMidPoints", _gaussIntegrationQuadMidPoints);
-            info.AddValue("GaussIntegrationQuadHighPoints", _gaussIntegrationQuadHighPoints);
-            info.AddValue("GaussIntegrationTriLowPoints", _gaussIntegrationTriLowPoints);
-            info.AddValue("GaussIntegrationTriMidPoints", _gaussIntegrationTriMidPoints);
-            info.AddValue("GaussIntegrationTriHighPoints", _gaussIntegrationTriHighPoints);
+            info.AddValue("GaussIntegrationQuadPoints", _gaussIntegrationQuadPoints);
+            info.AddValue("GaussIntegrationTriPoints", _gaussIntegrationTriPoints);
             info.AddValue("ConsiderTensileConcrete", _considerTensileConcrete);
         }
 
@@ -2392,6 +2376,5 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         #endregion
-
     }
 }
