@@ -1550,28 +1550,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     }
                     else
                     {
-                        FailureDomain.FailureDomainPoint domainPoint = null;
-                        try
-                        {
-                            FailureDomain.FailureDomainPoint domainPointBuffer = CalculateDomainPoint(targetLocalForces, coordinateSystem,
-                                failureDomainType, failureAnalysisType, 2 * angularTolerance, 2 * distanceTolerance);
-
-                            if (domainPointBuffer != null)
-                            {
-                                domainPoint = domainPointBuffer;
-                                exit = true;
-                            }
-                            else
-                            {
-                                _log.Add("Fail to calculate point on domain");
-                                return null;
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            _log.Add("Fail to calculate point on domain");
-                            return domainPoint;
-                        }
+                        _log.Add("Fail to calculate point on domain");
+                        return null;
                     }
 
                     switch (failureAnalysisType)

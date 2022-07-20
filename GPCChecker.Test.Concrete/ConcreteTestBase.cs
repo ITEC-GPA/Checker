@@ -774,7 +774,7 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 				}
 				else
 				{
-					Console.WriteLine($"Fail to calculate strain plane for force {i} = {Math.Round(testForces[i].M1 / 1000000)}, " +
+					Console.WriteLine($"Fail to calculate failure domain point for force {i} = {Math.Round(testForces[i].M1 / 1000000)}, " +
 					$"{Math.Round(testForces[i].M2 / 1000000)}, " +
 					$"{Math.Round(testForces[i].N / 1000)}");
 				}
