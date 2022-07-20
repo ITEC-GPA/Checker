@@ -5,8 +5,8 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using MathNet.Numerics.LinearAlgebra;
-using GPC.Utilities.Converters;
+using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model;
@@ -15,21 +15,21 @@ using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
-using GPC.Checkers.Concrete.Helper;
-using GPC.Checkers.Concrete.Results;
+using GPC.Utilities.Converters;
 using GPC.Utilities.Extensions;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
     [Serializable]
     public abstract class SectionSolver : ModelObjectId, ISerializable
     {
-		#region Public enum 
+        #region Public enum 
 
-		/// <summary>
-		/// Rapresent the discretization of the axial force in the solver for plastic analysis
-		/// </summary>
-		protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizations =
+        /// <summary>
+        /// Rapresent the discretization of the axial force in the solver for plastic analysis
+        /// </summary>
+        protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizations =
         {
             (FailureZones.F1, 1),
             (FailureZones.F2A, 1),
@@ -38,7 +38,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F3B, 5),
             (FailureZones.F4, 4)
         };
-        
+
         /// <summary>
         /// Rapresent the discretization of the axial force in the solver for elastic analysis
         /// </summary>
@@ -133,15 +133,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         public enum FailureDomainTypes
-		{
+        {
             Elastic,
             Plastic,
-		}
+        }
 
         [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum FailureAnalysisTypes
         {
-            [Description("Constant N and eccentricity")]
+            [Description("Constant N")]
             ConstantN,
 
             [Description("Constant eccentricity")]
@@ -153,7 +153,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             [Description("Constant N and Mx")]
             ConstantNMx,
 
-            [Description("Constant N and MY")]
+            [Description("Constant N and My")]
             ConstantNMy,
         }
 
@@ -171,12 +171,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected List<string> _log;
         protected int _tetaDiscretization;
 
-        protected QuadrangleGaussPoints.GaussPointNumber _gaussIntegrationQuadLowPoints;
-        protected QuadrangleGaussPoints.GaussPointNumber _gaussIntegrationQuadMidPoints;
-        protected QuadrangleGaussPoints.GaussPointNumber _gaussIntegrationQuadHighPoints;
-        protected TriangleGaussPoints.GaussPointNumber _gaussIntegrationTriLowPoints;
-        protected TriangleGaussPoints.GaussPointNumber _gaussIntegrationTriMidPoints;
-        protected TriangleGaussPoints.GaussPointNumber _gaussIntegrationTriHighPoints;
+        protected QuadrangleGaussPoints.GaussPointNumber _gaussIntegrationQuadPoints;
+        protected TriangleGaussPoints.GaussPointNumber _gaussIntegrationTriPoints;
 
         protected GaussIntegration.GlobalCoordinateGaussPoint[][] _globalCoordinateGaussPoints;
 
@@ -192,11 +188,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public bool ConsiderTensileConcrete { get => _considerTensileConcrete; internal set => _considerTensileConcrete = value; }
 
-		#endregion
+        #endregion
 
-		#region Constructor
+        #region Constructor
 
-		internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id)
+        internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id)
             : base(id)
         {
             _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
@@ -209,18 +205,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _considerTensileConcrete = considerTensileConcrete;
             _tetaDiscretization = 16;
 
-            _gaussIntegrationQuadLowPoints = QuadrangleGaussPoints.GaussPointNumber.Quad12;
-            _gaussIntegrationQuadMidPoints = QuadrangleGaussPoints.GaussPointNumber.Quad49;
-            _gaussIntegrationQuadHighPoints = QuadrangleGaussPoints.GaussPointNumber.Quad400;
-            _gaussIntegrationTriLowPoints = TriangleGaussPoints.GaussPointNumber.Tri6;
-            _gaussIntegrationTriMidPoints = TriangleGaussPoints.GaussPointNumber.Tri33;
-            _gaussIntegrationTriHighPoints = TriangleGaussPoints.GaussPointNumber.Tri79;
+            _gaussIntegrationQuadPoints = QuadrangleGaussPoints.GaussPointNumber.Quad400;
+            _gaussIntegrationTriPoints = TriangleGaussPoints.GaussPointNumber.Tri79;
 
             _globalCoordinateGaussPoints = GetGlobalCoordinateGaussPointsLinearShapeFunction();
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)
-            :base(info, context)
+            : base(info, context)
         {
             _concreteSection = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
@@ -228,20 +220,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _stressAnalysisTolerance = info.GetDouble("StressAnalysisTolerance");
             _failureAnalysisAngularTolerance = info.GetDouble("FailureAnalysisAngularTolerance");
             _tetaDiscretization = info.GetInt32("TetaDiscretization");
-            _gaussIntegrationQuadLowPoints = (QuadrangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationQuadLowPoints", typeof(QuadrangleGaussPoints.GaussPointNumber));
-            _gaussIntegrationQuadMidPoints = (QuadrangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationQuadMidPoints", typeof(QuadrangleGaussPoints.GaussPointNumber));
-            _gaussIntegrationQuadHighPoints = (QuadrangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationQuadHighPoints", typeof(QuadrangleGaussPoints.GaussPointNumber));
-            _gaussIntegrationTriLowPoints = (TriangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationTriLowPoints", typeof(TriangleGaussPoints.GaussPointNumber));
-            _gaussIntegrationTriMidPoints = (TriangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationTriMidPoints", typeof(TriangleGaussPoints.GaussPointNumber));
-            _gaussIntegrationTriHighPoints = (TriangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationTriHighPoints", typeof(TriangleGaussPoints.GaussPointNumber));
+            _gaussIntegrationQuadPoints = (QuadrangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationQuadPoints", typeof(QuadrangleGaussPoints.GaussPointNumber));
+            _gaussIntegrationTriPoints = (TriangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationTriPoints", typeof(TriangleGaussPoints.GaussPointNumber));
             _considerTensileConcrete = info.GetBoolean("ConsiderTensileConcrete");
         }
 
-		#endregion
+        #endregion
 
-		#region Abstract Method
+        #region Abstract Method
 
-		protected abstract double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar);
+        protected abstract double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar);
         protected abstract double GetDesignYieldingStrainRebar(int rebar);
         protected abstract double GetDesignUltimateStrainRebar(ReinforcedConcreteRebar rebar);
         protected abstract double GetDesignUltimateStrainRebar(int rebar);
@@ -322,7 +310,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     zoneDiscretization = _plasticFailureZonesDiscretizationsFRC;
                 else
                 {
-                    if(_concreteSection.ConcreteMaterial.StressStrainTableTension.IsHardening())
+                    if (_concreteSection.ConcreteMaterial.StressStrainTableTension.IsHardening())
                         zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebarsHardening;
                     else
                         zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebarsSoftening;
@@ -333,10 +321,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
-            (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization,
-                zoneDiscretization, FailureDomainTypes.Plastic);
+            (StrainPlane, FailureZones)[][] strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization, zoneDiscretization, FailureDomainTypes.Plastic);
 
-            return new FailureDomainResult(ConcreteSection, 
+            return new FailureDomainResult(ConcreteSection,
                 CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic), null, this, _standard,
                 sectionOption, Id);
         }
@@ -400,7 +387,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Parallel.For(0, force.Length, (i) =>
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
-                    CalculateStrainPlaneLinearStressAnalysis(force[i].ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem), 
+                    CalculateStrainPlaneLinearStressAnalysis(force[i].ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
                     sectionOption.ForceReferenceCoordinateSystem, psi, psiTendon,
                     _stressAnalysisTolerance), this, _standard, Id);
             });
@@ -417,7 +404,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
-		{
+        {
             return CalculatePlasticDomainPoint(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem), sectionOption.ForceReferenceCoordinateSystem, sectionOption.FailureAnalysisType);
         }
 
@@ -428,9 +415,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple force,
             CoordinateSystem coordinateSystem, FailureAnalysisTypes failureAnalysisType)
-		{
+        {
             return CalculateDomainPoint(force, coordinateSystem, FailureDomainTypes.Plastic, failureAnalysisType, _failureAnalysisAngularTolerance);
-		}
+        }
 
         public virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, CoordinateSystem coordinateSystem,
             FailureAnalysisTypes failureAnalysisType)
@@ -443,17 +430,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         #region Public Setter
 
         public void SetTetaDiscretization(int discretization)
-		{
+        {
             _tetaDiscretization = discretization;
-		}
+        }
 
-		#endregion
+        #endregion
 
-		#region Protected method - SectionIntegration
+        #region Protected method - SectionIntegration
 
         protected virtual GaussIntegration.GlobalCoordinateGaussPoint[][] GetGlobalCoordinateGaussPointsLinearShapeFunction()
-		{
-            return GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(ConcreteSection.Mesh, _gaussIntegrationQuadHighPoints, _gaussIntegrationTriHighPoints);
+        {
+            return GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(ConcreteSection.Mesh, _gaussIntegrationQuadPoints, _gaussIntegrationTriPoints);
         }
 
         #region Force resultant 
@@ -551,14 +538,43 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             try
             {
-				double deltaN = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)),
-                    _globalCoordinateGaussPoints);
-				double deltaMx = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y), 
-                    _globalCoordinateGaussPoints);
-				double deltaMy = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X),
-                    _globalCoordinateGaussPoints);
+                (double s, double, double) ret = GaussIntegration.IntegrationLinearShapeFunction((x, y) =>
+                {
+					double sigmaC = CalculateSigmaC(strainPlane.GetStrain(x, y));
+                    return (sigmaC, -sigmaC * (y - ConcreteSection.Centroid.Y), sigmaC * (x - ConcreteSection.Centroid.X));
+                },
+                _globalCoordinateGaussPoints);
 
-				return new ForceTuple(deltaN, -deltaMx, deltaMy);
+                return new ForceTuple(ret);
+            }
+            catch (Exception e)
+            {
+                _log.Add(e.Message);
+                return new ForceTuple();
+            }
+        }
+
+        /// <summary>
+        /// Calculate the stress resultant of the concrete part
+        /// </summary>
+        /// <param name="strainPlane">The strain plane</param>
+        /// <returns>
+        /// <para>The axial force resultant</para>
+        /// <para>The bending moment about X-axis resultant</para>
+        /// <para>The bending moment about Y-axis resultant</para>
+        /// </returns>
+        protected virtual ForceTuple IntegrateSectionStressLinearElastic(StrainPlane strainPlane)
+        {
+            try
+            {
+                (double s, double, double) ret = GaussIntegration.IntegrationLinearShapeFunction((x, y) =>
+                {
+                    double sigmaC = CalculateElasticSigmaC(strainPlane.GetStrain(x, y));
+                    return (sigmaC, -sigmaC * (y - ConcreteSection.Centroid.Y), sigmaC * (x - ConcreteSection.Centroid.X));
+                },
+                _globalCoordinateGaussPoints);
+
+                return new ForceTuple(ret);
             }
             catch (Exception e)
             {
@@ -572,19 +588,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             try
             {
                 ForceTuple[] returnValue = new ForceTuple[strainPlane.Length];
-
                 Func<double, double, (double, double, double)>[] functions = new Func<double, double, (double, double, double)>[strainPlane.Length];
 
-				for (int i = 0; i < strainPlane.Length; i++)
+                for (int i = 0; i < strainPlane.Length; i++)
                 {
                     StrainPlane sp = strainPlane[i];
                     functions[i] = new Func<double, double, (double, double, double)>((x, y) => 
-                    (CalculateSigmaC(sp.GetStrain(x, y)), 
-                    CalculateSigmaC(sp.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y), 
-                    CalculateSigmaC(sp.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X)));
+                        {
+							double sigmaC = CalculateSigmaC(sp.GetStrain(x, y));
+                            return (sigmaC, sigmaC * (y - ConcreteSection.Centroid.Y), sigmaC * (x - ConcreteSection.Centroid.X));
+                        });
                 }
 
-				(double, double, double)[] res = GaussIntegration.IntegrationLinearShapeFunction(functions, _globalCoordinateGaussPoints);
+                (double, double, double)[] res = GaussIntegration.IntegrationLinearShapeFunction(functions, _globalCoordinateGaussPoints);
 
                 for (int j = 0; j < strainPlane.Length; j++)
                     returnValue[j] = new ForceTuple(res[j].Item1, -res[j].Item2, res[j].Item3);
@@ -601,9 +617,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <inheritdoc cref="IntegrateSectionStress(StrainPlane)"/>
         protected virtual async Task<ForceTuple> IntegrateSectionStressAsync(StrainPlane strainPlane)
         {
-            return await Task.Run(() => 
+            return await Task.Run(() =>
             {
-                return IntegrateSectionStress(strainPlane);            
+                return IntegrateSectionStress(strainPlane);
             });
         }
 
@@ -655,7 +671,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (rebarIsInsideAssociation[i])
                     sigmaC = CalculateSigmaC(strain);
 
-                deltaNArray  += (sigmaS - sigmaC) * rebars[i].Area;
+                deltaNArray += (sigmaS - sigmaC) * rebars[i].Area;
                 deltaMxArray += (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.Y - ConcreteSection.Centroid.Y);
                 deltaMyArray += (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.X - ConcreteSection.Centroid.X);
 
@@ -691,35 +707,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <summary>
-        /// Calculate the stress resultant of the concrete part
-        /// </summary>
-        /// <param name="strainPlane">The strain plane</param>
-        /// <returns>
-        /// <para>The axial force resultant</para>
-        /// <para>The bending moment about X-axis resultant</para>
-        /// <para>The bending moment about Y-axis resultant</para>
-        /// </returns>
-        protected virtual ForceTuple IntegrateSectionStressLinearElastic(StrainPlane strainPlane)
-        {
-            try
-            {
-                double deltaN = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(x, y)),
-                    _globalCoordinateGaussPoints);
-                double deltaMx = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y),
-                    _globalCoordinateGaussPoints);
-                double deltaMy = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X),
-                    _globalCoordinateGaussPoints);
-
-                return new ForceTuple(deltaN, -deltaMx, deltaMy);
-            }
-            catch (Exception e)
-            {
-                _log.Add(e.Message);
-                return new ForceTuple();
-            }
-        }
-
-        /// <summary>
         /// Calculate the resultant of all the rebars
         /// </summary>
         /// <param name="strainPlane">The strain plane</param>
@@ -728,7 +715,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
         protected virtual ForceTuple IntegrateRebarLinearStress(double psi, double? psiTendon, StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
-            var rebars = ConcreteSection.GetRebars();
+			ReinforcedConcreteRebar[] rebars = ConcreteSection.GetRebars();
 
             double[] deltaNArray = new double[rebars.Length];
             double[] deltaMxArray = new double[rebars.Length];
@@ -736,20 +723,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             Parallel.For(0, rebars.Length, (i) =>
             {
-                double strain = strainPlane.GetStrain(rebars[i].Position);
+				ReinforcedConcreteRebar rebar = rebars[i];
+                double strain = strainPlane.GetStrain(rebar.Position);
                 double sigmaS;
-                if (rebars[i].EpsilonP > 0)
-                    sigmaS = CalculateElasticSigmaS(psiTendon.Value, rebars[i], strain);
+                if (rebar.EpsilonP > 0)
+                    sigmaS = CalculateElasticSigmaS(psiTendon.Value, rebar, strain);
                 else
-                    sigmaS = CalculateElasticSigmaS(psi, rebars[i], strain);
+                    sigmaS = CalculateElasticSigmaS(psi, rebar, strain);
 
                 double sigmaC = 0;
                 if (rebarIsInsideAssociation[i])
                     sigmaC = CalculateElasticSigmaC(strain);
 
-                deltaNArray[i] = (sigmaS - sigmaC) * rebars[i].Area;
-                deltaMxArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.Y - ConcreteSection.Centroid.Y);
-                deltaMyArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.X - ConcreteSection.Centroid.X);
+                deltaNArray[i] = (sigmaS - sigmaC) * rebar.Area;
+                deltaMxArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.Y - ConcreteSection.Centroid.Y);
+                deltaMyArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.X - ConcreteSection.Centroid.X);
             });
 
             return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
@@ -762,7 +750,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        protected virtual (double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, 
+        protected virtual (double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex,
             double dminConcrete, int dMaxVertexIndex, double dmaxConcrete)
             CalculateMaxMinSectionDistances(double teta)
         {
@@ -886,7 +874,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             {
                                 double strain = Math.Min(0.02, GetUltimateStrainConcreteTension());
 
-                                if(failureZone == FailureZones.F1)
+                                if (failureZone == FailureZones.F1)
                                     strain = Math.Min(0.01, strain);
 
                                 return (strain, ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
@@ -931,7 +919,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
                                 (distances.dmaxConcrete - distances.dminConcrete));
 
-                        case FailureDomainTypes.Plastic:                            
+                        case FailureDomainTypes.Plastic:
                             return (GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
                                 (distances.dmaxConcrete - distances.dminConcrete));
 
@@ -941,9 +929,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 default:
                     return (0.0, null, 0.0);
-            }            
+            }
         }
-   
+
 
         protected (double epsilon, Point2d point, double distanceFromBaricentre) GetP3((double teta, int dMinRebarId, double dminRebar,
             int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
@@ -1100,7 +1088,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="teta">The angle of rotation of the axis</param>
         /// <param name="zoneSubdivision">Number of subdivision for each failure zone</param>
         /// <returns></returns>
-        protected virtual (StrainPlane, FailureZones)[] CalculateFailureStrainPlanes(double teta, (FailureZones, int)[] zoneSubdivision, 
+        protected virtual (StrainPlane, FailureZones)[] CalculateFailureStrainPlanes(double teta, (FailureZones, int)[] zoneSubdivision,
             FailureDomainTypes failureDomainType)
         {
             (StrainPlane, FailureZones)[] strainPlanes = new (StrainPlane, FailureZones)[zoneSubdivision.Select(i => i.Item2).Sum() + zoneSubdivision.Length + 1];
@@ -1113,9 +1101,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             int subIndex = 0;
 
-			for (int i = 0; i < zoneSubdivision.Length; i++)
+            for (int i = 0; i < zoneSubdivision.Length; i++)
             {
-				FailureZones failureZones = zoneSubdivision[i].Item1;
+                FailureZones failureZones = zoneSubdivision[i].Item1;
                 int subdivision = zoneSubdivision[i].Item2 + 1;
 
                 var p1 = GetP1(sectionDistances, failureDomainType, failureZones);
@@ -1130,7 +1118,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         {
                             for (int j = 0; j < subdivision; j++)
                             {
-                                strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision, 
+                                strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision,
                                     p1, p2, p3, p4, subIndex), failureZones);
                                 subIndex++;
                             }
@@ -1142,7 +1130,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         {
                             for (int j = 0; j < subdivision; j++)
                             {
-                                strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision, 
+                                strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision,
                                     p1, p2, p3, p4, subIndex), failureZones);
                                 subIndex++;
                             }
@@ -1172,7 +1160,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <remarks>Param distances can be calculated with CalculateMaxMinSectionDistances method</remarks>
         /// <exception cref="ArgumentException"></exception>
         protected virtual StrainPlane CalculateStrainPlane(double teta, FailureZones failureIndex, double immersioneNelCampo,
-            (double epsilon, Point2d point, double distanceFromBaricentre) p1, (double epsilon, Point2d point, double distanceFromBaricentre) p2, 
+            (double epsilon, Point2d point, double distanceFromBaricentre) p1, (double epsilon, Point2d point, double distanceFromBaricentre) p2,
             (double epsilon, Point2d point, double distanceFromBaricentre) p3, (double epsilon, Point2d point, double distanceFromBaricentre) p4, int id = -1)
         {
             if (immersioneNelCampo > 1.0 || immersioneNelCampo < 0.0)
@@ -1195,7 +1183,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 case FailureZones.F2A:
 
-                    if(_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC &&
+                    if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC &&
                         !_concreteSection.ConcreteMaterial.StressStrainTableTension.IsHardening() &&
                         _concreteSection.RebarsCount == 0)
                         chiSx = (p1.epsilon + 0.3 * Math.Abs(p3.epsilon)) / p1.distanceFromBaricentre;
@@ -1250,21 +1238,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         protected virtual FailureDomain2d ConvertFailureDomain3dTo2d(FailureDomain failureDomain)
-		{
+        {
             if (failureDomain == null)
                 throw new ArgumentNullException();
             if (failureDomain.DomainPoints.Length != 2)
                 throw new ArgumentException();
 
-			FailureDomain.FailureDomainPoint[] domainPointPositive = failureDomain.DomainPoints[0];
-			FailureDomain.FailureDomainPoint[] domainPointNevative = failureDomain.DomainPoints[1];
+            FailureDomain.FailureDomainPoint[] domainPointPositive = failureDomain.DomainPoints[0];
+            FailureDomain.FailureDomainPoint[] domainPointNevative = failureDomain.DomainPoints[1];
             Array.Reverse(domainPointNevative);
 
             List<FailureDomain.FailureDomainPoint> domainPoints = domainPointPositive.ToList();
             domainPoints.AddRange(domainPointNevative);
 
             return new FailureDomain2d(domainPoints.ToArray(), FailureDomainResult2d.DomainTypes.ConstantMxMy);
-		}
+        }
 
         #endregion
 
@@ -1278,9 +1266,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
             FailureDomainTypes failureDomainType, FailureAnalysisTypes failureAnalysisType)
-		{
+        {
             return CalculateDomainPoint(targetLocalForces, coordinateSystem, failureDomainType, failureAnalysisType, _failureAnalysisAngularTolerance);
-		}
+        }
 
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
             FailureDomainTypes failureDomainType, FailureAnalysisTypes failureAnalysisType,
@@ -1562,28 +1550,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     }
                     else
                     {
-                        FailureDomain.FailureDomainPoint domainPoint = null;
-                        try
-                        {
-                            FailureDomain.FailureDomainPoint domainPointBuffer = CalculateDomainPoint(targetLocalForces, coordinateSystem,
-                                failureDomainType, failureAnalysisType, 5 * angularTolerance, 5 * distanceTolerance);
-
-                            if (domainPointBuffer != null)
-                            {
-                                domainPoint = domainPointBuffer;
-                                exit = true;
-                            }
-                            else
-                            {
-                                _log.Add("Fail to calculate point on domain");
-                                return null;
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            _log.Add("Fail to calculate point on domain");
-                            return domainPoint;
-                        }
+                        _log.Add("Fail to calculate point on domain");
+                        return null;
                     }
 
                     switch (failureAnalysisType)
@@ -1622,7 +1590,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         protected (double deltaTeta, double deltaEta, Vector3d distanceToTarget) CalculateIncrement(ForceTuple iterationPoint,
-            StrainPlane inputStrainPlane, FailureZones inputFailureZone, double inputImmersioneNelCampo, Line3d externalForcesLine, 
+            StrainPlane inputStrainPlane, FailureZones inputFailureZone, double inputImmersioneNelCampo, Line3d externalForcesLine,
             double deltaAngle, FailureDomainTypes failureDomainType, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             var adimIteractionPoint = ConvertToAdimensionalForces(iterationPoint);
@@ -1859,9 +1827,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         else if (dEta >= 0.001)
                             dE = 0.5;
                         else if (dEta >= 0.0005)
-                            dE = 0.75;
+                            dE = 0.5;
                         else
-                            dE = 1.0;
+                            dE = 0.5;
                     }
                     else if (inputFailureZone == FailureZones.F3B)
                     {
@@ -1900,9 +1868,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         else
                             dE = 0.5;
                     }
-                    else if (inputFailureZone == FailureZones.F3B)                        
+                    else if (inputFailureZone == FailureZones.F3B)
                         dE = 0.1;
-                    
+
                     else
                     {
                         if (dEta >= 0.01)
@@ -1919,9 +1887,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
-        protected void SetIncrement(FailureDomainTypes analysisType, ref FailureZones failureZone, 
-            ref double teta, ref double eta, double deltaTeta, double deltaEta)
-		{
+        protected void SetIncrement(FailureDomainTypes analysisType, ref FailureZones failureZone, ref double teta, ref double eta, double deltaTeta, double deltaEta)
+        {
             deltaEta = deltaEta > 0.42 ? 0.42 : deltaEta;
             deltaEta = deltaEta < -0.32 ? -0.32 : deltaEta;
 
@@ -1934,79 +1901,79 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             eta += (deltaEta - (int)deltaEta);
             failureZone += (int)deltaEta;
 
-			switch (analysisType)
-			{
-				case FailureDomainTypes.Plastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal:
-					if (eta < 0.0)
-					{
-						eta++;
-						failureZone--;
-					}
-					if (eta > 1.0)
-					{
-						eta--;
-						failureZone++;
-					}
-					break;
-				case FailureDomainTypes.Plastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC:
-					if (eta < 0.0)
-					{
-						eta++;
-						failureZone--;
+            switch (analysisType)
+            {
+                case FailureDomainTypes.Plastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal:
+                    if (eta < 0.0)
+                    {
+                        eta++;
+                        failureZone--;
+                    }
+                    if (eta > 1.0)
+                    {
+                        eta--;
+                        failureZone++;
+                    }
+                    break;
+                case FailureDomainTypes.Plastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC:
+                    if (eta < 0.0)
+                    {
+                        eta++;
+                        failureZone--;
 
-						if (failureZone == FailureZones.F3A)
-							eta = 0.98;
-					}
-					if (eta > 1.0)
-					{
-						eta--;
-						failureZone++;
-					}
-					break;
-				case FailureDomainTypes.Elastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal:
-					if (eta < 0.0)
-					{
-						eta++;
-						failureZone--;
+                        if (failureZone == FailureZones.F3A)
+                            eta = 0.98;
+                    }
+                    if (eta > 1.0)
+                    {
+                        eta--;
+                        failureZone++;
+                    }
+                    break;
+                case FailureDomainTypes.Elastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal:
+                    if (eta < 0.0)
+                    {
+                        eta++;
+                        failureZone--;
 
-						if (failureZone == FailureZones.F3B || failureZone == FailureZones.F2B)
-							failureZone--;
-					}
-					if (eta > 1.0)
-					{
-						eta--;
-						failureZone++;
+                        if (failureZone == FailureZones.F3B || failureZone == FailureZones.F2B)
+                            failureZone--;
+                    }
+                    if (eta > 1.0)
+                    {
+                        eta--;
+                        failureZone++;
 
-						if (failureZone == FailureZones.F2B)
-							failureZone++;
-					}
-					break;
-				case FailureDomainTypes.Elastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC:
-					if (eta < 0.0)
-					{
-						eta++;
-						failureZone--;
+                        if (failureZone == FailureZones.F2B)
+                            failureZone++;
+                    }
+                    break;
+                case FailureDomainTypes.Elastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC:
+                    if (eta < 0.0)
+                    {
+                        eta++;
+                        failureZone--;
 
-						if (failureZone == FailureZones.F3B || failureZone == FailureZones.F2B)
-							failureZone--;
-					}
-					if (eta > 1.0)
-					{
-						eta--;
-						failureZone++;
+                        if (failureZone == FailureZones.F3B || failureZone == FailureZones.F2B)
+                            failureZone--;
+                    }
+                    if (eta > 1.0)
+                    {
+                        eta--;
+                        failureZone++;
 
-						if (failureZone == FailureZones.F3B)
-							failureZone++;
+                        if (failureZone == FailureZones.F3B)
+                            failureZone++;
 
-						if (failureZone == FailureZones.F2B)
-							failureZone++;
-					}
-					break;
-				default:
-					throw new Exception();
-			}
+                        if (failureZone == FailureZones.F2B)
+                            failureZone++;
+                    }
+                    break;
+                default:
+                    throw new Exception();
+            }
 
-			failureZone = (int)failureZone < 1 ? FailureZones.F1 : failureZone;
+            failureZone = (int)failureZone < 1 ? FailureZones.F1 : failureZone;
             failureZone = (int)failureZone > 6 ? FailureZones.F4 : failureZone;
         }
 
@@ -2016,67 +1983,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple localForces, CoordinateSystem coordinateSystem, double tolerance = 1e-5)
         {
-            Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
-            ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
-
-            // Valori di primo tentativo
-            Point3d referencePoint = ConcreteSection.Centroid;
-            double chiX = 0;
-            double chiY = 0;
-            double strainReferencePoint = 0;
-            int id = 1;
-
-            // piano di primo tentativo. baricentrico e ruotato di teta = 0;
-            StrainPlane strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
-
-            ForceTuple iterationForces = GetExternalForces(CalculateForceResultant(strainPlane, rebarIsInsideAssociation), coordinateSystem);
-            ForceTuple iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
-
-            if (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance * tolerance ||
-                Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance * tolerance ||
-                Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance * tolerance)
-            {
-                do
-                {
-                    if (id < 50)
-                    {
-                        try
-                        {
-                            (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) =
-                                CalculateIncrementStressAnalysis(strainPlane, localForces - iterationForces,
-                                rebarIsInsideAssociation, null, null);
-
-                            // piano di nuovo tentativo
-                            id++;
-                            chiX += deltaChiX;
-                            chiY += deltaChiY;
-                            strainReferencePoint += deltaStrainRefPoint;
-                            strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
-
-                            iterationForces = GetExternalForces(CalculateForceResultant(strainPlane, rebarIsInsideAssociation), coordinateSystem);
-                            iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
-                        }
-                        catch (Exception e)
-                        {
-                            _log.Add(e.Message);
-                            if (e.InnerException != null)
-                                _log.Add(e.InnerException.Message);
-                            _log.Add("Fail to calculate find strain plane");
-                            return null;
-                        }
-                    }
-                    else
-                    {
-                        _log.Add("Fail to calculate find strain plane");
-                        return null;
-                    }
-
-                } while (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance ||
-                         Math.Abs(iterationForcesAdim.Mx - targetLocalForcesAdim.Mx) > tolerance ||
-                         Math.Abs(iterationForcesAdim.My - targetLocalForcesAdim.My) > tolerance);
-            }
-
-            return strainPlane;
+           return CalculateStrainPlaneStressAnalysis(localForces, coordinateSystem, null, null, tolerance);
         }
 
         protected (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateIncrementStressAnalysis(StrainPlane inputStrainPlane, ForceTuple forceTuple,
@@ -2085,7 +1992,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             ForceTuple forceTupleAdim = ConvertToAdimensionalForces(forceTuple);
             var bBox = ConcreteSection.Shape.GetBoundingBox();
 
-            double deltaChiXLimit =1.0 / bBox.Size.X;
+            double deltaChiXLimit = 1.0 / bBox.Size.X;
             double dCX = 0.00001;
             if (forceTupleAdim.Mx != 0)
             {
@@ -2097,7 +2004,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             double dChiX = dCX * deltaChiXLimit;
 
-            double deltaChiYLimit = 1.0/ bBox.Size.Y;
+            double deltaChiYLimit = 1.0 / bBox.Size.Y;
             double dCY = 0.00001;
             if (forceTupleAdim.My != 0)
             {
@@ -2161,8 +2068,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 forcesPlusdChiY = CalculateForceResultant(psiRebars.Value, psiTendon, strainPlanePlusdChiY, rebarIsInsideAssociation);
                 forcesMinusdChiY = CalculateForceResultant(psiRebars.Value, psiTendon, strainPlaneMinusdChiY, rebarIsInsideAssociation);
             }
-			else
-			{
+            else
+            {
                 forcesPlusdChiY = CalculateForceResultant(strainPlanePlusdChiY, rebarIsInsideAssociation);
                 forcesMinusdChiY = CalculateForceResultant(strainPlaneMinusdChiY, rebarIsInsideAssociation);
             }
@@ -2186,8 +2093,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 forcesPlusStrain = CalculateForceResultant(psiRebars.Value, psiTendon, strainPlanePlusStrain, rebarIsInsideAssociation);
                 forcesMinusStrain = CalculateForceResultant(psiRebars.Value, psiTendon, strainPlaneMinusStrain, rebarIsInsideAssociation);
             }
-			else
-			{
+            else
+            {
                 forcesPlusStrain = CalculateForceResultant(strainPlanePlusStrain, rebarIsInsideAssociation);
                 forcesMinusStrain = CalculateForceResultant(strainPlaneMinusStrain, rebarIsInsideAssociation);
             }
@@ -2220,15 +2127,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
             return (results[0, 0] * deltaChiXLimit,
-                results[1, 0] * deltaChiYLimit, 
+                results[1, 0] * deltaChiYLimit,
                 results[2, 0] * deltaStrainLimit);
         }
 
-        #endregion
-
-        #region Protected method - Linear stress method
-
-        protected StrainPlane CalculateStrainPlaneLinearStressAnalysis(ForceTuple localForces, CoordinateSystem coordinateSystem, double psiRebars, double? psiTendon, double tolerance = 1e-5)
+        private StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple localForces, CoordinateSystem coordinateSystem, double? psiRebars, double? psiTendon, double tolerance = 1e-5)
         {
             Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
             ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
@@ -2243,7 +2146,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // piano di primo tentativo. baricentrico e ruotato di teta = 0;
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
-            ForceTuple iterationForces = GetExternalForces(CalculateForceResultant(psiRebars, psiTendon, strainPlane, rebarIsInsideAssociation), coordinateSystem);
+            ForceTuple iterationForces;
+            if(psiRebars.HasValue || psiTendon.HasValue)
+                iterationForces = GetExternalForces(CalculateForceResultant(psiRebars.Value, psiTendon, strainPlane, rebarIsInsideAssociation), coordinateSystem);
+            else
+                iterationForces = GetExternalForces(CalculateForceResultant(strainPlane, rebarIsInsideAssociation), coordinateSystem);
+
             ForceTuple iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
 
             if (Math.Abs(iterationForcesAdim.N - targetLocalForcesAdim.N) > tolerance * tolerance ||
@@ -2267,7 +2175,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             strainReferencePoint += deltaStrainRefPoint;
                             strainPlane = new StrainPlane(chiX, chiY, referencePoint, strainReferencePoint, id);
 
-                            iterationForces = GetExternalForces(CalculateForceResultant(psiRebars, psiTendon, strainPlane, rebarIsInsideAssociation), coordinateSystem);
+                            if (psiRebars.HasValue || psiTendon.HasValue)
+                                iterationForces = GetExternalForces(CalculateForceResultant(psiRebars.Value, psiTendon, strainPlane, rebarIsInsideAssociation), coordinateSystem);
+                            else
+                                iterationForces = GetExternalForces(CalculateForceResultant(strainPlane, rebarIsInsideAssociation), coordinateSystem);
+
                             iterationForcesAdim = ConvertToAdimensionalForces(iterationForces);
                         }
                         catch (Exception e)
@@ -2275,7 +2187,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             _log.Add(e.Message);
                             if (e.InnerException != null)
                                 _log.Add(e.InnerException.Message);
-                            throw;
+                            _log.Add("Fail to calculate find strain plane");
+                            return null;
                         }
                     }
                     else
@@ -2290,6 +2203,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
 
             return strainPlane;
+        }
+
+        #endregion
+
+        #region Protected method - Linear stress method
+
+        protected StrainPlane CalculateStrainPlaneLinearStressAnalysis(ForceTuple localForces, CoordinateSystem coordinateSystem, double psiRebars, double? psiTendon, double tolerance = 1e-5)
+        {
+            return CalculateStrainPlaneStressAnalysis(localForces, coordinateSystem, psiRebars, psiTendon, tolerance);
         }
 
         #endregion
@@ -2367,21 +2289,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             info.AddValue("StressAnalysisTolerance", _stressAnalysisTolerance);
             info.AddValue("FailureAnalysisAngularTolerance", _failureAnalysisAngularTolerance);
             info.AddValue("TetaDiscretization", _tetaDiscretization);
-            info.AddValue("GaussIntegrationQuadLowPoints", _gaussIntegrationQuadLowPoints);
-            info.AddValue("GaussIntegrationQuadMidPoints", _gaussIntegrationQuadMidPoints);
-            info.AddValue("GaussIntegrationQuadHighPoints", _gaussIntegrationQuadHighPoints);
-            info.AddValue("GaussIntegrationTriLowPoints", _gaussIntegrationTriLowPoints);
-            info.AddValue("GaussIntegrationTriMidPoints", _gaussIntegrationTriMidPoints);
-            info.AddValue("GaussIntegrationTriHighPoints", _gaussIntegrationTriHighPoints);
+            info.AddValue("GaussIntegrationQuadPoints", _gaussIntegrationQuadPoints);
+            info.AddValue("GaussIntegrationTriPoints", _gaussIntegrationTriPoints);
             info.AddValue("ConsiderTensileConcrete", _considerTensileConcrete);
         }
-        
+
         public List<string> GetLog()
         {
             return _log;
         }
 
         #endregion
-
     }
 }

@@ -306,6 +306,11 @@ namespace GPC.Checkers.Concrete.Results
             return _forces.ToArray();
         }
 
+        public void ClearForces()
+        {
+            _forces.Clear();
+        }
+
         #endregion
 
         #region Equals, hashcode, operators
