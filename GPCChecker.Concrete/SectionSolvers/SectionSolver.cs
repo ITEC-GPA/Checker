@@ -540,22 +540,41 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 (double s, double, double) ret = GaussIntegration.IntegrationLinearShapeFunction((x, y) =>
                 {
-                    var s = CalculateSigmaC(strainPlane.GetStrain(x, y));
-
-                    return (s, -s * (y - ConcreteSection.Centroid.Y), s * (x - ConcreteSection.Centroid.X));
+					double sigmaC = CalculateSigmaC(strainPlane.GetStrain(x, y));
+                    return (sigmaC, -sigmaC * (y - ConcreteSection.Centroid.Y), sigmaC * (x - ConcreteSection.Centroid.X));
                 },
                 _globalCoordinateGaussPoints);
 
                 return new ForceTuple(ret);
+            }
+            catch (Exception e)
+            {
+                _log.Add(e.Message);
+                return new ForceTuple();
+            }
+        }
 
+        /// <summary>
+        /// Calculate the stress resultant of the concrete part
+        /// </summary>
+        /// <param name="strainPlane">The strain plane</param>
+        /// <returns>
+        /// <para>The axial force resultant</para>
+        /// <para>The bending moment about X-axis resultant</para>
+        /// <para>The bending moment about Y-axis resultant</para>
+        /// </returns>
+        protected virtual ForceTuple IntegrateSectionStressLinearElastic(StrainPlane strainPlane)
+        {
+            try
+            {
+                (double s, double, double) ret = GaussIntegration.IntegrationLinearShapeFunction((x, y) =>
+                {
+                    double sigmaC = CalculateElasticSigmaC(strainPlane.GetStrain(x, y));
+                    return (sigmaC, -sigmaC * (y - ConcreteSection.Centroid.Y), sigmaC * (x - ConcreteSection.Centroid.X));
+                },
+                _globalCoordinateGaussPoints);
 
-                //double deltaN = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)), _globalCoordinateGaussPoints);
-                //double deltaMx = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y),
-                //    _globalCoordinateGaussPoints);
-                //double deltaMy = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateSigmaC(strainPlane.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X),
-                //    _globalCoordinateGaussPoints);
-
-                //return new ForceTuple(deltaN, -deltaMx, deltaMy);
+                return new ForceTuple(ret);
             }
             catch (Exception e)
             {
@@ -569,7 +588,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             try
             {
                 ForceTuple[] returnValue = new ForceTuple[strainPlane.Length];
-
                 Func<double, double, (double, double, double)>[] functions = new Func<double, double, (double, double, double)>[strainPlane.Length];
 
                 for (int i = 0; i < strainPlane.Length; i++)
@@ -577,8 +595,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     StrainPlane sp = strainPlane[i];
                     functions[i] = new Func<double, double, (double, double, double)>((x, y) => 
                         {
-                            var sigmaC = CalculateSigmaC(sp.GetStrain(x, y));
-
+							double sigmaC = CalculateSigmaC(sp.GetStrain(x, y));
                             return (sigmaC, sigmaC * (y - ConcreteSection.Centroid.Y), sigmaC * (x - ConcreteSection.Centroid.X));
                         });
                 }
@@ -690,35 +707,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <summary>
-        /// Calculate the stress resultant of the concrete part
-        /// </summary>
-        /// <param name="strainPlane">The strain plane</param>
-        /// <returns>
-        /// <para>The axial force resultant</para>
-        /// <para>The bending moment about X-axis resultant</para>
-        /// <para>The bending moment about Y-axis resultant</para>
-        /// </returns>
-        protected virtual ForceTuple IntegrateSectionStressLinearElastic(StrainPlane strainPlane)
-        {
-            try
-            {
-                double deltaN = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(x, y)),
-                    _globalCoordinateGaussPoints);
-                double deltaMx = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(x, y)) * (y - ConcreteSection.Centroid.Y),
-                    _globalCoordinateGaussPoints);
-                double deltaMy = GaussIntegration.IntegrationLinearShapeFunction((x, y) => CalculateElasticSigmaC(strainPlane.GetStrain(x, y)) * (x - ConcreteSection.Centroid.X),
-                    _globalCoordinateGaussPoints);
-
-                return new ForceTuple(deltaN, -deltaMx, deltaMy);
-            }
-            catch (Exception e)
-            {
-                _log.Add(e.Message);
-                return new ForceTuple();
-            }
-        }
-
-        /// <summary>
         /// Calculate the resultant of all the rebars
         /// </summary>
         /// <param name="strainPlane">The strain plane</param>
@@ -727,7 +715,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
         protected virtual ForceTuple IntegrateRebarLinearStress(double psi, double? psiTendon, StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
-            var rebars = ConcreteSection.GetRebars();
+			ReinforcedConcreteRebar[] rebars = ConcreteSection.GetRebars();
 
             double[] deltaNArray = new double[rebars.Length];
             double[] deltaMxArray = new double[rebars.Length];
@@ -735,20 +723,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             Parallel.For(0, rebars.Length, (i) =>
             {
-                double strain = strainPlane.GetStrain(rebars[i].Position);
+				ReinforcedConcreteRebar rebar = rebars[i];
+                double strain = strainPlane.GetStrain(rebar.Position);
                 double sigmaS;
-                if (rebars[i].EpsilonP > 0)
-                    sigmaS = CalculateElasticSigmaS(psiTendon.Value, rebars[i], strain);
+                if (rebar.EpsilonP > 0)
+                    sigmaS = CalculateElasticSigmaS(psiTendon.Value, rebar, strain);
                 else
-                    sigmaS = CalculateElasticSigmaS(psi, rebars[i], strain);
+                    sigmaS = CalculateElasticSigmaS(psi, rebar, strain);
 
                 double sigmaC = 0;
                 if (rebarIsInsideAssociation[i])
                     sigmaC = CalculateElasticSigmaC(strain);
 
-                deltaNArray[i] = (sigmaS - sigmaC) * rebars[i].Area;
-                deltaMxArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.Y - ConcreteSection.Centroid.Y);
-                deltaMyArray[i] = (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.X - ConcreteSection.Centroid.X);
+                deltaNArray[i] = (sigmaS - sigmaC) * rebar.Area;
+                deltaMxArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.Y - ConcreteSection.Centroid.Y);
+                deltaMyArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.X - ConcreteSection.Centroid.X);
             });
 
             return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
