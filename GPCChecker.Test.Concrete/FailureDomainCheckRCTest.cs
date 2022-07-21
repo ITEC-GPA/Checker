@@ -65,12 +65,12 @@ namespace ConcreteTests
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
-				//new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
-				//new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section)),
-				//new ResultBeamForces(-1000 * 1000, 0, 0, 0, -100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
-				//new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, -100 * 1000000, GetLocalCoordinateSystem(section)),
-				//new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
-				//new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, -100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, -100 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section)),
@@ -1192,6 +1192,138 @@ namespace ConcreteTests
 
             CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForceConstantN, forces2d[0], expWR1, 3.5);
             CommonAssertsDomainCheck(section, force.ConvertToForceTuple(GetLocalCoordinateSystem(section)), expForceConstantMxMy, forces[0], expWR2);
+        }
+
+        [TestMethod]
+        public void CircularHole1()
+        {
+            // \\studio\Software_Development\FilesForTesting\Libs\GPCChecker\ConcreteSolver\VCA_file\CHS_D500 
+
+            double rebarDiameter = 16;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 16;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter,
+                ConcreteMaterialEN1992.C45_55);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], new StandardEN1992p11(), sectionOptions);
+        }
+
+        [TestMethod]
+        public void CircularHole2()
+        {
+            double rebarDiameter = 12;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 16;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter,
+                ConcreteMaterialEN1992.C40_50);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], new StandardEN1992p11(), sectionOptions);
+        }
+
+        [TestMethod]
+        public void CircularHole3()
+        {
+            double rebarDiameter = 8;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 16;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter,
+                ConcreteMaterialEN1992.C55_67); 
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], new StandardEN1992p11(), sectionOptions);
+        }
+
+        [TestMethod]
+        public void CircularHole4()
+        {
+            double rebarDiameter = 12;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 16;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover,
+                numberOfRebars, rebarDiameter, ConcreteMaterialEN1992.C30_37);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], new StandardEN1992p11(), sectionOptions);
+        }
+
+        [TestMethod]
+        public void CircularHole5()
+        {
+            double rebarDiameter = 8;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 16;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover,
+                numberOfRebars, rebarDiameter, ConcreteMaterialEN1992.C45_55);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], new StandardEN1992p11(), sectionOptions);
+        }
+
+        [TestMethod]
+        public void CircularHole6()
+        {
+            double rebarDiameter = 8;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 12;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter, 
+                ConcreteMaterialEN1992.C28_35, SteelMaterial.B500C, 32, new Point2d(250, 250)); 
+            ResultBeamForces force = new ResultBeamForces(-800 * 1000, 0, 0, 0, 0, -100 * 1e6, GetLocalCoordinateSystem(section), 1);
+
+            SectionCheckerModelCode2010 sectionCheckerModelCode2010 = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section),
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section),
+				SectionSolver.FailureAnalysisTypes.ConstantN),
+                new StandardNTC2018Concrete(), false);
+
+            var domain = sectionCheckerModelCode2010.GetPlasticFailureDomainResult();
+            var forceOnDomain = domain.AddForce(force);
+
+            Console.WriteLine($"Area: {section.Area}");
+            Console.WriteLine($"AreaRebars: {section.AreaRebars}");
+            Console.WriteLine($"Input N: {force.N / 1000} Mx: {force.M1 / 1000000} My: {force.M2 / 1000000}");
+            Console.WriteLine($"N: {forceOnDomain.ForceTuple.N / 1000} Mx: {forceOnDomain.ForceTuple.Mx / 1000000} My: {forceOnDomain.ForceTuple.My / 1000000}");
+
+            Assert.AreEqual(forceOnDomain.ForceTuple.N / 1000, -800, 0.5);
+            Assert.AreEqual(forceOnDomain.ForceTuple.My / 1000000, -150, 1);
         }
 
         [TestMethod]
