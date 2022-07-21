@@ -492,8 +492,7 @@ namespace ConcreteTests
             double height = 400;
             double width = 400;
 
-            Shape2d shape = GetRectangularShape(width, height);
-            ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C45_55);
+            ShapeEx shapeEx = new ShapeEx(GetRectangularShape(width, height), ConcreteMaterialEN1992.C45_55);
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -511,7 +510,7 @@ namespace ConcreteTests
             StandardEN1992p11 standard = new StandardEN1992p11();
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
                 new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
-            //ExportToGmsh(section);
+
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
                 new ResultBeamForces(100 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
@@ -954,6 +953,34 @@ namespace ConcreteTests
                 new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantNMy);
 
             ResultBeamForces[] forces = GetForces(section, -200 * 1000, 20 * 1000000, 0 * 1000000, 3);
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], new StandardEN1992p11(), sectionOptions);
+        }
+
+        [TestMethod]
+        public void RectangularSectionTest30()
+        {
+            RebarSectionCircular rebar = new RebarSectionCircular(20, SteelMaterial.B450C);
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200,450,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(350,450,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(300, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
+            };
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(new ShapeEx(GetRectangularShape(400, 500), ConcreteMaterialEN1992.C25_30));
+            section.AddRebars(rebars);
+
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
 
             for (int i = 0; i < forces.Length; i++)
                 CommonAssertDomainPointMethod(section, forces[i], new StandardEN1992p11(), sectionOptions);
