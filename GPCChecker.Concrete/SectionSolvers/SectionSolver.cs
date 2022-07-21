@@ -1310,10 +1310,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, 0.0);
                     break;
                 case FailureAnalysisTypes.ConstantNMx:
-                    vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, 0, targetLocalForces.N / 1000);
+                    vectorEd = new Vector3d(0, targetLocalForces.My / 1000000, 0);
                     break;
                 case FailureAnalysisTypes.ConstantNMy:
-                    vectorEd = new Vector3d(0, targetLocalForces.My / 1000000, targetLocalForces.N / 1000);
+                    vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, 0, 0);
+                    break;
+                case FailureAnalysisTypes.ConstantMxMy:
+                    vectorEd = new Vector3d(0, 0, targetLocalForces.N / 1000);
                     break;
             }
 
@@ -1495,9 +1498,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 do
                 {
-                    if (id < 100)
+                    if (id < 200)
                     {
-
                         try
                         {
                             increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, externalForcesLine, angle,
@@ -1536,10 +1538,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                 angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(vectorEd);
                                 break;
                             case FailureAnalysisTypes.ConstantNMx:
-                                angle = new Vector3d(forces.Mx / 1000000, 0, forces.N / 1000).AngleTo(vectorEd);
-                                break;
                             case FailureAnalysisTypes.ConstantNMy:
-                                angle = new Vector3d(0, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
+                            case FailureAnalysisTypes.ConstantMxMy:
+                                angle = new Vector3d((forces.Mx - targetLocalForces.Mx) / 1000000, (forces.My-targetLocalForces.My) / 1000000, 
+                                    (forces.N - targetLocalForces.N) / 1000).AngleTo(vectorEd);
                                 break;
                         }
 
@@ -1816,69 +1818,74 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else if (dTeta > 0.001)
                     dT = 0.15;
                 else
-                    dT = 0.25;
+                    dT = 0.20;
 
                 if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
                 {
-                    if (inputFailureZone == FailureZones.F3A)
-                    {
-                        if (dEta >= 0.01)
-                            dE = 0.35;
-                        else if (dEta >= 0.001)
-                            dE = 0.5;
-                        else if (dEta >= 0.0005)
-                            dE = 0.5;
-                        else
-                            dE = 0.5;
-                    }
-                    else if (inputFailureZone == FailureZones.F3B)
-                    {
-                        if (dEta >= 0.01)
-                            dE = 0.25;
-                        else if (dEta >= 0.001)
-                            dE = 0.35;
-                        else
-                            dE = 0.5;
-                    }
-                    else if (inputFailureZone == FailureZones.F2B || inputFailureZone == FailureZones.F2A)
-                    {
-                        if (dEta >= 0.01)
-                            dE = 0.3;
-                        else if (dEta >= 0.001)
-                            dE = 0.4;
-                        else
-                            dE = 0.75;
-                    }
-                    else
-                    {
-                        dE = 0.5;
-                    }
-                }
+					switch (inputFailureZone)
+					{
+						case FailureZones.F3A:
+							if (dEta >= 0.01)
+								dE = 0.4;
+							else if (dEta >= 0.001)
+								dE = 0.5;
+							else if (dEta >= 0.0005)
+								dE = 0.75;
+							else
+								dE = 1.0;
+
+							if (inputImmersioneNelCampo > 0.85)
+								dE = 0.5;
+							break;
+
+						case FailureZones.F2A:
+						case FailureZones.F2B:
+						case FailureZones.F3B:
+							if (dEta >= 0.01)
+								dE = 0.3;
+							else if (dEta >= 0.001)
+								dE = 0.4;
+							else
+								dE = 0.5;
+							break;
+
+						default:
+                            if (dEta >= 0.01)
+                                dE = 0.3;
+                            else
+                                dE = 0.5;
+                            break;
+					}
+				}
                 else
                 {
-                    if (inputFailureZone == FailureZones.F3A || inputFailureZone == FailureZones.F2A ||
-                        inputFailureZone == FailureZones.F2B)
-                    {
-                        if (dEta >= 0.01)
-                            dE = 0.15;
-                        else if (dEta >= 0.001)
-                            dE = 0.25;
-                        else if (dEta >= 0.0005)
-                            dE = 0.35;
-                        else
-                            dE = 0.5;
-                    }
-                    else if (inputFailureZone == FailureZones.F3B)
-                        dE = 0.1;
+					switch (inputFailureZone)
+					{
+						case FailureZones.F2A:
+						case FailureZones.F2B:
+						case FailureZones.F3A:
+							if (dEta >= 0.01)
+								dE = 0.15;
+							else if (dEta >= 0.001)
+								dE = 0.25;
+							else if (dEta >= 0.0005)
+								dE = 0.35;
+							else
+								dE = 0.5;
+							break;
 
-                    else
-                    {
-                        if (dEta >= 0.01)
-                            dE = 0.25;
-                        else
-                            dE = 0.5;
-                    }
-                }
+						case FailureZones.F3B:
+							dE = 0.1;
+							break;
+
+						default:
+							if (dEta >= 0.01)
+								dE = 0.25;
+							else
+								dE = 0.5;
+							break;
+					}
+				}
 
                 double deltaTeta = results[0, 0] * dT / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorTeta), 1.0));
                 double deltaEta = results[1, 0] * dE / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorEta), 1.0));
