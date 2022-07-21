@@ -585,6 +585,24 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			return check;
 		}
 
+		protected ResultBeamForces[] GetForces(IConcreteSection section, double n = -200 * 1000, double Mx = 20 * 1000000, double My = 20 * 1000000, int iter = 3)
+		{
+			List<ResultBeamForces> list = new List<ResultBeamForces>();
+			for (int k = 0; k < iter; k++)
+			{
+				for (int i = -iter; i < iter; i++)
+				{
+					for (int j = -iter; j < iter; j++)
+					{
+						if (i != 0 && j != 0)
+							list.Add(new ResultBeamForces(n * k, 0, 0, 0, Mx * i, My * j, GetLocalCoordinateSystem(section)));
+					}
+				}
+			}
+
+			return list.ToArray();
+		}
+
 		#endregion
 
 		#region Check
@@ -753,9 +771,9 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 					Console.WriteLine($"Point {i} = {Math.Round(failureDomainPoints[i].Point.X / 1000000, 2)}, " +
 						$"{Math.Round(failureDomainPoints[i].Point.Y / 1000000, 2)}, " +
 						$"{Math.Round(failureDomainPoints[i].Point.Z / 1000, 2)}");
-					Console.WriteLine($"Number of iteraction: {failureDomainPoints[i].StrainPlane.Id} \n");
+					Console.WriteLine($"Number of iteraction: {failureDomainPoints[i].StrainPlane.Id}");
 
-					double wr = new Vector3d(new Point3d(force.M1, force.M2, force.N)).Length /
+					double wr = new Vector3d(new Point3d(testForces[i].M1, testForces[i].M2, testForces[i].N)).Length /
 						new Vector3d(failureDomainPoints[i].Point).Length;
 
 					Console.WriteLine($"WR: {Math.Round(wr, 3)} \n");
