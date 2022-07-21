@@ -1003,10 +1003,112 @@ namespace ConcreteTests
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
                 new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 9126.0 * 1000000, 7178.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 7500.0 * 1000000, -10000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 8000.0 * 1000000, -10000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 8500.0 * 1000000, -10000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 9000.0 * 1000000, -10000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 9500.0 * 1000000, -10000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 10000.0 * 1000000, -10000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 10500.0 * 1000000, -10000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 11000.0 * 1000000, -10000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 11500.0 * 1000000, -10000.0 * 1000000, GetLocalCoordinateSystem(section)),
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005, new double[] { 1.0 }, SectionSolver.FailureDomainTypes.Elastic);
+                CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005, new double[] { 0.75, 1.0, 1.25 }, SectionSolver.FailureDomainTypes.Elastic);
+        }
+
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void Bridge_3()
+        {
+            ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 60,
+                10, 14, 13, 14, 10, 14,
+                7, 12,
+                4, 22, 13, 20, 4, 22,
+                ConcreteMaterialEN1992.C35_45, SteelMaterial.B450C);
+
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN);
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 7500.0 * 1000000, -9000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 8000.0 * 1000000, -9000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 8500.0 * 1000000, -9000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 9000.0 * 1000000, -9000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 9500.0 * 1000000, -9000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 10000.0 * 1000000, -9000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 10500.0 * 1000000, -9000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 11000.0 * 1000000, -9000.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 11500.0 * 1000000, -9000.0 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005, new double[] { 0.75, 1.0, 1.25 }, SectionSolver.FailureDomainTypes.Elastic);
+        }
+
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void Bridge_4()
+        {
+            ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 60,
+                10, 14, 13, 14, 10, 14,
+                7, 12,
+                4, 22, 13, 20, 4, 22,
+                ConcreteMaterialEN1992.C35_45, SteelMaterial.B450C);
+
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN);
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 7500.0 * 1000000, -9500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 8000.0 * 1000000, -9500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 8500.0 * 1000000, -9500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 9000.0 * 1000000, -9500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 9500.0 * 1000000, -9500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 10000.0 * 1000000, -9500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 10500.0 * 1000000, -9500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 11000.0 * 1000000, -9500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 11500.0 * 1000000, -9500.0 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005, new double[] { 0.75, 1.0, 1.25 }, SectionSolver.FailureDomainTypes.Elastic);
+        }
+
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void Bridge_5()
+        {
+            ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 60,
+                10, 14, 13, 14, 10, 14,
+                7, 12,
+                4, 22, 13, 20, 4, 22,
+                ConcreteMaterialEN1992.C35_45, SteelMaterial.B450C);
+
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN);
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 7500.0 * 1000000, -10500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 8000.0 * 1000000, -10500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 8500.0 * 1000000, -10500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 9000.0 * 1000000, -10500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 9500.0 * 1000000, -10500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 10000.0 * 1000000, -10500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 10500.0 * 1000000, -10500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 11000.0 * 1000000, -10500.0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-12883.0 * 1000, 0, 0, 0, 11500.0 * 1000000, -10500.0 * 1000000, GetLocalCoordinateSystem(section)),
+            };
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005, new double[] { 0.75, 1.0, 1.25 }, SectionSolver.FailureDomainTypes.Elastic);
         }
 
         [TestMethod]
