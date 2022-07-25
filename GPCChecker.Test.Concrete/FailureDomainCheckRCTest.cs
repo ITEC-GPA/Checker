@@ -651,11 +651,11 @@ namespace ConcreteTests
             double height = 500;
             double width = 300;
 
-            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, 50, ConcreteMaterialEN1992.C25_30, SteelMaterial.B450C);
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, 50, ConcreteMaterialEN1992.C45_55, SteelMaterial.B450C);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
-                new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-1050 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-500 * 1000, 0, 0, 0, 20 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-200 * 1000, 0, 0, 0, 80 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-200 * 1000, 0, 0, 0, -80 * 1000000, 20 * 1000000, GetLocalCoordinateSystem(section)),
