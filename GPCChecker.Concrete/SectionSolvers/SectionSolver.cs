@@ -1436,6 +1436,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             double angle = -1;
             bool exit = false;
+            bool pointOutOfDomain = false;
 
             switch (failureAnalysisType)
             {
@@ -1496,9 +1497,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         break;
                 }
 
+                if(failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
+				{
+					FailureDomain.FailureDomainPoint pointBuffer = CalculateDomainPoint(targetLocalForces, coordinateSystem, failureDomainType, 
+                        FailureAnalysisTypes.ConstantEccentricity, angularTolerance, distanceTolerance);
+                    FailureDomain.FailureDomainForce failureDomainForce = new FailureDomain.FailureDomainForce(
+                        new ResultBeamForces(targetLocalForces.N, 0, 0, 0, targetLocalForces.Mx, targetLocalForces.My, coordinateSystem), pointBuffer);
+
+                    double wr = failureDomainForce.CalculateWorkingRatio(failureAnalysisType, 1000000, 1000);
+                    if (wr > 1)
+                        pointOutOfDomain = true;
+                }
+
                 do
                 {
-                    if (id < 200)
+                    if (id < 200 && !pointOutOfDomain)
                     {
                         try
                         {
