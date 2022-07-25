@@ -31,7 +31,7 @@ namespace GPC.Checkers.Concrete.Results
         protected readonly FailureDomain2d _failureDomain2d;
         protected readonly DomainTypes _domainType;
         protected readonly Checkers.SectionChecker.SectionOptions _sectionOption;
-        protected List<FailureDomain.FailureDomainPoint2d> _forces;
+        protected List<FailureDomain.FailureDomainForce2d> _forces;
 
         public FailureDomain2d Domain => _failureDomain2d;
 
@@ -47,7 +47,7 @@ namespace GPC.Checkers.Concrete.Results
         {
             _failureDomain2d = failureDomain ?? throw new ArgumentNullException(nameof(failureDomain));
             _sectionSolver = solver ?? throw new ArgumentNullException(nameof(solver));
-            _forces = new List<FailureDomain.FailureDomainPoint2d>();
+            _forces = new List<FailureDomain.FailureDomainForce2d>();
             _domainType = failureDomain.DomainType;
             _sectionOption = options;
             if (forces != null)
@@ -58,7 +58,7 @@ namespace GPC.Checkers.Concrete.Results
                 {
 					(FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forcesList[i]));
 					FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forcesList[i], domainPoint.failureDomainPoint);
-                    _forces.Add(new FailureDomain.FailureDomainPoint2d(domainForce, domainPoint.point2D));
+                    _forces.Add(new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D));
                 }
             }
         }
@@ -70,7 +70,7 @@ namespace GPC.Checkers.Concrete.Results
             _failureDomain2d = (FailureDomain2d)info.GetValue("FailureDomain2d", typeof(FailureDomain2d));
             _domainType = (DomainTypes)info.GetValue("DomainTypes", typeof(DomainTypes));
             _sectionOption = (Checkers.SectionChecker.SectionOptions)info.GetValue("SectionOption", typeof(Checkers.SectionChecker.SectionOptions));
-            _forces = (List<FailureDomain.FailureDomainPoint2d>)info.GetValue("Forces", typeof(List<FailureDomain.FailureDomainPoint2d>));
+            _forces = (List<FailureDomain.FailureDomainForce2d>)info.GetValue("Forces", typeof(List<FailureDomain.FailureDomainForce2d>));
         }
 
         #region Public Async Methods
@@ -82,7 +82,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <returns>The corresponding domain point</returns>
         /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
         /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
-        public async Task<FailureDomain.FailureDomainPoint2d> AddForceAsync(ResultBeamForces forces)
+        public async Task<FailureDomain.FailureDomainForce2d> AddForceAsync(ResultBeamForces forces)
         {
             if (forces is null)
             {
@@ -93,12 +93,12 @@ namespace GPC.Checkers.Concrete.Results
                 throw new ArgumentException(nameof(forces));
             }
 
-            FailureDomain.FailureDomainPoint2d failureDomainPoint2d = null;
+            FailureDomain.FailureDomainForce2d failureDomainPoint2d = null;
 
             await Task.Run(() => {
                 (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
                 FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forces, domainPoint.failureDomainPoint);
-                failureDomainPoint2d = new FailureDomain.FailureDomainPoint2d(domainForce, domainPoint.point2D);
+                failureDomainPoint2d = new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D);
                 _forces.Add(failureDomainPoint2d);
             });
 
@@ -112,7 +112,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <returns>The corresponding points in the domain</returns>
         /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
         /// <exception cref="ArgumentException">Thrown when forces contains items with Id == -1</exception>
-        public async Task<FailureDomain.FailureDomainPoint2d[]> AddForcesAsync(IEnumerable<ResultBeamForces> forces)
+        public async Task<FailureDomain.FailureDomainForce2d[]> AddForcesAsync(IEnumerable<ResultBeamForces> forces)
         {
             if (forces is null)
             {
@@ -123,18 +123,18 @@ namespace GPC.Checkers.Concrete.Results
                 throw new ArgumentException(nameof(forces));
             }
 
-            FailureDomain.FailureDomainPoint2d[] failureDomainPoint2d = null;
+            FailureDomain.FailureDomainForce2d[] failureDomainPoint2d = null;
 
             await Task.Run(() => 
             {
                 var forcesList = forces.ToList();
-                failureDomainPoint2d = new FailureDomain.FailureDomainPoint2d[forcesList.Count];
+                failureDomainPoint2d = new FailureDomain.FailureDomainForce2d[forcesList.Count];
 
                 Parallel.For(0, forces.Count(), (i) =>
                 {
 					(FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forcesList[i]));
                     FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forcesList[i], domainPoint.failureDomainPoint);
-                    failureDomainPoint2d[i] = new FailureDomain.FailureDomainPoint2d(domainForce, domainPoint.point2D);
+                    failureDomainPoint2d[i] = new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D);
                     _forces.Add(failureDomainPoint2d[i]);
                 });
             });
@@ -151,7 +151,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
         /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
         /// <exception cref="KeyNotFoundException">Thrown when did not found a force with the given id</exception>
-        public async Task<FailureDomain.FailureDomainPoint2d> UpdateForceAsync(int id, ResultBeamForces forces)
+        public async Task<FailureDomain.FailureDomainForce2d> UpdateForceAsync(int id, ResultBeamForces forces)
         {
             if (forces is null)
             {
@@ -168,13 +168,13 @@ namespace GPC.Checkers.Concrete.Results
                 throw new KeyNotFoundException(nameof(id));
             }
 
-            FailureDomain.FailureDomainPoint2d failureDomainPoint2d = null;
+            FailureDomain.FailureDomainForce2d failureDomainPoint2d = null;
 
             await Task.Run(() => 
             {
                 (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
                 FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forces, domainPoint.failureDomainPoint);
-                failureDomainPoint2d = new FailureDomain.FailureDomainPoint2d(domainForce, domainPoint.point2D);
+                failureDomainPoint2d = new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D);
                 _forces.RemoveAt(index);
                 _forces.Insert(index, failureDomainPoint2d);
             });
@@ -193,7 +193,7 @@ namespace GPC.Checkers.Concrete.Results
 		/// <returns>The corresponding domain point</returns>
 		/// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
 		/// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
-		internal FailureDomain.FailureDomainPoint2d AddForce(ResultBeamForces forces)
+		internal FailureDomain.FailureDomainForce2d AddForce(ResultBeamForces forces)
         {
             if (forces is null || forces.Id == -1)            
                 throw new ArgumentNullException(nameof(forces));            
@@ -202,7 +202,7 @@ namespace GPC.Checkers.Concrete.Results
 
             (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
             FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forces, domainPoint.failureDomainPoint);
-            FailureDomain.FailureDomainPoint2d failureDomainPoint2d = new FailureDomain.FailureDomainPoint2d(domainForce, domainPoint.point2D);
+            FailureDomain.FailureDomainForce2d failureDomainPoint2d = new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D);
 
             return failureDomainPoint2d;
         }
@@ -214,14 +214,14 @@ namespace GPC.Checkers.Concrete.Results
         /// <returns>The corresponding points in the domain</returns>
         /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
         /// <exception cref="ArgumentException">Thrown when forces contains items with Id == -1</exception>
-        internal FailureDomain.FailureDomainPoint2d[] AddForces(ResultBeamForces[] forces)
+        internal FailureDomain.FailureDomainForce2d[] AddForces(ResultBeamForces[] forces)
         {
             if (forces is null)            
                 throw new ArgumentNullException(nameof(forces));            
             else if (forces.Any(f => f.Id == -1))            
                 throw new ArgumentException(nameof(forces));            
 
-            var failureDomainPoint = new FailureDomain.FailureDomainPoint2d[forces.Length];
+            var failureDomainPoint = new FailureDomain.FailureDomainForce2d[forces.Length];
 
             Parallel.For(0, forces.Count(), (i) =>
             {
@@ -240,7 +240,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
         /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
         /// <exception cref="KeyNotFoundException">Thrown when did not found a force with the given id</exception>
-        internal FailureDomain.FailureDomainPoint2d UpdateForce(int id, ResultBeamForces forces)
+        internal FailureDomain.FailureDomainForce2d UpdateForce(int id, ResultBeamForces forces)
         {
             if (forces is null)
             {
@@ -259,7 +259,7 @@ namespace GPC.Checkers.Concrete.Results
 
             (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
             FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forces, domainPoint.failureDomainPoint);
-            FailureDomain.FailureDomainPoint2d failureDomainPoint2d = new FailureDomain.FailureDomainPoint2d(domainForce, domainPoint.point2D);
+            FailureDomain.FailureDomainForce2d failureDomainPoint2d = new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D);
 
             _forces.RemoveAt(index);
             _forces.Insert(index, failureDomainPoint2d);
@@ -296,12 +296,12 @@ namespace GPC.Checkers.Concrete.Results
             return _forces.Any(force => force.Id == id);
         }
 
-        public IEnumerator<FailureDomain.FailureDomainPoint2d> GetEnumerator()
+        public IEnumerator<FailureDomain.FailureDomainForce2d> GetEnumerator()
         {
             return _forces.GetEnumerator();
         }
 
-        public FailureDomain.FailureDomainPoint2d[] GetFailureDomainForces()
+        public FailureDomain.FailureDomainForce2d[] GetFailureDomainForces()
         {
             return _forces.ToArray();
         }

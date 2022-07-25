@@ -1284,7 +1284,7 @@ namespace ConcreteTests
             FailureDomain.FailureDomainForce[] forces = result.GetFailureDomainForces();
 
             FailureDomainResult2d failureDomainResult2d = result.CalculateDomainConstantAxialForce(force);
-            FailureDomain.FailureDomainPoint2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+            FailureDomain.FailureDomainForce2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
             ForceTuple expForceConstantMxMy = new ForceTuple(-676 * 1000, 496.21 * 1000000, -113.2 * 1000000);
             ForceTuple expForceConstantN = new ForceTuple(-512.2 * 1000, 487.2 * 1000000, -111 * 1000000);
@@ -1449,7 +1449,7 @@ namespace ConcreteTests
             FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
             FailureDomainResult2d failureDomainResult2d = sectionChecker.GetPlasticFailureDomainResult2d();
 
-            FailureDomain.FailureDomainPoint2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+            FailureDomain.FailureDomainForce2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
             //ExportToGmsh(failureDomainResult2d.Domain,
             //	new Line3d[] { new Line3d(new Point3d(0, 0, force.N), new Point3d(forces2d[0].FailureDomainPoint.Point)) },
@@ -1491,7 +1491,7 @@ namespace ConcreteTests
             FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
             FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantMomentsRatio(force);
             failureDomainResult2d.AddForce(force);
-            FailureDomain.FailureDomainPoint2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+            FailureDomain.FailureDomainForce2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
             ForceTuple expForce = new ForceTuple(-3147 * 1000, 314.7 * 1000000, 0);
             double expWR = 0.32;
@@ -1520,7 +1520,7 @@ namespace ConcreteTests
             FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
             FailureDomainResult2d failureDomainResult2d = failureDomainResult.CalculateDomainConstantMomentsRatio(force);
 
-            FailureDomain.FailureDomainPoint2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
+            FailureDomain.FailureDomainForce2d[] forces2d = failureDomainResult2d.GetFailureDomainForces();
 
             ForceTuple expForce = new ForceTuple(-4000 * 1000, 400 * 1000000, 0);
             double expWR = 0.25;
