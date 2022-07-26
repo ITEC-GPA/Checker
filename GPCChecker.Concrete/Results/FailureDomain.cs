@@ -766,6 +766,47 @@ namespace GPC.Checkers.Concrete.Results
 			}
 
 			#endregion
+
+			#region Method
+
+			public double CalculateWorkingRatio(FailureDomainResult2d.DomainTypes domainType, double SCALE_M, double SCALE_N)
+			{
+				if (SCALE_M <= 0 || SCALE_N <= 0)
+					return -1;
+
+				switch (domainType)
+				{
+					case FailureDomainResult2d.DomainTypes.ConstantMxMy:
+						ForceTuple force2d = ConvertForceToForceTuple2d(domainType, new ForceTuple(N, M1, M2));
+						return new Vector3d(force2d.Mx / SCALE_M, force2d.N / SCALE_N, 0).Length /
+							((Vector3d)new Point3d(Point2d.X / SCALE_M, Point2d.Y / SCALE_N, 0)).Length;
+
+					case FailureDomainResult2d.DomainTypes.ConstantN:
+						return new Vector3d(M1 / SCALE_M, M2 / SCALE_M, 0).Length /
+							((Vector3d)new Point3d(Point2d.X / SCALE_M, Point2d.Y / SCALE_M, 0)).Length;
+
+					default:
+						return -1;
+				}
+			}
+
+			public Point2d ConvertForceToPoint(FailureDomainResult2d.DomainTypes domainType, ForceTuple forceTuple)
+			{
+				if (domainType == FailureDomainResult2d.DomainTypes.ConstantN)
+					return new Point2d(forceTuple.Mx, forceTuple.My);
+				else
+					return new Point2d(forceTuple.N, forceTuple.Mx);
+			}
+
+			public ForceTuple ConvertForceToForceTuple2d(FailureDomainResult2d.DomainTypes domainType, ForceTuple forceTuple)
+			{
+				if (domainType == FailureDomainResult2d.DomainTypes.ConstantN)
+					return new ForceTuple(forceTuple.Mx, forceTuple.My, 0);
+				else
+					return new ForceTuple(forceTuple.N, forceTuple.Mx, 0);
+			}
+
+			#endregion
 		}
 
 		#endregion

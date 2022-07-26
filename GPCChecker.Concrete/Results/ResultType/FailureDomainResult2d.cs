@@ -296,6 +296,16 @@ namespace GPC.Checkers.Concrete.Results
             return _forces.Any(force => force.Id == id);
         }
 
+        public bool ContainsForceWithId(int id, out FailureDomain.FailureDomainForce2d force)
+        {
+			force = _forces.Where(f => f.Id == id).FirstOrDefault();
+
+            if (force != null)
+                return true;
+            else
+                return false;
+        }
+
         public IEnumerator<FailureDomain.FailureDomainForce2d> GetEnumerator()
         {
             return _forces.GetEnumerator();
@@ -309,6 +319,24 @@ namespace GPC.Checkers.Concrete.Results
         public void ClearForces()
         {
             _forces.Clear();
+        }
+
+        public double GetForceWorkingRatio(ResultBeamForces forces, DomainTypes domainType, double SCALE_M, double SCALE_N)
+		{
+            if (_forces.Contains(forces))            
+                return GetForceWorkingRatio(forces.Id, domainType, SCALE_M, SCALE_N);            
+            else
+                return -1;
+		}
+
+        public double GetForceWorkingRatio(int id, DomainTypes domainType, double SCALE_M, double SCALE_N)
+        {
+			bool exist = ContainsForceWithId(id, out FailureDomain.FailureDomainForce2d force);
+
+            if(!exist)
+                return -1;
+
+			return force.CalculateWorkingRatio(domainType, SCALE_M, SCALE_N);
         }
 
         #endregion
