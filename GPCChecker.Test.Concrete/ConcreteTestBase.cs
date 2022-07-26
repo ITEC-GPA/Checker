@@ -828,8 +828,8 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 						$"{Math.Round(failureDomainPoints[i].Point.Z / 1000, 2)}");
 					Console.WriteLine($"Number of iteraction: {failureDomainPoints[i].StrainPlane.Id}");
 
-					double wr = new Vector3d(new Point3d(testForces[i].M1, testForces[i].M2, testForces[i].N)).Length /
-						new Vector3d(failureDomainPoints[i].Point).Length;
+					FailureDomain.FailureDomainForce fdf = new FailureDomain.FailureDomainForce(testForces[i], failureDomainPoints[i]);
+					double wr = fdf.CalculateWorkingRatio(options.FailureAnalysisType, 1000000, 1000);
 
 					Console.WriteLine($"WR: {Math.Round(wr, 3)} \n");
 

@@ -437,92 +437,6 @@ namespace GPC.Checkers.Concrete.Results
 
 		#region Nested Class
 
-		#region FailureDomainForce
-
-		[Serializable]
-		public class FailureDomainForce : ResultBeamForces, ISerializable
-		{
-			#region Variables
-
-			private readonly FailureDomainPoint _failureDomainPoint;
-
-			#endregion
-
-			#region Properties
-
-			public FailureDomainPoint FailureDomainPoint => _failureDomainPoint;
-
-			#endregion
-
-			#region Constructor
-
-			public FailureDomainForce(ResultBeamForces forces, FailureDomainPoint failureDomainPoint)
-				: base(forces.N, forces.V1, forces.V2, forces.T, forces.M1, forces.M2, forces.CoordinateSystem, forces.Id)
-			{
-				_failureDomainPoint = failureDomainPoint;
-			}
-
-			internal FailureDomainForce(SerializationInfo info, StreamingContext context)
-				: base(info, context)
-			{
-				_failureDomainPoint = (FailureDomainPoint)info.GetValue("FailureDomainPoint", typeof(FailureDomainPoint));
-			}
-
-			#endregion
-
-			#region Equals, hashcode, operators
-
-			public override void GetObjectData(SerializationInfo info, StreamingContext context)
-			{
-				info.AddValue("FailureDomainPoint", _failureDomainPoint, typeof(FailureDomainPoint));
-			}
-
-			public override bool Equals(object obj)
-			{
-				return Equals((FailureDomainForce)obj);
-			}
-
-			public bool Equals(FailureDomainForce other)
-			{
-				return other != null && base.Equals(other) && _failureDomainPoint.Equals(other._failureDomainPoint);
-			}
-
-			public override int GetHashCode()
-			{
-				unchecked
-				{
-					int hashCode = 17;
-					hashCode = hashCode * -29 + _failureDomainPoint.GetHashCode();
-					return hashCode;
-				}
-			}
-
-			public static bool operator ==(FailureDomainForce left, FailureDomainForce right)
-			{
-				return EqualityComparer<FailureDomainForce>.Default.Equals(left, right);
-			}
-
-			public static bool operator !=(FailureDomainForce left, FailureDomainForce right)
-			{
-				return !(left == right);
-			}
-
-			#endregion
-
-			/// <summary>
-			/// Calculate the working ratio 
-			/// </summary>
-			/// <param name="scale_M">Factor for moments units scale</param>
-			/// <param name="scale_N">Factor for axial force units scale</param>
-			/// <returns></returns>
-			public double CalculateWorkingRatio(double scale_M, double scale_N)
-			{
-				return _failureDomainPoint.CalculateWorkingRatio(this, scale_M, scale_N);
-			}
-		}
-
-		#endregion
-
 		#region FailureDomainPoint
 
 		[Serializable]
@@ -579,11 +493,47 @@ namespace GPC.Checkers.Concrete.Results
 			/// <param name="resultBeamForce"></param>
 			/// <param name="SCALE_M">Factor for moments units scale</param>
 			/// <param name="SCALE_N">Factor for axial force units scale</param>
-			/// <returns></returns>
-			public double CalculateWorkingRatio(ResultBeamForces resultBeamForce, double SCALE_M, double SCALE_N)
+			/// <returns>-1 if the procedure is failed, the working ratio otherwise</returns>
+			public double CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes failureAnalysisType, ResultBeamForces resultBeamForce, double SCALE_M, double SCALE_N)
 			{
-				return new Vector3d(resultBeamForce.M1 / SCALE_M, resultBeamForce.M2 / SCALE_M, resultBeamForce.N / SCALE_N).Length /
-					((Vector3d)new Point3d(Point.X / SCALE_M, Point.Y / SCALE_M, Point.Z / SCALE_N)).Length;
+				if (SCALE_M <= 0 || SCALE_N <= 0 || resultBeamForce == null)
+					return -1;
+
+				switch (failureAnalysisType)
+				{
+					case SectionSolver.FailureAnalysisTypes.ConstantEccentricity:
+						return new Vector3d(resultBeamForce.M1 / SCALE_M, resultBeamForce.M2 / SCALE_M, resultBeamForce.N / SCALE_N).Length /
+							((Vector3d)new Point3d(Point.X / SCALE_M, Point.Y / SCALE_M, Point.Z / SCALE_N)).Length;
+
+					case SectionSolver.FailureAnalysisTypes.ConstantN:
+						return new Vector3d(resultBeamForce.M1 / SCALE_M, resultBeamForce.M2 / SCALE_M, 0).Length /
+							((Vector3d)new Point3d(Point.X / SCALE_M, Point.Y / SCALE_M, 0)).Length;
+
+					case SectionSolver.FailureAnalysisTypes.ConstantMxMy:
+						return new Vector3d(0, 0, resultBeamForce.N / SCALE_N).Length /
+							((Vector3d)new Point3d(0, 0, Point.Z / SCALE_N)).Length;
+
+					case SectionSolver.FailureAnalysisTypes.ConstantNMx:
+						return new Vector3d(0, resultBeamForce.M2 / SCALE_M, 0).Length /
+							((Vector3d)new Point3d(0, Point.Y / SCALE_M, 0)).Length;
+
+					case SectionSolver.FailureAnalysisTypes.ConstantNMy:
+						return new Vector3d(resultBeamForce.M1 / SCALE_M, 0, 0).Length /
+							((Vector3d)new Point3d(Point.X / SCALE_M, 0, 0)).Length;
+
+					default:
+						return -1;
+				}
+			}
+
+			public bool CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes failureAnalysisType, ResultBeamForces resultBeamForce, double SCALE_M, double SCALE_N, out double workingRatio)
+			{
+				workingRatio = CalculateWorkingRatio(failureAnalysisType, resultBeamForce, SCALE_M, SCALE_N);
+
+				if (workingRatio == -1)
+					return false;
+				else
+					return true;
 			}
 
 			#region Equals, hashcode, operators
@@ -633,9 +583,114 @@ namespace GPC.Checkers.Concrete.Results
 
 		#endregion
 
-		#region FailureDomainPoint2d
+		#region FailureDomainForce
 
-		public sealed class FailureDomainPoint2d : FailureDomainForce, ISerializable, IEquatable<FailureDomainPoint2d>
+		[Serializable]
+		public class FailureDomainForce : ResultBeamForces, ISerializable
+		{
+			#region Variables
+
+			private readonly FailureDomainPoint _failureDomainPoint;
+
+			#endregion
+
+			#region Properties
+
+			public FailureDomainPoint FailureDomainPoint => _failureDomainPoint;
+
+			#endregion
+
+			#region Constructor
+
+			public FailureDomainForce(ResultBeamForces forces, FailureDomainPoint failureDomainPoint)
+				: base(forces.N, forces.V1, forces.V2, forces.T, forces.M1, forces.M2, forces.CoordinateSystem, forces.Id)
+			{
+				if (forces is null)				
+					throw new ArgumentNullException(nameof(forces));				
+
+				_failureDomainPoint = failureDomainPoint ?? throw new ArgumentNullException(nameof(failureDomainPoint));
+			}
+
+			internal FailureDomainForce(SerializationInfo info, StreamingContext context)
+				: base(info, context)
+			{
+				_failureDomainPoint = (FailureDomainPoint)info.GetValue("FailureDomainPoint", typeof(FailureDomainPoint));
+			}
+
+			#endregion
+
+			#region Equals, hashcode, operators
+
+			public override void GetObjectData(SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue("FailureDomainPoint", _failureDomainPoint, typeof(FailureDomainPoint));
+			}
+
+			public override bool Equals(object obj)
+			{
+				return Equals((FailureDomainForce)obj);
+			}
+
+			public bool Equals(FailureDomainForce other)
+			{
+				return other != null && base.Equals(other) && _failureDomainPoint.Equals(other._failureDomainPoint);
+			}
+
+			public override int GetHashCode()
+			{
+				unchecked
+				{
+					int hashCode = 17;
+					hashCode = hashCode * -29 + _failureDomainPoint.GetHashCode();
+					return hashCode;
+				}
+			}
+
+			public static bool operator ==(FailureDomainForce left, FailureDomainForce right)
+			{
+				return EqualityComparer<FailureDomainForce>.Default.Equals(left, right);
+			}
+
+			public static bool operator !=(FailureDomainForce left, FailureDomainForce right)
+			{
+				return !(left == right);
+			}
+
+			#endregion
+
+			/// <summary>
+			/// Calculate the working ratio 
+			/// </summary>
+			/// <param name="scale_M">Factor for moments units scale</param>
+			/// <param name="scale_N">Factor for axial force units scale</param>
+			/// <returns></returns>
+			public double CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes failureAnalysisType, double scale_M, double scale_N)
+			{
+				return _failureDomainPoint.CalculateWorkingRatio(failureAnalysisType, this, scale_M, scale_N);
+			}
+
+			/// <summary>
+			/// Calculate the working ratio 
+			/// </summary>
+			/// <param name="scale_M">Factor for moments units scale</param>
+			/// <param name="scale_N">Factor for axial force units scale</param>
+			/// <param name="workingRatio">The working ratio</param>
+			/// <returns>True if the procedure is successful, false otherwise</returns>
+			public bool CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes failureAnalysisType, double scale_M, double scale_N, out double workingRatio)
+			{
+				workingRatio = _failureDomainPoint.CalculateWorkingRatio(failureAnalysisType, this, scale_M, scale_N);
+				if (workingRatio == -1)
+					return false;
+				else
+					return true;
+			}
+		}
+
+		#endregion
+
+		#region FailureDomainForce2d
+
+		public sealed class FailureDomainForce2d : FailureDomainForce, ISerializable, IEquatable<FailureDomainForce2d>
 		{
 			#region Variables
 
@@ -651,19 +706,19 @@ namespace GPC.Checkers.Concrete.Results
 
 			#region Constructor
 
-			internal FailureDomainPoint2d(ResultBeamForces forces, FailureDomainPoint failureDomainPoint, Point2d point2D)
+			internal FailureDomainForce2d(ResultBeamForces forces, FailureDomainPoint failureDomainPoint, Point2d point2D)
 				: base(forces, failureDomainPoint)
 			{
 				_point2d = point2D;
 			}
 
-			internal FailureDomainPoint2d(FailureDomainForce forces, Point2d point2D)
+			internal FailureDomainForce2d(FailureDomainForce forces, Point2d point2D)
 				: this(new ResultBeamForces(forces.N, forces.V1, forces.V2, forces.T, forces.M1, forces.M2, forces.CoordinateSystem, forces.Id), forces.FailureDomainPoint, point2D)
 			{
 
 			}
 
-			internal FailureDomainPoint2d(SerializationInfo info, StreamingContext context)
+			internal FailureDomainForce2d(SerializationInfo info, StreamingContext context)
 				: base(info, context)
 			{
 				_point2d = (Point2d)info.GetValue("Point2d", typeof(Point2d));
@@ -684,7 +739,7 @@ namespace GPC.Checkers.Concrete.Results
 				return Equals((FailureDomainPoint)obj);
 			}
 
-			public bool Equals(FailureDomainPoint2d other)
+			public bool Equals(FailureDomainForce2d other)
 			{
 				return other != null &&
 					_point2d == other._point2d;
@@ -700,14 +755,55 @@ namespace GPC.Checkers.Concrete.Results
 				}
 			}
 
-			public static bool operator ==(FailureDomainPoint2d left, FailureDomainPoint2d right)
+			public static bool operator ==(FailureDomainForce2d left, FailureDomainForce2d right)
 			{
-				return EqualityComparer<FailureDomainPoint2d>.Default.Equals(left, right);
+				return EqualityComparer<FailureDomainForce2d>.Default.Equals(left, right);
 			}
 
-			public static bool operator !=(FailureDomainPoint2d left, FailureDomainPoint2d right)
+			public static bool operator !=(FailureDomainForce2d left, FailureDomainForce2d right)
 			{
 				return !(left == right);
+			}
+
+			#endregion
+
+			#region Method
+
+			public double CalculateWorkingRatio(FailureDomainResult2d.DomainTypes domainType, double SCALE_M, double SCALE_N)
+			{
+				if (SCALE_M <= 0 || SCALE_N <= 0)
+					return -1;
+
+				switch (domainType)
+				{
+					case FailureDomainResult2d.DomainTypes.ConstantMxMy:
+						ForceTuple force2d = ConvertForceToForceTuple2d(domainType, new ForceTuple(N, M1, M2));
+						return new Vector3d(force2d.Mx / SCALE_M, force2d.N / SCALE_N, 0).Length /
+							((Vector3d)new Point3d(Point2d.X / SCALE_M, Point2d.Y / SCALE_N, 0)).Length;
+
+					case FailureDomainResult2d.DomainTypes.ConstantN:
+						return new Vector3d(M1 / SCALE_M, M2 / SCALE_M, 0).Length /
+							((Vector3d)new Point3d(Point2d.X / SCALE_M, Point2d.Y / SCALE_M, 0)).Length;
+
+					default:
+						return -1;
+				}
+			}
+
+			public Point2d ConvertForceToPoint(FailureDomainResult2d.DomainTypes domainType, ForceTuple forceTuple)
+			{
+				if (domainType == FailureDomainResult2d.DomainTypes.ConstantN)
+					return new Point2d(forceTuple.Mx, forceTuple.My);
+				else
+					return new Point2d(forceTuple.N, forceTuple.Mx);
+			}
+
+			public ForceTuple ConvertForceToForceTuple2d(FailureDomainResult2d.DomainTypes domainType, ForceTuple forceTuple)
+			{
+				if (domainType == FailureDomainResult2d.DomainTypes.ConstantN)
+					return new ForceTuple(forceTuple.Mx, forceTuple.My, 0);
+				else
+					return new ForceTuple(forceTuple.N, forceTuple.Mx, 0);
 			}
 
 			#endregion
