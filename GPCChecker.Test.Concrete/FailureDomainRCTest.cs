@@ -771,7 +771,7 @@ namespace ConcreteTests
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
             var result = sectionChecker.GetPlasticFailureDomainResult2dAsync();
-            //ExportToGmsh(result.Result.Domain);
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
         }
 
         [TestMethod]
@@ -787,7 +787,7 @@ namespace ConcreteTests
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
             var result = sectionChecker.GetPlasticFailureDomainResult2dAsync();
-            //ExportToGmsh(result.Result.Domain);
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
         }
 
         [TestMethod]
