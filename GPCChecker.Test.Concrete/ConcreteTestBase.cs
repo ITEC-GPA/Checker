@@ -664,8 +664,8 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 
 		protected void FailureDomainCommonAssertModelCode(IConcreteSection section, SectionChecker sectionChecker, StandardModelCode2010 standard, double errorPerc = 5, bool showDomain = false)
 		{
-			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			FailureDomainResult elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
 			CommonAssertsFailureDomainModelCode(section, standard, plasticFailureDomain.Domain, errorPerc, showDomain);
 			CommonAssertsFailureDomainModelCode(section, standard, elasticFailureDomain.Domain, errorPerc, showDomain);
