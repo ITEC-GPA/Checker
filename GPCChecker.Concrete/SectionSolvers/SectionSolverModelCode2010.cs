@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
-using GPC.Geometry;
-using GPC.Geometry.Meshes;
 using GPC.Model;
 using GPC.Model.Materials;
-using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 
@@ -187,38 +180,38 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <returns>The design rebar yielding stress</returns>
         protected double CalculateFyd(SteelMaterial material)
         {
-            return StandardModelCode2010.CalculateFyd(material);
+            return material.CalculateFyd(StandardModelCode2010);
         }
 
         /// <returns>The design rebar stress related to <paramref name="strain"/></returns>
         protected double CalculateDesignStressRebar(double strain, SteelMaterial material)
         {
-            return StandardModelCode2010.CalculateDesignStressRebar(strain, material);
+            return material.CalculateDesignStressRebar(StandardModelCode2010, strain);
         }
 
         protected double CalculateUltimateDesignStrainRebar(ReinforcedConcreteRebar rebar)
         {
-            return StandardModelCode2010.CalculateUltimateDesignStrainRebar(rebar);
+            return rebar.RebarMaterial.CalculateDesignUltimateStrain(StandardModelCode2010);
         }
 
         protected double CalculateUltimateDesignStrainRebar(int rebarId)
         {
-            return StandardModelCode2010.CalculateUltimateDesignStrainRebar(ConcreteSection, rebarId);
+            return _concreteSection.GetRebarById(rebarId).RebarMaterial.CalculateDesignUltimateStrain(StandardModelCode2010);
         }
 
         protected double CalculateDesignYieldingStressRebar(SteelMaterial material)
         {
-            return StandardModelCode2010.CalculateDesignYieldingStressRebar(material);
+            return material.CalculateDesignYieldingStress(StandardModelCode2010);
         }
 
         protected double CalculateDesignYieldingStrainRebar(SteelMaterial material)
         {
-            return StandardModelCode2010.CalculateDesignYieldingStrainRebar(material);
+            return material.CalculateDesignYieldingStrain(StandardModelCode2010);
         }
 
         protected double CalculateDesignUltimateStrainRebar(SteelMaterial material)
         {
-            return StandardModelCode2010.CalculateDesignUltimateStrainRebar(material);
+            return material.CalculateDesignUltimateStrain(StandardModelCode2010);
         }
 
         #endregion

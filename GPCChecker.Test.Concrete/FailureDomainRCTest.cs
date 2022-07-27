@@ -332,8 +332,9 @@ namespace ConcreteTests
             double width = 300;
             double concreteCover = 50;
 
+            SteelMaterial steelMaterial = new SteelMaterial("", 200000, 450, 450, 0.0025, SteelMaterial.SteelTypes.Rebar);
             ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover,
-                ConcreteMaterialEN1992.C35_45, new SteelMaterial("", 200000, 450, 450, 0.002, SteelMaterial.SteelTypes.Rebar));
+                ConcreteMaterialEN1992.C35_45, steelMaterial);
 
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
@@ -769,8 +770,9 @@ namespace ConcreteTests
             //ExportToGmsh(section);
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-            var result = sectionChecker.GetPlasticFailureDomainResult2dAsync();
-            //ExportToGmsh(result.Result.Domain);
+            var result = sectionChecker.GetPlasticFailureDomainResultAsync();
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+            CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), result.Result.Domain);
         }
 
         [TestMethod]
@@ -785,8 +787,9 @@ namespace ConcreteTests
             //ExportToGmsh(section);
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-            var result = sectionChecker.GetPlasticFailureDomainResult2dAsync();
-            //ExportToGmsh(result.Result.Domain);
+            var result = sectionChecker.GetPlasticFailureDomainResultAsync();
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+            CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), result.Result.Domain);
         }
 
         [TestMethod]
