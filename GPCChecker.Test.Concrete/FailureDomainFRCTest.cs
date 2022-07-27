@@ -466,7 +466,7 @@ namespace ConcreteTests
 			ConcreteMaterialModelCode2010 mat1_2 = new ConcreteMaterialModelCode2010("UHPC 107_2", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_2, ConcreteMaterial.ConcreteTypes.FRC);
 			ConcreteMaterialModelCode2010 mat1_3 = new ConcreteMaterialModelCode2010("UHPC 107_3", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_3, ConcreteMaterial.ConcreteTypes.FRC);
 			ConcreteMaterialModelCode2010 mat1_4 = new ConcreteMaterialModelCode2010("UHPC 107_4", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_4, ConcreteMaterial.ConcreteTypes.FRC);
-			ConcreteMaterialModelCode2010 mat1_5 = new ConcreteMaterialModelCode2010("UHPC 107_5", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_5, ConcreteMaterial.ConcreteTypes.Normal);
+			ConcreteMaterialModelCode2010 mat1_5 = new ConcreteMaterialModelCode2010("UHPC 107_5", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_5, ConcreteMaterial.ConcreteTypes.Concrete);
 
 			ShapeEx shapeEx1 = new ShapeEx(shape, mat1_1);
 			ReinforcedConcreteSection section1 = new ReinforcedConcreteSection(shapeEx1);

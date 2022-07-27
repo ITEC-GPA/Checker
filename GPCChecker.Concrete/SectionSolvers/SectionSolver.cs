@@ -260,12 +260,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             (FailureZones, int)[] zoneDiscretization;
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
                 zoneDiscretization = _elasticFailureZonesDiscretizations;
             else
                 zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
@@ -281,12 +281,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             (FailureZones, int)[] zoneDiscretization;
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
                 zoneDiscretization = _elasticFailureZonesDiscretizations;
             else
                 zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
@@ -302,7 +302,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             (FailureZones, int)[] zoneDiscretization;
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
                 zoneDiscretization = _plasticFailureZonesDiscretizations;
             else
             {
@@ -317,7 +317,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             }
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
@@ -332,7 +332,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             (FailureZones, int)[] zoneDiscretization;
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
                 zoneDiscretization = _plasticFailureZonesDiscretizations;
             else
             {
@@ -347,7 +347,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             }
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
@@ -846,7 +846,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             switch (_concreteSection.ConcreteMaterial.ConcreteType)
             {
-                case ConcreteMaterial.ConcreteTypes.Normal:
+                case ConcreteMaterial.ConcreteTypes.Concrete:
 
                     switch (analysisType)
                     {
@@ -895,7 +895,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             switch (_concreteSection.ConcreteMaterial.ConcreteType)
             {
-                case ConcreteMaterial.ConcreteTypes.Normal:
+                case ConcreteMaterial.ConcreteTypes.Concrete:
 
                     switch (analysisType)
                     {
@@ -963,7 +963,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             switch (_concreteSection.ConcreteMaterial.ConcreteType)
             {
-                case ConcreteMaterial.ConcreteTypes.Normal:
+                case ConcreteMaterial.ConcreteTypes.Concrete:
 
                     switch (analysisType)
                     {
@@ -1833,7 +1833,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else
                     dT = 0.20;
 
-                if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal)
+                if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
                 {
 					switch (inputFailureZone)
 					{
@@ -1923,7 +1923,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             switch (analysisType)
             {
-                case FailureDomainTypes.Plastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal:
+                case FailureDomainTypes.Plastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete:
                     if (eta < 0.0)
                     {
                         eta++;
@@ -1950,7 +1950,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         failureZone++;
                     }
                     break;
-                case FailureDomainTypes.Elastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Normal:
+                case FailureDomainTypes.Elastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete:
                     if (eta < 0.0)
                     {
                         eta++;
