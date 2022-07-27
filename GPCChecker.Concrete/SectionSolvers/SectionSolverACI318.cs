@@ -173,12 +173,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected double CalculateUltimateDesignStrainRebar(ReinforcedConcreteRebar rebar)
         {
-            return rebar.RebarMaterial.StrainU;
+            return rebar.RebarMaterial.StrainUTension;
         }
 
         protected double CalculateUltimateDesignStrainRebar(int rebarId)
         {
-            return ConcreteSection.GetRebarById(rebarId).RebarMaterial.StrainU;
+            return ConcreteSection.GetRebarById(rebarId).RebarMaterial.StrainUTension;
         }
 
         protected double CalculateDesignYieldingStressRebar(SteelMaterial material)
@@ -193,7 +193,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected double CalculateDesignUltimateStrainRebar(SteelMaterial material)
         {
-            return material.StrainU;
+            return material.StrainUTension;
         }
 
         #endregion
