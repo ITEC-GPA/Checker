@@ -199,14 +199,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return _concreteSection.GetRebarById(rebarId).RebarMaterial.CalculateDesignUltimateStrain(StandardModelCode2010);
         }
 
-        protected double CalculateDesignYieldingStressRebar(SteelMaterial material)
+        protected double CalculateDesignYieldingStressRebar(SteelMaterial material)            
         {
-            return material.CalculateDesignYieldingStress(StandardModelCode2010);
+            return material.CalculateDesignYieldingStressTension(StandardModelCode2010);
         }
 
         protected double CalculateDesignYieldingStrainRebar(SteelMaterial material)
         {
-            return material.CalculateDesignYieldingStrain(StandardModelCode2010);
+            return material.CalculateDesignYieldingStrainTension(StandardModelCode2010);
         }
 
         protected double CalculateDesignUltimateStrainRebar(SteelMaterial material)
