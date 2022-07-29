@@ -2146,9 +2146,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
-            return (results[0, 0] * deltaChiXLimit,
-                results[1, 0] * deltaChiYLimit,
-                results[2, 0] * deltaStrainLimit);
+			double reductionFactor = 0.5;
+
+			return (reductionFactor * results[0, 0] * deltaChiXLimit,
+                reductionFactor * results[1, 0] * deltaChiYLimit,
+                reductionFactor * results[2, 0] * deltaStrainLimit);
         }
 
         private StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple localForces, CoordinateSystem coordinateSystem, double? psiRebars, double? psiTendon, double tolerance = 1e-5)

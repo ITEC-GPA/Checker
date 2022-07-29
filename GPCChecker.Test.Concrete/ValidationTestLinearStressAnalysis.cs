@@ -751,7 +751,7 @@ namespace ConcreteTests
                 (rebars[6], -18.58),
             };
 
-            CommonAssertsVCA(psi, result[0], section, expConcreteTensions, expRebarTensions);
+            CommonAssertsVCA(psi, result[0], expConcreteTensions, expRebarTensions);
         }
 
         [TestMethod]
@@ -789,7 +789,7 @@ namespace ConcreteTests
             {
             };
 
-            CommonAssertsVCA(psi, result, section, expConcreteTensions, expRebarTensions);
+            CommonAssertsVCA(psi, result, expConcreteTensions, expRebarTensions);
         }
 
         [TestMethod]

@@ -32,24 +32,14 @@ namespace ConcreteTests
             double u = 0.2;
             double omega = 0.25;
 
-            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4 * (Atot / 4.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection4Rebars(b, h, rebarDiameter, h / 10, concreteMaterial, rebarMaterial);
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-            
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double Ms = u * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(Ns, Ms, 0), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -67,21 +57,10 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4 * (Atot / 4.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection4Rebars(b, h, rebarDiameter, h / 10, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double Ms = u * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(Ns, Ms, 0), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -99,21 +78,10 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4 * (Atot / 4.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection4Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double Ms = u * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(Ns, Ms, 0), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -127,26 +95,14 @@ namespace ConcreteTests
             double u = 0.15;
             double omega = 0.17;
 
-
-            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4.0 * (Atot / 8.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double Ms = u * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(Ns, Ms, 0), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -160,25 +116,14 @@ namespace ConcreteTests
             double u = 0.15;
             double omega = 0.17;
 
-            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4.0 * (Atot / 8.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double Ms = u * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(Ns, Ms, 0), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -192,25 +137,14 @@ namespace ConcreteTests
             double u = 0.20;
             double omega = 0.60;
 
-            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4.0 * (Atot / 8.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double Ms = u * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(Ns, Ms, 0), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -225,26 +159,14 @@ namespace ConcreteTests
             double uy = 0.1;
             double omega = 0.40;
 
-            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4.0 * (Atot / 8.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double MxRd = ux * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-            double MyRd = uy * (b * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(NRd, MxRd, MyRd), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);            
         }
 
         [TestMethod]
@@ -259,26 +181,14 @@ namespace ConcreteTests
             double uy = 0.1;
             double omega = 0.40;
 
-            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4.0 * (Atot / 8.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double MxRd = ux * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-            double MyRd = uy * (b * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(NRd, MxRd, MyRd), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -297,22 +207,10 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4.0 * (Atot / 8.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double MxRd = ux * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-            double MyRd = uy * (b * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(NRd, MxRd, MyRd), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -331,22 +229,10 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4.0 * (Atot / 8.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double MxRd = ux * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-            double MyRd = uy * (b * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(NRd, MxRd, MyRd), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -361,26 +247,14 @@ namespace ConcreteTests
             double uy = 0.1;
             double omega = 0.45;
 
-            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4.0 * (Atot / 8.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double MxRd = ux * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-            double MyRd = uy * (b * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(NRd, MxRd, MyRd), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -395,26 +269,14 @@ namespace ConcreteTests
             double uy = 0.1;
             double omega = 0.45;
 
-            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle);
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4.0 * (Atot / 8.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double MxRd = ux * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-            double MyRd = uy * (b * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(NRd, MxRd, MyRd), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -433,22 +295,10 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4.0 * (Atot / 8.0) / Math.PI);
+            var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
-            ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double MxRd = ux * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-            double MyRd = uy * (b * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(NRd, MxRd, MyRd), failureDomain));
+            ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
+            CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
         }
 
         [TestMethod]
@@ -463,26 +313,17 @@ namespace ConcreteTests
             double uy = 0.075;
             double omega = 0.30;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C40_50;
+            ConcreteMaterialEN1992[] concreteMaterial = new ConcreteMaterialEN1992[] { ConcreteMaterialEN1992.C25_30, ConcreteMaterialEN1992.C32_40, 
+                ConcreteMaterialEN1992.C40_50, ConcreteMaterialEN1992.C45_55, ConcreteMaterialEN1992.C55_67 };
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            // si calcola un diametro equivalente all'omega di input
-            double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
-            double rebarDiameter = Math.Sqrt(4.0 * (Atot / 8.0) / Math.PI);
-
-            ReinforcedConcreteSection section = GetRectangularSection8Rebars(b, h, rebarDiameter, h / 10.0, concreteMaterial, rebarMaterial);
-
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
-            FailureDomainResult failureDomain = sectionChecker.GetPlasticFailureDomainResult();
-
-            // coppia Nrd/Mrd per questa combinazione di u/v
-            double NRd = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
-            double MxRd = ux * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-            double MyRd = uy * (b * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
-
-            Assert.IsTrue(CommonAssertsAbacus(section, new ForceTuple(NRd, MxRd, MyRd), failureDomain));
+            for (int i = 0; i < concreteMaterial.Length; i++)
+            {
+                var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial[i], rebarMaterial, standard);
+                ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial[i], standard);
+                CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
+            }
         }
 
         [TestMethod]
@@ -502,15 +343,7 @@ namespace ConcreteTests
 
             ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 49.7, ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.NonLinear);
 
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(width, 0),
-                new Point2d(width, height),
-                new Point2d(0, height)
-            }));
-
-            ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+            ShapeEx shapeEx = new ShapeEx(GetRectangularShape(width, height), concreteMaterial);
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("RebarMat", 200000, 534, 630, 0.1, SteelMaterial.SteelTypes.Rebar));
@@ -576,19 +409,10 @@ namespace ConcreteTests
                 1.11, 0.89, 0.00285, 0.02, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear);
 
             ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 30, ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.NonLinear);
-
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(width, 0),
-                new Point2d(width, height),
-                new Point2d(0, height)
-            }));
-
-            ShapeEx shapeExFRC = new ShapeEx(shape, concreteMaterialFRC);
+            ShapeEx shapeExFRC = new ShapeEx(GetRectangularShape(width, height), concreteMaterialFRC);
             ReinforcedConcreteSection sectionFRC = new ReinforcedConcreteSection(shapeExFRC);
 
-            ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+            ShapeEx shapeEx = new ShapeEx(GetRectangularShape(width, height), concreteMaterial);
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 
             RebarSectionCircular rebar20 = new RebarSectionCircular(rebarDiameterP20, SteelMaterial.B450CHardening);
@@ -683,7 +507,7 @@ namespace ConcreteTests
 
             Console.WriteLine(Math.Round(tensionResultFRC.GetRebarsTension().Select(i => i.tension).Max(), 2));
             Console.WriteLine(Math.Round(tensionResultFRC.GetConcreteVerticesTension().Select(i => i.tension).Min(), 2));
-            Console.WriteLine(Math.Round(tensionResultFRC.StrainPlane.GetStrain(shape.Fill[0]), 6));
+            Console.WriteLine(Math.Round(tensionResultFRC.StrainPlane.GetStrain(section.Shape.Fill[0]), 6));
 
             Console.WriteLine(concreteMaterial.Name + " h/w = " + Math.Round(height, 2));
             Console.WriteLine(Math.Round(height, 2));
@@ -695,7 +519,7 @@ namespace ConcreteTests
 
             Console.WriteLine(Math.Round(tensionResult.GetRebarsTension().Select(i => i.tension).Max(), 2));
             Console.WriteLine(Math.Round(tensionResult.GetConcreteVerticesTension().Select(i => i.tension).Min(), 2));
-            Console.WriteLine(Math.Round(tensionResult.StrainPlane.GetStrain(shape.Fill[0]), 6));
+            Console.WriteLine(Math.Round(tensionResult.StrainPlane.GetStrain(section.Shape.Fill[0]), 6));
         }
 
         public class StandardEN1992p11Override : StandardEN1992p11
