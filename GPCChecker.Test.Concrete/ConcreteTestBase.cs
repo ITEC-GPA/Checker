@@ -658,6 +658,38 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			};
 		}
 
+		protected ForceTuple GetAbacusForceTuple(double b, double h, double v, double ux, double uy, ConcreteMaterialEuropeanCommon concreteMaterial, StandardModelCode2010 standard)
+		{
+			double NRd = -v * (b * h * Math.Abs(concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)); ;
+			double MxRd = ux * (b * h * h * Math.Abs(concreteMaterial.Fck / standard.GammaC * standard.AlphaCC));
+			double MyRd = uy * (b * b * h * Math.Abs(concreteMaterial.Fck / standard.GammaC * standard.AlphaCC));
+
+			return new ForceTuple(NRd, MxRd, MyRd);
+		}
+
+		protected ForceTuple GetAbacusForceTuple(double b, double h, double v, double u, ConcreteMaterialEuropeanCommon concreteMaterial, StandardModelCode2010 standard)
+		{
+			// coppia Nrd/Mrd per questa combinazione di u/v
+
+			double Ns = -v * (b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))); ;
+			double Ms = u * (b * h * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC)));
+
+			return new ForceTuple(Ns, Ms, 0);
+		}
+
+		protected (FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) GetAbacusFailureDomainResult(double omega, 
+			double b, double h, ConcreteMaterialEuropeanCommon concreteMaterial, SteelMaterial rebarMaterial, StandardModelCode2010 standard)
+		{
+			// si calcola un diametro equivalente all'omega di input
+			double Atot = (omega * b * h * Math.Abs((concreteMaterial.Fck / standard.GammaC * standard.AlphaCC))) / (rebarMaterial.Fyk / standard.GammaS);
+			double rebarDiameter = Math.Sqrt(4 * (Atot / 4.0) / Math.PI);
+
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(b, h, rebarDiameter, h / 10, concreteMaterial, rebarMaterial);
+			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
+			sectionChecker.SectionSolver.SetTetaDiscretization(32);
+			return (sectionChecker.GetPlasticFailureDomainResult(), section);
+		}
+
 		#endregion
 
 		#region Check
@@ -1074,7 +1106,7 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			return true;
 		}
 
-		protected bool CommonAssertsVCA(double psi, StressAnalysisResult result, IConcreteSection section, (Point2d rebar, double tension)[] concreteTensionsCalculate,
+		protected bool CommonAssertsVCA(double psi, StressAnalysisResult result, (Point2d rebar, double tension)[] concreteTensionsCalculate,
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensionsCalculate, double tolerance = 0.05)
 		{
 			(Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension(psi);
@@ -1090,17 +1122,18 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 				Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
 
 			for (int i = 0; i < concreteTensionsCalculate.Length; i++)
-				if (concreteTensions[i].tension != 0)
+				if (concreteTensions[i].tension != 0 && concreteTensionsCalculate[i].tension != 0)
 					Assert.IsTrue(Math.Abs((concreteTensions[i].tension - concreteTensionsCalculate[i].tension) / concreteTensions[i].tension) < tolerance);
 
 			for (int i = 0; i < rebarTensionsCalculate.Length; i++)
 				if (rebarTensions[i].tension != 0)
-					Assert.IsTrue(Math.Abs((rebarTensions[i].tension - rebarTensionsCalculate[i].tension) / rebarTensions[i].tension) < tolerance);
+					Assert.IsTrue((Math.Abs((rebarTensions[i].tension - rebarTensionsCalculate[i].tension) / rebarTensions[i].tension) < tolerance) ||
+						Math.Abs(rebarTensions[i].tension - rebarTensionsCalculate[i].tension) < tolerance * 10);
 
 			return true;
 		}
 
-		protected bool CommonAssertsAbacus(IConcreteSection section, ForceTuple expForce, FailureDomainResult failureDomain, double adimTolerance = 0.05)
+		protected void CommonAssertsAbacus(IConcreteSection section, ForceTuple expForce, FailureDomainResult failureDomain, double adimTolerance = 0.05)
 		{
 			bool check = false;
 			double distance = double.MaxValue;
@@ -1128,15 +1161,13 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 				}
 			}
 
-			Assert.IsTrue(check);
-
 			Console.WriteLine($"Point calculated = {Math.Round(expForce.Mx / 1000000, 1)} KNm, " +
 				$"{Math.Round(expForce.My / 1000000, 1)} KNm, {Math.Round(expForce.N / 1000, 1)} KN");
 
 			Console.WriteLine($"Nearest point = {Math.Round(nearestPoint.X / 1000000, 1)} KNm, " +
 				$"{Math.Round(nearestPoint.Y / 1000000, 1)} KNm, {Math.Round(nearestPoint.Z / 1000, 1)} KN");
 
-			return check;
+			Assert.IsTrue(check);
 		}
 
 		protected bool CommonAssertsDomainCheck(IConcreteSection section, ForceTuple forceEd, ForceTuple expForce,
