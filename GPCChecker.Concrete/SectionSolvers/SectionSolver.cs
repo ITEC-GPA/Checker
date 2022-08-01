@@ -964,7 +964,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             switch (_concreteSection.ConcreteMaterial.ConcreteType)
             {
                 case ConcreteMaterial.ConcreteTypes.Concrete:
-
                     switch (analysisType)
                     {
                         case FailureDomainTypes.Elastic:
@@ -982,7 +981,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     }
 
                 case ConcreteMaterial.ConcreteTypes.FRC:
-
                     switch (analysisType)
                     {
                         case FailureDomainTypes.Elastic:
@@ -1341,12 +1339,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else if (adimOutputForces.N > 0.0)
                     {
                         failureIndex = FailureZones.F3A;
-                        eta = 0.90;
+                        eta = 0.85;
                     }
                     else if (Math.Abs(adimOutputForces.N) < 1e-5)
                     {
                         failureIndex = FailureZones.F3A;
-                        eta = 0.95;
+                        eta = 0.925;
                     }
                     else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-2 && Math.Abs(adimOutputForces.My) < 1e-2)
                     {
@@ -1632,12 +1630,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 case FailureZones.F3A:
                     dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.0001);
-                    dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.00001);
+                    dEta = Math.Max(0.01 * Math.Min(deltaAngle, 0.01), 0.00001);
                     break;
 
                 case FailureZones.F3B:
                     dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.00001);
-                    dEta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.000001);
+                    dEta = Math.Max(0.01 * Math.Min(deltaAngle, 0.01), 0.000001);
                     break;
 
                 default:
@@ -1707,8 +1705,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         nonLinearErrorTeta = 0.0001;
 
                     nonLinearErrorTeta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N),
-                        Math.Max(Math.Abs(adimIteractionPoint.Mx), Math.Abs(adimIteractionPoint.My)) /
-                        Math.Sqrt(nonLinearErrorTeta)));
+                        Math.Max(Math.Abs(adimIteractionPoint.Mx), Math.Abs(adimIteractionPoint.My))) /
+                        Math.Sqrt(nonLinearErrorTeta));
 
                     tetaCounter++;
                 }
@@ -1761,7 +1759,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         nonLinearErrorEta = 0.0001;
 
                     nonLinearErrorEta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N), Math.Max(Math.Abs(adimIteractionPoint.Mx),
-                        Math.Abs(adimIteractionPoint.My)) / Math.Sqrt(nonLinearErrorEta)));
+                        Math.Abs(adimIteractionPoint.My))) / Math.Sqrt(nonLinearErrorEta));
 
                     etaCounter++;
                 }
@@ -1820,88 +1818,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
-
-                double dT;
-                double dE;
-
-                if (dTeta > 0.010)
-                    dT = 0.05;
-                else if (dTeta == 0.01)
-                    dT = 0.1;
-                else if (dTeta > 0.001)
-                    dT = 0.15;
-                else
-                    dT = 0.20;
-
-                if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
-                {
-					switch (inputFailureZone)
-					{
-						case FailureZones.F3A:
-							if (dEta >= 0.01)
-								dE = 0.4;
-							else if (dEta >= 0.001)
-								dE = 0.5;
-							else if (dEta >= 0.0005)
-								dE = 0.75;
-							else
-								dE = 1.0;
-
-							if (inputImmersioneNelCampo > 0.85)
-								dE = 0.5;
-							break;
-
-						case FailureZones.F2A:
-						case FailureZones.F2B:
-						case FailureZones.F3B:
-							if (dEta >= 0.01)
-								dE = 0.3;
-							else if (dEta >= 0.001)
-								dE = 0.4;
-							else
-								dE = 0.5;
-							break;
-
-						default:
-                            if (dEta >= 0.01)
-                                dE = 0.3;
-                            else
-                                dE = 0.5;
-                            break;
-					}
-				}
-                else
-                {
-					switch (inputFailureZone)
-					{
-						case FailureZones.F2A:
-						case FailureZones.F2B:
-						case FailureZones.F3A:
-							if (dEta >= 0.01)
-								dE = 0.15;
-							else if (dEta >= 0.001)
-								dE = 0.25;
-							else if (dEta >= 0.0005)
-								dE = 0.35;
-							else
-								dE = 0.5;
-							break;
-
-						case FailureZones.F3B:
-							dE = 0.1;
-							break;
-
-						default:
-							if (dEta >= 0.01)
-								dE = 0.25;
-							else
-								dE = 0.5;
-							break;
-					}
-				}
-
-                double deltaTeta = results[0, 0] * dT / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorTeta), 1.0));
-                double deltaEta = results[1, 0] * dE / Math.Sqrt(Math.Max(Math.Abs(nonLinearErrorEta), 1.0));
+                double reductionFactor = 0.5;
+                
+                double deltaTeta = results[0, 0] * Math.Abs(nonLinearErrorTeta) * reductionFactor;
+                double deltaEta = results[1, 0] * Math.Abs(nonLinearErrorEta) * reductionFactor;
 
                 return (deltaTeta, deltaEta, displacementVector);
             }
@@ -1935,6 +1855,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         failureZone++;
                     }
                     break;
+
                 case FailureDomainTypes.Plastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC:
                     if (eta < 0.0)
                     {
@@ -1950,6 +1871,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         failureZone++;
                     }
                     break;
+
                 case FailureDomainTypes.Elastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete:
                     if (eta < 0.0)
                     {
@@ -1968,6 +1890,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             failureZone++;
                     }
                     break;
+
                 case FailureDomainTypes.Elastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC:
                     if (eta < 0.0)
                     {
@@ -1989,6 +1912,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             failureZone++;
                     }
                     break;
+
                 default:
                     throw new Exception();
             }
