@@ -19,7 +19,6 @@ namespace ConcreteTests
     [TestClass]
     public class FailureDomainCheckFRCTest : ConcreteTestBase
     {
-
         [TestMethod]
         public void RectangularSectionTest1()
         {
@@ -690,11 +689,10 @@ namespace ConcreteTests
             double concreteCover = 50;
             int numberOfRebars = 12;
 
-            ReinforcedConcreteSection section =  GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter, ConcreteMaterialEN1992.C28_35, SteelMaterial.B500C, 32, new Point2d(250,250) ); //GetCircularSection(externalDiameter, rebarDiameter, concreteCover, numberOfRebars); //
+            ReinforcedConcreteSection section =  GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter,
+                ConcreteMaterialEN1992.C28_35, SteelMaterial.B500C, 32, new Point2d(250,250) );
 
-            var coordinateSystem = new CoordinateSystem(section.Centroid, Vector2d.XAxis, Vector2d.YAxis);
-
-
+            var coordinateSystem = GetLocalCoordinateSystem(section);
             ResultBeamForces force = new ResultBeamForces(-800 * 1000, 0, 0, 0, 0, -100 * 1e6, coordinateSystem, 1);
 
             SectionCheckerModelCode2010 sectionCheckerModelCode2010 = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section),
@@ -702,21 +700,16 @@ namespace ConcreteTests
                 GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN), 
                 new StandardNTC2018Concrete(), false);
 
-            var domain = sectionCheckerModelCode2010.GetPlasticFailureDomainResult();
-
-            var forceOnDomain = domain.AddForce(force);
-
+			FailureDomainResult domain = sectionCheckerModelCode2010.GetPlasticFailureDomainResult();
+			FailureDomain.FailureDomainPoint forceOnDomain = domain.AddForce(force);
 
             Console.WriteLine($"Area: {section.Area}");
             Console.WriteLine($"AreaRebars: {section.AreaRebars}");
             Console.WriteLine($"Input N: {force.N / 1000} Mx: {force.M1 / 1000000} My: {force.M2 / 1000000}");
             Console.WriteLine($"N: {forceOnDomain.ForceTuple.N / 1000} Mx: {forceOnDomain.ForceTuple.Mx / 1000000} My: {forceOnDomain.ForceTuple.My / 1000000}");
 
-
-
-            Assert.AreEqual(forceOnDomain.ForceTuple.N / 1000, -800, 0.5);
-            Assert.AreEqual(forceOnDomain.ForceTuple.My / 1000000, -150, 1);
-
+            Assert.IsTrue(Math.Abs(forceOnDomain.ForceTuple.N / 1000 + 800) < 1);
+            Assert.IsTrue(Math.Abs(forceOnDomain.ForceTuple.My / 1000000 + 150) < 1);
         }
     }
 }
