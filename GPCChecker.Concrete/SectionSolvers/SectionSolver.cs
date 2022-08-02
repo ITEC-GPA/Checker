@@ -1329,7 +1329,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
                     {
                         failureIndex = FailureZones.F3A;
-                        eta = 0.80;
+                        eta = 0.40;
                     }
                     else if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
                     {
@@ -1818,10 +1818,37 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
-                double reductionFactor = 0.5;
-                
-                double deltaTeta = results[0, 0] * Math.Abs(nonLinearErrorTeta) * reductionFactor;
-                double deltaEta = results[1, 0] * Math.Abs(nonLinearErrorEta) * reductionFactor;
+                if (nonLinearErrorEta > 1.0)
+                    nonLinearErrorEta = 1.0;
+                if (nonLinearErrorTeta > 1.0)
+                    nonLinearErrorTeta = 1.0;
+
+                var a = ConvertToAdimensionalForces(new ForceTuple(displacementVector.Z, displacementVector.X, displacementVector.Y));
+                var b = new Vector3d(a.Mx, a.My, 0);
+                var c = new Vector3d(a.Mx, 0, a.N);
+
+
+                double reductionFactorEta;
+                if (inputFailureZone == FailureZones.F3B)
+                {
+                    if (c.Length > 0.01)
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.4, c.Length);
+                    else
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(0.01, 0.001, 0.4, 0.25, c.Length);
+                }
+                else if (inputFailureZone == FailureZones.F3A)
+				{
+                    reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.25, c.Length);
+                }
+                else
+				{
+                    reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 1.0, 0.5, c.Length);
+                }
+
+                double reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 0.05, 0.25, b.Length);
+
+                double deltaTeta = results[0, 0] * Math.Abs(nonLinearErrorTeta) * reductionFactorTeta;
+                double deltaEta = results[1, 0] * Math.Abs(nonLinearErrorEta) * reductionFactorEta;
 
                 return (deltaTeta, deltaEta, displacementVector);
             }
@@ -1863,7 +1890,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         failureZone--;
 
                         if (failureZone == FailureZones.F3A)
-                            eta = 0.98;
+                            eta = 0.99;
                     }
                     if (eta > 1.0)
                     {
