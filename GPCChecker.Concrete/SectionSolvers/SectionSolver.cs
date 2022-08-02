@@ -1184,7 +1184,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC &&
                         !_concreteSection.ConcreteMaterial.StressStrainTableTension.IsHardening() &&
                         _concreteSection.RebarsCount == 0)
-                        chiSx = (p1.epsilon + 0.3 * Math.Abs(p3.epsilon)) / p1.distanceFromBaricentre;
+                        chiSx = (p1.epsilon) / p1.distanceFromBaricentre;
                     else
                         chiSx = p1.epsilon / p1.distanceFromBaricentre;
 
