@@ -304,6 +304,7 @@ namespace ConcreteTests
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
+                new ResultBeamForces(-2250 * 1000, 0, 0, 0, -50 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1800 * 1000, 0, 0, 0, -10 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1800 * 1000, 0, 0, 0, -20 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1800 * 1000, 0, 0, 0, -30 * 1000000, -0 * 1000000, GetLocalCoordinateSystem(section)),

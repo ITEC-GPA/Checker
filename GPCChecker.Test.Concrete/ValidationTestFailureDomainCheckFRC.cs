@@ -393,7 +393,6 @@ namespace ConcreteTests
                 new Point2d(0, height),
                 new Point2d(0, height / 2.0)
             }));
-
             ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
             RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 

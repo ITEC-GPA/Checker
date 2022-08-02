@@ -20,7 +20,6 @@ namespace ConcreteTests
     [TestClass]
     public class FailureDomainCheckRCTest : ConcreteTestBase
     {
-
         [TestMethod]
         public void RectangularSectionTest1()
         {
@@ -35,6 +34,7 @@ namespace ConcreteTests
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
+                new ResultBeamForces(-150 * 1000, 0, 0, 0, -38 * 1000000, -8 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, 100 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, -100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section)),
@@ -190,6 +190,7 @@ namespace ConcreteTests
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
+                new ResultBeamForces(-75 * 1000, 0, 0, 0, -15 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-200 * 1000, 0, 0, 0, -20 * 1000000, 40 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-400 * 1000, 0, 0, 0, -20 * 1000000, -120 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-100 * 1000, 0, 0, 0, 20 * 1000000, 40 * 1000000, GetLocalCoordinateSystem(section)),
@@ -669,7 +670,7 @@ namespace ConcreteTests
 
             for (int i = 0; i < forces.Length; i++)            
                 CommonAssertDomainPointMethod(section, forces[i], standard,
-                    new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantMxMy));            
+                    new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN));            
         }
 
         [TestMethod]
@@ -1352,6 +1353,8 @@ namespace ConcreteTests
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
                 new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 
+            //ResultBeamForces[] forces = new ResultBeamForces[] { 
+            //    new ResultBeamForces(-450.0 * 1000, 0, 0, 0, 75 * 1000000,0, GetLocalCoordinateSystem(section)) };// GetRandomResultBeamForces(section);
             ResultBeamForces[] forces = GetRandomResultBeamForces(section);
 
             for (int i = 0; i < forces.Length; i++)
@@ -1424,8 +1427,48 @@ namespace ConcreteTests
             Console.WriteLine($"Input N: {force.N / 1000} Mx: {force.M1 / 1000000} My: {force.M2 / 1000000}");
             Console.WriteLine($"N: {forceOnDomain.ForceTuple.N / 1000} Mx: {forceOnDomain.ForceTuple.Mx / 1000000} My: {forceOnDomain.ForceTuple.My / 1000000}");
 
-            Assert.AreEqual(forceOnDomain.ForceTuple.N / 1000, -800, 0.5);
+            Assert.AreEqual(forceOnDomain.ForceTuple.N / 1000, -800, 1);
             Assert.AreEqual(forceOnDomain.ForceTuple.My / 1000000, -150, 1);
+        }
+
+        [TestMethod]
+        public void CircularHole7()
+        {
+            double rebarDiameter = 12;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 16;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover,
+                numberOfRebars, rebarDiameter, ConcreteMaterialEN1992.C30_37);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN);
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], new StandardEN1992p11(), sectionOptions);
+        }
+
+        [TestMethod]
+        public void CircularHole8()
+        {
+            double rebarDiameter = 8;
+            double externalDiameter = 500;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 16;
+
+            ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover,
+                numberOfRebars, rebarDiameter, ConcreteMaterialEN1992.C45_55);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN);
+
+            ResultBeamForces[] forces = GetRandomResultBeamForces(section);
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], new StandardEN1992p11(), sectionOptions);
         }
 
         [TestMethod]
