@@ -1364,7 +1364,7 @@ namespace ConcreteTests
         [TestMethod]
         public void CircularHole4()
         {
-            double rebarDiameter = 12;
+            double rebarDiameter = 16;
             double externalDiameter = 500;
             double thickness = 100;
             double concreteCover = 50;

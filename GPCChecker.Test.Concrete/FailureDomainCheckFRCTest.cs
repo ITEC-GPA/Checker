@@ -322,7 +322,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section));
+                CommonAssertDomainPointMethodFRC(section, forces[j], standard, GetLocalCoordinateSystem(section), 0.01);
         }
 
         [TestMethod]
