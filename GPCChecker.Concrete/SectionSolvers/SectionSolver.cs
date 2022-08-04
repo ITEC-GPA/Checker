@@ -1653,9 +1653,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             double nonLinearErrorTeta;
             double nonLinearErrorEta;
-            double nonLinearError = 0.1;
-
-            double dTetaBuffer = dTeta;
+			double dTetaBuffer = dTeta;
             double dEtaBuffer = dEta;
 
             int etaCounter = 1;
@@ -1696,17 +1694,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     var adimForcePlusTeta = ConvertToAdimensionalForces(new ForceTuple(forcesPlusTeta.N, forcesPlusTeta.Mx, forcesPlusTeta.My));
                     var adimForceMinusTeta = ConvertToAdimensionalForces(new ForceTuple(forcesMinusTeta.N, forcesMinusTeta.Mx, forcesMinusTeta.My));
 
-                    nonLinearErrorTeta = Math.Max(Math.Max(
-                        Math.Abs((adimForcePlusTeta.N + adimForceMinusTeta.N) / 2.0 - adimIteractionPoint.N),
-                        Math.Abs((adimForcePlusTeta.Mx + adimForceMinusTeta.Mx) / 2.0 - adimIteractionPoint.Mx)),
-                        Math.Abs((adimForcePlusTeta.My + adimForceMinusTeta.My) / 2.0 - adimIteractionPoint.My));
+					double nonLinearErrorTetaBuffer = Math.Max(Math.Max(
+			            Math.Abs((adimForcePlusTeta.N + adimForceMinusTeta.N) / 2.0 - adimIteractionPoint.N),
+			            Math.Abs((adimForcePlusTeta.Mx + adimForceMinusTeta.Mx) / 2.0 - adimIteractionPoint.Mx)),
+			            Math.Abs((adimForcePlusTeta.My + adimForceMinusTeta.My) / 2.0 - adimIteractionPoint.My));
 
-                    if (Math.Abs(nonLinearErrorTeta) < 0.0001)
-                        nonLinearErrorTeta = 0.0001;
+					if (Math.Abs(nonLinearErrorTetaBuffer) < 0.00001)
+                        nonLinearErrorTetaBuffer = 0.00001;
 
-                    nonLinearErrorTeta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N),
-                        Math.Max(Math.Abs(adimIteractionPoint.Mx), Math.Abs(adimIteractionPoint.My))) /
-                        Math.Sqrt(nonLinearErrorTeta));
+                    nonLinearErrorTeta = Math.Sqrt(Math.Max(Math.Abs(adimForcePlusTeta.N - adimForceMinusTeta.N),
+                        Math.Max(Math.Abs(adimForcePlusTeta.Mx - adimForceMinusTeta.Mx),
+                        Math.Abs(adimForcePlusTeta.My - adimForceMinusTeta.My))) / Math.Sqrt(nonLinearErrorTetaBuffer));
 
                     tetaCounter++;
                 }
@@ -1750,16 +1748,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     var adimForcePlusEta = ConvertToAdimensionalForces(new ForceTuple(forcesPlusEta.N, forcesPlusEta.Mx, forcesPlusEta.My));
                     var adimForceMinusEta = ConvertToAdimensionalForces(new ForceTuple(forcesMinusEta.N, forcesMinusEta.Mx, forcesMinusEta.My));
 
-                    nonLinearErrorEta = Math.Max(Math.Max(
-                        Math.Abs((adimForcePlusEta.N + adimForceMinusEta.N) / 2.0 - adimIteractionPoint.N),
-                        Math.Abs((adimForcePlusEta.Mx + adimForceMinusEta.Mx) / 2.0 - adimIteractionPoint.Mx)),
-                        Math.Abs((adimForcePlusEta.My + adimForceMinusEta.My) / 2.0 - adimIteractionPoint.My));
+					double nonLinearErrorEtaBuffer = Math.Max(Math.Max(
+			            Math.Abs((adimForcePlusEta.N + adimForceMinusEta.N) / 2.0 - adimIteractionPoint.N),
+			            Math.Abs((adimForcePlusEta.Mx + adimForceMinusEta.Mx) / 2.0 - adimIteractionPoint.Mx)),
+			            Math.Abs((adimForcePlusEta.My + adimForceMinusEta.My) / 2.0 - adimIteractionPoint.My));
 
-                    if (Math.Abs(nonLinearErrorEta) < 0.0001)
-                        nonLinearErrorEta = 0.0001;
+					if (Math.Abs(nonLinearErrorEtaBuffer) < 0.00001)
+                        nonLinearErrorEtaBuffer = 0.00001;
 
-                    nonLinearErrorEta = Math.Sqrt(nonLinearError * Math.Max(Math.Abs(adimIteractionPoint.N), Math.Max(Math.Abs(adimIteractionPoint.Mx),
-                        Math.Abs(adimIteractionPoint.My))) / Math.Sqrt(nonLinearErrorEta));
+                    nonLinearErrorEta = Math.Sqrt(Math.Max(Math.Abs(adimForcePlusEta.N - adimForceMinusEta.N),
+                        Math.Max(Math.Abs(adimForcePlusEta.Mx - adimForceMinusEta.Mx),
+                        Math.Abs(adimForcePlusEta.My - adimForceMinusEta.My))) / Math.Sqrt(nonLinearErrorEtaBuffer));
 
                     etaCounter++;
                 }
@@ -1832,43 +1831,43 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (inputFailureZone == FailureZones.F3B)
                 {
                     if (c.Length > 0.01)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.5, c.Length);
-                    else if(c.Length > 0.001)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(0.01, 0.001, 0.5, 0.5, c.Length);
+                        reductionFactorEta = 0.3;
                     else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(0.001, 0.0001, 0.5, 0.2, c.Length);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.2, nonLinearErrorEta);
                 }
                 else if (inputFailureZone == FailureZones.F3A)
 				{
                     if (c.Length > 0.01)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.5, c.Length);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 0.2, 0.5, nonLinearErrorEta);
                     else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.25, c.Length);
-
-                    if (inputImmersioneNelCampo > 0.9)
-						reductionFactorEta = 0.25;
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.2, nonLinearErrorEta);
 				}
                 else if (inputFailureZone == FailureZones.F2A || inputFailureZone == FailureZones.F2B)
                 {
-                    if (c.Length > 0.001)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 1.0, 0.4, c.Length);
+                    if (c.Length > 0.01)
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.5, nonLinearErrorEta);
+                    else if (c.Length > 0.0025)
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.25, nonLinearErrorEta);
                     else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(0.001, 0.0001, 0.4, 0.1, c.Length);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.1, 0.1, nonLinearErrorEta);
                 }
                 else
 				{
-                    reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 1.0, 0.25, c.Length);
+                    if (c.Length > 0.01)
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.5, nonLinearErrorEta);
+                    else
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.2, nonLinearErrorEta);
                 }
 
                 double reductionFactorTeta;
                 if (b.Length > 0.01)
-                    reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 0.05, 0.25, b.Length);
+                    reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
                 else
-                    reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(0.01, 0.001, 0.25, 0.25, b.Length);
+                    reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.05, nonLinearErrorTeta);			
 
 
-                double deltaTeta = results[0, 0] * Math.Abs(nonLinearErrorTeta) * reductionFactorTeta;
-                double deltaEta = results[1, 0] * Math.Abs(nonLinearErrorEta) * reductionFactorEta;
+                double deltaTeta = results[0, 0] * reductionFactorTeta;
+                double deltaEta = results[1, 0] * reductionFactorEta; 
 
                 return (deltaTeta, deltaEta, displacementVector);
             }
