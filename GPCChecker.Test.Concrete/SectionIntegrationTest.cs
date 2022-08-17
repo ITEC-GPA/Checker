@@ -258,7 +258,7 @@ namespace ConcreteTests
 
             Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) / Math.Abs(force.N) < 0.1);
             Assert.IsTrue(Math.Abs(force.Mx - expForceTuple.Mx) / Math.Abs(force.Mx) < 0.11);
-            if (Math.Abs(force.My - expForceTuple.My) > 1)
+            if (Math.Abs(force.My - expForceTuple.My) > 1000000)
                 Assert.IsTrue(Math.Abs(force.My - expForceTuple.My) / Math.Abs(force.My) < 0.1);
         }
 

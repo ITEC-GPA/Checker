@@ -59,14 +59,14 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GMsh.Net, Version=1.0.484.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GMsh.Net.1.0.484.3\lib\netstandard2.0\GMsh.Net.dll</HintPath>
+    <Reference Include="DelaunayMesh, Version=1.0.0.3, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DelaunayMesh.1.0.0.3\lib\net472\DelaunayMesh.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=1.1.4.7, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCGeometry.1.1.4.7\lib\net472\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=1.1.5.2, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCGeometry.1.1.5.2\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.1.9.11, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.1.9.11\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.2.0.1, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.2.0.1\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.8, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.8\lib\net472\GPCTestUtilities.dll</HintPath>
@@ -96,9 +96,6 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
-    </Reference>
-    <Reference Include="UnsafeEx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\UnsafeEx.1.0.0\lib\netstandard2.0\UnsafeEx.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -130,7 +127,6 @@
     <Error Condition="!Exists('..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets'))" />
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.props'))" />
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets'))" />
-    <Error Condition="!Exists('..\packages\GMsh.Net.1.0.484.3\build\GMsh.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GMsh.Net.1.0.484.3\build\GMsh.Net.targets'))" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>
@@ -138,5 +134,4 @@
   </PropertyGroup>
   <Import Project="..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets" Condition="Exists('..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets')" />
   <Import Project="..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets')" />
-  <Import Project="..\packages\GMsh.Net.1.0.484.3\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.484.3\build\GMsh.Net.targets')" />
 </Project>
