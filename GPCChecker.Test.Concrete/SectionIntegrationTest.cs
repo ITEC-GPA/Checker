@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using GPC.Checkers.Concrete.Attributes;
-using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
-using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Materials;
-using GPC.Model.Results;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
-using GPC.TestUtilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ConcreteTests
