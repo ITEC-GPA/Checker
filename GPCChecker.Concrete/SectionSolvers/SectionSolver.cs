@@ -1334,17 +1334,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
                     {
                         failureIndex = FailureZones.F3A;
-                        eta = 0.70;
+                        eta = 0.50;
                     }
                     else if (adimOutputForces.N > 0.0)
                     {
                         failureIndex = FailureZones.F3A;
-                        eta = 0.75;
+                        eta = 0.6;
                     }
                     else if (Math.Abs(adimOutputForces.N) < 1e-5)
                     {
                         failureIndex = FailureZones.F3A;
-                        eta = 0.80;
+                        eta = 0.60;
                     }
                     else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-2 && Math.Abs(adimOutputForces.My) < 1e-2)
                     {
@@ -1619,8 +1619,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     break;
 
                 case FailureZones.F2A:
-                    dTeta = Math.Max(Math.Min(deltaAngle, 0.1), 0.005);
-                    dEta = Math.Max(Math.Min(deltaAngle, 0.1), 0.001);
+                    dTeta = Math.Max(Math.Min(deltaAngle, 0.01), 0.005);
+                    dEta = Math.Max(Math.Min(deltaAngle, 0.01), 0.001);
                     break;
 
                 case FailureZones.F2B:
@@ -1629,12 +1629,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     break;
 
                 case FailureZones.F3A:
-                    dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.0001);
+                    dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.0001);
                     dEta = Math.Max(0.01 * Math.Min(deltaAngle, 0.01), 0.00001);
                     break;
 
                 case FailureZones.F3B:
-                    dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.1), 0.00001);
+                    dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.00001);
                     dEta = Math.Max(0.01 * Math.Min(deltaAngle, 0.01), 0.000001);
                     break;
 
@@ -1767,7 +1767,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     if (inputFailureZone == FailureZones.F1)
                         return (+0.0, +0.5, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                     else if (inputFailureZone == FailureZones.F2A)
-                        return (+0.0, -0.25, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                        return (+0.0, -0.05, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                     else
                         return (+0.0, +0.01, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 }
@@ -1792,12 +1792,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // punto di intersezione tra raggio delle forze sollecitanti e il piano tangente
             bool intersect = planeTg.IntersectWithRay(externalForcesLine, out Point3d intersectionPoint);
 
-            if (!intersect)
+            if (!intersect || double.IsNaN(intersectionPoint.X) || double.IsNaN(intersectionPoint.Y) || double.IsNaN(intersectionPoint.Z))
             {
                 if (inputFailureZone == FailureZones.F1)
                     return (+0.5, +0.5, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                else if(inputFailureZone == FailureZones.F2A)
+                    return (+0.01, -0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 else
-                    return (+0.1, +0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
+                    return (+0.01, +0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
             }
             else
             {
@@ -1822,10 +1824,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (nonLinearErrorTeta > 1.0)
                     nonLinearErrorTeta = 1.0;
 
-                var a = ConvertToAdimensionalForces(new ForceTuple(displacementVector.Z, displacementVector.X, displacementVector.Y));
-                var b = new Vector3d(a.Mx, a.My, 0);
-                var c = new Vector3d(a.Mx, 0, a.N);
-
+                var b = new Vector3d(displacementVector.X, displacementVector.Y, 0);
+                var c = new Vector3d(displacementVector.X, 0, displacementVector.Z);
 
                 double reductionFactorEta;
                 if (inputFailureZone == FailureZones.F3B)
@@ -1849,7 +1849,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else if (c.Length > 0.0025)
                         reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.25, nonLinearErrorEta);
                     else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.1, 0.1, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.2, 0.05, nonLinearErrorEta);
                 }
                 else
 				{
