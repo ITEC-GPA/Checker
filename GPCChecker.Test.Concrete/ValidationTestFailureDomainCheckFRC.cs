@@ -409,7 +409,7 @@ namespace ConcreteTests
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
             Point3d expPoint = new Point3d(129.45 * 1000000, 0, 0);
 
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, expPoint, 7);
         }
 
         [TestMethod]
@@ -428,7 +428,7 @@ namespace ConcreteTests
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
             Point3d expPoint = new Point3d(129.45 * 1000000, 0, 0);
 
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, expPoint, 6);
         }
 
 		#endregion
@@ -440,7 +440,7 @@ namespace ConcreteTests
         {
             double height = 200;
             double width = 1000;
-            double epsfU = 0.02;
+            double epsfU = 0.025;
             double sigmaR1 = 0.74;
             double sigmaR4 = 0.42;
             double sigmaR5 = CalculateSigmaR5(epsfU, sigmaR1, sigmaR4);
@@ -488,7 +488,7 @@ namespace ConcreteTests
         {
             double height = 200;
             double width = 1000;
-            double epsfU = 0.02;
+            double epsfU = 0.025;
             double sigmaR1 = 0.81;
             double sigmaR4 = 0.51;
             double sigmaR5 = CalculateSigmaR5(epsfU, sigmaR1, sigmaR4);
