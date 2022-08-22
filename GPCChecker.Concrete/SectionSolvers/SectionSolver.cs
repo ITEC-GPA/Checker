@@ -1333,27 +1333,27 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
                     {
                         failureIndex = FailureZones.F3A;
-                        eta = 0.40;
+                        eta = 0.20;
                     }
                     else if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
                     {
                         failureIndex = FailureZones.F3A;
-                        eta = 0.50;
+                        eta = 0.30;
                     }
                     else if (adimOutputForces.N > 0.0)
                     {
                         failureIndex = FailureZones.F3A;
-                        eta = 0.6;
+                        eta = 0.4;
                     }
                     else if (Math.Abs(adimOutputForces.N) < 1e-5)
                     {
                         failureIndex = FailureZones.F3A;
-                        eta = 0.60;
+                        eta = 0.50;
                     }
                     else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-2 && Math.Abs(adimOutputForces.My) < 1e-2)
                     {
                         failureIndex = FailureZones.F4;
-                        eta = 0.5;
+                        eta = 0.2;
                     }
                     else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
                     {
@@ -1367,6 +1367,37 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     }
                     break;
                 case FailureAnalysisTypes.ConstantN:
+                    if (adimOutputForces.N > 0.0)
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.40;
+                    }
+                    else if (adimOutputForces.N < 0.2)
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.5;
+                    }
+                    else if (adimOutputForces.N < 0.4)
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.8;
+                    }
+                    else if (adimOutputForces.N < 0.6)
+                    {
+                        failureIndex = FailureZones.F4;
+                        eta = 0.2;
+                    }
+                    else if (adimOutputForces.N < 1)
+                    {
+                        failureIndex = FailureZones.F4;
+                        eta = 0.75;
+                    }
+                    else
+                    {
+                        failureIndex = FailureZones.F3A;
+                        eta = 0.95;
+                    }
+                    break;
                 case FailureAnalysisTypes.ConstantNMx:
                 case FailureAnalysisTypes.ConstantNMy:
                     if (adimOutputForces.N > 0.0)

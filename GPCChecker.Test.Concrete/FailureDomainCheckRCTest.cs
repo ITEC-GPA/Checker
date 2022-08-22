@@ -1094,6 +1094,47 @@ namespace ConcreteTests
         }
 
         [TestMethod]
+        public void RectangularSectionTest35()
+        {
+            double rebarDiameter10 = 26;
+            double height = 500;
+            double width = 300;
+
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
+            Shape2d shape = GetRectangularShape(width, height);
+
+            ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+            RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter10, SteelMaterial.B450C);
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(0,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(50,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(100,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(150,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(200,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(250,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(300,50,0)),
+            };
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+            section.AddRebars(rebars);
+
+            ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+
+            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+
+            double expMxRd1 = 512 * 1000000;  // da VCA
+            double expMxRd2 = 516 * 1000000;  // da Excel
+            Assert.IsTrue(Math.Abs(result.MxRd - expMxRd1) / expMxRd1 * 100 < 1);
+            Assert.IsTrue(Math.Abs(result.MxRd - expMxRd2) / expMxRd2 * 100 < 1);
+        }
+
+        [TestMethod]
         [TestCategory("Bridge")]
         public void Bridge_2()
         {

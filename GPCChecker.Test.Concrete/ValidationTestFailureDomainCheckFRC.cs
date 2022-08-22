@@ -17,9 +17,23 @@ namespace ConcreteTests
     [TestClass]
     public class ValidationTestFailureDomainCheckFRC : ConcreteTestBase
     {
-		#region Slab Test 1
+        public Point3d ExcelSolution_1 = new Point3d(115.0 * 1000000, 0, 0);
+        public Point3d ExcelSolution_2 = new Point3d(28.5 * 1000000, 0, 0);
+        public Point3d ExcelSolution_3 = new Point3d(141.0 * 1000000, 0, 0);
+        public Point3d ExcelSolution_4 = new Point3d(128.9 * 1000000, 0, 0);
+        public Point3d ExcelSolution_5 = new Point3d(8.1 * 1000000, 0, 0);
+        public Point3d ExcelSolution_6 = new Point3d(9.8 * 1000000, 0, 0);
 
-		[TestMethod]
+        public Point3d ConcribeSolution_1 = new Point3d(117.0 * 1000000, 0, 0);
+        public Point3d ConcribeSolution_2 = new Point3d(28.0 * 1000000, 0, 0);
+        public Point3d ConcribeSolution_3 = new Point3d(139.56 * 1000000, 0, 0);
+        public Point3d ConcribeSolution_4 = new Point3d(129.45 * 1000000, 0, 0);
+        public Point3d ConcribeSolution_5 = new Point3d(9.62 * 1000000, 0, 0);
+        public Point3d ConcribeSolution_6 = new Point3d(11.04 * 1000000, 0, 0);
+
+        #region Slab Test 1
+
+        [TestMethod]
         public void ConCribeTest1_1()
         {
             double rebarDiameter = 8;
@@ -33,9 +47,7 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(117 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
         }
 
         [TestMethod]
@@ -52,9 +64,7 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(117 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
         }
 
         [TestMethod]
@@ -71,9 +81,7 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(117 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
         }
 
         [TestMethod]
@@ -90,9 +98,7 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(117 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
         }
 
         [TestMethod]
@@ -109,9 +115,7 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(117 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
         }
 
         [TestMethod]
@@ -128,9 +132,7 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(117 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
         }
 
         #endregion
@@ -148,9 +150,7 @@ namespace ConcreteTests
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteMaterial);
-            Point3d expPoint = new Point3d(28 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint, 10);
+            ConCribeCheck(point, ConcribeSolution_2, ExcelSolution_2);
         }
 
         [TestMethod]
@@ -164,9 +164,7 @@ namespace ConcreteTests
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteMaterial);
-            Point3d expPoint = new Point3d(28 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_2, ExcelSolution_2);
         }
 
         [TestMethod]
@@ -180,9 +178,7 @@ namespace ConcreteTests
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteMaterial);
-            Point3d expPoint = new Point3d(28 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint, 8);
+            ConCribeCheck(point, ConcribeSolution_2, ExcelSolution_2);
         }
 
         [TestMethod]
@@ -196,9 +192,7 @@ namespace ConcreteTests
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteMaterial);
-            Point3d expPoint = new Point3d(28 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_2, ExcelSolution_2); ;
         }
 
         [TestMethod]
@@ -212,9 +206,7 @@ namespace ConcreteTests
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteMaterial);
-            Point3d expPoint = new Point3d(28 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint, 8);
+            ConCribeCheck(point, ConcribeSolution_2, ExcelSolution_2);
         }
 
         [TestMethod]
@@ -228,9 +220,7 @@ namespace ConcreteTests
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteMaterial);
-            Point3d expPoint = new Point3d(28 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_2, ExcelSolution_2);
         }
 
         #endregion
@@ -244,16 +234,14 @@ namespace ConcreteTests
             double height = 300;
             double width = 1000;
             double concreteCover = 40;
-            double epsfU = CalculateEpsilonFU(height, concreteCover);
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(139.56 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
         }
 
         [TestMethod]
@@ -263,16 +251,14 @@ namespace ConcreteTests
             double height = 300;
             double width = 1000;
             double concreteCover = 40;
-            double epsfU = CalculateEpsilonFU(height, concreteCover);
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(139.56 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
         }
 
         [TestMethod]
@@ -282,16 +268,14 @@ namespace ConcreteTests
             double height = 300;
             double width = 1000;
             double concreteCover = 40;
-            double epsfU = CalculateEpsilonFU(height, concreteCover);
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(139.56 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
         }
 
         [TestMethod]
@@ -301,16 +285,48 @@ namespace ConcreteTests
             double height = 300;
             double width = 1000;
             double concreteCover = 40;
-            double epsfU = CalculateEpsilonFU(height, concreteCover);
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(139.56 * 1000000, 0, 0);
+            ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
+        }
 
-            ConCribeCheck(point, expPoint);
+        [TestMethod]
+        public void ConCribeTest3_5()
+        {
+            double rebarDiameter = 12;
+            double height = 300;
+            double width = 1000;
+            double concreteCover = 40;
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
+
+            ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock,
+                2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
+            SteelMaterial rebarMaterial = SteelMaterial.B500C;
+
+            FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
+            ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
+        }
+
+        [TestMethod]
+        public void ConCribeTest3_6()
+        {
+            double rebarDiameter = 12;
+            double height = 300;
+            double width = 1000;
+            double concreteCover = 40;
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
+
+            ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock,
+                2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
+            SteelMaterial rebarMaterial = SteelMaterial.B500C;
+
+            FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
+            ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
         }
 
         #endregion
@@ -324,16 +340,14 @@ namespace ConcreteTests
             double height = 300;
             double width = 1000;
             double concreteCover = 40;
-            double epsfU = CalculateEpsilonFU(height, concreteCover);
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(129.45 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
         }
 
         [TestMethod]
@@ -343,16 +357,14 @@ namespace ConcreteTests
             double height = 300;
             double width = 1000;
             double concreteCover = 40;
-            double epsfU = CalculateEpsilonFU(height, concreteCover);
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(129.45 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
         }
 
         [TestMethod]
@@ -362,16 +374,14 @@ namespace ConcreteTests
             double height = 300;
             double width = 1000;
             double concreteCover = 40;
-            double epsfU = CalculateEpsilonFU(height, concreteCover);
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(129.45 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
         }
 
         [TestMethod]
@@ -381,16 +391,14 @@ namespace ConcreteTests
             double height = 300;
             double width = 1000;
             double concreteCover = 40;
-            double epsfU = CalculateEpsilonFU(height, concreteCover);
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(129.45 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint) ;
+            ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
         }
 
         [TestMethod]
@@ -400,16 +408,14 @@ namespace ConcreteTests
             double height = 300;
             double width = 1000;
             double concreteCover = 40;
-            double epsfU = CalculateEpsilonFU(height, concreteCover);
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(129.45 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint, 7);
+            ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
         }
 
         [TestMethod]
@@ -419,16 +425,14 @@ namespace ConcreteTests
             double height = 300;
             double width = 1000;
             double concreteCover = 40;
-            double epsfU = CalculateEpsilonFU(height, concreteCover);
+            double epsfU = CalculateEpsilonFUFib(height, concreteCover);
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
-            Point3d expPoint = new Point3d(129.45 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint, 6);
+            ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
         }
 
 		#endregion
@@ -440,7 +444,7 @@ namespace ConcreteTests
         {
             double height = 200;
             double width = 1000;
-            double epsfU = 0.025;
+            double epsfU = CalculateEpsilonFUCSTR();
             double sigmaR1 = 0.74;
             double sigmaR4 = 0.42;
             double sigmaR5 = CalculateSigmaR5(epsfU, sigmaR1, sigmaR4);
@@ -449,14 +453,10 @@ namespace ConcreteTests
                 sigmaR1, sigmaR5, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
-            StandardModelCode2010 standardModelCode2010 = new StandardModelCode2010();            
-            standardModelCode2010.SetGammaF(1.0); 
-            standardModelCode2010.SetAlphaCC(0.85);
+            StandardModelCode2010 standardModelCode2010 = GetConcribeStandard();     
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, 0, 8, 0, concreteMaterial, rebarMaterial, standardModelCode2010);
-            Point3d expPoint = new Point3d(9.62 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_5, ExcelSolution_5);
         }               
 
         [TestMethod]
@@ -464,7 +464,7 @@ namespace ConcreteTests
         {
             double height = 200;
             double width = 1000;
-            double epsfU = 0.025;
+            double epsfU = CalculateEpsilonFUCSTR();
             double sigmaR1 = 0.74;
             double sigmaR4 = 0.42;
             double sigmaR5 = CalculateSigmaR5(epsfU, sigmaR1, sigmaR4);
@@ -473,14 +473,10 @@ namespace ConcreteTests
                 sigmaR1, sigmaR5, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
-            StandardModelCode2010 standardModelCode2010 = new StandardModelCode2010();
-            standardModelCode2010.SetAlphaCC(0.85);
-            standardModelCode2010.SetGammaF(1.0);
+            StandardModelCode2010 standardModelCode2010 = GetConcribeStandard();
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, 0, 8, 0, concreteMaterial, rebarMaterial, standardModelCode2010);
-            Point3d expPoint = new Point3d(9.62 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_5, ExcelSolution_5);
         }
 
         [TestMethod]
@@ -488,7 +484,7 @@ namespace ConcreteTests
         {
             double height = 200;
             double width = 1000;
-            double epsfU = 0.025;
+            double epsfU = CalculateEpsilonFUCSTR();
             double sigmaR1 = 0.81;
             double sigmaR4 = 0.51;
             double sigmaR5 = CalculateSigmaR5(epsfU, sigmaR1, sigmaR4);
@@ -497,14 +493,10 @@ namespace ConcreteTests
                 sigmaR1, sigmaR5, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
-            StandardModelCode2010 standardModelCode2010 = new StandardModelCode2010();
-            standardModelCode2010.SetGammaF(1.0);
-            standardModelCode2010.SetAlphaCC(0.85);
+            StandardModelCode2010 standardModelCode2010 = GetConcribeStandard();
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, 0, 8, 0, concreteMaterial, rebarMaterial, standardModelCode2010);
-            Point3d expPoint = new Point3d(11.04 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_6, ExcelSolution_6);
         }
 
         [TestMethod]
@@ -512,7 +504,7 @@ namespace ConcreteTests
         {
             double height = 200;
             double width = 1000;
-            double epsfU = 0.025;
+            double epsfU = CalculateEpsilonFUCSTR();
             double sigmaR1 = 0.81;
             double sigmaR4 = 0.51;
             double sigmaR5 = CalculateSigmaR5(epsfU, sigmaR1, sigmaR4);
@@ -521,18 +513,13 @@ namespace ConcreteTests
                 sigmaR1, sigmaR5, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
-            StandardModelCode2010 standardModelCode2010 = new StandardModelCode2010();
-            standardModelCode2010.SetAlphaCC(0.85);
-            standardModelCode2010.SetGammaF(1.0);
+            StandardModelCode2010 standardModelCode2010 = GetConcribeStandard();
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, 0, 8, 0, concreteMaterial, rebarMaterial, standardModelCode2010);
-            Point3d expPoint = new Point3d(11.04 * 1000000, 0, 0);
-
-            ConCribeCheck(point, expPoint);
+            ConCribeCheck(point, ConcribeSolution_6, ExcelSolution_6);
         }
 
         #endregion
-
 
         #region Private Methods
 
@@ -586,24 +573,30 @@ namespace ConcreteTests
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section),
+                GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
             FailureDomain.FailureDomainPoint point = sectionChecker.CalculatePlasticFailureDomainPoint(force);
             return point;
         }
 
-        private void ConCribeCheck(FailureDomain.FailureDomainPoint point, Point3d expPoint, double tolerancePercent = 5)
+        private void ConCribeCheck(FailureDomain.FailureDomainPoint point, Point3d expPoint, Point3d expPointExcel, double tolerancePercent = 5)
 		{
             Console.WriteLine($"GPC Concrete Checker: " +
-                $"N = {Math.Round(point.NRd / 1000, 1)} kN," +
-                $"Mx = {Math.Round(point.MxRd / 1000000, 1)} kNm," +
-                $"My = {Math.Round(point.MyRd / 1000000, 1)} kNm,");
+                $"N = {Math.Round(point.NRd / 1000, 2)} kN," +
+                $"Mx = {Math.Round(point.MxRd / 1000000, 2)} kNm," +
+                $"My = {Math.Round(point.MyRd / 1000000, 2)} kNm,");
 
             Console.WriteLine($"Concribe expected value: " +
                 $"N = {Math.Round(expPoint.Z / 1000, 1)} kN," +
-                $"Mx = {Math.Round(expPoint.X / 1000000, 1)} kNm," +
-                $"My = {Math.Round(expPoint.Y / 1000000, 1)} kNm,");
+                $"Mx = {Math.Round(expPoint.X / 1000000, 2)} kNm," +
+                $"My = {Math.Round(expPoint.Y / 1000000, 2)} kNm,");
+
+            Console.WriteLine($"Excel expected value: " +
+                $"N = {Math.Round(expPointExcel.Z / 1000, 2)} kN," +
+                $"Mx = {Math.Round(expPointExcel.X / 1000000, 2)} kNm," +
+                $"My = {Math.Round(expPointExcel.Y / 1000000, 2)} kNm,");
 
             Console.WriteLine($"Error: { Math.Round((point.MxRd - expPoint.X ) / expPoint.X * 100, 2)} %");
 
@@ -612,15 +605,29 @@ namespace ConcreteTests
             Assert.IsTrue(Math.Abs((point.MxRd - expPoint.X) / expPoint.X * 100) < tolerancePercent);
         }
 
-        private double CalculateEpsilonFU(double height, double concreteCover, double epsilonCU = 0.0035, double epsilonSY = 0.0022)
-		{
+        private double CalculateEpsilonFUFib(double height, double concreteCover, double epsilonCU = 0.0035, double epsilonSY = 0.0022)
+        {
+            //return 0.00222;
             return 0.0032;
             //return (height * (epsilonCU + epsilonSY)) / (height - concreteCover) - epsilonCU;
         }
 
+        private double CalculateEpsilonFU(double height, double concreteCover, double epsilonCU = 0.0035, double epsilonSY = 0.0022)
+		{
+            // valore rottura delle fibre nel caso di sezioni armate second sTruc
+            return 0.0032;
+            //return 0.02;
+            //return (height * (epsilonCU + epsilonSY)) / (height - concreteCover) - epsilonCU;
+        }
+
+        private double CalculateEpsilonFUCSTR()
+        {
+            return 0.025;
+        }
+
         private double CalculateEpsilonFU(double height)
         {
-            //return 0.01;
+            // valore rottura delle fibre nel caso di sezioni non armate second sTruc
             return 0.0022;
         }
 
@@ -628,6 +635,15 @@ namespace ConcreteTests
 		{
             return sigmaR1 - ((epsilonFU / 0.025) * (sigmaR1 - sigmaR4));
 		}
+
+        private StandardModelCode2010 GetConcribeStandard()
+		{
+            StandardModelCode2010 standardModelCode2010 = new StandardModelCode2010();
+            standardModelCode2010.SetGammaF(1.0);
+            standardModelCode2010.SetAlphaCC(0.85);
+            return standardModelCode2010;
+
+        }
 
 		#endregion
 	}

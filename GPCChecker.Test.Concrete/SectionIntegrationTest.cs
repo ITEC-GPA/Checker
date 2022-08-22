@@ -330,13 +330,7 @@ namespace ConcreteTests
             double height = 400;
             double width = 400;
 
-            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-            {
-                new Point2d(0, 0),
-                new Point2d(width, 0),
-                new Point2d(width, height),
-                new Point2d(0, height)
-            }));
+            Shape2d shape = GetRectangularShape(width, height);
 
             ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
             RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter10, SteelMaterial.B450C);
@@ -403,6 +397,95 @@ namespace ConcreteTests
             ForceTuple force = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane);
 
             ForceTuple expForce = new ForceTuple(1516 * 1000, 209 * 1000000, 0);
+
+            if (expForce.N != 0)
+                Assert.IsTrue(Math.Abs((force.N - expForce.N) / expForce.N) < 0.1);
+            if (expForce.Mx != 0)
+                Assert.IsTrue(Math.Abs((force.Mx - expForce.Mx) / expForce.Mx) < 0.1);
+            if (expForce.My != 0)
+                Assert.IsTrue(Math.Abs((force.My - expForce.My) / expForce.My) < 0.1);
+        }
+
+        [TestMethod]
+        public void RectangularSectionIntegration13()
+        {
+            double rebarDiameter10 = 26;
+            double height = 500;
+            double width = 300;
+
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter10, 50, concreteMaterial);
+            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+
+            StrainPlane strainPlane = new StrainPlane(new Point2d(0,500), 0, 0.00006333, -0.0035);
+            ForceTuple force = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane);
+
+            ForceTuple expForce = new ForceTuple(0 * 1000, 175 * 1000000, 0);
+
+            if (expForce.N != 0)
+                Assert.IsTrue(Math.Abs((force.N - expForce.N) / expForce.N) < 0.1);
+            if (expForce.Mx != 0)
+                Assert.IsTrue(Math.Abs((force.Mx - expForce.Mx) / expForce.Mx) < 0.1);
+            if (expForce.My != 0)
+                Assert.IsTrue(Math.Abs((force.My - expForce.My) / expForce.My) < 0.1);
+        }
+
+        [TestMethod]
+        public void RectangularSectionIntegration14()
+        {
+            double rebarDiameter10 = 10;
+            double height = 500;
+            double width = 300;
+
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter10, 50, concreteMaterial);
+            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+
+            StrainPlane strainPlane = new StrainPlane(new Point2d(0, 500), 0, 0.00012111, -0.0035);
+            ForceTuple force = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane);
+
+            ForceTuple expForce = new ForceTuple(0 * 1000, 42.1 * 1000000, 0);
+
+            if (expForce.N != 0)
+                Assert.IsTrue(Math.Abs((force.N - expForce.N) / expForce.N) < 0.1);
+            if (expForce.Mx != 0)
+                Assert.IsTrue(Math.Abs((force.Mx - expForce.Mx) / expForce.Mx) < 0.1);
+            if (expForce.My != 0)
+                Assert.IsTrue(Math.Abs((force.My - expForce.My) / expForce.My) < 0.1);
+        }
+
+        [TestMethod]
+        public void RectangularSectionIntegration15()
+        {
+            double rebarDiameter10 = 26;
+            double height = 500;
+            double width = 300;
+
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
+            Shape2d shape = GetRectangularShape(width, height);
+
+            ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+            RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter10, SteelMaterial.B450C);
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(0,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(50,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(100,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(150,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(200,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(250,50,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(300,50,0)),
+            };
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+            section.AddRebars(rebars);
+            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+
+            StrainPlane strainPlane = new StrainPlane(new Point2d(0, 500), 0, 0.00001504, -0.0035);
+            ForceTuple force = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane);
+
+            ForceTuple expForce = new ForceTuple(0 * 1000, 512.4 * 1000000, 0);
 
             if (expForce.N != 0)
                 Assert.IsTrue(Math.Abs((force.N - expForce.N) / expForce.N) < 0.1);
