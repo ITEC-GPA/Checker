@@ -163,6 +163,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected double _stressAnalysisTolerance;
         protected double _failureAnalysisAngularTolerance;
+        protected double _failureAnalysisDistanceTolerance;
         protected bool _considerTensileConcrete;
 
         protected IConcreteSection _concreteSection;
@@ -201,6 +202,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             _stressAnalysisTolerance = 1e-5;
             _failureAnalysisAngularTolerance = 1.0e-3;
+            _failureAnalysisDistanceTolerance = 0.5e-4;
 
             _considerTensileConcrete = considerTensileConcrete;
             _tetaDiscretization = 16;
@@ -416,13 +418,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple force,
             CoordinateSystem coordinateSystem, FailureAnalysisTypes failureAnalysisType)
         {
-            return CalculateDomainPoint(force, coordinateSystem, FailureDomainTypes.Plastic, failureAnalysisType, _failureAnalysisAngularTolerance);
+            return CalculateDomainPoint(force, coordinateSystem, FailureDomainTypes.Plastic, failureAnalysisType, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
         public virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, CoordinateSystem coordinateSystem,
             FailureAnalysisTypes failureAnalysisType)
         {
-            return CalculateDomainPoint(force, coordinateSystem, FailureDomainTypes.Elastic, failureAnalysisType, _failureAnalysisAngularTolerance);
+            return CalculateDomainPoint(force, coordinateSystem, FailureDomainTypes.Elastic, failureAnalysisType, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
         #endregion
@@ -1259,13 +1261,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(Vector3d vector, CoordinateSystem coordinateSystem,
             FailureDomainTypes failureDomainType, FailureAnalysisTypes failureAnalysisType)
         {
-            return CalculateDomainPoint(new ForceTuple(vector.Z, vector.X, vector.Y), coordinateSystem, failureDomainType, failureAnalysisType, _failureAnalysisAngularTolerance);
+            return CalculateDomainPoint(new ForceTuple(vector.Z, vector.X, vector.Y), coordinateSystem, failureDomainType, failureAnalysisType,
+                _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
             FailureDomainTypes failureDomainType, FailureAnalysisTypes failureAnalysisType)
         {
-            return CalculateDomainPoint(targetLocalForces, coordinateSystem, failureDomainType, failureAnalysisType, _failureAnalysisAngularTolerance);
+            return CalculateDomainPoint(targetLocalForces, coordinateSystem, failureDomainType, failureAnalysisType, 
+                _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
         protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
