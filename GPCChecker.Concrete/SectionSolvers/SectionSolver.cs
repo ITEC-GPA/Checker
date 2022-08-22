@@ -1849,8 +1849,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (nonLinearErrorTeta > 1.0)
                     nonLinearErrorTeta = 1.0;
 
-                var b = new Vector3d(displacementVector.X, displacementVector.Y, 0);
-                var c = new Vector3d(displacementVector.X, 0, displacementVector.Z);
+                var a = ConvertToAdimensionalForces(new ForceTuple(displacementVector.Z, displacementVector.X, displacementVector.Y));
+                var b = new Vector3d(a.Mx, a.My, 0);
+                var c = new Vector3d(a.Mx, 0, a.N);
 
                 double reductionFactorEta;
                 if (inputFailureZone == FailureZones.F3B)
@@ -1864,17 +1865,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 				{
                     if (c.Length > 0.01)
                         reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 0.2, 0.5, nonLinearErrorEta);
+                    else if (c.Length > 0.001)
+                        reductionFactorEta = 0.2;
                     else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.2, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.1, 0.1, nonLinearErrorEta);
 				}
                 else if (inputFailureZone == FailureZones.F2A || inputFailureZone == FailureZones.F2B)
                 {
                     if (c.Length > 0.01)
                         reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.5, nonLinearErrorEta);
                     else if (c.Length > 0.0025)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.25, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.3, nonLinearErrorEta);
                     else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.2, 0.05, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.3, 0.1, nonLinearErrorEta);
                 }
                 else
 				{
@@ -1887,8 +1890,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double reductionFactorTeta;
                 if (b.Length > 0.01)
                     reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
+                else if (b.Length > 0.001)
+                    reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.05, nonLinearErrorTeta);
                 else
-                    reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.05, nonLinearErrorTeta);			
+                    reductionFactorTeta = 0.05;
 
 
                 double deltaTeta = results[0, 0] * reductionFactorTeta;

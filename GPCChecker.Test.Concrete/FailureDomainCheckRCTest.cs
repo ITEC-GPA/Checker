@@ -987,6 +987,112 @@ namespace ConcreteTests
                 CommonAssertDomainPointMethod(section, forces[i], new StandardEN1992p11(), sectionOptions);
         }
 
+
+        [TestMethod]
+        public void RectangularSectionTest31()
+        {
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock);
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, concreteMaterial);
+
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+
+            ResultBeamForces force = new ResultBeamForces(0, 0, 0, 0, 10000000, 0, GetLocalCoordinateSystem(section));
+            CommonAssertDomainPointMethod(section, force, new StandardNTC2018Concrete(), options);
+
+            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+
+            double expMxRd = 84.6 * 1000000;  // da VCA
+            Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 1);
+        }
+
+        [TestMethod]
+        public void RectangularSectionTest32()
+        {
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock);
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, concreteMaterial);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+
+            ResultBeamForces force = new ResultBeamForces(0, 0, 0, 0, 10000000, 0, GetLocalCoordinateSystem(section));
+            CommonAssertDomainPointMethod(section, force, new StandardNTC2018Concrete(), options);
+
+            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+
+            double expMxRd = 88.0 * 1000000;  // da VCA
+            Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 1);
+        }
+
+        [TestMethod]
+        public void RectangularSectionTest33()
+        {
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock);
+
+            RebarSectionCircular rebar = new RebarSectionCircular(18, SteelMaterial.B450C);
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+            };
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(new ShapeEx(GetRectangularShape(300, 500), concreteMaterial));
+            section.AddRebars(rebars);
+
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+
+            ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
+
+            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+
+            double expMxRd = 208.0 * 1000000;  // da VCA
+            Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 1);
+        }
+
+        [TestMethod]
+        public void RectangularSectionTest34()
+        {
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock);
+
+            RebarSectionCircular rebar = new RebarSectionCircular(26, SteelMaterial.B450C);
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250,450,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+            };
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(new ShapeEx(GetRectangularShape(300, 500), concreteMaterial));
+            section.AddRebars(rebars);
+
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+
+            ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
+
+            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+
+            double expMxRd = 419.7 * 1000000;  // da VCA
+            Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 1);
+        }
+
         [TestMethod]
         [TestCategory("Bridge")]
         public void Bridge_2()
@@ -1508,7 +1614,7 @@ namespace ConcreteTests
 
             //var failureDomainPoint = failureDomainResult.GetDomainPointConstantAxialForce(forces);
 
-            //Point3d expPoint = new Point3d(420 * 1000000, 0, -1000 * 1000 );
+            //Point3d expPointConcribe= new Point3d(420 * 1000000, 0, -1000 * 1000 );
 
             //Assert.IsTrue(Math.Abs(failureDomainPoint.FailureDomainPoint.Point.X) - )
         }

@@ -745,6 +745,63 @@ namespace ConcreteTests
         }
 
         [TestMethod]
+        public void RectangularSectionTest18()
+        {
+            double rebarDiameter = 18;
+            double height = 500;
+            double width = 300;
+            double concreteCover = 50;
+
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("C25/30SB", 25, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock);
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, concreteMaterial);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5);
+            
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
+				NRd			MRd			C3			C4
+				-398.343	0			0			0
+				-398.343	0			0			0
+				-398.343	0			0			0
+				-398.343	0			0			0
+				-382.775	3.84247		0			0
+				-351.973	11.3133		0			0
+				-321.43		18.5065		0			0
+				-293.415	24.8945		0			0
+				-48.0393	75.0195		0			0
+				396.513		159.786		0			0
+				495.779		173.896		0			0
+				661.413		192.136		0			0
+				993.368		208.726		0			0
+				1234.54		191.47		0			0
+				1539.64		162.899		0			0
+				1955.48		104.992		0			0
+				2236.37		53.6365		0			0
+				2427.3		18.3439		0			0
+				2523.84		0			0			0
+				2523.84		0			0			0
+				2427.3		-18.3439	0			0
+				2236.37		-53.6365	0			0
+				1955.48		-104.992	0			0
+				1539.64		-162.899	0			0
+				1234.54		-191.47		0			0
+				993.368		-208.726	0			0
+				661.413		-192.136	0			0
+				495.779		-173.896	0			0
+				396.513		-159.786	0			0
+				-48.0393	-75.0195	0			0
+				-293.415	-24.8945	0			0
+				-321.43		-18.5065	0			0
+				-351.973	-11.3133	0			0
+				-382.775	-3.84247	0			0
+				-398.343	0			0			0
+				-398.343	0			0			0
+				-398.343	0			0			0
+				-398.343	0			0			0
+			*/
+        }
+
+        [TestMethod]
         [TestCategory("Bridge section")]
         public void Bridge_1()
         {
