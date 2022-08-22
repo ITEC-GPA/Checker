@@ -1440,6 +1440,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             bool exit = false;
             bool pointOutOfDomain = false;
 
+			FailureDomain.FailureDomainPoint closestPoint = new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
+
             switch (failureAnalysisType)
             {
                 case FailureAnalysisTypes.ConstantEccentricity:
@@ -1544,21 +1546,30 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
                         adimIncrement = ConvertToAdimensionalForces(incrementForce);
 
+                        double angleBuffer = Math.PI;
+
                         switch (failureAnalysisType)
                         {
                             case FailureAnalysisTypes.ConstantEccentricity:
-                                angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
+                                angleBuffer = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
                                 break;
                             case FailureAnalysisTypes.ConstantN:
-                                angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(vectorEd);
+                                angleBuffer = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(vectorEd);
                                 break;
                             case FailureAnalysisTypes.ConstantNMx:
                             case FailureAnalysisTypes.ConstantNMy:
                             case FailureAnalysisTypes.ConstantMxMy:
-                                angle = new Vector3d((forces.Mx - targetLocalForces.Mx) / 1000000, (forces.My-targetLocalForces.My) / 1000000, 
+                                angleBuffer = new Vector3d((forces.Mx - targetLocalForces.Mx) / 1000000, (forces.My-targetLocalForces.My) / 1000000, 
                                     (forces.N - targetLocalForces.N) / 1000).AngleTo(vectorEd);
                                 break;
                         }
+
+                        if (angleBuffer < angle)
+                        {
+                            closestPoint = new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
+                        }
+
+                        angle = angleBuffer;
 
                         if ((Math.Abs(adimIncrement.N) < distanceTolerance &&
                             Math.Abs(adimIncrement.Mx) < distanceTolerance &&
@@ -1568,6 +1579,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else
                     {
                         _log.Add("Fail to calculate point on domain");
+                        if (failureIndex == FailureZones.F2A || failureIndex == FailureZones.F2B)
+                        {
+                            if (angle < 250 * _failureAnalysisAngularTolerance)
+                                return closestPoint;
+                        }
+                        else if (failureIndex == FailureZones.F3A || failureIndex == FailureZones.F3B || failureIndex == FailureZones.F4)
+                        {
+                            if (angle < 20 * _failureAnalysisAngularTolerance)
+                                return closestPoint;
+                        }
                         return null;
                     }
 
@@ -1904,6 +1925,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         eta--;
                         failureZone++;
                     }
+                    if(_concreteSection.ConcreteMaterial.CompressionStressStrainDiagram == ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock)
+					{
+                        if(failureZone == FailureZones.F2A)
+						{
+                            var distances = CalculateMaxMinSectionDistances(teta);
+                            var p1= GetP1(distances, analysisType, failureZone);
+                            var p2 = GetP2(distances, analysisType);
+                            var p3 = GetP3(distances, analysisType);
+                            var p4 = GetP4(distances, analysisType);
+
+                            StrainPlane strainPlane = CalculateStrainPlane(distances.teta, failureZone,
+                                eta, p1, p2, p3, p4);
+                            double strain = strainPlane.GetStrain(_concreteSection.Shape.Fill[distances.dMaxVertexIndex]);
+                            if (strain < _concreteSection.ConcreteMaterial.StrainYCompression)
+                            {
+                                failureZone++;
+                                eta = 0.10;
+                            }
+                        }
+					}
                     break;
 
                 case FailureDomainTypes.Plastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC:
