@@ -1874,7 +1874,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else if (inputFailureZone == FailureZones.F3A)
 				{
                     if (c.Length > 0.1)
-                        reductionFactorEta = 0.5;
+                        reductionFactorEta = 0.2;
                     else if (c.Length > 0.01)
                         reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 0.2, 0.5, nonLinearErrorEta);
                     else if (c.Length > 0.001)
