@@ -115,7 +115,7 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
+            ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1, 7);
         }
 
         [TestMethod]
@@ -150,7 +150,7 @@ namespace ConcreteTests
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteMaterial);
-            ConCribeCheck(point, ConcribeSolution_2, ExcelSolution_2);
+            ConCribeCheck(point, ConcribeSolution_2, ExcelSolution_2, 9);
         }
 
         [TestMethod]
@@ -309,7 +309,7 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
+            ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3, 8.5);
         }
 
         [TestMethod]
@@ -326,7 +326,7 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
-            ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
+            ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3, 12);
         }
 
         #endregion
@@ -415,7 +415,7 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
-            ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
+            ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4, 7.5);
         }
 
         [TestMethod]
@@ -432,7 +432,7 @@ namespace ConcreteTests
             SteelMaterial rebarMaterial = SteelMaterial.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
-            ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
+            ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4, 6);
         }
 
 		#endregion
@@ -641,6 +641,7 @@ namespace ConcreteTests
             StandardModelCode2010 standardModelCode2010 = new StandardModelCode2010();
             standardModelCode2010.SetGammaF(1.0);
             standardModelCode2010.SetAlphaCC(0.85);
+            standardModelCode2010.SetAlphaCT(0.85);
             return standardModelCode2010;
 
         }

@@ -71,7 +71,7 @@ namespace ConcreteTests
 				new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, -100 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section)),
-				new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
@@ -1030,7 +1030,7 @@ namespace ConcreteTests
         [TestMethod]
         public void RectangularSectionTest33()
         {
-            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock);
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle);
 
             RebarSectionCircular rebar = new RebarSectionCircular(18, SteelMaterial.B450C);
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -1057,7 +1057,7 @@ namespace ConcreteTests
                 options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
             double expMxRd = 208.0 * 1000000;  // da VCA
-            Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 1);
+            Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 2);
         }
 
         [TestMethod]
@@ -1100,7 +1100,7 @@ namespace ConcreteTests
             double height = 500;
             double width = 300;
 
-            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
             Shape2d shape = GetRectangularShape(width, height);
 
             ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
