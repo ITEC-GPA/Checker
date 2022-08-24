@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
+using GPC.Model.Data.Concrete;
+using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
@@ -26,7 +28,7 @@ namespace ConcreteTests
                                                                         new Point2d(300, 500),
                                                                         new Point2d(0, 500) }));
 
-            ConcreteMaterial concreteMaterial = ConcreteMaterialEN1992.C25_30;
+            ConcreteMaterial concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
             ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] { };
 
@@ -267,7 +269,7 @@ namespace ConcreteTests
                 10, 14, 13, 14, 10, 14,
                 7, 12,
                 4, 22, 13, 20, 4, 22,
-                ConcreteMaterialEN1992.C25_30, SteelMaterial.B450C);
+                ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1993Data.B450C);
 
             StrainPlane strainPlaneT = new StrainPlane(section.Centroid, 0, 0, strainRefPointT);
             StrainPlane strainPlaneC = new StrainPlane(section.Centroid, 0, 0, strainRefPointC);
@@ -292,7 +294,7 @@ namespace ConcreteTests
                 10, 14, 13, 14, 10, 14,
                 0, 12,
                 0, 22, 0, 20, 0, 22,
-                ConcreteMaterialEN1992.C25_30, SteelMaterial.B450C);
+                ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1993Data.B450C);
 
             StrainPlane strainPlane = new StrainPlane(section.Centroid, 0, 0, strainRefPoint);
             SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
@@ -312,7 +314,7 @@ namespace ConcreteTests
                 10, 14, 0, 14, 10, 14,
                 0, 12,
                 0, 22, 0, 20, 0, 22,
-                ConcreteMaterialEN1992.C25_30, SteelMaterial.B450C);
+                ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1993Data.B450C);
 
             StrainPlane strainPlane = new StrainPlane(section.Centroid, 0, 0, strainRefPoint);
             SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
@@ -332,8 +334,8 @@ namespace ConcreteTests
 
             Shape2d shape = GetRectangularShape(width, height);
 
-            ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992.C25_30);
-            RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter10, SteelMaterial.B450C);
+            ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
+            RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter10, SteelMaterialEN1993Data.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -465,7 +467,7 @@ namespace ConcreteTests
             Shape2d shape = GetRectangularShape(width, height);
 
             ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
-            RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter10, SteelMaterial.B450C);
+            RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter10, SteelMaterialEN1993Data.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {

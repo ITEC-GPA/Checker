@@ -7,6 +7,8 @@ using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
+using GPC.Model.Data.Concrete;
+using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections;
@@ -32,7 +34,7 @@ namespace ConcreteTests
             double u = 0.2;
             double omega = 0.25;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -53,7 +55,7 @@ namespace ConcreteTests
             double u = 0.25;
             double omega = 0.37;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C40_50;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C40_50;
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -74,7 +76,7 @@ namespace ConcreteTests
             double u = 0.15;
             double omega = 0.36;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C50_60;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C50_60;
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -95,7 +97,7 @@ namespace ConcreteTests
             double u = 0.15;
             double omega = 0.17;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -116,7 +118,7 @@ namespace ConcreteTests
             double u = 0.15;
             double omega = 0.17;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -137,7 +139,7 @@ namespace ConcreteTests
             double u = 0.20;
             double omega = 0.60;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -159,7 +161,7 @@ namespace ConcreteTests
             double uy = 0.1;
             double omega = 0.40;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -181,7 +183,7 @@ namespace ConcreteTests
             double uy = 0.1;
             double omega = 0.40;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -203,7 +205,7 @@ namespace ConcreteTests
             double uy = 0.175;
             double omega = 0.60;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C40_50;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C40_50;
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -225,7 +227,7 @@ namespace ConcreteTests
             double ux = 0.175;
             double omega = 0.60;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C40_50;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C40_50;
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -247,7 +249,7 @@ namespace ConcreteTests
             double uy = 0.1;
             double omega = 0.45;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -269,7 +271,7 @@ namespace ConcreteTests
             double uy = 0.1;
             double omega = 0.45;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C25_30;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -291,7 +293,7 @@ namespace ConcreteTests
             double uy = 0.075;
             double omega = 0.30;
 
-            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992.C40_50;
+            ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C40_50;
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -313,8 +315,8 @@ namespace ConcreteTests
             double uy = 0.075;
             double omega = 0.30;
 
-            ConcreteMaterialEN1992[] concreteMaterial = new ConcreteMaterialEN1992[] { ConcreteMaterialEN1992.C25_30, ConcreteMaterialEN1992.C32_40, 
-                ConcreteMaterialEN1992.C40_50, ConcreteMaterialEN1992.C45_55, ConcreteMaterialEN1992.C55_67 };
+            ConcreteMaterialEN1992[] concreteMaterial = new ConcreteMaterialEN1992[] { ConcreteMaterialEN1992Data.C25_30, ConcreteMaterialEN1992Data.C32_40, 
+                ConcreteMaterialEN1992Data.C40_50, ConcreteMaterialEN1992Data.C45_55, ConcreteMaterialEN1992Data.C55_67 };
             SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
@@ -415,8 +417,8 @@ namespace ConcreteTests
             ShapeEx shapeEx = new ShapeEx(GetRectangularShape(width, height), concreteMaterial);
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
 
-            RebarSectionCircular rebar20 = new RebarSectionCircular(rebarDiameterP20, SteelMaterial.B450CHardening);
-            RebarSectionCircular rebar16 = new RebarSectionCircular(rebarDiameterP16, SteelMaterial.B450CHardening);
+            RebarSectionCircular rebar20 = new RebarSectionCircular(rebarDiameterP20, SteelMaterialEN1993Data.B450CHardening);
+            RebarSectionCircular rebar16 = new RebarSectionCircular(rebarDiameterP16, SteelMaterialEN1993Data.B450CHardening);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {

@@ -6,6 +6,8 @@ using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
+using GPC.Model.Data.Concrete;
+using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections;
@@ -156,7 +158,7 @@ namespace ConcreteTests
 
             Shape2d shape = GetRectangularShape(h, h);
             ShapeEx shapeEx = new ShapeEx(shape, GetLinearConcreteMaterial(elasticModulus));
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1993Data.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -260,7 +262,7 @@ namespace ConcreteTests
             double h = 500;
 
             Shape2d shape = GetRectangularShape(h, h);
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1993Data.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -319,8 +321,8 @@ namespace ConcreteTests
             double rebarDiameter = 26;
             double n = 15;
 
-            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992.C25_30);
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992Data.C25_30);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1993Data.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -371,8 +373,8 @@ namespace ConcreteTests
             double rebarDiameter = 26;
             double n = 15;
 
-            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992.C25_30);
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992Data.C25_30);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1993Data.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -420,7 +422,7 @@ namespace ConcreteTests
         [TestCategory("Bridge No Rebars")]
         public void VCA_8()
         {
-            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992.C25_30);
+            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992Data.C25_30);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
@@ -456,8 +458,8 @@ namespace ConcreteTests
             double rebarDiameter = 26;
             double n = 15;
 
-            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992.C25_30);
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992Data.C25_30);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1993Data.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -534,8 +536,8 @@ namespace ConcreteTests
             double rebarDiameter = 26;
             double n = 15;
 
-            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992.C25_30);
-            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterial.B450C);
+            ReinforcedConcreteSection section = GetBridgeShapeWithHole(4600, 1800, 3000, 300, 300, 200, ConcreteMaterialEN1992Data.C25_30);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1993Data.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -635,10 +637,10 @@ namespace ConcreteTests
             double rebarDiameter12 = 12;
             double n = 15;
 
-            ReinforcedConcreteSection section = GetBridgeShapeWithoutHole(4600, 1800, 3000, 300, ConcreteMaterialEN1992.C25_30);
-            RebarSectionCircular rebar26 = new RebarSectionCircular(rebarDiameter26, SteelMaterial.B450C);
-            RebarSectionCircular rebar20 = new RebarSectionCircular(rebarDiameter20, SteelMaterial.B450C);
-            RebarSectionCircular rebar12 = new RebarSectionCircular(rebarDiameter12, SteelMaterial.B450C);
+            ReinforcedConcreteSection section = GetBridgeShapeWithoutHole(4600, 1800, 3000, 300, ConcreteMaterialEN1992Data.C25_30);
+            RebarSectionCircular rebar26 = new RebarSectionCircular(rebarDiameter26, SteelMaterialEN1993Data.B450C);
+            RebarSectionCircular rebar20 = new RebarSectionCircular(rebarDiameter20, SteelMaterialEN1993Data.B450C);
+            RebarSectionCircular rebar12 = new RebarSectionCircular(rebarDiameter12, SteelMaterialEN1993Data.B450C);
 
             ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
             {
@@ -739,7 +741,7 @@ namespace ConcreteTests
                 10, 14, 13, 14, 10, 14,
                 7, 14,
                 4, 14, 13, 14, 4, 14,
-                ConcreteMaterialEN1992.C25_30, SteelMaterial.B450C);
+                ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1993Data.B450C);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
@@ -808,7 +810,7 @@ namespace ConcreteTests
                 10, d, 13, d, 10, d,
                 7, d,
                 4, d, 13, d, 4, d,
-                ConcreteMaterialEN1992.C25_30, SteelMaterial.B450C);
+                ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1993Data.B450C);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {

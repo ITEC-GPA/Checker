@@ -5,6 +5,8 @@ using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
+using GPC.Model.Data.Concrete;
+using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections;
@@ -42,10 +44,10 @@ namespace ConcreteTests
 			ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
 			if (concreteMaterial == null)
-				concreteMaterial = ConcreteMaterialEN1992.C25_30;
+				concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterial.B450C;
+				rebarMaterial = SteelMaterialEN1993Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -69,10 +71,10 @@ namespace ConcreteTests
 			ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
 			if (concreteMaterial == null)
-				concreteMaterial = ConcreteMaterialEN1992.C25_30;
+				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterial.B450C;
+				rebarMaterial = SteelMaterialEN1993Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -100,10 +102,10 @@ namespace ConcreteTests
 			int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
 			if (concreteMaterial == null)
-				concreteMaterial = ConcreteMaterialEN1992.C25_30;
+				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterial.B450C;
+				rebarMaterial = SteelMaterialEN1993Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -128,10 +130,10 @@ namespace ConcreteTests
 			double bottomRebarDiameter = 18, int bottomNumberOfRebars = 4, double concreteCover = 50, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
 			if (concreteMaterial == null)
-				concreteMaterial = ConcreteMaterialEN1992.C25_30;
+				concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterial.B450C;
+				rebarMaterial = SteelMaterialEN1993Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -157,10 +159,10 @@ namespace ConcreteTests
 			int numberOfRebarsTopBottomSide = 4, int numberOfRebarsLateralSide = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
 			if (concreteMaterial == null)
-				concreteMaterial = ConcreteMaterialEN1992.C25_30;
+				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterial.B450C;
+				rebarMaterial = SteelMaterialEN1993Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -194,10 +196,10 @@ namespace ConcreteTests
 			int numberOfRebars = 4, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
 			if (concreteMaterial == null)
-				concreteMaterial = ConcreteMaterialEN1992.C25_30;
+				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterial.B450C;
+				rebarMaterial = SteelMaterialEN1993Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -218,10 +220,10 @@ namespace ConcreteTests
 			int numberOfRebars = 16, int discretization = 32, ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
 			if (concreteMaterial == null)
-				concreteMaterial = ConcreteMaterialEN1992.C25_30;
+				concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterial.B450C;
+				rebarMaterial = SteelMaterialEN1993Data.B450C;
 
 			Shape2d shape = new Shape2d(new Polygon2d(diameter, discretization));
 
@@ -243,7 +245,7 @@ namespace ConcreteTests
 					double topThickness = 300, ConcreteMaterial concreteMaterial = null)
 		{
 			if (concreteMaterial == null)
-				concreteMaterial = ConcreteMaterialEN1992.C25_30;
+				concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
 
 			Polygon2d fill = new Polygon2d(new Point2d[]
 				{
@@ -269,7 +271,7 @@ namespace ConcreteTests
 			double topThickness = 300, double webThickness = 300, double bottomThickness = 300, ConcreteMaterial concreteMaterial = null)
 		{
 			if (concreteMaterial == null)
-				concreteMaterial = ConcreteMaterialEN1992.C25_30;
+				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			Polygon2d fill = new Polygon2d(new Point2d[]
 				{
@@ -311,7 +313,7 @@ namespace ConcreteTests
 			ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterial.B450C;
+				rebarMaterial = SteelMaterialEN1993Data.B450C;
 
 			ReinforcedConcreteSection section = GetBridgeShapeWithHole(topWidth, height, bottomWidth, topThickness, webThickness, bottomThickness, concreteMaterial);
 
@@ -412,9 +414,9 @@ namespace ConcreteTests
 			double rebarDiameter, ConcreteMaterial concreteMaterial = null, SteelMaterial steelMaterial = null, double discretization = 16, Point2d center = null)
 		{
 			if (steelMaterial == null)
-				steelMaterial = SteelMaterial.B450C;
+				steelMaterial = SteelMaterialEN1993Data.B450C;
 			if (concreteMaterial == null)
-				concreteMaterial = ConcreteMaterialModelCode2010.C30_37_10;
+				concreteMaterial = ConcreteMaterialModelCode2010Data.C30_37_10;
 
 			Polygon2d fill = new Polygon2d(externalDiameter, discretization);
 			Polygon2d hole = new Polygon2d(externalDiameter - 2 * thickness, discretization);
