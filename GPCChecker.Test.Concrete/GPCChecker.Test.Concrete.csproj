@@ -62,17 +62,17 @@
     <Reference Include="DelaunayMesh, Version=1.0.0.4, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\DelaunayMesh.1.0.0.4\lib\net472\DelaunayMesh.dll</HintPath>
     </Reference>
-    <Reference Include="GMesh, Version=1.0.0.3, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GMesh.1.0.0.3\lib\net472\GMesh.dll</HintPath>
+    <Reference Include="GMesh, Version=1.0.0.4, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GMesh.1.0.0.4\lib\net472\GMesh.dll</HintPath>
     </Reference>
     <Reference Include="GMsh.Net, Version=1.0.484.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GMsh.Net.1.0.484.3\lib\netstandard2.0\GMsh.Net.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=1.1.5.3, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCGeometry.1.1.5.3\lib\net472\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=1.1.5.6, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCGeometry.1.1.5.6\lib\net472\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=0.2.0.5, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.2.0.5\lib\net472\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=0.2.0.7, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\GPCModel.0.2.0.7\lib\net472\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCModelData, Version=0.0.0.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCModelData.0.0.0.1\lib\net472\GPCModelData.dll</HintPath>
