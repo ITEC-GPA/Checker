@@ -414,7 +414,6 @@ namespace GPC.Checkers.Concrete.Results
                 new ResultBeamForces[] { forces }, _sectionSolver, _standard, _sectionOption);
         }
 
-
         public void ClearForces()
         {
             _forces.Clear();
