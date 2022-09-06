@@ -70,7 +70,7 @@
 //            double h = 1400 + 2 * tf;
 //            double b = 400;
 
-//            SteelSectionH sec = new SteelSectionH(h, tw, b, tf, b, tf, SteelMaterial.S355, string.Empty, 
+//            SteelSectionH sec = new SteelSectionH(h, tw, b, tf, b, tf, SteelMaterialEN1993Data.S355, string.Empty, 
 //                Section.SectionTypes.Welded);
 
 //            double A = sec.Area;

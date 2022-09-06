@@ -1,5 +1,6 @@
 ﻿using GPC.Checkers.Steel.Checkers;
 using GPC.Geometry;
+using GPC.Model.Data.Steel;
 using GPC.Model.LoadCases;
 using GPC.Model.Materials;
 using GPC.Model.Results;
@@ -1585,7 +1586,8 @@ namespace SteelTests
 			ResultLocationStation[] resultLocationStations = new ResultLocationStation[] { new ResultLocationStation(resultBeamForces, length / 2.0, length) };
 			BeamResult[] beamResults = new BeamResult[1] { new BeamResult(loadCase[0], resultLocationStations) };
 
-			SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, SteelMaterial.S355, string.Empty, Section.SectionTypes.Rolled)) };
+			SteelSectionH[] steelSectionH = new SteelSectionH[1] { (new SteelSectionH(h, tw, b, t, b, t, SteelMaterialEN1993Data.S355, 
+				string.Empty, Section.SectionTypes.Rolled)) };
 			Cop2011Checker.Cop2011Options options = new Cop2011Checker.Cop2011Options(Cop2011Checker.Cop2011Options.SteelClasses.Class1,
 				Cop2011Checker.Cop2011Options.LateralTorsionalBucklingConditions.Default, 0.5, 1, 1, 1, 1, 0.5, 1, 1, 1);
 
