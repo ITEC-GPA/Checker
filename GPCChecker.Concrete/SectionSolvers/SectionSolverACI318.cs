@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
-using GPC.Geometry;
-using GPC.Geometry.Meshes;
 using GPC.Model;
 using GPC.Model.Materials;
-using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 
@@ -19,6 +12,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 	[Serializable]
 	public class SectionSolverACI318 : SectionSolver, ISerializable
 	{
+        protected bool _haveSpiral;
+
 		#region Properties
 
 		public StandardACI318 StandardACI318 => (StandardACI318)_standard;
@@ -29,12 +24,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#region Constructor
 
-		internal SectionSolverACI318(IConcreteSection section, StandardACI318 standard, 
+		internal SectionSolverACI318(IConcreteSection section, StandardACI318 standard, bool haveSpiral,
 			bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
 			: base(section, standard, considerTensileConcrete, id)
 		{
-
-		}
+            _haveSpiral = haveSpiral;
+        }
 
 		protected SectionSolverACI318(SerializationInfo info, StreamingContext context)
 			: base(info, context)
@@ -123,30 +118,54 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var distances = CalculateMaxMinSectionDistances(strainPlane.Teta);
             double strain = strainPlane.GetStrain(ConcreteSection.GetRebarById(distances.dMinRebarId).Position);
 
-            if (strain < GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)))
-                return StandardACI318.PhiCTied;
-            else if (strain > GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)) + 
-                StandardACI318.PhiDeformationTransitionIncrement)
-                return StandardACI318.PhiT;
+            if (_haveSpiral)
+            {
+                if (strain < GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)))
+                    return StandardACI318.PhiCSpiral;
+                else if (strain > GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)) +
+                    StandardACI318.PhiDeformationTransitionIncrement)
+                    return StandardACI318.PhiT;
+                else
+                    return Utilities.Maths.Interpolation.GetLinearInterpolation(
+                        GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)),
+                        GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)) + StandardACI318.PhiDeformationTransitionIncrement,
+                        StandardACI318.PhiCSpiral, StandardACI318.PhiT,
+                        strain);
+            }
             else
-                return Utilities.Maths.Interpolation.GetLinearInterpolation(
-                    GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)),
-                    GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)) + 
-                    StandardACI318.PhiDeformationTransitionIncrement,
-                    StandardACI318.PhiCTied, StandardACI318.PhiT,
-                    strain);
+            {
+                if (strain < GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)))
+                    return StandardACI318.PhiCTied;
+                else if (strain > GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)) +
+                    StandardACI318.PhiDeformationTransitionIncrement)
+                    return StandardACI318.PhiT;
+                else
+                    return Utilities.Maths.Interpolation.GetLinearInterpolation(
+                        GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)),
+                        GetDesignYieldingStrainRebar(ConcreteSection.GetRebarById(distances.dMinRebarId)) + StandardACI318.PhiDeformationTransitionIncrement,
+                        StandardACI318.PhiCTied, StandardACI318.PhiT,
+                        strain);
+            }
         }
 
         protected override ForceTuple CalculatePureCompressionReduction(ForceTuple force)
         {
             double fyA = 0;
-            foreach (ReinforcedConcreteRebar rebar in ConcreteSection.GetRebars())
-                fyA += rebar.Area * rebar.RebarMaterial.Fyk;
+			ReinforcedConcreteRebar[] rebars = ConcreteSection.GetRebars();
+			for (int i = 0; i < rebars.Length; i++)
+			{
+				fyA += rebars[i].Area * rebars[i].RebarMaterial.Fyk;
+			}
 
-            double limit = 0.80 * (0.85 * ConcreteMaterialACI318.Fc *
+            double limit;
+            if (_haveSpiral)
+                limit = StandardACI318.PhiMaximumCompressiveAxialLoadSpiral * (0.85 * ConcreteMaterialACI318.Fc *
+                (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
+            else
+                limit = StandardACI318.PhiMaximumCompressiveAxialLoadTied * (0.85 * ConcreteMaterialACI318.Fc *
                 (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
 
-            if(force.N < limit)
+            if (force.N < limit)
                 return new ForceTuple(limit, force.Mx, force.My);
             else
                 return force;

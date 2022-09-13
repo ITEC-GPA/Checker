@@ -210,7 +210,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _gaussIntegrationQuadPoints = QuadrangleGaussPoints.GaussPointNumber.Quad400;
             _gaussIntegrationTriPoints = TriangleGaussPoints.GaussPointNumber.Tri79;
 
-            _globalCoordinateGaussPoints = GetGlobalCoordinateGaussPointsLinearShapeFunction();
+            _globalCoordinateGaussPoints = GetGlobalCoordinateGaussPointsLinearShapeFunction();            
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)

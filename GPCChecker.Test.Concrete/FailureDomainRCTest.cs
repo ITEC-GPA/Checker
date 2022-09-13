@@ -690,7 +690,7 @@ namespace ConcreteTests
         public void RectangularSectionTest15()
         {
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialACI318Data.Fc3000, SteelMaterialAISC360.Grade60);
-            SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, new StandardACI318());
+            SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, new StandardACI318p08());
 
             FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
             FailureDomainResult elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
