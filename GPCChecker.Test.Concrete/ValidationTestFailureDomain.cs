@@ -36,7 +36,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -57,7 +57,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -78,7 +78,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -99,7 +99,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -120,7 +120,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -141,7 +141,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, u, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -163,7 +163,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -185,7 +185,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -207,7 +207,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -229,7 +229,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -251,7 +251,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -273,7 +273,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -295,7 +295,7 @@ namespace ConcreteTests
 			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-			var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
+			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
 
 			ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial, standard);
 			CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
@@ -320,7 +320,7 @@ namespace ConcreteTests
 
 			for (int i = 0; i < concreteMaterial.Length; i++)
 			{
-				var result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial[i], rebarMaterial, standard);
+				(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial[i], rebarMaterial, standard);
 				ForceTuple forceTuple = GetAbacusForceTuple(b, h, v, ux, uy, concreteMaterial[i], standard);
 				CommonAssertsAbacus(result.section, forceTuple, result.failureDomainResult);
 			}
