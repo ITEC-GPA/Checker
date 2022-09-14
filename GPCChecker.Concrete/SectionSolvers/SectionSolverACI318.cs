@@ -160,10 +160,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double limit;
             if (_haveSpiral)
                 limit = StandardACI318.PhiMaximumCompressiveAxialLoadSpiral * (0.85 * ConcreteMaterialACI318.Fc *
-                (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
+                    (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
             else
                 limit = StandardACI318.PhiMaximumCompressiveAxialLoadTied * (0.85 * ConcreteMaterialACI318.Fc *
-                (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
+                    (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
 
             if (force.N < limit)
                 return new ForceTuple(limit, force.Mx, force.My);
