@@ -2,6 +2,7 @@ using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
@@ -519,6 +520,73 @@ namespace ConcreteTests
 			Console.WriteLine(Math.Round(tensionResult.GetRebarsTension().Select(i => i.tension).Max(), 2));
 			Console.WriteLine(Math.Round(tensionResult.GetConcreteVerticesTension().Select(i => i.tension).Min(), 2));
 			Console.WriteLine(Math.Round(tensionResult.StrainPlane.GetStrain(section.Shape.Fill[0]), 6));
+		}
+
+		[TestMethod]
+		[TestCategory("Sap Validation")]
+		public void SapValidationACI318p08Example001()
+		{
+			//ACI 318-08 Example 001
+
+			double rebarDiameter = 25.47;
+			double height = 406.4;
+			double width = 254;
+			double copriferro = 63.5;
+			bool haveSpiral = false;
+
+			Shape2d shape = GetRectangularShape(width, height);
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialACI318Data.Fc4000);
+			RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, SteelMaterialACI318Data.Grade60);
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(0, copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(width / 2.0, copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(width, copriferro, 0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+
+			ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, 0, GetLocalCoordinateSystem(section));
+			SectionCheckerACI318.SectionOptionsStandardACI318 options =
+				new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
+
+			SectionSolverACI318Test solver = new SectionSolverACI318Test(section, new StandardACI318p08(), haveSpiral);
+			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+
+			double expMxRd1 = 164.95 * 1000000;  // da VCA
+			Assert.IsTrue(Math.Abs(result.MxRd - expMxRd1) / expMxRd1 * 100 < 2.5);
+		}
+
+		[TestMethod]
+		[TestCategory("Sap Validation")]
+		public void SapValidationACI318p08Example002()
+		{
+			//ACI 318-08 Example 002
+
+			double rebarDiameter = 28.6608;
+			double height = 558.8;
+			double width = 355.6;
+			double copriferro = 63.5;
+			bool haveSpiral = false;
+
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, copriferro, 4, ConcreteMaterialACI318Data.Fc4000, SteelMaterialACI318Data.Grade60);
+
+			ResultBeamForces force = new ResultBeamForces(-1772.17 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section));
+			SectionCheckerACI318.SectionOptionsStandardACI318 options =
+				new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN);
+
+			SectionSolverACI318Test solver = new SectionSolverACI318Test(section, new StandardACI318p08(), haveSpiral);
+			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+
+			double expNrd = -1772.17 * 1000;
+			double expMxRd = 450.13 * 1000000;
+			Assert.IsTrue(Math.Abs(result.NRd - expNrd) / expNrd * 100 < 1.0);
+			Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 2.5);
 		}
 
 		public class StandardEN1992p11Override : StandardEN1992p11

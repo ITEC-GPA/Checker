@@ -1634,5 +1634,55 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 				return base.IntegrateSectionStress(strainPlane);
 			}
 		}
+
+		internal class SectionSolverACI318Test : SectionSolverACI318
+		{
+			internal SectionSolverACI318Test(IConcreteSection section, StandardACI318 standard, bool haveSpiral,
+				bool considerTensileConcrete = false, int id = -1)
+				: base(section, standard, haveSpiral, considerTensileConcrete, id)
+			{
+			}
+
+			internal ForceTuple CalculateSectionForceResultant(StrainPlane strainPlane)
+			{
+				return base.CalculateForceResultant(strainPlane, GetRebarIsInsideAssociation());
+			}
+
+			internal ForceTuple CalculateLinearSectionForceResultant(double psi, double? psiTendon, StrainPlane strainPlane)
+			{
+				return base.CalculateForceResultant(psi, psiTendon, strainPlane, GetRebarIsInsideAssociation());
+			}
+
+			internal double CalculateSigmaConcrete(double strain)
+			{
+				return base.CalculateSigmaC(strain);
+			}
+
+			internal double GetDesignUltimateStrainRebars(ReinforcedConcreteRebar rebar, double strain)
+			{
+				return base.CalculateStressRebar(rebar, strain);
+			}
+
+			internal ForceTuple ConvertToAdimForces(ForceTuple force)
+			{
+				return base.ConvertToAdimensionalForces(force);
+			}
+
+			internal override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
+			{
+				return base.CalculateStressRebar(rebar, strain);
+			}
+
+			internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
+				FailureAnalysisTypes failureAnalysisType = FailureAnalysisTypes.ConstantEccentricity)
+			{
+				return base.CalculatePlasticDomainPoint(targetLocalForces, coordinateSystem, failureAnalysisType);
+			}
+
+			internal ForceTuple IntegrateSectionStressTest(StrainPlane strainPlane)
+			{
+				return base.IntegrateSectionStress(strainPlane);
+			}
+		}
 	}
 }
