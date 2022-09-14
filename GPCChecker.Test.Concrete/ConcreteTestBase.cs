@@ -47,7 +47,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -74,7 +74,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -105,7 +105,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -133,7 +133,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -162,7 +162,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -199,7 +199,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -223,7 +223,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = new Shape2d(new Polygon2d(diameter, discretization));
 
@@ -313,7 +313,7 @@ namespace ConcreteTests
 			ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			ReinforcedConcreteSection section = GetBridgeShapeWithHole(topWidth, height, bottomWidth, topThickness, webThickness, bottomThickness, concreteMaterial);
 
@@ -414,7 +414,7 @@ namespace ConcreteTests
 			double rebarDiameter, ConcreteMaterial concreteMaterial = null, SteelMaterial steelMaterial = null, double discretization = 16, Point2d center = null)
 		{
 			if (steelMaterial == null)
-				steelMaterial = SteelMaterialEN1993Data.B450C;
+				steelMaterial = SteelMaterialEN1992Data.B450C;
 			if (concreteMaterial == null)
 				concreteMaterial = ConcreteMaterialModelCode2010Data.C30_37_10;
 

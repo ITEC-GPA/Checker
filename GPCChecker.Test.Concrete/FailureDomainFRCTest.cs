@@ -189,7 +189,7 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(width, height);
 
-			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 40, 
+			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 40,
 				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear,
 				 1.0, 1.0, 0.00195, 0.02, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -278,7 +278,7 @@ namespace ConcreteTests
 			}));
 
 			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialModelCode2010Data.C30_37_15);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1993Data.B450C);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
@@ -442,7 +442,7 @@ namespace ConcreteTests
 				new Point2d(0, 200),
 			}));
 
-			RebarSectionCircular rebar = new RebarSectionCircular(12, SteelMaterialEN1993Data.B450C);
+			RebarSectionCircular rebar = new RebarSectionCircular(12, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 {

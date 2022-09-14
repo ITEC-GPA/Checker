@@ -45,7 +45,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C30/37_15kg/m3", 30, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
@@ -62,7 +62,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C30/37_15kg/m3", 30, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
@@ -79,7 +79,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C30/37_15kg/m3", 30, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
@@ -96,7 +96,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C30/37_15kg/m3", 30, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
@@ -113,7 +113,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C30/37_15kg/m3", 30, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock,
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1, 7);
@@ -130,7 +130,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C30/37_15kg/m3", 30, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock,
                 3.07, 2.65, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_1, ExcelSolution_1);
@@ -239,7 +239,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
@@ -256,7 +256,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
@@ -273,7 +273,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
@@ -290,7 +290,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3);
@@ -307,7 +307,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3, 8.5);
@@ -324,7 +324,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 10, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_3, ExcelSolution_3, 12);
@@ -345,7 +345,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
@@ -362,7 +362,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
@@ -379,7 +379,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
@@ -396,7 +396,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4);
@@ -413,7 +413,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4, 7.5);
@@ -430,7 +430,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C40/50_20kg/m3", 40, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock,
                 2.75 * 0.45, 3.25 * 0.33, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.RigidPlastic, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, concreteCover, rebarDiameter, 5, concreteMaterial, rebarMaterial);
             ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4, 6);
@@ -452,7 +452,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C35/45_4kg/m3", 35, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 sigmaR1, sigmaR5, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             StandardModelCode2010 standardModelCode2010 = GetConcribeStandard();     
 
@@ -472,7 +472,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C35/45_4kg/m3", 35, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 sigmaR1, sigmaR5, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             StandardModelCode2010 standardModelCode2010 = GetConcribeStandard();
 
@@ -492,7 +492,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C35/45_4kg/m3", 35, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.ParabolaRectangle,
                 sigmaR1, sigmaR5, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             StandardModelCode2010 standardModelCode2010 = GetConcribeStandard();
 
@@ -512,7 +512,7 @@ namespace ConcreteTests
 
             ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("C35/45_4kg/m3", 35, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.Bilinear,
                 sigmaR1, sigmaR5, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
-            SteelMaterial rebarMaterial = SteelMaterialEN1993Data.B500C;
+            SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
             StandardModelCode2010 standardModelCode2010 = GetConcribeStandard();
 
