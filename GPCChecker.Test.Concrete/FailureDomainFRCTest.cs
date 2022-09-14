@@ -128,17 +128,11 @@ namespace ConcreteTests
 			double height = 1000;
 			double width = 300;
 
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-			{
-				new Point2d(0, 0),
-				new Point2d(width, 0),
-				new Point2d(width, height),
-				new Point2d(0, height)
-			}));
+			Shape2d shape = GetRectangularShape(width, height);
 
-			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 40, ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear,
-				 0.6750, 0.50, 0.00195, 0.02, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC,
-				 0, 0, 0, ConcreteMaterialModelCode2010.CementType.ClassN);
+			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 40, ConcreteMaterial.CompressionStressStrainDiagrams.Bilinear,
+				 0.6750, 0.50, 0.00195, 0.02, ConcreteMaterial.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC,
+				 0, 0, 0, ConcreteMaterial.CementType.ClassN);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
@@ -173,7 +167,7 @@ namespace ConcreteTests
 			Assert.IsTrue(Math.Abs(minFT.Mx) < 0.01);
 			Assert.IsTrue(Math.Abs(minFT.My) < 0.01);
 
-			FailureDomain.FailureDomainPoint domainPoint = plasticFailureDomain.AddForce(new ResultBeamForces(0, 0, 0, 0, 10 * 1000000, 0,
+			FailureDomain.FailureDomainPoint domainPoint = plasticFailureDomain.AddForce(new ResultBeamForces(0, 0, 0, 0, 30 * 1000000, 0,
 				GetLocalCoordinateSystem(section), 1));
 
 			Point3d expDomainPoint = new Point3d(54 * 1000000, 0, 0);
