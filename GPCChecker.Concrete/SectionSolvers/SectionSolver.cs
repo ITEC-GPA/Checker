@@ -34,7 +34,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F1, 1),
             (FailureZones.F2A, 1),
             (FailureZones.F2B, 1),
-            (FailureZones.F3A, 30),
+            (FailureZones.F3A, 35),
             (FailureZones.F3B, 5),
             (FailureZones.F4, 4)
         };
@@ -46,7 +46,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             (FailureZones.F1, 2),
             (FailureZones.F2A, 5),
-            (FailureZones.F3A, 10),
+            (FailureZones.F3A, 15),
             (FailureZones.F4, 5)
         };
 
@@ -58,7 +58,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones.F1, 2),
             (FailureZones.F2A, 5),
             (FailureZones.F2B, 5),
-            (FailureZones.F3A, 25),
+            (FailureZones.F3A, 30),
             (FailureZones.F3B, 1),
             (FailureZones.F4, 4)
         };
@@ -205,7 +205,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _failureAnalysisDistanceTolerance = 0.5e-4;
 
             _considerTensileConcrete = considerTensileConcrete;
-            _tetaDiscretization = 16;
+            _tetaDiscretization = 32;
 
             _gaussIntegrationQuadPoints = QuadrangleGaussPoints.GaussPointNumber.Quad400;
             _gaussIntegrationTriPoints = TriangleGaussPoints.GaussPointNumber.Tri79;
