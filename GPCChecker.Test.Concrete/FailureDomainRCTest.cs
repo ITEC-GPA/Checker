@@ -9,6 +9,7 @@ using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace ConcreteTests
 {
@@ -794,6 +795,58 @@ namespace ConcreteTests
 				-398.343	0			0			0
 				-398.343	0			0			0
 			*/
+		}
+
+		[TestMethod]
+		public void RectangularSectionTest19()
+		{
+			double rebarDiameter = 18;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
+
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover,
+				ConcreteMaterialACI318Data.Fc4000, SteelMaterialACI318Data.Grade60);
+			SectionCheckerACI318 sectionCheckerACI = GetSectionCheckerACI318(section, new StandardACI318p08());
+			SectionCheckerModelCode2010 sectionCheckerMC = GetSectionCheckerModelCode2010(section, new StandardModelCode2010());
+
+			try
+			{
+				FailureDomainResult plasticFailureDomainACI = sectionCheckerACI.GetPlasticFailureDomainResult();
+				FailureDomainResult elasticFailureDomainACI = sectionCheckerACI.GetElasticFailureDomainResult();
+				FailureDomainResult plasticFailureDomainMC = sectionCheckerMC.GetPlasticFailureDomainResult();
+				FailureDomainResult elasticFailureDomainMC = sectionCheckerMC.GetElasticFailureDomainResult();
+			}
+			catch(Exception )
+			{
+				Assert.IsTrue(false);
+			}
+		}
+
+		[TestMethod]
+		public void RectangularSectionTest20()
+		{
+			double rebarDiameter = 18;
+			double height = 500;
+			double width = 300;
+			double concreteCover = 50;
+
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, 
+				ConcreteMaterialModelCode2010Data.C28_35, SteelMaterialEN1992Data.B500C);
+			SectionCheckerACI318 sectionCheckerACI = GetSectionCheckerACI318(section, new StandardACI318p08());
+			SectionCheckerModelCode2010 sectionCheckerMC = GetSectionCheckerModelCode2010(section, new StandardModelCode2010());
+
+			try
+			{
+				FailureDomainResult plasticFailureDomainACI = sectionCheckerACI.GetPlasticFailureDomainResult();
+				FailureDomainResult elasticFailureDomainACI = sectionCheckerACI.GetElasticFailureDomainResult();
+				FailureDomainResult plasticFailureDomainMC = sectionCheckerMC.GetPlasticFailureDomainResult();
+				FailureDomainResult elasticFailureDomainMC = sectionCheckerMC.GetElasticFailureDomainResult();
+			}
+			catch (Exception)
+			{
+				Assert.IsTrue(false);
+			}
 		}
 
 		[TestMethod]
