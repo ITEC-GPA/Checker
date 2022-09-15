@@ -171,9 +171,29 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 			return limit;
 		}
-			else
-				return force;
+
+		#region Failure domain limit points
+
+		protected override (double epsilon, Point2d point, double distanceFromBaricentre) GetP3((double teta, int dMinRebarId, double dminRebar,
+			int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
+			FailureDomainTypes analysisType)
+		{
+			switch (analysisType)
+			{
+				case FailureDomainTypes.Elastic:
+					return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+						(distances.dmaxConcrete - distances.dminRebar));
+
+				case FailureDomainTypes.Plastic:
+					return (GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+						(distances.dmaxConcrete - distances.dminRebar));
+
+				default:
+					return (0.0, null, 0.0);
+			}
 		}
+
+		#endregion
 
 		#endregion
 

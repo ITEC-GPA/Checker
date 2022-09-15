@@ -896,7 +896,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
-        protected (double epsilon, Point2d point, double distanceFromBaricentre) GetP2((double teta, int dMinRebarId, double dminRebar,
+        protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP2((double teta, int dMinRebarId, double dminRebar,
             int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
             FailureDomainTypes analysisType)
         {
@@ -940,14 +940,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
 
-        protected (double epsilon, Point2d point, double distanceFromBaricentre) GetP3((double teta, int dMinRebarId, double dminRebar,
+        protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP3((double teta, int dMinRebarId, double dminRebar,
             int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
             FailureDomainTypes analysisType)
         {
             switch (analysisType)
             {
                 case FailureDomainTypes.Elastic:
-                    return (GetYieldingStrainPureCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+                    return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
                         (distances.dmaxConcrete - distances.dminConcrete));
 
                 case FailureDomainTypes.Plastic:
