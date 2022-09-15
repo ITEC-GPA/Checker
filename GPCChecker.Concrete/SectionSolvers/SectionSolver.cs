@@ -252,7 +252,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected abstract double GetReductionFactor(StrainPlane strainPlane);
 
-        protected abstract ForceTuple CalculatePureCompressionReduction(ForceTuple force);
+        protected abstract double CalculateCompressionAxialForceLimit();
 
         #endregion
 
@@ -455,7 +455,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             try
             {
-                return CalculatePureCompressionReduction((IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation)) * GetReductionFactor(strainPlane));
+                double limitCompression = CalculateCompressionAxialForceLimit();
+				ForceTuple force = IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation);
+
+                return CalculateCompressionReduction(force * GetReductionFactor(strainPlane), limitCompression);
             }
             catch (Exception e)
             {
@@ -474,8 +477,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 ForceTuple[] concreteStresses = IntegrateSectionStress(strainPlanes);
                 ForceTuple[] rebarStresses = IntegrateRebarStress(strainPlanes, rebarIsInsideAssociation);
 
+                double limitCompression = CalculateCompressionAxialForceLimit();
+
                 for (int i = 0; i < strainPlanes.Length; i++)
-                    returnValue[i] = CalculatePureCompressionReduction(concreteStresses[i] + rebarStresses[i]) * GetReductionFactor(strainPlanes[i]);
+                    returnValue[i] = CalculateCompressionReduction(concreteStresses[i] + rebarStresses[i] * GetReductionFactor(strainPlanes[i]), limitCompression);
 
                 return returnValue;
             }
@@ -1252,6 +1257,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             domainPoints.AddRange(domainPointNevative);
 
             return new FailureDomain2d(domainPoints.ToArray(), FailureDomainResult2d.DomainTypes.ConstantMxMy);
+        }
+
+        protected virtual ForceTuple CalculateCompressionReduction(ForceTuple force, double limit)
+        {
+            if (force.N < limit)
+                return new ForceTuple(limit, force.Mx, force.My);
+            else
+                return force;
         }
 
         #endregion

@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Model;
 using GPC.Model.Materials;
@@ -147,25 +147,30 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 			}
 		}
 
-		protected override ForceTuple CalculatePureCompressionReduction(ForceTuple force)
+		protected override double CalculateCompressionAxialForceLimit()
 		{
 			double fyA = 0;
 			ReinforcedConcreteRebar[] rebars = ConcreteSection.GetRebars();
-			for (int i = 0; i < rebars.Length; i++)
-			{
-				fyA += rebars[i].Area * rebars[i].RebarMaterial.Fyk;
-			}
-
+			for (int i = 0; i < rebars.Length; i++)			
+				fyA += rebars[i].Area * Math.Min(rebars[i].RebarMaterial.Fyk, 551.579);
+			
 			double limit;
+			double fc = 0;
+
+			if (ConcreteMaterial is ConcreteMaterialACI318)
+				fc = ConcreteMaterialACI318.Fc;
+			else if (ConcreteMaterial is ConcreteMaterialEuropeanCommon ec)
+				fc = ec.Fck;
+
 			if (_haveSpiral)
-				limit = StandardACI318.PhiMaximumCompressiveAxialLoadSpiral * (StandardACI318.ConcreteStrengthReductionFactor * ConcreteMaterialACI318.Fc *
+				limit = StandardACI318.PhiMaximumCompressiveAxialLoadSpiral * (StandardACI318.ConcreteStrengthReductionFactor * fc *
 					(ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
 			else
-				limit = StandardACI318.PhiMaximumCompressiveAxialLoadTied * (StandardACI318.ConcreteStrengthReductionFactor * ConcreteMaterialACI318.Fc *
+				limit = StandardACI318.PhiMaximumCompressiveAxialLoadTied * (StandardACI318.ConcreteStrengthReductionFactor * fc *
 					(ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
 
-			if (force.N < limit)
-				return new ForceTuple(limit, force.Mx, force.My);
+			return limit;
+		}
 			else
 				return force;
 		}

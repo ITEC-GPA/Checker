@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
@@ -139,9 +139,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return 1.0;
         }
 
-        protected override ForceTuple CalculatePureCompressionReduction(ForceTuple force)
+        protected override double CalculateCompressionAxialForceLimit()
         {
-            return force;
+            return double.MinValue;
         }
 
         #endregion
