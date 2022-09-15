@@ -752,7 +752,9 @@ namespace ConcreteTests
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, concreteMaterial);
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5);
+			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+
+			CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain, 5, false);
 
 			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
