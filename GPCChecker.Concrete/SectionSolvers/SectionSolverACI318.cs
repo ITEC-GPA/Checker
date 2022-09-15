@@ -1,5 +1,6 @@
-using GPC.Checkers.Concrete.Helper;
+﻿using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
+using GPC.Geometry;
 using GPC.Model;
 using GPC.Model.Materials;
 using GPC.Model.Sections.Concrete;
@@ -42,7 +43,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		protected override double GetFck()
 		{
-			return ConcreteMaterialACI318.Fc;
+			if (ConcreteMaterial is ConcreteMaterialEuropeanCommon concreteMaterialEuropeanCommon)
+				return concreteMaterialEuropeanCommon.Fck;
+			else if (ConcreteMaterial is ConcreteMaterialACI318 concreteMaterialACI318)
+				return concreteMaterialACI318.Fc;
+			return 0;
 		}
 
 		protected override double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar)
@@ -67,27 +72,31 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		protected override double GetUltimateStrainConcreteCompression()
 		{
-			return ConcreteMaterialACI318.StrainUCompression;
+			return ConcreteMaterial.StrainUCompression;
 		}
 
 		protected override double GetYieldingStrainConcreteCompression()
 		{
-			return ConcreteMaterialACI318.StrainYCompression;
+			return ConcreteMaterial.StrainYCompression;
 		}
 
 		protected override double GetYieldingStrainPureCompression()
 		{
-			return ConcreteMaterialACI318.StrainUCompression;
+			if (ConcreteMaterial is ConcreteMaterialACI318)
+				return ConcreteMaterial.StrainUCompression;
+			else if (ConcreteMaterial is ConcreteMaterialEuropeanCommon cm)
+				return cm.StrainYPureCompression;
+			return 0;
 		}
 
 		protected override double GetYieldingStrainConcreteTension()
 		{
-			return ConcreteMaterialACI318.StrainYTension;
+			return ConcreteMaterial.StrainYTension;
 		}
 
 		protected override double GetUltimateStrainConcreteTension()
 		{
-			return ConcreteMaterialACI318.StrainUTension;
+			return ConcreteMaterial.StrainUTension;
 		}
 
 		/// <inheritdoc cref="SectionSolver.CalculateSigmaC(double)"/>
@@ -95,13 +104,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		{
 			if (strain < 0)
 				// Compressione
-				return ConcreteMaterialACI318.CalculateDesignStressConcrete(StandardACI318, strain);
+				return ConcreteMaterial.CalculateDesignStressConcrete(StandardACI318, strain);
 
 			else
 			{
 				// trazione
 				if (_considerTensileConcrete)
-					return ConcreteMaterialACI318.CalculateDesignStressConcrete(StandardACI318, strain);
+					return ConcreteMaterial.CalculateDesignStressConcrete(StandardACI318, strain);
 				else
 					return 0;
 			}
