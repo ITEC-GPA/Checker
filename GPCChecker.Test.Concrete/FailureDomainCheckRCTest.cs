@@ -1135,6 +1135,41 @@ namespace ConcreteTests
 		}
 
 		[TestMethod]
+		public void RectangularSectionTest36()
+		{
+			double rebarDiameter = 25.49;
+			double height = 500;
+			double width = 300;
+			double copriferro = 70;
+
+			ConcreteMaterialACI318 concreteMaterial = new ConcreteMaterialACI318("", 28, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
+			Shape2d shape = GetRectangularShape(width, height);
+
+			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
+			RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, new SteelMaterialACI318("", 200000, 420, 420));
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(50,copriferro,0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(150,copriferro,0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(250,copriferro,0)),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+
+			ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
+			SectionCheckerACI318.SectionOptionsStandardACI318 options = new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
+
+			SectionSolverACI318Test solver = new SectionSolverACI318Test(section, new StandardACI318p08(), true);
+			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+
+			double expMxRd1 = 247.4 * 1000000 * 0.9;  // valore nominale da design_of_reinforced_concrete_9th_edition
+			Assert.IsTrue(Math.Abs(result.MxRd - expMxRd1) / expMxRd1 * 100 < 2);
+		}
+
+		[TestMethod]
 		[TestCategory("Bridge")]
 		public void Bridge_2()
 		{
