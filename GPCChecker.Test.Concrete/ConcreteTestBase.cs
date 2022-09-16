@@ -47,7 +47,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -74,7 +74,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -105,7 +105,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -133,7 +133,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -162,7 +162,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -199,7 +199,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialModelCode2010Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
@@ -223,7 +223,7 @@ namespace ConcreteTests
 				concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
 
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = new Shape2d(new Polygon2d(diameter, discretization));
 
@@ -313,7 +313,7 @@ namespace ConcreteTests
 			ConcreteMaterial concreteMaterial = null, SteelMaterial rebarMaterial = null)
 		{
 			if (rebarMaterial == null)
-				rebarMaterial = SteelMaterialEN1993Data.B450C;
+				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			ReinforcedConcreteSection section = GetBridgeShapeWithHole(topWidth, height, bottomWidth, topThickness, webThickness, bottomThickness, concreteMaterial);
 
@@ -414,7 +414,7 @@ namespace ConcreteTests
 			double rebarDiameter, ConcreteMaterial concreteMaterial = null, SteelMaterial steelMaterial = null, double discretization = 16, Point2d center = null)
 		{
 			if (steelMaterial == null)
-				steelMaterial = SteelMaterialEN1993Data.B450C;
+				steelMaterial = SteelMaterialEN1992Data.B450C;
 			if (concreteMaterial == null)
 				concreteMaterial = ConcreteMaterialModelCode2010Data.C30_37_10;
 
@@ -1590,6 +1590,56 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard,
 				bool considerTensileConcrete = false, int id = -1)
 				: base(section, standard, considerTensileConcrete, id)
+			{
+			}
+
+			internal ForceTuple CalculateSectionForceResultant(StrainPlane strainPlane)
+			{
+				return base.CalculateForceResultant(strainPlane, GetRebarIsInsideAssociation());
+			}
+
+			internal ForceTuple CalculateLinearSectionForceResultant(double psi, double? psiTendon, StrainPlane strainPlane)
+			{
+				return base.CalculateForceResultant(psi, psiTendon, strainPlane, GetRebarIsInsideAssociation());
+			}
+
+			internal double CalculateSigmaConcrete(double strain)
+			{
+				return base.CalculateSigmaC(strain);
+			}
+
+			internal double GetDesignUltimateStrainRebars(ReinforcedConcreteRebar rebar, double strain)
+			{
+				return base.CalculateStressRebar(rebar, strain);
+			}
+
+			internal ForceTuple ConvertToAdimForces(ForceTuple force)
+			{
+				return base.ConvertToAdimensionalForces(force);
+			}
+
+			internal override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
+			{
+				return base.CalculateStressRebar(rebar, strain);
+			}
+
+			internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
+				FailureAnalysisTypes failureAnalysisType = FailureAnalysisTypes.ConstantEccentricity)
+			{
+				return base.CalculatePlasticDomainPoint(targetLocalForces, coordinateSystem, failureAnalysisType);
+			}
+
+			internal ForceTuple IntegrateSectionStressTest(StrainPlane strainPlane)
+			{
+				return base.IntegrateSectionStress(strainPlane);
+			}
+		}
+
+		internal class SectionSolverACI318Test : SectionSolverACI318
+		{
+			internal SectionSolverACI318Test(IConcreteSection section, StandardACI318 standard, bool haveSpiral,
+				bool considerTensileConcrete = false, int id = -1)
+				: base(section, standard, haveSpiral, considerTensileConcrete, id)
 			{
 			}
 

@@ -64,7 +64,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		protected override double GetFck()
         {
-            return ConcreteMaterialModelCode2010.Fck;
+            if (ConcreteMaterial is ConcreteMaterialEuropeanCommon concreteMaterialEuropeanCommon)
+                return concreteMaterialEuropeanCommon.Fck;
+            else if (ConcreteMaterial is ConcreteMaterialACI318 concreteMaterialACI318)
+                return concreteMaterialACI318.Fc;
+            return 0;
         }
 
         protected override double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar)
@@ -89,27 +93,31 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected override double GetUltimateStrainConcreteCompression()
         {
-            return ConcreteMaterialModelCode2010.StrainUCompression;
+            return ConcreteMaterial.StrainUCompression;
         }
 
         protected override double GetYieldingStrainConcreteCompression()
         {
-            return ConcreteMaterialModelCode2010.StrainYCompression;
+            return ConcreteMaterial.StrainYCompression;
         }
 
         protected override double GetYieldingStrainPureCompression()
         {
-            return ConcreteMaterialModelCode2010.StrainYPureCompression;
+            if (ConcreteMaterial is ConcreteMaterialACI318)
+                return ConcreteMaterial.StrainUCompression;
+            else if (ConcreteMaterial is ConcreteMaterialEuropeanCommon)
+                return ConcreteMaterialModelCode2010.StrainYPureCompression;
+            return 0;
         }
 
         protected override double GetYieldingStrainConcreteTension()
         {
-            return ConcreteMaterialModelCode2010.StrainYTension;
+            return ConcreteMaterial.StrainYTension;
         }
 
         protected override double GetUltimateStrainConcreteTension()
         {
-            return ConcreteMaterialModelCode2010.StrainUTension;
+            return ConcreteMaterial.StrainUTension;
         }
 
         /// <inheritdoc cref="SectionSolver.CalculateSigmaC(double)"/>
@@ -117,12 +125,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             if (strain < 0)            
                 // compressione
-                return ConcreteMaterialModelCode2010.CalculateDesignStressConcrete(StandardModelCode2010, strain);            
+                return ConcreteMaterial.CalculateDesignStressConcrete(StandardModelCode2010, strain);            
             else
             {
                 // trazione
                 if (_considerTensileConcrete)                
-                    return ConcreteMaterialModelCode2010.CalculateDesignStressConcrete(StandardModelCode2010, strain);                
+                    return ConcreteMaterial.CalculateDesignStressConcrete(StandardModelCode2010, strain);                
                 else                
                     return 0;                
             }
@@ -139,9 +147,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return 1.0;
         }
 
-        protected override ForceTuple CalculatePureCompressionReduction(ForceTuple force)
+        protected override double CalculateCompressionAxialForceLimit()
         {
-            return force;
+            return double.MinValue;
         }
 
         #endregion

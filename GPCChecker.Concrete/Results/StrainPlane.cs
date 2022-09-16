@@ -131,6 +131,24 @@ namespace GPC.Checkers.Concrete.Results
                     new Point2d(-StrainReferencePoint / _chiX + _chiY / _chiX * _referencePoint.Y, 0.0));
         }
 
+        public Line2d GetConstantStrainAxis(double strain)
+        {
+            if (_chiX == 0 && _chiY == 0)
+                return null;
+            else if (_chiY == 0 && _chiX != 0)
+                return new Line2d(new Point2d((strain - StrainReferencePoint) / _chiX, 100.0), new Point2d((strain - StrainReferencePoint) / _chiX, -100.0));
+            else if (_chiX == 0 && _chiY != 0)
+                return new Line2d(new Point2d(100.0, (strain - StrainReferencePoint) / _chiY), new Point2d(-100.0, (strain - StrainReferencePoint) / _chiY));
+            else
+            {
+                Line2d line = new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY), new Point2d(-StrainReferencePoint / _chiX, 0.0));
+                Vector2d vector = line.ToVector();
+                vector.Unitize();
+
+                return new Line2d(new Point2d(0.0, (strain - StrainReferencePoint) / _chiY), new Point2d(0.0 + vector.X, (strain - StrainReferencePoint) / _chiY + vector.Y));
+            }
+        }
+
         #endregion
 
         #region Private Methods

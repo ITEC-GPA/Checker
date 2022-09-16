@@ -24,9 +24,9 @@ namespace GPC.Checkers.Concrete.Checkers
 
         /// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, SectionSolver int)"/>
         public SectionCheckerACI318(SectionCheckerAttribute checkerAttribute, SectionOptionsStandardACI318 options,
-            StandardACI318 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
+            StandardACI318 standard, bool haveSpiral, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
             : base(checkerAttribute, options, standard, 
-                  new SectionSolverACI318(checkerAttribute.Section, standard, considerTensileConcrete), id)
+                  new SectionSolverACI318(checkerAttribute.Section, standard, haveSpiral, considerTensileConcrete), id)
         {
 
         }
@@ -292,7 +292,8 @@ namespace GPC.Checkers.Concrete.Checkers
         [Serializable]
         public class SectionOptionsStandardACI318 : SectionOptions, ISerializable
         {
-            public SectionOptionsStandardACI318(CoordinateSystem coordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantEccentricity)
+            public SectionOptionsStandardACI318(CoordinateSystem coordinateSystem,
+                SectionSolver.FailureAnalysisTypes failureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantEccentricity)
                 : base(coordinateSystem, failureAnalysisType)
             {
 

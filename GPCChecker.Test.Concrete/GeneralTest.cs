@@ -29,7 +29,7 @@ namespace ConcreteTests
 		[TestMethod]
 		public void AsyncTest1()
 		{
-			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1993Data.B450C);
+			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
 
 			ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300,
 				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
@@ -56,7 +56,7 @@ namespace ConcreteTests
 		[TestMethod]
 		public void AsyncTest2()
 		{
-			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1993Data.B450C);
+			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
 			ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30);
 			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
@@ -78,7 +78,7 @@ namespace ConcreteTests
 		[TestMethod]
 		public void AsyncTest3()
 		{
-			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1993Data.B450C);
+			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
 			ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30);
 			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
@@ -209,7 +209,7 @@ namespace ConcreteTests
 		[TestMethod]
 		public void GenericTest1()
 		{
-			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1993Data.B450C);
+			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
 			ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30);
 			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
