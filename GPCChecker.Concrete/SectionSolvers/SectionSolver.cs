@@ -480,7 +480,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double limitCompression = CalculateCompressionAxialForceLimit();
 
                 for (int i = 0; i < strainPlanes.Length; i++)
-                    returnValue[i] = CalculateCompressionReduction(concreteStresses[i] + rebarStresses[i] * GetReductionFactor(strainPlanes[i]), limitCompression);
+                    returnValue[i] = CalculateCompressionReduction((concreteStresses[i] + rebarStresses[i]) * GetReductionFactor(strainPlanes[i]), limitCompression);
 
                 return returnValue;
             }
