@@ -765,7 +765,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double sinTeta = Math.Sin(teta);
 
             double dminRebar = double.MaxValue;
-            double dmaxRebar = double.MinValue;
+            double dminRebarRatio = double.MaxValue;
+			double dmaxRebar = double.MinValue;
+			double dmaxRebarRatio = double.MinValue;
             double dmaxConcrete = double.MinValue;
             double dminConcrete = double.MaxValue;
 
@@ -779,16 +781,22 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             for (int r = 0; r < rebars.Length; r++)
             {
                 double w1 = (rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta - (rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
-                if (w1 <= dminRebar)
+                double eps = Math.Abs(rebars[r].RebarMaterial.StrainUTension);
+
+                double ratio = w1 / eps;
+
+				if (ratio <= dminRebarRatio)
                 {
+					dminRebarRatio = ratio;
                     dminRebar = w1;
-                    dMinRebarId = rebars[r].Id;
+					dMinRebarId = rebars[r].Id;
                 }
 
-                if (w1 >= dmaxRebar)
+                if (ratio >= dmaxRebarRatio)
                 {
+					dmaxRebarRatio = ratio;
                     dmaxRebar = w1;
-                    dMaxRebarId = rebars[r].Id;
+					dMaxRebarId = rebars[r].Id;
                 }
             }
 
