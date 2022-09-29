@@ -6,7 +6,7 @@ del *.nupkg
 
 
 echo PACKING
-nuget pack GPCChecker.Steel.csproj -properties Configuration=Release
+nuget pack GPCChecker.Steel.csproj -Version 1.0.3.0  -properties Configuration=Release
 
 
 echo PUSHING

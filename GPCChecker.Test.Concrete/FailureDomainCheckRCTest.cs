@@ -1150,9 +1150,9 @@ namespace ConcreteTests
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
-				new ReinforcedConcreteRebar(rebarSection, new Point3d(50,copriferro,0)),
-				new ReinforcedConcreteRebar(rebarSection, new Point3d(150,copriferro,0)),
-				new ReinforcedConcreteRebar(rebarSection, new Point3d(250,copriferro,0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(50, copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(150, copriferro, 0)),
+				new ReinforcedConcreteRebar(rebarSection, new Point3d(250, copriferro, 0)),
 			};
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);

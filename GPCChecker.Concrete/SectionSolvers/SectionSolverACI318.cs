@@ -217,10 +217,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		/// <returns>The design rebar stress related to <paramref name="strain"/></returns>
 		protected double CalculateDesignStressRebar(double strain, SteelMaterial material)
 		{
-			if (strain < CalculateDesignYieldingStrainRebar(material))
-				return material.GetStress(strain);
-			else
-				return CalculateFyd(material) + (strain - CalculateDesignYieldingStrainRebar(material)) * material.Et;
+			return material.CalculateDesignStress(StandardACI318, strain);
 		}
 
 		protected double CalculateUltimateDesignStrainRebar(ReinforcedConcreteRebar rebar)

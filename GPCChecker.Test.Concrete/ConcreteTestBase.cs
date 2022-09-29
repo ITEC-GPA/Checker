@@ -765,6 +765,52 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			return true;
 		}
 
+		protected bool TensionAnalysisCommonAssertACI(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
+			StandardACI318 standard, bool haveSpiral)
+		{
+			SectionSolverACI318Test solver = new SectionSolverACI318Test(section, standard, haveSpiral);
+			var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
+
+			List<string> log = result.GetLog();
+			foreach (string s in log)
+				Console.WriteLine($"{s}");
+
+			if (log.Count > 0)
+				return false;
+
+			if (result.StrainPlane != null)
+			{
+				(Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension();
+				(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = result.GetRebarsTension();
+
+				Console.WriteLine($"Tensions associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} ");
+
+				for (int i = 0; i < rebarTensions.Length; i++)
+					Console.WriteLine($"Rebar {i}: {rebarTensions[i].rebar.Position.X}, {rebarTensions[i].rebar.Position.Y}. " +
+						$"Tension = {Math.Round(rebarTensions[i].tension, 2)}");
+
+				for (int i = 0; i < concreteTensions.Length; i++)
+					Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
+
+				ForceTuple calculatedForces = solver.CalculateSectionForceResultantForTension(result.StrainPlane);
+
+				var adimForces = solver.ConvertToAdimForces(calculatedForces);
+				double tolerance = 1e-5;
+
+				if (Math.Abs(adimForces.N - adimExternalForces.N) > tolerance ||
+					Math.Abs(adimForces.Mx - adimExternalForces.Mx) > tolerance ||
+					Math.Abs(adimForces.My - adimExternalForces.My) > tolerance)
+					return false;
+			}
+			else
+			{
+				Console.WriteLine($"Result {result.Id} associated with force {result.Force.N}, {result.Force.M1}, {result.Force.M2} don't find strain plane." +
+					$"Point is external");
+			}
+
+			return true;
+		}
+
 		protected bool LinearAnalysisCommonAssertModelCode(double phi, StressAnalysisResult result)
 		{
 			List<string> log = result.GetLog();
@@ -1595,7 +1641,7 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 
 			internal ForceTuple CalculateSectionForceResultant(StrainPlane strainPlane)
 			{
-				return base.CalculateForceResultant(strainPlane, GetRebarIsInsideAssociation());
+				return base.CalculateForceResultantForDomain(strainPlane, GetRebarIsInsideAssociation());
 			}
 
 			internal ForceTuple CalculateLinearSectionForceResultant(double psi, double? psiTendon, StrainPlane strainPlane)
@@ -1643,9 +1689,9 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			{
 			}
 
-			internal ForceTuple CalculateSectionForceResultant(StrainPlane strainPlane)
+			internal ForceTuple CalculateSectionForceResultantForTension(StrainPlane strainPlane)
 			{
-				return base.CalculateForceResultant(strainPlane, GetRebarIsInsideAssociation());
+				return base.CalculateForceResultantForTension(strainPlane, GetRebarIsInsideAssociation());
 			}
 
 			internal ForceTuple CalculateLinearSectionForceResultant(double psi, double? psiTendon, StrainPlane strainPlane)
