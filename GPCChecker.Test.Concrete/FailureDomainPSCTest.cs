@@ -487,5 +487,78 @@ namespace ConcreteTests
 				-1401.12	85.5	
 			*/
 		}
+
+		[TestMethod]
+		public void RectangularSectionPrestressedTest6()
+		{
+			double rebarDiameterPrestress = 22;
+			double rebarDiameter = 26;
+
+			Shape2d shape = GetRectangularShape(300, 500);
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C45_55);
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterialEN1992Data.Y1860C);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0), 0),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0), 0),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0), 0),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0), 0),
+				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 1400),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+
+			var failureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			ShowDomainPoints(failureDomain.Domain);
+
+			// Assert.IsTrue(CommonAssertsModelCode(section, standard, failureDomain));
+
+			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+				NRd			MRd			C3			C4
+				-1401.12	85.5	
+				-1401.12	85.5	
+				-1401.12	85.5	
+				-1401.12	85.5	
+				-1373.1		92.4148	
+				-1317.67	105.859	
+				-1262.71	118.804	
+				-1212.29	130.299	
+				-717.748	231.098	
+				143.556		395.901	
+				322.192		421.293	
+				620.263		454.118	
+				1217.64		483.973	
+				1674.11		448.429	
+				2284.87		386.633	
+				3107.59		270.144	
+				3662.07		169.574	
+				4054.66		97.9095	
+				4276.12		57	
+				4276.12		57	
+				4107.86		17.9905	
+				3768.47		-51.7735
+				3267.18		-150.444
+				2483.43		-257.195
+				1898.94		-311.154
+				1429.49		-344.75	
+				785.849		-307.956
+				441.517		-268.192
+				216.62		-235.861
+				-717.748	-60.0982
+				-1212.29	40.7005	
+				-1262.71	52.1962	
+				-1317.67	65.1409	
+				-1373.1		78.5852	
+				-1401.12	85.5	
+				-1401.12	85.5	
+				-1401.12	85.5	
+				-1401.12	85.5	
+			*/
+		}
 	}
 }

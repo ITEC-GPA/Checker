@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
@@ -497,7 +498,55 @@ namespace ConcreteTests
                 Assert.IsTrue(Math.Abs((force.My - expForce.My) / expForce.My) < 0.1);
         }
 
-        [TestMethod]
+		[TestMethod]
+		public void RectangularSectionPrestressedTest1()
+		{
+			double rebarDiameterPrestress = 26;
+			double rebarDiameter = 22;
+
+			Shape2d shape = GetRectangularShape(300, 500);
+
+			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterialEN1992Data.Y1860C);
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+
+			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+			{
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0), 0),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0), 0),
+				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0), 0),
+				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0), 0),
+				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 1400),
+			};
+
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			section.AddRebars(rebars);
+			SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+
+			StrainPlane strainPlane1 = new StrainPlane(new Point2d(0, 500), 0, 0, 0.0035);
+			StrainPlane strainPlane2 = new StrainPlane(new Point2d(0, 500), 0, 0, -0.0035);
+			ForceTuple force1 = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane1);
+			ForceTuple force2 = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane2);
+
+			ForceTuple expForce1 = new ForceTuple(1352 * 1000, 114 * 1000000, 0);
+			ForceTuple expForce2 = new ForceTuple(-2189* 1000, 79 * 1000000, 0);
+
+			if (expForce1.N != 0)
+				Assert.IsTrue(Math.Abs((force1.N - expForce1.N) / expForce1.N) < 0.1);
+			if (expForce1.Mx != 0)
+				Assert.IsTrue(Math.Abs((force1.Mx - expForce1.Mx) / expForce1.Mx) < 0.1);
+			if (expForce1.My != 0)
+				Assert.IsTrue(Math.Abs((force1.My - expForce1.My) / expForce1.My) < 0.1);
+
+			if (expForce2.N != 0)
+				Assert.IsTrue(Math.Abs((force2.N - expForce2.N) / expForce2.N) < 0.1);
+			if (expForce2.Mx != 0)
+				Assert.IsTrue(Math.Abs((force2.Mx - expForce2.Mx) / expForce2.Mx) < 0.1);
+			if (expForce2.My != 0)
+				Assert.IsTrue(Math.Abs((force2.My - expForce2.My) / expForce2.My) < 0.1);
+		}
+
+		[TestMethod]
         public void DesignStressSteel()
         {
             var section = GetRectangularSection4Rebars();
