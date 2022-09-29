@@ -657,14 +657,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             if (strain < 0)
             {
                 // compressione
-                return _concreteSection.ConcreteMaterial.E * strain;
+                return _concreteSection.ConcreteMaterial.ElasticModulusCompression * strain;
             }
             else
             {
                 // trazione
                 if (_considerTensileConcrete)
                 {
-                    return _concreteSection.ConcreteMaterial.E * strain;
+                    return _concreteSection.ConcreteMaterial.ElasticModulusTension * strain;
                 }
                 else
                 {
@@ -772,12 +772,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public double CalculateElasticSigmaS(double psi, ReinforcedConcreteRebar rebar, double strain)
         {
-            return rebar.RebarMaterial.E * (1 + psi) * strain + rebar.RebarMaterial.E * rebar.EpsilonP;
-        }
+            if(strain < 0)
+                return rebar.RebarMaterial.ElasticModulusCompression * (1 + psi) * strain + rebar.RebarMaterial.ElasticModulusCompression * rebar.EpsilonP;
+            else
+				return rebar.RebarMaterial.ElasticModulusTension * (1 + psi) * strain + rebar.RebarMaterial.ElasticModulusTension * rebar.EpsilonP;
+		}
 
-        #endregion
+		#endregion
 
-        protected virtual (double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex,
+		protected virtual (double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex,
             double dminConcrete, int dMaxVertexIndex, double dmaxConcrete)
             CalculateMaxMinSectionDistances(double teta)
         {
