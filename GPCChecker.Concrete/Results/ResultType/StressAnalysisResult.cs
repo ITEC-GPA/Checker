@@ -172,6 +172,31 @@ namespace GPC.Checkers.Concrete.Results
 			return results;
 		}
 
+		public (ReinforcedConcreteRebar rebar, double strain)[] GetRebarsStrain(double phi)
+		{
+			(ReinforcedConcreteRebar rebar, double strain)[] results = new (ReinforcedConcreteRebar rebar, double strain)[_section.RebarsCount];
+
+			for (int r = 0; r < ConcreteSection.RebarsCount; r++)
+			{
+				ReinforcedConcreteRebar rebar = ConcreteSection.Rebars.ElementAt(r);
+				double strain = StrainPlane.GetStrain(rebar.Position) * (1 + phi);
+
+				results[r] = (rebar, strain);
+			}
+
+			return results;
+		}
+
+		public double GetRebarStrain(ReinforcedConcreteRebar rebar, double phi)
+		{
+			return StrainPlane.GetStrain(rebar.Position) * (1 + phi);
+		}
+
+		public double GetRebarStrain(ReinforcedConcreteRebar rebar)
+		{
+			return StrainPlane.GetStrain(rebar.Position);
+		}
+
 		#endregion
 
 		#region Concrete
@@ -268,6 +293,11 @@ namespace GPC.Checkers.Concrete.Results
 				strains[i] = _strainPlane.GetStrain(vertices[i]);
 
 			return strains;
+		}
+
+		public double GetVerticeStrain(Point2d point)
+		{
+			return _strainPlane.GetStrain(point);
 		}
 
 		#endregion
