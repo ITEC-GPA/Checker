@@ -848,7 +848,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual ForceTuple ConvertToAdimensionalForces(ForceTuple forceTuple)
         {
-            BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox(); ;
+            BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox();
             double h = bBox.Size.Y;
             double b = bBox.Size.X;
 
@@ -2349,8 +2349,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual ResultBeamForces GetLocalForces(ResultBeamForces externalForces, Vector2d forceReferencePoint)
         {
-            return new ResultBeamForces(externalForces.N, externalForces.V1, externalForces.V2,
-                externalForces.T, externalForces.M1 + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y), 
+            return new ResultBeamForces(
+                externalForces.N, 
+                externalForces.V1, 
+                externalForces.V2,
+                externalForces.T, 
+                externalForces.M1 + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y), 
                 externalForces.M2 + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X),
                 new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
         }
