@@ -1913,7 +1913,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else if (b.Length > 0.0001)
                         reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
                     else
-                        reductionFactorTeta = 0.1;
+                        reductionFactorTeta = 0.05;
                 }
                 else if (inputFailureZone == FailureZones.F3A)
 				{
@@ -1931,7 +1931,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else if (b.Length > 0.0001)
                         reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
                     else
-                        reductionFactorTeta = 0.1;
+                        reductionFactorTeta = 0.05;
                 }
                 else if (inputFailureZone == FailureZones.F2B)
                 {
@@ -1949,7 +1949,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else if (b.Length > 0.0001)
                         reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
                     else
-                        reductionFactorTeta = 0.1;
+                        reductionFactorTeta = 0.05;
                 }
                 else if (inputFailureZone == FailureZones.F2A)
                 {
@@ -1965,7 +1965,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else if (b.Length > 0.0001)
                         reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
                     else
-                        reductionFactorTeta = 0.1;
+                        reductionFactorTeta = 0.05;
                 }
                 else
 				{
@@ -1979,7 +1979,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else if (b.Length > 0.0001)
                         reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
                     else
-                        reductionFactorTeta = 0.1;
+                        reductionFactorTeta = 0.05;
                 }
 
 

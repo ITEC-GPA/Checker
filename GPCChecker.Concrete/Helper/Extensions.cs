@@ -16,7 +16,7 @@ namespace GPC.Checkers.Concrete.Helper
 			{
 				//TODO: workaround per correggere errore dentro metodo ToCoordinateSystem da debuggare. 
 				resultBeamForces = new ResultBeamForces(resultBeamForces.N, resultBeamForces.V1, resultBeamForces.V2, resultBeamForces.T,
-					resultBeamForces.M1, -resultBeamForces.M2, resultBeamForces.CoordinateSystem, resultBeamForces.Id);
+					resultBeamForces.M1, +resultBeamForces.M2, resultBeamForces.CoordinateSystem, resultBeamForces.Id);
 				ResultBeamForces forcesConverted = resultBeamForces.ToCoordinateSystem(coordinateSystem);
 				return new ForceTuple(forcesConverted.N, forcesConverted.M1, forcesConverted.M2);
 			}
