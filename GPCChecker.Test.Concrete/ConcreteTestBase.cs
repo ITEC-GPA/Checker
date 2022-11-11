@@ -449,7 +449,7 @@ namespace ConcreteTests
 
 		protected CoordinateSystem GetLocalCoordinateSystem(IConcreteSection section)
         {
-            return new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis);
+			return new CoordinateSystem(section.Centroid, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
         }
 
 		#endregion
