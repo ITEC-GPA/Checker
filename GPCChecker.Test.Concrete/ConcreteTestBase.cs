@@ -1019,8 +1019,8 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
 				for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
 					Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd / 1000000)}, " +
-									  $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd / 1000000)}, " +
-									  $"{Math.Round(failureDomain.DomainPoints[i][j].NRd / 1000)}");
+						$"{Math.Round(failureDomain.DomainPoints[i][j].MyRd / 1000000)}, " +
+						$"{Math.Round(failureDomain.DomainPoints[i][j].NRd / 1000)}");
 		}
 
 		protected void ShowDomainPoints(FailureDomain2d failureDomain)

@@ -24,12 +24,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
     [Serializable]
     public abstract class SectionSolver : ModelObjectId, ISerializable
     {
-        #region Public enum 
+		#region Constant 
 
-        /// <summary>
-        /// Rapresent the discretization of the axial force in the solver for plastic analysis
-        /// </summary>
-        protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizations =
+		// Units conversions
+		public static readonly double FROM_N_TO_KN = 0.001;
+		public static readonly double FROM_KN_TO_N = 1000;
+
+		public static readonly double FROM_NM_TO_KNM = 0.000001;
+		public static readonly double FROM_KNM_TO_NM = 1000000;
+
+		#endregion
+
+		#region Public enum 
+
+		/// <summary>
+		/// Rapresent the discretization of the axial force in the solver for plastic analysis
+		/// </summary>
+		protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizations =
         {
             (FailureZones.F1, 1),
             (FailureZones.F2A, 1),
@@ -1350,19 +1361,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             switch (failureAnalysisType)
             {
                 case FailureAnalysisTypes.ConstantEccentricity:
-                    vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, targetLocalForces.N / 1000);
+                    vectorEd = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N);
                     break;
                 case FailureAnalysisTypes.ConstantN:
-                    vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, 0.0);
+                    vectorEd = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, targetLocalForces.My / FROM_KNM_TO_NM, 0.0);
                     break;
                 case FailureAnalysisTypes.ConstantNMx:
-                    vectorEd = new Vector3d(0, targetLocalForces.My / 1000000, 0);
+                    vectorEd = new Vector3d(0, targetLocalForces.My / FROM_KNM_TO_NM, 0);
                     break;
                 case FailureAnalysisTypes.ConstantNMy:
-                    vectorEd = new Vector3d(targetLocalForces.Mx / 1000000, 0, 0);
+                    vectorEd = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, 0, 0);
                     break;
                 case FailureAnalysisTypes.ConstantMxMy:
-                    vectorEd = new Vector3d(0, 0, targetLocalForces.N / 1000);
+                    vectorEd = new Vector3d(0, 0, targetLocalForces.N / FROM_KN_TO_N);
                     break;
             }
 
@@ -1489,32 +1500,32 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             switch (failureAnalysisType)
             {
                 case FailureAnalysisTypes.ConstantEccentricity:
-                    angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
-                        targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
+                    angle = new Vector3d(forces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, forces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
+                        targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
                     if (Math.Abs(angle) < angularTolerance)
                         exit = true;
                     break;
                 case FailureAnalysisTypes.ConstantN:
-                    angle = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
-                        targetLocalForces.My / 1000000, 0));
+                    angle = new Vector3d(forces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, 0).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
+                        targetLocalForces.My / FROM_KNM_TO_NM, 0));
                     if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
                         exit = true;
                     break;
                 case FailureAnalysisTypes.ConstantMxMy:
-                    angle = new Vector3d(targetLocalForces.Mx / 1000000, targetLocalForces.My / 1000000, forces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
-                        targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
+                    angle = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, targetLocalForces.My / FROM_KNM_TO_NM, forces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
+                        targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
                     if (Math.Abs(adimIncrement.Mx) < distanceTolerance && Math.Abs(adimIncrement.My) < distanceTolerance)
                         exit = true;
                     break;
                 case FailureAnalysisTypes.ConstantNMx:
-                    angle = new Vector3d(targetLocalForces.Mx / 1000000, forces.My / 1000000, targetLocalForces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
-                        targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
+                    angle = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
+                        targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
                     if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(adimIncrement.Mx) < distanceTolerance)
                         exit = true;
                     break;
                 case FailureAnalysisTypes.ConstantNMy:
-                    angle = new Vector3d(forces.Mx / 1000000, targetLocalForces.My / 1000000, targetLocalForces.N / 1000).AngleTo(new Vector3d(targetLocalForces.Mx / 1000000,
-                        targetLocalForces.My / 1000000, targetLocalForces.N / 1000));
+                    angle = new Vector3d(forces.Mx / FROM_KNM_TO_NM, targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
+                        targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
                     if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(adimIncrement.My) < distanceTolerance)
                         exit = true;
                     break;
@@ -1533,7 +1544,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         break;
                     case FailureAnalysisTypes.ConstantMxMy:
                         externalForcesLine = new Line3d(new Point3d(targetLocalForces.Mx, targetLocalForces.My, 0),
-                            new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N - 1000));
+                            new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N - FROM_KN_TO_N));
                         break;
                     case FailureAnalysisTypes.ConstantNMx:
                         externalForcesLine = new Line3d(new Point3d(targetLocalForces.Mx, 0, targetLocalForces.N),
@@ -1552,7 +1563,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     FailureDomain.FailureDomainForce failureDomainForce = new FailureDomain.FailureDomainForce(
                         new ResultBeamForces(targetLocalForces.N, 0, 0, 0, targetLocalForces.Mx, targetLocalForces.My, coordinateSystem), pointBuffer);
 
-                    double wr = failureDomainForce.CalculateWorkingRatio(failureAnalysisType, 1000000, 1000);
+                    double wr = failureDomainForce.CalculateWorkingRatio(failureAnalysisType, FROM_KNM_TO_NM, FROM_KN_TO_N);
                     if (wr > 1)
                         pointOutOfDomain = true;
                 }
@@ -1595,16 +1606,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         switch (failureAnalysisType)
                         {
                             case FailureAnalysisTypes.ConstantEccentricity:
-                                angleBuffer = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, forces.N / 1000).AngleTo(vectorEd);
+                                angleBuffer = new Vector3d(forces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, forces.N / FROM_KN_TO_N).AngleTo(vectorEd);
                                 break;
                             case FailureAnalysisTypes.ConstantN:
-                                angleBuffer = new Vector3d(forces.Mx / 1000000, forces.My / 1000000, 0).AngleTo(vectorEd);
+                                angleBuffer = new Vector3d(forces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, 0).AngleTo(vectorEd);
                                 break;
                             case FailureAnalysisTypes.ConstantNMx:
                             case FailureAnalysisTypes.ConstantNMy:
                             case FailureAnalysisTypes.ConstantMxMy:
-                                angleBuffer = new Vector3d((forces.Mx - targetLocalForces.Mx) / 1000000, (forces.My-targetLocalForces.My) / 1000000, 
-                                    (forces.N - targetLocalForces.N) / 1000).AngleTo(vectorEd);
+                                angleBuffer = new Vector3d((forces.Mx - targetLocalForces.Mx) / FROM_KNM_TO_NM, (forces.My-targetLocalForces.My) / FROM_KNM_TO_NM, 
+                                    (forces.N - targetLocalForces.N) / FROM_KN_TO_N).AngleTo(vectorEd);
                                 break;
                         }
 
