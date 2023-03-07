@@ -5,7 +5,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{456FF008-90FA-49AB-8153-74280793B449}</ProjectGuid>
+    <ProjectGuid>{37CB9BD4-E771-4A77-B396-ED30BC113704}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GPCChecker.Test.Glass</RootNamespace>
@@ -29,7 +29,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -37,83 +36,32 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <PlatformTarget>x64</PlatformTarget>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DelaunayMesh, Version=1.0.1.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\DelaunayMesh.1.0.1\lib\net472\DelaunayMesh.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCConverters.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCConverters.Straus7.1.0.1.1\lib\net472\GPCConverters.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCConverters.Straus7, Version=1.0.1.1, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCConverters.Straus7.1.0.1.1\lib\net472\GPCConverters.Straus7.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCGeometry, Version=1.1.5.8, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCGeometry.1.1.5.8\lib\net472\GPCGeometry.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCModel, Version=0.2.1.17, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.2.1.17\lib\net472\GPCModel.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCTestUtilities, Version=1.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCTestUtilities.1.0.0.8\lib\net472\GPCTestUtilities.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCUtilities, Version=1.0.34.1, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCUtilities.1.0.34.1\lib\net472\GPCUtilities.dll</HintPath>
-    </Reference>
-    <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.5.0.0\lib\net461\MathNet.Numerics.dll</HintPath>
-    </Reference>
-    <Reference Include="MathNet.Numerics.Providers.MKL, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.Providers.MKL.5.0.0\lib\net461\MathNet.Numerics.Providers.MKL.dll</HintPath>
-    </Reference>
-    <Reference Include="MathNet.Spatial, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Spatial.0.6.0\lib\net461\MathNet.Spatial.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\MSTest.TestFramework.2.2.10\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\MSTest.TestFramework.2.2.10\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
     </Reference>
-    <Reference Include="SAP2000v1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=453d728ef24c6f5e, processorArchitecture=MSIL">
-      <HintPath>..\packages\CSI_SAP2000v23_x64.1.0.0\lib\SAP2000v1.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="St7ApiWrapper, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\St7ApiWrapper.1.0.26\lib\net472\St7ApiWrapper.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DoubleInsulatingGlassWrapperTest.cs" />
     <Compile Include="FemModelWrapperTest.cs" />
     <Compile Include="GeneralTest.cs" />
     <Compile Include="GlassTestBase.cs" />
-    <Compile Include="LaminatedGlassWrapperTest.cs" />
     <Compile Include="LaminatedGlassTest.cs" />
+    <Compile Include="LaminatedGlassWrapperTest.cs" />
     <Compile Include="MonolithicGlassTest.cs" />
     <Compile Include="PerformanceTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DoubleInsulatingGlassWrapperTest.cs" />
     <Compile Include="ValidationTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\GPCChecker.Glass\GPCChecker.Glass.csproj">
-      <Project>{19977875-dc88-47e0-92c9-d9ace7ce4f3d}</Project>
-      <Name>GPCChecker.Glass</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -121,21 +69,8 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets'))" />
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.props'))" />
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets'))" />
   </Target>
-  <PropertyGroup>
-    <PostBuildEvent>If "$(ConfigurationName)"=="Debug" (
-        Echo Copying St7Solver debug version
-         Copy "..\..\..\..\..\Libs\St7Solver\bin\Debug\St7Solver.exe" "$(TargetDir)"
-)
-If "$(ConfigurationName)"=="Release" (
-      Echo Copying St7Solver release version
-       Copy "..\..\..\..\..\Libs\St7Solver\bin\Release\St7Solver.exe" "$(TargetDir)"
-)
-</PostBuildEvent>
-  </PropertyGroup>
-  <Import Project="..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets" Condition="Exists('..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets')" />
   <Import Project="..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets')" />
 </Project>
