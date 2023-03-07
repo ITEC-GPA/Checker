@@ -6,4 +6,9 @@
     <RootNamespace>GPC.Checker</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="GPCGeometry" Version="2.0.0" />
+    <PackageReference Include="GPCModel" Version="1.0.0" />
+  </ItemGroup>
+
 </Project>

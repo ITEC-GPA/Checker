@@ -15,7 +15,6 @@ using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
-using GPC.Utilities.Converters;
 using GPC.Utilities.Extensions;
 using MathNet.Numerics.LinearAlgebra;
 
@@ -149,7 +148,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Plastic,
         }
 
-        [TypeConverter(typeof(EnumDescriptionTypeConverter))]
         public enum FailureAnalysisTypes
         {
             [Description("Constant N")]
