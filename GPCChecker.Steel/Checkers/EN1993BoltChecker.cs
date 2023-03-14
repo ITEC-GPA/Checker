@@ -1,6 +1,7 @@
 ﻿using GPC.Checkers.Steel.Results;
 using GPC.Model.LoadCases;
 using GPC.Model.Materials;
+using GPC.Model.Results;
 using GPC.Model.Sections.Bolt;
 using GPC.Model.Standards;
 using System.Collections.Generic;
@@ -43,19 +44,30 @@ namespace GPC.Checkers.Steel.Checkers
                 var ReducedForces = SolForce.ResBeamForces / OptionsEN1993.NumShearPlane;
                 // Calculate all shear forces for each bolt.
                 var SollAllBolts = _boltGrid.CalculateShearForcesElastic(SolForce.ResBeamForces);
+                // Calculate uniform tension forces for each bolt.
+                var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N / SollAllBolts.Count() : 0;
+                if (SollN > 1) // Positive for tension.
+                    foreach (var SollBolt in SollAllBolts)
+                        SollBolt.Value.N = SollN;
 
                 foreach (var SollBolt in SollAllBolts)
                 {
                     // Initialize a result.
-                    var CurrentResult = new EN1993BoltResults(SollBolt.Key, new LoadCase("COMB0", LoadCase.LoadCaseTypes.SelfWeight),
-                        SollBolt.Value, StandardEN1993, OptionsEN1993);
+                    var CurrentResult = new EN1993BoltResults(SollBolt.Key, SolForce.LoadCase, SollBolt.Value, StandardEN1993, OptionsEN1993);
 
                     // Add the other results.
+                    // Shear.
+                    var SollShear = SollBolt.Value.GetCombinedShearForce();
                     CurrentResult.ShearResistance = CalculateShearResistance_FvRd(SollBolt.Key.BoltDef);
-                    CurrentResult.RatioShear = GetWorkingRatio(SollBolt.Value.GetCombinedShearForce(), CurrentResult.ShearResistance);
+                    CurrentResult.RatioShear = GetWorkingRatio(SollShear, CurrentResult.ShearResistance);
 
+                    // Tension.
+                    var SollTension = SollBolt.Value.N;
                     CurrentResult.TensionResistance = CalculateTensionResistance_FtRd(SollBolt.Key.BoltDef);
-                    CurrentResult.RatioTension = GetWorkingRatio(0, CurrentResult.TensionResistance);
+                    CurrentResult.RatioTension = GetWorkingRatio(SollTension, CurrentResult.TensionResistance);
+
+                    // Combined Shear and Tension.
+                    CurrentResult.RatioCombinedShearTension = SollShear / CurrentResult.ShearResistance + SollTension / (1.4 * CurrentResult.TensionResistance);
 
                     // Save to the results table.
                     _boltResults.Add(CurrentResult);

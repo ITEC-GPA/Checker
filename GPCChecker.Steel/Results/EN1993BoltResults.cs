@@ -31,6 +31,8 @@ namespace GPC.Checkers.Steel.Results
 
         public double RatioTension { get; internal set; }
 
+        public double RatioCombinedShearTension { get; internal set; }
+
         #endregion
 
         #region Constructor
