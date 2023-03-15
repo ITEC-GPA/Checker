@@ -19,8 +19,9 @@ namespace GPCCheckers.Test
         public void Test01_ShearCheck()
         {
             // BoltGrid boltGrid, List<BoltStresses> boltStresses, StandardEN1993p11 standard, EN1993BoltOptions options
-            var CurrBoltGrid = new BoltGrid(new double[] { 200 }, new double[] { 150 }, 16, BoltMaterialEN1993Data.Class10_9);
-            var CurrBolGriBar = CurrBoltGrid.CalculateBarycenter();
+            var CurrPlateWithBolts = new RectangularPlateWithBolts(300, 250, SteelMaterialEN1993Data.S235, 10,
+                new double[] { 200 }, new double[] { 150 }, 16, BoltMaterialEN1993Data.Class10_9, new Point2d(50, 50));
+            var CurrBolGriBar = CurrPlateWithBolts.BoltGrid.CalculateBarycenter();
             var CurrAppPointSystem = new CoordinateSystem(CurrBolGriBar, Vector3d.XAxis, Vector3d.YAxis);
             var CurrBoltStresses = new List<BoltStresses>()
             {
@@ -30,7 +31,7 @@ namespace GPCCheckers.Test
             var CurrStd = new StandardEN1993p11();
             var CurrOptions = new EN1993BoltOptions();
 
-            var CurrChecker = new EN1993BoltChecker(CurrBoltGrid, CurrBoltStresses, CurrStd, CurrOptions);
+            var CurrChecker = new EN1993BoltChecker(CurrPlateWithBolts, CurrBoltStresses, CurrStd, CurrOptions);
             CurrChecker.PerformCheck();
 
             // Test

@@ -13,8 +13,8 @@ namespace GPC.Checkers.Steel.Checkers
     {
         #region Public Constructor
 
-        public EN1993BoltChecker(BoltGrid boltGrid, List<BoltStresses> boltStresses, StandardEN1993p11 standard, EN1993BoltOptions options) :
-            base(boltGrid, boltStresses, standard, options)
+        public EN1993BoltChecker(RectangularPlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, StandardEN1993p11 standard, EN1993BoltOptions options) :
+            base(plateWithBolts, boltStresses, standard, options)
         { }
 
         #endregion
@@ -43,7 +43,7 @@ namespace GPC.Checkers.Steel.Checkers
                 // Reduce the forces according to the number of cutting planes.
                 var ReducedForces = SolForce.ResBeamForces / OptionsEN1993.NumShearPlane;
                 // Calculate all shear forces for each bolt.
-                var SollAllBolts = _boltGrid.CalculateShearForcesElastic(SolForce.ResBeamForces);
+                var SollAllBolts = _plateWithBolts.BoltGrid.CalculateShearForcesElastic(SolForce.ResBeamForces);
                 // Calculate uniform tension forces for each bolt.
                 var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N / SollAllBolts.Count() : 0;
                 if (SollN > 1) // Positive for tension.
@@ -144,6 +144,32 @@ namespace GPC.Checkers.Steel.Checkers
             double f_ub = boltSection.BoltMaterial.Fu;
             double area = boltSection.CalculateAreaEff();
             return k_2 * f_ub * area / StandardEN1993.GammaM2;
+        }
+
+        //private double CalculateHoleDiameter()
+
+        //private double CalculateCoeffParallel_alphad_GlobalSimple(in PlateWithBolts plateWithBolts)
+        //{
+
+        //}
+
+        //private double CalculateCoeffPerpendicular_k1_GlobalSimple(in PlateWithBolts plateWithBolts)
+        //{
+
+        //}
+
+        /// <summary>
+        /// Calculate bearing resistance.
+        /// UNI EN 1993-1-8:2005 - Table 3.4.
+        /// </summary>
+        /// <param name="k_1">Coefficient perpendicular to the direction of load transfer.</param>
+        /// <param name="alpha_b">Coefficient in the direction of load transfer.</param>
+        /// <param name="boltSection"></param>
+        /// <param name="plateWithBolts"></param>
+        /// <returns>F_b,Rd</returns>
+        private double CalculateBearingResistance_FbRd(in double k_1, in double alpha_b, in BoltSection boltSection, in PlateWithBolts plateWithBolts)
+        {
+            return k_1 * alpha_b * plateWithBolts.PlateMaterial.Fu * boltSection.Diameter * plateWithBolts.Thickness / StandardEN1993.GammaM2;
         }
 
         #endregion

@@ -17,7 +17,7 @@ namespace GPC.Checkers.Steel.Checkers
     {
         #region Variables
 
-        protected readonly BoltGrid _boltGrid;
+        protected readonly RectangularPlateWithBolts _plateWithBolts;
         protected readonly List<BoltStresses> _boltStresses;
         protected readonly Standard _standard;
         protected readonly Options _options;
@@ -30,9 +30,9 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Constructor
 
-        protected BoltChecker(BoltGrid boltGrid, List<BoltStresses> boltStresses, Standard standard, Options options)
+        protected BoltChecker(RectangularPlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, Standard standard, Options options)
         {
-            _boltGrid = boltGrid ?? throw new ArgumentNullException(nameof(boltGrid));
+            _plateWithBolts = plateWithBolts ?? throw new ArgumentNullException(nameof(plateWithBolts));
             _boltStresses = boltStresses ?? throw new ArgumentNullException(nameof(boltStresses));
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
             _options = options ?? throw new ArgumentNullException(nameof(options));
