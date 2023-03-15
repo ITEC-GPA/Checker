@@ -4,8 +4,10 @@ using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Bolt;
 using GPC.Model.Standards;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using static GPC.Checkers.Steel.Checkers.EN1993BoltChecker.EN1993BoltOptions;
 
 namespace GPC.Checkers.Steel.Checkers
 {
@@ -146,16 +148,17 @@ namespace GPC.Checkers.Steel.Checkers
             return k_2 * f_ub * area / StandardEN1993.GammaM2;
         }
 
-        //private double CalculateHoleDiameter()
-
-        //private double CalculateCoeffParallel_alphad_GlobalSimple(in PlateWithBolts plateWithBolts)
+        //private double CalculateCoeffParallel_alphad_GlobalSimple(in RectangularPlateWithBolts plateWithBolts)
         //{
-
+        //    double e_1 = Math.Min(Math.Min(plateWithBolts.E_x_left, plateWithBolts.E_x_right), Math.Min(plateWithBolts.E_y_bottom, plateWithBolts.E_y_top));
+        //    double p_1 = Math.Min(plateWithBolts.P_x, plateWithBolts.P_y);
+        //    double d_0 = RectangularPlateWithBolts.
         //}
 
-        //private double CalculateCoeffPerpendicular_k1_GlobalSimple(in PlateWithBolts plateWithBolts)
+        //private double CalculateCoeffPerpendicular_k1_GlobalSimple(in RectangularPlateWithBolts plateWithBolts)
         //{
-
+        //    double e_2 = Math.Min(Math.Min(plateWithBolts.E_x_left, plateWithBolts.E_x_right), Math.Min(plateWithBolts.E_y_bottom, plateWithBolts.E_y_top));
+        //    double p_2 = Math.Min(plateWithBolts.P_x, plateWithBolts.P_y);
         //}
 
         /// <summary>
@@ -170,6 +173,105 @@ namespace GPC.Checkers.Steel.Checkers
         private double CalculateBearingResistance_FbRd(in double k_1, in double alpha_b, in BoltSection boltSection, in PlateWithBolts plateWithBolts)
         {
             return k_1 * alpha_b * plateWithBolts.PlateMaterial.Fu * boltSection.Diameter * plateWithBolts.Thickness / StandardEN1993.GammaM2;
+        }
+
+        /// <summary>
+        /// Calculate punching shear resistance.
+        /// UNI EN 1993-1-8:2005 - Table 3.4.
+        /// </summary>
+        /// <param name="plateWithBolts">Plate.</param>
+        /// <param name="boltSection">Current bolt.</param>
+        /// <returns>B_p,Rd</returns>
+        private double CalculatePunchingShearResistance_BpRd(in PlateWithBolts plateWithBolts, in BoltSection boltSection)
+        {
+            return 0.6 * Math.PI * boltSection.CalculateMeanDiameterBoltHead() * plateWithBolts.Thickness * plateWithBolts.PlateMaterial.Fu / StandardEN1993.GammaM2;
+        }
+
+        /// <summary>
+        /// Values of ks.
+        /// UNI EN 1993-1-8:2005 - Table 3.6.
+        /// </summary>
+        /// <param name="holeShape"></param>
+        /// <param name="slotPerpendicularLoad">True if load is perpendicuar to the load.</param>
+        /// <returns>k_s</returns>
+        private double Calculate_ks(in HoleShapeType holeShape, in bool slotPerpendicularLoad)
+        {
+            if (holeShape == HoleShapeType.NormalRound)
+                return 1.0;
+            else if (holeShape == HoleShapeType.OversizeRound)
+                return 0.85;
+            else if (holeShape == HoleShapeType.ShortSlotted)
+            {
+                if (slotPerpendicularLoad)
+                    return 0.85;
+                else
+                    return 0.76;
+            }
+            else if (holeShape == HoleShapeType.LongSlotted)
+            {
+                if (slotPerpendicularLoad)
+                    return 0.7;
+                else
+                    return 0.63;
+            }
+            else
+            {
+                _errorLog.Add($"Error: missing hole type '{holeShape}', k_s=1.0 will be used.");
+                return 1.0;
+            }
+        }
+
+        /// <summary>
+        /// Slip factor, μ, for pre-loaded bolts.
+        /// UNI EN 1993-1-8:2005 - Table 3.7.
+        /// </summary>
+        /// <returns>μ</returns>
+        private double CalculateSlipFactor_Mu()
+        {
+            switch (OptionsEN1993.ClassFrictionSurfaces)
+            {
+                case ClassFrictionSurfacesType.A:
+                    return 0.5;
+                case ClassFrictionSurfacesType.B:
+                    return 0.4;
+                case ClassFrictionSurfacesType.C:
+                    return 0.3;
+                case ClassFrictionSurfacesType.D:
+                    return 0.2;
+            }
+            _errorLog.Add($"Error: wrong splip class '{OptionsEN1993.ClassFrictionSurfaces}', μ=0.2 will be used.");
+            return 0.2;
+        }
+
+        /// <summary>
+        /// Calculate design Slip resistance.
+        /// UNI EN 1993-1-8:2005 - 3.9 Slip-resistant connections using 8.8 or 10.9 bolts.
+        /// </summary>
+        /// <param name="k_s"></param>
+        /// <param name="boltSection"></param>
+        /// <param name="F_tEd">F_t,Ed (formula 3.8a) or F_t,Ed,ser (formula 3.8b).</param>
+        /// <param name="gammaM">γ_M3 or γ_M3,ser</param>
+        /// <returns>F_s,Rd or F_s,Rd,ser</returns>
+        private double CalculateDesignSlipResistance(in double k_s, in BoltSection boltSection, in double F_tEd, in double gammaM)
+        {
+            double F_pC = 0.7 * boltSection.BoltMaterial.Fu * boltSection.CalculateAreaEff();
+            return k_s * OptionsEN1993.NumFricionPlane * CalculateSlipFactor_Mu() * (F_pC - 0.8 * F_tEd) / gammaM;
+        }
+        private double CalculateDesignSlipResistance_FsRd(in double k_s, in BoltSection boltSection, in double F_tEd)
+            => CalculateDesignSlipResistance(k_s, boltSection, F_tEd, StandardEN1993.GammaM3);
+        private double CalculateDesignSlipResistance_FsRdser(in double k_s, in BoltSection boltSection, in double F_tEdser)
+            => CalculateDesignSlipResistance(k_s, boltSection, F_tEdser, StandardEN1993.GammaM3ser);
+
+        /// <summary>
+        /// Calculate the design plastic resistance of the net cross-section at bolt holes.
+        /// UNI EN 1993-1-8:2005 - 3.4.1 Shear connections (1)c).
+        /// UNI EN 1993-1-1:2005 - 6.2.3 (4) (formula 6.8).
+        /// </summary>
+        /// <param name="boltSection"></param>
+        /// <returns>N_net,Rd</returns>
+        private double CalculatedesignPlasticResistance_NnetRd(in BoltSection boltSection)
+        {
+            return boltSection.CalculateAreaEff() * boltSection.BoltMaterial.Fyk / StandardEN1993.GammaM0;
         }
 
         #endregion
@@ -192,6 +294,18 @@ namespace GPC.Checkers.Steel.Checkers
                 LongSlotted // Bolts in long slotted holes.
             }
 
+            /// <summary>
+            /// Slip factor, μ, for pre-loaded bolts.
+            /// UNI EN 1993-1-8:2005 - Table 3.7.
+            /// </summary>
+            public enum ClassFrictionSurfacesType
+            {
+                A,
+                B,
+                C,
+                D
+            }
+
             #endregion
 
             #region Properties
@@ -207,6 +321,11 @@ namespace GPC.Checkers.Steel.Checkers
             /// </summary>
             public bool IsLongitudinalPerpendicular { get; set; } // Is longitudinal axis of the slotted hole perpendicular to the direction of force transfer?
 
+            /// <summary>
+            /// Class of friction surfaces.
+            /// </summary>
+            public ClassFrictionSurfacesType ClassFrictionSurfaces { get; set; }
+
             #endregion
 
             #region Constructor
@@ -215,6 +334,7 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 HoleShape = HoleShapeType.NormalRound;
                 IsLongitudinalPerpendicular = false;
+                ClassFrictionSurfaces = ClassFrictionSurfacesType.D;
             }
 
             #endregion

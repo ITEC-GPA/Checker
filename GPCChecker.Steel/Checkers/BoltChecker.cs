@@ -75,6 +75,8 @@ namespace GPC.Checkers.Steel.Checkers
 
             protected int _numShearPlane;
 
+            protected int _numFrictionPlane;
+
             #endregion
 
             #region Properties
@@ -98,6 +100,15 @@ namespace GPC.Checkers.Steel.Checkers
             /// </summary>
             public bool IsCounterSunkBolt { get; set; }
 
+            /// <summary>
+            /// Number of share planes, one or more.
+            /// </summary>
+            public int NumFricionPlane
+            {
+                get => _numFrictionPlane;
+                set => _numFrictionPlane = value < 1 ? 1 : value;
+            }
+
             #endregion
 
             #region Constructor
@@ -107,6 +118,7 @@ namespace GPC.Checkers.Steel.Checkers
                 ShearPlaneThroughThreadedPortion = true;
                 NumShearPlane = 1;
                 IsCounterSunkBolt = false;
+                NumFricionPlane = 1;
             }
 
             #endregion
