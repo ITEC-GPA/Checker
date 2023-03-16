@@ -37,13 +37,13 @@ namespace GPCCheckers.Test
             // Test
             var MasSollV = CurrChecker.BoltResultsEN1993.Max(br => br.BeamForces.GetCombinedShearForce());
             var MinResiV = CurrChecker.BoltResultsEN1993.Min(br => br.ShearResistance);
-            var MaxRatioV = CurrChecker.BoltResultsEN1993.Max(br => br.RatioShear);
+            var MaxRatioV = CurrChecker.BoltResultsEN1993.Max(br => br.ShearRatio);
 
             var MasSollN = CurrChecker.BoltResultsEN1993.Max(br => br.BeamForces.N);
-            var MinResiN = CurrChecker.BoltResultsEN1993.Min(br => br.TensionResistance);
-            var MaxRatioN = CurrChecker.BoltResultsEN1993.Max(br => br.RatioTension);
+            var MinResiN = CurrChecker.BoltResultsEN1993.Min(br => double.IsNaN(br.TensionResistance) ? double.PositiveInfinity : br.TensionResistance);
+            var MaxRatioN = CurrChecker.BoltResultsEN1993.Max(br => br.TensionRatio);
 
-            var MaxCombinedRatio = CurrChecker.BoltResultsEN1993.Max(br => br.RatioCombinedShearTension);
+            var MaxCombinedRatio = CurrChecker.BoltResultsEN1993.Max(br => br.CombinedShearTensionRatio);
 
             Assert.AreEqual(3000.0, MasSollV, 1);
             Assert.AreEqual(62800.0, MinResiV, 1);
