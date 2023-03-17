@@ -40,13 +40,17 @@ namespace GPC.Checkers.Steel.Checkers
         {
             _boltResults = new List<BoltResults> { };
 
+            // ****** Set hole type.
+            foreach (var boltPos in _plateWithBolts.BoltGrid.Bolts)
+                SetHoleDiameter(boltPos, OptionsEN1993.HoleShape);
+
             foreach (var SolForce in _boltStresses)
             {
                 // ****** Sollecitation/Stress.
                 // Reduce the forces according to the number of cutting planes.
                 var ReducedForces = SolForce.ResBeamForces / OptionsEN1993.NumShearPlane;
                 // Calculate all shear forces for each bolt.
-                var SollAllBolts = _plateWithBolts.BoltGrid.CalculateShearForcesElastic(SolForce.ResBeamForces);
+                var SollAllBolts = _plateWithBolts.BoltGrid.CalculateShearForcesElastic(ReducedForces);
                 // Calculate uniform tension forces for each bolt.
                 var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N / SollAllBolts.Count() : 0;
                 if (SollN > 1) // Positive for tension.
@@ -73,10 +77,10 @@ namespace GPC.Checkers.Steel.Checkers
                     // ****** Bearing. ******
                     if (CurRes.BearingIsActive)
                     {
-                        CurRes.BearingE1 = _plateWithBolts.CalculateE1(SollBolt.Key.Id, -SollBolt.Value);
-                        CurRes.BearingP1 = _plateWithBolts.CalculateP1(SollBolt.Key.Id, -SollBolt.Value);
-                        CurRes.BearingE2 = _plateWithBolts.CalculateE2(SollBolt.Key.Id, -SollBolt.Value);
-                        CurRes.BearingP2 = _plateWithBolts.CalculateP2(SollBolt.Key.Id, -SollBolt.Value);
+                        CurRes.BearingE1 = _plateWithBolts.CalculateE1(SollBolt.Key.Id, SollBolt.Value);
+                        CurRes.BearingP1 = _plateWithBolts.CalculateP1(SollBolt.Key.Id, SollBolt.Value);
+                        CurRes.BearingE2 = _plateWithBolts.CalculateE2(SollBolt.Key.Id, SollBolt.Value);
+                        CurRes.BearingP2 = _plateWithBolts.CalculateP2(SollBolt.Key.Id, SollBolt.Value);
                         var AlphaD = CalculateCoeffParallel_AlphaD(CurRes.BearingE1, CurRes.BearingP1, SollBolt.Key);
                         CurRes.Bearingk1 = CalculateCoeffPerpendicular_k1(CurRes.BearingE2, CurRes.BearingP2, SollBolt.Key);
                         CurRes.BearingAlphaB = CalculateCoeffParallel_AlphaB(AlphaD, SollBolt.Key.BoltDef, _plateWithBolts);
@@ -310,6 +314,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <summary>
         /// Slip factor, μ, for pre-loaded bolts.
         /// UNI EN 1993-1-8:2005 - Table 3.7.
+        /// EN 1090-2:2008 - Table 18 - Classifications for friction surfaces.
         /// </summary>
         /// <returns>μ</returns>
         private double CalculateSlipFactor_Mu()
@@ -340,6 +345,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns>F_s,Rd or F_s,Rd,ser</returns>
         private double CalculateDesignSlipResistance(in double k_s, in double mu, in BoltSection boltSection, in double F_tEd, in double gammaM)
         {
+            // Nominal minimum preloading force -> F_pC.
             double F_pC = 0.7 * boltSection.BoltMaterial.Fu * boltSection.CalculateAreaEff();
             return k_s * OptionsEN1993.NumFricionPlane * mu * (F_pC - 0.8 * F_tEd) / gammaM;
         }
@@ -347,6 +353,56 @@ namespace GPC.Checkers.Steel.Checkers
             => CalculateDesignSlipResistance(k_s, mu, boltSection, F_tEd, StandardEN1993.GammaM3);
         private double CalculateDesignSlipResistance_FsRdser(in double k_s, in double mu, in BoltSection boltSection, in double F_tEdser)
             => CalculateDesignSlipResistance(k_s, mu, boltSection, F_tEdser, StandardEN1993.GammaM3Ser);
+
+        /// <summary>
+        /// Calculate nominal clearances.
+        /// EN 1090-2:2008 - Table 11 - Nominal clearances for bolts and pins (mm).
+        /// </summary>
+        /// <param name="nominalBoltDiameter"></param>
+        /// <param name="holeShape"></param>
+        /// <returns></returns>
+        private double CalculateNominalClearance(in double nominalBoltDiameter, in HoleShapeType holeShape)
+        {
+            double holeTolerance = 0.01;
+
+            switch (holeShape)
+            {
+                case HoleShapeType.NormalRound:
+                    if (nominalBoltDiameter < 12.0 + holeTolerance)
+                        return 1.0;
+                    else if (nominalBoltDiameter < 24.0 + holeTolerance)
+                        return 2.0; // For bolt nominal diameter equal to 14 can be 2mm according to 3.6.1.(5) EC 1993-1-8.
+                    else
+                        return 3.0;
+
+                case HoleShapeType.OversizeRound:
+                    if (nominalBoltDiameter < 14.0 + holeTolerance)
+                        return 3.0;
+                    else if (nominalBoltDiameter < 22.0 + holeTolerance)
+                        return 4.0;
+                    else if (nominalBoltDiameter < 24.0 + holeTolerance)
+                        return 6.0;
+                    else
+                        return 8.0;
+
+                case HoleShapeType.ShortSlotted:
+                    if (nominalBoltDiameter < 14.0 + holeTolerance)
+                        return 4.0;
+                    else if (nominalBoltDiameter < 22.0 + holeTolerance)
+                        return 6.0;
+                    else if (nominalBoltDiameter < 24.0 + holeTolerance)
+                        return 8.0;
+                    else
+                        return 10.0;
+
+                case HoleShapeType.LongSlotted:
+                    return 1.5 * nominalBoltDiameter;
+
+                default:
+                    _errorLog.Add($"Error: wrong hole type '{holeShape}'.");
+                    return 1.0;
+            }
+        }
 
         /// <summary>
         /// Calculate hole type.
@@ -357,29 +413,57 @@ namespace GPC.Checkers.Steel.Checkers
         private HoleShapeType CalculateHoleType(in BoltGrid.BoltPosition boltpos)
         {
             double holeTolerance = 0.01;
-            double nominalClearance = boltpos.Hole.MaxLength - boltpos.BoltDef.Diameter;
+            double clearance = boltpos.Hole.MaxLength - boltpos.BoltDef.Diameter;
 
             if (!boltpos.Hole.IsSlotted)
             {
-                // For bolt nominal diameter equal to 14 can be 2mm according to 3.6.1.(5) EC 1993-1-8.
-                if (boltpos.BoltDef.Diameter < 12.0 + holeTolerance)
-                    return nominalClearance < 1.0 + holeTolerance ? HoleShapeType.NormalRound : HoleShapeType.OversizeRound;
-                else if (boltpos.BoltDef.Diameter < 24.0 + holeTolerance)
-                    return nominalClearance < 2.0 + holeTolerance ? HoleShapeType.NormalRound : HoleShapeType.OversizeRound;
+                double nominnalClearanceNormal = CalculateNominalClearance(boltpos.BoltDef.Diameter, HoleShapeType.NormalRound);
+
+                if (clearance < nominnalClearanceNormal + holeTolerance)
+                    return HoleShapeType.NormalRound;
                 else
-                    return nominalClearance < 3.0 + holeTolerance ? HoleShapeType.NormalRound : HoleShapeType.OversizeRound;
+                    return HoleShapeType.OversizeRound;
             }
             else
             {
-                if (boltpos.BoltDef.Diameter < 14.0 + holeTolerance)
-                    return nominalClearance < 4.0 + holeTolerance ? HoleShapeType.ShortSlotted : HoleShapeType.LongSlotted;
-                else if (boltpos.BoltDef.Diameter < 22.0 + holeTolerance)
-                    return nominalClearance < 6.0 + holeTolerance ? HoleShapeType.ShortSlotted : HoleShapeType.LongSlotted;
-                else if (boltpos.BoltDef.Diameter < 24.0 + holeTolerance)
-                    return nominalClearance < 8.0 + holeTolerance ? HoleShapeType.ShortSlotted : HoleShapeType.LongSlotted;
+                double nominnalClearanceShort = CalculateNominalClearance(boltpos.BoltDef.Diameter, HoleShapeType.ShortSlotted);
+
+                if (clearance < nominnalClearanceShort + holeTolerance)
+                    return HoleShapeType.ShortSlotted;
                 else
-                    return nominalClearance < 10.0 + holeTolerance ? HoleShapeType.ShortSlotted : HoleShapeType.LongSlotted;
+                    return HoleShapeType.LongSlotted;
             }
+        }
+
+        /// <summary>
+        /// Set hole diameter and slot legth from bolt nominal diameter.
+        /// </summary>
+        /// <param name="boltpos">Hole to change.</param>
+        /// <param name="holeShape">Required hole shape.</param>
+        private void SetHoleDiameter(BoltGrid.BoltPosition boltpos, in HoleShapeType holeShape)
+        {
+            double boltNominalDiameter = boltpos.BoltDef.Diameter;
+
+            switch (holeShape)
+            {
+                case HoleShapeType.OversizeRound:
+                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.OversizeRound);
+                    boltpos.Hole.SlotLength = 0.0;
+                    break;
+                case HoleShapeType.ShortSlotted:
+                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.NormalRound);
+                    boltpos.Hole.SlotLength = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.ShortSlotted) - boltpos.Hole.Diameter;
+                    break;
+                case HoleShapeType.LongSlotted:
+                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.NormalRound);
+                    boltpos.Hole.SlotLength = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.LongSlotted) - boltpos.Hole.Diameter;
+                    break;
+                case HoleShapeType.NormalRound:
+                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.NormalRound);
+                    boltpos.Hole.SlotLength = 0.0;
+                    break;
+            }
+
         }
 
         private bool CalculateIsSlottedPerpendicular(in Hole hole, in ResultBeamForces resultBeamForces)
@@ -411,6 +495,13 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         public class EN1993BoltOptions : Options
         {
+            #region Properties
+
+            protected ShearConnectionsCategoryType _shearConnectionsCategory;
+
+            protected TensionConnectionsCategoryType _tensionConnectionsCategory;
+
+            #endregion
 
             #region Enumerable
 
@@ -425,6 +516,7 @@ namespace GPC.Checkers.Steel.Checkers
             /// <summary>
             /// Slip factor, μ, for pre-loaded bolts.
             /// UNI EN 1993-1-8:2005 - Table 3.7.
+            /// EN 1090-2:2008 - Table 18 - Classifications for friction surfaces.
             /// </summary>
             public enum ClassFrictionSurfacesType
             {
@@ -459,14 +551,9 @@ namespace GPC.Checkers.Steel.Checkers
 
             /// <summary>
             /// UNI EN 1993-1-8:2005 - Table 3.6 and EN 1090-2 Table 11.
-            /// Influence on bearing resistance Fb,Rd and tollerances, as well as the property IsLongitudinalPerpendicular.
+            /// Influence on bearing resistance Fb,Rd and tollerances.
             /// </summary>
             public HoleShapeType HoleShape { get; set; }
-
-            /// <summary>
-            /// Is longitudinal axis of the slotted hole perpendicular to the direction of force transfer?
-            /// </summary>
-            public bool IsLongitudinalPerpendicular { get; set; } // Is longitudinal axis of the slotted hole perpendicular to the direction of force transfer?
 
             /// <summary>
             /// Class of friction surfaces.
@@ -476,12 +563,29 @@ namespace GPC.Checkers.Steel.Checkers
             /// <summary>
             /// Shear connection category.
             /// </summary>
-            public ShearConnectionsCategoryType ShearConnectionsCategory { get; set; }
+            public ShearConnectionsCategoryType ShearConnectionsCategory
+            {
+                get => _shearConnectionsCategory;
+                set
+                {
+                    _shearConnectionsCategory = value;
+                    switch (value)
+                    {
+                        case ShearConnectionsCategoryType.A:
+                            _tensionConnectionsCategory = TensionConnectionsCategoryType.D;
+                            break;
+                        case ShearConnectionsCategoryType.B:
+                        case ShearConnectionsCategoryType.C:
+                            _tensionConnectionsCategory = TensionConnectionsCategoryType.E;
+                            break;
+                    }
+                }
+            }
 
             /// <summary>
             /// Tension connection category.
             /// </summary>
-            public TensionConnectionsCategoryType TensionConnectionsCategory { get; set; }
+            public TensionConnectionsCategoryType TensionConnectionsCategory => _tensionConnectionsCategory;
 
             #endregion
 
@@ -490,10 +594,8 @@ namespace GPC.Checkers.Steel.Checkers
             public EN1993BoltOptions()
             {
                 HoleShape = HoleShapeType.NormalRound;
-                IsLongitudinalPerpendicular = false;
                 ClassFrictionSurfaces = ClassFrictionSurfacesType.D;
                 ShearConnectionsCategory = ShearConnectionsCategoryType.A;
-                TensionConnectionsCategory = TensionConnectionsCategoryType.D;
             }
 
             #endregion

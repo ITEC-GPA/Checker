@@ -205,7 +205,7 @@ namespace GPC.Checkers.Steel.Results
                     // NetIsActive = false;
                     break;
                 case EN1993BoltChecker.EN1993BoltOptions.ShearConnectionsCategoryType.C:
-                    ShearIsActive = false;
+                    ShearIsActive = true; // By regulation it should be set to false, but doing so should also set CombinedShearTensionIsActive to false.
                     BearingIsActive = true;
                     SlipIsActive = true;
                     SlipSerIsActive = false;
