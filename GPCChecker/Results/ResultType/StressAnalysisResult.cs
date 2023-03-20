@@ -1,5 +1,8 @@
-﻿using GPC.Checkers.Concrete.SectionSolvers;
+﻿using GPC.Checker.Results.ResultType;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
+using GPC.Model.Elements;
+using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
@@ -45,6 +48,16 @@ namespace GPC.Checkers.Concrete.Results
 			_force = (ResultBeamForces)info.GetValue("Force", typeof(ResultBeamForces));
 			_strainPlane = (StrainPlane)info.GetValue("StrainPlane", typeof(StrainPlane));
 			_sectionSolver = (SectionSolver)info.GetValue("SectionSolver", typeof(SectionSolver));
+		}
+
+		#endregion
+
+		#region StrainPlaneResult
+
+		public StrainPlaneResult CalculateStrainPlaneResult(bool linearAnalysis = false, double psiR = 0, double psiT = 0)
+		{
+			StrainPlaneResult strainPlaneResult = new StrainPlaneResult(_section, _force, _strainPlane, _sectionSolver, _standard, _id);
+			return strainPlaneResult.CalculateStrainPlaneResult(linearAnalysis, psiR, psiT);
 		}
 
 		#endregion

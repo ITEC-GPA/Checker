@@ -789,7 +789,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#endregion
 
-		protected virtual (double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex,
+		internal virtual (double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex,
             double dminConcrete, int dMaxVertexIndex, double dmaxConcrete)
             CalculateMaxMinSectionDistances(double teta)
         {
