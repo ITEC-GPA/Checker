@@ -29,13 +29,13 @@ namespace GPC.Checkers.Steel.Results
 
         public Standard Standard { get; internal set; }
 
-        public BoltChecker.Options Options { get; internal set; }
+        public BoltChecker.BoltOptions Options { get; internal set; }
 
         #endregion
 
         #region Constructor
 
-        public BoltResults(BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces, Standard standard, BoltChecker.Options options)
+        public BoltResults(BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces, Standard standard, BoltChecker.BoltOptions options)
         {
             BoltPos = boltPos;
             Case = @case;
@@ -58,7 +58,7 @@ namespace GPC.Checkers.Steel.Results
             hashCode = hashCode * -1521134295 + EqualityComparer<ILoadCase>.Default.GetHashCode(Case);
             hashCode = hashCode * -1521134295 + EqualityComparer<ResultBeamForces>.Default.GetHashCode(BeamForces);
             hashCode = hashCode * -1521134295 + EqualityComparer<Standard>.Default.GetHashCode(Standard);
-            hashCode = hashCode * -1521134295 + EqualityComparer<BoltChecker.Options>.Default.GetHashCode(Options);
+            hashCode = hashCode * -1521134295 + EqualityComparer<BoltChecker.BoltOptions>.Default.GetHashCode(Options);
             return hashCode;
         }
 
@@ -69,7 +69,7 @@ namespace GPC.Checkers.Steel.Results
                    EqualityComparer<ILoadCase>.Default.Equals(Case, other.Case) &&
                    EqualityComparer<ResultBeamForces>.Default.Equals(BeamForces, other.BeamForces) &&
                    EqualityComparer<Standard>.Default.Equals(Standard, other.Standard) &&
-                   EqualityComparer<BoltChecker.Options>.Default.Equals(Options, other.Options);
+                   EqualityComparer<BoltChecker.BoltOptions>.Default.Equals(Options, other.Options);
         }
 
         public static bool operator ==(BoltResults left, BoltResults right)

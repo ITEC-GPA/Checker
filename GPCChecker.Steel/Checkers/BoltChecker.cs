@@ -13,63 +13,30 @@ namespace GPC.Checkers.Steel.Checkers
     /// The purpose of this class is to perform a check of a single bolt grid between all the ILoadCases.
     /// </summary>
     [Serializable]
-    public abstract class BoltChecker : Model.ModelObjectId, ISerializable
+    public abstract class BoltChecker : Checker, ISerializable
     {
         #region Variables
 
         protected readonly RectangularPlateWithBolts _plateWithBolts;
         protected readonly List<BoltStresses> _boltStresses;
-        protected readonly Standard _standard;
-        protected readonly Options _options;
-
         protected List<BoltResults> _boltResults;
-
-        protected List<string> _errorLog;
 
         #endregion
 
         #region Constructor
 
-        protected BoltChecker(RectangularPlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, Standard standard, Options options)
+        protected BoltChecker(RectangularPlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, Standard standard, BoltOptions options, int id, string name = "")
+            : base(options, standard, id, name)
         {
             _plateWithBolts = plateWithBolts ?? throw new ArgumentNullException(nameof(plateWithBolts));
             _boltStresses = boltStresses ?? throw new ArgumentNullException(nameof(boltStresses));
-            _standard = standard ?? throw new ArgumentNullException(nameof(standard));
-            _options = options ?? throw new ArgumentNullException(nameof(options));
-        }
-
-        #endregion
-
-        #region Public abstract method
-
-        public abstract void PerformCheck();
-
-        #endregion
-
-        #region Public method
-
-        public List<string> GetErrorLog()
-        {
-            return _errorLog;
-        }
-
-        #endregion
-
-        #region Protected method
-
-        protected static double GetWorkingRatio(double force, double capacity)
-        {
-            if (Math.Abs(capacity) < 0.01)
-                throw new ArgumentException("Capacity can not be null.");
-
-            return Math.Abs(force / capacity);
         }
 
         #endregion
 
         #region Nested Class Options
 
-        public abstract class Options
+        public abstract class BoltOptions : Options
         {
             #region Variables
 
@@ -113,7 +80,7 @@ namespace GPC.Checkers.Steel.Checkers
 
             #region Constructor
 
-            public Options()
+            public BoltOptions()
             {
                 ShearPlaneThroughThreadedPortion = true;
                 NumShearPlane = 1;
@@ -123,6 +90,7 @@ namespace GPC.Checkers.Steel.Checkers
 
             #endregion
         }
+
         #endregion
     }
 

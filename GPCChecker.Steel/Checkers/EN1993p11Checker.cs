@@ -58,8 +58,8 @@ namespace GPC.Checkers.Steel.Checkers
 
 		#region Constructor
 
-		public EN1993p11Checker(BeamCheckerAttributes attributes, EN1993p11Checker.EN1993p11Options options, StandardEN1993p11 standardEN1993P11) 
-            : base(attributes, options, standardEN1993P11)
+		public EN1993p11Checker(BeamCheckerAttributes attributes, EN1993p11Checker.EN1993p11Options options, StandardEN1993p11 standardEN1993P11, int id = IDUNASSIGNED, string name = "") 
+            : base(attributes, options, standardEN1993P11, id, name)
         {
 
         }
@@ -2694,7 +2694,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-        public class EN1993p11Options : Options
+        public class EN1993p11Options : BeamChecker.BeamOptions
         {
             #region Enumerable
 

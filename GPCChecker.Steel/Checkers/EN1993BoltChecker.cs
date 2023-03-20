@@ -15,8 +15,8 @@ namespace GPC.Checkers.Steel.Checkers
     {
         #region Public Constructor
 
-        public EN1993BoltChecker(RectangularPlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, StandardEN1993p11 standard, EN1993BoltOptions options) :
-            base(plateWithBolts, boltStresses, standard, options)
+        public EN1993BoltChecker(RectangularPlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, StandardEN1993p11 standard, EN1993BoltOptions options, int id = IDUNASSIGNED, string name = "")
+            : base(plateWithBolts, boltStresses, standard, options, id, name)
         { }
 
         #endregion
@@ -493,7 +493,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <summary>
         /// Options specific for EN1993.
         /// </summary>
-        public class EN1993BoltOptions : Options
+        public class EN1993BoltOptions : BoltOptions
         {
             #region Properties
 
