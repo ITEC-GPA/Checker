@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using static GPC.Checkers.Steel.Checkers.EN1993BoltChecker;
 
 namespace SteelTests
 {
@@ -30,7 +29,7 @@ namespace SteelTests
                 new BoltStresses(new LoadCase("COMB1", LoadCase.LoadCaseTypes.SelfWeight), new ResultBeamForces(0, 0, 4000, 0, 0, 0, CurrAppPointSystem))
             };
             var CurrStd = new StandardEN1993p11();
-            var CurrOptions = new EN1993BoltOptions();
+            var CurrOptions = new EN1993BoltChecker.EN1993BoltOptions();
 
             var CurrChecker = new EN1993BoltChecker(CurrPlateWithBolts, CurrBoltStresses, CurrStd, CurrOptions);
             CurrChecker.PerformCheck();
@@ -95,10 +94,10 @@ namespace SteelTests
                 new BoltStresses(new LoadCase("COMB1", LoadCase.LoadCaseTypes.SelfWeight), new ResultBeamForces(0, 0, 40000, 0, 0, 0, CurrAppPointSystem))
             };
             var CurrStd = new StandardEN1993p11();
-            var CurrOptions = new EN1993BoltOptions()
+            var CurrOptions = new EN1993BoltChecker.EN1993BoltOptions()
             {
-                ShearConnectionsCategory = EN1993BoltOptions.ShearConnectionsCategoryType.C,
-                ClassFrictionSurfaces = EN1993BoltOptions.ClassFrictionSurfacesType.C
+                ShearConnectionsCategory = EN1993BoltChecker.EN1993BoltOptions.ShearConnectionsCategoryType.C,
+                ClassFrictionSurfaces = EN1993BoltChecker.EN1993BoltOptions.ClassFrictionSurfacesType.C
             };
 
             var CurrChecker = new EN1993BoltChecker(CurrPlateWithBolts, CurrBoltStresses, CurrStd, CurrOptions);
@@ -168,9 +167,9 @@ namespace SteelTests
                     new ResultBeamForces(0, 60000, -250000, -22000000, 0, 0, CurrAppPointSystem))
             };
             var CurrStd = new StandardEN1993p11();
-            var CurrOptions = new EN1993BoltOptions()
+            var CurrOptions = new EN1993BoltChecker.EN1993BoltOptions()
             {
-                ShearConnectionsCategory = EN1993BoltOptions.ShearConnectionsCategoryType.A,
+                ShearConnectionsCategory = EN1993BoltChecker.EN1993BoltOptions.ShearConnectionsCategoryType.A,
                 NumShearPlane = 2
             };
 
@@ -258,9 +257,9 @@ namespace SteelTests
                     new ResultBeamForces(30000, 25000, -125000, -5250000, 0, 0, CurrAppPointSystem))
             };
             var CurrStd = new StandardEN1993p11();
-            var CurrOptions = new EN1993BoltOptions()
+            var CurrOptions = new EN1993BoltChecker.EN1993BoltOptions()
             {
-                ShearConnectionsCategory = EN1993BoltOptions.ShearConnectionsCategoryType.A,
+                ShearConnectionsCategory = EN1993BoltChecker.EN1993BoltOptions.ShearConnectionsCategoryType.A,
                 NumShearPlane = 1
             };
 

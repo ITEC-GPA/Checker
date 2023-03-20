@@ -411,7 +411,7 @@ namespace ConcreteTests
 		}
 
 		protected ReinforcedConcreteSection GetCHS(double externalDiameter, double thickness, double concreteCover, int numberOfRebars,
-			double rebarDiameter, ConcreteMaterial concreteMaterial = null, SteelMaterial steelMaterial = null, double discretization = 16, Point2d center = null)
+			double rebarDiameter, ConcreteMaterial concreteMaterial = null, SteelMaterial steelMaterial = null, int discretization = 16, Point2d center = null)
 		{
 			if (steelMaterial == null)
 				steelMaterial = SteelMaterialEN1992Data.B450C;

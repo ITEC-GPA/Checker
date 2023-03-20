@@ -30,7 +30,7 @@ namespace ConcreteTests
 			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 25,
 				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear,
 				1.0, 1.00, 0.00195, 0.01, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC,
-				0, 0, 0, ConcreteMaterialModelCode2010.CementType.ClassN);
+				0, 0, 0, ConcreteMaterialModelCode2010.CementTypes.ClassN);
 
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, concreteMaterial);
 			StandardEN1992p11 standard = new StandardEN1992p11();
@@ -83,7 +83,7 @@ namespace ConcreteTests
 			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 25,
 				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.Bilinear, 1.0, 1.00, 5E-5, 0.01,
 				ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC,
-				0, 0, 0, ConcreteMaterialModelCode2010.CementType.ClassN);
+				0, 0, 0, ConcreteMaterialModelCode2010.CementTypes.ClassN);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
@@ -132,7 +132,7 @@ namespace ConcreteTests
 
 			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 40, ConcreteMaterial.CompressionStressStrainDiagrams.Bilinear,
 				 0.6750, 0.50, 0.00195, 0.02, ConcreteMaterial.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC,
-				 0, 0, 0, ConcreteMaterial.CementType.ClassN);
+				 0, 0, 0, ConcreteMaterial.CementTypes.ClassN);
 			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
