@@ -140,9 +140,9 @@ namespace SteelTests
             Assert.AreEqual(0.176928520877565, MaxRatioN, 0.00001);
 
             // combined shear and tension
-            var MaxCombinedRatio = CurrChecker.BoltResultsEN1993.Max(br => br.CombinedShearTensionRatio);
+            //var MaxCombinedRatio = CurrChecker.BoltResultsEN1993.Max(br => br.CombinedShearTensionRatio);
 
-            Assert.AreEqual(0.6040845213, MaxCombinedRatio, 0.00001);
+            //Assert.AreEqual(0.6040845213, MaxCombinedRatio, 0.00001);
 
             // Punching
             var MinResiPunc = CurrChecker.BoltResultsEN1993.Min(br => double.IsNaN(br.PunchingResistance) ? double.PositiveInfinity : br.PunchingResistance);
@@ -197,7 +197,7 @@ namespace SteelTests
             var MaxRatioBear = CurrChecker.BoltResultsEN1993.Max(br => br.BearingRatio);
             var ListWithMax = CurrChecker.BoltResultsEN1993.FindAll(br => br.BearingRatio == MaxRatioBear);
 
-            // Geometrie nel disegno "Test03_ShearCheck01.dwg".
+            // Geometrie nel disegno "\\studio\Software_Development\01 Theory\08 Bolt\Test03_ShearCheck01.dwg".
             Assert.AreEqual(54.5384, CurrChecker.BoltResultsEN1993[0].BearingE1, 0.0001);
             Assert.AreEqual(47.9938, CurrChecker.BoltResultsEN1993[0].BearingE2, 0.0001);
             Assert.AreEqual(double.MaxValue, CurrChecker.BoltResultsEN1993[0].BearingP1);

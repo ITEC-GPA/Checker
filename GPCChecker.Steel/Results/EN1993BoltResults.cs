@@ -196,6 +196,7 @@ namespace GPC.Checkers.Steel.Results
                     SlipIsActive = false;
                     SlipSerIsActive = false;
                     // NetIsActive = false;
+                    CombinedShearTensionIsActive = true;
                     break;
                 case EN1993BoltChecker.EN1993BoltOptions.ShearConnectionsCategoryType.B:
                     ShearIsActive = true;
@@ -203,13 +204,15 @@ namespace GPC.Checkers.Steel.Results
                     SlipIsActive = false;
                     SlipSerIsActive = true;
                     // NetIsActive = false;
+                    CombinedShearTensionIsActive = true;
                     break;
                 case EN1993BoltChecker.EN1993BoltOptions.ShearConnectionsCategoryType.C:
-                    ShearIsActive = true; // By regulation it should be set to false, but doing so should also set CombinedShearTensionIsActive to false.
+                    ShearIsActive = false; // By regulation it should be set to false, but doing so should also set CombinedShearTensionIsActive to false.
                     BearingIsActive = true;
                     SlipIsActive = true;
                     SlipSerIsActive = false;
                     // NetIsActive = true;
+                    CombinedShearTensionIsActive = false;
                     break;
                 default:
                     ShearIsActive = true;
@@ -217,6 +220,7 @@ namespace GPC.Checkers.Steel.Results
                     SlipIsActive = true;
                     SlipSerIsActive = true;
                     // NetIsActive = true;
+                    CombinedShearTensionIsActive = true;
                     break;
             }
         }
