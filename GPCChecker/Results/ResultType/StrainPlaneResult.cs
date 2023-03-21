@@ -1,21 +1,17 @@
-﻿using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
-using GPC.Geometry;
-using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
-using GPC.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace GPC.Checker.Results.ResultType
 {
 	public class StrainPlaneResult : CheckerResultType, IEquatable<StrainPlaneResult>
 	{
-		protected readonly StrainPlane _strainPlane;
-		protected readonly SectionSolver _sectionSolver;
+		protected StrainPlane _strainPlane;
+		protected SectionSolver _sectionSolver;
 		protected readonly ResultBeamForces _force;
 
 		protected double _sigmaCMax;
@@ -55,6 +51,8 @@ namespace GPC.Checker.Results.ResultType
 		public bool LinearAnalysis { get => _linearAnalysis; internal set => _linearAnalysis = value; }
 		public double PsiR { get => _psiR; internal set => _psiR = value; }
 		public double PsiT { get => _psiT; internal set => _psiT = value; }
+		public StrainPlane StrainPlane { get => _strainPlane; internal set => _strainPlane = value; }
+		public SectionSolver SectionSolver { get => _sectionSolver; internal set => _sectionSolver = value; }
 
 		internal StrainPlaneResult(IConcreteSection section, ResultBeamForces force, StrainPlane strainPlane, SectionSolver solver, Standard standard, int id = IDUNASSIGNED)
 			: base(section, standard, id)
@@ -143,200 +141,7 @@ namespace GPC.Checker.Results.ResultType
 
 		internal StrainPlaneResult CalculateStrainPlaneResult(bool linearAnalysis = false, double psiR = 0, double psiT = 0)
 		{
-			double sigmaCMax = double.MinValue;
-			double sigmaSMax = double.MinValue;
-			double sigmaPMax = double.MinValue;
-			double sigmaCMin = double.MaxValue;
-			double sigmaSMin = double.MaxValue;
-			double sigmaPMin = double.MaxValue;
-
-			double epsilonCMax = double.MinValue;
-			double epsilonPMax = double.MinValue;
-			double epsilonSMax = double.MinValue;
-			double epsilonCMin = double.MaxValue;
-			double epsilonSMin = double.MaxValue;
-			double epsilonPMin = double.MaxValue;
-
-			double netHeight;
-			double neutralAxisDistance = double.NaN;
-			double neutralAxisAngle;
-
-			if (_strainPlane != null)
-			{
-				for (int i = 0; i < _section.Shape.Fill.Count; i++)
-				{
-					double strain = _strainPlane.GetStrain(_section.Shape.Fill[i]);
-					if (strain > epsilonCMax)
-					{
-						epsilonCMax = strain;
-
-						double sigmaCMaxbuffer;
-						if (linearAnalysis)
-							sigmaCMaxbuffer = _sectionSolver.CalculateElasticSigmaC(epsilonCMax);
-						else
-						{
-							var buff = _section.ConcreteMaterial.CalculateDesignStressConcrete(_standard, epsilonCMax);
-							if (buff <= 0)
-								sigmaCMaxbuffer = buff;
-							else
-							{
-								if (_sectionSolver.ConsiderTensileConcrete == true)
-									sigmaCMaxbuffer = buff;
-								else
-									sigmaCMaxbuffer = 0;
-							}
-						}
-
-						if (sigmaCMaxbuffer > sigmaCMax)
-							sigmaCMax = sigmaCMaxbuffer;
-
-					}
-					if (strain < epsilonCMin)
-					{
-						epsilonCMin = strain;
-						double sigmaCMinbuffer;
-						if (linearAnalysis)
-							sigmaCMinbuffer = _sectionSolver.CalculateElasticSigmaC(epsilonCMin);
-						else
-						{
-							var buff = _section.ConcreteMaterial.CalculateDesignStressConcrete(_standard, epsilonCMin);
-							if (buff <= 0)
-								sigmaCMinbuffer = buff;
-							else
-							{
-								if (_sectionSolver.ConsiderTensileConcrete == true)
-									sigmaCMinbuffer = buff;
-								else
-									sigmaCMinbuffer = 0;
-							}
-						}
-
-						if (sigmaCMinbuffer < sigmaCMin)
-							sigmaCMin = sigmaCMinbuffer;
-					}
-				}
-
-				for (int r = 0; r < _section.RebarsCount; r++)
-				{
-					ReinforcedConcreteRebar rebar = _section.Rebars.ElementAt(r);
-					double strain = _strainPlane.GetStrain(rebar.Position);
-
-					if (rebar.EpsilonP > 0)
-					{
-						if (strain > epsilonPMax)
-						{
-							epsilonPMax = strain;
-
-							if (linearAnalysis)
-								sigmaPMax = _sectionSolver.CalculateElasticSigmaS(psiT, rebar, strain);
-							else
-								sigmaPMax = rebar.RebarMaterial.CalculateDesignStress(_standard, strain, rebar.EpsilonP);
-						}
-						if (strain < epsilonPMin)
-						{
-							epsilonPMin = strain;
-
-							if (linearAnalysis)
-								sigmaPMin = _sectionSolver.CalculateElasticSigmaS(psiT, rebar, strain);
-							else
-								sigmaPMin = rebar.RebarMaterial.CalculateDesignStress(_standard, strain, rebar.EpsilonP);
-						}
-					}
-					else
-					{
-						if (strain > epsilonSMax)
-						{
-							epsilonSMax = strain;
-
-							if (linearAnalysis)
-								sigmaSMax = _sectionSolver.CalculateElasticSigmaS(psiR, rebar, strain);
-							else
-								sigmaSMax = rebar.RebarMaterial.CalculateDesignStress(_standard, strain, rebar.EpsilonP);
-						}
-						if (strain < epsilonSMin)
-						{
-							epsilonSMin = strain;
-
-							if (linearAnalysis)
-								sigmaSMin = _sectionSolver.CalculateElasticSigmaS(psiR, rebar, strain);
-							else
-								sigmaSMin = rebar.RebarMaterial.CalculateDesignStress(_standard, strain, rebar.EpsilonP);
-						}
-					}
-				}
-
-				if (linearAnalysis)
-				{
-					epsilonSMax *= (1 + psiR);
-					epsilonSMin *= (1 + psiR);
-					epsilonPMax *= (1 + psiT);
-					epsilonPMin *= (1 + psiT);
-				}
-
-				var neutralAxis = _strainPlane.GetNeutralAxisRespectReferencePoint();
-				if (neutralAxis != null)
-					neutralAxis.Move(_strainPlane.ReferencePoint.X, _strainPlane.ReferencePoint.Y);
-
-				double angle = _strainPlane.Teta;
-				neutralAxisAngle = angle.ToDegrees();
-
-				var dist = _sectionSolver.CalculateMaxMinSectionDistances(angle);
-
-				double dmaxRebar = dist.dmaxRebar;
-				double dmaxConcrete = dist.dmaxConcrete;
-				double dminConcrete = dist.dminConcrete;
-				int dMaxVertexIndex = dist.dMaxVertexIndex;
-
-				if (_section.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC)
-					netHeight = dmaxConcrete - dminConcrete;
-				else if (_section.RebarsCount == 0)
-					netHeight = 0;
-				else
-					netHeight = dmaxRebar - dminConcrete;
-
-				if (neutralAxis != null)
-					neutralAxisDistance = new Line3d(neutralAxis).DistanceTo(_section.Shape.Fill[dMaxVertexIndex]);
-			}
-			else
-			{
-				sigmaCMax = double.NaN;
-				sigmaSMax = double.NaN;
-				sigmaPMax = double.NaN;
-				sigmaCMin = double.NaN;
-				sigmaSMin = double.NaN;
-				sigmaPMin = double.NaN;
-				epsilonCMax = double.NaN;
-				epsilonPMax = double.NaN;
-				epsilonSMax = double.NaN;
-				epsilonCMin = double.NaN;
-				epsilonSMin = double.NaN;
-				epsilonPMin = double.NaN;
-				netHeight = double.NaN;
-				neutralAxisDistance = double.NaN;
-				neutralAxisAngle = double.NaN;
-			}
-
-			return new StrainPlaneResult(_section, _force, _strainPlane, _sectionSolver, _standard, _id)
-			{
-				SigmaCMax = sigmaCMax,
-				SigmaSMax = sigmaSMax,
-				SigmaPMax = sigmaPMax,
-				SigmaCMin = sigmaCMin,
-				SigmaSMin = sigmaSMin,
-				SigmaPMin = sigmaPMin,
-				EpsilonCMax = epsilonCMax,
-				EpsilonSMax = epsilonSMax,
-				EpsilonPMax = epsilonPMax,
-				EpsilonCMin = epsilonCMin,
-				EpsilonSMin = epsilonSMin,
-				EpsilonPMin = epsilonPMin,
-				NetHeight = netHeight,
-				NeutralAxisAngle = neutralAxisAngle,
-				NeutralAxisDistance = neutralAxisDistance,
-				LinearAnalysis = linearAnalysis,
-				PsiR = psiR,
-				PsiT = psiT,
-			};
+			return _strainPlane.CalculateStrainPlaneResult(_section, _force, _sectionSolver, _standard, linearAnalysis, psiR, psiT);
 		}
 	}
 }

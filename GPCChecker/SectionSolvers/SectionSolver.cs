@@ -378,7 +378,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
                     CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
-                    sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, Id);
+                    sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id);
             });
 
             return stressAnalysisResults;
@@ -388,7 +388,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             return new StressAnalysisResult(ConcreteSection, force,
                     CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
-                    sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, Id);
+                    sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id);
         }
 
         public virtual StressAnalysisResult[] GetLinearStressAnalysisResults(ResultBeamForces[] force, double psi, double? psiTendon, Checkers.SectionChecker.SectionOptions sectionOption)
@@ -400,7 +400,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
                     CalculateStrainPlaneLinearStressAnalysis(force[i].ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
                     sectionOption.ForceReferenceCoordinateSystem, psi, psiTendon,
-                    _stressAnalysisTolerance), this, _standard, Id);
+                    _stressAnalysisTolerance), this, _standard, true, psi, psiTendon, Id);
             });
 
             return stressAnalysisResults;
@@ -411,7 +411,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return new StressAnalysisResult(ConcreteSection, force,
                 CalculateStrainPlaneLinearStressAnalysis(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
                 sectionOption.ForceReferenceCoordinateSystem, psi, psiTendon,
-                _stressAnalysisTolerance), this, _standard, Id);
+                _stressAnalysisTolerance), this, _standard, true, psi, psiTendon, Id);
         }
 
         public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
