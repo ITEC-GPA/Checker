@@ -351,7 +351,7 @@ namespace SteelTests
 			checker.PerformCheck();
 
 			Assert.IsTrue(checker.Cop2011BeamStationResults.Count() == 125);
-			Assert.IsTrue(checker.Cop2011BeamStationResults.Where(i => i.LoadCase.Name == loadCases[0].Name).Distinct().Count() == 25);
+			Assert.IsTrue(checker.Cop2011BeamStationResults.Where(i => i.LoadCase.Name == loadCases[0].Name).Count() == 25);
 			Assert.IsTrue(checker.Cop2011BeamStationResults.Where(i => i.LoadCase.Name == loadCases[1].Name).Count() == 75);
 			Assert.IsTrue(checker.Cop2011BeamStationResults.Where(i => i.LoadCase.Name == loadCases[2].Name).Count() == 25);
 

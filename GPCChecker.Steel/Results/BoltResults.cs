@@ -1,87 +1,83 @@
-﻿using GPC.Checkers.Steel.Checkers;
+﻿using GPC.Checkers.Results;
+using GPC.Checkers.Steel.Checkers;
 using GPC.Model.LoadCases;
 using GPC.Model.Results;
 using GPC.Model.Sections.Bolt;
-using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using static GPC.Model.Sections.Bolt.BoltGrid;
 
 namespace GPC.Checkers.Steel.Results
 {
-    /// <summary>
-    /// This class contains the result of a check performed on a bolt grid with a given ILoadCase.
-    /// </summary>
-    public abstract class BoltResults : Model.ModelObject, ISerializable, IEquatable<BoltResults>
-    {
-        #region Properties
+	/// <summary>
+	/// This class contains the result of a check performed on a bolt grid with a given ILoadCase.
+	/// </summary>
+	public abstract class BoltResults : CommonResults, ISerializable, IEquatable<BoltResults>
+	{
+		#region Variables
 
-        public BoltPosition BoltPos { get; internal set; }
+		protected BoltGrid.BoltPosition _boltPosition;
+		protected ResultBeamForces _resultBeamForce;
 
-        public ILoadCase Case { get; internal set; }
+		#endregion
 
-        public ResultBeamForces BeamForces { get; internal set; }
+		#region Properties
 
-        public Standard Standard { get; internal set; }
+		public BoltGrid.BoltPosition BoltPos { get => _boltPosition; internal set => _boltPosition = value; }
 
-        public BoltChecker.BoltOptions Options { get; internal set; }
+		public ResultBeamForces BeamForces { get => _resultBeamForce; internal set => _resultBeamForce = value; }
 
-        #endregion
+		public BoltChecker.BoltOptions BoltCheckerOptions => (BoltChecker.BoltOptions)_options;
 
-        #region Constructor
+		#endregion
 
-        public BoltResults(BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces, Standard standard, BoltChecker.BoltOptions options)
-        {
-            BoltPos = boltPos;
-            Case = @case;
-            BeamForces = beamForces;
-            Standard = standard;
-            Options = options;
-        }
+		#region Constructor
 
-        #endregion
+		public BoltResults(BoltGrid.BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces, Standard standard, BoltChecker.BoltOptions options, string name = "")
+			: base(@case, standard, options, name)
+		{
+			BoltPos = boltPos;
+			BeamForces = beamForces;
+		}
 
-        #region Comparer
+		#endregion
 
-        public override bool Equals(object obj) => Equals(obj as BoltResults);
+		#region Comparer
 
-        public override int GetHashCode()
-        {
-            int hashCode = 337272910;
-            hashCode = hashCode * -1521134295 + base.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<BoltPosition>.Default.GetHashCode(BoltPos);
-            hashCode = hashCode * -1521134295 + EqualityComparer<ILoadCase>.Default.GetHashCode(Case);
-            hashCode = hashCode * -1521134295 + EqualityComparer<ResultBeamForces>.Default.GetHashCode(BeamForces);
-            hashCode = hashCode * -1521134295 + EqualityComparer<Standard>.Default.GetHashCode(Standard);
-            hashCode = hashCode * -1521134295 + EqualityComparer<BoltChecker.BoltOptions>.Default.GetHashCode(Options);
-            return hashCode;
-        }
+		public override bool Equals(object obj) => Equals(obj as BoltResults);
 
-        public bool Equals(BoltResults other)
-        {
-            return base.Equals(other) &&
-                   EqualityComparer<BoltPosition>.Default.Equals(BoltPos, other.BoltPos) &&
-                   EqualityComparer<ILoadCase>.Default.Equals(Case, other.Case) &&
-                   EqualityComparer<ResultBeamForces>.Default.Equals(BeamForces, other.BeamForces) &&
-                   EqualityComparer<Standard>.Default.Equals(Standard, other.Standard) &&
-                   EqualityComparer<BoltChecker.BoltOptions>.Default.Equals(Options, other.Options);
-        }
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				int hashCode = 23;
+				hashCode = hashCode * -17 + base.GetHashCode();
+				hashCode = hashCode * -17 + EqualityComparer<BoltGrid.BoltPosition>.Default.GetHashCode(BoltPos);
+				hashCode = hashCode * -17 + EqualityComparer<ResultBeamForces>.Default.GetHashCode(BeamForces);
+				hashCode = hashCode * -17 + EqualityComparer<BoltChecker.BoltOptions>.Default.GetHashCode(BoltCheckerOptions);
+				return hashCode;
+			}
+		}
 
-        public static bool operator ==(BoltResults left, BoltResults right)
-        {
-            return EqualityComparer<BoltResults>.Default.Equals(left, right);
-        }
+		public bool Equals(BoltResults other)
+		{
+			return base.Equals(other) &&
+				   EqualityComparer<BoltGrid.BoltPosition>.Default.Equals(BoltPos, other.BoltPos) &&
+				   EqualityComparer<ResultBeamForces>.Default.Equals(BeamForces, other.BeamForces) &&
+				   EqualityComparer<BoltChecker.BoltOptions>.Default.Equals(BoltCheckerOptions, other.BoltCheckerOptions);
+		}
 
-        public static bool operator !=(BoltResults left, BoltResults right)
-        {
-            return !(left == right);
-        }
+		public static bool operator ==(BoltResults left, BoltResults right)
+		{
+			return EqualityComparer<BoltResults>.Default.Equals(left, right);
+		}
 
-        #endregion
-    }
+		public static bool operator !=(BoltResults left, BoltResults right)
+		{
+			return !(left == right);
+		}
+
+		#endregion
+	}
 }
