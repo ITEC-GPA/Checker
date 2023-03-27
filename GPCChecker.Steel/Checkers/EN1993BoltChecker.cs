@@ -13,6 +13,50 @@ namespace GPC.Checkers.Steel.Checkers
 {
     public class EN1993BoltChecker : BoltChecker
     {
+        #region Enumerable
+
+        public enum HoleShapeType
+        {
+            NormalRound, // Bolts in normal holes.
+            OversizeRound, // Bolts in oversized holes.
+            ShortSlotted, // Bolts in short slotted holes.
+            LongSlotted // Bolts in long slotted holes.
+        }
+
+        /// <summary>
+        /// Slip factor, μ, for pre-loaded bolts.
+        /// UNI EN 1993-1-8:2005 - Table 3.7.
+        /// EN 1090-2:2008 - Table 18 - Classifications for friction surfaces.
+        /// </summary>
+        public enum ClassFrictionSurfacesType
+        {
+            A,
+            B,
+            C,
+            D
+        }
+
+        /// <summary>
+        /// UNI EN 1993-1-8:2005 - 3.4.1 Shear connections.
+        /// </summary>
+        public enum ShearConnectionsCategoryType
+        {
+            A, // Category A: Bearing type.
+            B, // Category B: Slip-resistant at serviceability limit state.
+            C  // Category C: Slip-resistant at ultimate limit state.
+        }
+
+        /// <summary>
+        /// UNI EN 1993-1-8:2005 - 3.4.2 Tension connections.
+        /// </summary>
+        public enum TensionConnectionsCategoryType
+        {
+            D, // Category D: non-preloaded.
+            E  // Category E: preloaded.
+        }
+
+        #endregion
+
         #region Public Constructor
 
         public EN1993BoltChecker(RectangularPlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, StandardEN1993p11 standard, EN1993BoltOptions options, int id = IDUNASSIGNED, string name = "")
@@ -28,6 +72,8 @@ namespace GPC.Checkers.Steel.Checkers
         public EN1993BoltOptions OptionsEN1993 => (EN1993BoltOptions)_options;
 
         public List<EN1993BoltResults> BoltResultsEN1993 => _boltResults.Cast<EN1993BoltResults>().ToList();
+
+        public EN1993BoltResults BoltResultMax => (EN1993BoltResults)_boltResultMax;
 
         #endregion
 
@@ -142,6 +188,8 @@ namespace GPC.Checkers.Steel.Checkers
                     _boltResults.Add(CurRes);
                 }
             }
+
+            _boltResultMax = EN1993BoltResults.CalcMaxResult(_boltResults);
         }
 
         #endregion
@@ -500,50 +548,6 @@ namespace GPC.Checkers.Steel.Checkers
             protected ShearConnectionsCategoryType _shearConnectionsCategory;
 
             protected TensionConnectionsCategoryType _tensionConnectionsCategory;
-
-            #endregion
-
-            #region Enumerable
-
-            public enum HoleShapeType
-            {
-                NormalRound, // Bolts in normal holes.
-                OversizeRound, // Bolts in oversized holes.
-                ShortSlotted, // Bolts in short slotted holes.
-                LongSlotted // Bolts in long slotted holes.
-            }
-
-            /// <summary>
-            /// Slip factor, μ, for pre-loaded bolts.
-            /// UNI EN 1993-1-8:2005 - Table 3.7.
-            /// EN 1090-2:2008 - Table 18 - Classifications for friction surfaces.
-            /// </summary>
-            public enum ClassFrictionSurfacesType
-            {
-                A,
-                B,
-                C,
-                D
-            }
-
-            /// <summary>
-            /// UNI EN 1993-1-8:2005 - 3.4.1 Shear connections.
-            /// </summary>
-            public enum ShearConnectionsCategoryType
-            {
-                A, // Category A: Bearing type.
-                B, // Category B: Slip-resistant at serviceability limit state.
-                C  // Category C: Slip-resistant at ultimate limit state.
-            }
-
-            /// <summary>
-            /// UNI EN 1993-1-8:2005 - 3.4.2 Tension connections.
-            /// </summary>
-            public enum TensionConnectionsCategoryType
-            {
-                D, // Category D: non-preloaded.
-                E  // Category E: preloaded.
-            }
 
             #endregion
 

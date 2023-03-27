@@ -20,6 +20,7 @@ namespace GPC.Checkers.Steel.Checkers
         protected readonly RectangularPlateWithBolts _plateWithBolts;
         protected readonly List<BoltStresses> _boltStresses;
         protected List<BoltResults> _boltResults;
+        protected BoltResults _boltResultMax;
 
         #endregion
 

@@ -96,8 +96,8 @@ namespace SteelTests
             var CurrStd = new StandardEN1993p11();
             var CurrOptions = new EN1993BoltChecker.EN1993BoltOptions()
             {
-                ShearConnectionsCategory = EN1993BoltChecker.EN1993BoltOptions.ShearConnectionsCategoryType.C,
-                ClassFrictionSurfaces = EN1993BoltChecker.EN1993BoltOptions.ClassFrictionSurfacesType.C
+                ShearConnectionsCategory = EN1993BoltChecker.ShearConnectionsCategoryType.C,
+                ClassFrictionSurfaces = EN1993BoltChecker.ClassFrictionSurfacesType.C
             };
 
             var CurrChecker = new EN1993BoltChecker(CurrPlateWithBolts, CurrBoltStresses, CurrStd, CurrOptions);
@@ -169,7 +169,7 @@ namespace SteelTests
             var CurrStd = new StandardEN1993p11();
             var CurrOptions = new EN1993BoltChecker.EN1993BoltOptions()
             {
-                ShearConnectionsCategory = EN1993BoltChecker.EN1993BoltOptions.ShearConnectionsCategoryType.A,
+                ShearConnectionsCategory = EN1993BoltChecker.ShearConnectionsCategoryType.A,
                 NumShearPlane = 2
             };
 
@@ -259,7 +259,7 @@ namespace SteelTests
             var CurrStd = new StandardEN1993p11();
             var CurrOptions = new EN1993BoltChecker.EN1993BoltOptions()
             {
-                ShearConnectionsCategory = EN1993BoltChecker.EN1993BoltOptions.ShearConnectionsCategoryType.A,
+                ShearConnectionsCategory = EN1993BoltChecker.ShearConnectionsCategoryType.A,
                 NumShearPlane = 1
             };
 

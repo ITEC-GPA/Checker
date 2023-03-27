@@ -41,11 +41,21 @@ namespace GPC.Checkers.Steel.Results
 			BeamForces = beamForces;
 		}
 
-		#endregion
+        #endregion
 
-		#region Comparer
+        #region Abstract method
 
-		public override bool Equals(object obj) => Equals(obj as BoltResults);
+        /// <summary>
+        /// Given a result calculate the maximum ratio.
+        /// </summary>
+        /// <returns>Max ratio.</returns>
+        public abstract double CalcMaxRatio();
+
+        #endregion
+
+        #region Comparer
+
+        public override bool Equals(object obj) => Equals(obj as BoltResults);
 
 		public override int GetHashCode()
 		{
