@@ -273,13 +273,14 @@ namespace GPC.Checkers.Steel.Results
             maxResult.SollTension = boltResultsEN1993.Max(br => br.SollTension);
 
             // Shear.
-            var itemMaxShear = boltResultsEN1993.OrderByDescending(br => br.ShearRatio).FirstOrDefault();
-            if (itemMaxShear is null)
+            var itemMaxShearIenum = boltResultsEN1993.Where(br => !double.IsNaN(br.ShearRatio));
+            if (itemMaxShearIenum.Count() == 0)
             {
                 maxResult.ShearIsActive = false;
             }
             else
             {
+                var itemMaxShear = itemMaxShearIenum.OrderByDescending(br => br.ShearRatio).First();
                 maxResult.ShearIsActive = true;
                 maxResult.ShearResistance = itemMaxShear.ShearResistance;
                 maxResult.ShearRatio = itemMaxShear.ShearRatio;
@@ -287,13 +288,14 @@ namespace GPC.Checkers.Steel.Results
             }
 
             // Bearing.
-            var itemMaxBearing = boltResultsEN1993.OrderByDescending(br => br.BearingRatio).FirstOrDefault();
-            if (itemMaxBearing is null)
+            var itemMaxBearingIenum = boltResultsEN1993.Where(br => !double.IsNaN(br.BearingRatio));
+            if (itemMaxBearingIenum.Count() == 0)
             {
                 maxResult.BearingIsActive = false;
             }
             else
             {
+                var itemMaxBearing = itemMaxBearingIenum.OrderByDescending(br => br.BearingRatio).First();
                 maxResult.BearingIsActive = true;
                 maxResult.BearingResistance = itemMaxBearing.BearingResistance;
                 maxResult.BearingRatio = itemMaxBearing.BearingRatio;
@@ -306,13 +308,14 @@ namespace GPC.Checkers.Steel.Results
             }
 
             // Slip.
-            var itemMaxSlip = boltResultsEN1993.OrderByDescending(br => br.SlipRatio).FirstOrDefault();
-            if (itemMaxSlip is null)
+            var itemMaxSlipIenum = boltResultsEN1993.Where(br => !double.IsNaN(br.SlipRatio));
+            if (itemMaxSlipIenum.Count() == 0)
             {
                 maxResult.SlipIsActive = false;
             }
             else
             {
+                var itemMaxSlip = itemMaxSlipIenum.OrderByDescending(br => br.SlipRatio).First();
                 maxResult.SlipIsActive = true;
                 maxResult.SlipResistance = itemMaxSlip.SlipResistance;
                 maxResult.SlipRatio = itemMaxSlip.SlipRatio;
@@ -321,13 +324,14 @@ namespace GPC.Checkers.Steel.Results
             }
 
             // Slip service
-            var itemMaxSlipSer = boltResultsEN1993.OrderByDescending(br => br.SlipSerRatio).FirstOrDefault();
-            if (itemMaxSlipSer is null)
+            var itemMaxSlipSerIenum = boltResultsEN1993.Where(br => !double.IsNaN(br.SlipSerRatio));
+            if (itemMaxSlipSerIenum.Count() == 0)
             {
                 maxResult.SlipSerIsActive = false;
             }
             else
             {
+                var itemMaxSlipSer = itemMaxSlipSerIenum.OrderByDescending(br => br.SlipSerRatio).First();
                 maxResult.SlipSerIsActive = true;
                 maxResult.SlipSerResistance = itemMaxSlipSer.SlipSerResistance;
                 maxResult.SlipSerRatio = itemMaxSlipSer.SlipSerRatio;
@@ -337,26 +341,28 @@ namespace GPC.Checkers.Steel.Results
             }
 
             // Net.
-            var itemMaxNet = boltResultsEN1993.OrderByDescending(br => br.NetRatio).FirstOrDefault();
-            if (itemMaxNet is null)
+            var itemMaxNetIenum = boltResultsEN1993.Where(br => !double.IsNaN(br.NetRatio));
+            if (itemMaxNetIenum.Count() == 0)
             {
                 maxResult.NetIsActive = false;
             }
             else
             {
+                var itemMaxNet = itemMaxNetIenum.OrderByDescending(br => br.NetRatio).First();
                 maxResult.NetIsActive = true;
                 maxResult.NetResistance = itemMaxNet.NetResistance;
                 maxResult.NetRatio = itemMaxNet.NetRatio;
             }
 
             // Tension.
-            var itemMaxTension = boltResultsEN1993.OrderByDescending(br => br.TensionRatio).FirstOrDefault();
-            if (itemMaxTension is null)
+            var itemMaxTensionIenum = boltResultsEN1993.Where(br => !double.IsNaN(br.TensionRatio));
+            if (itemMaxTensionIenum.Count() == 0)
             {
                 maxResult.TensionIsActive = false;
             }
             else
             {
+                var itemMaxTension = itemMaxTensionIenum.OrderByDescending(br => br.TensionRatio).First();
                 maxResult.TensionIsActive = true;
                 maxResult.TensionResistance = itemMaxTension.TensionResistance;
                 maxResult.TensionRatio = itemMaxTension.TensionRatio;
@@ -364,25 +370,27 @@ namespace GPC.Checkers.Steel.Results
             }
 
             // CombinedShearTension
-            var itemMaxCombinedShearTension = boltResultsEN1993.OrderByDescending(br => br.CombinedShearTensionRatio).FirstOrDefault();
-            if (itemMaxCombinedShearTension is null)
+            var itemMaxCombinedShearTensionIenum = boltResultsEN1993.Where(br => !double.IsNaN(br.CombinedShearTensionRatio));
+            if (itemMaxCombinedShearTensionIenum.Count() == 0)
             {
                 maxResult.CombinedShearTensionIsActive = false;
             }
             else
             {
+                var itemMaxCombinedShearTension = itemMaxCombinedShearTensionIenum.OrderByDescending(br => br.CombinedShearTensionRatio).First();
                 maxResult.CombinedShearTensionIsActive = true;
                 maxResult.CombinedShearTensionRatio = itemMaxCombinedShearTension.CombinedShearTensionRatio;
             }
 
             // Punching
-            var itemMaxPunching = boltResultsEN1993.OrderByDescending(br => br.PunchingRatio).FirstOrDefault();
-            if (itemMaxPunching is null)
+            var itemMaxPunchingIenum = boltResultsEN1993.Where(br => !double.IsNaN(br.PunchingRatio));
+            if (itemMaxPunchingIenum.Count() == 0)
             {
                 maxResult.PunchingIsActive = false;
             }
             else
             {
+                var itemMaxPunching = itemMaxPunchingIenum.OrderByDescending(br => br.PunchingRatio).First();
                 maxResult.PunchingIsActive = true;
                 maxResult.PunchingResistance = itemMaxPunching.PunchingResistance;
                 maxResult.PunchingRatio = itemMaxPunching.PunchingRatio;

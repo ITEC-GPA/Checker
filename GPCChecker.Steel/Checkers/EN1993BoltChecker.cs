@@ -7,7 +7,6 @@ using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static GPC.Checkers.Steel.Checkers.EN1993BoltChecker.EN1993BoltOptions;
 
 namespace GPC.Checkers.Steel.Checkers
 {
@@ -59,7 +58,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Public Constructor
 
-        public EN1993BoltChecker(RectangularPlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, StandardEN1993p11 standard, EN1993BoltOptions options, int id = IDUNASSIGNED, string name = "")
+        public EN1993BoltChecker(PlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, StandardEN1993p11 standard, EN1993BoltOptions options, int id = IDUNASSIGNED, string name = "")
             : base(plateWithBolts, boltStresses, standard, options, id, name)
         { }
 

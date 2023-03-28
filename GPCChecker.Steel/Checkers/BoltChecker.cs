@@ -17,7 +17,7 @@ namespace GPC.Checkers.Steel.Checkers
     {
         #region Variables
 
-        protected readonly RectangularPlateWithBolts _plateWithBolts;
+        protected readonly PlateWithBolts _plateWithBolts;
         protected readonly List<BoltStresses> _boltStresses;
         protected List<BoltResults> _boltResults;
         protected BoltResults _boltResultMax;
@@ -26,7 +26,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Constructor
 
-        protected BoltChecker(RectangularPlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, Standard standard, BoltOptions options, int id, string name = "")
+        protected BoltChecker(PlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, Standard standard, BoltOptions options, int id, string name = "")
             : base(options, standard, id, name)
         {
             _plateWithBolts = plateWithBolts ?? throw new ArgumentNullException(nameof(plateWithBolts));
