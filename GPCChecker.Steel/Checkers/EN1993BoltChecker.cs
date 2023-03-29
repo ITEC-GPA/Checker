@@ -197,6 +197,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         /// <summary>
         /// UNI EN 1993-1-8:2005 - Table 3.4.
+        /// For inox bolts: UNI EN 1993-1-4:2021.
         /// </summary>
         /// <param name="boltMaterial">Single bolt material.</param>
         /// <returns>α_v</returns>
@@ -208,22 +209,34 @@ namespace GPC.Checkers.Steel.Checkers
                 return 0.5;
             }
 
-            string ClassName = boltMaterial.Name;
+            if (!OptionsEN1993.ShearPlaneThroughThreadedPortion) // In "UNI EN 1993-1-4:2021 §6.2 Note" for Inox bolts.
+                return 0.6;
 
-            if (OptionsEN1993.ShearPlaneThroughThreadedPortion)
+            var boltMaterialInox = boltMaterial as BoltMaterialEN1993Inox;
+
+            if (boltMaterialInox is null) // it is not Inox
             {
+                string ClassName = boltMaterial.Name;
                 if (ClassName == "4.6" || ClassName == "5.6" || ClassName == "8.8")
                     return 0.6;
                 else if (ClassName == "4.8" || ClassName == "5.8" || ClassName == "6.8" || ClassName == "10.9")
                     return 0.5;
                 else
                 {
-                    _errorLog.Add($"Warning: class '{ClassName}' not recognized, α_v=0.5 will be used.");
+                    _errorLog.Add($"Info: class '{ClassName}' not recognized, α_v=0.5 will be used.");
                     return 0.5;
                 }
             }
             else
-                return 0.6;
+            {
+                // In UNI EN 1993-1-4:2021 §6.2 (2).
+                // Class "50", "70" and "80" as  "4.6", "5.6", "8.8".
+                string ClassName = boltMaterialInox.PropertyClass;
+                if (ClassName == "50" || ClassName == "70" || ClassName == "80")
+                    return 0.6;
+                else
+                    return 0.5;
+            }
         }
 
         /// <summary>
