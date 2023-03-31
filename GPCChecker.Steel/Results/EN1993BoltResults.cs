@@ -18,6 +18,8 @@ namespace GPC.Checkers.Steel.Results
 
         public EN1993BoltChecker.EN1993BoltOptions eN1993BoltOptions => Options as EN1993BoltChecker.EN1993BoltOptions;
 
+        public CombCaseType SollCombCase { get; internal set; }
+
         /// <summary>
         /// External shear sollecitation.
         /// </summary>
@@ -139,6 +141,7 @@ namespace GPC.Checkers.Steel.Results
             SetActiveChecks();
             // Values must be calculated, if they remain NaN it means there is an error or lack,
             // or is not required by normative.
+            SollCombCase = CombCaseType.SLU;
             SollShear = Double.NaN;
             SollTension = Double.NaN;
 
@@ -242,6 +245,21 @@ namespace GPC.Checkers.Steel.Results
             if (SollShearIsNull || SollTensionIsNull)
             {
                 CombinedShearTensionIsActive = false;
+            }
+
+            if (SollCombCase == CombCaseType.SLU)
+            {
+                SlipSerIsActive = false;
+            }
+            else if (SollCombCase == CombCaseType.SLS)
+            {
+                ShearIsActive = false;
+                BearingIsActive = false;
+                SlipIsActive = false;
+                NetIsActive = false;
+                TensionIsActive = false;
+                CombinedShearTensionIsActive = false;
+                PunchingIsActive = false;
             }
         }
 

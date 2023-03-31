@@ -1,6 +1,4 @@
 ﻿using GPC.Checkers.Steel.Results;
-using GPC.Model.LoadCases;
-using GPC.Model.Results;
 using GPC.Model.Sections.Bolt;
 using GPC.Model.Standards;
 using System;
@@ -93,33 +91,5 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         #endregion
-    }
-
-    public class BoltStresses : IEquatable<BoltStresses>
-    {
-        public ILoadCase LoadCase;
-        public ResultBeamForces ResBeamForces;
-
-        public BoltStresses(ILoadCase _loadcase, ResultBeamForces resbeam)
-        {
-            LoadCase = _loadcase;
-            ResBeamForces = resbeam;
-        }
-
-        public override bool Equals(object obj) => Equals(obj as BoltStresses);
-
-        public bool Equals(BoltStresses other)
-        {
-            return EqualityComparer<ILoadCase>.Default.Equals(LoadCase, other.LoadCase) &&
-                   EqualityComparer<ResultBeamForces>.Default.Equals(ResBeamForces, other.ResBeamForces);
-        }
-
-        public override int GetHashCode()
-        {
-            int hashCode = -1030903623;
-            hashCode = hashCode * -1521134295 + EqualityComparer<ILoadCase>.Default.GetHashCode(LoadCase);
-            hashCode = hashCode * -1521134295 + EqualityComparer<ResultBeamForces>.Default.GetHashCode(ResBeamForces);
-            return hashCode;
-        }
     }
 }
