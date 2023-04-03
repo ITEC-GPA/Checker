@@ -5,7 +5,6 @@ using GPC.Model.Sections.Bolt;
 using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.Serialization;
 
@@ -18,7 +17,7 @@ namespace GPC.Checkers.Steel.Results
 
         public EN1993BoltChecker.EN1993BoltOptions eN1993BoltOptions => Options as EN1993BoltChecker.EN1993BoltOptions;
 
-        public CombCaseType SollCombCase { get; internal set; }
+        public BoltStresses.CombCaseType SollCombCase { get; internal set; }
 
         /// <summary>
         /// External shear sollecitation.
@@ -76,6 +75,8 @@ namespace GPC.Checkers.Steel.Results
         public double SlipKs { get; internal set; }
 
         public double SlipMu { get; internal set; }
+
+        public double SlipFpc { get; internal set; }
 
         /// <summary>
         /// Design Slip resistance at serviceability F_s,Rd,ser.
@@ -141,7 +142,7 @@ namespace GPC.Checkers.Steel.Results
             SetActiveChecks();
             // Values must be calculated, if they remain NaN it means there is an error or lack,
             // or is not required by normative.
-            SollCombCase = CombCaseType.SLU;
+            SollCombCase = BoltStresses.CombCaseType.SLU;
             SollShear = Double.NaN;
             SollTension = Double.NaN;
 
@@ -162,6 +163,7 @@ namespace GPC.Checkers.Steel.Results
             SlipRatio = Double.NaN;
             SlipKs = Double.NaN;
             SlipMu = Double.NaN;
+            SlipFpc = Double.NaN;
 
             SlipSerResistance = Double.NaN;
             SlipSerRatio = Double.NaN;
@@ -247,11 +249,11 @@ namespace GPC.Checkers.Steel.Results
                 CombinedShearTensionIsActive = false;
             }
 
-            if (SollCombCase == CombCaseType.SLU)
+            if (SollCombCase == BoltStresses.CombCaseType.SLU)
             {
                 SlipSerIsActive = false;
             }
-            else if (SollCombCase == CombCaseType.SLS)
+            else if (SollCombCase == BoltStresses.CombCaseType.SLS)
             {
                 ShearIsActive = false;
                 BearingIsActive = false;
@@ -280,7 +282,7 @@ namespace GPC.Checkers.Steel.Results
 
             List<EN1993BoltResults> boltResultsEN1993 = boltResults.Cast<EN1993BoltResults>().ToList();
 
-            if (boltResultsEN1993 .Count == 0 )
+            if (boltResultsEN1993.Count == 0)
                 return null;
 
             EN1993BoltResults maxResult = new EN1993BoltResults(null, new LoadCase("Envelope", Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight), null,
@@ -339,6 +341,7 @@ namespace GPC.Checkers.Steel.Results
                 maxResult.SlipRatio = itemMaxSlip.SlipRatio;
                 maxResult.SlipKs = itemMaxSlip.SlipKs;
                 maxResult.SlipMu = itemMaxSlip.SlipMu;
+                maxResult.SlipFpc = itemMaxSlip.SlipFpc;
             }
 
             // Slip service

@@ -25,8 +25,8 @@ namespace SteelTests
             var CurrAppPointSystem = new CoordinateSystem(CurrBolGriBar, Vector3d.XAxis, Vector3d.YAxis);
             var CurrBoltStresses = new List<BoltStresses>()
             {
-                new BoltStresses(new LoadCase("COMB0", LoadCase.LoadCaseTypes.SelfWeight), new ResultBeamForces(8000, 12000, 0, 0, 0, 0, CurrAppPointSystem), CombCaseType.SLU),
-                new BoltStresses(new LoadCase("COMB1", LoadCase.LoadCaseTypes.SelfWeight), new ResultBeamForces(0, 0, 4000, 0, 0, 0, CurrAppPointSystem), CombCaseType.SLU)
+                new BoltStresses(new LoadCase("COMB0", LoadCase.LoadCaseTypes.SelfWeight), new ResultBeamForces(8000, 12000, 0, 0, 0, 0, CurrAppPointSystem), BoltStresses.CombCaseType.SLU),
+                new BoltStresses(new LoadCase("COMB1", LoadCase.LoadCaseTypes.SelfWeight), new ResultBeamForces(0, 0, 4000, 0, 0, 0, CurrAppPointSystem), BoltStresses.CombCaseType.SLU)
             };
             var CurrStd = new StandardEN1993p11();
             var CurrOptions = new EN1993BoltChecker.EN1993BoltOptions();
@@ -90,8 +90,8 @@ namespace SteelTests
             var CurrAppPointSystem = new CoordinateSystem(CurrBolGriBar, Vector3d.XAxis, Vector3d.YAxis);
             var CurrBoltStresses = new List<BoltStresses>()
             {
-                new BoltStresses(new LoadCase("COMB0", LoadCase.LoadCaseTypes.SelfWeight), new ResultBeamForces(80000, 120000, 0, 0, 0, 0, CurrAppPointSystem), CombCaseType.SLU),
-                new BoltStresses(new LoadCase("COMB1", LoadCase.LoadCaseTypes.SelfWeight), new ResultBeamForces(0, 0, 40000, 0, 0, 0, CurrAppPointSystem), CombCaseType.SLU)
+                new BoltStresses(new LoadCase("COMB0", LoadCase.LoadCaseTypes.SelfWeight), new ResultBeamForces(80000, 120000, 0, 0, 0, 0, CurrAppPointSystem), BoltStresses.CombCaseType.SLU),
+                new BoltStresses(new LoadCase("COMB1", LoadCase.LoadCaseTypes.SelfWeight), new ResultBeamForces(0, 0, 40000, 0, 0, 0, CurrAppPointSystem), BoltStresses.CombCaseType.SLU)
             };
             var CurrStd = new StandardEN1993p11();
             var CurrOptions = new EN1993BoltChecker.EN1993BoltOptions()
@@ -165,7 +165,7 @@ namespace SteelTests
                 new BoltStresses(
                     new LoadCase("COMB0", LoadCase.LoadCaseTypes.SelfWeight),
                     new ResultBeamForces(0, 60000, -250000, -22000000, 0, 0, CurrAppPointSystem),
-                    CombCaseType.SLU)
+                    BoltStresses.CombCaseType.SLU)
             };
             var CurrStd = new StandardEN1993p11();
             var CurrOptions = new EN1993BoltChecker.EN1993BoltOptions()
@@ -256,7 +256,7 @@ namespace SteelTests
                 new BoltStresses(
                     new LoadCase("COMB0", LoadCase.LoadCaseTypes.SelfWeight),
                     new ResultBeamForces(30000, 25000, -125000, -5250000, 0, 0, CurrAppPointSystem),
-                    CombCaseType.SLU)
+                    BoltStresses.CombCaseType.SLU)
             };
             var CurrStd = new StandardEN1993p11();
             var CurrOptions = new EN1993BoltChecker.EN1993BoltOptions()

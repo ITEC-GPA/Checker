@@ -5,17 +5,17 @@ using System.Collections.Generic;
 
 namespace GPC.Checkers.Steel.Checkers
 {
-    /// <summary>
-    /// An easy way in BoltStresses to discriminate between ultimate state limit and service state limit.
-    /// </summary>
-    public enum CombCaseType
-    {
-        SLU,
-        SLS
-    }
-
     public class BoltStresses : IEquatable<BoltStresses>
     {
+        /// <summary>
+         /// An easy way in BoltStresses to discriminate between ultimate state limit and service state limit.
+         /// </summary>
+        public enum CombCaseType
+        {
+            SLU,
+            SLS
+        }
+
         public ILoadCase LoadCase;
         public ResultBeamForces ResBeamForces;
         public CombCaseType CombCase;
