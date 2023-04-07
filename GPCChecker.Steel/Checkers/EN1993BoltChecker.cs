@@ -105,10 +105,12 @@ namespace GPC.Checkers.Steel.Checkers
                 foreach (var SollBolt in SollAllBolts)
                 {
                     // ****** Initialize a result. ******
-                    var CurRes = new EN1993BoltResults(SollBolt.Key, SolForce.LoadCase, SollBolt.Value, StandardEN1993, OptionsEN1993);
-                    CurRes.SollCombCase = SolForce.CombCase;
-                    CurRes.SollShear = SollBolt.Value.GetCombinedShearForce();
-                    CurRes.SollTension = SollBolt.Value.N;
+                    var CurRes = new EN1993BoltResults(SollBolt.Key, SolForce.LoadCase, SollBolt.Value, StandardEN1993, OptionsEN1993)
+                    {
+                        SollCombCase = SolForce.CombCase,
+                        SollShear = SollBolt.Value.GetCombinedShearForce(),
+                        SollTension = SollBolt.Value.N
+                    };
                     CurRes.SetUnnecessaryVerification();
                     // var SollShearAngle = CurRes.SollShearIsNull ? 0 : Math.Atan2(SollBolt.Value.V2, SollBolt.Value.V1) + Math.PI;
 
@@ -142,7 +144,7 @@ namespace GPC.Checkers.Steel.Checkers
                         CurRes.SlipKs = Calculate_ks(holeType, holeDir);
                         CurRes.SlipMu = CalculateSlipFactor_Mu();
                         CurRes.SlipFpc = CalculateSlipPreloading(SollBolt.Key.BoltDef);
-                        CurRes.SlipResistance = CalculateDesignSlipResistance_FsRd(CurRes.SlipKs, CurRes.SlipMu, SollBolt.Key.BoltDef, CurRes.SollTension, CurRes.SlipFpc);
+                        CurRes.SlipResistance = CalculateDesignSlipResistance_FsRd(CurRes.SlipKs, CurRes.SlipMu, CurRes.SollTension, CurRes.SlipFpc);
                         CurRes.SlipRatio = GetWorkingRatio(CurRes.SollShear, CurRes.SlipResistance);
                     }
 
@@ -154,7 +156,7 @@ namespace GPC.Checkers.Steel.Checkers
                         CurRes.SlipSerKs = Calculate_ks(holeType, holeDir);
                         CurRes.SlipSerMu = CalculateSlipFactor_Mu();
                         CurRes.SlipSerFpc = CalculateSlipPreloading(SollBolt.Key.BoltDef);
-                        CurRes.SlipSerResistance = CalculateDesignSlipResistance_FsRdser(CurRes.SlipSerKs, CurRes.SlipSerMu, SollBolt.Key.BoltDef, CurRes.SollTension, CurRes.SlipSerFpc);
+                        CurRes.SlipSerResistance = CalculateDesignSlipResistance_FsRdser(CurRes.SlipSerKs, CurRes.SlipSerMu, CurRes.SollTension, CurRes.SlipSerFpc);
                         CurRes.SlipSerRatio = GetWorkingRatio(CurRes.SollShear, CurRes.SlipSerResistance);
                     }
 
@@ -182,7 +184,7 @@ namespace GPC.Checkers.Steel.Checkers
                     if (CurRes.PunchingIsActive)
                     {
                         CurRes.PunchingDm = SollBolt.Key.BoltDef.CalculateMeanDiameterBoltHead();
-                        CurRes.PunchingResistance = CalculatePunchingShearResistance_BpRd(_plateWithBolts, SollBolt.Key.BoltDef, CurRes.PunchingDm);
+                        CurRes.PunchingResistance = CalculatePunchingShearResistance_BpRd(_plateWithBolts, CurRes.PunchingDm);
                         CurRes.PunchingRatio = GetWorkingRatio(CurRes.SollTension, CurRes.PunchingResistance);
                     }
 
@@ -215,9 +217,17 @@ namespace GPC.Checkers.Steel.Checkers
             if (!OptionsEN1993.ShearPlaneThroughThreadedPortion) // In "UNI EN 1993-1-4:2021 §6.2 Note" for Inox bolts.
                 return 0.6;
 
-            var boltMaterialInox = boltMaterial as BoltMaterialEN1993Inox;
-
-            if (boltMaterialInox is null) // it is not Inox
+            if (boltMaterial is BoltMaterialEN1993Inox boltMaterialInox) // it is not Inox
+            {
+                // In UNI EN 1993-1-4:2021 §6.2 (2).
+                // Class "50", "70" and "80" as  "4.6", "5.6", "8.8".
+                string ClassName = boltMaterialInox.PropertyClass;
+                if (ClassName == "50" || ClassName == "70" || ClassName == "80")
+                    return 0.6;
+                else
+                    return 0.5;
+            }
+            else
             {
                 string ClassName = boltMaterial.Name;
                 if (ClassName == "4.6" || ClassName == "5.6" || ClassName == "8.8")
@@ -229,16 +239,6 @@ namespace GPC.Checkers.Steel.Checkers
                     _errorLog.Add($"Info: class '{ClassName}' not recognized, α_v=0.5 will be used.");
                     return 0.5;
                 }
-            }
-            else
-            {
-                // In UNI EN 1993-1-4:2021 §6.2 (2).
-                // Class "50", "70" and "80" as  "4.6", "5.6", "8.8".
-                string ClassName = boltMaterialInox.PropertyClass;
-                if (ClassName == "50" || ClassName == "70" || ClassName == "80")
-                    return 0.6;
-                else
-                    return 0.5;
             }
         }
 
@@ -333,9 +333,8 @@ namespace GPC.Checkers.Steel.Checkers
         /// UNI EN 1993-1-8:2005 - Table 3.4.
         /// </summary>
         /// <param name="plateWithBolts">Plate.</param>
-        /// <param name="boltSection">Current bolt.</param>
         /// <returns>B_p,Rd</returns>
-        private double CalculatePunchingShearResistance_BpRd(in PlateWithBolts plateWithBolts, in BoltSection boltSection, in double d_m)
+        private double CalculatePunchingShearResistance_BpRd(in PlateWithBolts plateWithBolts, in double d_m)
         {
             return 0.6 * Math.PI * d_m * plateWithBolts.Thickness * plateWithBolts.PlateMaterial.Fu / StandardEN1993.GammaM2;
         }
@@ -409,19 +408,19 @@ namespace GPC.Checkers.Steel.Checkers
         /// UNI EN 1993-1-8:2005 - 3.9 Slip-resistant connections using 8.8 or 10.9 bolts.
         /// </summary>
         /// <param name="k_s"></param>
-        /// <param name="boltSection"></param>
+        /// <param name="mu"></param>
         /// <param name="F_tEd">F_t,Ed (formula 3.8a) or F_t,Ed,ser (formula 3.8b).</param>
         /// <param name="gammaM">γ_M3 or γ_M3,ser</param>
         /// <param name="F_pC">Nominal minimum preloading force.</param>
         /// <returns>F_s,Rd or F_s,Rd,ser</returns>
-        private double CalculateDesignSlipResistance(in double k_s, in double mu, in BoltSection boltSection, in double F_tEd, in double gammaM, in double F_pC)
+        private double CalculateDesignSlipResistance(in double k_s, in double mu, in double F_tEd, in double gammaM, in double F_pC)
         {
             return k_s * OptionsEN1993.NumFricionPlane * mu * (F_pC - 0.8 * F_tEd) / gammaM;
         }
-        private double CalculateDesignSlipResistance_FsRd(in double k_s, in double mu, in BoltSection boltSection, in double F_tEd, in double F_pC)
-            => CalculateDesignSlipResistance(k_s, mu, boltSection, F_tEd, StandardEN1993.GammaM3, F_pC);
-        private double CalculateDesignSlipResistance_FsRdser(in double k_s, in double mu, in BoltSection boltSection, in double F_tEdser, in double F_pC)
-            => CalculateDesignSlipResistance(k_s, mu, boltSection, F_tEdser, StandardEN1993.GammaM3Ser, F_pC);
+        private double CalculateDesignSlipResistance_FsRd(in double k_s, in double mu, in double F_tEd, in double F_pC)
+            => CalculateDesignSlipResistance(k_s, mu, F_tEd, StandardEN1993.GammaM3, F_pC);
+        private double CalculateDesignSlipResistance_FsRdser(in double k_s, in double mu, in double F_tEdser, in double F_pC)
+            => CalculateDesignSlipResistance(k_s, mu, F_tEdser, StandardEN1993.GammaM3Ser, F_pC);
 
         /// <summary>
         /// Calculate nominal clearances.

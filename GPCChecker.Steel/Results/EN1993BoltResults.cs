@@ -286,11 +286,12 @@ namespace GPC.Checkers.Steel.Results
                 return null;
 
             EN1993BoltResults maxResult = new EN1993BoltResults(null, new LoadCase("Envelope", Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight), null,
-                (StandardEN1993p11)boltResultsEN1993[0].Standard, (EN1993BoltChecker.EN1993BoltOptions)boltResultsEN1993[0].Options);
-
-            // Max sollecitations.
-            maxResult.SollShear = boltResultsEN1993.Max(br => br.SollShear);
-            maxResult.SollTension = boltResultsEN1993.Max(br => br.SollTension);
+                (StandardEN1993p11)boltResultsEN1993[0].Standard, (EN1993BoltChecker.EN1993BoltOptions)boltResultsEN1993[0].Options)
+            {
+                // Max sollecitations.
+                SollShear = boltResultsEN1993.Max(br => br.SollShear),
+                SollTension = boltResultsEN1993.Max(br => br.SollTension)
+            };
 
             // Shear.
             var itemMaxShearIenum = boltResultsEN1993.Where(br => !double.IsNaN(br.ShearRatio));
