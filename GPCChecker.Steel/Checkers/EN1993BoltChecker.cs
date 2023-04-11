@@ -508,7 +508,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         /// <param name="boltpos">Hole to change.</param>
         /// <param name="holeShape">Required hole shape.</param>
-        private void SetHoleDiameter(BoltGrid.BoltPosition boltpos, in HoleShapeType holeShape)
+        public void SetHoleDiameter(BoltGrid.BoltPosition boltpos, in HoleShapeType holeShape)
         {
             double boltNominalDiameter = boltpos.BoltDef.Diameter;
 
@@ -531,7 +531,6 @@ namespace GPC.Checkers.Steel.Checkers
                     boltpos.Hole.SlotLength = 0.0;
                     break;
             }
-
         }
 
         private bool CalculateIsSlottedPerpendicular(in Hole hole, in ResultBeamForces resultBeamForces)
