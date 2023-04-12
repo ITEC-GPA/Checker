@@ -146,10 +146,12 @@ namespace GPC.Checkers.Steel.Results
             SollShear = Double.NaN;
             SollTension = Double.NaN;
 
+            // ShearIsActive = true; --> Setted in SetActiveChecks().
             ShearResistance = Double.NaN;
             ShearRatio = Double.NaN;
             ShearAlphaV = Double.NaN;
 
+            // BearingIsActive = true; --> Setted in SetActiveChecks().
             BearingResistance = Double.NaN;
             BearingRatio = Double.NaN;
             BearingE1 = Double.NaN;
@@ -159,12 +161,14 @@ namespace GPC.Checkers.Steel.Results
             Bearingk1 = Double.NaN;
             BearingAlphaB = Double.NaN;
 
+            // SlipIsActive = true; --> Setted in SetActiveChecks().
             SlipResistance = Double.NaN;
             SlipRatio = Double.NaN;
             SlipKs = Double.NaN;
             SlipMu = Double.NaN;
             SlipFpc = Double.NaN;
 
+            // SlipSerIsActive = true; --> Setted in SetActiveChecks().
             SlipSerResistance = Double.NaN;
             SlipSerRatio = Double.NaN;
             SlipSerKs = Double.NaN;
@@ -180,7 +184,7 @@ namespace GPC.Checkers.Steel.Results
             TensionRatio = Double.NaN;
             TensionK2 = Double.NaN;
 
-            CombinedShearTensionIsActive = true;
+            // CombinedShearTensionIsActive = true; --> Setted in SetActiveChecks().
             CombinedShearTensionRatio = Double.NaN;
 
             PunchingIsActive = true;
