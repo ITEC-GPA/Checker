@@ -283,7 +283,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="p_1"></param>
         /// <param name="boltPos"></param>
         /// <returns>α_d</returns>
-        private double CalculateCoeffParallel_AlphaD(in double e_1, in double p_1, in BoltGrid.BoltPosition boltPos)
+        private double CalculateCoeffParallel_AlphaD(in double e_1, in double p_1, in BoltPosition boltPos)
         {
             double d_0 = boltPos.Hole.Diameter;
             return Math.Min(e_1 / (3.0 * d_0), p_1 / (3.0 * d_0) - 1.0 / 4.0);
@@ -308,7 +308,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="p_2"></param>
         /// <param name="boltPos"></param>
         /// <returns>k_1</returns>
-        private double CalculateCoeffPerpendicular_k1(in double e_2, in double p_2, in BoltGrid.BoltPosition boltPos)
+        private double CalculateCoeffPerpendicular_k1(in double e_2, in double p_2, in BoltPosition boltPos)
         {
             double d_0 = boltPos.Hole.Diameter;
             return Math.Min(Math.Min(2.8 * e_2 / d_0 - 1.7, 1.4 * p_2 / d_0 - 1.7), 2.5);
@@ -478,7 +478,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         /// <param name="hole"></param>
         /// <returns></returns>
-        private HoleShapeType CalculateHoleType(in BoltGrid.BoltPosition boltpos)
+        private HoleShapeType CalculateHoleType(in BoltPosition boltpos)
         {
             double holeTolerance = 0.01;
             double clearance = boltpos.Hole.MaxLength - boltpos.BoltDef.Diameter;
@@ -508,7 +508,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         /// <param name="boltpos">Hole to change.</param>
         /// <param name="holeShape">Required hole shape.</param>
-        public void SetHoleDiameter(BoltGrid.BoltPosition boltpos, in HoleShapeType holeShape)
+        public void SetHoleDiameter(BoltPosition boltpos, in HoleShapeType holeShape)
         {
             double boltNominalDiameter = boltpos.BoltDef.Diameter;
 

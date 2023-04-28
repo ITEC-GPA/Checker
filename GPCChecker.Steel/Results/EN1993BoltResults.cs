@@ -135,7 +135,7 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        public EN1993BoltResults(BoltGrid.BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces,
+        public EN1993BoltResults(BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces,
             StandardEN1993p11 standard, EN1993BoltChecker.EN1993BoltOptions options)
             : base(boltPos, @case, beamForces, standard, options)
         {

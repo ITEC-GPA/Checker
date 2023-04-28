@@ -17,14 +17,14 @@ namespace GPC.Checkers.Steel.Results
 	{
 		#region Variables
 
-		protected BoltGrid.BoltPosition _boltPosition;
+		protected BoltPosition _boltPosition;
 		protected ResultBeamForces _resultBeamForce;
 
 		#endregion
 
 		#region Properties
 
-		public BoltGrid.BoltPosition BoltPos { get => _boltPosition; internal set => _boltPosition = value; }
+		public BoltPosition BoltPos { get => _boltPosition; internal set => _boltPosition = value; }
 
 		public ResultBeamForces BeamForces { get => _resultBeamForce; internal set => _resultBeamForce = value; }
 
@@ -34,7 +34,7 @@ namespace GPC.Checkers.Steel.Results
 
 		#region Constructor
 
-		public BoltResults(BoltGrid.BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces, Standard standard, BoltChecker.BoltOptions options, string name = "")
+		public BoltResults(BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces, Standard standard, BoltChecker.BoltOptions options, string name = "")
 			: base(@case, standard, options, name)
 		{
 			BoltPos = boltPos;
@@ -63,7 +63,7 @@ namespace GPC.Checkers.Steel.Results
 			{
 				int hashCode = 23;
 				hashCode = hashCode * -17 + base.GetHashCode();
-				hashCode = hashCode * -17 + EqualityComparer<BoltGrid.BoltPosition>.Default.GetHashCode(BoltPos);
+				hashCode = hashCode * -17 + EqualityComparer<BoltPosition>.Default.GetHashCode(BoltPos);
 				hashCode = hashCode * -17 + EqualityComparer<ResultBeamForces>.Default.GetHashCode(BeamForces);
 				hashCode = hashCode * -17 + EqualityComparer<BoltChecker.BoltOptions>.Default.GetHashCode(BoltCheckerOptions);
 				return hashCode;
@@ -73,7 +73,7 @@ namespace GPC.Checkers.Steel.Results
 		public bool Equals(BoltResults other)
 		{
 			return base.Equals(other) &&
-				   EqualityComparer<BoltGrid.BoltPosition>.Default.Equals(BoltPos, other.BoltPos) &&
+				   EqualityComparer<BoltPosition>.Default.Equals(BoltPos, other.BoltPos) &&
 				   EqualityComparer<ResultBeamForces>.Default.Equals(BeamForces, other.BeamForces) &&
 				   EqualityComparer<BoltChecker.BoltOptions>.Default.Equals(BoltCheckerOptions, other.BoltCheckerOptions);
 		}
