@@ -7,6 +7,7 @@ using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Steel.Checkers
 {
@@ -560,9 +561,10 @@ namespace GPC.Checkers.Steel.Checkers
         /// <summary>
         /// Options specific for EN1993.
         /// </summary>
-        public class EN1993BoltOptions : BoltOptions
+        [Serializable]
+        public class EN1993BoltOptions : BoltOptions, ISerializable
         {
-            #region Properties
+            #region Fields
 
             protected ShearConnectionsCategoryType _shearConnectionsCategory;
 
@@ -619,6 +621,32 @@ namespace GPC.Checkers.Steel.Checkers
                 HoleShape = HoleShapeType.NormalRound;
                 ClassFrictionSurfaces = ClassFrictionSurfacesType.D;
                 ShearConnectionsCategory = ShearConnectionsCategoryType.A;
+            }
+
+            public EN1993BoltOptions(SerializationInfo info, StreamingContext context)
+                : base(info, context)
+            {
+                double version = info.GetInt32("EN1993BoltOptionsVersion");
+
+                ShearConnectionsCategory = (ShearConnectionsCategoryType)info.GetValue("ShearConnectionsCategory", typeof(ShearConnectionsCategoryType));
+                HoleShape = (HoleShapeType)info.GetValue("HoleShape", typeof(HoleShapeType));
+                ClassFrictionSurfaces = (ClassFrictionSurfacesType)info.GetValue("ClassFrictionSurfaces", typeof(ClassFrictionSurfacesType));
+            }
+
+            #endregion
+
+            #region Methods
+
+            public override void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                base.GetObjectData(info, context);
+
+                int version = 1;
+                info.AddValue("EN1993BoltOptionsVersion", version);
+
+                info.AddValue("ShearConnectionsCategory", _shearConnectionsCategory, typeof(ShearConnectionsCategoryType));
+                info.AddValue("HoleShape", HoleShape, typeof(HoleShapeType));
+                info.AddValue("ClassFrictionSurfaces", ClassFrictionSurfaces, typeof(ClassFrictionSurfacesType));
             }
 
             #endregion

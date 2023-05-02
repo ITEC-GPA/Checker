@@ -35,7 +35,8 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Nested Class Options
 
-        public abstract class BoltOptions : Options
+        [Serializable]
+        public abstract class BoltOptions : Options, ISerializable
         {
             #region Variables
 
@@ -85,6 +86,27 @@ namespace GPC.Checkers.Steel.Checkers
                 NumShearPlane = 1;
                 IsCounterSunkBolt = false;
                 NumFricionPlane = 1;
+            }
+
+            public BoltOptions(SerializationInfo info, StreamingContext context)
+            {
+                ShearPlaneThroughThreadedPortion = info.GetBoolean("ShearPlaneThroughThreadedPortion");
+                _numShearPlane = info.GetInt32("NumShearPlane");
+                IsCounterSunkBolt = info.GetBoolean("IsCounterSunkBolt");
+                _numFrictionPlane = info.GetInt32("NumFrictionPlane");
+
+            }
+
+            #endregion
+
+            #region Methods
+
+            public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                info.AddValue("ShearPlaneThroughThreadedPortion", ShearPlaneThroughThreadedPortion);
+                info.AddValue("NumShearPlane", _numShearPlane);
+                info.AddValue("IsCounterSunkBolt", IsCounterSunkBolt);
+                info.AddValue("NumFrictionPlane", _numFrictionPlane);
             }
 
             #endregion
