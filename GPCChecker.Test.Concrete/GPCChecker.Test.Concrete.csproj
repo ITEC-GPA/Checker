@@ -103,7 +103,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GPCChecker\GPCChecker.Concrete.csproj">
+    <ProjectReference Include="..\GPCChecker.Concrete\GPCChecker.Concrete.csproj">
       <Project>{bd7c1d49-f230-4290-9a04-a4cdfb537bcd}</Project>
       <Name>GPCChecker.Concrete</Name>
     </ProjectReference>
