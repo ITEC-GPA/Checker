@@ -4,7 +4,6 @@ using GPC.Geometry;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
-using GPC.Utilities.Converters;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,14 +16,10 @@ namespace GPC.Checkers.Concrete.Results
 	[Serializable]
 	public class FailureDomainResult2d : CheckerResultType, ISerializable
 	{
-		[TypeConverter(typeof(EnumDescriptionTypeConverter))]
 		public enum DomainTypes
 		{
-			[Description("Constant N")]
-			ConstantN,
-
-			[Description("Constant eccentricity")]
-			ConstantMxMy,
+			[Description("Constant N")]	ConstantN,
+			[Description("Constant eccentricity")] ConstantMxMy,
 		}
 
 		protected readonly SectionSolver _sectionSolver;

@@ -1,5 +1,8 @@
-﻿using GPC.Checkers.Concrete.SectionSolvers;
+﻿using GPC.Checker.Results.ResultType;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
+using GPC.Model.Elements;
+using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
@@ -18,6 +21,9 @@ namespace GPC.Checkers.Concrete.Results
 		protected readonly ResultBeamForces _force;
 		protected readonly StrainPlane _strainPlane;
 		protected readonly SectionSolver _sectionSolver;
+		protected bool _linearElasticAnalysis;
+		protected double? _psiRebar;
+		protected double? _psiTendon;
 
 		#endregion
 
@@ -27,16 +33,28 @@ namespace GPC.Checkers.Concrete.Results
 
 		public StrainPlane StrainPlane => _strainPlane;
 
+		internal SectionSolver SectionSolver => _sectionSolver;
+
+		public bool LinearElasticAnalysis => _linearElasticAnalysis;
+
+		public double? PsiRebar => _psiRebar;
+
+		public double? PsiTendon => _psiTendon;
+
 		#endregion
 
 		#region Constructor
 
-		public StressAnalysisResult(IConcreteSection section, ResultBeamForces force, StrainPlane strainPlane, SectionSolver solver, Standard standard, int id = IDUNASSIGNED)
+		public StressAnalysisResult(IConcreteSection section, ResultBeamForces force, StrainPlane strainPlane, SectionSolver solver, Standard standard, 
+			bool linearAnalysis = false, double? psiRebar = null, double? psiTendon = null, int id = IDUNASSIGNED)
 			: base(section, standard, id)
 		{
 			_force = force ?? throw new ArgumentNullException(nameof(force));
 			_strainPlane = strainPlane;
 			_sectionSolver = solver ?? throw new ArgumentNullException(nameof(solver));
+			_linearElasticAnalysis = linearAnalysis;
+			_psiRebar = psiRebar;
+			_psiTendon = psiTendon;
 		}
 
 		protected StressAnalysisResult(SerializationInfo info, StreamingContext context)
@@ -45,6 +63,19 @@ namespace GPC.Checkers.Concrete.Results
 			_force = (ResultBeamForces)info.GetValue("Force", typeof(ResultBeamForces));
 			_strainPlane = (StrainPlane)info.GetValue("StrainPlane", typeof(StrainPlane));
 			_sectionSolver = (SectionSolver)info.GetValue("SectionSolver", typeof(SectionSolver));
+			_linearElasticAnalysis = info.GetBoolean("LinearElasticAnalysis");
+			_psiRebar = info.GetDouble("psiRebar");
+			_psiTendon = info.GetDouble("psiTendon");
+		}
+
+		#endregion
+
+		#region StrainPlaneResult
+
+		public StrainPlaneResult CalculateStrainPlaneResult(bool linearAnalysis = false, double psiR = 0, double psiT = 0)
+		{
+			StrainPlaneResult strainPlaneResult = new StrainPlaneResult(_section, _force, _strainPlane, _sectionSolver, _standard, _id);
+			return strainPlaneResult.CalculateStrainPlaneResult(linearAnalysis, psiR, psiT);
 		}
 
 		#endregion
@@ -172,6 +203,31 @@ namespace GPC.Checkers.Concrete.Results
 			return results;
 		}
 
+		public (ReinforcedConcreteRebar rebar, double strain)[] GetRebarsStrain(double phi)
+		{
+			(ReinforcedConcreteRebar rebar, double strain)[] results = new (ReinforcedConcreteRebar rebar, double strain)[_section.RebarsCount];
+
+			for (int r = 0; r < ConcreteSection.RebarsCount; r++)
+			{
+				ReinforcedConcreteRebar rebar = ConcreteSection.Rebars.ElementAt(r);
+				double strain = StrainPlane.GetStrain(rebar.Position) * (1 + phi);
+
+				results[r] = (rebar, strain);
+			}
+
+			return results;
+		}
+
+		public double GetRebarStrain(ReinforcedConcreteRebar rebar, double phi)
+		{
+			return StrainPlane.GetStrain(rebar.Position) * (1 + phi);
+		}
+
+		public double GetRebarStrain(ReinforcedConcreteRebar rebar)
+		{
+			return StrainPlane.GetStrain(rebar.Position);
+		}
+
 		#endregion
 
 		#region Concrete
@@ -238,11 +294,11 @@ namespace GPC.Checkers.Concrete.Results
 			}
 		}
 
-		public virtual bool GetConcreteVerticesTension(double n, out (Point2d point, double tension)[] verticesTensionAssociation)
+		public virtual bool GetConcreteVerticesTension(double psi, out (Point2d point, double tension)[] verticesTensionAssociation)
 		{
 			try
 			{
-				verticesTensionAssociation = GetConcreteVerticesTension(n);
+				verticesTensionAssociation = GetConcreteVerticesTension(psi);
 				return true;
 			}
 			catch
@@ -270,6 +326,11 @@ namespace GPC.Checkers.Concrete.Results
 			return strains;
 		}
 
+		public double GetVerticeStrain(Point2d point)
+		{
+			return _strainPlane.GetStrain(point);
+		}
+
 		#endregion
 
 		#region Equals, hashcode, operators
@@ -285,6 +346,9 @@ namespace GPC.Checkers.Concrete.Results
 				   //base.Equals(obj) &&
 				   _name == result._name &&
 				   _id == result._id &&
+				   _linearElasticAnalysis == result.LinearElasticAnalysis &&
+				   _psiRebar == result.PsiRebar &&
+				   _psiTendon == result.PsiTendon &&
 				   EqualityComparer<IConcreteSection>.Default.Equals(_section, result._section) &&
 				   EqualityComparer<Standard>.Default.Equals(_standard, result._standard) &&
 				   EqualityComparer<ResultBeamForces>.Default.Equals(_force, result._force) &&
@@ -294,15 +358,20 @@ namespace GPC.Checkers.Concrete.Results
 
 		public override int GetHashCode()
 		{
-			int hashCode = -2006748420;
-			hashCode = hashCode * -1521134295 + base.GetHashCode();
-			hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(_name);
-			hashCode = hashCode * -1521134295 + _id.GetHashCode();
-			hashCode = hashCode * -1521134295 + EqualityComparer<IConcreteSection>.Default.GetHashCode(_section);
-			hashCode = hashCode * -1521134295 + EqualityComparer<Standard>.Default.GetHashCode(_standard);
-			hashCode = hashCode * -1521134295 + EqualityComparer<ResultBeamForces>.Default.GetHashCode(_force);
-			hashCode = hashCode * -1521134295 + EqualityComparer<StrainPlane>.Default.GetHashCode(_strainPlane);
-			hashCode = hashCode * -1521134295 + EqualityComparer<SectionSolver>.Default.GetHashCode(_sectionSolver);
+			int hashCode = -23;
+			hashCode = hashCode * -17 + base.GetHashCode();
+			hashCode = hashCode * -17 + EqualityComparer<string>.Default.GetHashCode(_name);
+			hashCode = hashCode * -17 + _id.GetHashCode();
+			if(_psiRebar != null)
+				hashCode = hashCode * -17 + _psiRebar.GetHashCode();
+			if (_psiTendon != null)
+				hashCode = hashCode * -17 + _psiTendon.GetHashCode();
+			hashCode = hashCode * -17 + _linearElasticAnalysis.GetHashCode();
+			hashCode = hashCode * -17 + EqualityComparer<IConcreteSection>.Default.GetHashCode(_section);
+			hashCode = hashCode * -17 + EqualityComparer<Standard>.Default.GetHashCode(_standard);
+			hashCode = hashCode * -17 + EqualityComparer<ResultBeamForces>.Default.GetHashCode(_force);
+			hashCode = hashCode * -17 + EqualityComparer<StrainPlane>.Default.GetHashCode(_strainPlane);
+			hashCode = hashCode * -17 + EqualityComparer<SectionSolver>.Default.GetHashCode(_sectionSolver);
 			return hashCode;
 		}
 
@@ -312,6 +381,9 @@ namespace GPC.Checkers.Concrete.Results
 			info.AddValue("Force", _force);
 			info.AddValue("StrainPlane", _strainPlane);
 			info.AddValue("SectionSolver", _sectionSolver);
+			info.AddValue("LinearElasticAnalysis", _linearElasticAnalysis);
+			info.AddValue("psiRebar", _psiRebar);
+			info.AddValue("psiTendon", _psiTendon);
 		}
 
 		#endregion

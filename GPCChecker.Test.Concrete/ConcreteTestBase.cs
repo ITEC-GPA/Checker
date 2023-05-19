@@ -411,7 +411,7 @@ namespace ConcreteTests
 		}
 
 		protected ReinforcedConcreteSection GetCHS(double externalDiameter, double thickness, double concreteCover, int numberOfRebars,
-			double rebarDiameter, ConcreteMaterial concreteMaterial = null, SteelMaterial steelMaterial = null, double discretization = 16, Point2d center = null)
+			double rebarDiameter, ConcreteMaterial concreteMaterial = null, SteelMaterial steelMaterial = null, int discretization = 16, Point2d center = null)
 		{
 			if (steelMaterial == null)
 				steelMaterial = SteelMaterialEN1992Data.B450C;
@@ -449,7 +449,7 @@ namespace ConcreteTests
 
 		protected CoordinateSystem GetLocalCoordinateSystem(IConcreteSection section)
         {
-            return new CoordinateSystem(section.Centroid, Vector3d.XAxis, Vector3d.YAxis);
+			return new CoordinateSystem(section.Centroid, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
         }
 
 		#endregion
@@ -1019,8 +1019,8 @@ SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerT
 			for (int i = 0; i < failureDomain.DomainPoints.Length; i++)
 				for (int j = 0; j < failureDomain.DomainPoints[0].Length; j++)
 					Console.WriteLine($"{Math.Round(failureDomain.DomainPoints[i][j].MxRd / 1000000)}, " +
-									  $"{Math.Round(failureDomain.DomainPoints[i][j].MyRd / 1000000)}, " +
-									  $"{Math.Round(failureDomain.DomainPoints[i][j].NRd / 1000)}");
+						$"{Math.Round(failureDomain.DomainPoints[i][j].MyRd / 1000000)}, " +
+						$"{Math.Round(failureDomain.DomainPoints[i][j].NRd / 1000)}");
 		}
 
 		protected void ShowDomainPoints(FailureDomain2d failureDomain)

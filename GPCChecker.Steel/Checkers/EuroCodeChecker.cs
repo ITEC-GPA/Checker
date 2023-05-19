@@ -11,12 +11,10 @@ using GPC.Model.LoadCases;
 
 namespace GPC.Checkers.Steel.Checkers
 {
-    public abstract class EuroCodeChecker : Checker
+    public abstract class EuroCodeChecker : BeamChecker
     {
-
-
-        public EuroCodeChecker(BeamCheckerAttributes attributes, Options options, Standard standard)
-            : base(attributes, options, standard)
+        public EuroCodeChecker(BeamCheckerAttributes attributes, Options options, Standard standard, int id = IDUNASSIGNED, string name = "")
+            : base(attributes, options, standard, id, name)
         {
 
         }
@@ -25,6 +23,5 @@ namespace GPC.Checkers.Steel.Checkers
         {
 
         }
-
     }
 }

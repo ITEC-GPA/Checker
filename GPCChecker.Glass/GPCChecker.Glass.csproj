@@ -1,146 +1,21 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{19977875-DC88-47E0-92C9-D9ACE7CE4F3D}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GPC.Checkers.Glasses</RootNamespace>
-    <AssemblyName>GPCChecker.Glass</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RootNamespace>GPC.Checker</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x64</PlatformTarget>
-    <DocumentationFile>bin\Debug\GPCChecker.Glass.xml</DocumentationFile>
-    <NoWarn>CS1591</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x64</PlatformTarget>
-    <DocumentationFile>bin\Release\GPCChecker.Glass.xml</DocumentationFile>
-    <NoWarn>CS1591</NoWarn>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="DelaunayMesh, Version=1.0.0.5, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\DelaunayMesh.1.0.0.5\lib\net472\DelaunayMesh.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCConverters.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCConverters.Straus7.1.0.1.1\lib\net472\GPCConverters.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCConverters.Straus7, Version=1.0.1.1, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCConverters.Straus7.1.0.1.1\lib\net472\GPCConverters.Straus7.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCGeometry, Version=1.1.5.8, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCGeometry.1.1.5.8\lib\net472\GPCGeometry.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCModel, Version=0.2.1.10, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCModel.0.2.1.10\lib\net472\GPCModel.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCUtilities, Version=1.0.34.1, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\GPCUtilities.1.0.34.1\lib\net472\GPCUtilities.dll</HintPath>
-    </Reference>
-    <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.5.0.0\lib\net461\MathNet.Numerics.dll</HintPath>
-    </Reference>
-    <Reference Include="MathNet.Numerics.Providers.MKL, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.Providers.MKL.5.0.0\lib\net461\MathNet.Numerics.Providers.MKL.dll</HintPath>
-    </Reference>
-    <Reference Include="St7ApiWrapper, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\St7ApiWrapper.1.0.26\lib\net472\St7ApiWrapper.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Remoting" />
-    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <PackageReference Include="GPCGeometry" Version="2.0.0.2" />
+    <PackageReference Include="GPCModel" Version="1.0.1" />
+    <PackageReference Include="GPCUtilities" Version="2.0.0.1" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Checkers\AstmChecker.cs" />
-    <Compile Include="Checkers\Checker.cs" />
-    <Compile Include="Checkers\EN16612Checker.cs" />
-    <Compile Include="Converters\FemModelConverter.cs" />
-    <Compile Include="Extensions\CombinationExtension.cs" />
-    <Compile Include="Extensions\ListExtensions.cs" />
-    <Compile Include="FemModel\FemModelWrapper.cs" />
-    <Compile Include="Glasses\GlassSurface.cs" />
-    <Compile Include="LoadCases\ClimateLoadCase.cs" />
-    <Compile Include="LoadCases\IGlassLoadCase.cs" />
-    <Compile Include="LoadCases\LoadCase.cs" />
-    <Compile Include="LoadCases\LoadCaseDurationTemperatureRestrainEqualityComparer.cs" />
-    <Compile Include="LoadCases\LoadCaseEn16612.cs" />
-    <Compile Include="Loads\AreaLoad.cs" />
-    <Compile Include="Loads\LoadDurationTemperatureAndGeometryEqualityComparer.cs" />
-    <Compile Include="Loads\SelfWeightLoad.cs" />
-    <Compile Include="Loads\IGlassLoad.cs" />
-    <Compile Include="Loads\IParametricLoad.cs" />
-    <Compile Include="Loads\LineLoad.cs" />
-    <Compile Include="Loads\NormalAreaLoad.cs" />
-    <Compile Include="Loads\ParametricLineLoad.cs" />
-    <Compile Include="Loads\ParametricPointLoad.cs" />
-    <Compile Include="Loads\PointLoad.cs" />
-    <Compile Include="Models\Model.cs" />
-    <Compile Include="Models\ModelAnalysisOptions.cs" />
-    <Compile Include="Models\ModelOptions.cs" />
-    <Compile Include="Models\Prototype.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Restrain\IParametricRestrain.cs" />
-    <Compile Include="Restrain\ParametricLineRestrain.cs" />
-    <Compile Include="Restrain\ParametricPointRestrain.cs" />
-    <Compile Include="Results\GlassResult.cs" />
-    <Compile Include="Wrappers\DoubleInsulatingGlassWrapper.cs" />
-    <Compile Include="Wrappers\GlassPanelWrapper.cs" />
-    <Compile Include="Wrappers\GlassWrapper.cs" />
-    <Compile Include="Wrappers\IGlassPanelWrapper.cs" />
-    <Compile Include="Wrappers\InsulatedGlassWrapper.cs" />
-    <Compile Include="Wrappers\LaminatedGlassWrapper.cs" />
-    <Compile Include="Wrappers\MonolithicGlassWrapper.cs" />
-    <Compile Include="Wrappers\TripleInsulatingGlassWrapper.cs" />
+    <Reference Include="GPCModel">
+      <HintPath>..\..\gpc-model\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
+    </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>If "$(ConfigurationName)"=="Debug" (
-      Echo Copying Libraries debug version
-     Copy "..\..\..\..\..\Libs\St7Solver\bin\Debug\St7Solver.exe" "$(TargetDir)"
-)
-If "$(ConfigurationName)"=="Release" (
-      Echo Copying Libraries debug version
-     Copy "..\..\..\..\..\Libs\St7Solver\bin\Release\St7Solver.exe" "$(TargetDir)"
-)</PostBuildEvent>
-  </PropertyGroup>
-  <Import Project="..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets" Condition="Exists('..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MathNet.Numerics.MKL.Win-x64.3.0.0\build\net461\MathNet.Numerics.MKL.Win-x64.targets'))" />
-  </Target>
+
 </Project>
