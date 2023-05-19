@@ -42,27 +42,26 @@
     <Reference Include="DelaunayMesh, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\DelaunayMesh.2.0.0\lib\netstandard2.0\DelaunayMesh.dll</HintPath>
     </Reference>
-    <Reference Include="GMesh, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GMesh.1.0.1\lib\net472\GMesh.dll</HintPath>
+    <Reference Include="GMesh, Version=1.0.1.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GMesh.1.0.1.1\lib\net472\GMesh.dll</HintPath>
     </Reference>
     <Reference Include="GMsh.Net, Version=1.0.484.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GMsh.Net.1.0.484.3\lib\netstandard2.0\GMsh.Net.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=2.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCGeometry.2.0.0.1\lib\netstandard2.0\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCGeometry.2.0.0.2\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\gpc-model\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCModel.1.0.1\lib\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModelData, Version=0.0.1.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModelData.0.0.1.1\lib\netstandard2.0\GPCModelData.dll</HintPath>
+    <Reference Include="GPCModelData, Version=0.0.1.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCModelData.0.0.1.2\lib\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.8, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.8\lib\net472\GPCTestUtilities.dll</HintPath>
     </Reference>
-    <Reference Include="GPCUtilities, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCUtilities.2.0.0\lib\netstandard2.0\GPCUtilities.dll</HintPath>
+    <Reference Include="GPCUtilities, Version=2.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCUtilities.2.0.0.1\lib\netstandard2.0\GPCUtilities.dll</HintPath>
     </Reference>
     <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.5.0.0\lib\net461\MathNet.Numerics.dll</HintPath>
