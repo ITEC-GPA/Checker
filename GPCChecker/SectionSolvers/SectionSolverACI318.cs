@@ -1,5 +1,4 @@
-﻿using GPC.Checkers.Concrete.Helper;
-using GPC.Checkers.Concrete.Results;
+﻿using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
 using GPC.Model;
 using GPC.Model.Materials;
@@ -160,9 +159,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		{
 			double fyA = 0;
 			ReinforcedConcreteRebar[] rebars = ConcreteSection.GetRebars();
-			for (int i = 0; i < rebars.Length; i++)			
+			for (int i = 0; i < rebars.Length; i++)
 				fyA += rebars[i].Area * Math.Min(rebars[i].RebarMaterial.Fyk, 551.579);
-			
+
 			double limit;
 			double fc = 0;
 
