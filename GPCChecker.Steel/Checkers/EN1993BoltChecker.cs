@@ -55,6 +55,16 @@ namespace GPC.Checkers.Steel.Checkers
             E  // Category E: preloaded.
         }
 
+        /// <summary>
+        /// UNI EN 1993-1-8:2005 - Table 3.3: Minimum and maximum spacing, end and edge distances.
+        /// </summary>
+        public enum ExposureConditionType
+        {
+            SteelExposed, // Steel exposed to the weather or other corrosive influences
+            SteelNotExposed, // Steel not exposed to the weather or other corrosive influences
+            SteelUnprotected // Steel used unprotected
+        }
+
         #endregion
 
         #region Public Constructor
@@ -124,12 +134,15 @@ namespace GPC.Checkers.Steel.Checkers
                     }
 
                     // ****** Bearing. ******
-                    if (CurRes.BearingIsActive)
+                    if (CurRes.BearingIsActive || CurRes.DistanceIsActive)
                     {
                         CurRes.BearingE1 = _plateWithBolts.CalculateE1(SollBolt.Key.Id, SollBolt.Value);
                         CurRes.BearingP1 = _plateWithBolts.CalculateP1(SollBolt.Key.Id, SollBolt.Value);
                         CurRes.BearingE2 = _plateWithBolts.CalculateE2(SollBolt.Key.Id, SollBolt.Value);
                         CurRes.BearingP2 = _plateWithBolts.CalculateP2(SollBolt.Key.Id, SollBolt.Value);
+                    }
+                    if (CurRes.BearingIsActive)
+                    {
                         var AlphaD = CalculateCoeffParallel_AlphaD(CurRes.BearingE1, CurRes.BearingP1, SollBolt.Key);
                         CurRes.Bearingk1 = CalculateCoeffPerpendicular_k1(CurRes.BearingE2, CurRes.BearingP2, SollBolt.Key);
                         CurRes.BearingAlphaB = CalculateCoeffParallel_AlphaB(AlphaD, SollBolt.Key.BoltDef, _plateWithBolts);
@@ -187,6 +200,30 @@ namespace GPC.Checkers.Steel.Checkers
                         CurRes.PunchingDm = SollBolt.Key.BoltDef.CalculateMeanDiameterBoltHead();
                         CurRes.PunchingResistance = CalculatePunchingShearResistance_BpRd(_plateWithBolts, CurRes.PunchingDm);
                         CurRes.PunchingRatio = GetWorkingRatio(CurRes.SollTension, CurRes.PunchingResistance);
+                    }
+
+                    // ****** Distances warning. ******
+                    if (CurRes.DistanceIsActive)
+                    {
+                        CalculateDimesionLimits(SollBolt.Key.Hole.Diameter, _plateWithBolts.Thickness, _plateWithBolts.Thickness,
+                            out double dE1E2Min, out double dE1E2Max, out double dE3E4Min, out double dE3E4Max,
+                            out double dP1Min, out double dP1Max, out double dP2Min, out double dP2Max);
+                        CurRes.DistanceE1E2Min = dE1E2Min;
+                        CurRes.DistanceE1E2Max = dE1E2Max;
+                        CurRes.DistanceE3E4Min = dE3E4Min;
+                        CurRes.DistanceE3E4Max = dE3E4Max;
+                        CurRes.DistanceP1Min = dP1Min;
+                        CurRes.DistanceP1Max = dP1Max;
+                        CurRes.DistanceP2Min = dP2Min;
+                        CurRes.DistanceP2Max = dP2Max;
+
+                        double e = _plateWithBolts.CalculateClosestEdgePoint(SollBolt.Key.Id);
+                        if (!SollBolt.Key.Hole.IsSlotted)
+                            CurRes.DistanceE1E2 = e;
+                        else
+                            CurRes.DistanceE3E4 = e;
+                        CurRes.DistanceP1 = CurRes.BearingP1;
+                        CurRes.DistanceP2 = CurRes.BearingP2;
                     }
 
                     // ****** Save to the results table. ******
@@ -554,6 +591,63 @@ namespace GPC.Checkers.Steel.Checkers
         //    return 0.0; //boltSection.CalculateAreaEff() * boltSection.BoltMaterial.Fyk / StandardEN1993.GammaM0;
         //}
 
+
+
+        /// <summary>
+        /// UNI EN 1993-1-8:2005 - Table 3.3: Minimum and maximum spacing, end and edge distances.
+        /// </summary>
+        /// <param name="dHole">Hole diameter.</param>
+        /// <param name="expo">Exposure condition.</param>
+        /// <param name="t"></param>
+        /// <param name="t_min"></param>
+        /// <param name="e1e2_min">End distances e1 and e2. Minimum.</param>
+        /// <param name="e1e2_max">End distances e1 and e2. Maximum.</param>
+        /// <param name="e3e4_min">Distances e3 and e4 in slotted holes. Minimum.</param>
+        /// <param name="e3e4_max">Distances e3 and e4 in slotted holes. Maximum.</param>
+        /// <param name="p1_min">Spacing p1. Minimum.</param>
+        /// <param name="p1_max">Spacing p1. Maximum.</param>
+        /// <param name="p2_min">Spacing p2. Minimum.</param>
+        /// <param name="p2_max">Spacing p2. Maximum.</param>
+        private void CalculateDimesionLimits(in double dHole, in double t, in double t_min,
+            out double e1e2_min, out double e1e2_max,
+            out double e3e4_min, out double e3e4_max,
+            out double p1_min, out double p1_max,
+            out double p2_min, out double p2_max)
+        {
+            e1e2_min = 1.2 * dHole;
+            e3e4_min = 1.5 * dHole;
+            p1_min = 2.2 * dHole;
+            p2_min = 2.4 * dHole;
+
+            switch (OptionsEN1993.ExposureCondition)
+            {
+                case ExposureConditionType.SteelExposed:
+                    e1e2_max = 4.0 * t + 40.0;
+                    e3e4_max = Double.NaN;
+                    p1_max = Math.Min(14.0 * t, 200.0);
+                    p2_max = p1_max;
+                    break;
+                case ExposureConditionType.SteelNotExposed:
+                    e1e2_max = Double.NaN;
+                    e3e4_max = Double.NaN;
+                    p1_max = Math.Min(14.0 * t, 200.0);
+                    p2_max = p1_max;
+                    break;
+                case ExposureConditionType.SteelUnprotected:
+                    e1e2_max = Math.Max(8.0 * t, 125.0);
+                    e3e4_max = Double.NaN;
+                    p1_max = Math.Min(14.0 * t_min, 175.0);
+                    p2_max = p1_max;
+                    break;
+                default:
+                    e1e2_max = Double.NaN;
+                    e3e4_max = Double.NaN;
+                    p1_max = Double.NaN;
+                    p2_max = Double.NaN;
+                    break;
+            }
+        }
+
         #endregion
 
         #region Nested Class Options
@@ -612,6 +706,11 @@ namespace GPC.Checkers.Steel.Checkers
             /// </summary>
             public TensionConnectionsCategoryType TensionConnectionsCategory => _tensionConnectionsCategory;
 
+            /// <summary>
+            /// Exposure condition, used for minimum and maximum spacing, end and edge distances.
+            /// </summary>
+            public ExposureConditionType ExposureCondition { get; set; }
+
             #endregion
 
             #region Constructor
@@ -621,32 +720,44 @@ namespace GPC.Checkers.Steel.Checkers
                 HoleShape = HoleShapeType.NormalRound;
                 ClassFrictionSurfaces = ClassFrictionSurfacesType.D;
                 ShearConnectionsCategory = ShearConnectionsCategoryType.A;
+                ExposureCondition = ExposureConditionType.SteelExposed;
             }
 
             public EN1993BoltOptions(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             {
-                double version = info.GetInt32("EN1993BoltOptionsVersion");
+                int version = info.GetInt32("EN1993BoltOptionsVersion");
 
                 ShearConnectionsCategory = (ShearConnectionsCategoryType)info.GetValue("ShearConnectionsCategory", typeof(ShearConnectionsCategoryType));
                 HoleShape = (HoleShapeType)info.GetValue("HoleShape", typeof(HoleShapeType));
                 ClassFrictionSurfaces = (ClassFrictionSurfacesType)info.GetValue("ClassFrictionSurfaces", typeof(ClassFrictionSurfacesType));
+                if (version == 2)
+                {
+                    ExposureCondition = (ExposureConditionType)info.GetValue("ExposureCondition", typeof(ExposureConditionType));
+                }
             }
 
             #endregion
 
             #region Methods
 
+            /// <summary>
+            /// In version 2:
+            /// - added ExposureCondition.
+            /// </summary>
+            /// <param name="info"></param>
+            /// <param name="context"></param>
             public override void GetObjectData(SerializationInfo info, StreamingContext context)
             {
                 base.GetObjectData(info, context);
 
-                int version = 1;
+                int version = 2;
                 info.AddValue("EN1993BoltOptionsVersion", version);
 
                 info.AddValue("ShearConnectionsCategory", _shearConnectionsCategory, typeof(ShearConnectionsCategoryType));
                 info.AddValue("HoleShape", HoleShape, typeof(HoleShapeType));
                 info.AddValue("ClassFrictionSurfaces", ClassFrictionSurfaces, typeof(ClassFrictionSurfacesType));
+                info.AddValue("ExposureCondition", ExposureCondition, typeof(ExposureConditionType));
             }
 
             #endregion

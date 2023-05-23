@@ -1,4 +1,5 @@
 ﻿using GPC.Checkers.Steel.Checkers;
+using GPC.Geometry;
 using GPC.Model.LoadCases;
 using GPC.Model.Results;
 using GPC.Model.Sections.Bolt;
@@ -131,6 +132,126 @@ namespace GPC.Checkers.Steel.Results
 
         public double PunchingDm { get; internal set; }
 
+        /// <summary>
+        /// Distance warnings, based on UNI EN 1993-1-8:2005 - Table 3.3: Minimum and maximum spacing, end and edge distances.
+        /// </summary>
+        public bool DistanceIsActive { get; internal set; }
+
+        public double DistanceE1E2Min { get; internal set; }
+
+        public double DistanceE1E2Max { get; internal set; }
+
+        public double DistanceE3E4Min { get; internal set; }
+
+        public double DistanceE3E4Max { get; internal set; }
+
+        public double DistanceP1Min { get; internal set; }
+
+        public double DistanceP1Max { get; internal set; }
+
+        public double DistanceP2Min { get; internal set; }
+
+        public double DistanceP2Max { get; internal set; }
+
+        public double DistanceE1E2 { get; internal set; }
+
+        public double DistanceE3E4 { get; internal set; }
+
+        public double DistanceP1 { get; internal set; }
+
+        public double DistanceP2 { get; internal set; }
+
+        public bool DistanceE1E2MinCheck
+        {
+            get
+            {
+                if (DistanceE1E2Min != Double.NaN)
+                    return DistanceE1E2 < DistanceE1E2Min - GeometryBase.Tolerance;
+                else
+                    return true;
+            }
+        }
+
+        public bool DistanceE1E2MaxCheck
+        {
+            get
+            {
+                if (DistanceE1E2Max != Double.NaN)
+                    return DistanceE1E2 > DistanceE1E2Max + GeometryBase.Tolerance;
+                else
+                    return true;
+            }
+        }
+
+        public bool DistanceE3E4MinCheck
+        {
+            get
+            {
+                if (DistanceE3E4Min != Double.NaN)
+                    return DistanceE3E4 < DistanceE3E4Min - GeometryBase.Tolerance;
+                else
+                    return true;
+            }
+        }
+
+        public bool DistanceE3E4MaxCheck
+        {
+            get
+            {
+                if (DistanceE3E4Max != Double.NaN)
+                    return DistanceE3E4 > DistanceE3E4Max + GeometryBase.Tolerance;
+                else
+                    return true;
+            }
+        }
+
+        public bool DistanceP1MinCheck
+        {
+            get
+            {
+                if (DistanceP1Min != Double.NaN)
+                    return DistanceP1 < DistanceP1Min - GeometryBase.Tolerance;
+                else
+                    return true;
+            }
+        }
+
+        public bool DistanceP1MaxCheck
+        {
+            get
+            {
+                if (DistanceP1Max != Double.NaN)
+                    return DistanceP1 > DistanceP1Max + GeometryBase.Tolerance;
+                else
+                    return true;
+            }
+        }
+
+        public bool DistanceP2MinCheck
+        {
+            get
+            {
+                if (DistanceP2Min != Double.NaN)
+                    return DistanceP2 < DistanceP2Min - GeometryBase.Tolerance;
+                else
+                    return true;
+            }
+        }
+
+        public bool DistanceP2MaxCheck
+        {
+            get
+            {
+                if (DistanceP2Max != Double.NaN)
+                    return DistanceP2 > DistanceP2Max + GeometryBase.Tolerance;
+                else
+                    return true;
+            }
+        }
+
+        public bool DistanceCheckAll => DistanceE1E2MinCheck && DistanceE1E2MaxCheck && DistanceE3E4MinCheck && DistanceE3E4MaxCheck &&
+            DistanceP1MinCheck && DistanceP1MaxCheck && DistanceP2MinCheck && DistanceP2MaxCheck;
+
         #endregion
 
         #region Constructor
@@ -191,6 +312,22 @@ namespace GPC.Checkers.Steel.Results
             PunchingResistance = Double.NaN;
             PunchingRatio = Double.NaN;
             PunchingDm = Double.NaN;
+
+            DistanceIsActive = true;
+            // Minimum and maximum values for comparison.
+            DistanceE1E2Min = Double.NaN;
+            DistanceE1E2Max = Double.NaN;
+            DistanceE3E4Min = Double.NaN;
+            DistanceE3E4Max = Double.NaN;
+            DistanceP1Min = Double.NaN;
+            DistanceP1Max = Double.NaN;
+            DistanceP2Min = Double.NaN;
+            DistanceP2Max = Double.NaN;
+            // Values to check.
+            DistanceE1E2 = Double.NaN;
+            DistanceE3E4 = Double.NaN;
+            DistanceP1 = Double.NaN;
+            DistanceP2 = Double.NaN;
         }
 
         protected void SetActiveChecks()
@@ -242,6 +379,7 @@ namespace GPC.Checkers.Steel.Results
                 SlipIsActive = false;
                 SlipSerIsActive = false;
                 NetIsActive = false;
+                DistanceIsActive = false;
             }
             if (SollTensionIsNull)
             {
@@ -271,7 +409,7 @@ namespace GPC.Checkers.Steel.Results
 
         internal override double GetMaxWorkingRatio()
         {
-            throw new NotImplementedException();
+            return CalcMaxRatio();
         }
 
         /// <summary>
