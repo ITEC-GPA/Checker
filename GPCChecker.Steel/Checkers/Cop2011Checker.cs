@@ -16,7 +16,7 @@ using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Steel.Checkers
 {
-    public class Cop2011Checker : Checker
+    public class Cop2011Checker : BeamChecker
     {
         #region Public enum
 
@@ -64,12 +64,14 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         public Cop2011BeamStationResults[] Cop2011BeamStationResults => _beamStationResults.Cast<Cop2011BeamStationResults>().ToArray();
 
+        public Cop2011Options Cop2011Option => (Cop2011Options)_options;
+
 		#endregion
 
 		#region Constructor
 
-		public Cop2011Checker(BeamCheckerAttributes attributes, Cop2011Checker.Cop2011Options options, StandardCopSuos2011 standard)
-            : base(attributes, options, standard)
+		public Cop2011Checker(BeamCheckerAttributes attributes, Cop2011Checker.Cop2011Options options, StandardCopSuos2011 standard, int id = IDUNASSIGNED, string name = "")
+            : base(attributes, options, standard, id, name)
         {
             _py = GetPy(attributes.Sections.Select(i => i.SteelMaterial.Fyk).Min(), attributes.Sections.Select(i => i.SteelMaterial.Fu).Min());
             _beta = 1.0;
@@ -195,7 +197,7 @@ namespace GPC.Checkers.Steel.Checkers
                                 {
                                     double result = Math.Abs(Math.Min(rbf.N, 0) / Math.Min(axialBuck1Rd, axialBuck2Rd)) +
                                          Math.Abs(CalculateMLTForLatTorsBuckling() * rbf.M1 / latTorsRd) +
-                                         Math.Abs(_options.UniformMomentFactorm2 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass, steelSection[i]));
+                                         Math.Abs(Cop2011Option.UniformMomentFactorm2 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass, steelSection[i]));
 
                                     if (result < 0.001)
                                         interaction881WR = 0.001;
@@ -243,8 +245,8 @@ namespace GPC.Checkers.Steel.Checkers
                             if (((Section)steelSection[i]).GetMinSigma(rbf.N, rbf.M1, rbf.M2) < 0.0)
                             {
                                 double result = Math.Abs(Math.Min(rbf.N, 0) / Math.Min(axialBuck1Rd, axialBuck2Rd)) +
-                                    Math.Abs(_options.UniformMomentFactorm1 * rbf.M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass, steelSection[i])) +
-                                    Math.Abs(_options.UniformMomentFactorm2 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass, steelSection[i]));
+                                    Math.Abs(Cop2011Option.UniformMomentFactorm1 * rbf.M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass, steelSection[i])) +
+                                    Math.Abs(Cop2011Option.UniformMomentFactorm2 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass, steelSection[i]));
 
                                 if (result < 0.001)
                                     interaction879WR = 0.001;
@@ -262,8 +264,8 @@ namespace GPC.Checkers.Steel.Checkers
                                 // <= Pc segnato cap 8.9.2
                                 double result = Math.Abs(Math.Min(rbf.N, 0) / Math.Min(CalculateAxialBucklingCapacity1AxisForInteraction(steelSection[i]),
                                     CalculateAxialBucklingCapacity2AxisForInteraction(steelSection[i]))) +
-                                    Math.Abs(_options.UniformMomentFactorm1 * rbf.M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass, steelSection[i])) +
-                                    Math.Abs(_options.UniformMomentFactorm1 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass, steelSection[i]));
+                                    Math.Abs(Cop2011Option.UniformMomentFactorm1 * rbf.M1 / CalculateBendingMoment1ElasticCapacity(bendingCompSectionClass, steelSection[i])) +
+                                    Math.Abs(Cop2011Option.UniformMomentFactorm1 * rbf.M2 / CalculateBendingMoment2ElasticCapacity(bendingCompSectionClass, steelSection[i]));
 
                                 if (result < 0.001)
                                     interaction880WR = 0.001;
@@ -1129,7 +1131,7 @@ namespace GPC.Checkers.Steel.Checkers
         {
             //TODO: implementare CalculateMLTForLatTorsBuckling con le stazioni
             // mLt = Math.Max( (0.2+(0.15 * M1 + 0.5 * M2 + 0.15 * M4)) / Mmax, 0.44)
-            return CheckerOptions.UniformMomentFactormLT;
+            return Cop2011Option.UniformMomentFactormLT;
         }
 
         /// <summary>
@@ -1983,7 +1985,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Nested class Options
 
-        public class Cop2011Options : Options
+        public class Cop2011Options : BeamChecker.BeamOptions
         {
             #region Enumerable
 
