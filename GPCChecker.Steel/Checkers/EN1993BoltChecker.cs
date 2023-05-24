@@ -100,6 +100,11 @@ namespace GPC.Checkers.Steel.Checkers
             foreach (var boltPos in _plateWithBolts.BoltGrid.Bolts)
                 SetHoleDiameter(boltPos, OptionsEN1993.HoleShape);
 
+            // ****** Distances e for all holes, are indipendent from sollecitations.
+            var boltsDistancesE = new Dictionary<BoltPosition, double>();
+            foreach (var boltPos in _plateWithBolts.BoltGrid.Bolts)
+                boltsDistancesE[boltPos] = _plateWithBolts.CalculateClosestEdgePoint(boltPos.Id).Length;
+
             foreach (var SolForce in _boltStresses)
             {
                 // ****** Sollecitation/Stress.
@@ -217,11 +222,19 @@ namespace GPC.Checkers.Steel.Checkers
                         CurRes.DistanceP2Min = dP2Min;
                         CurRes.DistanceP2Max = dP2Max;
 
-                        double e = _plateWithBolts.CalculateClosestEdgePoint(SollBolt.Key.Id);
+                        CurRes.DistanceIsOuter = _plateWithBolts.isOuuter(SollBolt.Key.Id);
+
+                        double e = boltsDistancesE[SollBolt.Key];
                         if (!SollBolt.Key.Hole.IsSlotted)
+                        {
+                            CurRes.DistanceE1E2orE3E4 = true;
                             CurRes.DistanceE1E2 = e;
+                        }
                         else
+                        {
+                            CurRes.DistanceE1E2orE3E4 = false;
                             CurRes.DistanceE3E4 = e;
+                        }
                         CurRes.DistanceP1 = CurRes.BearingP1;
                         CurRes.DistanceP2 = CurRes.BearingP2;
                     }
@@ -232,6 +245,7 @@ namespace GPC.Checkers.Steel.Checkers
             }
 
             _boltResultMax = EN1993BoltResults.CalcMaxResult(_boltResults);
+            _boltDistancesWarning = EN1993BoltResults.GetDistancesWarnings(_boltResults);
         }
 
         #endregion

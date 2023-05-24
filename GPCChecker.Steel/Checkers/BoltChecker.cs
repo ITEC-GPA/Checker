@@ -19,6 +19,13 @@ namespace GPC.Checkers.Steel.Checkers
         protected readonly List<BoltStresses> _boltStresses;
         protected List<BoltResults> _boltResults;
         protected BoltResults _boltResultMax;
+        protected List<string> _boltDistancesWarning;
+
+        #endregion
+
+        #region Properties
+
+        public List<string> BoltDistancesWarning => _boltDistancesWarning;
 
         #endregion
 
