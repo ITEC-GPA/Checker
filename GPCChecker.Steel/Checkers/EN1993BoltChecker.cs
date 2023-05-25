@@ -103,7 +103,7 @@ namespace GPC.Checkers.Steel.Checkers
             // ****** Distances e for all holes, are indipendent from sollecitations.
             var boltsDistancesE = new Dictionary<BoltPosition, double>();
             foreach (var boltPos in _plateWithBolts.BoltGrid.Bolts)
-                boltsDistancesE[boltPos] = _plateWithBolts.CalculateClosestEdgePoint(boltPos.Id).Length;
+                boltsDistancesE[boltPos] = _plateWithBolts.CalculateClosestEdgePoint(boltPos).Length;
 
             foreach (var SolForce in _boltStresses)
             {
@@ -141,10 +141,10 @@ namespace GPC.Checkers.Steel.Checkers
                     // ****** Bearing. ******
                     if (CurRes.BearingIsActive || CurRes.DistanceIsActive)
                     {
-                        CurRes.BearingE1 = _plateWithBolts.CalculateE1(SollBolt.Key.Id, SollBolt.Value);
-                        CurRes.BearingP1 = _plateWithBolts.CalculateP1(SollBolt.Key.Id, SollBolt.Value);
-                        CurRes.BearingE2 = _plateWithBolts.CalculateE2(SollBolt.Key.Id, SollBolt.Value);
-                        CurRes.BearingP2 = _plateWithBolts.CalculateP2(SollBolt.Key.Id, SollBolt.Value);
+                        CurRes.BearingE1 = _plateWithBolts.CalculateE1(SollBolt.Key, SollBolt.Value);
+                        CurRes.BearingP1 = _plateWithBolts.CalculateP1(SollBolt.Key, SollBolt.Value);
+                        CurRes.BearingE2 = _plateWithBolts.CalculateE2(SollBolt.Key, SollBolt.Value);
+                        CurRes.BearingP2 = _plateWithBolts.CalculateP2(SollBolt.Key, SollBolt.Value);
                     }
                     if (CurRes.BearingIsActive)
                     {
@@ -222,7 +222,7 @@ namespace GPC.Checkers.Steel.Checkers
                         CurRes.DistanceP2Min = dP2Min;
                         CurRes.DistanceP2Max = dP2Max;
 
-                        CurRes.DistanceIsOuter = _plateWithBolts.isOuuter(SollBolt.Key.Id);
+                        CurRes.DistanceIsOuter = _plateWithBolts.IsOuuter(SollBolt.Key);
 
                         double e = boltsDistancesE[SollBolt.Key];
                         if (!SollBolt.Key.Hole.IsSlotted)

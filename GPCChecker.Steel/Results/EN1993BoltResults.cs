@@ -14,6 +14,20 @@ namespace GPC.Checkers.Steel.Results
     [Serializable]
     public class EN1993BoltResults : BoltResults, ISerializable
     {
+        #region Enumerable
+
+        public enum DimensionWarningType
+        {
+            EdgeLower, // Distance to edge. Lower limit.
+            EdgeUpper, // Distance to edge. Upper limit.
+            SpacingP1Lower, // Spacing p1, in the direction of the force. Lower limit.
+            SpacingP1Upper, // Spacing p1, in the direction of the force. Upper limit.
+            SpacingP2Lower, // Spacing p2, orthogonal to the direction of the force. Lower limit.
+            SpacingP2Upper // Spacing p2, orthogonal to the direction of the force. Upper limit.
+        }
+
+        #endregion
+
         #region Properties
 
         public EN1993BoltChecker.EN1993BoltOptions eN1993BoltOptions => Options as EN1993BoltChecker.EN1993BoltOptions;
@@ -612,47 +626,159 @@ namespace GPC.Checkers.Steel.Results
             return maxRatio;
         }
 
-        public List<string> GetDistancesWarnings()
+        public List<DistanceWarning> GetDistancesWarnings()
         {
-            var warnings = new List<string>();
+            var warnings = new List<DistanceWarning>();
 
-            string boltName = $"Bolt {BoltPos.Id}, ";
             if (!DistanceE1E2MinCheck)
-                warnings.Add(boltName + $"edge distance, {DistanceE1E2} smaller than {DistanceE1E2Min}.");
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeLower, DistanceE1E2, DistanceE1E2Min, BeamForces));
 
             if (!DistanceE1E2MaxCheck)
-                warnings.Add(boltName + $"edge distance, {DistanceE1E2} bigger than {DistanceE1E2Max}.");
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeUpper, DistanceE1E2, DistanceE1E2Max, BeamForces));
 
             if (!DistanceE3E4MinCheck)
-                warnings.Add(boltName + $"edge distance, {DistanceE3E4} smaller than {DistanceE3E4Min}.");
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeLower, DistanceE3E4, DistanceE3E4Min, BeamForces));
 
             if (!DistanceE3E4MaxCheck)
-                warnings.Add(boltName + $"edge distance, {DistanceE3E4} bigger than {DistanceE3E4Max}.");
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeUpper, DistanceE3E4, DistanceE3E4Max, BeamForces));
 
             if (!DistanceP1MinCheck)
-                warnings.Add(boltName + $"spacing p1, {DistanceP1} smaller than {DistanceP1Min}.");
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP1Lower, DistanceP1, DistanceP1Min, BeamForces));
 
             if (!DistanceP1MaxCheck)
-                warnings.Add(boltName + $"spacing p1, {DistanceP1} bigger than {DistanceP1Max}.");
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP1Upper, DistanceP1, DistanceP1Max, BeamForces));
 
             if (!DistanceP2MinCheck)
-                warnings.Add(boltName + $"spacing p2, {DistanceP2} smaller than {DistanceP2Min}.");
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP2Lower, DistanceP2, DistanceP2Min, BeamForces));
 
             if (!DistanceP2MaxCheck)
-                warnings.Add(boltName + $"spacing p2, {DistanceP2} bigger than {DistanceP2Max}.");
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP2Upper, DistanceP2, DistanceP2Max, BeamForces));
 
             return warnings;
         }
 
-        public static List<string> GetDistancesWarnings(List<BoltResults> boltResults)
+        public static List<DistanceWarning> GetDistancesWarnings(List<BoltResults> boltResults)
         {
-            var warnings = new List<string>();
+            var warnings = new List<DistanceWarning>();
             List<EN1993BoltResults> boltResultsEN1993 = boltResults.Cast<EN1993BoltResults>().ToList();
 
             foreach (var boltResult in boltResultsEN1993)
                 warnings.AddRange(boltResult.GetDistancesWarnings());
 
             return warnings;
+        }
+
+        #endregion
+
+        #region Nested Class
+
+        /// <summary>
+        /// Class to record distance warnings.
+        /// </summary>
+        public class DistanceWarning : IEquatable<DistanceWarning>
+        {
+            public int BoltId { get; internal set; }
+
+            public DimensionWarningType Type { get; internal set; }
+
+            public double Distance { get; internal set; }
+
+            /// <summary>
+            /// Comparison distance, lower or upper limit.
+            /// </summary>
+            public double Limit { get; internal set; }
+
+            /// <summary>
+            /// Combination that generates the warning, useful to distinguish which one generates the maximum p1 and p2 spacing.
+            /// </summary>
+            public ResultBeamForces BeamForces { get; internal set; }
+
+            public DistanceWarning(int boltId, DimensionWarningType type, double distance, double limit, ResultBeamForces beamForces = null)
+            {
+                BoltId = boltId;
+                Type = type;
+                Distance = distance;
+                Limit = limit;
+                BeamForces = beamForces;
+            }
+
+            public override string ToString()
+            {
+                string boltName = $"Bolt {BoltId}, ";
+                string dist = Math.Round(Distance, 1).ToString();
+                switch (Type)
+                {
+                    case DimensionWarningType.EdgeLower:
+                        return $"{boltName}edge distance, {dist} smaller than {Limit}.";
+                    case DimensionWarningType.EdgeUpper:
+                        return $"{boltName}edge distance, {dist} bigger than {Limit}.";
+                    case DimensionWarningType.SpacingP1Lower:
+                        return $"{boltName}spacing p1, {dist} smaller than {Limit}, combination {BeamForces.Id}.";
+                    case DimensionWarningType.SpacingP1Upper:
+                        return $"{boltName}spacing p1, {dist} bigger than {Limit}, combination {BeamForces.Id}.";
+                    case DimensionWarningType.SpacingP2Lower:
+                        return $"{boltName}spacing p2, {dist} smaller than {Limit}, combination {BeamForces.Id}.";
+                    case DimensionWarningType.SpacingP2Upper:
+                        return $"{boltName}spacing p2, {dist} bigger than {Limit}, combination {BeamForces.Id}.";
+                    default:
+                        return "";
+                }
+            }
+
+            public double CalculateError()
+            {
+                switch (Type)
+                {
+                    case DimensionWarningType.EdgeLower:
+                    case DimensionWarningType.SpacingP1Lower:
+                    case DimensionWarningType.SpacingP2Lower:
+                        return Limit - Distance;
+                    case DimensionWarningType.EdgeUpper:
+                    case DimensionWarningType.SpacingP1Upper:
+                    case DimensionWarningType.SpacingP2Upper:
+                        return Distance - Limit;
+                    default:
+                        return 0.0;
+                }
+            }
+
+            #region Comparers
+
+            public override bool Equals(object obj)
+            {
+                return Equals(obj as DistanceWarning);
+            }
+
+            public bool Equals(DistanceWarning other)
+            {
+                return !(other is null) &&
+                       BoltId == other.BoltId &&
+                       Type == other.Type &&
+                       Distance == other.Distance &&
+                       Limit == other.Limit;
+            }
+
+            public override int GetHashCode()
+            {
+                int hashCode = -978898138;
+                hashCode = hashCode * -1521134295 + BoltId.GetHashCode();
+                hashCode = hashCode * -1521134295 + Type.GetHashCode();
+                hashCode = hashCode * -1521134295 + Distance.GetHashCode();
+                hashCode = hashCode * -1521134295 + Limit.GetHashCode();
+                return hashCode;
+            }
+
+            public static bool operator ==(DistanceWarning left, DistanceWarning right)
+            {
+                return EqualityComparer<DistanceWarning>.Default.Equals(left, right);
+            }
+
+            public static bool operator !=(DistanceWarning left, DistanceWarning right)
+            {
+                return !(left == right);
+            }
+
+            #endregion
         }
 
         #endregion
