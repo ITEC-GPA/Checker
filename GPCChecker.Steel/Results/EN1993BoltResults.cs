@@ -179,7 +179,15 @@ namespace GPC.Checkers.Steel.Results
         /// </summary>
         public bool DistanceIsOuter { get; internal set; }
 
-        public double DistanceE1E2 { get; internal set; }
+        /// <summary>
+        /// Minimum value for edge distance, maybe orthogonal or not.
+        /// </summary>
+        public double DistanceE1E2Smaller { get; internal set; }
+
+        /// <summary>
+        /// Maximum value for edge distance, always orthogonal.
+        /// </summary>
+        public double DistanceE1E2Bigger { get; internal set; }
 
         public double DistanceE3E4 { get; internal set; }
 
@@ -192,7 +200,7 @@ namespace GPC.Checkers.Steel.Results
             get
             {
                 if (DistanceIsActive && DistanceE1E2orE3E4 && !Double.IsNaN(DistanceE1E2Min) && DistanceIsOuter)
-                    return DistanceE1E2 > DistanceE1E2Min - GeometryBase.Tolerance;
+                    return DistanceE1E2Smaller > DistanceE1E2Min - GeometryBase.Tolerance;
                 else
                     return true;
             }
@@ -203,7 +211,7 @@ namespace GPC.Checkers.Steel.Results
             get
             {
                 if (DistanceIsActive && DistanceE1E2orE3E4 && !Double.IsNaN(DistanceE1E2Max) && DistanceIsOuter)
-                    return DistanceE1E2 < DistanceE1E2Max + GeometryBase.Tolerance;
+                    return DistanceE1E2Bigger < DistanceE1E2Max + GeometryBase.Tolerance;
                 else
                     return true;
             }
@@ -352,7 +360,8 @@ namespace GPC.Checkers.Steel.Results
             // Values to check.
             DistanceE1E2orE3E4 = true;
             DistanceIsOuter = true;
-            DistanceE1E2 = Double.NaN;
+            DistanceE1E2Smaller = Double.NaN;
+            DistanceE1E2Bigger = Double.NaN;
             DistanceE3E4 = Double.NaN;
             DistanceP1 = Double.NaN;
             DistanceP2 = Double.NaN;
@@ -631,10 +640,10 @@ namespace GPC.Checkers.Steel.Results
             var warnings = new List<DistanceWarning>();
 
             if (!DistanceE1E2MinCheck)
-                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeLower, DistanceE1E2, DistanceE1E2Min, BeamForces));
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeLower, DistanceE1E2Smaller, DistanceE1E2Min, BeamForces));
 
             if (!DistanceE1E2MaxCheck)
-                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeUpper, DistanceE1E2, DistanceE1E2Max, BeamForces));
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeUpper, DistanceE1E2Bigger, DistanceE1E2Max, BeamForces));
 
             if (!DistanceE3E4MinCheck)
                 warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeLower, DistanceE3E4, DistanceE3E4Min, BeamForces));

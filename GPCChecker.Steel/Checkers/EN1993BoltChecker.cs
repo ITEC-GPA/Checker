@@ -100,10 +100,19 @@ namespace GPC.Checkers.Steel.Checkers
             foreach (var boltPos in _plateWithBolts.BoltGrid.Bolts)
                 SetHoleDiameter(boltPos, OptionsEN1993.HoleShape);
 
-            // ****** Distances e for all holes, are indipendent from sollecitations.
-            var boltsDistancesE = new Dictionary<BoltPosition, double>();
+            // ****** Indipendent from sollecitations:
+            // - Distances eMin for all holes.
+            // - Distances eMax for all holes.
+            // - Inner or outer type.
+            var boltsDistancesEmax = new Dictionary<BoltPosition, double>();
+            var boltsDistancesEmin = new Dictionary<BoltPosition, double>();
+            var boltsAreOuter = new Dictionary<BoltPosition, bool>();
             foreach (var boltPos in _plateWithBolts.BoltGrid.Bolts)
-                boltsDistancesE[boltPos] = _plateWithBolts.CalculateClosestEdgePoint(boltPos).Length;
+            {
+                boltsDistancesEmin[boltPos] = _plateWithBolts.CalculateClosestEdgePoint(boltPos, out Line2d _).Length;
+                boltsDistancesEmax[boltPos] = _plateWithBolts.CalculateFurtherMinimumEdgePoint(boltPos, out Line2d _)?.Length ?? double.NaN;
+                boltsAreOuter[boltPos] = _plateWithBolts.IsOuuter(boltPos);
+            }
 
             foreach (var SolForce in _boltStresses)
             {
@@ -222,18 +231,20 @@ namespace GPC.Checkers.Steel.Checkers
                         CurRes.DistanceP2Min = dP2Min;
                         CurRes.DistanceP2Max = dP2Max;
 
-                        CurRes.DistanceIsOuter = _plateWithBolts.IsOuuter(SollBolt.Key);
+                        CurRes.DistanceIsOuter = boltsAreOuter[SollBolt.Key];
 
-                        double e = boltsDistancesE[SollBolt.Key];
+                        double eMin = boltsDistancesEmin[SollBolt.Key];
+                        double eMax = boltsDistancesEmax[SollBolt.Key];
                         if (!SollBolt.Key.Hole.IsSlotted)
                         {
                             CurRes.DistanceE1E2orE3E4 = true;
-                            CurRes.DistanceE1E2 = e;
+                            CurRes.DistanceE1E2Smaller = eMin;
+                            CurRes.DistanceE1E2Bigger = eMax;
                         }
                         else
                         {
                             CurRes.DistanceE1E2orE3E4 = false;
-                            CurRes.DistanceE3E4 = e;
+                            CurRes.DistanceE3E4 = eMin;
                         }
                         CurRes.DistanceP1 = CurRes.BearingP1;
                         CurRes.DistanceP2 = CurRes.BearingP2;
