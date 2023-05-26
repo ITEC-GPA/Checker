@@ -100,23 +100,23 @@ namespace GPC.Checkers.Steel.Checkers
             foreach (var boltPos in _plateWithBolts.BoltGrid.Bolts)
                 SetHoleDiameter(boltPos, OptionsEN1993.HoleShape);
 
-            // ****** Indipendent from sollecitations:
+            // ****** Indipendent from required forces:
             // - Distances eMin for all holes.
             // - Distances eMax for all holes.
             // - Inner or outer type.
-            var boltsDistancesEmax = new Dictionary<BoltPosition, double>();
-            var boltsDistancesEmin = new Dictionary<BoltPosition, double>();
+            var boltsDistancesEmax = new Dictionary<BoltPosition, Line2d>();
+            var boltsDistancesEmin = new Dictionary<BoltPosition, Line2d>();
             var boltsAreOuter = new Dictionary<BoltPosition, bool>();
             foreach (var boltPos in _plateWithBolts.BoltGrid.Bolts)
             {
-                boltsDistancesEmin[boltPos] = _plateWithBolts.CalculateClosestEdgePoint(boltPos, out Line2d _).Length;
-                boltsDistancesEmax[boltPos] = _plateWithBolts.CalculateFurtherMinimumEdgePoint(boltPos, out Line2d _)?.Length ?? double.NaN;
+                boltsDistancesEmin[boltPos] = _plateWithBolts.CalculateClosestEdgePoint(boltPos, out Line2d _);
+                boltsDistancesEmax[boltPos] = _plateWithBolts.CalculateFurtherMinimumEdgePoint(boltPos, out Line2d _);
                 boltsAreOuter[boltPos] = _plateWithBolts.IsOuuter(boltPos);
             }
 
             foreach (var SolForce in _boltStresses)
             {
-                // ****** Sollecitation/Stress.
+                // ****** Required forces.
                 // Reduce the forces according to the number of cutting planes.
                 var ReducedForces = SolForce.ResBeamForces / OptionsEN1993.NumShearPlane;
                 // Calculate all shear forces for each bolt.
@@ -148,12 +148,16 @@ namespace GPC.Checkers.Steel.Checkers
                     }
 
                     // ****** Bearing. ******
+                    Line2d p1Line = null;
+                    Line2d p2Line = null;
                     if (CurRes.BearingIsActive || CurRes.DistanceIsActive)
                     {
+                        p1Line = _plateWithBolts.CalculateP1Line(SollBolt.Key, SollBolt.Value);
+                        p2Line = _plateWithBolts.CalculateP2Line(SollBolt.Key, SollBolt.Value);
                         CurRes.BearingE1 = _plateWithBolts.CalculateE1(SollBolt.Key, SollBolt.Value);
-                        CurRes.BearingP1 = _plateWithBolts.CalculateP1(SollBolt.Key, SollBolt.Value);
+                        CurRes.BearingP1 = p1Line?.Length ?? PlateWithBolts.SPACINGMAXVALUE;
                         CurRes.BearingE2 = _plateWithBolts.CalculateE2(SollBolt.Key, SollBolt.Value);
-                        CurRes.BearingP2 = _plateWithBolts.CalculateP2(SollBolt.Key, SollBolt.Value);
+                        CurRes.BearingP2 = p2Line?.Length ?? PlateWithBolts.SPACINGMAXVALUE;
                     }
                     if (CurRes.BearingIsActive)
                     {
@@ -233,21 +237,21 @@ namespace GPC.Checkers.Steel.Checkers
 
                         CurRes.DistanceIsOuter = boltsAreOuter[SollBolt.Key];
 
-                        double eMin = boltsDistancesEmin[SollBolt.Key];
-                        double eMax = boltsDistancesEmax[SollBolt.Key];
+                        var eMin = boltsDistancesEmin[SollBolt.Key];
+                        var eMax = boltsDistancesEmax[SollBolt.Key];
                         if (!SollBolt.Key.Hole.IsSlotted)
                         {
                             CurRes.DistanceE1E2orE3E4 = true;
-                            CurRes.DistanceE1E2Smaller = eMin;
-                            CurRes.DistanceE1E2Bigger = eMax;
+                            CurRes.DistanceE1E2SmallerLine = eMin;
+                            CurRes.DistanceE1E2BiggerLine = eMax;
                         }
                         else
                         {
                             CurRes.DistanceE1E2orE3E4 = false;
-                            CurRes.DistanceE3E4 = eMin;
+                            CurRes.DistanceE3E4Line = eMin;
                         }
-                        CurRes.DistanceP1 = CurRes.BearingP1;
-                        CurRes.DistanceP2 = CurRes.BearingP2;
+                        CurRes.DistanceP1Line = p1Line;
+                        CurRes.DistanceP2Line = p2Line;
                     }
 
                     // ****** Save to the results table. ******

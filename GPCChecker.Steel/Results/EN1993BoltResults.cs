@@ -35,13 +35,13 @@ namespace GPC.Checkers.Steel.Results
         public BoltStresses.CombCaseType SollCombCase { get; internal set; }
 
         /// <summary>
-        /// External shear sollecitation.
+        /// Required shear force.
         /// </summary>
         public double SollShear { get; internal set; }
         public bool SollShearIsNull => SollShear < 1;
 
         /// <summary>
-        /// External tension sollecitation.
+        /// Required tension force.
         /// </summary>
         public double SollTension { get; internal set; }
         public bool SollTensionIsNull => SollTension < 1;
@@ -182,24 +182,29 @@ namespace GPC.Checkers.Steel.Results
         /// <summary>
         /// Minimum value for edge distance, maybe orthogonal or not.
         /// </summary>
-        public double DistanceE1E2Smaller { get; internal set; }
+        public Line2d DistanceE1E2SmallerLine { get; internal set; }
+        public double DistanceE1E2Smaller => DistanceE1E2SmallerLine?.Length ?? PlateWithBolts.SPACINGMAXVALUE;
 
         /// <summary>
         /// Maximum value for edge distance, always orthogonal.
         /// </summary>
-        public double DistanceE1E2Bigger { get; internal set; }
+        public Line2d DistanceE1E2BiggerLine { get; internal set; }
+        public double DistanceE1E2Bigger => DistanceE1E2BiggerLine?.Length ?? PlateWithBolts.SPACINGMAXVALUE;
 
-        public double DistanceE3E4 { get; internal set; }
+        public Line2d DistanceE3E4Line { get; internal set; }
+        public double DistanceE3E4 => DistanceE3E4Line?.Length ?? PlateWithBolts.SPACINGMAXVALUE;
 
-        public double DistanceP1 { get; internal set; }
+        public Line2d DistanceP1Line { get; internal set; }
+        public double DistanceP1 => DistanceP1Line?.Length ?? PlateWithBolts.SPACINGMAXVALUE;
 
-        public double DistanceP2 { get; internal set; }
+        public Line2d DistanceP2Line { get; internal set; }
+        public double DistanceP2 => DistanceP2Line?.Length ?? PlateWithBolts.SPACINGMAXVALUE;
 
         public bool DistanceE1E2MinCheck
         {
             get
             {
-                if (DistanceIsActive && DistanceE1E2orE3E4 && !Double.IsNaN(DistanceE1E2Min) && DistanceIsOuter)
+                if (DistanceIsActive && DistanceE1E2orE3E4 && !double.IsNaN(DistanceE1E2Min) && DistanceIsOuter)
                     return DistanceE1E2Smaller > DistanceE1E2Min - GeometryBase.Tolerance;
                 else
                     return true;
@@ -210,7 +215,7 @@ namespace GPC.Checkers.Steel.Results
         {
             get
             {
-                if (DistanceIsActive && DistanceE1E2orE3E4 && !Double.IsNaN(DistanceE1E2Max) && DistanceIsOuter)
+                if (DistanceIsActive && DistanceE1E2orE3E4 && !double.IsNaN(DistanceE1E2Max) && DistanceIsOuter)
                     return DistanceE1E2Bigger < DistanceE1E2Max + GeometryBase.Tolerance;
                 else
                     return true;
@@ -221,7 +226,7 @@ namespace GPC.Checkers.Steel.Results
         {
             get
             {
-                if (DistanceIsActive && !DistanceE1E2orE3E4 && !Double.IsNaN(DistanceE3E4Min) && DistanceIsOuter)
+                if (DistanceIsActive && !DistanceE1E2orE3E4 && !double.IsNaN(DistanceE3E4Min) && DistanceIsOuter)
                     return DistanceE3E4 > DistanceE3E4Min - GeometryBase.Tolerance;
                 else
                     return true;
@@ -232,7 +237,7 @@ namespace GPC.Checkers.Steel.Results
         {
             get
             {
-                if (DistanceIsActive && !DistanceE1E2orE3E4 && !Double.IsNaN(DistanceE3E4Max) && DistanceIsOuter)
+                if (DistanceIsActive && !DistanceE1E2orE3E4 && !double.IsNaN(DistanceE3E4Max) && DistanceIsOuter)
                     return DistanceE3E4 < DistanceE3E4Max + GeometryBase.Tolerance;
                 else
                     return true;
@@ -243,7 +248,7 @@ namespace GPC.Checkers.Steel.Results
         {
             get
             {
-                if (DistanceIsActive && !Double.IsNaN(DistanceP1Min) && DistanceP1 != double.MaxValue)
+                if (DistanceIsActive && !double.IsNaN(DistanceP1Min) && DistanceP1 != PlateWithBolts.SPACINGMAXVALUE)
                     return DistanceP1 > DistanceP1Min - GeometryBase.Tolerance;
                 else
                     return true;
@@ -254,7 +259,7 @@ namespace GPC.Checkers.Steel.Results
         {
             get
             {
-                if (DistanceIsActive && !Double.IsNaN(DistanceP1Max) && DistanceP1 != double.MaxValue)
+                if (DistanceIsActive && !double.IsNaN(DistanceP1Max) && DistanceP1 != PlateWithBolts.SPACINGMAXVALUE)
                     return DistanceP1 < DistanceP1Max + GeometryBase.Tolerance;
                 else
                     return true;
@@ -265,7 +270,7 @@ namespace GPC.Checkers.Steel.Results
         {
             get
             {
-                if (DistanceIsActive && !Double.IsNaN(DistanceP2Min) && DistanceP2 != double.MaxValue)
+                if (DistanceIsActive && !double.IsNaN(DistanceP2Min) && DistanceP2 != PlateWithBolts.SPACINGMAXVALUE)
                     return DistanceP2 > DistanceP2Min - GeometryBase.Tolerance;
                 else
                     return true;
@@ -276,7 +281,7 @@ namespace GPC.Checkers.Steel.Results
         {
             get
             {
-                if (DistanceIsActive && !Double.IsNaN(DistanceP2Max) && DistanceP2 != double.MaxValue)
+                if (DistanceIsActive && !double.IsNaN(DistanceP2Max) && DistanceP2 != PlateWithBolts.SPACINGMAXVALUE)
                     return DistanceP2 < DistanceP2Max + GeometryBase.Tolerance;
                 else
                     return true;
@@ -360,11 +365,11 @@ namespace GPC.Checkers.Steel.Results
             // Values to check.
             DistanceE1E2orE3E4 = true;
             DistanceIsOuter = true;
-            DistanceE1E2Smaller = Double.NaN;
-            DistanceE1E2Bigger = Double.NaN;
-            DistanceE3E4 = Double.NaN;
-            DistanceP1 = Double.NaN;
-            DistanceP2 = Double.NaN;
+            DistanceE1E2SmallerLine = null;
+            DistanceE1E2BiggerLine = null;
+            DistanceE3E4Line = null;
+            DistanceP1Line = null;
+            DistanceP2Line = null;
         }
 
         #endregion
@@ -471,7 +476,7 @@ namespace GPC.Checkers.Steel.Results
             EN1993BoltResults maxResult = new EN1993BoltResults(null, new LoadCase("Envelope", Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight), null,
                 (StandardEN1993p11)boltResultsEN1993[0].Standard, (EN1993BoltChecker.EN1993BoltOptions)boltResultsEN1993[0].Options)
             {
-                // Max sollecitations.
+                // Max required forces.
                 SollShear = boltResultsEN1993.Max(br => br.SollShear),
                 SollTension = boltResultsEN1993.Max(br => br.SollTension)
             };
@@ -640,28 +645,28 @@ namespace GPC.Checkers.Steel.Results
             var warnings = new List<DistanceWarning>();
 
             if (!DistanceE1E2MinCheck)
-                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeLower, DistanceE1E2Smaller, DistanceE1E2Min, BeamForces));
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeLower, DistanceE1E2SmallerLine, DistanceE1E2Min, BeamForces));
 
             if (!DistanceE1E2MaxCheck)
-                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeUpper, DistanceE1E2Bigger, DistanceE1E2Max, BeamForces));
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeUpper, DistanceE1E2BiggerLine, DistanceE1E2Max, BeamForces));
 
             if (!DistanceE3E4MinCheck)
-                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeLower, DistanceE3E4, DistanceE3E4Min, BeamForces));
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeLower, DistanceE3E4Line, DistanceE3E4Min, BeamForces));
 
             if (!DistanceE3E4MaxCheck)
-                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeUpper, DistanceE3E4, DistanceE3E4Max, BeamForces));
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.EdgeUpper, DistanceE3E4Line, DistanceE3E4Max, BeamForces));
 
             if (!DistanceP1MinCheck)
-                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP1Lower, DistanceP1, DistanceP1Min, BeamForces));
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP1Lower, DistanceP1Line, DistanceP1Min, BeamForces));
 
             if (!DistanceP1MaxCheck)
-                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP1Upper, DistanceP1, DistanceP1Max, BeamForces));
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP1Upper, DistanceP1Line, DistanceP1Max, BeamForces));
 
             if (!DistanceP2MinCheck)
-                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP2Lower, DistanceP2, DistanceP2Min, BeamForces));
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP2Lower, DistanceP2Line, DistanceP2Min, BeamForces));
 
             if (!DistanceP2MaxCheck)
-                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP2Upper, DistanceP2, DistanceP2Max, BeamForces));
+                warnings.Add(new DistanceWarning(BoltPos.Id, DimensionWarningType.SpacingP2Upper, DistanceP2Line, DistanceP2Max, BeamForces));
 
             return warnings;
         }
@@ -690,7 +695,12 @@ namespace GPC.Checkers.Steel.Results
 
             public DimensionWarningType Type { get; internal set; }
 
-            public double Distance { get; internal set; }
+            /// <summary>
+            /// From center to edge or other bolt.
+            /// </summary>
+            public Line2d DistanceLine { get; internal set; }
+
+            public double Distance => DistanceLine?.Length ?? PlateWithBolts.SPACINGMAXVALUE;
 
             /// <summary>
             /// Comparison distance, lower or upper limit.
@@ -702,11 +712,11 @@ namespace GPC.Checkers.Steel.Results
             /// </summary>
             public ResultBeamForces BeamForces { get; internal set; }
 
-            public DistanceWarning(int boltId, DimensionWarningType type, double distance, double limit, ResultBeamForces beamForces = null)
+            public DistanceWarning(int boltId, DimensionWarningType type, Line2d distanceLine, double limit, ResultBeamForces beamForces = null)
             {
                 BoltId = boltId;
                 Type = type;
-                Distance = distance;
+                DistanceLine = distanceLine;
                 Limit = limit;
                 BeamForces = beamForces;
             }
@@ -763,7 +773,7 @@ namespace GPC.Checkers.Steel.Results
                 return !(other is null) &&
                        BoltId == other.BoltId &&
                        Type == other.Type &&
-                       Distance == other.Distance &&
+                       DistanceLine == other.DistanceLine &&
                        Limit == other.Limit;
             }
 
@@ -772,7 +782,7 @@ namespace GPC.Checkers.Steel.Results
                 int hashCode = -978898138;
                 hashCode = hashCode * -1521134295 + BoltId.GetHashCode();
                 hashCode = hashCode * -1521134295 + Type.GetHashCode();
-                hashCode = hashCode * -1521134295 + Distance.GetHashCode();
+                hashCode = hashCode * -1521134295 + DistanceLine.GetHashCode();
                 hashCode = hashCode * -1521134295 + Limit.GetHashCode();
                 return hashCode;
             }
