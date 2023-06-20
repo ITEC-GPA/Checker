@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="GPCGeometry" Version="2.0.0.3" />
+    <PackageReference Include="GPCModel" Version="1.0.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="GPCGeometry">
       <HintPath>..\..\gpc-geometry\GPCGeometry\bin\Debug\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
