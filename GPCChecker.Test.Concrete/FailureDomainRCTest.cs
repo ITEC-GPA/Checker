@@ -1002,7 +1002,7 @@ namespace ConcreteTests
 
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 			ConcreteSectionCHS section = new ConcreteSectionCHS(diameterExternal, thickness, ConcreteMaterialEN1992Data.C25_30);
-			section.AddRadialRebars(concreteCover, numberOfRebars, rebar);
+			section.AddRadialRebars(diameterExternal, concreteCover, numberOfRebars, rebar);
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 

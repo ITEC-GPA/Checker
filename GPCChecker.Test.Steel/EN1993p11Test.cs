@@ -109,7 +109,7 @@ namespace SteelTests
 
             double L = 1000;
 
-            SteelSectionRHS sectionRHS = new SteelSectionRHS(400, 200, 8, 8, 15, 15, SteelMaterialEN1993Data.S355, string.Empty);
+            var sectionRHS = new SteelSection(new SectionRHS(400, 200, 8, 8, 15, 15, SteelMaterialEN1993Data.S355, string.Empty));
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(100 * 1e3, 50 * 1e3, 50 * 1e3, 0, -100 * 1e6, 100 * 1e6, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -241,7 +241,7 @@ namespace SteelTests
 
 
 
-            SteelSectionRHS section = new SteelSectionRHS(400, 200, 8, 8, 15, 15, SteelMaterialEN1993Data.S355, "");
+            var section = new SteelSection(new SectionRHS(400, 200, 8, 8, 15, 15, SteelMaterialEN1993Data.S355, ""));
 
             double L = 1000;
             double? psiX = 0.5;
@@ -296,7 +296,7 @@ namespace SteelTests
             double b = 300;
             double t = 12.5;
 
-            SteelSectionRHS section355 = new SteelSectionRHS(h, b, t, t, t, t, new SteelMaterial("S355", 210000, 355, 510), string.Empty);
+            var section355 = new SteelSection(new SectionRHS(h, b, t, t, t, t, new SteelMaterial("S355", 210000, 355, 510), string.Empty));
 
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] {
                 new ResultBeamForces(-1500e3, 0, 0, 0, 0, 0, CoordinateSystem.Global),
@@ -338,7 +338,7 @@ namespace SteelTests
             double b = 250;
             double t = 10;
 
-            SteelSectionRHS section355 = new SteelSectionRHS(h, b, t, t, t, t, SteelMaterialEN1993Data.S355, string.Empty);
+            var section355 = new SteelSection(new SectionRHS(h, b, t, t, t, t, SteelMaterialEN1993Data.S355, string.Empty));
 
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] {
                 new ResultBeamForces(-1300e3, 0, 0, 0, 0, 0, CoordinateSystem.Global),
@@ -459,8 +459,8 @@ namespace SteelTests
             double webThickness = 8.0;
             double r = 7.6;
 
-            var sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275,
+                string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-400 * 1000, 0, 0, 0, 32.36 * 1e6, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -503,8 +503,8 @@ namespace SteelTests
             double webThickness = 7.1;
             double r = 15.0;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S355,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S355,
+                string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 0, 0, 64.4 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -542,8 +542,8 @@ namespace SteelTests
             double webThickness = 7.1;
             double r = 15.0;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S355,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S355,
+                string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 0, 0, 66.0 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -581,8 +581,8 @@ namespace SteelTests
             double webThickness = 10.0;
             double r = 16.0;
 
-            SteelSectionC sectionC = new SteelSectionC(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S355,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionC = new SteelSection(new SectionC(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S355,
+                string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 0, 0, 64.40 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -623,8 +623,8 @@ namespace SteelTests
             double webThickness = 7.1;
             double r = 15.0;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S235,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S235,
+                string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-380*1000, 0, 0, 0, 120 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -660,8 +660,7 @@ namespace SteelTests
             double webThickness = 7.1;
             double r = 15.0;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S235,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S235, string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-190.0 * 1000, 0, 0, 0, 78.0 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -699,8 +698,7 @@ namespace SteelTests
             double webThickness = 7.5;
             double r = 24.0;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S235,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S235, string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-400.0 * 1000, 0, 0, 0, 71.0 * 1000000, 30 * 1000000, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -736,8 +734,7 @@ namespace SteelTests
             double webThickness = 7.2;
             double r = 7.6;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275, string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-380 * 1000, 0, 0, 0, 120 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -772,8 +769,7 @@ namespace SteelTests
             double webThickness = 7.9;
             double r = 8.9;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275, string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-380 * 1000, 0, 0, 0, 120 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -806,8 +802,7 @@ namespace SteelTests
             double webThickness = 7.2;
             double r = 7.6;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275, string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-380 * 1000, 0, 0, 0, 120 * 1000000, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -841,8 +836,7 @@ namespace SteelTests
             double webThickness = 7.2;
             double r = 7.6;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275, string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 90000, 0, 0, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -877,8 +871,7 @@ namespace SteelTests
             double webThickness = 5.7;
             double r = 7.6;
 
-            SteelSectionH sectionH = new SteelSectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275,
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, r);
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, SteelMaterialEN1993Data.S275, string.Empty, r), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 100000, 0, 0, 0, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -989,7 +982,7 @@ namespace SteelTests
             0.977       0.902       1.016       1.005       1.004       0.918       0.917
              */
 
-            SteelSectionH section = new SteelSectionH(400, 12, 200, 10, 300, 25, SteelMaterialEN1993Data.S355, string.Empty);
+            var section = new SteelSection(new SectionH(400, 12, 200, 10, 300, 25, SteelMaterialEN1993Data.S355, string.Empty));
 
             double L = 12000;
             double? psiX = 0.5;
@@ -1115,7 +1108,7 @@ namespace SteelTests
             0.977       0.902       1.016       1.005       1.004       0.918       0.917
              */
 
-            SteelSectionH section = new SteelSectionH(300, 25, 300, 25, 150, 25, SteelMaterialEN1993Data.S355, string.Empty);
+            var section = new SteelSection(new SectionH(300, 25, 300, 25, 150, 25, SteelMaterialEN1993Data.S355, string.Empty));
 
             double L = 12000;
             double? psiX = 0.5;
@@ -1156,8 +1149,8 @@ namespace SteelTests
         [TestMethod]
         public void SectionHClasstification1()
         {
-            SteelSectionH section275 = new SteelSectionH(270, 8.0, 280, 13.0, 280, 13.0, SteelMaterialEN1993Data.S420, 
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, 24);
+            var section275 = new SteelSection(new SectionH(270, 8.0, 280, 13.0, 280, 13.0, SteelMaterialEN1993Data.S420, 
+                string.Empty, 24), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
 
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] {
                 new ResultBeamForces(-1000e3, 0, 0, 0, 0, 0, CoordinateSystem.Global),
@@ -1182,8 +1175,8 @@ namespace SteelTests
         [TestMethod]
         public void SectionHClasstification2()
         {
-            SteelSectionH section275 = new SteelSectionH(550,11.1,210, 17.2, 210, 17.2, SteelMaterialEN1993Data.S275, 
-                string.Empty, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished, 24);
+            var section275 = new SteelSection(new SectionH(550,11.1,210, 17.2, 210, 17.2, SteelMaterialEN1993Data.S275, 
+                string.Empty, 24), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
 
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] {
                 new ResultBeamForces(-1000e3, 0, 0, 0, 0, 0, CoordinateSystem.Global),
@@ -1297,7 +1290,7 @@ namespace SteelTests
             double thickness = 10;
             double? psiz = 0.5;
 
-            SteelSectionCHS circularSect = new SteelSectionCHS(diameter, thickness, SteelMaterialEN1993Data.S355, string.Empty);
+            var circularSect = new SteelSection(new SectionCHS(diameter, thickness, SteelMaterialEN1993Data.S355, string.Empty));
 
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { 
                 new ResultBeamForces(100 * 1000, 50 * 1000, 50 * 1000, 0, -100 * 1e6, 100 * 1e6, CoordinateSystem.Global) };
@@ -1348,8 +1341,8 @@ namespace SteelTests
             double psix = 0.5;
             double psiy = 0.5;
 
-            SteelSectionCHS section = new SteelSectionCHS(diameter, thickness, SteelMaterialEN1993Data.S355,
-                string.Empty, Section.FormedTypes.HotFinished);
+            var section = new SteelSection(new SectionCHS(diameter, thickness, SteelMaterialEN1993Data.S355,
+                string.Empty), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-100 * 1000, 50 * 1000, 50 * 1000, 0, -100 * 1e6, 100 * 1e6, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -1382,10 +1375,10 @@ namespace SteelTests
             double diameter = 1219;
             double thickness = 25;
 
-            SteelSectionCHS section235 = new SteelSectionCHS(diameter, thickness, new SteelMaterial("S235", 210000, 235, 360), string.Empty, Section.FormedTypes.HotFinished);
-            SteelSectionCHS section275 = new SteelSectionCHS(diameter, thickness, new SteelMaterial("S275", 210000, 275, 430), string.Empty, Section.FormedTypes.HotFinished);
-            SteelSectionCHS section355 = new SteelSectionCHS(diameter, thickness, new SteelMaterial("S355", 210000, 355, 510), string.Empty, Section.FormedTypes.HotFinished);
-            SteelSectionCHS section460 = new SteelSectionCHS(diameter, thickness, new SteelMaterial("S460", 210000, 440, 550), string.Empty, Section.FormedTypes.HotFinished);
+            var section235 = new SteelSection(new SectionCHS(diameter, thickness, new SteelMaterial("S235", 210000, 235, 360), string.Empty), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
+            var section275 = new SteelSection(new SectionCHS(diameter, thickness, new SteelMaterial("S275", 210000, 275, 430), string.Empty), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
+            var section355 = new SteelSection(new SectionCHS(diameter, thickness, new SteelMaterial("S355", 210000, 355, 510), string.Empty), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
+            var section460 = new SteelSection(new SectionCHS(diameter, thickness, new SteelMaterial("S460", 210000, 440, 550), string.Empty), Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
 
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { 
                 new ResultBeamForces(-10, 0, 0, 0, 0, 0, CoordinateSystem.Global),
@@ -1507,7 +1500,7 @@ namespace SteelTests
              */
 
 
-            SteelSectionC section = new SteelSectionC(400, 15, 200, 25, 200, 25, SteelMaterialEN1993Data.S355, "");
+            var section = new SteelSection(new SectionC(400, 15, 200, 25, 200, 25, SteelMaterialEN1993Data.S355, ""));
 
             double L = 1000;
             double? psiX = 0.5;
@@ -1637,7 +1630,7 @@ namespace SteelTests
                1.       0.895          1.       1.001        0.54       0.676       1.112
              */
 
-            SteelSectionT section = new SteelSectionT(400, 200, 40, 50, SteelMaterialEN1993Data.S355, "");
+            var section = new SteelSection(new SectionT(400, 200, 40, 50, SteelMaterialEN1993Data.S355, ""));
 
             double L = 1000;
             double? psiX = 0.5;
@@ -1763,7 +1756,7 @@ namespace SteelTests
             0.978       0.907        1.02       1.158       0.775       0.591       1.011
              */
 
-            SteelSectionT section = new SteelSectionT(400, 200, 45, 50, SteelMaterialEN1993Data.S355, string.Empty);
+            var section = new SteelSection(new SectionT(400, 200, 45, 50, SteelMaterialEN1993Data.S355, string.Empty));
 
             double L = 12000;
             double? psiX = 0.5;
@@ -1898,7 +1891,7 @@ namespace SteelTests
             0.895       0.895          1.       0.895       0.895       0.895       0.895
              */
 
-            SteelSectionL section = new SteelSectionL(350, 80, 350, 40, SteelMaterialEN1993Data.S355, string.Empty);
+            var section = new SteelSection(new SectionL(350, 80, 350, 40, SteelMaterialEN1993Data.S355, string.Empty));
 
             double L = 1000;
             double? psiX = 0.5;

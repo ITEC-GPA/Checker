@@ -731,10 +731,10 @@ namespace GPC.Checkers.Steel.Checkers
                 }
             }
 
-            else if (section is SectionC _ || section is SectionT _)
+            else if (section.SectionShape is SectionC _ || section.SectionShape is SectionT _)
                 return EN1993p11Options.AxialBuckingCurves.c;
 
-            else if (section is SectionL _)
+            else if (section.SectionShape is SectionL _)
                 return EN1993p11Options.AxialBuckingCurves.b;
 
             else
@@ -823,10 +823,10 @@ namespace GPC.Checkers.Steel.Checkers
                 }
             }
 
-            else if (section is SectionC _ || section is SectionT _)
+            else if (section.SectionShape is SectionC _ || section.SectionShape is SectionT _)
                 return EN1993p11Options.AxialBuckingCurves.c;
 
-            else if (section is SectionL _ )
+            else if (section.SectionShape is SectionL _ )
                 return EN1993p11Options.AxialBuckingCurves.b;
 
             else
@@ -2343,7 +2343,7 @@ namespace GPC.Checkers.Steel.Checkers
                     return SetWorstClass(sectionClass1Axis, sectionClass2Axis);
                 }
 
-                else if (section is SectionCHS sectionCHS)
+                else if (section.SectionShape is SectionCHS sectionCHS)
                 {
                     return GetClassCHSBending(sectionCHS.Diameter, sectionCHS.Thickness);
                 }
@@ -2413,7 +2413,7 @@ namespace GPC.Checkers.Steel.Checkers
                         GetClassCompressedInnerPlate(sectionH.D, sectionH.ThicknessWeb)});
                 }
 
-                else if (section is SectionCHS sectionCHS)
+                else if (section.SectionShape is SectionCHS sectionCHS)
                 {
                     return GetClassCHSBending(sectionCHS.Diameter, sectionCHS.Thickness);
                 }

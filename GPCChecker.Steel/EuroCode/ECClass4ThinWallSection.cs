@@ -38,7 +38,7 @@
 //        public ECClass4ThinWallSection(ISteelSection section, ResultBeamForces forces)
 //            : base(section.SteelMaterial, section.Name)
 //        {
-//            _section = (Section)section;
+//            _section = section;
 //            _forces = forces;
 
 //            if (section.SectionShape is SectionH sectionH)
