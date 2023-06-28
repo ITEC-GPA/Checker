@@ -50,7 +50,6 @@ namespace ConcreteTests
 				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -61,7 +60,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(concreteCover, height - concreteCover, 0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			return section;
@@ -77,7 +76,6 @@ namespace ConcreteTests
 				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -92,7 +90,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(concreteCover, height / 2.0, 0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			return section;
@@ -108,7 +106,6 @@ namespace ConcreteTests
 				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[2 * numberOfRebars];
@@ -120,7 +117,7 @@ namespace ConcreteTests
 					new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), height - concreteCover));
 			}
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			return section;
@@ -136,7 +133,6 @@ namespace ConcreteTests
 				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebarTop = new RebarSectionCircular(topRebarDiameter, rebarMaterial);
 			RebarSectionCircular rebarBottom = new RebarSectionCircular(bottomRebarDiameter, rebarMaterial);
 
@@ -149,7 +145,7 @@ namespace ConcreteTests
 				rebars.Add(new ReinforcedConcreteRebar(rebarTop,
 					new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (topNumberOfRebars - 1), height - concreteCover)));
 			
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			return section;
@@ -165,7 +161,6 @@ namespace ConcreteTests
 				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
 			List<ReinforcedConcreteRebar> rebars = new List<ReinforcedConcreteRebar>();
@@ -186,7 +181,7 @@ namespace ConcreteTests
 					(numberOfRebarsTopBottomSide - 1))));
 			}
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			return section;
@@ -202,7 +197,6 @@ namespace ConcreteTests
 				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
 			Shape2d shape = GetRectangularShape(width, height);
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[numberOfRebars];
@@ -210,7 +204,7 @@ namespace ConcreteTests
 			for (int j = 0; j < numberOfRebars; j++)			
 				rebars[j] = new ReinforcedConcreteRebar(rebar, new Point2d(concreteCover + j * (width - 2.0 * concreteCover) / (numberOfRebars - 1), concreteCover));
 			
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			return section;
@@ -227,7 +221,6 @@ namespace ConcreteTests
 
 			Shape2d shape = new Shape2d(new Polygon2d(diameter, discretization));
 
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, rebarMaterial);
 
 			Polygon2d rebarPerimeter = new Polygon2d(diameter - concreteCover * 2, numberOfRebars);
@@ -236,7 +229,7 @@ namespace ConcreteTests
 			for (int j = 0; j < rebarPerimeter.Count; j++)			
 				rebars[j] = new ReinforcedConcreteRebar(rebar, rebarPerimeter[j]);			
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			return section;
@@ -263,8 +256,7 @@ namespace ConcreteTests
 
 			Shape2d shape = new Shape2d(fill);
 
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
-			return new ReinforcedConcreteSection(shapeEx);
+			return new ReinforcedConcreteSection(shape, concreteMaterial);
 		}
 
 		protected ReinforcedConcreteSection GetBridgeShapeWithHole(double topWidth = 5000, double height = 3000, double bottomWidth = 3500,
@@ -296,8 +288,7 @@ namespace ConcreteTests
 
 			Shape2d shape = new Shape2d(fill, new Polygon2d[] { hole });
 
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
-			return new ReinforcedConcreteSection(shapeEx);
+			return new ReinforcedConcreteSection(shape, concreteMaterial);
 		}
 
 		protected ReinforcedConcreteSection GetBridgeSection(double topWidth = 5000, double height = 3000, double bottomWidth = 3500,
@@ -315,7 +306,7 @@ namespace ConcreteTests
 			if (rebarMaterial == null)
 				rebarMaterial = SteelMaterialEN1992Data.B450C;
 
-			ReinforcedConcreteSection section = GetBridgeShapeWithHole(topWidth, height, bottomWidth, topThickness, webThickness, bottomThickness, concreteMaterial);
+			var section = GetBridgeShapeWithHole(topWidth, height, bottomWidth, topThickness, webThickness, bottomThickness, concreteMaterial);
 
 			List<ReinforcedConcreteRebar> rebars = new List<ReinforcedConcreteRebar>();
 
@@ -429,7 +420,7 @@ namespace ConcreteTests
 
 
 			Shape2d shape2D = new Shape2d(fill, new Polygon2d[] { hole });
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(new ShapeEx(shape2D, concreteMaterial));
+			var section = new ReinforcedConcreteSection(shape2D, concreteMaterial);
 
 			Polygon2d polygon = new Polygon2d(externalDiameter - concreteCover * 2.0, numberOfRebars, section.Centroid);
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[polygon.Count];

@@ -79,7 +79,6 @@ namespace ConcreteTests
 
 			// \\studio\Software_Development\FilesForTesting\Libs\GPCChecker\ConcreteSolver\Test_2 
 			Shape2d shape = GetRectangularShape(300, 500);
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C45_55);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -93,7 +92,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C45_55);
 			section.AddRebars(rebars);
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
@@ -150,7 +149,6 @@ namespace ConcreteTests
 
 			// sezione rettangolare 300x500
 			Shape2d shape = GetRectangularShape(300, 500);
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C45_55);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -169,7 +167,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C45_55);
 			section.AddRebars(rebars);
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
@@ -227,7 +225,6 @@ namespace ConcreteTests
 			// sezione rettangolare 300x500            
 			Shape2d shape = GetRectangularShape(300, 500);
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -254,7 +251,8 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 430, 0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
+				new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			section.AddRebars(rebars);
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
@@ -343,13 +341,13 @@ namespace ConcreteTests
 		{
 			// sezione rettangolare 300x500
 			Shape2d shape = GetRectangularShape(300, 500);
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
+				new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			section.AddRebars(rebars);
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
@@ -368,7 +366,6 @@ namespace ConcreteTests
 
 			// sezione rettangolare 300x500
 			Shape2d shape = GetRectangularShape(300, 500);
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -380,7 +377,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
 			section.AddRebars(rebars);
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
@@ -436,7 +433,6 @@ namespace ConcreteTests
 			double rebarDiameter = 16;
 
 			Shape2d shape = GetRectangularShape(300, 300);
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -448,7 +444,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
 			section.AddRebars(rebars);
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
@@ -508,7 +504,6 @@ namespace ConcreteTests
 
 			// sezione rettangolare 300x500
 			Shape2d shape = GetRectangularShape(300, 300);
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -525,7 +520,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
 			section.AddRebars(rebars);
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
@@ -550,7 +545,6 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(300, 300);
 
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -567,7 +561,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
 			section.AddRebars(rebars);
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
@@ -584,7 +578,6 @@ namespace ConcreteTests
 			double rebarDiameter = 16;
 
 			Shape2d shape = GetRectangularShape(300, 300);
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -595,7 +588,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
 			section.AddRebars(rebars);
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
@@ -623,7 +616,6 @@ namespace ConcreteTests
 			double rebarDiameter = 16;
 
 			Shape2d shape = GetRectangularShape(300, 300);
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -634,7 +626,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250, -50, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
 			section.AddRebars(rebars);
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
@@ -649,7 +641,6 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(400, 400);
 
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -672,7 +663,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(500, 500, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
 			section.AddRebars(rebars);
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
@@ -716,7 +707,6 @@ namespace ConcreteTests
 			double width = 400;
 
 			Shape2d shape = GetRectangularShape(width, height);
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C45_55);
 			RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter16, SteelMaterialEN1992Data.B450C);
 			RebarSectionCircular rebarSection26 = new RebarSectionCircular(rebarDiameter26, SteelMaterialEN1992Data.B450C);
 
@@ -733,7 +723,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebarSection26, new Point3d(350, 50, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C45_55);
 			section.AddRebars(rebars);
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
@@ -942,7 +932,7 @@ namespace ConcreteTests
 			};
 
 
-			ConcreteSectionCircular section = new ConcreteSectionCircular(sectionDiameter, ConcreteMaterialEN1992Data.C45_55);
+			var section = new ReinforcedConcreteSection(new SectionCircular(sectionDiameter, ConcreteMaterialEN1992Data.C45_55));
 			section.AddRebars(rebars);
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardEN1992p11());
 
@@ -1001,7 +991,7 @@ namespace ConcreteTests
 			int numberOfRebars = 32;
 
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
-			ConcreteSectionCHS section = new ConcreteSectionCHS(diameterExternal, thickness, ConcreteMaterialEN1992Data.C25_30);
+			var section = new ReinforcedConcreteSection(new SectionCHS(diameterExternal, thickness, ConcreteMaterialEN1992Data.C25_30));
 			section.AddRadialRebars(diameterExternal, concreteCover, numberOfRebars, rebar);
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
@@ -1063,8 +1053,8 @@ namespace ConcreteTests
 
 			Polygon2d rebarPoligon = new Polygon2d((externalDiameter + internalDiameter) / 2.0);
 
-			ShapeEx shapeEx = new ShapeEx(fill, ConcreteMaterialModelCode2010Data.C45_55, new Polygon2d[] { hole });
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var shape2d = new Shape2d(fill, new Polygon2d[] { hole });
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape2d, ConcreteMaterialModelCode2010Data.C45_55);
 
 			RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
@@ -1096,7 +1086,6 @@ namespace ConcreteTests
 				new Point2d(0, 500)
 			}));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -1115,7 +1104,8 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(350, 950, 0))
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
+				new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
 			section.AddRebars(rebars);
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());

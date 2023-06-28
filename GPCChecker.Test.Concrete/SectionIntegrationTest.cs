@@ -30,10 +30,9 @@ namespace ConcreteTests
 				new Point2d(0, 500) }));
 
 			ConcreteMaterial concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] { };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
@@ -43,7 +42,7 @@ namespace ConcreteTests
 
 			ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
 
-			ForceTuple expForceTuple = new ForceTuple(shapeEx.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
+			ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
 			ForceTuple expForceTupleNumerics = new ForceTuple(-2500000, 0, 0);
 
 			Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) < 1);
@@ -67,10 +66,11 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
+			var shape2d = new Shape2d(shape);
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] { };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
+				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
@@ -80,7 +80,7 @@ namespace ConcreteTests
 
 			ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
 
-			ForceTuple expForceTuple = new ForceTuple(shapeEx.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
+			ForceTuple expForceTuple = new ForceTuple(shape2d.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
 			ForceTuple expForceTupleNumerics = new ForceTuple(-2500000, 0, 0);
 
 			Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) < 1);
@@ -105,10 +105,10 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] { };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
+				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
@@ -118,7 +118,7 @@ namespace ConcreteTests
 
 			ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
 
-			ForceTuple expForceTuple = new ForceTuple(shapeEx.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
+			ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
 			ForceTuple expForceTupleNumerics = new ForceTuple(-1250000, 0, 0);
 
 			Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) < 1);
@@ -143,10 +143,10 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] { };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
+				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
 			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
@@ -156,7 +156,7 @@ namespace ConcreteTests
 
 			ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
 
-			ForceTuple expForceTuple = new ForceTuple(shapeEx.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
+			ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
 			ForceTuple expForceTupleNumerics = new ForceTuple(0, 0, 0);
 
 			Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) < 1);
@@ -181,10 +181,10 @@ namespace ConcreteTests
 				new Point2d(300, 500),
 				new Point2d(0, 500) }));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] { };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
+				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.StressBlock));
 			section.AddRebars(rebars);
 			StandardEN1992p11 standard = new StandardEN1992p11();
 
@@ -194,7 +194,7 @@ namespace ConcreteTests
 
 			ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
 
-			ForceTuple expForceTuple = new ForceTuple(shapeEx.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
+			ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
 			ForceTuple expForceTupleNumerics = new ForceTuple(0, 0, 0);
 
 			Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) < 1);
@@ -335,7 +335,6 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(width, height);
 
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
 			RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter10, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -349,7 +348,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebarSection16, new Point3d(350,350,0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
 			section.AddRebars(rebars);
 
 			SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
@@ -467,7 +466,6 @@ namespace ConcreteTests
 			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
 			Shape2d shape = GetRectangularShape(width, height);
 
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter10, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -481,7 +479,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebarSection16, new Point3d(300,50,0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 			SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
 
@@ -506,7 +504,6 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(300, 500);
 
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
 			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterialEN1992Data.Y1860C);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
@@ -519,7 +516,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebarP, new Point3d(150, 100, 0), 1400),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
 			section.AddRebars(rebars);
 			SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
 

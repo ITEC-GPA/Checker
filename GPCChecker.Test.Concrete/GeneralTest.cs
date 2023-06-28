@@ -7,6 +7,7 @@ using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
 using GPC.Model.Results;
+using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
@@ -31,8 +32,8 @@ namespace ConcreteTests
 		{
 			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
 
-			ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300,
-				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
+			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300,
+				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear)));
 
 			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
@@ -57,7 +58,7 @@ namespace ConcreteTests
 		public void AsyncTest2()
 		{
 			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
-			ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30);
+			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30));
 			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
 			ResultBeamForces force = new ResultBeamForces(-100 * 1000, 20, 30, 40, 3 * 1000000, 2 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular));
@@ -79,7 +80,7 @@ namespace ConcreteTests
 		public void AsyncTest3()
 		{
 			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
-			ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30);
+			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30));
 			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
 			ResultBeamForces force = new ResultBeamForces(-100 * 1000, 20, 30, 40, 3 * 1000000, 2 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular));
@@ -179,9 +180,9 @@ namespace ConcreteTests
 
 				if (s.Equals(oggettoDeserializzato))
 				{
-					if (s.ConcreteMaterial != oggettoDeserializzato.ConcreteMaterial ||
+                    if (s.ConcreteMaterial != oggettoDeserializzato.ConcreteMaterial ||
 						s.ConcreteMaterialModelCode2010 != oggettoDeserializzato.ConcreteMaterialModelCode2010 ||
-						s.ConcreteSection.Shape != oggettoDeserializzato.ConcreteSection.Shape ||
+                        !s.ConcreteSection.SectionShape.Equals(oggettoDeserializzato.ConcreteSection.SectionShape) ||
 						s.ConsiderTensileConcrete != oggettoDeserializzato.ConsiderTensileConcrete)
 						check = false;
 					for (int i = 0; i < s.ConcreteSection.Rebars.Count(); i++)
@@ -210,7 +211,7 @@ namespace ConcreteTests
 		public void GenericTest1()
 		{
 			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
-			ConcreteSectionRectangular concreteSectionRectangular = new ConcreteSectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30);
+			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30));
 			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
 			ResultBeamForces force = new ResultBeamForces(-100 * 1000, 20, 30, 40, 3 * 1000000, 2 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular));
