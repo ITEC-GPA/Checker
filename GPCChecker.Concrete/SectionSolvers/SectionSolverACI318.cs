@@ -166,15 +166,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 			double fc = 0;
 
 			if (ConcreteMaterial is ConcreteMaterialACI318)
-				fc = ConcreteMaterialACI318.Fc;
+				fc = Math.Abs(ConcreteMaterialACI318.Fc);
 			else if (ConcreteMaterial is ConcreteMaterialEuropeanCommon ec)
-				fc = ec.Fck;
+				fc = Math.Abs(ec.Fck);
 
 			if (_haveSpiral)
-				limit = StandardACI318.PhiMaximumCompressiveAxialLoadSpiral * (StandardACI318.ConcreteStrengthReductionFactor * fc *
+				limit = - StandardACI318.PhiMaximumCompressiveAxialLoadSpiral * (StandardACI318.ConcreteStrengthReductionFactor * fc *
 					(ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
 			else
-				limit = StandardACI318.PhiMaximumCompressiveAxialLoadTied * (StandardACI318.ConcreteStrengthReductionFactor * fc *
+				limit = - StandardACI318.PhiMaximumCompressiveAxialLoadTied * (StandardACI318.ConcreteStrengthReductionFactor * fc *
 					(ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
 
 			return limit;
