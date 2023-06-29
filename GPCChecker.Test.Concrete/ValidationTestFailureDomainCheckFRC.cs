@@ -638,9 +638,9 @@ namespace ConcreteTests
         private StandardModelCode2010 GetConcribeStandard()
 		{
             StandardModelCode2010 standardModelCode2010 = new StandardModelCode2010();
-            standardModelCode2010.SetGammaF(1.0);
-            standardModelCode2010.SetAlphaCC(0.85);
-            standardModelCode2010.SetAlphaCT(0.85);
+            standardModelCode2010.GammaF = 1.0;
+            standardModelCode2010.AlphaCC = 0.85;
+            standardModelCode2010.AlphaCT = 0.85;
             return standardModelCode2010;
 
         }

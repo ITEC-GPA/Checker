@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="GPCGeometry" Version="2.0.0.3" />
-    <PackageReference Include="GPCModel" Version="1.0.1.2" />
     <PackageReference Include="GPCUtilities" Version="2.0.0.1" />
   </ItemGroup>
 
