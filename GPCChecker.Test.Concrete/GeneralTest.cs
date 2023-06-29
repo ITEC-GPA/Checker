@@ -32,8 +32,8 @@ namespace ConcreteTests
 		{
 			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
 
-			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300,
-				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear)));
+			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300),
+				new ConcreteMaterialEN1992("", 25, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.Bilinear));
 
 			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
@@ -58,7 +58,7 @@ namespace ConcreteTests
 		public void AsyncTest2()
 		{
 			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
-			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30));
+			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300), ConcreteMaterialEN1992Data.C25_30);
 			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
 			ResultBeamForces force = new ResultBeamForces(-100 * 1000, 20, 30, 40, 3 * 1000000, 2 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular));
@@ -80,7 +80,7 @@ namespace ConcreteTests
 		public void AsyncTest3()
 		{
 			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
-			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30));
+			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300), ConcreteMaterialEN1992Data.C25_30);
 			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
 
 			ResultBeamForces force = new ResultBeamForces(-100 * 1000, 20, 30, 40, 3 * 1000000, 2 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular));
@@ -211,25 +211,20 @@ namespace ConcreteTests
 		public void GenericTest1()
 		{
 			RebarSectionCircular rebarPhi20 = new RebarSectionCircular(20, SteelMaterialEN1992Data.B450C);
-			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300, ConcreteMaterialEN1992Data.C25_30));
+			var concreteSectionRectangular = new ReinforcedConcreteSection(new SectionRectangular(500, 300), ConcreteMaterialEN1992Data.C25_30);
 			concreteSectionRectangular.AddRebar(new ReinforcedConcreteRebar(rebarPhi20, new Point3d(50, 50, 0)));
-
-			ResultBeamForces force = new ResultBeamForces(-100 * 1000, 20, 30, 40, 3 * 1000000, 2 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular));
-
-			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = null;
-			sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
-			Assert.IsNotNull(sectionOptions);
+            _ = new ResultBeamForces(-100 * 1000, 20, 30, 40, 3 * 1000000, 2 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular));
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
+            Assert.IsNotNull(sectionOptions);
 
 			sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular));
 			Assert.IsNotNull(sectionOptions);
 
 			sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
 			Assert.IsNotNull(sectionOptions);
+            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular);
 
-			SectionCheckerAttribute sectionCheckerAttribute = null;
-			sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular);
-
-			SectionCheckerModelCode2010 sectionChecker = null;
+            SectionCheckerModelCode2010 sectionChecker = null;
 			SectionCheckerModelCode2010 sectionChecker2 = null;
 			SectionCheckerModelCode2010 sectionChecker3 = null;
 

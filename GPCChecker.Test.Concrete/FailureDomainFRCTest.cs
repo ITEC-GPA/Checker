@@ -310,7 +310,7 @@ namespace ConcreteTests
 			ConcreteMaterialModelCode2010 concreteMaterial = new ConcreteMaterialModelCode2010("", 30, ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.ParabolaRectangle,
 				1.55, 1.80, 0.00195, 0.01, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC);
 
-			var section = new ReinforcedConcreteSection(new SectionRectangular(height, width, concreteMaterial));
+			var section = new ReinforcedConcreteSection(new SectionRectangular(height, width), concreteMaterial);
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
@@ -332,7 +332,7 @@ namespace ConcreteTests
 			double height = 400;
 			double width = 400;
 
-			var section = new ReinforcedConcreteSection(new SectionRectangular(width, height, ConcreteMaterialModelCode2010Data.C30_37_5));
+			var section = new ReinforcedConcreteSection(new SectionRectangular(width, height), ConcreteMaterialModelCode2010Data.C30_37_5);
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
@@ -371,31 +371,31 @@ namespace ConcreteTests
 			ConcreteMaterialModelCode2010 mat1_4 = new ConcreteMaterialModelCode2010("UHPC 107_4", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_4, ConcreteMaterial.ConcreteTypes.FRC);
 			ConcreteMaterialModelCode2010 mat1_5 = new ConcreteMaterialModelCode2010("UHPC 107_4", -0.002378, 0.000089, UHCP1SSTComp, UHCP1SSTTens_5, ConcreteMaterial.ConcreteTypes.FRC);
 
-			var section1 = new ReinforcedConcreteSection(new SectionRectangular(width, height, mat1_1));
+			var section1 = new ReinforcedConcreteSection(new SectionRectangular(width, height), mat1_1);
 			SectionCheckerAttribute sectionCheckerAttribute1 = new SectionCheckerAttribute(section1, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions1 =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section1));
 			SectionCheckerModelCode2010 sectionChecker1 = new SectionCheckerModelCode2010(sectionCheckerAttribute1, sectionOptions1, new StandardModelCode2010(), true);
 
-			var section2 = new ReinforcedConcreteSection(new SectionRectangular(width, height, mat1_2));
+			var section2 = new ReinforcedConcreteSection(new SectionRectangular(width, height), mat1_2);
 			SectionCheckerAttribute sectionCheckerAttribute2 = new SectionCheckerAttribute(section2, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions2 =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section2));
 			SectionCheckerModelCode2010 sectionChecker2 = new SectionCheckerModelCode2010(sectionCheckerAttribute2, sectionOptions2, new StandardModelCode2010(), true);
 
-			var section3 = new ReinforcedConcreteSection(new SectionRectangular(width, height, mat1_3));
+			var section3 = new ReinforcedConcreteSection(new SectionRectangular(width, height), mat1_3);
 			SectionCheckerAttribute sectionCheckerAttribute3 = new SectionCheckerAttribute(section3, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions3 =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section3));
 			SectionCheckerModelCode2010 sectionChecker3 = new SectionCheckerModelCode2010(sectionCheckerAttribute3, sectionOptions3, new StandardModelCode2010(), true);
 
-			var section4 = new ReinforcedConcreteSection(new SectionRectangular(width, height, mat1_4));
+			var section4 = new ReinforcedConcreteSection(new SectionRectangular(width, height), mat1_4);
 			SectionCheckerAttribute sectionCheckerAttribute4 = new SectionCheckerAttribute(section4, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions4 =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section4));
 			SectionCheckerModelCode2010 sectionChecker4 = new SectionCheckerModelCode2010(sectionCheckerAttribute4, sectionOptions4, new StandardModelCode2010(), true);
 
-			var section5 = new ReinforcedConcreteSection(new SectionRectangular(width, height, mat1_5));
+			var section5 = new ReinforcedConcreteSection(new SectionRectangular(width, height), mat1_5);
 			SectionCheckerAttribute sectionCheckerAttribute5 = new SectionCheckerAttribute(section5, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions5 =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section4));
@@ -518,7 +518,7 @@ namespace ConcreteTests
 			double height = 400;
 			double width = 400;
 
-			var section = new ReinforcedConcreteSection(new SectionRectangular(width, height, ConcreteMaterialModelCode2010Data.C30_37_25));
+			var section = new ReinforcedConcreteSection(new SectionRectangular(width, height), ConcreteMaterialModelCode2010Data.C30_37_25);
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));

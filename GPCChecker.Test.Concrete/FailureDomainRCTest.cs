@@ -447,14 +447,13 @@ namespace ConcreteTests
 
 			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
 			section.AddRebars(rebars);
+            _ = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(-150, -150),
+                Vector2d.XAxis, Vector2d.YAxis)));
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(-150, -150),
-				Vector2d.XAxis, Vector2d.YAxis)));
+            //FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
 
-			//FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
-
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
 				-393.257	-39.3257	0			0
 				-393.257	-39.3257	0			0
@@ -495,7 +494,7 @@ namespace ConcreteTests
 				-393.257	-39.3257	0			0
 				-393.257	-39.3257	0			0
 			*/
-		}
+        }
 
 		[TestMethod]
 		[TestCategory("Force not in centroid")]
@@ -951,7 +950,7 @@ namespace ConcreteTests
 			};
 
 
-			var section = new ReinforcedConcreteSection(new SectionCircular(sectionDiameter, ConcreteMaterialEN1992Data.C45_55));
+			var section = new ReinforcedConcreteSection(new SectionCircular(sectionDiameter), ConcreteMaterialEN1992Data.C45_55);
 			section.AddRebars(rebars);
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardEN1992p11());
 
@@ -1010,7 +1009,7 @@ namespace ConcreteTests
 			int numberOfRebars = 32;
 
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
-			var section = new ReinforcedConcreteSection(new SectionCHS(diameterExternal, thickness, ConcreteMaterialEN1992Data.C25_30));
+			var section = new ReinforcedConcreteSection(new SectionCHS(diameterExternal, thickness), ConcreteMaterialEN1992Data.C25_30);
 			section.AddRadialRebars(diameterExternal, concreteCover, numberOfRebars, rebar);
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
