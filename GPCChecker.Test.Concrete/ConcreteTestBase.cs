@@ -1632,12 +1632,12 @@ namespace ConcreteTests
 
 			internal ForceTuple CalculateSectionForceResultant(StrainPlane strainPlane)
 			{
-				return base.CalculateForceResultantForDomain(strainPlane, GetRebarIsInsideAssociation());
+				return base.CalculateForceResultantForDomain(strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
 			}
 
 			internal ForceTuple CalculateLinearSectionForceResultant(double psi, double? psiTendon, StrainPlane strainPlane)
 			{
-				return base.CalculateForceResultant(psi, psiTendon, strainPlane, GetRebarIsInsideAssociation());
+				return base.CalculateForceResultant(psi, psiTendon, strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
 			}
 
 			internal double CalculateSigmaConcrete(double strain)
@@ -1682,12 +1682,12 @@ namespace ConcreteTests
 
 			internal ForceTuple CalculateSectionForceResultantForTension(StrainPlane strainPlane)
 			{
-				return base.CalculateForceResultantForTension(strainPlane, GetRebarIsInsideAssociation());
+				return base.CalculateForceResultantForTension(strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
 			}
 
 			internal ForceTuple CalculateLinearSectionForceResultant(double psi, double? psiTendon, StrainPlane strainPlane)
 			{
-				return base.CalculateForceResultant(psi, psiTendon, strainPlane, GetRebarIsInsideAssociation());
+				return base.CalculateForceResultant(psi, psiTendon, strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
 			}
 
 			internal double CalculateSigmaConcrete(double strain)

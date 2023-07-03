@@ -1,15 +1,18 @@
-﻿using GPC.Checkers.Concrete.Results;
+﻿using GPC.Checker.Helper;
+using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
 using GPC.Model;
 using GPC.Model.Materials;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
+[assembly: InternalsVisibleTo("GPCChecker.Test.Concrete")]
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
-	[Serializable]
+    [Serializable]
 	public class SectionSolverACI318 : SectionSolver, ISerializable
 	{
 		protected bool _haveSpiral;
@@ -182,8 +185,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#region Failure domain limit points
 
-		protected override (double epsilon, Point2d point, double distanceFromBaricentre) GetP3((double teta, int dMinRebarId, double dminRebar,
-			int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
+		protected override DeformationFieldsPoint GetP3(DistancesTuple distances,
 			FailureDomainTypes analysisType)
 		{
 			switch (analysisType)

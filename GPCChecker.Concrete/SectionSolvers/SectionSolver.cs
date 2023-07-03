@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using GPC.Checker.Helper;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
@@ -17,7 +18,9 @@ using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 using GPC.Utilities.Extensions;
 using MathNet.Numerics.LinearAlgebra;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("GPCChecker.Test.Concrete")]
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
     [Serializable]
@@ -787,10 +790,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 				return rebar.RebarMaterial.ElasticModulusTension * (1 + psi) * strain + rebar.RebarMaterial.ElasticModulusTension * rebar.EpsilonP;
 		}
 
-		#endregion
+        #endregion
 
-		internal virtual (double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar, int dMinVertexIndex,
-            double dminConcrete, int dMaxVertexIndex, double dmaxConcrete)
+        /// <summary>
+        /// Calculates the distances of concrete vertices, reinforcing bars, and steel profiles from the concrete center of gravity.
+        /// </summary>
+        /// <param name="teta">Angle of the line with respect to which to calculate distances, counterclockwise angle with zero in x-positive.</param>
+        /// <returns></returns>
+        internal virtual DistancesTuple
             CalculateMaxMinSectionDistances(double teta)
         {
             double cosTeta = Math.Cos(teta);
@@ -802,11 +809,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 			double dmaxRebarRatio = double.MinValue;
             double dmaxConcrete = double.MinValue;
             double dminConcrete = double.MaxValue;
+            double dmaxStructuralSteel = double.MinValue;
+            double dminStructuralSteel = double.MaxValue;
 
             int dMinRebarId = -1;
             int dMaxRebarId = -1;
             int dMaxVertexIndex = -1;
             int dMinVertexIndex = -1;
+            int dMaxSteelVertexIndex = -1;
+            int dMinSteelVertexIndex = -1;
 
             var rebars = ConcreteSection.GetRebars();
 
@@ -832,7 +843,33 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             }
 
-            //TODO: implementare con armature lineari
+            if (ConcreteSection.SteelSections != null)
+            {
+                foreach (var steelSection in ConcreteSection.SteelSections)
+                {
+                    var shapePointContainer = steelSection.Section.Shape.Fill;
+
+                    for (int c = 0; c < shapePointContainer.Count; c++)
+                    {
+                        var shapePointInGlobal = steelSection.PositionToGlobal(shapePointContainer[c]);
+
+                        double w1 = (shapePointInGlobal.Y - ConcreteSection.Centroid.Y) * cosTeta -
+                            (shapePointInGlobal.X - ConcreteSection.Centroid.X) * sinTeta;
+
+                        if (w1 >= dmaxStructuralSteel)
+                        {
+                            dMaxSteelVertexIndex = c;
+                            dmaxStructuralSteel = w1;
+                        }
+
+                        if (w1 <= dminStructuralSteel)
+                        {
+                            dMinSteelVertexIndex = c;
+                            dminStructuralSteel = w1;
+                        }
+                    }
+                }
+            }
 
             for (int c = 0; c < ConcreteSection.Shape.Fill.Count; c++)
             {
@@ -852,7 +889,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             }
 
-            return (teta, dMinRebarId, dminRebar, dMaxRebarId, dmaxRebar, dMinVertexIndex, dminConcrete, dMaxVertexIndex, dmaxConcrete);
+            return new DistancesTuple(teta, dMinRebarId, dminRebar, dMaxRebarId, dmaxRebar, dMinVertexIndex, dminConcrete, dMaxVertexIndex, dmaxConcrete,
+                dMinSteelVertexIndex, dminStructuralSteel, dMaxSteelVertexIndex, dmaxStructuralSteel);
         }
 
         protected virtual ForceTuple ConvertToAdimensionalForces(ForceTuple forceTuple)
@@ -866,29 +904,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 forceTuple.My / (b * b * h * Math.Abs(GetFck())));
         }
 
-        protected Dictionary<int, bool> GetRebarIsInsideAssociation()
-        {
-            Dictionary<int, bool> kvp = new Dictionary<int, bool>();
-
-            ReinforcedConcreteRebar[] rebars = ConcreteSection.GetRebars();
-
-            for (int i = 0; i < rebars.Length; i++)
-            {
-                if (ConcreteSection.Shape.IsPointInside(rebars[i].Position))
-                    kvp.Add(i, true);
-                else
-                    kvp.Add(i, false);
-            }
-
-            return kvp;
-        }
-
         #endregion
 
         #region Failure domain limit points
 
-        protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP1((double teta, int dMinRebarId, double dminRebar,
-            int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
+        /// <summary>
+        /// Calculate P1 point.
+        /// Rotation point of deformations in the most tensioned bar (minor distance) with the deformation at the point.
+        /// </summary>
+        /// <param name="distances"></param>
+        /// <param name="analysisType"></param>
+        /// <param name="failureZone"></param>
+        /// <returns></returns>
+        protected virtual DeformationFieldsPoint GetP1(DistancesTuple distances,
             FailureDomainTypes analysisType, FailureZones failureZone)
         {
             switch (_concreteSection.ConcreteMaterial.ConcreteType)
@@ -936,8 +964,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
-        protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP2((double teta, int dMinRebarId, double dminRebar,
-            int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
+        /// <summary>
+        /// Calculate P2 point.
+        /// Rotation point of deformations in the most compressed concrete fiber (major distance) with the deformation at the point.
+        /// </summary>
+        /// <param name="distances"></param>
+        /// <param name="analysisType"></param>
+        /// <returns></returns>
+        protected virtual DeformationFieldsPoint GetP2(DistancesTuple distances,
             FailureDomainTypes analysisType)
         {
             switch (_concreteSection.ConcreteMaterial.ConcreteType)
@@ -979,9 +1013,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
-
-        protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP3((double teta, int dMinRebarId, double dminRebar,
-            int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
+        /// <summary>
+        /// Calculate P3 point.
+        /// Intersection of pure compressive strain and maximum compressed edge.
+        /// Rotation point.
+        /// </summary>
+        /// <param name="distances"></param>
+        /// <param name="analysisType"></param>
+        /// <returns></returns>
+        protected virtual DeformationFieldsPoint GetP3(DistancesTuple distances,
             FailureDomainTypes analysisType)
         {
             switch (analysisType)
@@ -1004,8 +1044,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
-        protected virtual (double epsilon, Point2d point, double distanceFromBaricentre) GetP4((double teta, int dMinRebarId, double dminRebar,
-            int dMaxRebarId, double dmaxRebar, int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete) distances,
+        /// <summary>
+        /// Point with yield stress in the bottom bar, useful for identifying the domain point with theoretically the
+        /// maximum resistant moment as the steel is working at maximum tension and the compressed concrete area is maximum.
+        /// It is not a rotation point but a transition point.
+        /// </summary>
+        /// <param name="distances"></param>
+        /// <param name="analysisType"></param>
+        /// <returns></returns>
+        protected virtual DeformationFieldsPoint GetP4(DistancesTuple distances,
             FailureDomainTypes analysisType)
         {
             switch (_concreteSection.ConcreteMaterial.ConcreteType)
@@ -1062,7 +1109,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             FailureDomainTypes failureDomainType)
         {
             FailureDomain.FailureDomainPoint[][] domainPoints = new FailureDomain.FailureDomainPoint[strainPlanes.Length][];
-            Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
+            var rebarIsInsideAssociation = ConcreteSection.GetRebarIsInsideAssociation();
 
             try
             {
@@ -1205,8 +1252,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <remarks>Param distances can be calculated with CalculateMaxMinSectionDistances method</remarks>
         /// <exception cref="ArgumentException"></exception>
         protected virtual StrainPlane CalculateStrainPlane(double teta, FailureZones failureIndex, double immersioneNelCampo,
-            (double epsilon, Point2d point, double distanceFromBaricentre) p1, (double epsilon, Point2d point, double distanceFromBaricentre) p2,
-            (double epsilon, Point2d point, double distanceFromBaricentre) p3, (double epsilon, Point2d point, double distanceFromBaricentre) p4, int id = -1)
+            DeformationFieldsPoint p1, DeformationFieldsPoint p2,
+            DeformationFieldsPoint p3, DeformationFieldsPoint p4, int id = -1)
         {
             if (immersioneNelCampo > 1.0 || immersioneNelCampo < 0.0)
                 throw new ArgumentException("ImmersioneNelCampo cannot be greater than 1 and less than 0");
@@ -1351,7 +1398,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     break;
             }
 
-            Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
+            var rebarIsInsideAssociation = ConcreteSection.GetRebarIsInsideAssociation();
 
             ForceTuple adimOutputForces = ConvertToAdimensionalForces(targetLocalForces);
 
@@ -2271,7 +2318,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         private StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple localForces, CoordinateSystem coordinateSystem, double? psiRebars, double? psiTendon, double tolerance = 1e-5)
         {
-            Dictionary<int, bool> rebarIsInsideAssociation = GetRebarIsInsideAssociation();
+            var rebarIsInsideAssociation = ConcreteSection.GetRebarIsInsideAssociation();
             ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
 
             // Valori di primo tentativo

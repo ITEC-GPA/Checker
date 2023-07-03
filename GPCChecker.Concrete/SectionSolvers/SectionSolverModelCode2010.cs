@@ -4,8 +4,10 @@ using GPC.Model.Materials;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
+[assembly: InternalsVisibleTo("GPCChecker.Test.Concrete")]
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
 	[Serializable]
