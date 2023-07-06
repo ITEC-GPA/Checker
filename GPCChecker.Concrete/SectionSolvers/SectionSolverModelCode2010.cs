@@ -1,7 +1,9 @@
 ﻿using GPC.Checkers.Concrete.Results;
 using GPC.Model;
+using GPC.Model.Elements;
 using GPC.Model.Materials;
 using GPC.Model.Sections.Concrete;
+using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;
 using System.Runtime.CompilerServices;
@@ -90,9 +92,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		protected override double GetDesignUltimateStrainRebar(int rebarID)
 		{
 			return CalculateDesignUltimateStrainRebar(ConcreteSection.GetRebarById(rebarID).RebarMaterial);
-		}
+        }
 
-		protected override double GetUltimateStrainConcreteCompression()
+        protected override double GetDesignYieldingStrainStructuralSteel(ISteelSection steelSection)
+        {
+            return CalculateDesignYieldingStrainStructuralSteel(steelSection.SteelMaterial);
+        }
+
+        protected override double GetDesignUltimateStrainStructuralSteel(ISteelSection steelSection)
+        {
+            return CalculateDesignUltimateStrainStructuralSteel(steelSection.SteelMaterial);
+        }
+
+        protected override double GetUltimateStrainConcreteCompression()
 		{
 			return ConcreteMaterial.StrainUCompression;
 		}
@@ -221,13 +233,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		protected double CalculateDesignUltimateStrainRebar(SteelMaterial material)
 		{
 			return material.CalculateDesignUltimateStrain(StandardModelCode2010);
-		}
+        }
 
-		#endregion
+        protected double CalculateDesignYieldingStrainStructuralSteel(SteelMaterial material)
+        {
+            return material.CalculateDesignYieldingStrainTension(StandardModelCode2010);
+        }
 
-		#region Equals, hashcode, operators
+        protected double CalculateDesignUltimateStrainStructuralSteel(SteelMaterial material)
+        {
+            return material.CalculateDesignUltimateStrain(StandardModelCode2010);
+        }
 
-		public override bool Equals(object obj)
+        #endregion
+
+        #region Equals, hashcode, operators
+
+        public override bool Equals(object obj)
 		{
 			return base.Equals(obj);
 		}
@@ -242,6 +264,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 			base.GetObjectData(info, context);
 		}
 
-		#endregion
-	}
+        #endregion
+    }
 }
