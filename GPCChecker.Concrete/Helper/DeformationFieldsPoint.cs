@@ -32,22 +32,5 @@ namespace GPC.Checker.Helper
             hashCode = hashCode * -1521134295 + distanceFromBaricentre.GetHashCode();
             return hashCode;
         }
-
-        public void Deconstruct(out double epsilon, out Point2d point, out double distanceFromBaricentre)
-        {
-            epsilon = this.epsilon;
-            point = this.point;
-            distanceFromBaricentre = this.distanceFromBaricentre;
-        }
-
-        public static implicit operator (double epsilon, Point2d point, double distanceFromBaricentre)(DeformationFieldsPoint value)
-        {
-            return (value.epsilon, value.point, value.distanceFromBaricentre);
-        }
-
-        public static implicit operator DeformationFieldsPoint((double epsilon, Point2d point, double distanceFromBaricentre) value)
-        {
-            return new DeformationFieldsPoint(value.epsilon, value.point, value.distanceFromBaricentre);
-        }
     }
 }

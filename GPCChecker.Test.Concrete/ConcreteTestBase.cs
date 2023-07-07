@@ -7,6 +7,7 @@ using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
+using GPC.Model.Elements;
 using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections;
@@ -1002,7 +1003,7 @@ namespace ConcreteTests
 			CoordinateSystem coordinateSystem, double adimTolerance = 0.005, double[] factor = null, bool considerTensioleConcrete = true,
 			SectionSolver.FailureAnalysisTypes failureAnalysisTypes = SectionSolver.FailureAnalysisTypes.ConstantEccentricity)
 		{
-			var outPut = CommonAssertDomainPointMethodFRCMod(section, force, standard, coordinateSystem, adimTolerance, factor, considerTensioleConcrete, failureAnalysisTypes);
+			var _ = CommonAssertDomainPointMethodFRCMod(section, force, standard, coordinateSystem, adimTolerance, factor, considerTensioleConcrete, failureAnalysisTypes);
 		}
 
 		protected void ShowDomainPoints(FailureDomain failureDomain)
@@ -1099,9 +1100,16 @@ namespace ConcreteTests
 				pureTractionMomentX += rebar.Area * rebar.RebarMaterial.Fyk / standard.GammaS * (rebar.Position.Y - section.Centroid.Y);
 				pureTractionMomentY += rebar.Area * rebar.RebarMaterial.Fyk / standard.GammaS * (rebar.Position.X - section.Centroid.X);
 			}
+			foreach (var steelSection in section.SteelSections)
+			{
+				var steelMatFyd = steelSection.Section.SteelMaterial.Fyk / standard.GammaS;
+                pureTractionAxialForce += steelSection.Section.Area * steelMatFyd;
+                pureTractionMomentX += steelSection.Section.Area * steelMatFyd * (steelSection.Section.Centroid.Y - section.Centroid.Y);
+                pureTractionMomentY += steelSection.Section.Area * steelMatFyd * (steelSection.Section.Centroid.X - section.Centroid.X);
+            }
 
-			if (Math.Abs(NRdMax.Z) > 1 && Math.Abs(pureTractionAxialForce) > 1)
-				Assert.IsTrue(Math.Abs((Math.Abs(NRdMax.Z) - Math.Abs(pureTractionAxialForce)) / NRdMax.Z) * 100 < errorPercentage);
+            if (Math.Abs(NRdMax.Z) > 1 && Math.Abs(pureTractionAxialForce) > 1)
+                Assert.IsTrue(Math.Abs((Math.Abs(NRdMax.Z) - Math.Abs(pureTractionAxialForce)) / NRdMax.Z) * 100 < errorPercentage);
 
 			if (Math.Abs(NRdMax.X) > 1 && Math.Abs(pureTractionMomentX) > 1)
 				Assert.IsTrue(Math.Abs((Math.Abs(NRdMax.X) - Math.Abs(pureTractionMomentX)) / NRdMax.X) * 100 < errorPercentage &&
@@ -1119,7 +1127,7 @@ namespace ConcreteTests
 			}
 		}
 
-		protected bool CommonAssertsVCA(StressAnalysisResult result, IConcreteSection section, (Point2d rebar, double tension)[] concreteTensionsCalculate,
+		protected bool CommonAssertsVCA(StressAnalysisResult result, IConcreteSection _, (Point2d rebar, double tension)[] concreteTensionsCalculate,
 			(ReinforcedConcreteRebar rebar, double tension)[] rebarTensionsCalculate, double tolerance = 0.05)
 		{
 			(Point2d point, double tension)[] concreteTensions = result.GetConcreteVerticesTension();

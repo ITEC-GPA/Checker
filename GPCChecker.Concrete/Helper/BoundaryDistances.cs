@@ -1,6 +1,6 @@
 ﻿namespace GPC.Checker.Helper
 {
-    public struct DistancesTuple
+    internal struct BoundaryDistances
     {
         public double teta;
         // Rebars
@@ -21,7 +21,7 @@
         public int dMaxStrucSteelVertexIndex; // section vertex
         public double dmaxStrucSteel;
 
-        public DistancesTuple(double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar,
+        public BoundaryDistances(double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar,
             int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete,
             int dminStrucSteelSectionID, int dMinStrucSteelVertexIndex, double dminStrucSteel,
             int dmaxStrucSteelSectionID, int dMaxStrucSteelVertexIndex, double dmaxStrucSteel)
@@ -45,7 +45,7 @@
 
         public override bool Equals(object obj)
         {
-            return obj is DistancesTuple other &&
+            return obj is BoundaryDistances other &&
                    teta == other.teta &&
                    dMinRebarId == other.dMinRebarId &&
                    dminRebar == other.dminRebar &&
@@ -82,51 +82,6 @@
             hashCode = hashCode * -1521134295 + dMaxStrucSteelVertexIndex.GetHashCode();
             hashCode = hashCode * -1521134295 + dmaxStrucSteel.GetHashCode();
             return hashCode;
-        }
-
-        public void Deconstruct(out double teta, out int dMinRebarId, out double dminRebar, out int dMaxRebarId, out double dmaxRebar,
-            out int dMinVertexIndex, out double dminConcrete, out int dMaxVertexIndex, out double dmaxConcrete,
-            out int dminStrucSteelSectionID, out int dMinStrucSteelVertexIndex, out double dminStrucSteel,
-            out int dmaxStrucSteelSectionID, out int dMaxStrucSteelVertexIndex, out double dmaxStrucSteel)
-        {
-            teta = this.teta;
-            dMinRebarId = this.dMinRebarId;
-            dminRebar = this.dminRebar;
-            dMaxRebarId = this.dMaxRebarId;
-            dmaxRebar = this.dmaxRebar;
-            dMinVertexIndex = this.dMinVertexIndex;
-            dminConcrete = this.dminConcrete;
-            dMaxVertexIndex = this.dMaxVertexIndex;
-            dmaxConcrete = this.dmaxConcrete;
-            dminStrucSteelSectionID = this.dminStrucSteelSectionID;
-            dMinStrucSteelVertexIndex = this.dMinStrucSteelVertexIndex;
-            dminStrucSteel = this.dminStrucSteel;
-            dmaxStrucSteelSectionID = this.dmaxStrucSteelSectionID;
-            dMaxStrucSteelVertexIndex = this.dMaxStrucSteelVertexIndex;
-            dmaxStrucSteel = this.dmaxStrucSteel;
-        }
-
-        public static implicit operator (double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar,
-            int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete,
-            int dminStrucSteelSectionID, int dMinStrucSteelVertexIndex, double dminStrucSteel,
-            int dmaxStrucSteelSectionID, int dMaxStrucSteelVertexIndex, double dmaxStrucSteel)
-            (DistancesTuple value)
-        {
-            return (value.teta, value.dMinRebarId, value.dminRebar, value.dMaxRebarId, value.dmaxRebar,
-                value.dMinVertexIndex, value.dminConcrete, value.dMaxVertexIndex, value.dmaxConcrete,
-                value.dminStrucSteelSectionID, value.dMinStrucSteelVertexIndex, value.dminStrucSteel,
-                value.dmaxStrucSteelSectionID, value.dMaxStrucSteelVertexIndex, value.dmaxStrucSteel);
-        }
-
-        public static implicit operator DistancesTuple((double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar,
-            int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete,
-            int dminStrucSteelSectionID, int dMinStrucSteelVertexIndex, double dminStrucSteel,
-            int dmaxStrucSteelSectionID, int dMaxStrucSteelVertexIndex, double dmaxStrucSteel) value)
-        {
-            return new DistancesTuple(value.teta, value.dMinRebarId, value.dminRebar, value.dMaxRebarId, value.dmaxRebar,
-                value.dMinVertexIndex, value.dminConcrete, value.dMaxVertexIndex, value.dmaxConcrete,
-                value.dminStrucSteelSectionID, value.dMinStrucSteelVertexIndex, value.dminStrucSteel,
-                value.dmaxStrucSteelSectionID, value.dMaxStrucSteelVertexIndex, value.dmaxStrucSteel);
         }
     }
 }

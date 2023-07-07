@@ -197,21 +197,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#region Failure domain limit points
 
-		protected override DeformationFieldsPoint GetP3(DistancesTuple distances,
+		internal override DeformationFieldsPoint GetP3(BoundaryDistances distances,
 			FailureDomainTypes analysisType)
 		{
 			switch (analysisType)
 			{
 				case FailureDomainTypes.Elastic:
-					return (GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+					return new DeformationFieldsPoint(GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
 						(distances.dmaxConcrete - distances.dminRebar));
 
 				case FailureDomainTypes.Plastic:
-					return (GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
+					return new DeformationFieldsPoint(GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
 						(distances.dmaxConcrete - distances.dminRebar));
 
 				default:
-					return (0.0, null, 0.0);
+					return new DeformationFieldsPoint(0.0, null, 0.0);
 			}
 		}
 

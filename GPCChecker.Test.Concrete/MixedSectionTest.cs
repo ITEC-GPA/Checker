@@ -1,12 +1,16 @@
-﻿using ConcreteTests;
-using GPC.Checkers.Concrete.Checkers;
+﻿using GPC.Checkers.Concrete.Checkers;
+using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
+using MathNet.Numerics.Distributions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
+using static GPC.Checkers.Concrete.SectionSolvers.SectionSolver;
 
 namespace ConcreteTests
 {
@@ -61,6 +65,49 @@ namespace ConcreteTests
 
             Assert.AreEqual(-192.40381057, dist.dmaxStrucSteel, 0.0001);
             Assert.AreEqual(-527.21143170, dist.dminStrucSteel, 0.0001);
+        }
+
+
+        [TestMethod]
+        public void StrainPlanesDomain1()
+        {
+            var rebar = new RebarSectionCircular("", 16.0, SteelMaterialEN1992Data.B450C);
+            var section = new ReinforcedConcreteSection(1000.0, 300.0, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 50.0, rebar, 200.0,
+                new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0);
+
+            (FailureZones, int)[] plasticZones =
+            {
+                (FailureZones.F1, 5),
+                (FailureZones.F2A, 5),
+                (FailureZones.F2B, 5),
+                (FailureZones.F3A, 5),
+                (FailureZones.F3B, 5),
+                (FailureZones.F4, 5)
+            };
+
+            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+            var sectionDistances = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(0.0);
+            var p2 = sectionSolverModelCode2010Test.GetP2(sectionDistances, FailureDomainTypes.Plastic);
+            var p3 = sectionSolverModelCode2010Test.GetP3(sectionDistances, FailureDomainTypes.Plastic);
+            var p4 = sectionSolverModelCode2010Test.GetP4(sectionDistances, FailureDomainTypes.Plastic);
+            var p5 = sectionSolverModelCode2010Test.GetP5(sectionDistances, FailureDomainTypes.Plastic);
+
+            var planes = new List<StrainPlane>();
+
+            for (int i = 0; i < plasticZones.Length; i++)
+            {
+                FailureZones failureZones = plasticZones[i].Item1;
+                int subdivision = plasticZones[i].Item2 + 1;
+                int subIndex = 0;
+
+                var p1 = sectionSolverModelCode2010Test.GetP1(sectionDistances, FailureDomainTypes.Plastic, failureZones);
+
+                for (int j = 0; j < subdivision; j++)
+                {
+                    planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(0.0, failureZones, (double)j / (double)subdivision, p1, p2, p3, p4, subIndex, p5));
+                    subIndex++;
+                }
+            }
         }
 
         [TestMethod]
