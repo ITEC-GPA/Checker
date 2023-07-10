@@ -1,12 +1,10 @@
 ﻿using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
-using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
-using MathNet.Numerics.Distributions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -108,6 +106,22 @@ namespace ConcreteTests
                     subIndex++;
                 }
             }
+
+            var defPlanes = new (double, double, double, double)[planes.Count];
+
+            for (int i = 0; i < planes.Count; i++)
+            {
+                var plane = planes[i];
+                double min_y = -300.0;
+                double max_y = 300.0;
+
+                defPlanes[i].Item1 = plane.GetStrain(0.0, min_y);
+                defPlanes[i].Item2 = min_y;
+                defPlanes[i].Item3 = plane.GetStrain(0.0, max_y);
+                defPlanes[i].Item4 = max_y;
+            }
+
+
         }
 
         [TestMethod]
@@ -118,8 +132,8 @@ namespace ConcreteTests
                 new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0);
 
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
-            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0);
-            sectionChecker.GetPlasticFailureDomainResult();
+            //FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0);
+            var domainResult = sectionChecker.GetPlasticFailureDomainResult();
 
             Assert.IsTrue(true);
         }

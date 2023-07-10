@@ -1134,7 +1134,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     Point2d strainPlaneCenter = new Point2d((distances.dmaxConcrete - (1.0 - fraction) * heigth) * (-Math.Sin(distances.teta)) + ConcreteSection.Centroid.X,
                         (distances.dmaxConcrete - (1.0 - fraction) * heigth) * (Math.Cos(distances.teta)) + ConcreteSection.Centroid.Y);
 
-                    return new DeformationFieldsPoint(GetYieldingStrainPureCompression(), strainPlaneCenter, strainPlaneCenter.Y - minY);
+                    return new DeformationFieldsPoint(GetYieldingStrainPureCompression(), strainPlaneCenter, strainPlaneCenter.Y - minY + ConcreteSection.Centroid.Y);
 
                 default:
                     return new DeformationFieldsPoint(0.0, null, 0.0);
@@ -1155,37 +1155,69 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             switch (_concreteSection.ConcreteMaterial.ConcreteType)
             {
                 case ConcreteMaterial.ConcreteTypes.Concrete:
-                    switch (analysisType)
                     {
-                        case FailureDomainTypes.Elastic:
+                        var minY = distances.dminRebar;
+                        var minYpoints = ConcreteSection.GetRebarById(distances.dMinRebarId).Position;
+                        var minStrain = GetDesignYieldingStrainRebar(distances.dMinRebarId);
 
-                            return new DeformationFieldsPoint(0.0, ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
-                                (distances.dmaxConcrete - distances.dminRebar));
+                        if (_concreteSection.IsCompositeSteelConcrete)
+                        {
+                            // TODO: Make the comparison on the angle and not the minimum value.
+                            if (distances.dminStrucSteel < minY)
+                            {
+                                minY = distances.dminStrucSteel;
+                                var locMinSteelPoint = _concreteSection.SteelSections[distances.dminStrucSteelSectionID].Section.Shape.Fill[distances.dMinStrucSteelVertexIndex];
+                                var minSteelPoint = _concreteSection.SteelSections[distances.dminStrucSteelSectionID].PositionToGlobal(locMinSteelPoint);
+                                minYpoints = minSteelPoint;
+                                minStrain = GetDesignYieldingStrainStructuralSteel(_concreteSection.SteelSections[distances.dminStrucSteelSectionID].Section);
+                            }
+                        }
 
-                        case FailureDomainTypes.Plastic:
+                        switch (analysisType)
+                        {
+                            case FailureDomainTypes.Elastic:
 
-                            return new DeformationFieldsPoint(GetDesignYieldingStrainRebar(distances.dMinRebarId), ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
-                                (distances.dmaxConcrete - distances.dminRebar));
+                                return new DeformationFieldsPoint(0.0, minYpoints, (distances.dmaxConcrete - minY));
 
-                        default:
-                            return new DeformationFieldsPoint(0.0, null, 0.0);
+                            case FailureDomainTypes.Plastic:
+
+                                return new DeformationFieldsPoint(minStrain, minYpoints, (distances.dmaxConcrete - minY));
+
+                            default:
+                                return new DeformationFieldsPoint(0.0, null, 0.0);
+                        }
                     }
 
                 case ConcreteMaterial.ConcreteTypes.FRC:
-                    switch (analysisType)
                     {
-                        case FailureDomainTypes.Elastic:
+                        var minY = distances.dminConcrete;
+                        var minYpoints = ConcreteSection.Shape.Fill[distances.dMinVertexIndex];
+                        var minStrain = GetYieldingStrainConcreteTension();
 
-                            return new DeformationFieldsPoint(0.0, ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
-                                (distances.dmaxConcrete - distances.dminConcrete));
+                        if (_concreteSection.IsCompositeSteelConcrete)
+                        {
+                            // TODO: Make the comparison on the angle and not the minimum value.
+                            if (distances.dminStrucSteel < minY)
+                            {
+                                minY = distances.dminStrucSteel;
+                                var locMinSteelPoint = _concreteSection.SteelSections[distances.dminStrucSteelSectionID].Section.Shape.Fill[distances.dMinStrucSteelVertexIndex];
+                                var minSteelPoint = _concreteSection.SteelSections[distances.dminStrucSteelSectionID].PositionToGlobal(locMinSteelPoint);
+                                minYpoints = minSteelPoint;
+                                minStrain = GetDesignYieldingStrainStructuralSteel(_concreteSection.SteelSections[distances.dminStrucSteelSectionID].Section);
+                            }
+                        }
 
-                        case FailureDomainTypes.Plastic:
+                        switch (analysisType)
+                        {
+                            case FailureDomainTypes.Elastic:
+                                return new DeformationFieldsPoint(0.0, minYpoints, (distances.dmaxConcrete - minY));
 
-                            return new DeformationFieldsPoint(GetYieldingStrainConcreteTension(), ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
-                                (distances.dmaxConcrete - distances.dminConcrete));
+                            case FailureDomainTypes.Plastic:
+                                return new DeformationFieldsPoint(minStrain, minYpoints, (distances.dmaxConcrete - minY));
 
-                        default:
-                            return new DeformationFieldsPoint(0.0, null, 0.0);
+                            default:
+                                return new DeformationFieldsPoint(0.0, null, 0.0);
+                        }
                     }
 
                 default:
@@ -1323,6 +1355,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var p2 = GetP2(sectionDistances, failureDomainType);
             var p3 = GetP3(sectionDistances, failureDomainType);
             var p4 = GetP4(sectionDistances, failureDomainType);
+            var p5 = GetP5(sectionDistances, failureDomainType);
 
             int subIndex = 0;
 
@@ -1344,7 +1377,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             for (int j = 0; j < subdivision; j++)
                             {
                                 strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision,
-                                    p1, p2, p3, p4, subIndex), failureZones);
+                                    p1, p2, p3, p4, subIndex, p5), failureZones);
                                 subIndex++;
                             }
 
@@ -1356,11 +1389,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             for (int j = 0; j < subdivision; j++)
                             {
                                 strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision,
-                                    p1, p2, p3, p4, subIndex), failureZones);
+                                    p1, p2, p3, p4, subIndex, p5), failureZones);
                                 subIndex++;
                             }
 
-                            strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, 1.0, p1, p2, p3, p4, subIndex), failureZones);
+                            strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, 1.0, p1, p2, p3, p4, subIndex, p5), failureZones);
 
                             break;
                         }
@@ -1399,44 +1432,92 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (_concreteSection.IsCompositeSteelConcrete)
             {
+                // Steel and concrete composite section.
+                // Limit F1-F2A
+                // Limit F2A-F2B
                 double distance_F1_F2A = Math.Max(p2.point.Y, p5.point.Y) - p1.point.Y;
                 double chiF1_limit = p1.epsilon / distance_F1_F2A;
                 double chiF2A_limit = (p1.epsilon + Math.Abs(p3.epsilon)) / distance_F1_F2A;
 
-                double chiF2B_P5_limit = (p1.epsilon + Math.Abs(p5.epsilon)) / (p5.point.Y - p1.point.Y);
-                double chiF2B_P2_limit = (p1.epsilon + Math.Abs(p2.epsilon)) / (p2.point.Y - p1.point.Y);
-                double chiF2B_P3_limit = (p1.epsilon + Math.Abs(p3.epsilon)) / (p3.point.Y - p1.point.Y);
-                double chiF2B_limit = Math.Min(chiF2B_P5_limit, Math.Min(chiF2B_P2_limit, chiF2B_P3_limit));
-                WhoLimit chiF2B_limitPoint;
-                if (chiF2B_limit == chiF2B_P5_limit)
-                    chiF2B_limitPoint = WhoLimit.P5;
-                else if (chiF2B_limit == chiF2B_P2_limit)
-                    chiF2B_limitPoint = WhoLimit.P2;
-                else if (chiF2B_limit == chiF2B_P3_limit)
-                    chiF2B_limitPoint = WhoLimit.P3;
-                else
-                    return null;
-
-                double chiF3A_P5_limit = (p4.epsilon + Math.Abs(p5.epsilon)) / (p5.point.Y - p1.point.Y);
-                double chiF3A_P2_limit = (p4.epsilon + Math.Abs(p2.epsilon)) / (p2.point.Y - p1.point.Y);
-                double chiF3A_P3_limit = (p4.epsilon + Math.Abs(p3.epsilon)) / (p3.point.Y - p1.point.Y);
-                double chiF3A_limit = Math.Min(chiF3A_P5_limit, Math.Min(chiF3A_P2_limit, chiF3A_P3_limit));
-                WhoLimit chiF3A_limitPoint;
-                if (chiF3A_limit == chiF3A_P5_limit)
-                    chiF3A_limitPoint = WhoLimit.P5;
-                else if (chiF3A_limit == chiF3A_P2_limit)
-                    chiF3A_limitPoint = WhoLimit.P2;
-                else if (chiF3A_limit == chiF3A_P3_limit)
-                    chiF3A_limitPoint = WhoLimit.P3;
-                else
-                    return null;
-
+                // Limit F3B-F4
                 double epsilonF4_limit;
                 if (p5.point.Y > p3.point.Y)
                     epsilonF4_limit = Math.Max(p5.epsilon - (p5.epsilon - p3.epsilon) * p4.distanceFromBaricentre / (p5.point.Y - p3.point.Y), 0.0);
                 else
                     epsilonF4_limit = 0.0;
-                double chiF3B_limit = (epsilonF4_limit + Math.Abs(p3.epsilon)) / p3.distanceFromBaricentre;
+                double chiF3B_limit = (epsilonF4_limit + Math.Abs(p3.epsilon)) / (p3.point.Y - p4.point.Y);
+
+                // Limit F2B-F3A
+                double chiF2B_P5_limit = (p1.epsilon + Math.Abs(p5.epsilon)) / (p5.point.Y - p1.point.Y);
+                double chiF2B_P2_limit = (p1.epsilon + Math.Abs(p2.epsilon)) / (p2.point.Y - p1.point.Y);
+                double chiF2B_P3_limit = (p1.epsilon + Math.Abs(p3.epsilon)) / (p3.point.Y - p1.point.Y);
+                double chiF2B_limit = Math.Min(chiF2B_P5_limit, Math.Min(chiF2B_P2_limit, chiF2B_P3_limit));
+                WhoLimit chiF2B_limitPoint;
+                DeformationFieldsPoint F3_FirstRotationPoint;
+                double F3_FirstRotationPoint_chi_limit;
+                DeformationFieldsPoint F3_SecondRotationPoint = null;
+                double F3_SecondRotationPoint_chi_limit = 0.0;
+                DeformationFieldsPoint F3_ThirdRotationPoint = null;
+                if (chiF2B_limit == chiF2B_P5_limit)
+                {
+                    chiF2B_limitPoint = WhoLimit.P5;
+                    F3_FirstRotationPoint = p5;
+                    double chi_p2_p5 = (p5.epsilon + p2.epsilon) / (p5.point.Y - p2.point.Y);
+                    double chi_p3_p5 = (p5.epsilon + p3.epsilon) / (p5.point.Y - p3.point.Y);
+                    if (chi_p2_p5 > chi_p3_p5)
+                    {
+                        // There are p2 and p3 rotation points.
+                        F3_SecondRotationPoint = p2;
+                        F3_FirstRotationPoint_chi_limit = chi_p2_p5;
+                        F3_ThirdRotationPoint = p3;
+                        F3_SecondRotationPoint_chi_limit = (p2.epsilon + p3.epsilon) / (p2.point.Y - p3.point.Y);
+                    }
+                    else
+                    {
+                        // There is only p3 rotation point.
+                        F3_SecondRotationPoint = p3;
+                        F3_FirstRotationPoint_chi_limit = chi_p3_p5;
+                    }
+                }
+                else if (chiF2B_limit == chiF2B_P2_limit)
+                {
+                    chiF2B_limitPoint = WhoLimit.P2;
+                    double chi_p3_p2 = (p2.epsilon + p3.epsilon) / (p2.point.Y - p3.point.Y);
+                    F3_FirstRotationPoint = p2;
+                    F3_FirstRotationPoint_chi_limit = chi_p3_p2;
+                }
+                else if (chiF2B_limit == chiF2B_P3_limit)
+                {
+                    chiF2B_limitPoint = WhoLimit.P3;
+                    F3_FirstRotationPoint = p3;
+                    F3_FirstRotationPoint_chi_limit = 0.0; // no limit
+                }
+                else
+                    return null;
+
+                // Limit F3A-F3B
+                double chiF3A_limit = 0.0;
+                WhoLimit chiF3A_limitPoint;
+                double chiF3A_firstPoint_limit = (p4.epsilon + Math.Abs(F3_FirstRotationPoint.epsilon)) / (F3_FirstRotationPoint.point.Y - p4.point.Y);
+                if (chiF3A_firstPoint_limit > F3_FirstRotationPoint_chi_limit)
+                    chiF3A_limit = chiF3A_firstPoint_limit;
+                else
+                {
+                    if (F3_SecondRotationPoint != null)
+                    {
+                        double chiF3A_secondPoint_limit = (p4.epsilon + Math.Abs(F3_SecondRotationPoint.epsilon)) / (F3_SecondRotationPoint.point.Y - p4.point.Y);
+                        if (chiF3A_secondPoint_limit > F3_SecondRotationPoint_chi_limit)
+                            chiF3A_limit = chiF3A_secondPoint_limit;
+                        else
+                        {
+                            if (F3_ThirdRotationPoint != null)
+                            {
+                                double chiF3A_thirdPoint_limit = (p4.epsilon + Math.Abs(F3_ThirdRotationPoint.epsilon)) / (F3_ThirdRotationPoint.point.Y - p4.point.Y);
+                                chiF3A_limit = chiF3A_thirdPoint_limit;
+                            }
+                        }
+                    }
+                }
 
                 double chiSx;
                 double chiDx;
@@ -1501,82 +1582,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         break;
 
                     case FailureZones.F3A:
-                        if (chiF2B_limitPoint == WhoLimit.P5)
-                        {
-                            if (chi < chiF2B_P3_limit)
-                            {
-                                centerPoint = p3.point;
-                                centerPointEpsilon = p3.epsilon;
-                            }
-                            else if (chi < chiF2B_P2_limit)
-                            {
-                                centerPoint = p2.point;
-                                centerPointEpsilon = p2.epsilon;
-                            }
-                            else
-                            {
-                                centerPoint = p5.point;
-                                centerPointEpsilon = p5.epsilon;
-                            }
-                        }
-                        else if (chiF2B_limitPoint == WhoLimit.P2)
-                        {
-                            if (chi < chiF2B_P3_limit)
-                            {
-                                centerPoint = p3.point;
-                                centerPointEpsilon = p3.epsilon;
-                            }
-                            else
-                            {
-                                centerPoint = p2.point;
-                                centerPointEpsilon = p2.epsilon;
-                            }
-                        }
-                        else if (chiF2B_limitPoint == WhoLimit.P3)
-                        {
-                            centerPoint = p3.point;
-                            centerPointEpsilon = p3.epsilon;
-                        }
-                        else
-                            return null;
-                        break;
-
                     case FailureZones.F3B:
-                        if (chiF3A_limitPoint == WhoLimit.P5)
+                        if (chi > F3_FirstRotationPoint_chi_limit)
                         {
-                            if (chi < chiF3A_P3_limit)
-                            {
-                                centerPoint = p3.point;
-                                centerPointEpsilon = p3.epsilon;
-                            }
-                            else if (chi < chiF3A_P2_limit)
-                            {
-                                centerPoint = p2.point;
-                                centerPointEpsilon = p2.epsilon;
-                            }
-                            else
-                            {
-                                centerPoint = p5.point;
-                                centerPointEpsilon = p5.epsilon;
-                            }
+                            centerPoint = F3_FirstRotationPoint.point;
+                            centerPointEpsilon = F3_FirstRotationPoint.epsilon;
                         }
-                        else if (chiF3A_limitPoint == WhoLimit.P2)
+                        else if (F3_SecondRotationPoint != null && chi > F3_SecondRotationPoint_chi_limit)
                         {
-                            if (chi < chiF3A_P3_limit)
-                            {
-                                centerPoint = p3.point;
-                                centerPointEpsilon = p3.epsilon;
-                            }
-                            else
-                            {
-                                centerPoint = p2.point;
-                                centerPointEpsilon = p2.epsilon;
-                            }
+                            centerPoint = F3_SecondRotationPoint.point;
+                            centerPointEpsilon = F3_SecondRotationPoint.epsilon;
                         }
-                        else if (chiF3A_limitPoint == WhoLimit.P3)
+                        else if (F3_ThirdRotationPoint != null)
                         {
-                            centerPoint = p3.point;
-                            centerPointEpsilon = p3.epsilon;
+                            centerPoint = F3_ThirdRotationPoint.point;
+                            centerPointEpsilon = F3_ThirdRotationPoint.epsilon;
                         }
                         else
                             return null;

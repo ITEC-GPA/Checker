@@ -3,7 +3,7 @@ using GPC.Geometry;
 
 namespace GPC.Checker.Helper
 {
-    public struct DeformationFieldsPoint
+    public class DeformationFieldsPoint
     {
         public double epsilon;
         public Point2d point;
