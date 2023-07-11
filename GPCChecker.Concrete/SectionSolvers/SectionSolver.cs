@@ -1984,7 +1984,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                 _log.Add(e.InnerException.Message);
                             return null;
                         }
-
+                        // 2023-07-11 AA - part 3 of 3
+                        // If these two epsilon values are equal the F2B field collapses, a problem emerged with ACI.
+                        // If they are equal, p2 and p3 are also equal.
+                        if (failureIndex == FailureZones.F2B && p2.epsilon == p3.epsilon)
+                        {
+                            if (increment.deltaEta >= 0.0)
+                                failureIndex = FailureZones.F3A;
+                            else
+                                failureIndex = FailureZones.F2A;
+                        }
                         SetIncrement(failureDomainType, ref failureIndex, ref teta, ref eta, increment.deltaTeta, increment.deltaEta);
 
                         distances = CalculateMaxMinSectionDistances(teta);
@@ -2206,15 +2215,48 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 {
                     var distances = CalculateMaxMinSectionDistances(inputStrainPlane.Teta);
 
-                    var p1Eta = GetP1(distances, failureDomainType, inputFailureZone);
+                    var immersioneNelCampoNext = inputImmersioneNelCampo + dEtaBuffer;
+                    var inputFailureZoneNext = inputFailureZone;
+                    var immersioneNelCampoPrev = inputImmersioneNelCampo - dEtaBuffer;
+                    var inputFailureZonePrev = inputFailureZone;
+
+                    // 2023-07-11 AA - part 1 of 3
+                    // With the next two while loops, we want to handle the transition to the next field (for example,
+                    // the transition from F2B to F3A) in order to find the tangent.
+                    // Problem emerged with tests on ACI.
+                    while (immersioneNelCampoNext >= 1.0 && (int)inputFailureZoneNext < 6)
+                    {
+                        immersioneNelCampoNext -= 1.0;
+                        inputFailureZoneNext++;
+                    }
+                    while (immersioneNelCampoNext < 0.0 && (int)inputFailureZoneNext > 1)
+                    {
+                        immersioneNelCampoNext += 1.0;
+                        inputFailureZoneNext--;
+                    }
+
                     var p2Eta = GetP2(distances, failureDomainType);
                     var p3Eta = GetP3(distances, failureDomainType);
                     var p4Eta = GetP4(distances, failureDomainType);
 
-                    StrainPlane strainPlanePlusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZone,
-                        Math.Min(inputImmersioneNelCampo + dEtaBuffer, 1.0), p1Eta, p2Eta, p3Eta, p4Eta);
-                    StrainPlane strainPlaneMinusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZone,
-                        Math.Max(inputImmersioneNelCampo - dEtaBuffer, 0.0), p1Eta, p2Eta, p3Eta, p4Eta);
+                    // 2023-07-11 AA - part 2 of 3
+                    // If these two epsilon values are equal the F2B field collapses, a problem emerged with ACI.
+                    // If they are equal, p2 and p3 are also equal.
+                    if (p2Eta.epsilon == p3Eta.epsilon)
+                    {
+                        if (inputFailureZoneNext == FailureZones.F2B)
+                            inputFailureZoneNext = FailureZones.F3A;
+                        if (inputFailureZonePrev == FailureZones.F2B)
+                            inputFailureZonePrev = FailureZones.F2A;
+                    }
+
+                    var p1EtaPrev = GetP1(distances, failureDomainType, inputFailureZonePrev);
+                    var p1EtaNext = GetP1(distances, failureDomainType, inputFailureZoneNext);
+
+                    StrainPlane strainPlanePlusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZoneNext,
+                        Math.Min(immersioneNelCampoNext, 1.0), p1EtaNext, p2Eta, p3Eta, p4Eta);
+                    StrainPlane strainPlaneMinusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZonePrev,
+                        Math.Max(immersioneNelCampoPrev, 0.0), p1EtaPrev, p2Eta, p3Eta, p4Eta);
 
                     var forcesPlusEta = CalculateForceResultantForDomain(strainPlanePlusdImm, rebarIsInsideAssociation);
                     var forcesMinusEta = CalculateForceResultantForDomain(strainPlaneMinusdImm, rebarIsInsideAssociation);

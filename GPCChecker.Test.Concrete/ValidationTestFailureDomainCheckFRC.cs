@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
@@ -12,6 +10,8 @@ using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
 
 namespace ConcreteTests
 {
@@ -436,11 +436,11 @@ namespace ConcreteTests
             ConCribeCheck(point, ConcribeSolution_4, ExcelSolution_4, 6);
         }
 
-		#endregion
+        #endregion
 
-		#region Ground Slab
+        #region Ground Slab
 
-		[TestMethod]
+        [TestMethod]
         public void ConCribeTest5_1()
         {
             double height = 200;
@@ -454,11 +454,11 @@ namespace ConcreteTests
                 sigmaR1, sigmaR5, 0.0001, epsfU, ConcreteMaterialEuropeanCommon.TensionStressStrainDiagrams.Bilinear, ConcreteMaterialEuropeanCommon.ConcreteTypes.FRC);
             SteelMaterial rebarMaterial = SteelMaterialEN1992Data.B500C;
 
-            StandardModelCode2010 standardModelCode2010 = GetConcribeStandard();     
+            StandardModelCode2010 standardModelCode2010 = GetConcribeStandard();
 
             FailureDomain.FailureDomainPoint point = GetConCribeTest(width, height, 0, 8, 0, concreteMaterial, rebarMaterial, standardModelCode2010);
             ConCribeCheck(point, ConcribeSolution_5, ExcelSolution_5);
-        }               
+        }
 
         [TestMethod]
         public void ConCribeTest5_2()
@@ -526,7 +526,7 @@ namespace ConcreteTests
 
         private FailureDomain.FailureDomainPoint GetConCribeTest(double width, double height, double concreteCover, double rebarDiameter, int numbOfRebars,
             ConcreteMaterialModelCode2010 concreteMaterial, SteelMaterial rebarMaterial, StandardModelCode2010 standard = null)
-		{
+        {
             Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
             {
                 new Point2d(0, 0),
@@ -543,13 +543,13 @@ namespace ConcreteTests
             double delta = (width - 2 * concreteCover) / (numbOfRebars - 1);
 
             List<ReinforcedConcreteRebar> rebars = new List<ReinforcedConcreteRebar>();
-            for (int i = 0; i < numbOfRebars; i++)			
-                rebars.Add(new ReinforcedConcreteRebar(rebar, new Point2d(concreteCover + i * delta, concreteCover)));			
+            for (int i = 0; i < numbOfRebars; i++)
+                rebars.Add(new ReinforcedConcreteRebar(rebar, new Point2d(concreteCover + i * delta, concreteCover)));
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, concreteMaterial);
             section.AddRebars(rebars);
-            
-            if(standard == null)
+
+            if (standard == null)
                 standard = new StandardModelCode2010();
 
             ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section));
@@ -581,7 +581,7 @@ namespace ConcreteTests
         }
 
         private void ConCribeCheck(FailureDomain.FailureDomainPoint point, Point3d expPoint, Point3d expPointExcel, double tolerancePercent = 5)
-		{
+        {
             Console.WriteLine($"GPC Concrete Checker: " +
                 $"N = {Math.Round(point.NRd / 1000, 2)} kN," +
                 $"Mx = {Math.Round(point.MxRd / 1000000, 2)} kNm," +
@@ -597,7 +597,7 @@ namespace ConcreteTests
                 $"Mx = {Math.Round(expPointExcel.X / 1000000, 2)} kNm," +
                 $"My = {Math.Round(expPointExcel.Y / 1000000, 2)} kNm,");
 
-            Console.WriteLine($"Error: { Math.Round((point.MxRd - expPoint.X ) / expPoint.X * 100, 2)} %");
+            Console.WriteLine($"Error: {Math.Round((point.MxRd - expPoint.X) / expPoint.X * 100, 2)} %");
 
             Assert.IsTrue(Math.Abs(point.NRd / 1000) < tolerancePercent);
             Assert.IsTrue(Math.Abs(Math.Round(point.MyRd / 1000000, 1)) < tolerancePercent);
@@ -612,7 +612,7 @@ namespace ConcreteTests
         }
 
         private double CalculateEpsilonFU(double height, double concreteCover, double epsilonCU = 0.0035, double epsilonSY = 0.0022)
-		{
+        {
             // valore rottura delle fibre nel caso di sezioni armate second sTruc
             return 0.0032;
             //return 0.02;
@@ -631,12 +631,12 @@ namespace ConcreteTests
         }
 
         private double CalculateSigmaR5(double epsilonFU, double sigmaR1, double sigmaR4)
-		{
+        {
             return sigmaR1 - ((epsilonFU / 0.025) * (sigmaR1 - sigmaR4));
-		}
+        }
 
         private StandardModelCode2010 GetConcribeStandard()
-		{
+        {
             StandardModelCode2010 standardModelCode2010 = new StandardModelCode2010();
             standardModelCode2010.GammaF = 1.0;
             standardModelCode2010.AlphaCC = 0.85;
@@ -645,6 +645,6 @@ namespace ConcreteTests
 
         }
 
-		#endregion
-	}
+        #endregion
+    }
 }
