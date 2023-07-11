@@ -29,6 +29,11 @@ namespace GPC.Checkers.Concrete.Results
 
         public SectionSolver.FailureDomainTypes FailureDomainAnalysisTypes => _analysisType;
 
+        /// <summary>
+        /// In 3d domain force use of linear interpolation instead of quadratic.
+        /// </summary>
+        public bool ForceLinearInterpolation { get; set; }
+
         #endregion
 
         #region Constructor
@@ -38,6 +43,7 @@ namespace GPC.Checkers.Concrete.Results
             _domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
             _axialForceSubdivision = 50;
             _analysisType = analysisType;
+            ForceLinearInterpolation = false;
         }
 
         protected FailureDomain(SerializationInfo info, StreamingContext context)
@@ -46,6 +52,7 @@ namespace GPC.Checkers.Concrete.Results
             _axialForceSubdivision = info.GetInt32("AxialForceSubdivision");
             _analysisType = (SectionSolver.FailureDomainTypes)info.GetValue("AnalysisType", typeof(SectionSolver.FailureDomainTypes));
             _domainPoints = (FailureDomainPoint[][])info.GetValue("FailureDomainPoints", typeof(FailureDomainPoint[][]));
+            ForceLinearInterpolation = info.GetBoolean("ForceLinearInterpolation");
         }
 
         #endregion
@@ -59,7 +66,7 @@ namespace GPC.Checkers.Concrete.Results
 
         internal FailureDomain RebuildFailureDomain(int axialForceSubdivision = 50)
         {
-            return RefineFailureDomainAlongTeta(RebuildFailureDomainAlongZAxis(this, axialForceSubdivision));
+            return RefineFailureDomainAlongTeta(RebuildFailureDomainAlongZAxis(this, axialForceSubdivision, 1.0));
         }
 
         public FailureDomain RebuildFailureDomain()
@@ -300,7 +307,8 @@ namespace GPC.Checkers.Concrete.Results
                                 else if (i + 2 < failureDomain.DomainPoints[dTeta].Length &&
                                     _analysisType == SectionSolver.FailureDomainTypes.Plastic &&
                                     failureDomain.DomainPoints[dTeta][i].NRd < 0.0 &&
-                                    failureDomain.DomainPoints[dTeta][i].NRd > 0.7 * limits.minimum)
+                                    failureDomain.DomainPoints[dTeta][i].NRd > 0.7 * limits.minimum &&
+                                    !ForceLinearInterpolation)
                                 {
                                     mxRd = Interpolation.GetQuadraticInterpolation(
                                         failureDomain.DomainPoints[dTeta][i].NRd, failureDomain.DomainPoints[dTeta][i + 1].NRd, failureDomain.DomainPoints[dTeta][i + 2].NRd,
@@ -417,6 +425,7 @@ namespace GPC.Checkers.Concrete.Results
             info.AddValue("AxialForceSubdivision", _axialForceSubdivision);
             info.AddValue("AnalysisType", _analysisType);
             info.AddValue("FailureDomainPoints", _domainPoints);
+            info.AddValue("ForceLinearInterpolation", ForceLinearInterpolation);
         }
 
         #endregion
