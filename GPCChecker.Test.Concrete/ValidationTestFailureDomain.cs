@@ -567,7 +567,7 @@ namespace ConcreteTests
 		{
 			//ACI 318-08 Example 002
 
-			double rebarDiameter = 28.6608;
+			double rebarDiameter = 28.6608; 
 			double height = 558.8;
 			double width = 355.6;
 			double copriferro = 63.5;

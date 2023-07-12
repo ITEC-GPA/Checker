@@ -48,14 +48,14 @@
     <Reference Include="GMsh.Net, Version=1.0.484.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GMsh.Net.1.0.484.3\lib\netstandard2.0\GMsh.Net.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCGeometry.2.0.0.2\lib\netstandard2.0\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=2.0.0.3, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCGeometry.2.0.0.3\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModel.1.0.1\lib\netstandard2.0\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=1.0.1.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCModel.1.0.1.2\lib\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModelData, Version=0.0.1.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModelData.0.0.1.2\lib\netstandard2.0\GPCModelData.dll</HintPath>
+    <Reference Include="GPCModelData, Version=0.0.1.4, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCModelData.0.0.1.4\lib\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.8, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.8\lib\net472\GPCTestUtilities.dll</HintPath>
@@ -103,7 +103,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GPCChecker\GPCChecker.Concrete.csproj">
+    <ProjectReference Include="..\GPCChecker.Concrete\GPCChecker.Concrete.csproj">
       <Project>{bd7c1d49-f230-4290-9a04-a4cdfb537bcd}</Project>
       <Name>GPCChecker.Concrete</Name>
     </ProjectReference>

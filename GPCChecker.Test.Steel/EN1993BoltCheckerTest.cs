@@ -53,7 +53,7 @@ namespace SteelTests
             foreach (var iMax in ListWithMax)
             {
                 Assert.AreEqual(50.0, iMax.BearingE1, 0.1);
-                Assert.AreEqual(double.MaxValue, iMax.BearingP1);
+                Assert.AreEqual(PlateWithBolts.SPACINGMAXVALUE, iMax.BearingP1);
                 Assert.AreEqual(50.0, iMax.BearingE2, 0.1);
                 Assert.AreEqual(150.0, iMax.BearingP2, 0.1);
                 Assert.AreEqual(2.5, iMax.Bearingk1, 0.00001);
@@ -115,7 +115,7 @@ namespace SteelTests
             foreach (var iMax in ListWithMax)
             {
                 Assert.AreEqual(50.0, iMax.BearingE1, 0.1);
-                Assert.AreEqual(double.MaxValue, iMax.BearingP1);
+                Assert.AreEqual(PlateWithBolts.SPACINGMAXVALUE, iMax.BearingP1);
                 Assert.AreEqual(50.0, iMax.BearingE2, 0.1);
                 Assert.AreEqual(150.0, iMax.BearingP2, 0.1);
                 Assert.AreEqual(2.5, iMax.Bearingk1, 0.00001);
@@ -200,7 +200,7 @@ namespace SteelTests
             // Geometrie nel disegno "\\studio\Software_Development\01 Theory\08 Bolt\Test03_ShearCheck01.dwg".
             Assert.AreEqual(54.5384, CurrChecker.BoltResultsEN1993[0].BearingE1, 0.0001);
             Assert.AreEqual(47.9938, CurrChecker.BoltResultsEN1993[0].BearingE2, 0.0001);
-            Assert.AreEqual(double.MaxValue, CurrChecker.BoltResultsEN1993[0].BearingP1);
+            Assert.AreEqual(PlateWithBolts.SPACINGMAXVALUE, CurrChecker.BoltResultsEN1993[0].BearingP1);
             Assert.AreEqual(80.0, CurrChecker.BoltResultsEN1993[0].BearingP2, 0.0001);
 
             Assert.AreEqual(138.1279, CurrChecker.BoltResultsEN1993[1].BearingE1, 0.0001);
@@ -215,7 +215,7 @@ namespace SteelTests
 
             Assert.AreEqual(54.8146, CurrChecker.BoltResultsEN1993[3].BearingE1, 0.0001);
             Assert.AreEqual(62.2893, CurrChecker.BoltResultsEN1993[3].BearingE2, 0.0001);
-            Assert.AreEqual(double.MaxValue, CurrChecker.BoltResultsEN1993[3].BearingP1);
+            Assert.AreEqual(PlateWithBolts.SPACINGMAXVALUE, CurrChecker.BoltResultsEN1993[3].BearingP1);
             Assert.AreEqual(60.0, CurrChecker.BoltResultsEN1993[3].BearingP2, 0.0001);
 
             Assert.AreEqual(125.5545, CurrChecker.BoltResultsEN1993[4].BearingE1, 0.0001);
@@ -225,7 +225,7 @@ namespace SteelTests
 
             Assert.AreEqual(68.7193, CurrChecker.BoltResultsEN1993[5].BearingE1, 0.0001);
             Assert.AreEqual(60.4730, CurrChecker.BoltResultsEN1993[5].BearingE2, 0.0001);
-            Assert.AreEqual(double.MaxValue, CurrChecker.BoltResultsEN1993[5].BearingP1);
+            Assert.AreEqual(PlateWithBolts.SPACINGMAXVALUE, CurrChecker.BoltResultsEN1993[5].BearingP1);
             Assert.AreEqual(80.0, CurrChecker.BoltResultsEN1993[5].BearingP2, 0.0001);
 
             Assert.AreEqual(116100.0, MinResiBear, 0.00001);

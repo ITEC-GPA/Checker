@@ -10,6 +10,7 @@ using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq;
 
 namespace ConcreteTests
 {
@@ -681,7 +682,7 @@ namespace ConcreteTests
 
 		[TestMethod]
 		[TestCategory("ACI318")]
-		public void RectangularSectionTest15()
+		public void RectangularSectionTestACI_1()
 		{
 			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialACI318Data.Fc3000, SteelMaterialACI318Data.Grade60);
 			SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, new StandardACI318p08());
@@ -691,6 +692,24 @@ namespace ConcreteTests
 
 			ShowDomainPoints(plasticFailureDomain.Domain);
 			ShowDomainPoints(elasticFailureDomain.Domain);
+			//CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain);
+			//CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), elasticFailureDomain.Domain);
+		}
+
+		[TestMethod]
+		[TestCategory("ACI318")]
+		public void RectangularSectionTestACI_2()
+		{
+			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialACI318Data.Fc3000, SteelMaterialACI318Data.Grade60);
+			SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, new StandardACI318p08());
+
+			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+			ShowDomainPoints(plasticFailureDomain.Domain);
+
+			double min = plasticFailureDomain.Domain.DomainPoints[0].Select(i => i.NRd).Min();
+			double xpValue = -2508;
+			Assert.IsTrue(min - xpValue / xpValue * 100 < 1);
+
 			//CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain);
 			//CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), elasticFailureDomain.Domain);
 		}
