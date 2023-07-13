@@ -521,7 +521,7 @@ namespace ConcreteTests
 
 		[TestMethod]
 		[TestCategory("Sap Validation")]
-		public void SapValidationACI318p08Example001()
+ 		public void SapValidationACI318p08Example001()
 		{
 			//ACI 318-08 Example 001
 
