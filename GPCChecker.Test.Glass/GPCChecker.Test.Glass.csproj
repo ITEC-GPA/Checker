@@ -42,11 +42,6 @@
     <Reference Include="GPCGeometry, Version=2.0.0.3, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCGeometry.2.0.0.3\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=1.0.1.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModel.1.0.1.1\lib\netstandard2.0\GPCModel.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCModelData">
-      <HintPath>..\..\gpc-model\GPCModelData\bin\Debug\netstandard2.0\GPCModelData.dll</HintPath>
     <Reference Include="GPCModel, Version=1.0.1.5, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCModel.1.0.1.5\lib\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
