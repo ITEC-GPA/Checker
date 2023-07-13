@@ -1134,7 +1134,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     Point2d strainPlaneCenter = new Point2d((distances.dmaxConcrete - (1.0 - fraction) * heigth) * (-Math.Sin(distances.teta)) + ConcreteSection.Centroid.X,
                         (distances.dmaxConcrete - (1.0 - fraction) * heigth) * (Math.Cos(distances.teta)) + ConcreteSection.Centroid.Y);
 
-                    return new DeformationFieldsPoint(GetYieldingStrainPureCompression(), strainPlaneCenter, strainPlaneCenter.Y - minY + ConcreteSection.Centroid.Y);
+                    return new DeformationFieldsPoint(GetYieldingStrainPureCompression(), strainPlaneCenter, strainPlaneCenter.Y + (distances.dminConcrete - minY));
 
                 default:
                     return new DeformationFieldsPoint(0.0, null, 0.0);
@@ -1442,10 +1442,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 // Limit F3B-F4
                 double epsilonF4_limit;
                 if (p5.point.Y > p3.point.Y)
-                    epsilonF4_limit = Math.Max(p5.epsilon - (p5.epsilon - p3.epsilon) * p4.distanceFromBaricentre / (p5.point.Y - p3.point.Y), 0.0);
+                    epsilonF4_limit = Math.Min(p5.epsilon - (p5.epsilon - p3.epsilon) * p4.distanceFromBaricentre / (p5.point.Y - p3.point.Y), 0.0);
                 else
                     epsilonF4_limit = 0.0;
-                double chiF3B_limit = (epsilonF4_limit + Math.Abs(p3.epsilon)) / (p3.point.Y - p4.point.Y);
+                double chiF3B_limit = (epsilonF4_limit + Math.Abs(p3.epsilon)) / p3.distanceFromBaricentre;
 
                 // Limit F2B-F3A
                 double chiF2B_P5_limit = (p1.epsilon + Math.Abs(p5.epsilon)) / (p5.point.Y - p1.point.Y);
@@ -1458,8 +1458,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 DeformationFieldsPoint F3_SecondRotationPoint = null;
                 double F3_SecondRotationPoint_chi_limit = 0.0;
                 DeformationFieldsPoint F3_ThirdRotationPoint = null;
+
                 if (chiF2B_limit == chiF2B_P5_limit)
                 {
+                    // Point p5 is rotation point and there can be also both p2 and p3.
                     chiF2B_limitPoint = WhoLimit.P5;
                     F3_FirstRotationPoint = p5;
                     double chi_p2_p5 = (p5.epsilon + p2.epsilon) / (p5.point.Y - p2.point.Y);
@@ -1470,7 +1472,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         F3_SecondRotationPoint = p2;
                         F3_FirstRotationPoint_chi_limit = chi_p2_p5;
                         F3_ThirdRotationPoint = p3;
-                        F3_SecondRotationPoint_chi_limit = (p2.epsilon + p3.epsilon) / (p2.point.Y - p3.point.Y);
+                        F3_SecondRotationPoint_chi_limit = (p3.epsilon - p2.epsilon) / (p2.point.Y - p3.point.Y);
                     }
                     else
                     {
@@ -1481,10 +1483,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
                 else if (chiF2B_limit == chiF2B_P2_limit)
                 {
+                    // The p2 point is rotation point and then there is also the p3 point.
                     chiF2B_limitPoint = WhoLimit.P2;
-                    double chi_p3_p2 = (p2.epsilon + p3.epsilon) / (p2.point.Y - p3.point.Y);
+                    double chi_p3_p2 = (p3.epsilon - p2.epsilon) / (p2.point.Y - p3.point.Y);
                     F3_FirstRotationPoint = p2;
                     F3_FirstRotationPoint_chi_limit = chi_p3_p2;
+
+                    F3_SecondRotationPoint = p3;
                 }
                 else if (chiF2B_limit == chiF2B_P3_limit)
                 {

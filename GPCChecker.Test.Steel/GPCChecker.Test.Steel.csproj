@@ -46,10 +46,6 @@
     <Reference Include="GPCModel">
       <HintPath>..\..\gpc-model\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=1.0.1.4, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\gpc-model\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
-    </Reference>
     <Reference Include="GPCModelData">
       <HintPath>..\..\gpc-model\GPCModelData\bin\Debug\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
