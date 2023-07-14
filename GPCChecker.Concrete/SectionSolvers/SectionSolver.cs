@@ -981,6 +981,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                 case FailureDomainTypes.Elastic:
 
                                     minClsStrain = GetYieldingStrainConcreteTension();
+                                    minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignYieldingStrainStructuralSteel(s.Section));
                                     break;
 
                                 case FailureDomainTypes.Plastic:
@@ -989,6 +990,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                                         if (failureZone == FailureZones.F1)
                                             minClsStrain = Math.Min(0.01, minClsStrain);
+
+                                        minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignUltimateStrainStructuralSteel(s.Section));
                                     }
                                     break;
                             }
@@ -1197,13 +1200,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         if (_concreteSection.IsCompositeSteelConcrete)
                         {
                             // TODO: Make the comparison on the angle and not the minimum value.
-                            if (distances.dminStrucSteel < minY)
+                            var factor_FRC = minStrain / (distances.dmaxConcrete - distances.dminConcrete);
+                            var minStrainSteel = GetDesignYieldingStrainStructuralSteel(_concreteSection.SteelSections[distances.dminStrucSteelSectionID].Section);
+                            var factor_steel = minStrainSteel / (distances.dmaxConcrete - distances.dminStrucSteel);
+                            if (factor_steel < factor_FRC)
                             {
                                 minY = distances.dminStrucSteel;
                                 var locMinSteelPoint = _concreteSection.SteelSections[distances.dminStrucSteelSectionID].Section.Shape.Fill[distances.dMinStrucSteelVertexIndex];
                                 var minSteelPoint = _concreteSection.SteelSections[distances.dminStrucSteelSectionID].PositionToGlobal(locMinSteelPoint);
                                 minYpoints = minSteelPoint;
-                                minStrain = GetDesignYieldingStrainStructuralSteel(_concreteSection.SteelSections[distances.dminStrucSteelSectionID].Section);
+                                minStrain = minStrainSteel;
                             }
                         }
 
@@ -1238,7 +1244,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 var locMaxSteelPoint = _concreteSection.SteelSections[distances.dmaxStrucSteelSectionID].Section.Shape.Fill[distances.dMaxStrucSteelVertexIndex];
                 var maxSteelPoint = _concreteSection.SteelSections[distances.dmaxStrucSteelSectionID].PositionToGlobal(locMaxSteelPoint);
-                var maxSteelDistance = distances.dmaxConcrete - distances.dmaxStrucSteel;
+                var maxSteelDistance = distances.dmaxStrucSteel - distances.dminConcrete;
                 double minSteelStrain = 0.0;
 
                 switch (analysisType)
@@ -1442,7 +1448,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 // Limit F3B-F4
                 double epsilonF4_limit;
                 if (p5.point.Y > p3.point.Y)
-                    epsilonF4_limit = Math.Min(p5.epsilon - (p5.epsilon - p3.epsilon) * p4.distanceFromBaricentre / (p5.point.Y - p3.point.Y), 0.0);
+                    epsilonF4_limit = Math.Max(Math.Min(p5.epsilon - (p5.epsilon - p3.epsilon) * p5.distanceFromBaricentre / (p5.point.Y - p3.point.Y), 0.0), p3.epsilon);
                 else
                     epsilonF4_limit = 0.0;
                 double chiF3B_limit = (epsilonF4_limit + Math.Abs(p3.epsilon)) / p3.distanceFromBaricentre;
@@ -1464,8 +1470,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     // Point p5 is rotation point and there can be also both p2 and p3.
                     chiF2B_limitPoint = WhoLimit.P5;
                     F3_FirstRotationPoint = p5;
-                    double chi_p2_p5 = (p5.epsilon + p2.epsilon) / (p5.point.Y - p2.point.Y);
-                    double chi_p3_p5 = (p5.epsilon + p3.epsilon) / (p5.point.Y - p3.point.Y);
+                    double chi_p2_p5 = (p2.epsilon - p5.epsilon) / (p5.point.Y - p2.point.Y);
+                    double chi_p3_p5 = (p3.epsilon - p5.epsilon) / (p5.point.Y - p3.point.Y);
                     if (chi_p2_p5 > chi_p3_p5)
                     {
                         // There are p2 and p3 rotation points.
