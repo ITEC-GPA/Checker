@@ -20,6 +20,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		public ConcreteMaterialACI318 ConcreteMaterialACI318 => (ConcreteMaterialACI318)_concreteSection.ConcreteMaterial;
 
+		public bool HaveSpiral { get=> _haveSpiral; set => _haveSpiral = value; }
+
 		#endregion
 
 		#region Constructor
