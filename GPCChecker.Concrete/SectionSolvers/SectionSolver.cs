@@ -469,7 +469,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             try
             {
                 double limitCompression = CalculateCompressionAxialForceLimit();
-                ForceTuple force = IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation);
+                ForceTuple force = IntegrateSectionStress(strainPlane) +
+                    IntegrateRebarStress(strainPlane, rebarIsInsideAssociation) +
+                    IntegrateStructuralSteelStress(strainPlane);
 
                 return CalculateCompressionReduction(force, limitCompression);
             }
@@ -490,7 +492,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             try
             {
                 double limitCompression = CalculateCompressionAxialForceLimit();
-                ForceTuple force = IntegrateSectionStress(strainPlane) + IntegrateRebarStress(strainPlane, rebarIsInsideAssociation);
+                ForceTuple force = IntegrateSectionStress(strainPlane) +
+                    IntegrateRebarStress(strainPlane, rebarIsInsideAssociation) +
+                    IntegrateStructuralSteelStress(strainPlane);
 
                 return CalculateCompressionReduction(force * GetReductionFactor(strainPlane), limitCompression);
             }
@@ -510,11 +514,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 ForceTuple[] concreteStresses = IntegrateSectionStress(strainPlanes);
                 ForceTuple[] rebarStresses = IntegrateRebarStress(strainPlanes, rebarIsInsideAssociation);
+                ForceTuple[] structuralSteelStresses = IntegrateStructuralSteelStress(strainPlanes);
 
                 double limitCompression = CalculateCompressionAxialForceLimit();
 
                 for (int i = 0; i < strainPlanes.Length; i++)
-                    returnValue[i] = CalculateCompressionReduction((concreteStresses[i] + rebarStresses[i]) * GetReductionFactor(strainPlanes[i]), limitCompression);
+                    returnValue[i] = CalculateCompressionReduction((concreteStresses[i] + rebarStresses[i] + structuralSteelStresses[i]) *
+                        GetReductionFactor(strainPlanes[i]), limitCompression);
 
                 return returnValue;
             }
@@ -789,6 +795,75 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 return rebar.RebarMaterial.ElasticModulusCompression * (1 + psi) * strain + rebar.RebarMaterial.ElasticModulusCompression * rebar.EpsilonP;
             else
                 return rebar.RebarMaterial.ElasticModulusTension * (1 + psi) * strain + rebar.RebarMaterial.ElasticModulusTension * rebar.EpsilonP;
+        }
+
+        #endregion
+
+        #region Steel sections Integration
+
+        /// <summary>
+        /// Calculate the stress resultant of the steel sections parts.
+        /// </summary>
+        /// <param name="strainPlane">The strain plane</param>
+        /// <returns>
+        /// <para>The axial force resultant</para>
+        /// <para>The bending moment about X-axis resultant</para>
+        /// <para>The bending moment about Y-axis resultant</para>
+        /// </returns>
+        protected virtual ForceTuple IntegrateStructuralSteelStress(StrainPlane strainPlane)
+        {
+            double quadratureN = 0;
+            double quadratureMx = 0;
+            double quadratureMy = 0;
+
+            foreach (var steelSection in ConcreteSection.SteelSections)
+            {
+                // Make functions for stress.
+                double stressFunctionN(double x, double y)
+                {
+                    var strain = strainPlane.GetStrain(x, y);
+                    double sigmaC = steelSection.IsInsideConcrete ? CalculateSigmaC(strain) : 0.0;
+                    return steelSection.Section.SteelMaterial.GetStress(strain) - sigmaC;
+                }
+                double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - ConcreteSection.Centroid.Y);
+                double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - ConcreteSection.Centroid.X);
+
+                foreach (var thinWall in steelSection.Section.ThinWalls)
+                {
+                    // Get thin wall global position and size.
+                    var middleLine = thinWall.GetMiddleLine();
+                    var startPointGlobal = steelSection.PositionToGlobal(middleLine[0]);
+                    var endPointGlobal = steelSection.PositionToGlobal(middleLine[1]);
+                    var thickness = thinWall.T;
+                    // Move to Point3d vector.
+                    Point3d[] middleLine3d = new Point3d[middleLine.Length];
+                    middleLine3d[0] = startPointGlobal;
+                    middleLine3d[1] = endPointGlobal;
+
+                    // Integrate functions.
+                    quadratureN += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionN, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
+                    quadratureMx += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionMx, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
+                    quadratureMy += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionMy, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
+                }
+            }
+            return new ForceTuple(quadratureN, -quadratureMx, quadratureMy);
+        }
+
+        /// <summary>
+        /// Calculate the resultant of all structural steel sections.
+        /// </summary>
+        /// <param name="strainPlanes">The strain plane</param>
+        protected ForceTuple[] IntegrateStructuralSteelStress(StrainPlane[] strainPlanes)
+        {
+            ForceTuple[] returnValue = new ForceTuple[strainPlanes.Length];
+
+            Parallel.ForEach(System.Collections.Concurrent.Partitioner.Create(0, strainPlanes.Length), (range) =>
+            {
+                for (int j = range.Item1; j < range.Item2; j++)
+                    returnValue[j] = IntegrateStructuralSteelStress(strainPlanes[j]);
+            });
+
+            return returnValue;
         }
 
         #endregion
@@ -1383,7 +1458,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             for (int j = 0; j < subdivision; j++)
                             {
                                 strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision,
-                                    p1, p2, p3, p4, subIndex, p5), failureZones);
+                                    p1, p2, p3, p4, p5, subIndex), failureZones);
                                 subIndex++;
                             }
 
@@ -1395,11 +1470,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             for (int j = 0; j < subdivision; j++)
                             {
                                 strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, (double)j / (double)subdivision,
-                                    p1, p2, p3, p4, subIndex, p5), failureZones);
+                                    p1, p2, p3, p4, p5, subIndex), failureZones);
                                 subIndex++;
                             }
 
-                            strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, 1.0, p1, p2, p3, p4, subIndex, p5), failureZones);
+                            strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, 1.0, p1, p2, p3, p4, p5, subIndex), failureZones);
 
                             break;
                         }
@@ -1430,8 +1505,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <exception cref="ArgumentException"></exception>
         internal virtual StrainPlane CalculateStrainPlane(double teta, FailureZones failureIndex, double immersioneNelCampo,
             DeformationFieldsPoint p1, DeformationFieldsPoint p2,
-            DeformationFieldsPoint p3, DeformationFieldsPoint p4, int id = -1,
-            DeformationFieldsPoint p5 = default)
+            DeformationFieldsPoint p3, DeformationFieldsPoint p4,
+            DeformationFieldsPoint p5, int id = -1)
         {
             if (immersioneNelCampo > 1.0 || immersioneNelCampo < 0.0)
                 throw new ArgumentException("ImmersioneNelCampo cannot be greater than 1 and less than 0");
@@ -1454,11 +1529,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double chiF3B_limit = (epsilonF4_limit + Math.Abs(p3.epsilon)) / p3.distanceFromBaricentre;
 
                 // Limit F2B-F3A
-                double chiF2B_P5_limit = (p1.epsilon + Math.Abs(p5.epsilon)) / (p5.point.Y - p1.point.Y);
+                double chiF2B_P5_limit = double.MaxValue;
+                if (p5.point.Y > p1.point.Y)
+                    chiF2B_P5_limit = (p1.epsilon + Math.Abs(p5.epsilon)) / (p5.point.Y - p1.point.Y);
+
                 double chiF2B_P2_limit = (p1.epsilon + Math.Abs(p2.epsilon)) / (p2.point.Y - p1.point.Y);
                 double chiF2B_P3_limit = (p1.epsilon + Math.Abs(p3.epsilon)) / (p3.point.Y - p1.point.Y);
                 double chiF2B_limit = Math.Min(chiF2B_P5_limit, Math.Min(chiF2B_P2_limit, chiF2B_P3_limit));
-                WhoLimit chiF2B_limitPoint;
+
                 DeformationFieldsPoint F3_FirstRotationPoint;
                 double F3_FirstRotationPoint_chi_limit;
                 DeformationFieldsPoint F3_SecondRotationPoint = null;
@@ -1468,7 +1546,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (chiF2B_limit == chiF2B_P5_limit)
                 {
                     // Point p5 is rotation point and there can be also both p2 and p3.
-                    chiF2B_limitPoint = WhoLimit.P5;
+                    // p5 is the first rotation point.
                     F3_FirstRotationPoint = p5;
                     double chi_p2_p5 = (p2.epsilon - p5.epsilon) / (p5.point.Y - p2.point.Y);
                     double chi_p3_p5 = (p3.epsilon - p5.epsilon) / (p5.point.Y - p3.point.Y);
@@ -1490,7 +1568,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else if (chiF2B_limit == chiF2B_P2_limit)
                 {
                     // The p2 point is rotation point and then there is also the p3 point.
-                    chiF2B_limitPoint = WhoLimit.P2;
+                    // p2 is the first rotation point.
                     double chi_p3_p2 = (p3.epsilon - p2.epsilon) / (p2.point.Y - p3.point.Y);
                     F3_FirstRotationPoint = p2;
                     F3_FirstRotationPoint_chi_limit = chi_p3_p2;
@@ -1499,7 +1577,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
                 else if (chiF2B_limit == chiF2B_P3_limit)
                 {
-                    chiF2B_limitPoint = WhoLimit.P3;
+                    // p3 is the first rotation point.
                     F3_FirstRotationPoint = p3;
                     F3_FirstRotationPoint_chi_limit = 0.0; // no limit
                 }
@@ -1508,7 +1586,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 // Limit F3A-F3B
                 double chiF3A_limit = 0.0;
-                WhoLimit chiF3A_limitPoint;
                 double chiF3A_firstPoint_limit = (p4.epsilon + Math.Abs(F3_FirstRotationPoint.epsilon)) / (F3_FirstRotationPoint.point.Y - p4.point.Y);
                 if (chiF3A_firstPoint_limit > F3_FirstRotationPoint_chi_limit)
                     chiF3A_limit = chiF3A_firstPoint_limit;
@@ -1892,8 +1969,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var p2 = GetP2(distances, failureDomainType);
             var p3 = GetP3(distances, failureDomainType);
             var p4 = GetP4(distances, failureDomainType);
+            var p5 = GetP4(distances, failureDomainType);
 
-            StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, id);
+            StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, p5, id);
 
             teta = strainPlane.Teta;
 
@@ -2013,9 +2091,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         p2 = GetP2(distances, failureDomainType);
                         p3 = GetP3(distances, failureDomainType);
                         p4 = GetP4(distances, failureDomainType);
+                        p5 = GetP4(distances, failureDomainType);
 
                         id++;
-                        strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, id);
+                        strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, p5, id);
                         forces = GetExternalForces(CalculateForceResultantForDomain(strainPlane, rebarIsInsideAssociation), coordinateSystem);
 
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
@@ -2171,16 +2250,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     var p2PlusTeta = GetP2(distancesPlusTeta, failureDomainType);
                     var p3PlusTeta = GetP3(distancesPlusTeta, failureDomainType);
                     var p4PlusTeta = GetP4(distancesPlusTeta, failureDomainType);
+                    var p5PlusTeta = GetP5(distancesPlusTeta, failureDomainType);
 
                     var p1MinusTeta = GetP1(distancesMinusTeta, failureDomainType, inputFailureZone);
                     var p2MinusTeta = GetP2(distancesMinusTeta, failureDomainType);
                     var p3MinusTeta = GetP3(distancesMinusTeta, failureDomainType);
                     var p4MinusTeta = GetP4(distancesMinusTeta, failureDomainType);
+                    var p5MinusTeta = GetP5(distancesMinusTeta, failureDomainType);
 
                     StrainPlane strainPlanePlusdTeta = CalculateStrainPlane(distancesPlusTeta.teta, inputFailureZone,
-                        inputImmersioneNelCampo, p1PlusTeta, p2PlusTeta, p3PlusTeta, p4PlusTeta);
+                        inputImmersioneNelCampo, p1PlusTeta, p2PlusTeta, p3PlusTeta, p4PlusTeta, p5PlusTeta);
                     StrainPlane strainPlaneMinusdTeta = CalculateStrainPlane(distancesMinusTeta.teta, inputFailureZone,
-                        inputImmersioneNelCampo, p1MinusTeta, p2MinusTeta, p3MinusTeta, p4MinusTeta);
+                        inputImmersioneNelCampo, p1MinusTeta, p2MinusTeta, p3MinusTeta, p4MinusTeta, p5MinusTeta);
 
                     var forcesPlusTeta = CalculateForceResultantForDomain(strainPlanePlusdTeta, rebarIsInsideAssociation);
                     var forcesMinusTeta = CalculateForceResultantForDomain(strainPlaneMinusdTeta, rebarIsInsideAssociation);
@@ -2249,6 +2330,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     var p2Eta = GetP2(distances, failureDomainType);
                     var p3Eta = GetP3(distances, failureDomainType);
                     var p4Eta = GetP4(distances, failureDomainType);
+                    var p5Eta = GetP5(distances, failureDomainType);
 
                     // 2023-07-11 AA - part 2 of 3
                     // If these two epsilon values are equal the F2B field collapses, a problem emerged with ACI.
@@ -2265,9 +2347,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     var p1EtaNext = GetP1(distances, failureDomainType, inputFailureZoneNext);
 
                     StrainPlane strainPlanePlusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZoneNext,
-                        Math.Min(immersioneNelCampoNext, 1.0), p1EtaNext, p2Eta, p3Eta, p4Eta);
+                        Math.Min(immersioneNelCampoNext, 1.0), p1EtaNext, p2Eta, p3Eta, p4Eta, p5Eta);
                     StrainPlane strainPlaneMinusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZonePrev,
-                        Math.Max(immersioneNelCampoPrev, 0.0), p1EtaPrev, p2Eta, p3Eta, p4Eta);
+                        Math.Max(immersioneNelCampoPrev, 0.0), p1EtaPrev, p2Eta, p3Eta, p4Eta, p5Eta);
 
                     var forcesPlusEta = CalculateForceResultantForDomain(strainPlanePlusdImm, rebarIsInsideAssociation);
                     var forcesMinusEta = CalculateForceResultantForDomain(strainPlaneMinusdImm, rebarIsInsideAssociation);
@@ -2490,9 +2572,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             var p2 = GetP2(distances, analysisType);
                             var p3 = GetP3(distances, analysisType);
                             var p4 = GetP4(distances, analysisType);
+                            var p5 = GetP5(distances, analysisType);
 
                             StrainPlane strainPlane = CalculateStrainPlane(distances.teta, failureZone,
-                                eta, p1, p2, p3, p4);
+                                eta, p1, p2, p3, p4, p5);
                             double strain = strainPlane.GetStrain(_concreteSection.Shape.Fill[distances.dMaxVertexIndex]);
                             if (strain < _concreteSection.ConcreteMaterial.StrainYCompression)
                             {

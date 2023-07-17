@@ -2027,7 +2027,7 @@ namespace ConcreteTests
         /// </summary>
         /// <param name="section"></param>
         /// <returns></returns>
-        private static List<StrainPlane> CalculateStrainPlanes(ReinforcedConcreteSection section)
+        private static List<StrainPlane> CalculateStrainPlanes(ReinforcedConcreteSection section, SectionSolver.FailureDomainTypes analysisType = SectionSolver.FailureDomainTypes.Plastic)
         {
             (SectionSolver.FailureZones, int)[] plasticZones =
             {
@@ -2041,10 +2041,10 @@ namespace ConcreteTests
 
             SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
             var sectionDistances = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(0.0);
-            var p2 = sectionSolverModelCode2010Test.GetP2(sectionDistances, SectionSolver.FailureDomainTypes.Plastic);
-            var p3 = sectionSolverModelCode2010Test.GetP3(sectionDistances, SectionSolver.FailureDomainTypes.Plastic);
-            var p4 = sectionSolverModelCode2010Test.GetP4(sectionDistances, SectionSolver.FailureDomainTypes.Plastic);
-            var p5 = sectionSolverModelCode2010Test.GetP5(sectionDistances, SectionSolver.FailureDomainTypes.Plastic);
+            var p2 = sectionSolverModelCode2010Test.GetP2(sectionDistances, analysisType);
+            var p3 = sectionSolverModelCode2010Test.GetP3(sectionDistances, analysisType);
+            var p4 = sectionSolverModelCode2010Test.GetP4(sectionDistances, analysisType);
+            var p5 = sectionSolverModelCode2010Test.GetP5(sectionDistances, analysisType);
 
             var planes = new List<StrainPlane>();
 
@@ -2054,16 +2054,16 @@ namespace ConcreteTests
                 int subdivision = plasticZones[i].Item2 + 1;
                 int subIndex = 0;
 
-                var p1 = sectionSolverModelCode2010Test.GetP1(sectionDistances, SectionSolver.FailureDomainTypes.Plastic, failureZones);
+                var p1 = sectionSolverModelCode2010Test.GetP1(sectionDistances, analysisType, failureZones);
 
                 for (int j = 0; j < subdivision; j++)
                 {
-                    planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(0.0, failureZones, (double)j / (double)subdivision, p1, p2, p3, p4, subIndex, p5));
+                    planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(0.0, failureZones, (double)j / (double)subdivision, p1, p2, p3, p4, p5, subIndex));
                     subIndex++;
                 }
             }
-            var p1_F4 = sectionSolverModelCode2010Test.GetP1(sectionDistances, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.FailureZones.F4);
-            planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(0.0, SectionSolver.FailureZones.F4, 1.0, p1_F4, p2, p3, p4, 6, p5));
+            var p1_F4 = sectionSolverModelCode2010Test.GetP1(sectionDistances, analysisType, SectionSolver.FailureZones.F4);
+            planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(0.0, SectionSolver.FailureZones.F4, 1.0, p1_F4, p2, p3, p4, p5, 6));
             return planes;
         }
 
@@ -2104,7 +2104,7 @@ namespace ConcreteTests
                 new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0);
 
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
-            //FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0);
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0);
             var domainResult = sectionChecker.GetPlasticFailureDomainResult();
 
             Assert.IsTrue(true);
