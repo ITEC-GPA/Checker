@@ -2103,8 +2103,9 @@ namespace ConcreteTests
             var section = new ReinforcedConcreteSection(1000.0, 300.0, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 50.0, rebar, 200.0,
                 new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0);
 
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
-            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete(),
+                false, new StandardEN1993p11());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 100.0, true, new StandardEN1993p11());
             var domainResult = sectionChecker.GetPlasticFailureDomainResult();
 
             Assert.IsTrue(true);

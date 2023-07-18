@@ -17,15 +17,30 @@ namespace GPC.Checkers.Concrete.Checkers
     [Serializable]
     public abstract class SectionChecker : Checker, ISerializable
     {
+        #region Fields
+
+        /// <summary>
+        /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
+        /// </summary>
+        protected readonly StandardEN1993p11 _standardStructuralSteel;
 
         protected readonly SectionSolver _solver;
+
         protected readonly SectionCheckerAttribute _checkerAttributes;
 
+        #endregion
+
+        #region Properties
 
         public SectionOptions SectionCheckerOptions => (SectionOptions)_options;
 
         public SectionSolver SectionSolver => _solver;
 
+        public StandardEN1993p11 StandardStructuralSteel => _standardStructuralSteel;
+
+        #endregion
+
+        #region Constructors
 
         /// <param name="checkerAttribute">This rapresent one section and multiple forces applied</param>
         /// <param name="options"></param>
@@ -34,20 +49,23 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <param name="solver"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionOptions options, Standard standard, 
-            SectionSolver solver, int id = IDUNASSIGNED)
+            SectionSolver solver, int id = IDUNASSIGNED, StandardEN1993p11 standardStructuralSteel = null)
             : base(standard, options, id)
         {
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
             _solver = solver ?? throw new ArgumentNullException(nameof(solver));
+            _standardStructuralSteel = standardStructuralSteel;
         }
 
-		#region Public Async Method
+        #endregion
+
+        #region Public Async Method
 
         /// <summary>
         /// Calculate the plastic failure domain and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-		public abstract Task<FailureDomainResult> GetPlasticFailureDomainResultAsync();
+        public abstract Task<FailureDomainResult> GetPlasticFailureDomainResultAsync();
 
         /// <summary>
         /// Calculate the plastic failure domain 2d and calculate the domain point for each forces
@@ -149,6 +167,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #endregion
 
+        #region Nested class
 
         [Serializable]
         public abstract class SectionOptions : Options, ISerializable
@@ -208,5 +227,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 return !(left == right);
             }
         }
+
+        #endregion
     }
 }

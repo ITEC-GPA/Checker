@@ -1487,13 +1487,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return strainPlanes;
         }
 
-        private enum WhoLimit
-        {
-            P5,
-            P2,
-            P3
-        }
-
         /// <summary>
         /// Calculate the strain plane for angle <paramref name="teta"/> with input <see cref="FailureZones"/> 
         /// </summary>
@@ -1513,28 +1506,38 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (_concreteSection.IsCompositeSteelConcrete)
             {
+                // Rotate points.
+                double cosTeta = Math.Cos(teta);
+                double sinTeta = Math.Sin(teta);
+
+                double p1PointY = p1.point.Y * cosTeta - p1.point.X * sinTeta;
+                double p2PointY = p2.point.Y * cosTeta - p2.point.X * sinTeta;
+                double p3PointY = p3.point.Y * cosTeta - p3.point.X * sinTeta;
+                double p4PointY = p4.point.Y * cosTeta - p4.point.X * sinTeta;
+                double p5PointY = p5.point.Y * cosTeta - p5.point.X * sinTeta;
+
                 // Steel and concrete composite section.
                 // Limit F1-F2A
                 // Limit F2A-F2B
-                double distance_F1_F2A = Math.Max(p2.point.Y, p5.point.Y) - p1.point.Y;
+                double distance_F1_F2A = Math.Max(p2PointY, p5PointY) - p1PointY;
                 double chiF1_limit = p1.epsilon / distance_F1_F2A;
                 double chiF2A_limit = (p1.epsilon + Math.Abs(p3.epsilon)) / distance_F1_F2A;
 
                 // Limit F3B-F4
                 double epsilonF4_limit;
-                if (p5.point.Y > p3.point.Y)
-                    epsilonF4_limit = Math.Max(Math.Min(p5.epsilon - (p5.epsilon - p3.epsilon) * p5.distanceFromBaricentre / (p5.point.Y - p3.point.Y), 0.0), p3.epsilon);
+                if (p5PointY > p3PointY)
+                    epsilonF4_limit = Math.Max(Math.Min(p5.epsilon - (p5.epsilon - p3.epsilon) * p5.distanceFromBaricentre / (p5PointY - p3PointY), 0.0), p3.epsilon);
                 else
                     epsilonF4_limit = 0.0;
                 double chiF3B_limit = (epsilonF4_limit + Math.Abs(p3.epsilon)) / p3.distanceFromBaricentre;
 
                 // Limit F2B-F3A
                 double chiF2B_P5_limit = double.MaxValue;
-                if (p5.point.Y > p1.point.Y)
-                    chiF2B_P5_limit = (p1.epsilon + Math.Abs(p5.epsilon)) / (p5.point.Y - p1.point.Y);
+                if (p5PointY > p1PointY)
+                    chiF2B_P5_limit = (p1.epsilon + Math.Abs(p5.epsilon)) / (p5PointY - p1PointY);
 
-                double chiF2B_P2_limit = (p1.epsilon + Math.Abs(p2.epsilon)) / (p2.point.Y - p1.point.Y);
-                double chiF2B_P3_limit = (p1.epsilon + Math.Abs(p3.epsilon)) / (p3.point.Y - p1.point.Y);
+                double chiF2B_P2_limit = (p1.epsilon + Math.Abs(p2.epsilon)) / (p2PointY - p1PointY);
+                double chiF2B_P3_limit = (p1.epsilon + Math.Abs(p3.epsilon)) / (p3PointY - p1PointY);
                 double chiF2B_limit = Math.Min(chiF2B_P5_limit, Math.Min(chiF2B_P2_limit, chiF2B_P3_limit));
 
                 DeformationFieldsPoint F3_FirstRotationPoint;
@@ -1548,15 +1551,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     // Point p5 is rotation point and there can be also both p2 and p3.
                     // p5 is the first rotation point.
                     F3_FirstRotationPoint = p5;
-                    double chi_p2_p5 = (p2.epsilon - p5.epsilon) / (p5.point.Y - p2.point.Y);
-                    double chi_p3_p5 = (p3.epsilon - p5.epsilon) / (p5.point.Y - p3.point.Y);
+                    double chi_p2_p5 = (p2.epsilon - p5.epsilon) / (p5PointY - p2PointY);
+                    double chi_p3_p5 = (p3.epsilon - p5.epsilon) / (p5PointY - p3PointY);
                     if (chi_p2_p5 > chi_p3_p5)
                     {
                         // There are p2 and p3 rotation points.
                         F3_SecondRotationPoint = p2;
                         F3_FirstRotationPoint_chi_limit = chi_p2_p5;
                         F3_ThirdRotationPoint = p3;
-                        F3_SecondRotationPoint_chi_limit = (p3.epsilon - p2.epsilon) / (p2.point.Y - p3.point.Y);
+                        F3_SecondRotationPoint_chi_limit = (p3.epsilon - p2.epsilon) / (p2PointY - p3PointY);
                     }
                     else
                     {
@@ -1569,7 +1572,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 {
                     // The p2 point is rotation point and then there is also the p3 point.
                     // p2 is the first rotation point.
-                    double chi_p3_p2 = (p3.epsilon - p2.epsilon) / (p2.point.Y - p3.point.Y);
+                    double chi_p3_p2 = (p3.epsilon - p2.epsilon) / (p2PointY - p3PointY);
                     F3_FirstRotationPoint = p2;
                     F3_FirstRotationPoint_chi_limit = chi_p3_p2;
 
@@ -1586,21 +1589,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 // Limit F3A-F3B
                 double chiF3A_limit = 0.0;
-                double chiF3A_firstPoint_limit = (p4.epsilon + Math.Abs(F3_FirstRotationPoint.epsilon)) / (F3_FirstRotationPoint.point.Y - p4.point.Y);
+                double chiF3A_firstPoint_limit = (p4.epsilon + Math.Abs(F3_FirstRotationPoint.epsilon)) / (F3_FirstRotationPoint.point.Y - p4PointY);
                 if (chiF3A_firstPoint_limit > F3_FirstRotationPoint_chi_limit)
                     chiF3A_limit = chiF3A_firstPoint_limit;
                 else
                 {
                     if (F3_SecondRotationPoint != null)
                     {
-                        double chiF3A_secondPoint_limit = (p4.epsilon + Math.Abs(F3_SecondRotationPoint.epsilon)) / (F3_SecondRotationPoint.point.Y - p4.point.Y);
+                        double chiF3A_secondPoint_limit = (p4.epsilon + Math.Abs(F3_SecondRotationPoint.epsilon)) / (F3_SecondRotationPoint.point.Y - p4PointY);
                         if (chiF3A_secondPoint_limit > F3_SecondRotationPoint_chi_limit)
                             chiF3A_limit = chiF3A_secondPoint_limit;
                         else
                         {
                             if (F3_ThirdRotationPoint != null)
                             {
-                                double chiF3A_thirdPoint_limit = (p4.epsilon + Math.Abs(F3_ThirdRotationPoint.epsilon)) / (F3_ThirdRotationPoint.point.Y - p4.point.Y);
+                                double chiF3A_thirdPoint_limit = (p4.epsilon + Math.Abs(F3_ThirdRotationPoint.epsilon)) / (F3_ThirdRotationPoint.point.Y - p4PointY);
                                 chiF3A_limit = chiF3A_thirdPoint_limit;
                             }
                         }
