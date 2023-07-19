@@ -50,8 +50,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#region Constructor
 
-		public SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
-			: base(section, standard, considerTensileConcrete, id)
+		public SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, bool considerTensileConcrete = false,
+			int id = ModelObjectId.IDUNASSIGNED, StandardEN1993p11 standardStructuralSteel = null)
+			: base(section, standard, considerTensileConcrete, id, standardStructuralSteel)
 		{
 
 		}
@@ -198,12 +199,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
 		#region Protected Design Rebars
 
-		/// <returns>The design rebar yielding stress</returns>
-		protected double CalculateFyd(SteelMaterial material)
-		{
-			return material.CalculateFyd(StandardModelCode2010);
-		}
-
 		/// <returns>The design rebar stress related to <paramref name="strain"/></returns>
 		protected double CalculateDesignStressRebar(double strain, SteelMaterial material)
 		{
@@ -237,12 +232,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected double CalculateDesignYieldingStrainStructuralSteel(SteelMaterial material)
         {
-            return material.CalculateDesignYieldingStrainTension(StandardModelCode2010);
+            return material.CalculateDesignYieldingStrainTension(StandardStructuralSteel);
         }
 
         protected double CalculateDesignUltimateStrainStructuralSteel(SteelMaterial material)
         {
-            return material.CalculateDesignUltimateStrain(StandardModelCode2010);
+            return material.CalculateDesignUltimateStrain(StandardStructuralSteel);
         }
 
         #endregion

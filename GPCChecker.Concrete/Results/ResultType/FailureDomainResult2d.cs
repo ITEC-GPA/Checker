@@ -31,8 +31,9 @@ namespace GPC.Checkers.Concrete.Results
 		public FailureDomain2d Domain => _failureDomain2d;
 
 		public FailureDomainResult2d(IConcreteSection section, FailureDomain2d failureDomain, IEnumerable<ResultBeamForces> forces, SectionSolver solver,
-			Standard standard, Checkers.SectionChecker.SectionOptions options, int id = IDUNASSIGNED)
-			: base(section, standard, id)
+			Standard standard, Checkers.SectionChecker.SectionOptions options, int id = IDUNASSIGNED,
+            StandardEN1993p11 standardStructuralSteel = null)
+			: base(section, standard, id, standardStructuralSteel)
 		{
 			_failureDomain2d = failureDomain ?? throw new ArgumentNullException(nameof(failureDomain));
 			_sectionSolver = solver ?? throw new ArgumentNullException(nameof(solver));

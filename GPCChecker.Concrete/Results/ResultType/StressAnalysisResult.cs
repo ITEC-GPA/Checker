@@ -46,8 +46,9 @@ namespace GPC.Checkers.Concrete.Results
 		#region Constructor
 
 		public StressAnalysisResult(IConcreteSection section, ResultBeamForces force, StrainPlane strainPlane, SectionSolver solver, Standard standard, 
-			bool linearAnalysis = false, double? psiRebar = null, double? psiTendon = null, int id = IDUNASSIGNED)
-			: base(section, standard, id)
+			bool linearAnalysis = false, double? psiRebar = null, double? psiTendon = null, int id = IDUNASSIGNED,
+            StandardEN1993p11 standardStructuralSteel = null)
+			: base(section, standard, id, standardStructuralSteel)
 		{
 			_force = force ?? throw new ArgumentNullException(nameof(force));
 			_strainPlane = strainPlane;
@@ -74,7 +75,7 @@ namespace GPC.Checkers.Concrete.Results
 
 		public StrainPlaneResult CalculateStrainPlaneResult(bool linearAnalysis = false, double psiR = 0, double psiT = 0)
 		{
-			StrainPlaneResult strainPlaneResult = new StrainPlaneResult(_section, _force, _strainPlane, _sectionSolver, _standard, _id);
+			StrainPlaneResult strainPlaneResult = new StrainPlaneResult(_section, _force, _strainPlane, _sectionSolver, _standard, _id, _standardStructuralSteel);
 			return strainPlaneResult.CalculateStrainPlaneResult(linearAnalysis, psiR, psiT);
 		}
 

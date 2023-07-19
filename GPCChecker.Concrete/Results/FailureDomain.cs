@@ -74,7 +74,7 @@ namespace GPC.Checkers.Concrete.Results
             return RebuildFailureDomain(_axialForceSubdivision);
         }
 
-        protected Mesh GetMesh(FailureDomain failureDomain)
+        public Mesh GetMesh(FailureDomain failureDomain)
         {
             Mesh mesh = new Mesh();
 

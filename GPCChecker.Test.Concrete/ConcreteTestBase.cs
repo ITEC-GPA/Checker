@@ -1102,17 +1102,36 @@ namespace ConcreteTests
             double pureTractionMomentX = 0;
             double pureTractionMomentY = 0;
 
+            // Nel campo elastico il primo acciaio che arriva a snervamento limita gli altri.
+            double elasticEpsilonMin = double.MaxValue;
+            if (failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Elastic)
+            {
+                foreach (ReinforcedConcreteRebar rebar in section.GetRebars())
+                    elasticEpsilonMin = Math.Min(elasticEpsilonMin, rebar.RebarMaterial.StrainYTension);
+                foreach (var steelSection in section.SteelSections)
+                    elasticEpsilonMin = Math.Min(elasticEpsilonMin, steelSection.Section.SteelMaterial.StrainYTension);
+            }
 
             foreach (ReinforcedConcreteRebar rebar in section.GetRebars())
             {
-                double pureTractionRebarsStress = rebar.RebarMaterial.Fyk / standard.GammaS;
+                double pureTractionRebarsStress;
+                if (elasticEpsilonMin == double.MaxValue)
+                    pureTractionRebarsStress = rebar.RebarMaterial.Fyk / standard.GammaS;
+                else
+                    pureTractionRebarsStress = elasticEpsilonMin * rebar.RebarMaterial.ElasticModulusTension / standard.GammaS;
+
                 pureTractionAxialForce += rebar.Area * pureTractionRebarsStress;
                 pureTractionMomentX -= rebar.Area * pureTractionRebarsStress * (rebar.Position.Y - section.Centroid.Y);
                 pureTractionMomentY += rebar.Area * pureTractionRebarsStress * (rebar.Position.X - section.Centroid.X);
             }
             foreach (var steelSection in section.SteelSections)
             {
-                var steelMatFyd = steelSection.Section.SteelMaterial.Fyk / standardStructuralSteel.GammaM0;
+                double steelMatFyd;
+                if (elasticEpsilonMin == double.MaxValue)
+                    steelMatFyd = steelSection.Section.SteelMaterial.Fyk / standardStructuralSteel.GammaM0;
+                else
+                    steelMatFyd = elasticEpsilonMin * steelSection.Section.SteelMaterial.ElasticModulusTension / standardStructuralSteel.GammaM0;
+
                 pureTractionAxialForce += steelSection.Section.Area * steelMatFyd;
                 var steelSectionGlobalPosition = steelSection.PositionToGlobal(steelSection.Section.Centroid);
                 pureTractionMomentX -= steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.Y - section.Centroid.Y);
@@ -1134,7 +1153,7 @@ namespace ConcreteTests
 
             if (showDomain)
             {
-                ExportToGmsh(failureDomain.GetMesh());
+                ExportToGmsh(failureDomain.GetMesh(failureDomain));
             }
         }
 
@@ -1644,8 +1663,8 @@ namespace ConcreteTests
         internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
         {
             internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard,
-                bool considerTensileConcrete = false, int id = -1)
-                : base(section, standard, considerTensileConcrete, id)
+                bool considerTensileConcrete = false, int id = -1, StandardEN1993p11 standardStructuralSteel = null)
+                : base(section, standard, considerTensileConcrete, id, standardStructuralSteel)
             {
             }
 
@@ -1694,8 +1713,8 @@ namespace ConcreteTests
         internal class SectionSolverACI318Test : SectionSolverACI318
         {
             internal SectionSolverACI318Test(IConcreteSection section, StandardACI318 standard, bool haveSpiral,
-                bool considerTensileConcrete = false, int id = -1)
-                : base(section, standard, haveSpiral, considerTensileConcrete, id)
+                bool considerTensileConcrete = false, int id = -1, StandardEN1993p11 standardStructuralSteel = null)
+                : base(section, standard, haveSpiral, considerTensileConcrete, id, standardStructuralSteel)
             {
             }
 

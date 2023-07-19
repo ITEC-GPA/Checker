@@ -19,6 +19,10 @@ namespace GPC.Checkers.Concrete.Results
 
         protected readonly IConcreteSection _section;
         protected readonly Standard _standard;
+        /// <summary>
+        /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
+        /// </summary>
+        protected readonly StandardEN1993p11 _standardStructuralSteel;
 
         #endregion
 
@@ -28,15 +32,18 @@ namespace GPC.Checkers.Concrete.Results
 
         public Standard Standard => _standard;
 
-		#endregion
+        public StandardEN1993p11 StandardStructuralSteel => _standardStructuralSteel;
 
-		#region Constructor
+        #endregion
 
-		public CheckerResultType(IConcreteSection section, Standard standard, int id = IDUNASSIGNED)
+        #region Constructor
+
+        public CheckerResultType(IConcreteSection section, Standard standard, int id = IDUNASSIGNED, StandardEN1993p11 standardStructuralSteel = null)
             : base(id)
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
+            _standardStructuralSteel = standardStructuralSteel;
         }
 
         protected CheckerResultType(SerializationInfo info, StreamingContext context)
@@ -44,6 +51,7 @@ namespace GPC.Checkers.Concrete.Results
         {
             _section = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
+            _standardStructuralSteel = (StandardEN1993p11)info.GetValue("StandardStructuralSteel", typeof(StandardEN1993p11));
         }
 
         #endregion
@@ -65,6 +73,7 @@ namespace GPC.Checkers.Concrete.Results
                 hashCode = hashCode * -17 + base.GetHashCode();
                 hashCode = hashCode * -17 + _section.GetHashCode();
                 hashCode = hashCode * -17 + _standard.GetHashCode();
+                hashCode = hashCode * -17 + _standardStructuralSteel.GetHashCode();
                 return hashCode;
             }
         }
@@ -74,6 +83,7 @@ namespace GPC.Checkers.Concrete.Results
             base.GetObjectData(info, context);
             info.AddValue("ConcreteSection", _section);
             info.AddValue("Standard", _standard);
+            info.AddValue("StandardStructuralSteel", _standardStructuralSteel);
         }
 
 		#endregion

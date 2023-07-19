@@ -2027,7 +2027,9 @@ namespace ConcreteTests
         /// </summary>
         /// <param name="section"></param>
         /// <returns></returns>
-        private static List<StrainPlane> CalculateStrainPlanes(ReinforcedConcreteSection section, SectionSolver.FailureDomainTypes analysisType = SectionSolver.FailureDomainTypes.Plastic)
+        private static List<StrainPlane> CalculateStrainPlanes(ReinforcedConcreteSection section,
+            SectionSolver.FailureDomainTypes analysisType = SectionSolver.FailureDomainTypes.Plastic,
+            double rotationAngle = 0.0)
         {
             (SectionSolver.FailureZones, int)[] plasticZones =
             {
@@ -2039,8 +2041,9 @@ namespace ConcreteTests
                 (SectionSolver.FailureZones.F4, 5)
             };
 
-            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
-            var sectionDistances = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(0.0);
+            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(),
+                false, -1, new StandardEN1993p11());
+            var sectionDistances = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(rotationAngle);
             var p2 = sectionSolverModelCode2010Test.GetP2(sectionDistances, analysisType);
             var p3 = sectionSolverModelCode2010Test.GetP3(sectionDistances, analysisType);
             var p4 = sectionSolverModelCode2010Test.GetP4(sectionDistances, analysisType);
@@ -2058,12 +2061,12 @@ namespace ConcreteTests
 
                 for (int j = 0; j < subdivision; j++)
                 {
-                    planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(0.0, failureZones, (double)j / (double)subdivision, p1, p2, p3, p4, p5, subIndex));
+                    planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(rotationAngle, failureZones, (double)j / (double)subdivision, p1, p2, p3, p4, p5, subIndex));
                     subIndex++;
                 }
             }
             var p1_F4 = sectionSolverModelCode2010Test.GetP1(sectionDistances, analysisType, SectionSolver.FailureZones.F4);
-            planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(0.0, SectionSolver.FailureZones.F4, 1.0, p1_F4, p2, p3, p4, p5, 6));
+            planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(rotationAngle, SectionSolver.FailureZones.F4, 1.0, p1_F4, p2, p3, p4, p5, 6));
             return planes;
         }
 
@@ -2100,15 +2103,132 @@ namespace ConcreteTests
         public void FailureDomain1()
         {
             var rebar = new RebarSectionCircular("", 16.0, SteelMaterialEN1992Data.B450C);
+            var structuralSteel = SteelMaterialEN1993Data.S275;
+            structuralSteel.SetStressStrain(SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic);
             var section = new ReinforcedConcreteSection(1000.0, 300.0, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 50.0, rebar, 200.0,
-                new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0);
+                new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), structuralSteel, 50.0);
 
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete(),
                 false, new StandardEN1993p11());
-            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 100.0, true, new StandardEN1993p11());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0, true, new StandardEN1993p11());
             var domainResult = sectionChecker.GetPlasticFailureDomainResult();
 
             Assert.IsTrue(true);
+        }
+
+        /// <summary>
+        /// MULTI DIRECTION OF THETA.
+        /// Tests the sequence of deformation planes in a composite section.
+        /// Case similar to the situation with only concrete section without steel profiles.
+        /// Steel profile is inside concrete area.
+        /// The outermost steel is the reinforcing bars.
+        /// 
+        /// Compare sections with and without structural steel.
+        /// </summary>
+        [TestMethod]
+        public void StrainPlanesDomain10()
+        {
+            var rebar = new RebarSectionCircular("", 16.0, SteelMaterialEN1992Data.B450C);
+            var section = new ReinforcedConcreteSection(
+                concreteWidth: 250.0, concreteHeight: 500.0, concreteMaterial: ConcreteMaterialEN1992Data.C25_30,
+                rebarsSectionTop: rebar, rebarsPitchTop: 150.0, rebarsCoverTop: 50.0,
+                rebarsSectionBottom: rebar, rebarsPitchBottom: 150.0, rebarsCoverBottom: 50.0,
+                steelShapeH: new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"),
+                steelMaterial: SteelMaterialEN1993Data.S275);
+
+            section.SteelSections[0].Traslation.Y = 100.0;
+
+            // With steel section.
+            CalculateStrainPlanesMultiDirection(section,
+                out Dictionary<double, List<StrainPlane>> planesWithSteel,
+                out Dictionary<double, List<string>> min_y_strian_sequence,
+                out Dictionary<double, List<string>> max_y_strian_sequence,
+                SectionSolver.FailureDomainTypes.Plastic);
+
+            // Without steel section.
+            section.SteelSections.Clear();
+
+            CalculateStrainPlanesMultiDirection(section,
+                out Dictionary<double, List<StrainPlane>> planesWithoutSteel,
+                out Dictionary<double, List<string>> min_y_strian_sequence_without,
+                out Dictionary<double, List<string>> max_y_strian_sequence_without,
+                SectionSolver.FailureDomainTypes.Plastic);
+
+            // Assert
+            Assert.IsNotNull(planesWithSteel);
+            Assert.IsNotNull(planesWithoutSteel);
+            foreach (var strain in min_y_strian_sequence)
+                CollectionAssert.AreEqual(strain.Value, min_y_strian_sequence_without[strain.Key]);
+            foreach (var strain in max_y_strian_sequence)
+                CollectionAssert.AreEqual(strain.Value, max_y_strian_sequence_without[strain.Key]);
+        }
+
+        /// <summary>
+        /// MULTI DIRECTION OF THETA.
+        /// Tests the sequence of deformation planes in a composite section.
+        /// Case similar to the situation with only concrete section without steel profiles.
+        /// Steel profile is inside concrete area.
+        /// The outermost steel is the reinforcing bars.
+        /// 
+        /// Compare sections with and without structural steel.
+        /// </summary>
+        [TestMethod]
+        public void StrainPlanesDomain11()
+        {
+            var rebar = new RebarSectionCircular("", 16.0, SteelMaterialEN1992Data.B450C);
+            var section = new ReinforcedConcreteSection(
+                concreteWidth: 250.0, concreteHeight: 500.0, concreteMaterial: ConcreteMaterialEN1992Data.C25_30,
+                rebarsSectionTop: rebar, rebarsPitchTop: 150.0, rebarsCoverTop: 50.0,
+                rebarsSectionBottom: rebar, rebarsPitchBottom: 150.0, rebarsCoverBottom: 50.0,
+                steelShapeH: new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"),
+                steelMaterial: SteelMaterialEN1993Data.S275);
+
+            section.SteelSections[0].Traslation.Y = 100.0;
+
+            // With steel section.
+            CalculateStrainPlanesMultiDirection(section,
+                out Dictionary<double, List<StrainPlane>> planesWithSteel,
+                out Dictionary<double, List<string>> min_y_strian_sequence,
+                out Dictionary<double, List<string>> max_y_strian_sequence,
+                SectionSolver.FailureDomainTypes.Elastic);
+
+            // Without steel section.
+            section.SteelSections.Clear();
+
+            CalculateStrainPlanesMultiDirection(section,
+                out Dictionary<double, List<StrainPlane>> planesWithoutSteel,
+                out Dictionary<double, List<string>> min_y_strian_sequence_without,
+                out Dictionary<double, List<string>> max_y_strian_sequence_without,
+                SectionSolver.FailureDomainTypes.Elastic);
+
+            // Assert
+            Assert.IsNotNull(planesWithSteel);
+            Assert.IsNotNull(planesWithoutSteel);
+            foreach (var strain in min_y_strian_sequence)
+                CollectionAssert.AreEqual(strain.Value, min_y_strian_sequence_without[strain.Key]);
+            foreach (var strain in max_y_strian_sequence)
+                CollectionAssert.AreEqual(strain.Value, max_y_strian_sequence_without[strain.Key]);
+        }
+
+        private static void CalculateStrainPlanesMultiDirection(ReinforcedConcreteSection section,
+            out Dictionary<double, List<StrainPlane>> planes,
+            out Dictionary<double, List<string>> min_y_strian_sequence,
+            out Dictionary<double, List<string>> max_y_strian_sequence,
+            in SectionSolver.FailureDomainTypes domType)
+        {
+            planes = new Dictionary<double, List<StrainPlane>>();
+            min_y_strian_sequence = new Dictionary<double, List<string>>();
+            max_y_strian_sequence = new Dictionary<double, List<string>>();
+            for (double rotation = 0.0; rotation < 2.0 * Math.PI; rotation += 0.3)
+            {
+                planes[rotation] = CalculateStrainPlanes(section, domType, rotation);
+
+                var stringForCad = MakePlaneListString(planes[rotation], 0.0, 500.0,
+                    out List<string> min_y_strian_sequence_loc, out List<string> max_y_strian_sequence_loc);
+
+                min_y_strian_sequence[rotation] = min_y_strian_sequence_loc;
+                max_y_strian_sequence[rotation] = max_y_strian_sequence_loc;
+            }
         }
     }
 }

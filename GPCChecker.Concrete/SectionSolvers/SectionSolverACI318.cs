@@ -30,8 +30,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		#region Constructor
 
 		internal SectionSolverACI318(IConcreteSection section, StandardACI318 standard, bool haveSpiral,
-			bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
-			: base(section, standard, considerTensileConcrete, id)
+			bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED, StandardEN1993p11 standardStructuralSteel = null)
+			: base(section, standard, considerTensileConcrete, id, standardStructuralSteel)
 		{
 			_haveSpiral = haveSpiral;
 		}
@@ -220,12 +220,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		#endregion
 
 		#region Protected Design Rebars
-
-		/// <returns>The design rebar yielding stress</returns>
-		protected double CalculateFyd(SteelMaterial material)
-		{
-			return material.Fyk;
-		}
 
 		/// <returns>The design rebar stress related to <paramref name="strain"/></returns>
 		protected double CalculateDesignStressRebar(double strain, SteelMaterial material)

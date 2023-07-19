@@ -178,6 +178,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected IConcreteSection _concreteSection;
         protected Standard _standard;
+        /// <summary>
+        /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
+        /// </summary>
+        protected readonly StandardEN1993p11 _standardStructuralSteel;
 
         protected List<string> _log;
         protected int _tetaDiscretization;
@@ -197,17 +201,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public Standard Standard => _standard;
 
+        public StandardEN1993p11 StandardStructuralSteel => _standardStructuralSteel;
+
         public bool ConsiderTensileConcrete { get => _considerTensileConcrete; internal set => _considerTensileConcrete = value; }
 
         #endregion
 
         #region Constructor
 
-        internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id)
+        internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id, StandardEN1993p11 standardStructuralSteel = null)
             : base(id)
         {
             _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
+            _standardStructuralSteel = standardStructuralSteel;
             _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
@@ -228,6 +235,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             _concreteSection = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
+            _standardStructuralSteel = (StandardEN1993p11)info.GetValue("StandardStructuralSteel", typeof(StandardEN1993p11));
             _log = (List<string>)info.GetValue("Log", typeof(List<string>));
             _stressAnalysisTolerance = info.GetDouble("StressAnalysisTolerance");
             _failureAnalysisAngularTolerance = info.GetDouble("FailureAnalysisAngularTolerance");
@@ -289,7 +297,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return new FailureDomainResult(ConcreteSection,
                 CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic),
-                null, this, _standard, sectionOption, Id);
+                null, this, _standard, sectionOption, Id, _standardStructuralSteel);
         }
 
         public virtual FailureDomainResult2d GetElasticFailureDomainResult2d(Checkers.SectionChecker.SectionOptions sectionOption, double angle = 0)
@@ -310,7 +318,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return new FailureDomainResult2d(ConcreteSection,
                 ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic).RebuildFailureDomain()),
-                null, this, _standard, sectionOption, Id);
+                null, this, _standard, sectionOption, Id, _standardStructuralSteel);
         }
 
         public virtual FailureDomainResult GetPlasticFailureDomainResult(Checkers.SectionChecker.SectionOptions sectionOption)
@@ -340,7 +348,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return new FailureDomainResult(ConcreteSection,
                 CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic), null, this, _standard,
-                sectionOption, Id);
+                sectionOption, Id, _standardStructuralSteel);
         }
 
         public virtual FailureDomainResult2d GetPlasticFailureDomainResult2d(Checkers.SectionChecker.SectionOptions sectionOption, double angle = 0)
@@ -371,7 +379,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             return new FailureDomainResult2d(ConcreteSection,
                 ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic).RebuildFailureDomain()), null, this, _standard,
-                sectionOption, Id);
+                sectionOption, Id, _standardStructuralSteel);
         }
 
         public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, Checkers.SectionChecker.SectionOptions sectionOption)
@@ -382,7 +390,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
                     CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
-                    sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id);
+                    sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id,
+                    _standardStructuralSteel);
             });
 
             return stressAnalysisResults;
@@ -392,7 +401,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             return new StressAnalysisResult(ConcreteSection, force,
                     CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
-                    sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id);
+                    sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id,
+                    _standardStructuralSteel);
         }
 
         public virtual StressAnalysisResult[] GetLinearStressAnalysisResults(ResultBeamForces[] force, double psi, double? psiTendon, Checkers.SectionChecker.SectionOptions sectionOption)
@@ -404,7 +414,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
                     CalculateStrainPlaneLinearStressAnalysis(force[i].ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
                     sectionOption.ForceReferenceCoordinateSystem, psi, psiTendon,
-                    _stressAnalysisTolerance), this, _standard, true, psi, psiTendon, Id);
+                    _stressAnalysisTolerance), this, _standard, true, psi, psiTendon, Id,
+                    _standardStructuralSteel);
             });
 
             return stressAnalysisResults;
@@ -415,7 +426,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return new StressAnalysisResult(ConcreteSection, force,
                 CalculateStrainPlaneLinearStressAnalysis(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
                 sectionOption.ForceReferenceCoordinateSystem, psi, psiTendon,
-                _stressAnalysisTolerance), this, _standard, true, psi, psiTendon, Id);
+                _stressAnalysisTolerance), this, _standard, true, psi, psiTendon, Id,
+                _standardStructuralSteel);
         }
 
         public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
@@ -795,6 +807,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 return rebar.RebarMaterial.ElasticModulusCompression * (1 + psi) * strain + rebar.RebarMaterial.ElasticModulusCompression * rebar.EpsilonP;
             else
                 return rebar.RebarMaterial.ElasticModulusTension * (1 + psi) * strain + rebar.RebarMaterial.ElasticModulusTension * rebar.EpsilonP;
+        }
+
+        public double CalculateElasticSigmaS(SteelSection section, double strain)
+        {
+            if (strain < 0)
+                return section.SteelMaterial.ElasticModulusCompression * strain;
+            else
+                return section.SteelMaterial.ElasticModulusTension * strain;
         }
 
         #endregion
@@ -1208,11 +1228,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 case FailureDomainTypes.Plastic:
                     double fraction = GetYieldingStrainPureCompression() / GetUltimateStrainConcreteCompression();
                     double heigth = distances.dmaxConcrete - distances.dminConcrete;
+                    double sinTeta = Math.Sin(distances.teta);
+                    double cosTeta = Math.Cos(distances.teta);
 
-                    Point2d strainPlaneCenter = new Point2d((distances.dmaxConcrete - (1.0 - fraction) * heigth) * (-Math.Sin(distances.teta)) + ConcreteSection.Centroid.X,
-                        (distances.dmaxConcrete - (1.0 - fraction) * heigth) * (Math.Cos(distances.teta)) + ConcreteSection.Centroid.Y);
+                    Point2d strainPlaneCenter = new Point2d(
+                        (distances.dmaxConcrete - (1.0 - fraction) * heigth) * (-sinTeta) + ConcreteSection.Centroid.X,
+                        (distances.dmaxConcrete - (1.0 - fraction) * heigth) * cosTeta + ConcreteSection.Centroid.Y);
 
-                    return new DeformationFieldsPoint(GetYieldingStrainPureCompression(), strainPlaneCenter, strainPlaneCenter.Y + (distances.dminConcrete - minY));
+                    return new DeformationFieldsPoint(GetYieldingStrainPureCompression(), strainPlaneCenter, fraction * heigth + (distances.dminConcrete - minY));
 
                 default:
                     return new DeformationFieldsPoint(0.0, null, 0.0);
@@ -1589,21 +1612,25 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 // Limit F3A-F3B
                 double chiF3A_limit = 0.0;
-                double chiF3A_firstPoint_limit = (p4.epsilon + Math.Abs(F3_FirstRotationPoint.epsilon)) / (F3_FirstRotationPoint.point.Y - p4PointY);
+                double F3FirstRotationPointY = F3_FirstRotationPoint.point.Y * cosTeta - F3_FirstRotationPoint.point.X * sinTeta;
+                double F3SecondRotationPointY = F3_SecondRotationPoint is null ? 0.0 : F3_SecondRotationPoint.point.Y * cosTeta - F3_SecondRotationPoint.point.X * sinTeta;
+                double F3ThirddRotationPointY = F3_ThirdRotationPoint is null ? 0.0 : F3_ThirdRotationPoint.point.Y * cosTeta - F3_ThirdRotationPoint.point.X * sinTeta;
+
+                double chiF3A_firstPoint_limit = (p4.epsilon + Math.Abs(F3_FirstRotationPoint.epsilon)) / (F3FirstRotationPointY - p4PointY);
                 if (chiF3A_firstPoint_limit > F3_FirstRotationPoint_chi_limit)
                     chiF3A_limit = chiF3A_firstPoint_limit;
                 else
                 {
                     if (F3_SecondRotationPoint != null)
                     {
-                        double chiF3A_secondPoint_limit = (p4.epsilon + Math.Abs(F3_SecondRotationPoint.epsilon)) / (F3_SecondRotationPoint.point.Y - p4PointY);
+                        double chiF3A_secondPoint_limit = (p4.epsilon + Math.Abs(F3_SecondRotationPoint.epsilon)) / (F3SecondRotationPointY - p4PointY);
                         if (chiF3A_secondPoint_limit > F3_SecondRotationPoint_chi_limit)
                             chiF3A_limit = chiF3A_secondPoint_limit;
                         else
                         {
                             if (F3_ThirdRotationPoint != null)
                             {
-                                double chiF3A_thirdPoint_limit = (p4.epsilon + Math.Abs(F3_ThirdRotationPoint.epsilon)) / (F3_ThirdRotationPoint.point.Y - p4PointY);
+                                double chiF3A_thirdPoint_limit = (p4.epsilon + Math.Abs(F3_ThirdRotationPoint.epsilon)) / (F3ThirddRotationPointY - p4PointY);
                                 chiF3A_limit = chiF3A_thirdPoint_limit;
                             }
                         }
@@ -2955,6 +2982,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 hashCode = hashCode * -17 + base.GetHashCode();
                 hashCode = hashCode * -17 + EqualityComparer<IConcreteSection>.Default.GetHashCode(_concreteSection);
                 hashCode = hashCode * -17 + _standard.GetHashCode();
+                hashCode = hashCode * -17 + _standardStructuralSteel.GetHashCode();
                 return hashCode;
             }
         }
@@ -2964,6 +2992,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             base.GetObjectData(info, context);
             info.AddValue("ConcreteSection", _concreteSection);
             info.AddValue("Standard", _standard);
+            info.AddValue("StandardStructuralSteel", _standardStructuralSteel);
             info.AddValue("Log", _log);
             info.AddValue("StressAnalysisTolerance", _stressAnalysisTolerance);
             info.AddValue("FailureAnalysisAngularTolerance", _failureAnalysisAngularTolerance);
