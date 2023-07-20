@@ -81,7 +81,7 @@ namespace ConcreteTests
             var section = new ReinforcedConcreteSection(1000.0, 300.0, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 50.0, rebar, 200.0,
                 new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0);
 
-            List<StrainPlane> planes = CalculateStrainPlanes(section);
+            List<StrainPlane> planes = CalculateStrainPlanes(section: section, gamma_M0: 1.15);
 
             var stringForCad = MakePlaneListString(planes, -300.0, 300.0,
                 out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
@@ -184,7 +184,7 @@ namespace ConcreteTests
             var section = new ReinforcedConcreteSection(1000.0, 300.0, ConcreteMaterialModelCode2010Data.C25_30_17, rebar, 200.0, 50.0, rebar, 200.0,
                 new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0);
 
-            List<StrainPlane> planes = CalculateStrainPlanes(section);
+            List<StrainPlane> planes = CalculateStrainPlanes(section: section, gamma_M0: 1.15);
 
             var stringForCad = MakePlaneListString(planes, -300.0, 300.0,
                 out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
@@ -291,7 +291,7 @@ namespace ConcreteTests
                 steelShapeH: new GPC.Model.Sections.SectionH(2000.0, 10.0, 150.0, 15.0, 150.0, 15.0, ""),
                 steelMaterial: SteelMaterialEN1993Data.S275);
 
-            List<StrainPlane> planes = CalculateStrainPlanes(section);
+            List<StrainPlane> planes = CalculateStrainPlanes(section: section, gamma_M0: 1.15);
 
             var stringForCad = MakePlaneListString(planes, -2000.0, 100.0,
                 out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
@@ -398,7 +398,7 @@ namespace ConcreteTests
                 steelShapeH: new GPC.Model.Sections.SectionH(2000.0, 10.0, 150.0, 15.0, 150.0, 15.0, ""),
                 steelMaterial: SteelMaterialEN1993Data.S275);
 
-            List<StrainPlane> planes = CalculateStrainPlanes(section);
+            List<StrainPlane> planes = CalculateStrainPlanes(section: section, gamma_M0: 1.15);
 
             var stringForCad = MakePlaneListString(planes, -2000.0, 100.0,
                 out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
@@ -731,7 +731,7 @@ namespace ConcreteTests
 
             section.SteelSections[0].Traslation.Y = 50.0;
 
-            List<StrainPlane> planes = CalculateStrainPlanes(section);
+            List<StrainPlane> planes = CalculateStrainPlanes(section: section, gamma_M0: 1.15);
 
             var stringForCad = MakePlaneListString(planes, 0.0, 500.0,
                 out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
@@ -842,7 +842,7 @@ namespace ConcreteTests
 
             section.SteelSections[0].Traslation.Y = 50.0;
 
-            List<StrainPlane> planes = CalculateStrainPlanes(section);
+            List<StrainPlane> planes = CalculateStrainPlanes(section: section, gamma_M0: 1.15);
 
             var stringForCad = MakePlaneListString(planes, 0.0, 500.0,
                 out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
@@ -1180,23 +1180,23 @@ namespace ConcreteTests
                 "0.069178861789",
                 "0.069186991870",
                 "0.069195121951",
-                "0.069735772358",
-                "0.070276422764",
-                "0.070817073171",
-                "0.071357723577",
-                "0.071898373984",
-                "0.072439024390",
-                "0.061248674443",
-                "0.050058324496",
-                "0.038867974549",
-                "0.027677624602",
-                "0.016487274655",
-                "0.005296924708",
-                "0.002650671615",
-                "0.002120537292",
-                "0.001590402969",
-                "0.001060268646",
-                "0.000530134323",
+                "0.069796747967",
+                "0.070398373984",
+                "0.071000000000",
+                "0.071601626016",
+                "0.072203252033",
+                "0.072804878049",
+                "0.061614528102",
+                "0.050424178155",
+                "0.039233828208",
+                "0.028043478261",
+                "0.016853128314",
+                "0.005662778367",
+                "0.003260427713",
+                "0.002608342170",
+                "0.001956256628",
+                "0.001304171085",
+                "0.000652085543",
                 "0.000000000000",
                 "-0.000333333333",
                 "-0.000666666667",
@@ -1221,23 +1221,23 @@ namespace ConcreteTests
                 "-0.001333333333",
                 "-0.001666666667",
                 "-0.002000000000",
-                "-0.024166666667",
-                "-0.046333333333",
-                "-0.068500000000",
-                "-0.090666666667",
-                "-0.112833333333",
-                "-0.135000000000",
-                "-0.135000000000",
-                "-0.135000000000",
-                "-0.135000000000",
-                "-0.135000000000",
-                "-0.135000000000",
-                "-0.135000000000",
-                "-0.126513432308",
-                "-0.115910745847",
-                "-0.105308059385",
-                "-0.094705372923",
-                "-0.084102686462",
+                "-0.026666666667",
+                "-0.051333333333",
+                "-0.076000000000",
+                "-0.100666666667",
+                "-0.125333333333",
+                "-0.150000000000",
+                "-0.150000000000",
+                "-0.150000000000",
+                "-0.150000000000",
+                "-0.150000000000",
+                "-0.150000000000",
+                "-0.150000000000",
+                "-0.138708554259",
+                "-0.125666843408",
+                "-0.112625132556",
+                "-0.099583421704",
+                "-0.086541710852",
                 "-0.073500000000",
                 "-0.061583333333",
                 "-0.049666666667",
@@ -1292,11 +1292,11 @@ namespace ConcreteTests
                 "0.020000000000",
                 "0.020000000000",
                 "0.020000000000",
-                "0.007019629777",
-                "0.002644726645",
-                "0.002026613778",
-                "0.001408500910",
-                "0.000790388042",
+                "0.004519629777",
+                "0.003120917122",
+                "0.002383756635",
+                "0.001646596148",
+                "0.000909435661",
                 "0.000172275174",
                 "0.000143562645",
                 "0.000114850116",
@@ -1327,17 +1327,17 @@ namespace ConcreteTests
                 "-0.001333333333",
                 "-0.001666666667",
                 "-0.002000000000",
-                "-0.024166666667",
-                "-0.046333333333",
-                "-0.068500000000",
-                "-0.090666666667",
-                "-0.112833333333",
-                "-0.135000000000",
-                "-0.135000000000",
-                "-0.126394532908",
-                "-0.114032275552",
-                "-0.101670018197",
-                "-0.089307760841",
+                "-0.026666666667",
+                "-0.051333333333",
+                "-0.076000000000",
+                "-0.100666666667",
+                "-0.125333333333",
+                "-0.150000000000",
+                "-0.150000000000",
+                "-0.135918342432",
+                "-0.121175132695",
+                "-0.106431922958",
+                "-0.091688713222",
                 "-0.076945503485",
                 "-0.076371252904",
                 "-0.075797002324",
@@ -1380,53 +1380,53 @@ namespace ConcreteTests
 
             var min_y_strian_sequence_result = new List<string>()
             {
-                "0.027000000000",
-                "0.027109756098",
-                "0.027219512195",
-                "0.027329268293",
-                "0.027439024390",
-                "0.027548780488",
-                "0.027658536585",
-                "0.027666666667",
-                "0.027674796748",
-                "0.027682926829",
-                "0.027691056911",
-                "0.027699186992",
-                "0.027707317073",
-                "0.027808943089",
-                "0.027910569106",
-                "0.028012195122",
-                "0.028113821138",
-                "0.028215447154",
-                "0.028317073171",
-                "0.024041357370",
-                "0.019765641569",
-                "0.015489925769",
-                "0.011214209968",
-                "0.006938494168",
-                "0.002662778367",
-                "0.002002198756",
-                "0.001341619144",
-                "0.000681039533",
-                "0.000020459922",
-                "-0.000640119689",
-                "-0.001300699301",
-                "-0.001417249417",
-                "-0.001533799534",
-                "-0.001650349650",
-                "-0.001766899767",
-                "-0.001883449883",
+                "0.030000000000",
+                "0.030121951220",
+                "0.030243902439",
+                "0.030365853659",
+                "0.030487804878",
+                "0.030609756098",
+                "0.030731707317",
+                "0.030739837398",
+                "0.030747967480",
+                "0.030756097561",
+                "0.030764227642",
+                "0.030772357724",
+                "0.030780487805",
+                "0.030894308943",
+                "0.031008130081",
+                "0.031121951220",
+                "0.031235772358",
+                "0.031349593496",
+                "0.031463414634",
+                "0.026675503712",
+                "0.021887592789",
+                "0.017099681866",
+                "0.012311770944",
+                "0.007523860021",
+                "0.002735949099",
+                "0.002077160379",
+                "0.001418371660",
+                "0.000759582941",
+                "0.000100794222",
+                "-0.000557994498",
+                "-0.001216783217",
+                "-0.001347319347",
+                "-0.001477855478",
+                "-0.001608391608",
+                "-0.001738927739",
+                "-0.001869463869",
                 "-0.002000000000"
             };
 
             var max_y_strian_sequence_result = new List<string>()
             {
-                "0.027000000000",
-                "0.022500000000",
-                "0.018000000000",
-                "0.013500000000",
-                "0.009000000000",
-                "0.004500000000",
+                "0.030000000000",
+                "0.025000000000",
+                "0.020000000000",
+                "0.015000000000",
+                "0.010000000000",
+                "0.005000000000",
                 "0.000000000000",
                 "-0.000333333333",
                 "-0.000666666667",
@@ -1434,29 +1434,29 @@ namespace ConcreteTests
                 "-0.001333333333",
                 "-0.001666666667",
                 "-0.002000000000",
-                "-0.006166666667",
-                "-0.010333333333",
-                "-0.014500000000",
-                "-0.018666666667",
-                "-0.022833333333",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.022833333333",
-                "-0.018666666667",
-                "-0.014500000000",
-                "-0.010333333333",
-                "-0.006166666667",
+                "-0.006666666667",
+                "-0.011333333333",
+                "-0.016000000000",
+                "-0.020666666667",
+                "-0.025333333333",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.025333333333",
+                "-0.020666666667",
+                "-0.016000000000",
+                "-0.011333333333",
+                "-0.006666666667",
                 "-0.002000000000"
             };
 
@@ -1512,17 +1512,17 @@ namespace ConcreteTests
                 "0.006781516783",
                 "0.003476895979",
                 "0.000172275174",
-                "-0.000073220572",
-                "-0.000318716317",
-                "-0.000564212063",
-                "-0.000809707809",
-                "-0.001055203555",
-                "-0.001300699301",
-                "-0.001417249417",
-                "-0.001533799534",
-                "-0.001650349650",
-                "-0.001766899767",
-                "-0.001883449883",
+                "-0.000059234558",
+                "-0.000290744289",
+                "-0.000522254021",
+                "-0.000753763753",
+                "-0.000985273485",
+                "-0.001216783217",
+                "-0.001347319347",
+                "-0.001477855478",
+                "-0.001608391608",
+                "-0.001738927739",
+                "-0.001869463869",
                 "-0.002000000000"
             };
 
@@ -1541,29 +1541,29 @@ namespace ConcreteTests
                 "-0.001333333333",
                 "-0.001666666667",
                 "-0.002000000000",
-                "-0.006166666667",
-                "-0.010333333333",
-                "-0.014500000000",
-                "-0.018666666667",
-                "-0.022833333333",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.027000000000",
-                "-0.022833333333",
-                "-0.018666666667",
-                "-0.014500000000",
-                "-0.010333333333",
-                "-0.006166666667",
+                "-0.006666666667",
+                "-0.011333333333",
+                "-0.016000000000",
+                "-0.020666666667",
+                "-0.025333333333",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.030000000000",
+                "-0.025333333333",
+                "-0.020666666667",
+                "-0.016000000000",
+                "-0.011333333333",
+                "-0.006666666667",
                 "-0.002000000000"
             };
 
@@ -1592,7 +1592,7 @@ namespace ConcreteTests
                 new SectionRHS(320.0, 320.0, 10.0, 10.0, 10.0, 10.0, "")
                 , SteelMaterialEN1993Data.S235), Point2d.Origin, 0.0, new Vector2d(-10.0, -10.0)));
 
-            List<StrainPlane> planes = CalculateStrainPlanes(section);
+            List<StrainPlane> planes = CalculateStrainPlanes(section: section, gamma_M0: 1.15);
 
             var stringForCad = MakePlaneListString(planes, -10.0, 310.0,
                 out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
@@ -1704,7 +1704,7 @@ namespace ConcreteTests
                 new SectionRHS(320.0, 320.0, 10.0, 10.0, 10.0, 10.0, "")
                 , SteelMaterialEN1993Data.S235), Point2d.Origin, 0.0, new Vector2d(-10.0, -10.0)));
 
-            List<StrainPlane> planes = CalculateStrainPlanes(section);
+            List<StrainPlane> planes = CalculateStrainPlanes(section: section, gamma_M0: 1.15);
 
             var stringForCad = MakePlaneListString(planes, -10.0, 310.0,
                 out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
@@ -1817,7 +1817,7 @@ namespace ConcreteTests
             section.SteelSections.Add(new SteelSectionPosition(new SteelSection(
                 new SectionRectangular(10.0, 300.0), SteelMaterialEN1993Data.S235), Point2d.Origin, 0.0, new Vector2d(0.0, 300.0)));
 
-            List<StrainPlane> planes = CalculateStrainPlanes(section);
+            List<StrainPlane> planes = CalculateStrainPlanes(section: section, gamma_M0: 1.15);
 
             var stringForCad = MakePlaneListString(planes, -10.0, 310.0,
                 out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
@@ -1930,7 +1930,7 @@ namespace ConcreteTests
             section.SteelSections.Add(new SteelSectionPosition(new SteelSection(
                 new SectionRectangular(10.0, 300.0), SteelMaterialEN1993Data.S235), Point2d.Origin, 0.0, new Vector2d(0.0, 300.0)));
 
-            List<StrainPlane> planes = CalculateStrainPlanes(section);
+            List<StrainPlane> planes = CalculateStrainPlanes(section: section, gamma_M0: 1.15);
 
             var stringForCad = MakePlaneListString(planes, -10.0, 310.0,
                 out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
@@ -2029,7 +2029,7 @@ namespace ConcreteTests
         /// <returns></returns>
         private static List<StrainPlane> CalculateStrainPlanes(ReinforcedConcreteSection section,
             SectionSolver.FailureDomainTypes analysisType = SectionSolver.FailureDomainTypes.Plastic,
-            double rotationAngle = 0.0)
+            double rotationAngle = 0.0, double gamma_M0 = 1.0)
         {
             (SectionSolver.FailureZones, int)[] plasticZones =
             {
@@ -2041,8 +2041,11 @@ namespace ConcreteTests
                 (SectionSolver.FailureZones.F4, 5)
             };
 
-            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(),
-                false, -1, new StandardEN1993p11());
+            var structuralSteelCode = new StandardEN1993p11();
+            structuralSteelCode.GammaM0 = gamma_M0;
+
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(),
+                false, -1, structuralSteelCode);
             var sectionDistances = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(rotationAngle);
             var p2 = sectionSolverModelCode2010Test.GetP2(sectionDistances, analysisType);
             var p3 = sectionSolverModelCode2010Test.GetP3(sectionDistances, analysisType);
@@ -2061,12 +2064,14 @@ namespace ConcreteTests
 
                 for (int j = 0; j < subdivision; j++)
                 {
-                    planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(rotationAngle, failureZones, (double)j / (double)subdivision, p1, p2, p3, p4, p5, subIndex));
+                    planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(rotationAngle, failureZones,
+                        (double)j / (double)subdivision, p1, p2, p3, p4, p5, subIndex));
                     subIndex++;
                 }
             }
             var p1_F4 = sectionSolverModelCode2010Test.GetP1(sectionDistances, analysisType, SectionSolver.FailureZones.F4);
-            planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(rotationAngle, SectionSolver.FailureZones.F4, 1.0, p1_F4, p2, p3, p4, p5, 6));
+            planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(rotationAngle,
+                SectionSolver.FailureZones.F4, 1.0, p1_F4, p2, p3, p4, p5, 6));
             return planes;
         }
 
@@ -2117,7 +2122,7 @@ namespace ConcreteTests
         }
 
         /// <summary>
-        /// MULTI DIRECTION OF THETA.
+        /// MULTI DIRECTION OF THETA - PLASTIC.
         /// Tests the sequence of deformation planes in a composite section.
         /// Case similar to the situation with only concrete section without steel profiles.
         /// Steel profile is inside concrete area.
@@ -2164,7 +2169,7 @@ namespace ConcreteTests
         }
 
         /// <summary>
-        /// MULTI DIRECTION OF THETA.
+        /// MULTI DIRECTION OF THETA - ELASTIC.
         /// Tests the sequence of deformation planes in a composite section.
         /// Case similar to the situation with only concrete section without steel profiles.
         /// Steel profile is inside concrete area.
@@ -2175,13 +2180,14 @@ namespace ConcreteTests
         [TestMethod]
         public void StrainPlanesDomain11()
         {
+            // Using S420 then rebars limit strain in tension.
             var rebar = new RebarSectionCircular("", 16.0, SteelMaterialEN1992Data.B450C);
             var section = new ReinforcedConcreteSection(
                 concreteWidth: 250.0, concreteHeight: 500.0, concreteMaterial: ConcreteMaterialEN1992Data.C25_30,
                 rebarsSectionTop: rebar, rebarsPitchTop: 150.0, rebarsCoverTop: 50.0,
                 rebarsSectionBottom: rebar, rebarsPitchBottom: 150.0, rebarsCoverBottom: 50.0,
                 steelShapeH: new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"),
-                steelMaterial: SteelMaterialEN1993Data.S275);
+                steelMaterial: SteelMaterialEN1993Data.S420);
 
             section.SteelSections[0].Traslation.Y = 100.0;
 
