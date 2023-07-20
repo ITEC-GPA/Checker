@@ -1,4 +1,6 @@
-﻿namespace GPC.Checker.Helper
+﻿using GPC.Geometry;
+
+namespace GPC.Checker.Helper
 {
     internal struct BoundaryDistances
     {
@@ -15,16 +17,16 @@
         public double dmaxConcrete;
         // Structural steel sections
         public int dminStrucSteelSectionID; // section id
-        public int dMinStrucSteelVertexIndex; // section vertex
+        public Point2d dMinStrucSteelVertex; // section vertex
         public double dminStrucSteel;
         public int dmaxStrucSteelSectionID; // section id
-        public int dMaxStrucSteelVertexIndex; // section vertex
+        public Point2d dMaxStrucSteelVertex; // section vertex
         public double dmaxStrucSteel;
 
         public BoundaryDistances(double teta, int dMinRebarId, double dminRebar, int dMaxRebarId, double dmaxRebar,
             int dMinVertexIndex, double dminConcrete, int dMaxVertexIndex, double dmaxConcrete,
-            int dminStrucSteelSectionID, int dMinStrucSteelVertexIndex, double dminStrucSteel,
-            int dmaxStrucSteelSectionID, int dMaxStrucSteelVertexIndex, double dmaxStrucSteel)
+            int dminStrucSteelSectionID, Point2d dMinStrucSteelVertex, double dminStrucSteel,
+            int dmaxStrucSteelSectionID, Point2d dMaxStrucSteelVertex, double dmaxStrucSteel)
         {
             this.teta = teta;
             this.dMinRebarId = dMinRebarId;
@@ -36,10 +38,10 @@
             this.dMaxVertexIndex = dMaxVertexIndex;
             this.dmaxConcrete = dmaxConcrete;
             this.dminStrucSteelSectionID = dminStrucSteelSectionID;
-            this.dMinStrucSteelVertexIndex = dMinStrucSteelVertexIndex;
+            this.dMinStrucSteelVertex = dMinStrucSteelVertex;
             this.dminStrucSteel = dminStrucSteel;
             this.dmaxStrucSteelSectionID = dmaxStrucSteelSectionID;
-            this.dMaxStrucSteelVertexIndex = dMaxStrucSteelVertexIndex;
+            this.dMaxStrucSteelVertex = dMaxStrucSteelVertex;
             this.dmaxStrucSteel = dmaxStrucSteel;
         }
 
@@ -56,10 +58,10 @@
                    dMaxVertexIndex == other.dMaxVertexIndex &&
                    dmaxConcrete == other.dmaxConcrete &&
                    dminStrucSteelSectionID == other.dminStrucSteelSectionID &&
-                   dMinStrucSteelVertexIndex == other.dMinStrucSteelVertexIndex &&
+                   dMinStrucSteelVertex == other.dMinStrucSteelVertex &&
                    dminStrucSteel == other.dminStrucSteel &&
                    dmaxStrucSteelSectionID == other.dmaxStrucSteelSectionID &&
-                   dMaxStrucSteelVertexIndex == other.dMaxStrucSteelVertexIndex &&
+                   dMaxStrucSteelVertex == other.dMaxStrucSteelVertex &&
                    dmaxStrucSteel == other.dmaxStrucSteel;
         }
 
@@ -76,10 +78,10 @@
             hashCode = hashCode * -1521134295 + dMaxVertexIndex.GetHashCode();
             hashCode = hashCode * -1521134295 + dmaxConcrete.GetHashCode();
             hashCode = hashCode * -1521134295 + dminStrucSteelSectionID.GetHashCode();
-            hashCode = hashCode * -1521134295 + dMinStrucSteelVertexIndex.GetHashCode();
+            hashCode = hashCode * -1521134295 + dMinStrucSteelVertex.GetHashCode();
             hashCode = hashCode * -1521134295 + dminStrucSteel.GetHashCode();
             hashCode = hashCode * -1521134295 + dmaxStrucSteelSectionID.GetHashCode();
-            hashCode = hashCode * -1521134295 + dMaxStrucSteelVertexIndex.GetHashCode();
+            hashCode = hashCode * -1521134295 + dMaxStrucSteelVertex.GetHashCode();
             hashCode = hashCode * -1521134295 + dmaxStrucSteel.GetHashCode();
             return hashCode;
         }

@@ -2031,15 +2031,32 @@ namespace ConcreteTests
             SectionSolver.FailureDomainTypes analysisType = SectionSolver.FailureDomainTypes.Plastic,
             double rotationAngle = 0.0, double gamma_M0 = 1.0)
         {
-            (SectionSolver.FailureZones, int)[] plasticZones =
+            (SectionSolver.FailureZones, int)[] plasticZones;
+
+            if (analysisType == SectionSolver.FailureDomainTypes.Plastic)
             {
-                (SectionSolver.FailureZones.F1, 5),
-                (SectionSolver.FailureZones.F2A, 5),
-                (SectionSolver.FailureZones.F2B, 5),
-                (SectionSolver.FailureZones.F3A, 5),
-                (SectionSolver.FailureZones.F3B, 5),
-                (SectionSolver.FailureZones.F4, 5)
-            };
+                plasticZones = new (SectionSolver.FailureZones, int)[]
+                {
+                    (SectionSolver.FailureZones.F1, 5),
+                    (SectionSolver.FailureZones.F2A, 5),
+                    (SectionSolver.FailureZones.F2B, 5),
+                    (SectionSolver.FailureZones.F3A, 5),
+                    (SectionSolver.FailureZones.F3B, 5),
+                    (SectionSolver.FailureZones.F4, 5)
+                };
+            }
+            else if (analysisType == SectionSolver.FailureDomainTypes.Elastic)
+            {
+                plasticZones = new (SectionSolver.FailureZones, int)[]
+                {
+                    (SectionSolver.FailureZones.F1, 2),
+                    (SectionSolver.FailureZones.F2A, 10),
+                    (SectionSolver.FailureZones.F3A, 15),
+                    (SectionSolver.FailureZones.F4, 5)
+                };
+            }
+            else
+                return null;
 
             var structuralSteelCode = new StandardEN1993p11();
             structuralSteelCode.GammaM0 = gamma_M0;
@@ -2051,6 +2068,7 @@ namespace ConcreteTests
             var p3 = sectionSolverModelCode2010Test.GetP3(sectionDistances, analysisType);
             var p4 = sectionSolverModelCode2010Test.GetP4(sectionDistances, analysisType);
             var p5 = sectionSolverModelCode2010Test.GetP5(sectionDistances, analysisType);
+            var p6 = sectionSolverModelCode2010Test.GetP6(sectionDistances, analysisType);
 
             var planes = new List<StrainPlane>();
 
@@ -2065,13 +2083,13 @@ namespace ConcreteTests
                 for (int j = 0; j < subdivision; j++)
                 {
                     planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(rotationAngle, failureZones,
-                        (double)j / (double)subdivision, p1, p2, p3, p4, p5, subIndex));
+                        (double)j / (double)subdivision, p1, p2, p3, p4, p5, p6, subIndex));
                     subIndex++;
                 }
             }
             var p1_F4 = sectionSolverModelCode2010Test.GetP1(sectionDistances, analysisType, SectionSolver.FailureZones.F4);
             planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlane(rotationAngle,
-                SectionSolver.FailureZones.F4, 1.0, p1_F4, p2, p3, p4, p5, 6));
+                SectionSolver.FailureZones.F4, 1.0, p1_F4, p2, p3, p4, p5, p6, 6));
             return planes;
         }
 
