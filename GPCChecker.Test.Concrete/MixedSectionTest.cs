@@ -210,17 +210,17 @@ namespace ConcreteTests
                 "0.020000000000",
                 "0.020000000000",
                 "0.020000000000",
-                "0.017307425058",
-                "0.014614850116",
-                "0.011922275174",
-                "0.009229700232",
-                "0.006537125290",
-                "0.003844550349",
-                "0.003142265109",
-                "0.002513812087",
-                "0.001885359065",
-                "0.001256906044",
-                "0.000628453022",
+                "0.016749121651",
+                "0.013498243303",
+                "0.010247364954",
+                "0.006996486605",
+                "0.003745608256",
+                "0.001138716356",
+                "0.000948930297",
+                "0.000759144237",
+                "0.000569358178",
+                "0.000379572119",
+                "0.000189786059",
                 "0.000000000000",
                 "-0.000333333333",
                 "-0.000666666667",
@@ -256,12 +256,12 @@ namespace ConcreteTests
                 "-0.003500000000",
                 "-0.003500000000",
                 "-0.003500000000",
-                "-0.003500000000",
-                "-0.003402435939",
-                "-0.003231039660",
-                "-0.003059643381",
-                "-0.002888247103",
-                "-0.002716850824",
+                "-0.002856013552",
+                "-0.002804253717",
+                "-0.002752493883",
+                "-0.002700734049",
+                "-0.002648974214",
+                "-0.002597214380",
                 "-0.002545454545",
                 "-0.002454545455",
                 "-0.002363636364",
@@ -505,7 +505,7 @@ namespace ConcreteTests
                 rebarsSectionTop: rebar, rebarsPitchTop: 150.0, rebarsCoverTop: 50.0,
                 rebarsSectionBottom: rebar, rebarsPitchBottom: 150.0, rebarsCoverBottom: 50.0,
                 steelShapeH: new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"),
-                steelMaterial: SteelMaterialEN1993Data.S275);
+                steelMaterial: SteelMaterialEN1993Data.S355);
 
             section.SteelSections[0].Traslation.Y = 100.0;
 
@@ -616,7 +616,7 @@ namespace ConcreteTests
                 rebarsSectionTop: rebar, rebarsPitchTop: 150.0, rebarsCoverTop: 50.0,
                 rebarsSectionBottom: rebar, rebarsPitchBottom: 150.0, rebarsCoverBottom: 50.0,
                 steelShapeH: new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"),
-                steelMaterial: SteelMaterialEN1993Data.S275);
+                steelMaterial: SteelMaterialEN1993Data.S355);
 
             section.SteelSections[0].Traslation.Y = 100.0;
 
@@ -2133,8 +2133,30 @@ namespace ConcreteTests
 
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete(),
                 false, new StandardEN1993p11());
-            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0, true, new StandardEN1993p11());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0, false, new StandardEN1993p11());
             var domainResult = sectionChecker.GetPlasticFailureDomainResult();
+
+            Assert.IsTrue(true);
+        }
+
+        [TestMethod]
+        public void FailureDomain2()
+        {
+            double clsSize = 1.0;
+            var rebar = new RebarSectionCircular("", 0.5 * clsSize, SteelMaterialEN1992Data.B450C);
+            var structuralSteel = SteelMaterialEN1993Data.S275;
+            structuralSteel.SetStressStrain(SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic);
+            var section = new ReinforcedConcreteSection(clsSize, clsSize, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 0.5 * clsSize, null, 200.0,
+                new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), structuralSteel, 0.5 * clsSize);
+
+            section.SteelSections[0].Traslation.X = -75.0 + 0.5 * clsSize;
+            section.SteelSections[0].Traslation.Y = -150.0 + 0.5 * clsSize;
+            section.SteelSections[0].IsInsideConcrete = false;
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete(), false, new StandardEN1993p11());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0, false, new StandardEN1993p11());
+            var elasticDomainResult = sectionChecker.GetElasticFailureDomainResult();
+            var plasticDomainResult = sectionChecker.GetPlasticFailureDomainResult();
 
             Assert.IsTrue(true);
         }
@@ -2157,7 +2179,7 @@ namespace ConcreteTests
                 rebarsSectionTop: rebar, rebarsPitchTop: 150.0, rebarsCoverTop: 50.0,
                 rebarsSectionBottom: rebar, rebarsPitchBottom: 150.0, rebarsCoverBottom: 50.0,
                 steelShapeH: new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"),
-                steelMaterial: SteelMaterialEN1993Data.S275);
+                steelMaterial: SteelMaterialEN1993Data.S420);
 
             section.SteelSections[0].Traslation.Y = 100.0;
 

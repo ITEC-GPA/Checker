@@ -941,34 +941,66 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             }
 
+            //if (ConcreteSection.SteelSections != null)
+            //{
+            //    for (int s = 0; s < ConcreteSection.SteelSections.Count; s++)
+            //    {
+            //        var steelSection = ConcreteSection.SteelSections[s];
+
+            //        foreach (var thinWall in steelSection.Section.ThinWalls)
+            //        {
+            //            var midLine = thinWall.GetMiddleLine();
+            //            var globMidLine = midLine.Select(p => steelSection.PositionToGlobal(p)).ToArray();
+
+            //            foreach (var point in globMidLine)
+            //            {
+            //                double w1 = (point.Y - ConcreteSection.Centroid.Y) * cosTeta - (point.X - ConcreteSection.Centroid.X) * sinTeta;
+
+            //                if (w1 >= dmaxStructuralSteel)
+            //                {
+            //                    dMaxSteelSectionId = s;
+            //                    dMaxSteelVertex = point;
+            //                    dmaxStructuralSteel = w1;
+            //                }
+
+            //                if (w1 <= dminStructuralSteel)
+            //                {
+            //                    dMinSteelSectionId = s;
+            //                    dMinSteelVertex = point;
+            //                    dminStructuralSteel = w1;
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+
+            // When calculating the distances of the points of the composite section to then determine the points p1...p6 do not use
+            // the axes of the thinwalls but the actual outermost points of the profile.
+            // If you use the midpoints of the thinwalls you bring a higher value of strain and tension to the outermost edge of the profile.
+            // You could consider the axis of the thinwalls if you reduced the deformation(strain) of the innermost points of the thinwall axes.
             if (ConcreteSection.SteelSections != null)
             {
                 for (int s = 0; s < ConcreteSection.SteelSections.Count; s++)
                 {
                     var steelSection = ConcreteSection.SteelSections[s];
 
-                    foreach (var thinWall in steelSection.Section.ThinWalls)
+                    foreach (var vertex in steelSection.Section.Shape.Fill)
                     {
-                        var midLine = thinWall.GetMiddleLine();
-                        var globMidLine = midLine.Select(p => steelSection.PositionToGlobal(p)).ToArray();
+                        var point = steelSection.PositionToGlobal(vertex);
+                        double w1 = (point.Y - ConcreteSection.Centroid.Y) * cosTeta - (point.X - ConcreteSection.Centroid.X) * sinTeta;
 
-                        foreach (var point in globMidLine)
+                        if (w1 >= dmaxStructuralSteel)
                         {
-                            double w1 = (point.Y - ConcreteSection.Centroid.Y) * cosTeta - (point.X - ConcreteSection.Centroid.X) * sinTeta;
+                            dMaxSteelSectionId = s;
+                            dMaxSteelVertex = point;
+                            dmaxStructuralSteel = w1;
+                        }
 
-                            if (w1 >= dmaxStructuralSteel)
-                            {
-                                dMaxSteelSectionId = s;
-                                dMaxSteelVertex = point;
-                                dmaxStructuralSteel = w1;
-                            }
-
-                            if (w1 <= dminStructuralSteel)
-                            {
-                                dMinSteelSectionId = s;
-                                dMinSteelVertex = point;
-                                dminStructuralSteel = w1;
-                            }
+                        if (w1 <= dminStructuralSteel)
+                        {
+                            dMinSteelSectionId = s;
+                            dMinSteelVertex = point;
+                            dminStructuralSteel = w1;
                         }
                     }
                 }
@@ -1336,7 +1368,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <summary>
-        /// Most tensioned point in steel section, new rotation point required for steel and concrete composite sections.
+        /// Most tensioned point in steel section, new point required for steel and concrete composite sections.
         /// Point with yield stress in the bottom steel section point.
         /// It is not a rotation point but a transition point, similar to P4 but specific for composite sections.
         /// </summary>
@@ -1355,12 +1387,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 {
                     case FailureDomainTypes.Elastic:
 
-                        minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignYieldingStrainStructuralSteel(s.Section));
+                        minSteelStrain = 0.0;
                         break;
 
                     case FailureDomainTypes.Plastic:
 
-                        minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignUltimateStrainStructuralSteel(s.Section));
+                        minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignYieldingStrainStructuralSteel(s.Section));
                         break;
 
                 }
@@ -1544,6 +1576,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double chiF2B_P2_limit = (p1.epsilon + Math.Abs(p2.epsilon)) / (p2PointY - p1PointY);
                 double chiF2B_P3_limit = (p1.epsilon + Math.Abs(p3.epsilon)) / (p3PointY - p1PointY);
                 double chiF2B_limit = Math.Min(chiF2B_P5_limit, Math.Min(chiF2B_P2_limit, chiF2B_P3_limit));
+                // Check the F2A limit; it cannot be greater than the F2B limit.
+                if (chiF2A_limit > chiF2B_limit)
+                    chiF2A_limit = chiF2B_limit;
 
                 DeformationFieldsPoint F3_FirstRotationPoint;
                 double F3_FirstRotationPoint_chi_limit;
@@ -1558,7 +1593,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     F3_FirstRotationPoint = p5;
                     double chi_p2_p5 = (p2.epsilon - p5.epsilon) / (p5PointY - p2PointY);
                     double chi_p3_p5 = (p3.epsilon - p5.epsilon) / (p5PointY - p3PointY);
-                    if (chi_p2_p5 > chi_p3_p5)
+                    if (chi_p2_p5 <= 0.0 && chi_p3_p5 <= 0.0)
+                    {
+                        // There are no other rotation points.
+                        F3_FirstRotationPoint_chi_limit = 0.0; // no limit
+                    }
+                    else if (chi_p2_p5 > chi_p3_p5)
                     {
                         // There are p2 and p3 rotation points.
                         F3_SecondRotationPoint = p2;
