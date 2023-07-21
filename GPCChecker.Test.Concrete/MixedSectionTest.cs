@@ -2139,6 +2139,8 @@ namespace ConcreteTests
             Assert.IsTrue(true);
         }
 
+        // The verifier does not allow to define only a steel section.
+        // Then create a minimum reinforced concrete section and at its center of gravity place the steel section.
         [TestMethod]
         public void FailureDomain2()
         {
@@ -2155,10 +2157,72 @@ namespace ConcreteTests
 
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete(), false, new StandardEN1993p11());
             FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0, false, new StandardEN1993p11());
+
+            // Elastic
+            // Every point in absolute value, belongs to a polygon passing through three points.
             var elasticDomainResult = sectionChecker.GetElasticFailureDomainResult();
+            double NMax = 5188.06 * 275.0;
+            double MxMax = 533265.7964 * 275.0;
+            double MyMax = 80360.79334 * 275.0;
+            var domainN_Max = new Point3d(0.0, 0.0, NMax);
+            var domainMx_Max = new Point3d(MxMax, 0.0, 0.0);
+            var domainMy_Max = new Point3d(0.0, MyMax, 0.0);
+
+            double relativeError = 0.00000001;
+            double absoluteError = Math.Sqrt(NMax * NMax + MxMax * MxMax + MyMax * MyMax) * relativeError;
+
+            var domainFacePoint = new Point3d[]
+            {
+                domainN_Max, domainMx_Max, domainMy_Max
+            };
+            var domainFace = new Polygon3d(domainFacePoint);
+
+            foreach (var pointList in elasticDomainResult.Domain.DomainPoints)
+                foreach (var point in pointList)
+                {
+                    var pointAbs = new Point3d(Math.Abs(point.ForceTuple.Mx), Math.Abs(point.ForceTuple.My), Math.Abs(point.ForceTuple.N));
+                    bool isOnEdges = domainFace.IsPointOnEdge(pointAbs, absoluteError) != -1;
+                    bool isOnFace = domainFace.IsPointInside(pointAbs, absoluteError);
+                    Assert.IsTrue(isOnEdges || isOnFace);
+                }
+
+            // Plastic
+            // Check ratio of some values obtained from EC.
             var plasticDomainResult = sectionChecker.GetPlasticFailureDomainResult();
 
-            Assert.IsTrue(true);
+            // Domain point obtained from UNI EN 1993-1-1:2005 - §6.2.9.1 (5)
+            var ec3domainPoints = new List<Point3d>()
+            {
+                new Point3d(165577054.225, 0, 0),
+                new Point3d(165577054.225, 0, 71335.825),
+                new Point3d(165577054.225, 0, 142671.65),
+                new Point3d(165577054.225, 0, 214007.475),
+                new Point3d(163661358.350391, 0, 285343.3),
+                new Point3d(153432523.453492, 0, 356679.125),
+                new Point3d(143203688.556592, 0, 428014.95),
+                new Point3d(132974853.659693, 0, 499350.775),
+                new Point3d(122746018.762793, 0, 570686.6),
+                new Point3d(112517183.865894, 0, 642022.425),
+                new Point3d(102288348.968994, 0, 713358.25),
+                new Point3d(92059514.072095, 0, 784694.075),
+                new Point3d(81830679.1751956, 0, 856029.9),
+                new Point3d(71601844.2782961, 0, 927365.725),
+                new Point3d(61373009.3813967, 0, 998701.55),
+                new Point3d(51144174.4844972, 0, 1070037.375),
+                new Point3d(40915339.5875977, 0, 1141373.2),
+                new Point3d(30686504.6906983, 0, 1212709.025),
+                new Point3d(20457669.7937988, 0, 1284044.85),
+                new Point3d(10228834.8968994, 0, 1355380.675),
+                new Point3d(0, 0, 1426716.5)
+            };
+
+            foreach (var forcePoint in ec3domainPoints)
+            {
+                var resDomFail = sectionChecker.CalculatePlasticFailureDomainPoint(
+                    new GPC.Model.Results.ResultBeamForces(forcePoint.Z, 0.0, 0.0, 0.0, forcePoint.X, forcePoint.Y,
+                    new CoordinateSystem(new Point3d(0.5 * clsSize, 0.5 * clsSize, 0.0), Vector3d.XAxis, Vector3d.YAxis)));
+                var fr = resDomFail.StrainPlane;
+            }
         }
 
         /// <summary>
