@@ -570,7 +570,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             try
             {
-                return IntegrateSectionStressLinearElastic(strainPlane) + IntegrateRebarLinearStress(psi, psiTendon, strainPlane, rebarIsInsideAssociation);
+                return IntegrateSectionStressLinearElastic(strainPlane) +
+                    IntegrateRebarLinearStress(psi, psiTendon, strainPlane, rebarIsInsideAssociation) +
+                    IntegrateStructuralSteelLinearStress(strainPlane);
             }
             catch (Exception e)
             {
@@ -809,14 +811,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 return rebar.RebarMaterial.ElasticModulusTension * (1 + psi) * strain + rebar.RebarMaterial.ElasticModulusTension * rebar.EpsilonP;
         }
 
-        public double CalculateElasticSigmaS(SteelSection section, double strain)
-        {
-            if (strain < 0)
-                return section.SteelMaterial.ElasticModulusCompression * strain;
-            else
-                return section.SteelMaterial.ElasticModulusTension * strain;
-        }
-
         #endregion
 
         #region Steel sections Integration
@@ -886,6 +880,60 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return returnValue;
         }
 
+        /// <summary>
+        /// Calculate the resultant of all the steel sections
+        /// </summary>
+        /// <param name="strainPlane">The strain plane</param>
+        /// <param name="deltaN">The axial force resultant</param>
+        /// <param name="deltaMx">The bending moment about X-axis resultant</param>
+        /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
+        protected ForceTuple IntegrateStructuralSteelLinearStress(StrainPlane strainPlane)
+        {
+            double quadratureN = 0;
+            double quadratureMx = 0;
+            double quadratureMy = 0;
+
+            foreach (var steelSection in ConcreteSection.SteelSections)
+            {
+                // Make functions for stress.
+                double stressFunctionN(double x, double y)
+                {
+                    var strain = strainPlane.GetStrain(x, y);
+                    double sigmaC = steelSection.IsInsideConcrete ? CalculateSigmaC(strain) : 0.0;
+                    return CalculateElasticSigmaS(steelSection.Section, strain) - sigmaC;
+                }
+                double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - ConcreteSection.Centroid.Y);
+                double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - ConcreteSection.Centroid.X);
+
+                foreach (var thinWall in steelSection.Section.ThinWalls)
+                {
+                    // Get thin wall global position and size.
+                    var middleLine = thinWall.GetMiddleLine();
+                    var startPointGlobal = steelSection.PositionToGlobal(middleLine[0]);
+                    var endPointGlobal = steelSection.PositionToGlobal(middleLine[1]);
+                    var thickness = thinWall.T;
+                    // Move to Point3d vector.
+                    Point3d[] middleLine3d = new Point3d[middleLine.Length];
+                    middleLine3d[0] = startPointGlobal;
+                    middleLine3d[1] = endPointGlobal;
+
+                    // Integrate functions.
+                    quadratureN += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionN, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
+                    quadratureMx += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionMx, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
+                    quadratureMy += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionMy, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
+                }
+            }
+            return new ForceTuple(quadratureN, -quadratureMx, quadratureMy);
+        }
+
+        public double CalculateElasticSigmaS(SteelSection section, double strain)
+        {
+            if (strain < 0)
+                return section.SteelMaterial.ElasticModulusCompression * strain;
+            else
+                return section.SteelMaterial.ElasticModulusTension * strain;
+        }
+
         #endregion
 
         /// <summary>
@@ -940,39 +988,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     dMaxRebarId = rebars[r].Id;
                 }
             }
-
-            //if (ConcreteSection.SteelSections != null)
-            //{
-            //    for (int s = 0; s < ConcreteSection.SteelSections.Count; s++)
-            //    {
-            //        var steelSection = ConcreteSection.SteelSections[s];
-
-            //        foreach (var thinWall in steelSection.Section.ThinWalls)
-            //        {
-            //            var midLine = thinWall.GetMiddleLine();
-            //            var globMidLine = midLine.Select(p => steelSection.PositionToGlobal(p)).ToArray();
-
-            //            foreach (var point in globMidLine)
-            //            {
-            //                double w1 = (point.Y - ConcreteSection.Centroid.Y) * cosTeta - (point.X - ConcreteSection.Centroid.X) * sinTeta;
-
-            //                if (w1 >= dmaxStructuralSteel)
-            //                {
-            //                    dMaxSteelSectionId = s;
-            //                    dMaxSteelVertex = point;
-            //                    dmaxStructuralSteel = w1;
-            //                }
-
-            //                if (w1 <= dminStructuralSteel)
-            //                {
-            //                    dMinSteelSectionId = s;
-            //                    dMinSteelVertex = point;
-            //                    dminStructuralSteel = w1;
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
 
             // When calculating the distances of the points of the composite section to then determine the points p1...p6 do not use
             // the axes of the thinwalls but the actual outermost points of the profile.
@@ -1032,13 +1047,22 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual ForceTuple ConvertToAdimensionalForces(ForceTuple forceTuple)
         {
-            BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox();
-            double h = bBox.Size.Y;
-            double b = bBox.Size.X;
+            if (_concreteSection.IsCompositeSteelConcrete)
+            {
+                var fck = Math.Abs(GetFck());
+                var homo = _concreteSection.GetHomogeneizedMechanicalProperties();
+                return new ForceTuple(forceTuple.N / (homo.areaH * fck * 0.5), forceTuple.Mx / (homo.JxxH * fck), forceTuple.My / (homo.JyyH * fck));
+            }
+            else
+            {
+                BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox();
+                double h = bBox.Size.Y;
+                double b = bBox.Size.X;
 
-            return new ForceTuple(forceTuple.N / (b * h * Math.Abs(GetFck())),
-                forceTuple.Mx / (b * h * h * Math.Abs(GetFck())),
-                forceTuple.My / (b * b * h * Math.Abs(GetFck())));
+                return new ForceTuple(forceTuple.N / (b * h * Math.Abs(GetFck())),
+                    forceTuple.Mx / (b * h * h * Math.Abs(GetFck())),
+                    forceTuple.My / (b * b * h * Math.Abs(GetFck())));
+            }
         }
 
         #endregion
