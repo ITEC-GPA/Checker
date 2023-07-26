@@ -5,6 +5,7 @@ using GPC.Geometry;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
+using GPC.Model.Results;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
@@ -13,6 +14,7 @@ using GPC.Model.Standards;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ConcreteTests
@@ -2134,7 +2136,7 @@ namespace ConcreteTests
 
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete(),
                 false, new StandardEN1993p11());
-            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0, true, new StandardEN1993p11());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0, false, new StandardEN1993p11());
             //var domainResult = sectionChecker.GetPlasticFailureDomainResult();
 
             Assert.IsTrue(true);
@@ -2411,6 +2413,68 @@ namespace ConcreteTests
                 min_y_strian_sequence[rotation] = min_y_strian_sequence_loc;
                 max_y_strian_sequence[rotation] = max_y_strian_sequence_loc;
             }
+        }
+
+        // Tension in steel section.
+        // The verifier does not allow to define only a steel section.
+        // Then create a minimum reinforced concrete section and at its center of gravity place the steel section.
+        [TestMethod]
+        public void TensionCheck1()
+        {
+            double clsSize = 1.0;
+            var rebar = new RebarSectionCircular("", 0.5 * clsSize, SteelMaterialEN1992Data.B450C);
+            var structuralSteel = SteelMaterialEN1993Data.S275;
+            structuralSteel.SetStressStrain(SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic);
+            var section = new ReinforcedConcreteSection(clsSize, clsSize, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 0.5 * clsSize, null, 200.0,
+                new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), structuralSteel, 0.5 * clsSize);
+
+            section.SteelSections[0].Traslation.X = -75.0 + 0.5 * clsSize;
+            section.SteelSections[0].Traslation.Y = -150.0 + 0.5 * clsSize;
+            section.SteelSections[0].IsInsideConcrete = false;
+
+            double phi = 1.36;
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0, 0, 0, 0, 146648095, 0, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(0, 0, 0, 0, 73324047.5, 11049608.63, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(475572.1667, 0, 0, 0, 48882698.33, 7366405.75, GetLocalCoordinateSystem(section))
+            };
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, standard, true, new StandardEN1993p11());
+
+            var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
+
+            //(Point2d point, double tension)[] concreteTensions = slsResult[0].GetConcreteVerticesTension(phi);
+            //(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = slsResult[0].GetRebarsTension(phi);
+
+            // Combination 0
+            var steelSectionsTensions = slsResult[0].GetStructuralSteelVerticesTension();
+            double maxSteelSectionTension = 275.0; // /gamma_M0 = 1.0;
+            var internalMaxSteelTension = steelSectionsTensions.Max(i => i.tension);
+            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 1.0);
+
+            double minSteelSectionTension = -275.0; // /gamma_M0 = 1.0;
+            var internalMinSteelTension = steelSectionsTensions.Min(i => i.tension);
+            Assert.AreEqual(minSteelSectionTension, internalMinSteelTension, 1.0);
+
+            // Combination 1
+            steelSectionsTensions = slsResult[1].GetStructuralSteelVerticesTension();
+            internalMaxSteelTension = steelSectionsTensions.Max(i => i.tension);
+            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 1.0);
+
+            internalMinSteelTension = steelSectionsTensions.Min(i => i.tension);
+            Assert.AreEqual(minSteelSectionTension, internalMinSteelTension, 1.0);
+
+            // Combination 2
+            steelSectionsTensions = slsResult[2].GetStructuralSteelVerticesTension();
+            internalMaxSteelTension = steelSectionsTensions.Max(i => i.tension);
+            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 1.0);
+
+            minSteelSectionTension = -91.66666667; // /gamma_M0 = 1.0;
+            internalMinSteelTension = steelSectionsTensions.Min(i => i.tension);
+            Assert.AreEqual(minSteelSectionTension, internalMinSteelTension, 1.0);
         }
     }
 }

@@ -468,12 +468,13 @@ namespace ConcreteTests
         }
 
         protected SectionCheckerModelCode2010 GetSectionCheckerModelCode2010(IConcreteSection section, ResultBeamForces[] forcesSLS,
-            ResultBeamForces[] forcesULS, StandardModelCode2010 standard, bool considerTensileConcrete = false)
+            ResultBeamForces[] forcesULS, StandardModelCode2010 standard, bool considerTensileConcrete = false, StandardEN1993p11 standardStructuralSteel = null)
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
                 new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
-            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
+            SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard,
+                considerTensileConcrete, -1, standardStructuralSteel);
             return sectionChecker;
         }
 
