@@ -838,12 +838,13 @@ namespace ConcreteTests
 
         protected void CommonAssertDomainPointMethod(IConcreteSection section, ResultBeamForces force, StandardModelCode2010 standard,
             SectionChecker.SectionOptions options, double adimTolerance = 0.005,
-            double[] factor = null, SectionSolver.FailureDomainTypes failureDomainTypes = SectionSolver.FailureDomainTypes.Plastic)
+            double[] factor = null, SectionSolver.FailureDomainTypes failureDomainTypes = SectionSolver.FailureDomainTypes.Plastic,
+            StandardEN1993p11 standardStructuralSteel = null)
         {
             if (factor == null)
                 factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
 
-            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
+            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard, standardStructuralSteel: standardStructuralSteel);
             FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
             ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
             int j = 0;

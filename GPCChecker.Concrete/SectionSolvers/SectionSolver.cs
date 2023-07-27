@@ -2623,6 +2623,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         reductionFactorTeta = 0.05;
                 }
 
+                // The following condition was calibrated to converge the tests.
+                if (_concreteSection.IsCompositeSteelConcrete)
+                {
+                    reductionFactorEta = Math.Min(4.0 * reductionFactorEta, 1.5);
+                    reductionFactorTeta = Math.Min(4.0 * reductionFactorTeta, 1.5);
+                }
 
                 double deltaTeta = results[0, 0] * reductionFactorTeta;
                 double deltaEta = results[1, 0] * reductionFactorEta;

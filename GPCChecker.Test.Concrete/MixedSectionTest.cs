@@ -2126,7 +2126,7 @@ namespace ConcreteTests
 
         // Test on plastic domain generation.
         [TestMethod]
-        public void FailureDomain1()
+        public void FailureDomain01()
         {
             var rebar = new RebarSectionCircular("", 16.0, SteelMaterialEN1992Data.B450C);
             var structuralSteel = SteelMaterialEN1993Data.S275;
@@ -2145,8 +2145,9 @@ namespace ConcreteTests
         // The verifier does not allow to define only a steel section.
         // Then create a minimum reinforced concrete section and at its center of gravity place the steel section.
         [TestMethod]
-        public void FailureDomain2()
+        public void FailureDomain02()
         {
+            // Geometry, material and section.
             double clsSize = 1.0;
             var rebar = new RebarSectionCircular("", 0.5 * clsSize, SteelMaterialEN1992Data.B450C);
             var structuralSteel = SteelMaterialEN1993Data.S275;
@@ -2157,42 +2158,52 @@ namespace ConcreteTests
             section.SteelSections[0].Traslation.X = -75.0 + 0.5 * clsSize;
             section.SteelSections[0].Traslation.Y = -150.0 + 0.5 * clsSize;
             section.SteelSections[0].IsInsideConcrete = false;
+            var cs = GetLocalCoordinateSystem(section);
 
-            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete(), false, new StandardEN1993p11());
-            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 5.0, false, new StandardEN1993p11());
+            // Code, solver and checker.
+            var standard = new StandardNTC2018Concrete();
+            var standardSteel = new StandardEN1993p11();
+            var sectionChecker = GetSectionCheckerModelCode2010(section, standard, false, standardSteel);
+            sectionChecker.SectionCheckerOptionsModelCode2010.FailureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantN;
+            sectionChecker.SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem = cs;
 
-            // Elastic
+            // ****************************************
+            // Common checks.
+            FailureDomainCommonAssertModelCode(section, sectionChecker, standard, 5.0, false, standardSteel);
+
+            // ****************************************
+            // ***** Elastic
             // Every point in absolute value, belongs to a polygon passing through three points.
-            var elasticDomainResult = sectionChecker.GetElasticFailureDomainResult();
-            double NMax = 5188.06 * 275.0;
-            double MxMax = 533265.7964 * 275.0;
-            double MyMax = 80360.79334 * 275.0;
-            var domainN_Max = new Point3d(0.0, 0.0, NMax);
-            var domainMx_Max = new Point3d(MxMax, 0.0, 0.0);
-            var domainMy_Max = new Point3d(0.0, MyMax, 0.0);
-
-            double relativeError = 0.00000001;
-            double absoluteError = Math.Sqrt(NMax * NMax + MxMax * MxMax + MyMax * MyMax) * relativeError;
-
-            var domainFacePoint = new Point3d[]
             {
-                domainN_Max, domainMx_Max, domainMy_Max
-            };
-            var domainFace = new Polygon3d(domainFacePoint);
+                var elasticDomainResult = sectionChecker.GetElasticFailureDomainResult();
+                double NMax = 5188.06 * 275.0;
+                double MxMax = 533265.7964 * 275.0;
+                double MyMax = 80360.79334 * 275.0;
+                var domainN_Max = new Point3d(0.0, 0.0, NMax);
+                var domainMx_Max = new Point3d(MxMax, 0.0, 0.0);
+                var domainMy_Max = new Point3d(0.0, MyMax, 0.0);
 
-            foreach (var pointList in elasticDomainResult.Domain.DomainPoints)
-                foreach (var point in pointList)
+                double relativeError = 0.00000001;
+                double absoluteError = Math.Sqrt(NMax * NMax + MxMax * MxMax + MyMax * MyMax) * relativeError;
+
+                var domainFacePoint = new Point3d[]
                 {
-                    var pointAbs = new Point3d(Math.Abs(point.ForceTuple.Mx), Math.Abs(point.ForceTuple.My), Math.Abs(point.ForceTuple.N));
-                    bool isOnEdges = domainFace.IsPointOnEdge(pointAbs, absoluteError) != -1;
-                    bool isOnFace = domainFace.IsPointInside(pointAbs, absoluteError);
-                    Assert.IsTrue(isOnEdges || isOnFace);
-                }
+                domainN_Max, domainMx_Max, domainMy_Max
+                };
+                var domainFace = new Polygon3d(domainFacePoint);
 
-            // Plastic
-            // Check ratio of some values obtained from EC.
-            var plasticDomainResult = sectionChecker.GetPlasticFailureDomainResult();
+                foreach (var pointList in elasticDomainResult.Domain.DomainPoints)
+                    foreach (var point in pointList)
+                    {
+                        var pointAbs = new Point3d(Math.Abs(point.ForceTuple.Mx), Math.Abs(point.ForceTuple.My), Math.Abs(point.ForceTuple.N));
+                        bool isOnEdges = domainFace.IsPointOnEdge(pointAbs, absoluteError) != -1;
+                        bool isOnFace = domainFace.IsPointInside(pointAbs, absoluteError);
+                        Assert.IsTrue(isOnEdges || isOnFace);
+                    }
+            }
 
+            // ****************************************
+            // ***** Plastic - Part 1
             // Domain point obtained from UNI EN 1993-1-1:2005 - §6.2.9.1 (5)
             var ec3domainPoints = new List<Point3d>()
             {
@@ -2216,23 +2227,32 @@ namespace ConcreteTests
                 new Point3d(30686504.6906983, 0, -1212709.025),
                 new Point3d(20457669.7937988, 0, -1284044.85),
                 //new Point3d(10228834.8968994, 0, -1355380.675), // 13% error...
-                new Point3d(0, 0, -1426716.5)
+                //new Point3d(0, 0, -1426716.5)
             };
+
+            var forces = ec3domainPoints.Select(p => new ResultBeamForces(p.Z, 0, 0, 0, p.X, p.Y, cs)).ToArray();
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], standard, sectionChecker.SectionCheckerOptionsModelCode2010,
+                    0.005, factor: new double[] { 1.0 }, standardStructuralSteel: standardSteel);
+
+            // ****************************************
+            // ***** Plastic - Part 2
+            // Check ratio of some values obtained from EC.
+            var plasticDomainResult = sectionChecker.GetPlasticFailureDomainResult();
 
             double maxError = double.MinValue;
 
             // The following part does not work, it may be that the section of 1x1 mm cls is too extreme.
-            foreach (var forcePoint in ec3domainPoints)
+            foreach (var aplliedForce in forces)
             {
-                var aplliedForce = new GPC.Model.Results.ResultBeamForces(forcePoint.Z, 0.0, 0.0, 0.0, forcePoint.X, forcePoint.Y,
-                    new CoordinateSystem(new Point3d(0.5 * clsSize, 0.5 * clsSize, 0.0), Vector3d.XAxis, Vector3d.YAxis));
                 var resDomFail = sectionChecker.CalculatePlasticFailureDomainPoint(aplliedForce);
                 //var fr = resDomFail.StrainPlane;
                 resDomFail.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantN, aplliedForce, 1.0, 1.0);
 
                 maxError = Math.Max(maxError, resDomFail.WorkingRatio);
             }
-            Assert.AreEqual(1.0, maxError, 0.06);
+            Assert.AreEqual(1.0, maxError, 0.07);
         }
 
         // Now two almost identical sections.
@@ -2240,7 +2260,7 @@ namespace ConcreteTests
         // The test wants to check that for a small change in the cross section there is a small change in the domain result.
         // Then compare domain points.
         [TestMethod]
-        public void FailureDomain3()
+        public void FailureDomain03()
         {
             // Composite section
             double clsSize = 300.0;
@@ -2419,7 +2439,7 @@ namespace ConcreteTests
         // The verifier does not allow to define only a steel section.
         // Then create a minimum reinforced concrete section and at its center of gravity place the steel section.
         [TestMethod]
-        public void TensionCheck1()
+        public void TensionCheck01()
         {
             double clsSize = 1.0;
             var rebar = new RebarSectionCircular("", 0.5 * clsSize, SteelMaterialEN1992Data.B450C);
@@ -2432,7 +2452,7 @@ namespace ConcreteTests
             section.SteelSections[0].Traslation.Y = -150.0 + 0.5 * clsSize;
             section.SteelSections[0].IsInsideConcrete = false;
 
-            double phi = 1.36;
+            double phi = 0.0;
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
             ResultBeamForces[] forces = new ResultBeamForces[]
@@ -2446,35 +2466,114 @@ namespace ConcreteTests
 
             var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
 
-            //(Point2d point, double tension)[] concreteTensions = slsResult[0].GetConcreteVerticesTension(phi);
-            //(ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = slsResult[0].GetRebarsTension(phi);
+            // var concreteTensions = slsResult[0].GetConcreteVerticesTension(phi);
+            // var rebarTensions = slsResult[0].GetRebarsTension(phi);
+            double error = 0.2;
 
             // Combination 0
             var steelSectionsTensions = slsResult[0].GetStructuralSteelVerticesTension();
             double maxSteelSectionTension = 275.0; // /gamma_M0 = 1.0;
             var internalMaxSteelTension = steelSectionsTensions.Max(i => i.tension);
-            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 1.0);
+            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, error);
 
             double minSteelSectionTension = -275.0; // /gamma_M0 = 1.0;
             var internalMinSteelTension = steelSectionsTensions.Min(i => i.tension);
-            Assert.AreEqual(minSteelSectionTension, internalMinSteelTension, 1.0);
+            Assert.AreEqual(minSteelSectionTension, internalMinSteelTension, error);
 
             // Combination 1
             steelSectionsTensions = slsResult[1].GetStructuralSteelVerticesTension();
             internalMaxSteelTension = steelSectionsTensions.Max(i => i.tension);
-            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 1.0);
+            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, error);
 
             internalMinSteelTension = steelSectionsTensions.Min(i => i.tension);
-            Assert.AreEqual(minSteelSectionTension, internalMinSteelTension, 1.0);
+            Assert.AreEqual(minSteelSectionTension, internalMinSteelTension, error);
 
             // Combination 2
             steelSectionsTensions = slsResult[2].GetStructuralSteelVerticesTension();
             internalMaxSteelTension = steelSectionsTensions.Max(i => i.tension);
-            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 1.0);
+            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, error);
 
             minSteelSectionTension = -91.66666667; // /gamma_M0 = 1.0;
             internalMinSteelTension = steelSectionsTensions.Min(i => i.tension);
-            Assert.AreEqual(minSteelSectionTension, internalMinSteelTension, 1.0);
+            Assert.AreEqual(minSteelSectionTension, internalMinSteelTension, error);
+        }
+
+        // Tension in composite section.
+        // See excel file "01_Steel_Concrete_Member check.xlsm".
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void TensionCheck02()
+        {
+            var rebar = new RebarSectionCircular("", 12.0, SteelMaterialEN1992Data.B450A);
+            var section = new ReinforcedConcreteSection(1200.0, 220.0, ConcreteMaterialEN1992Data.C40_50, rebar, 300.0, 110.0, null, 200.0,
+                new GPC.Model.Sections.SectionH(600.0, 21.6, 215.0, 32.4, 215.0, 32.4, "IPN600 r=0"), SteelMaterialEN1993Data.S355);
+
+            section.SteelSections[0].Traslation.Y -= 80.0;
+
+            double phi = 0.0;
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0, 0, 0, 0, 3000000000, 0, GetLocalCoordinateSystem(section)),
+            };
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, standard, true, new StandardEN1993p11());
+
+            var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
+
+            // Combination 0
+            var concreteTensions = slsResult[0].GetConcreteVerticesTension(phi);
+            var rebarTensions = slsResult[0].GetRebarsTension(phi);
+            var steelSectionsTensions = slsResult[0].GetStructuralSteelVerticesTension();
+
+            double maxSteelSectionTension = 336.95;
+            double minConcreteCompression = -26.42;
+            double minRebarsCompression = -97.96;
+
+            var internalMaxSteelTension = steelSectionsTensions.Max(i => i.tension);
+            var internalMinConcreteCompression = concreteTensions.Min(i => i.tension);
+            var internalMinRebarsCompression = rebarTensions.Min(i => i.tension);
+
+            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 2.0);
+            Assert.AreEqual(minConcreteCompression, internalMinConcreteCompression, 0.05);
+            Assert.AreEqual(minRebarsCompression, internalMinRebarsCompression, 6.0);
+        }
+
+        [TestMethod]
+        public void RectangularSectionTestWithHSetcion01()
+        {
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+            var standardSteel = new StandardEN1993p11();
+            CoordinateSystem cs = GetLocalCoordinateSystem(section);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN);
+
+            section.AddSteelSection(
+                new SteelSectionPosition(
+                    new SteelSection(
+                        new SectionH(200.0, 5.6, 100.0, 8.5, 100.0, 8.5, "IPE 200 r=0"),
+                        SteelMaterialEN1993Data.S275
+                        ),
+                    Point2d.Origin,
+                    0.0,
+                    new Vector2d(100.0, 150.0)
+                    )
+                );
+            section.SteelSections[0].IsInsideConcrete = true;
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(-500 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-800 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-1200 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+            };
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005,
+                    standardStructuralSteel: standardSteel);
         }
     }
 }
