@@ -2541,7 +2541,7 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        public void RectangularSectionTestWithHSetcion01()
+        public void RectangularSectionWithSteelSetcion01()
         {
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
@@ -2574,6 +2574,102 @@ namespace ConcreteTests
             for (int i = 0; i < forces.Length; i++)
                 CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005,
                     standardStructuralSteel: standardSteel);
+        }
+
+        [TestMethod]
+        public void RectangularSectionWithSteelSetcion02()
+        {
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+            var standardSteel = new StandardEN1993p11();
+            CoordinateSystem cs = GetLocalCoordinateSystem(section);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN);
+
+            section.AddSteelSection(
+                new SteelSectionPosition(
+                    new SteelSection(
+                        new SectionH(500.0, 10.2, 200.0, 16.0, 200.0, 16.0, "IPE 500 r=0"),
+                        SteelMaterialEN1993Data.S275
+                        ),
+                    Point2d.Origin,
+                    0.0,
+                    new Vector2d(50.0, 0.0)
+                    )
+                );
+            section.SteelSections[0].IsInsideConcrete = true;
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(3000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(2000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(1000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-2000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-3000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-4000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-5000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+            };
+
+            for (int i = 0; i < forces.Length; i++)
+                CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005,
+                    standardStructuralSteel: standardSteel);
+        }
+
+        [TestMethod]
+        public void RectangularSectionWithSteelSetcion03()
+        {
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+            var standardSteel = new StandardEN1993p11();
+            CoordinateSystem cs = GetLocalCoordinateSystem(section);
+            SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+
+            var steelMaterialList = new SteelMaterialEN1993[]
+            {
+                SteelMaterialEN1993Data.S235,
+                SteelMaterialEN1993Data.S275,
+                SteelMaterialEN1993Data.S355,
+                SteelMaterialEN1993Data.S420,
+                SteelMaterialEN1993Data.S450
+            };
+
+            foreach (var steelMat in steelMaterialList)
+            {
+                double Nconst = 1000 * steelMat.Fyk / 275.0;
+                var forces = new ResultBeamForces[]
+                {
+                    new ResultBeamForces(3000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(2000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(1000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(0 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(-1000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(-2000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(-3000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(-4000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(-5000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                };
+
+                section.SteelSections.Clear();
+                section.AddSteelSection(
+                    new SteelSectionPosition(
+                        new SteelSection(
+                            new SectionRHS(524.0, 324.0, 12.0, 12.0, 12.0, 12.0, "RHS r=0"),
+                            steelMat
+                            ),
+                        Point2d.Origin,
+                        0.0,
+                        new Vector2d(-12.0, -12.0)
+                        )
+                    );
+                section.SteelSections[0].IsInsideConcrete = true;
+
+                for (int i = 0; i < forces.Length; i++)
+                    CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005,
+                        standardStructuralSteel: standardSteel);
+            }
         }
     }
 }
