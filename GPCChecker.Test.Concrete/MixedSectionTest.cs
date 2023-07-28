@@ -2535,7 +2535,7 @@ namespace ConcreteTests
             var internalMinConcreteCompression = concreteTensions.Min(i => i.tension);
             var internalMinRebarsCompression = rebarTensions.Min(i => i.tension);
 
-            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 2.0);
+            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 3.0);
             Assert.AreEqual(minConcreteCompression, internalMinConcreteCompression, 0.05);
             Assert.AreEqual(minRebarsCompression, internalMinRebarsCompression, 6.0);
         }

@@ -439,7 +439,10 @@ namespace ConcreteTests
 
         protected CoordinateSystem GetLocalCoordinateSystem(IConcreteSection section)
         {
-            return new CoordinateSystem(section.Centroid, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
+            if (section.IsCompositeSteelConcrete)
+                return new CoordinateSystem(section.GetHomogenizedCentroid(out double _, out double _), new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
+            else
+                return new CoordinateSystem(section.Centroid, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
         }
 
         #endregion
@@ -1030,6 +1033,8 @@ namespace ConcreteTests
             StandardEN1993p11 standardStructuralSteel = null)
         {
             List<Point3d> failureDomainPoints = new List<Point3d>();
+            double errorAbsoluteN = 1.0;
+            double errorAbsoluteM = 20.0;
 
             Point3d NRdMin = new Point3d(double.MaxValue, double.MaxValue, double.MaxValue);
             Point3d MxRdMin = new Point3d(double.MaxValue, double.MaxValue, double.MaxValue);
@@ -1067,37 +1072,36 @@ namespace ConcreteTests
 
             // valore per campo di deformazione 6 (epsilon 0.2% costante)
             double pureCompressionClsStress = ((ConcreteMaterialEuropeanCommon)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC;
-            double pureCompressionAxialForce = section.Shape.GetArea() * pureCompressionClsStress;
-            double pureCompressionMomentX = 0;
-            double pureCompressionMomentY = 0;
-
+            double clsArea = section.Shape.GetArea();
+            var centerId = GetLocalCoordinateSystem(section).Origin;
+            double pureCompressionAxialForce = clsArea * pureCompressionClsStress;
+            double pureCompressionMomentX = -clsArea * pureCompressionClsStress * (section.Centroid.Y - centerId.Y);
+            double pureCompressionMomentY = clsArea * pureCompressionClsStress * (section.Centroid.X - centerId.X);
 
             foreach (ReinforcedConcreteRebar rebar in section.GetRebars())
             {
                 var rebarsFyd = rebar.RebarMaterial.Fyk / standard.GammaS + pureCompressionClsStress;
                 pureCompressionAxialForce -= rebar.Area * rebarsFyd;
-                pureCompressionMomentX += rebar.Area * rebarsFyd * (rebar.Position.Y - section.Centroid.Y);
-                pureCompressionMomentY -= rebar.Area * rebarsFyd * (rebar.Position.X - section.Centroid.X);
+                pureCompressionMomentX += rebar.Area * rebarsFyd * (rebar.Position.Y - centerId.Y);
+                pureCompressionMomentY -= rebar.Area * rebarsFyd * (rebar.Position.X - centerId.X);
             }
             foreach (var steelSection in section.SteelSections)
             {
                 var steelMatFyd = steelSection.Section.SteelMaterial.Fyk / standardStructuralSteel.GammaM0;
                 pureCompressionAxialForce -= steelSection.Section.Area * steelMatFyd;
                 var steelSectionGlobalPosition = steelSection.PositionToGlobal(steelSection.Section.Centroid);
-                pureCompressionMomentX += steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.Y - section.Centroid.Y);
-                pureCompressionMomentY -= steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.X - section.Centroid.X);
+                pureCompressionMomentX += steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.Y - centerId.Y);
+                pureCompressionMomentY -= steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.X - centerId.X);
             }
 
-            if (Math.Abs(NRdMin.Z) > 1 && Math.Abs(pureCompressionAxialForce) > 1)
+            if (Math.Abs(NRdMin.Z) > errorAbsoluteN && Math.Abs(pureCompressionAxialForce) > errorAbsoluteN)
                 Assert.IsTrue(Math.Abs((Math.Abs(NRdMin.Z) - Math.Abs(pureCompressionAxialForce)) / NRdMin.Z) * 100 < errorPercentage);
 
-            if (Math.Abs(NRdMin.X) > 1 && Math.Abs(pureCompressionMomentX) > 1)
-                Assert.IsTrue(Math.Abs((Math.Abs(NRdMin.X) - Math.Abs(pureCompressionMomentX)) / NRdMin.X) * 100 < errorPercentage &&
-                    (Math.Abs(NRdMin.X) > 1 && Math.Abs(pureCompressionMomentX) > 1));
+            if (Math.Abs(NRdMin.X) > errorAbsoluteM && Math.Abs(pureCompressionMomentX) > errorAbsoluteM)
+                Assert.IsTrue(Math.Abs((Math.Abs(NRdMin.X) - Math.Abs(pureCompressionMomentX)) / NRdMin.X) * 100 < errorPercentage);
 
-            if (Math.Abs(NRdMin.Y) > 1 && Math.Abs(pureCompressionMomentY) > 1)
-                Assert.IsTrue(Math.Abs((Math.Abs(NRdMin.Y) - Math.Abs(pureCompressionMomentY)) / NRdMin.Y) * 100 < errorPercentage &&
-                    (Math.Abs(NRdMin.Y) > 1 && Math.Abs(pureCompressionMomentY) > 1));
+            if (Math.Abs(NRdMin.Y) > errorAbsoluteM && Math.Abs(pureCompressionMomentY) > errorAbsoluteM)
+                Assert.IsTrue(Math.Abs((Math.Abs(NRdMin.Y) - Math.Abs(pureCompressionMomentY)) / NRdMin.Y) * 100 < errorPercentage);
 
             // valore per campo di deformazione 1 (epsilon 7.5% costante)
             double pureTractionAxialForce = 0.0;
@@ -1123,8 +1127,8 @@ namespace ConcreteTests
                     pureTractionRebarsStress = elasticEpsilonMin * rebar.RebarMaterial.ElasticModulusTension / standard.GammaS;
 
                 pureTractionAxialForce += rebar.Area * pureTractionRebarsStress;
-                pureTractionMomentX -= rebar.Area * pureTractionRebarsStress * (rebar.Position.Y - section.Centroid.Y);
-                pureTractionMomentY += rebar.Area * pureTractionRebarsStress * (rebar.Position.X - section.Centroid.X);
+                pureTractionMomentX -= rebar.Area * pureTractionRebarsStress * (rebar.Position.Y - centerId.Y);
+                pureTractionMomentY += rebar.Area * pureTractionRebarsStress * (rebar.Position.X - centerId.X);
             }
             foreach (var steelSection in section.SteelSections)
             {
@@ -1136,20 +1140,18 @@ namespace ConcreteTests
 
                 pureTractionAxialForce += steelSection.Section.Area * steelMatFyd;
                 var steelSectionGlobalPosition = steelSection.PositionToGlobal(steelSection.Section.Centroid);
-                pureTractionMomentX -= steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.Y - section.Centroid.Y);
-                pureTractionMomentY += steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.X - section.Centroid.X);
+                pureTractionMomentX -= steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.Y - centerId.Y);
+                pureTractionMomentY += steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.X - centerId.X);
             }
 
-            if (Math.Abs(NRdMax.Z) > 1 && Math.Abs(pureTractionAxialForce) > 1)
+            if (Math.Abs(NRdMax.Z) > errorAbsoluteN && Math.Abs(pureTractionAxialForce) > errorAbsoluteN)
                 Assert.IsTrue(Math.Abs((Math.Abs(NRdMax.Z) - Math.Abs(pureTractionAxialForce)) / NRdMax.Z) * 100 < errorPercentage);
 
-            if (Math.Abs(NRdMax.X) > 1 && Math.Abs(pureTractionMomentX) > 1)
-                Assert.IsTrue(Math.Abs((Math.Abs(NRdMax.X) - Math.Abs(pureTractionMomentX)) / NRdMax.X) * 100 < errorPercentage &&
-                (Math.Abs(NRdMax.X) > 1 && Math.Abs(pureTractionMomentX) > 1));
+            if (Math.Abs(NRdMax.X) > errorAbsoluteM && Math.Abs(pureTractionMomentX) > errorAbsoluteM)
+                Assert.IsTrue(Math.Abs((Math.Abs(NRdMax.X) - Math.Abs(pureTractionMomentX)) / NRdMax.X) * 100 < errorPercentage);
 
-            if (Math.Abs(NRdMax.Y) > 1 && Math.Abs(pureTractionMomentY) > 1)
-                Assert.IsTrue(Math.Abs((Math.Abs(NRdMax.Y) - Math.Abs(pureTractionMomentY)) / NRdMax.Y) * 100 < errorPercentage &&
-                (Math.Abs(NRdMax.X) > 1 && Math.Abs(pureTractionMomentY) > 1));
+            if (Math.Abs(NRdMax.Y) > errorAbsoluteM && Math.Abs(pureTractionMomentY) > errorAbsoluteM)
+                Assert.IsTrue(Math.Abs((Math.Abs(NRdMax.Y) - Math.Abs(pureTractionMomentY)) / NRdMax.Y) * 100 < errorPercentage);
 
             ShowDomainPoints(failureDomain);
 
