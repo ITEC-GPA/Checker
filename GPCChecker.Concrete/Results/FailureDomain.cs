@@ -125,117 +125,53 @@ namespace GPC.Checkers.Concrete.Results
                 }
             }
 
-            for (int i = 0; i < domainPoint.Length - 1; i++)
+            for (int i = 0; i < domainPoint.Length; i++) // meridians
             {
-                for (int j = 0; j < domainPoint[i].Length - 2; j++)
+                int i1 = i;
+                int i2 = i + 1;
+                if (i2 == domainPoint.Length)
+                    i2 = 0;
+
+                for (int j = 0; j < domainPoint[i].Length - 1; j++) // parallels
                 {
-                    mesh.Faces.Build(new MeshFace
-                    (
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j + 1].Point]]), progressPlateId++
-                    );
+                    if (j == 0) // pole
+                    {
+                        var vA = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j].Point]];
+                        var vB = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j + 1].Point]];
+                        var vC = pointIdAssociation[pointVertexAssociation[domainPoint[i2][j + 1].Point]];
 
-                    mesh.Faces.Build(new MeshFace
-                    (
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j].Point]]), progressPlateId++
-                    );
+                        mesh.Faces.Build(new MeshFace(vA, vB, vC), progressPlateId++);
 
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]]), progressEdgeId++);
+                        // only left side
+                        mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
+                    }
+                    else if (j == domainPoint[i].Length - 2) // pole
+                    {
+                        var vA = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j].Point]];
+                        var vB = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j + 1].Point]];
+                        var vC = pointIdAssociation[pointVertexAssociation[domainPoint[i2][j].Point]];
 
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j + 1].Point]]), progressEdgeId++);
+                        mesh.Faces.Build(new MeshFace(vA, vB, vC), progressPlateId++);
 
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j].Point]]), progressEdgeId++);
+                        // upper and left side
+                        mesh.Edges.Build(new MeshEdge(vC, vA), progressEdgeId++);
+                        mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
+                    }
+                    else
+                    {
+                        var vA = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j].Point]];
+                        var vB = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j + 1].Point]];
+                        var vC = pointIdAssociation[pointVertexAssociation[domainPoint[i2][j].Point]];
+                        var vD = pointIdAssociation[pointVertexAssociation[domainPoint[i2][j + 1].Point]];
 
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j + 1].Point]]), progressEdgeId++);
+                        mesh.Faces.Build(new MeshFace(vA, vB, vD), progressPlateId++);
+                        mesh.Faces.Build(new MeshFace(vA, vD, vC), progressPlateId++);
 
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j].Point]]), progressEdgeId++);
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]]), progressEdgeId++);
-                }
-
-                for (int j = domainPoint[i].Length - 2; j < domainPoint[i].Length - 1; j++)
-                {
-                    mesh.Faces.Build(new MeshFace
-                    (
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j].Point]]), progressPlateId++
-                    );
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]]), progressEdgeId++);
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j + 1].Point]]), progressEdgeId++);
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i + 1][j].Point]]), progressEdgeId++);
-                }
-            }
-
-            for (int i = domainPoint.Length - 1; i < domainPoint.Length; i++)
-            {
-                for (int j = 0; j < domainPoint[i].Length - 2; j++)
-                {
-                    mesh.Faces.Build(new MeshFace
-                    (
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]]), progressPlateId++
-                    );
-
-                    mesh.Faces.Build(new MeshFace
-                    (
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[0][j].Point]]), progressPlateId++
-                    );
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]]), progressEdgeId++);
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]]), progressEdgeId++);
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[0][j].Point]]), progressEdgeId++);
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]]), progressEdgeId++);
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[0][j].Point]]), progressEdgeId++);
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[0][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]]), progressEdgeId++);
-                }
-
-                for (int j = domainPoint[i].Length - 2; j < domainPoint[i].Length - 1; j++)
-                {
-                    mesh.Faces.Build(new MeshFace
-                    (
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[0][j].Point]]), progressPlateId++
-                    );
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]]), progressEdgeId++);
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[i][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]]), progressEdgeId++);
-
-                    mesh.Edges.Build(new MeshEdge(pointIdAssociation[pointVertexAssociation[domainPoint[0][j + 1].Point]],
-                        pointIdAssociation[pointVertexAssociation[domainPoint[0][j].Point]]), progressEdgeId++);
+                        // upper, middle and left side
+                        mesh.Edges.Build(new MeshEdge(vC, vA), progressEdgeId++);
+                        mesh.Edges.Build(new MeshEdge(vA, vD), progressEdgeId++);
+                        mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
+                    }
                 }
             }
 
@@ -800,9 +736,9 @@ namespace GPC.Checkers.Concrete.Results
                 switch (domainType)
                 {
                     case FailureDomainResult2d.DomainTypes.ConstantMxMy:
-						ForceTuple force2d = ConvertForceToForceTuple2d(domainType, new ForceTuple(N, M1, M2));
-						return new Vector3d(force2d.Mx / SCALE_M, force2d.N / SCALE_N, 0).Length /
-							((Vector3d)new Point3d(Point2d.X / SCALE_M, Point2d.Y / SCALE_N, 0)).Length;
+                        ForceTuple force2d = ConvertForceToForceTuple2d(domainType, new ForceTuple(N, M1, M2));
+                        return new Vector3d(force2d.Mx / SCALE_M, force2d.N / SCALE_N, 0).Length /
+                            ((Vector3d)new Point3d(Point2d.X / SCALE_M, Point2d.Y / SCALE_N, 0)).Length;
 
                     case FailureDomainResult2d.DomainTypes.ConstantN:
                         return new Vector3d(M1 / SCALE_M, M2 / SCALE_M, 0).Length /
@@ -811,22 +747,22 @@ namespace GPC.Checkers.Concrete.Results
                     default:
                         return -1;
                 }
-			}
+            }
 
-			public Point2d ConvertForceToPoint(FailureDomainResult2d.DomainTypes domainType, ForceTuple forceTuple)
-			{
-				if (domainType == FailureDomainResult2d.DomainTypes.ConstantN)
-					return new Point2d(forceTuple.Mx, forceTuple.My);
-				else
-					return new Point2d(forceTuple.N, forceTuple.Mx);
-			}
+            public Point2d ConvertForceToPoint(FailureDomainResult2d.DomainTypes domainType, ForceTuple forceTuple)
+            {
+                if (domainType == FailureDomainResult2d.DomainTypes.ConstantN)
+                    return new Point2d(forceTuple.Mx, forceTuple.My);
+                else
+                    return new Point2d(forceTuple.N, forceTuple.Mx);
+            }
 
-			public ForceTuple ConvertForceToForceTuple2d(FailureDomainResult2d.DomainTypes domainType, ForceTuple forceTuple)
-			{
-				if (domainType == FailureDomainResult2d.DomainTypes.ConstantN)
-					return new ForceTuple(forceTuple.Mx, forceTuple.My, 0);
-				else
-					return new ForceTuple(forceTuple.N, forceTuple.Mx, 0);
+            public ForceTuple ConvertForceToForceTuple2d(FailureDomainResult2d.DomainTypes domainType, ForceTuple forceTuple)
+            {
+                if (domainType == FailureDomainResult2d.DomainTypes.ConstantN)
+                    return new ForceTuple(forceTuple.Mx, forceTuple.My, 0);
+                else
+                    return new ForceTuple(forceTuple.N, forceTuple.Mx, 0);
             }
 
             #endregion

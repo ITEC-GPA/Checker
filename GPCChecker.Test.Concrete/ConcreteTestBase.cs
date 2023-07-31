@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 
 namespace ConcreteTests
 {
@@ -1159,6 +1160,37 @@ namespace ConcreteTests
             {
                 ExportToGmsh(failureDomain.GetMesh(failureDomain));
             }
+            var _ = ExportToAutocadCommandLine(failureDomain.GetMesh(failureDomain));
+        }
+
+        /// Create a list of commands in toCad, that you can paste into AutoCAD command line to draw edges and faces.
+        private static string ExportToAutocadCommandLine(Mesh mesh)
+        {
+            var sb = new StringBuilder();
+            foreach (var edge in mesh.Edges)
+            {
+                var vertexA = mesh.GetVertex(edge.A);
+                var vertexB = mesh.GetVertex(edge.B);
+                sb.AppendLine("LINE");
+                sb.AppendLine($"{vertexA.Point.X},{vertexA.Point.Y},{vertexA.Point.Z}");
+                sb.AppendLine($"{vertexB.Point.X},{vertexB.Point.Y},{vertexB.Point.Z}");
+                sb.AppendLine("");
+            }
+            foreach (var face in mesh.Faces)
+            {
+                var vertexA = mesh.GetVertex(face.A);
+                var vertexB = mesh.GetVertex(face.B);
+                var vertexC = mesh.GetVertex(face.C);
+                sb.AppendLine("3DFACE");
+                sb.AppendLine($"{vertexA.Point.X},{vertexA.Point.Y},{vertexA.Point.Z}");
+                sb.AppendLine($"{vertexB.Point.X},{vertexB.Point.Y},{vertexB.Point.Z}");
+                sb.AppendLine($"{vertexC.Point.X},{vertexC.Point.Y},{vertexC.Point.Z}");
+                sb.AppendLine("");
+                sb.AppendLine("");
+            }
+
+            string toCad = sb.ToString();
+            return toCad;
         }
 
         protected bool CommonAssertsVCA(StressAnalysisResult result, IConcreteSection _, (Point2d rebar, double tension)[] concreteTensionsCalculate,
