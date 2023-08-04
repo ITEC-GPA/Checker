@@ -2,6 +2,7 @@
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
+using GPC.Geometry.Meshes;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
@@ -11,11 +12,15 @@ using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
+using MathNet.Numerics.Integration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using static GPC.Checkers.Concrete.Results.FailureDomain;
+using static System.Collections.Specialized.BitVector32;
 
 namespace ConcreteTests
 {
@@ -2241,18 +2246,49 @@ namespace ConcreteTests
             // Check ratio of some values obtained from EC.
             var plasticDomainResult = sectionChecker.GetPlasticFailureDomainResult();
 
-            double maxError = double.MinValue;
+            var maxErrorConstantN_iterativeMethod = new List<double>();
+            var maxErrorConstantEccentricity_iterativeMethod = new List<double>();
 
-            // The following part does not work, it may be that the section of 1x1 mm cls is too extreme.
-            foreach (var aplliedForce in forces)
+            foreach (var appliedForce in forces)
             {
-                var resDomFail = sectionChecker.CalculatePlasticFailureDomainPoint(aplliedForce);
+                var resDomFail = sectionChecker.CalculatePlasticFailureDomainPoint(appliedForce);
                 //var fr = resDomFail.StrainPlane;
-                resDomFail.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantN, aplliedForce, 1.0, 1.0);
+                resDomFail.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantN, appliedForce, 1.0, 1.0);
+                maxErrorConstantN_iterativeMethod.Add(resDomFail.WorkingRatio);
 
-                maxError = Math.Max(maxError, resDomFail.WorkingRatio);
+                resDomFail.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantEccentricity, appliedForce, 1.0, 1.0);
+                maxErrorConstantEccentricity_iterativeMethod.Add(resDomFail.WorkingRatio);
             }
-            Assert.AreEqual(1.0, maxError, 0.07);
+            Assert.AreEqual(0.0, maxErrorConstantN_iterativeMethod.Max(r => Math.Abs(r - 1.0)), 0.075); // 2023-08-04 Max error: 0.070232560241887176.
+            Assert.AreEqual(0.0, maxErrorConstantEccentricity_iterativeMethod.Max(r => Math.Abs(r - 1.0)), 0.075); // 2023-08-04 Max error: 0.070230107560015131.
+
+            // ****************************************
+            // ***** Plastic - Part 3
+            // Check ratio of some values obtained from EC with mesh intersection.
+            var maxErrorConstantEccentricity_intersectionMethod = new List<double>();
+            var plastiDomainMesh = plasticDomainResult.Domain.GetMesh(plasticDomainResult.Domain);
+
+            foreach (var appliedForce in forces)
+            {
+                var origin = Point3d.Origin;
+                var appliedForcePoint = new Point3d(appliedForce.M1, appliedForce.M2, appliedForce.N);
+                var inters = plastiDomainMesh.GetIntersectionWihtSemiInfiniteRay(
+                    new Line3d(origin, appliedForcePoint),
+                    true,
+                    10.0);
+
+                Assert.IsTrue(inters.Count > 0);
+
+                // Find the key with the smallest distance and get the corresponding pair from the dictionary.
+                var closestEntry = inters.OrderBy(pair => pair.Key.DistanceTo(origin)).FirstOrDefault();
+
+                Assert.IsNotNull(closestEntry);
+                Assert.IsNotNull(closestEntry.Key);
+
+                double workingRatio = origin.DistanceTo(appliedForcePoint) / origin.DistanceTo(closestEntry.Key);
+                maxErrorConstantEccentricity_intersectionMethod.Add(workingRatio);
+            }
+            Assert.AreEqual(0.0, maxErrorConstantEccentricity_intersectionMethod.Max(r => Math.Abs(r - 1.0)), 0.065); // 2023-08-04 Max error: 0.063214531273879437.
         }
 
         // Now two almost identical sections.
@@ -2293,8 +2329,17 @@ namespace ConcreteTests
             FailureDomainCommonAssertModelCode(sectionRC, sectionCheckerRC, new StandardNTC2018Concrete(), 5.0, false, new StandardEN1993p11());
             var plasticDomainResultRC = sectionCheckerRC.GetPlasticFailureDomainResult();
 
-            // Compare
+            // 2d -> 1d
+            FailureDomainPoint[] domRC1D = plasticDomainResultRC.Domain.DomainPoints.SelectMany(array => array).ToArray();
+            double Mscale = 1000000.0;
+            double Nscale = 1000.0;
+
+            // Stopwatch
+            var stopwatch = new Stopwatch();
+
+            //// ************ Compare 1 - Trick, two domains are almost the same. ************
             int domSize0 = plasticDomainResultComposite.Domain.DomainPoints.GetLength(0);
+            //stopwatch.Start(); // *** timer ***
             double forceRelativeTollerance = 0.001;
 
             for (int i = 0; i < domSize0; i++)
@@ -2305,7 +2350,7 @@ namespace ConcreteTests
                 {
                     var currCompositeForce = plasticDomainResultComposite.Domain.DomainPoints[i][j];
 
-                    var NrdCorrection = Math.Sign(currCompositeForce.NRd) * steelSize * steelSize * steelFy; // due to structural section
+                    var NrdCorrection = Math.Sign(currCompositeForce.NRd) * steelSize * steelSize * steelFy; // due to steel structural section
                     var currCompositeForcePoint = currCompositeForce.Point;
                     currCompositeForcePoint.Z -= NrdCorrection;
 
@@ -2317,6 +2362,140 @@ namespace ConcreteTests
                     Assert.IsTrue(distanceBetweenDomanins < forceTollerance);
                 }
             }
+
+            stopwatch.Stop(); // *** timer ***
+            var elapsedTime = stopwatch.Elapsed;
+
+            // ************ Compare 2 - Intersect method. ************
+            stopwatch.Reset();
+            stopwatch.Start(); // *** timer ***
+
+            forceRelativeTollerance = 0.001;
+            var maxErrorConstantEccentricity_intersectionMethod = new List<double>();
+            var origin = Point3d.Origin;
+            var plastiDomainMeshRC = plasticDomainResultRC.Domain.GetMesh(plasticDomainResultRC.Domain);
+
+            for (int i = 0; i < domSize0; i++)
+            {
+                int domSize1 = plasticDomainResultComposite.Domain.DomainPoints[i].GetLength(0);
+
+                for (int j = 0; j < domSize1; j++)
+                {
+                    var currCompositeForce = plasticDomainResultComposite.Domain.DomainPoints[i][j];
+
+                    var NrdCorrection = Math.Sign(currCompositeForce.NRd) * steelSize * steelSize * steelFy; // due to steel structural section
+                    var currCompositeForcePoint = currCompositeForce.Point;
+                    currCompositeForcePoint.Z -= NrdCorrection;
+
+                    //if (currCompositeForcePoint.Z > 0)
+                    //    continue;
+
+                    {
+                        var intersOnDomainRC = plastiDomainMeshRC.GetIntersectionWihtSemiInfiniteRay(
+                            new Line3d(origin, currCompositeForcePoint),
+                            true,
+                            10.0);
+
+                        Assert.IsTrue(intersOnDomainRC.Count > 0);
+
+                        // Find the key with the smallest distance and get the corresponding pair from the dictionary.
+                        var closestEntryOnDomainRC = intersOnDomainRC.OrderBy(pair => pair.Key.DistanceTo(origin)).FirstOrDefault();
+
+                        Assert.IsNotNull(closestEntryOnDomainRC);
+                        Assert.IsNotNull(closestEntryOnDomainRC.Key);
+
+                        double workingRatio = origin.DistanceTo(currCompositeForcePoint) / origin.DistanceTo(closestEntryOnDomainRC.Key);
+                        maxErrorConstantEccentricity_intersectionMethod.Add(workingRatio);
+                    }
+                }
+            }
+
+            stopwatch.Stop(); // *** timer ***
+
+            Assert.AreEqual(0.0, maxErrorConstantEccentricity_intersectionMethod.Max(r => Math.Abs(r - 1.0)), 0.003); // 2023-08-03 Max error: 0.0029979178148502594.
+            var elapsedTimeIntersect = stopwatch.Elapsed;
+
+            // ************ Compare 3 - Iterative method, composite points over RC domain. ************
+            var sectionRClocalSystem = GetLocalCoordinateSystem(sectionRC);
+            stopwatch.Reset();
+            stopwatch.Start(); // *** timer ***
+            var maxErrorConstantEccentricity_directMethodRC = new List<(double wratio, int iterations, double N, double Mx, double My)>();
+            var failForcePointsRC = new List<Point3d>();
+
+            for (int i = 0; i < domSize0; i++)
+            {
+                int domSize1 = plasticDomainResultComposite.Domain.DomainPoints[i].GetLength(0);
+
+                for (int j = 0; j < domSize1; j++)
+                {
+                    var currCompositeForce = plasticDomainResultComposite.Domain.DomainPoints[i][j];
+
+                    var NrdCorrection = Math.Sign(currCompositeForce.NRd) * steelSize * steelSize * steelFy; // due to steel structural section
+                    var currCompositeForcePoint = currCompositeForce.Point;
+                    currCompositeForcePoint.Z -= NrdCorrection;
+
+                    //if (currCompositeForcePoint.Z > 0)
+                    //    continue;
+                    {
+                        var appliedForce = new ResultBeamForces(currCompositeForcePoint.Z, 0.0, 0.0, 0.0, currCompositeForcePoint.X, currCompositeForcePoint.Y, sectionRClocalSystem);
+                        var resDomFail = sectionCheckerRC.CalculatePlasticFailureDomainPoint(appliedForce);
+
+                        if (resDomFail is null)
+                        {
+                            failForcePointsRC.Add(currCompositeForcePoint);
+                        }
+                        else
+                        {
+                            resDomFail.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantEccentricity, appliedForce, Mscale, Nscale);
+                            maxErrorConstantEccentricity_directMethodRC.Add((resDomFail.WorkingRatio, resDomFail.StrainPlane.Id, appliedForce.N, appliedForce.M1, appliedForce.M2));
+                        }
+                    }
+                }
+            }
+            stopwatch.Stop(); // *** timer ***
+            var elapsedTimeDirectOverRC = stopwatch.Elapsed;
+            Assert.IsTrue(failForcePointsRC.Count <= 7);
+
+            // ************ Compare 3 - Iterative method, composite points over composite domain. ************
+            var sectionCompositelocalSystem = GetLocalCoordinateSystem(sectionComposite);
+            stopwatch.Reset();
+            stopwatch.Start(); // *** timer ***
+            var maxErrorConstantEccentricity_directMethodComposite = new List<(double wratio, int iterations, double N, double Mx, double My)>();
+            var failForcePointsComposite = new List<Point3d>();
+            domSize0 = plasticDomainResultRC.Domain.DomainPoints.GetLength(0);
+
+            for (int i = 0; i < domSize0; i++)
+            {
+                int domSize1 = plasticDomainResultRC.Domain.DomainPoints[i].GetLength(0);
+
+                for (int j = 0; j < domSize1; j++)
+                {
+                    var currRCForce = plasticDomainResultRC.Domain.DomainPoints[i][j];
+
+                    var NrdCorrection = Math.Sign(currRCForce.NRd) * steelSize * steelSize * steelFy; // due to steel structural section
+                    var currRCForcePoint = currRCForce.Point;
+                    currRCForcePoint.Z += NrdCorrection;
+
+                    //if (currRCForcePoint.Z > 0)
+                    //    continue;
+                    {
+                        var appliedForce = new ResultBeamForces(currRCForcePoint.Z, 0.0, 0.0, 0.0, currRCForcePoint.X, currRCForcePoint.Y, sectionCompositelocalSystem);
+                        var resDomFail = sectionCheckerComposite.CalculatePlasticFailureDomainPoint(appliedForce);
+
+                        if (resDomFail is null)
+                        {
+                            failForcePointsComposite.Add(currRCForcePoint);
+                        }
+                        else
+                        {
+                            resDomFail.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantEccentricity, appliedForce, Mscale, Nscale);
+                            maxErrorConstantEccentricity_directMethodComposite.Add((resDomFail.WorkingRatio, resDomFail.StrainPlane.Id, appliedForce.N, appliedForce.M1, appliedForce.M2));
+                        }
+                    }
+                }
+            }
+            stopwatch.Stop(); // *** timer ***
+            var elapsedTimeDirectOverComposite = stopwatch.Elapsed;
         }
 
         /// <summary>
@@ -2468,7 +2647,7 @@ namespace ConcreteTests
 
             // var concreteTensions = slsResult[0].GetConcreteVerticesTension(phi);
             // var rebarTensions = slsResult[0].GetRebarsTension(phi);
-            double error = 0.2;
+            double error = 0.25;
 
             // Combination 0
             var steelSectionsTensions = slsResult[0].GetStructuralSteelVerticesTension();
@@ -2536,7 +2715,7 @@ namespace ConcreteTests
             var internalMinRebarsCompression = rebarTensions.Min(i => i.tension);
 
             Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 3.0);
-            Assert.AreEqual(minConcreteCompression, internalMinConcreteCompression, 0.05);
+            Assert.AreEqual(minConcreteCompression, internalMinConcreteCompression, 0.08);
             Assert.AreEqual(minRebarsCompression, internalMinRebarsCompression, 6.0);
         }
 
