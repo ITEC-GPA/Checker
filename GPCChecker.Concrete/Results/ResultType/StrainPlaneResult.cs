@@ -75,7 +75,7 @@ namespace GPC.Checker.Results.ResultType
 		public SectionSolver SectionSolver { get => _sectionSolver; internal set => _sectionSolver = value; }
 
 		internal StrainPlaneResult(IConcreteSection section, ResultBeamForces force, StrainPlane strainPlane, SectionSolver solver, Standard standard,
-			int id = IDUNASSIGNED, StandardEN1993p11 standardStructuralSteel = null)
+			int id = IDUNASSIGNED, Standard standardStructuralSteel = null)
 			: base(section, standard, id, standardStructuralSteel)
 		{
 			_force = force ?? throw new ArgumentNullException(nameof(force));

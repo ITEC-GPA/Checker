@@ -180,8 +180,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected Standard _standard;
         /// <summary>
         /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
+        /// Must be StandardEN1993p11, currently the only one implemented.
         /// </summary>
-        protected readonly StandardEN1993p11 _standardStructuralSteel;
+        protected readonly Standard _standardStructuralSteel;
 
         protected List<string> _log;
         protected int _tetaDiscretization;
@@ -201,7 +202,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public Standard Standard => _standard;
 
-        public StandardEN1993p11 StandardStructuralSteel => _standardStructuralSteel;
+        public Standard StandardStructuralSteel => _standardStructuralSteel;
 
         public bool ConsiderTensileConcrete { get => _considerTensileConcrete; internal set => _considerTensileConcrete = value; }
 
@@ -209,7 +210,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Constructor
 
-        internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id, StandardEN1993p11 standardStructuralSteel = null)
+        internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id, Standard standardStructuralSteel = null)
             : base(id)
         {
             _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
@@ -270,6 +271,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         /// <returns>The design steel stress related to <paramref name="strain"/></returns>
         internal abstract double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain);
+
+        /// <returns>The design steel stress related to <paramref name="strain"/></returns>
+        internal abstract double CalculateStressStructuralSteel(ISteelSection steelSection, double strain);
 
         protected abstract double GetReductionFactor(StrainPlane strainPlane);
 
@@ -572,7 +576,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 return IntegrateSectionStressLinearElastic(strainPlane) +
                     IntegrateRebarLinearStress(psi, psiTendon, strainPlane, rebarIsInsideAssociation) +
-                    IntegrateStructuralSteelLinearStress(strainPlane);
+                    IntegrateStructuralSteelLinearStress(psi, strainPlane);
             }
             catch (Exception e)
             {
@@ -887,7 +891,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="deltaN">The axial force resultant</param>
         /// <param name="deltaMx">The bending moment about X-axis resultant</param>
         /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
-        protected ForceTuple IntegrateStructuralSteelLinearStress(StrainPlane strainPlane)
+        protected ForceTuple IntegrateStructuralSteelLinearStress(double psi, StrainPlane strainPlane)
         {
             double quadratureN = 0;
             double quadratureMx = 0;
@@ -900,7 +904,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 {
                     var strain = strainPlane.GetStrain(x, y);
                     double sigmaC = steelSection.IsInsideConcrete ? CalculateSigmaC(strain) : 0.0;
-                    return CalculateElasticSigmaS(steelSection.Section, strain) - sigmaC;
+                    return CalculateElasticSigmaS(psi, steelSection.Section, strain) - sigmaC;
                 }
                 double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - ConcreteSection.Centroid.Y);
                 double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - ConcreteSection.Centroid.X);
@@ -926,12 +930,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return new ForceTuple(quadratureN, -quadratureMx, quadratureMy);
         }
 
-        public double CalculateElasticSigmaS(SteelSection section, double strain)
+        public double CalculateElasticSigmaS(double psi, SteelSection section, double strain)
         {
             if (strain < 0)
-                return section.SteelMaterial.ElasticModulusCompression * strain;
+                return section.SteelMaterial.ElasticModulusCompression * (1 + psi) * strain;
             else
-                return section.SteelMaterial.ElasticModulusTension * strain;
+                return section.SteelMaterial.ElasticModulusTension * (1 + psi) * strain;
         }
 
         #endregion
@@ -973,18 +977,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double eps = Math.Abs(rebars[r].RebarMaterial.StrainUTension);
 
                 double ratio = w1 / eps;
+                double radius = 0.5 * rebars[r].RebarSection.Diameter;
 
                 if (ratio <= dminRebarRatio)
                 {
                     dminRebarRatio = ratio;
-                    dminRebar = w1;
+                    dminRebar = w1 - radius;
                     dMinRebarId = rebars[r].Id;
                 }
 
                 if (ratio >= dmaxRebarRatio)
                 {
                     dmaxRebarRatio = ratio;
-                    dmaxRebar = w1;
+                    dmaxRebar = w1 + radius;
                     dMaxRebarId = rebars[r].Id;
                 }
             }
@@ -1047,22 +1052,27 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual ForceTuple ConvertToAdimensionalForces(ForceTuple forceTuple)
         {
-            if (_concreteSection.IsCompositeSteelConcrete)
-            {
-                var fck = Math.Abs(GetFck());
-                var homo = _concreteSection.GetHomogeneizedMechanicalProperties();
-                return new ForceTuple(forceTuple.N / (homo.areaH * fck * 0.5), forceTuple.Mx / (homo.JxxH * fck), forceTuple.My / (homo.JyyH * fck));
-            }
-            else
-            {
-                BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox();
-                double h = bBox.Size.Y;
-                double b = bBox.Size.X;
+            BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox();
+            double h = bBox.Size.Y;
+            double b = bBox.Size.X;
 
-                return new ForceTuple(forceTuple.N / (b * h * Math.Abs(GetFck())),
-                    forceTuple.Mx / (b * h * h * Math.Abs(GetFck())),
-                    forceTuple.My / (b * b * h * Math.Abs(GetFck())));
-            }
+            double fck = Math.Abs(GetFck());
+            double denomN = b * h * fck;
+            double denomMx = b * h * h * fck;
+            double denomMy = b * b * h * fck;
+
+            //if (_concreteSection.IsCompositeSteelConcrete)
+            //{
+            //    foreach (var steelSection in _concreteSection.SteelSections)
+            //    {
+            //        double fy = steelSection.Section.SteelMaterial.Fyk;
+            //        Point2d glpobG = steelSection.PositionToGlobal(steelSection.Section.Centroid);
+            //        denomN += steelSection.Section.Area * fy;
+            //        denomMx += (steelSection.Section.WelX + steelSection.Section.Area * Math.Abs(glpobG.Y - 0.5 * b)) * fy;
+            //        denomMy += (steelSection.Section.WelY + steelSection.Section.Area * Math.Abs(glpobG.X - 0.5 * h)) * fy;
+            //    }
+            //}
+            return new ForceTuple(forceTuple.N / denomN, forceTuple.Mx / denomMx, forceTuple.My / denomMy);
         }
 
         #endregion
@@ -1080,6 +1090,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         internal virtual DeformationFieldsPoint GetP1(BoundaryDistances distances,
             FailureDomainTypes analysisType, FailureZones failureZone)
         {
+            Point2d minRebarsPoint = null;
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
+            {
+                var minRebar = _concreteSection.GetRebarById(distances.dMinRebarId);
+                double radius = 0.5 * minRebar.RebarSection.Diameter;
+                var deltaMinRebarsPoint = new Point2d(radius * Math.Sin(distances.teta), radius * Math.Cos(distances.teta));
+                minRebarsPoint = minRebar.Position + deltaMinRebarsPoint;
+            }
+
             if (_concreteSection.IsCompositeSteelConcrete)
             {
                 var minSteelPoint = distances.dMinStrucSteelVertex;
@@ -1115,7 +1134,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             }
                             else
                             {
-                                var minRebarsPoint = _concreteSection.GetRebarById(distances.dMinRebarId).Position;
                                 var minRebarsDistance = distances.dmaxConcrete - distances.dminRebar;
 
                                 if (minRebarsDistance > minSteelDistance)
@@ -1169,12 +1187,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         switch (analysisType)
                         {
                             case FailureDomainTypes.Elastic:
-                                return new DeformationFieldsPoint(GetDesignYieldingStrainRebar(distances.dMinRebarId), ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
-                                    (distances.dmaxConcrete - distances.dminRebar));
+                                return new DeformationFieldsPoint(GetDesignYieldingStrainRebar(distances.dMinRebarId), minRebarsPoint, (distances.dmaxConcrete - distances.dminRebar));
 
                             case FailureDomainTypes.Plastic:
-                                return new DeformationFieldsPoint(GetDesignUltimateStrainRebar(distances.dMinRebarId), ConcreteSection.GetRebarById(distances.dMinRebarId).Position,
-                                    (distances.dmaxConcrete - distances.dminRebar));
+                                return new DeformationFieldsPoint(GetDesignUltimateStrainRebar(distances.dMinRebarId), minRebarsPoint, (distances.dmaxConcrete - distances.dminRebar));
 
                             default:
                                 return new DeformationFieldsPoint(0.0, null, 0.0);
@@ -1313,8 +1329,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 case ConcreteMaterial.ConcreteTypes.Concrete:
                     {
+                        var minRebar = _concreteSection.GetRebarById(distances.dMinRebarId);
+                        double radius = 0.5 * minRebar.RebarSection.Diameter;
+                        var deltaMinRebarsPoint = new Point2d(radius * Math.Sin(distances.teta), radius * Math.Cos(distances.teta));
+                        var minYpoints = minRebar.Position + deltaMinRebarsPoint;
                         var minY = distances.dminRebar;
-                        var minYpoints = ConcreteSection.GetRebarById(distances.dMinRebarId).Position;
                         var minStrain = GetDesignYieldingStrainRebar(distances.dMinRebarId);
 
                         switch (analysisType)
@@ -2213,9 +2232,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         if (angleBuffer < angle)
                         {
                             closestPoint = new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane);
+                            angle = angleBuffer;
                         }
-
-                        angle = angleBuffer;
 
                         if ((Math.Abs(adimIncrement.N) < distanceTolerance &&
                             Math.Abs(adimIncrement.Mx) < distanceTolerance &&

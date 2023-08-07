@@ -154,9 +154,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		internal override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
 		{
 			return rebar.RebarMaterial.CalculateDesignStress(StandardModelCode2010, strain + rebar.EpsilonP);
-		}
+        }
 
-		protected override double GetReductionFactor(StrainPlane strainPlane)
+        internal override double CalculateStressStructuralSteel(ISteelSection steelSection, double strain)
+        {
+			return steelSection.SteelMaterial.CalculateDesignStress(StandardModelCode2010, strain);
+        }
+
+        protected override double GetReductionFactor(StrainPlane strainPlane)
 		{
 			return 1.0;
 		}
@@ -232,12 +237,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected double CalculateDesignYieldingStrainStructuralSteel(SteelMaterial material)
         {
-            return material.CalculateDesignYieldingStrainTension(StandardStructuralSteel);
+            return material.CalculateDesignYieldingStrainTension(StandardStructuralSteel as StandardEN1993p11);
         }
 
         protected double CalculateDesignUltimateStrainStructuralSteel(SteelMaterial material)
         {
-            return material.CalculateDesignUltimateStrain(StandardStructuralSteel);
+            return material.CalculateDesignUltimateStrain(StandardStructuralSteel as StandardEN1993p11);
         }
 
         #endregion

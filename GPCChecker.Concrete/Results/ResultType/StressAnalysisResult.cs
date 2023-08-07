@@ -45,7 +45,7 @@ namespace GPC.Checkers.Concrete.Results
 
         public StressAnalysisResult(IConcreteSection section, ResultBeamForces force, StrainPlane strainPlane, SectionSolver solver, Standard standard,
             bool linearAnalysis = false, double? psiRebar = null, double? psiTendon = null, int id = IDUNASSIGNED,
-            StandardEN1993p11 standardStructuralSteel = null)
+            Standard standardStructuralSteel = null)
             : base(section, standard, id, standardStructuralSteel)
         {
             _force = force ?? throw new ArgumentNullException(nameof(force));
@@ -187,6 +187,10 @@ namespace GPC.Checkers.Concrete.Results
             }
         }
 
+        /// <summary>
+        /// Use constitutive law defined in material.
+        /// </summary>
+        /// <returns></returns>
         public (ReinforcedConcreteRebar rebar, double strain)[] GetRebarsStrain()
         {
             (ReinforcedConcreteRebar rebar, double strain)[] results = new (ReinforcedConcreteRebar rebar, double strain)[_section.RebarsCount];
@@ -202,6 +206,11 @@ namespace GPC.Checkers.Concrete.Results
             return results;
         }
 
+        /// <summary>
+        /// Linear elastic material ccnstituve law.
+        /// </summary>
+        /// <param name="phi"></param>
+        /// <returns></returns>
         public (ReinforcedConcreteRebar rebar, double strain)[] GetRebarsStrain(double phi)
         {
             (ReinforcedConcreteRebar rebar, double strain)[] results = new (ReinforcedConcreteRebar rebar, double strain)[_section.RebarsCount];
@@ -330,7 +339,7 @@ namespace GPC.Checkers.Concrete.Results
             return _strainPlane.GetStrain(point);
         }
 
-        public virtual (Point2d point, double tension)[] GetStructuralSteelVerticesTension()
+        public virtual (Point2d point, double tension)[] GetStructuralSteelVerticesTension(double? phi = null)
         {
             var structSteelTension = new List<(Point2d point, double tension)>();
             foreach (var steelSection in _section.SteelSections)
@@ -339,7 +348,11 @@ namespace GPC.Checkers.Concrete.Results
                 {
                     var globalVertex = steelSection.PositionToGlobal(localVertex);
                     double strain = StrainPlane.GetStrain(globalVertex);
-                    structSteelTension.Add((globalVertex, _sectionSolver.CalculateElasticSigmaS(steelSection.Section, strain)));
+                    if (phi.HasValue)
+                        structSteelTension.Add((globalVertex, _sectionSolver.CalculateElasticSigmaS(phi.Value, steelSection.Section, strain)));
+                    else
+
+                        structSteelTension.Add((globalVertex, _sectionSolver.CalculateStressStructuralSteel(steelSection.Section, strain)));
                 }
             }
             return structSteelTension.ToArray();

@@ -32,7 +32,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		#region Constructor
 
 		internal SectionSolverACI318(IConcreteSection section, StandardACI318 standard, bool haveSpiral,
-			bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED, StandardEN1993p11 standardStructuralSteel = null)
+			bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED, Standard standardStructuralSteel = null)
 			: base(section, standard, considerTensileConcrete, id, standardStructuralSteel)
 		{
 			_haveSpiral = haveSpiral;
@@ -136,9 +136,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 		internal override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
 		{
 			return rebar.RebarMaterial.GetStress(strain + rebar.EpsilonP);
-		}
+        }
 
-		protected override double GetReductionFactor(StrainPlane strainPlane)
+        internal override double CalculateStressStructuralSteel(ISteelSection steelSection, double strain)
+        {
+            return steelSection.SteelMaterial.GetStress(strain);
+        }
+
+        protected override double GetReductionFactor(StrainPlane strainPlane)
 		{
 			var distances = CalculateMaxMinSectionDistances(strainPlane.Teta);
 			double strain = strainPlane.GetStrain(ConcreteSection.GetRebarById(distances.dMinRebarId).Position);

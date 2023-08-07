@@ -156,6 +156,18 @@ namespace GPC.Checkers.Concrete.Results
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="_section"></param>
+        /// <param name="resultBeamForces"></param>
+        /// <param name="_sectionSolver"></param>
+        /// <param name="_standard"></param>
+        /// <param name="linearAnalysis"></param>
+        /// <param name="psiR">psi used by rebars and structural steel.</param>
+        /// <param name="psiT">psi used by tendons.</param>
+        /// <param name="standardStructuralSteel"></param>
+        /// <returns></returns>
         public StrainPlaneResult CalculateStrainPlaneResult(IConcreteSection _section, ResultBeamForces resultBeamForces, SectionSolver _sectionSolver, Standard _standard,
             bool linearAnalysis = false, double psiR = 0, double psiT = 0, StandardEN1993p11 standardStructuralSteel = null)
         {
@@ -299,7 +311,7 @@ namespace GPC.Checkers.Concrete.Results
                             epsilonSSMax = strain;
 
                             if (linearAnalysis)
-                                sigmaSMax = _sectionSolver.CalculateElasticSigmaS(steelSection.Section, strain);
+                                sigmaSMax = _sectionSolver.CalculateElasticSigmaS(psiR, steelSection.Section, strain);
                             else
                                 sigmaSMax = steelSection.Section.SteelMaterial.CalculateDesignStress(_standard, strain);
                         }
@@ -308,7 +320,7 @@ namespace GPC.Checkers.Concrete.Results
                             epsilonSMin = strain;
 
                             if (linearAnalysis)
-                                sigmaSMin = _sectionSolver.CalculateElasticSigmaS(steelSection.Section, strain);
+                                sigmaSMin = _sectionSolver.CalculateElasticSigmaS(psiR, steelSection.Section, strain);
                             else
                                 sigmaSMin = steelSection.Section.SteelMaterial.CalculateDesignStress(_standard, strain);
                         }

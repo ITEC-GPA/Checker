@@ -1418,7 +1418,7 @@ namespace ConcreteTests
 		[TestMethod]
 		public void SquareSectionTest6()
 		{
-			double rebarDiameter = 26;
+			double rebarDiameter = 25;
 			double h = 500;
 
 			Shape2d shape = GetRectangularShape(h, h);

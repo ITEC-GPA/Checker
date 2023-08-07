@@ -21,8 +21,9 @@ namespace GPC.Checkers.Concrete.Results
         protected readonly Standard _standard;
         /// <summary>
         /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
+        /// Must be StandardEN1993p11, currently the only one implemented.
         /// </summary>
-        protected readonly StandardEN1993p11 _standardStructuralSteel;
+        protected readonly Standard _standardStructuralSteel;
 
         #endregion
 
@@ -32,13 +33,17 @@ namespace GPC.Checkers.Concrete.Results
 
         public Standard Standard => _standard;
 
-        public StandardEN1993p11 StandardStructuralSteel => _standardStructuralSteel;
+        /// <summary>
+        /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
+        /// Must be StandardEN1993p11, currently the only one implemented.
+        /// </summary>
+        public Standard StandardStructuralSteel => _standardStructuralSteel;
 
         #endregion
 
         #region Constructor
 
-        public CheckerResultType(IConcreteSection section, Standard standard, int id = IDUNASSIGNED, StandardEN1993p11 standardStructuralSteel = null)
+        public CheckerResultType(IConcreteSection section, Standard standard, int id = IDUNASSIGNED, Standard standardStructuralSteel = null)
             : base(id)
         {
             _section = section ?? throw new ArgumentNullException(nameof(section));
