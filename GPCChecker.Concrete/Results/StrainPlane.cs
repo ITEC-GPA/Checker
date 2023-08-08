@@ -1,4 +1,4 @@
-using GPC.Checker.Results.ResultType;
+﻿using GPC.Checker.Results.ResultType;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
@@ -416,14 +416,14 @@ namespace GPC.Checkers.Concrete.Results
         {
             if (_chiY != 0)
             {
-                double teta = Math.Atan(-_chiX / _chiY);
+                double teta = Math.Atan(-_chiX / _chiY); // -π/2 ≤ θ ≤ π/2
                 if (_chiY > 0)
-                    teta -= Math.PI;
+                    teta -= Math.PI; // -3*π/2 ≤ θ ≤ -π/2
 
-                return teta;
+                return teta; // -3*π/2 ≤ θ ≤ π/2
             }
 
-            return Math.Atan2(-_chiX, _chiY);
+            return Math.Atan2(-_chiX, _chiY); // -π ≤ θ ≤ π
         }
 
         private double CalculateChi()

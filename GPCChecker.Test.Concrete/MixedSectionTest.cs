@@ -2065,8 +2065,10 @@ namespace ConcreteTests
             else
                 return null;
 
-            var structuralSteelCode = new StandardEN1993p11();
-            structuralSteelCode.GammaM0 = gamma_M0;
+            var structuralSteelCode = new StandardEN1993p11
+            {
+                GammaM0 = gamma_M0
+            };
 
             var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(),
                 false, -1, structuralSteelCode);
@@ -2266,7 +2268,7 @@ namespace ConcreteTests
             // ***** Plastic - Part 3
             // Check ratio of some values obtained from EC with mesh intersection.
             var maxErrorConstantEccentricity_intersectionMethod = new List<double>();
-            var plastiDomainMesh = plasticDomainResult.Domain.GetMesh(plasticDomainResult.Domain);
+            var plastiDomainMesh = plasticDomainResult.Domain.GetMesh(plasticDomainResult.Domain, out _);
 
             foreach (var appliedForce in forces)
             {
@@ -2342,39 +2344,6 @@ namespace ConcreteTests
             //stopwatch.Start(); // *** timer ***
             double forceRelativeTollerance = 0.001;
 
-            //for (int i = 0; i < domSize0; i++)
-            //{
-            //    int domSize1 = plasticDomainResultComposite.Domain.DomainPoints[i].GetLength(0);
-
-            //    for (int j = 0; j < domSize1; j++)
-            //    {
-            //        var currCompositeForce = plasticDomainResultComposite.Domain.DomainPoints[i][j];
-
-            //        var NrdCorrection = Math.Sign(currCompositeForce.NRd) * steelSize * steelSize * steelFy; // due to steel structural section
-            //        var currCompositeForcePoint = currCompositeForce.Point;
-            //        currCompositeForcePoint.Z -= NrdCorrection;
-
-            //        var currRCForce = plasticDomainResultRC.Domain.DomainPoints[i][j];
-            //        var distanceBetweenDomanins = currCompositeForcePoint.DistanceTo(currRCForce.Point);
-            //        var distanceFromOrigin = currRCForce.Point.DistanceTo(Point3d.Origin);
-            //        double forceTollerance = distanceFromOrigin * forceRelativeTollerance;
-
-            //        Assert.IsTrue(distanceBetweenDomanins < forceTollerance);
-            //    }
-            //}
-
-            stopwatch.Stop(); // *** timer ***
-            var elapsedTime = stopwatch.Elapsed;
-
-            // ************ Compare 2 - Intersect method. ************
-            stopwatch.Reset();
-            stopwatch.Start(); // *** timer ***
-
-            forceRelativeTollerance = 0.001;
-            var maxErrorConstantEccentricity_intersectionMethod = new List<double>();
-            var origin = Point3d.Origin;
-            var plastiDomainMeshRC = plasticDomainResultRC.Domain.GetMesh(plasticDomainResultRC.Domain);
-
             for (int i = 0; i < domSize0; i++)
             {
                 int domSize1 = plasticDomainResultComposite.Domain.DomainPoints[i].GetLength(0);
@@ -2387,32 +2356,51 @@ namespace ConcreteTests
                     var currCompositeForcePoint = currCompositeForce.Point;
                     currCompositeForcePoint.Z -= NrdCorrection;
 
-                    //if (currCompositeForcePoint.Z > 0)
-                    //    continue;
+                    var currRCForce = plasticDomainResultRC.Domain.DomainPoints[i][j];
+                    var distanceBetweenDomanins = currCompositeForcePoint.DistanceTo(currRCForce.Point);
+                    var distanceFromOrigin = currRCForce.Point.DistanceTo(Point3d.Origin);
+                    double forceTollerance = distanceFromOrigin * forceRelativeTollerance;
 
-                    {
-                        var intersOnDomainRC = plastiDomainMeshRC.GetIntersectionWihtSemiInfiniteRay(
-                            new Line3d(origin, currCompositeForcePoint),
-                            true,
-                            10.0);
+                    Assert.IsTrue(distanceBetweenDomanins < forceTollerance);
+                }
+            }
 
-                        Assert.IsTrue(intersOnDomainRC.Count > 0);
+            stopwatch.Stop(); // *** timer ***
+            var elapsedTime = stopwatch.Elapsed;
 
-                        // Find the key with the smallest distance and get the corresponding pair from the dictionary.
-                        var closestEntryOnDomainRC = intersOnDomainRC.OrderBy(pair => pair.Key.DistanceTo(origin)).FirstOrDefault();
+            // ************ Compare 2 - Intersect method. ************
+            stopwatch.Reset();
+            stopwatch.Start(); // *** timer ***
 
-                        Assert.IsNotNull(closestEntryOnDomainRC);
-                        Assert.IsNotNull(closestEntryOnDomainRC.Key);
+            forceRelativeTollerance = 0.001;
+            var maxErrorConstantEccentricity_intersectionMethod = new List<double>();
+            var origin = Point3d.Origin;
+            var plastiDomainMeshRC = plasticDomainResultRC.Domain.GetMesh(plasticDomainResultRC.Domain, out Dictionary<MeshVertex, FailureDomainPoint> vertexToDomainPoint);
 
-                        double workingRatio = origin.DistanceTo(currCompositeForcePoint) / origin.DistanceTo(closestEntryOnDomainRC.Key);
-                        maxErrorConstantEccentricity_intersectionMethod.Add(workingRatio);
-                    }
+            for (int i = 0; i < domSize0; i++)
+            {
+                int domSize1 = plasticDomainResultComposite.Domain.DomainPoints[i].GetLength(0);
+
+                for (int j = 0; j < domSize1; j++)
+                {
+                    var currCompositeForce = plasticDomainResultComposite.Domain.DomainPoints[i][j];
+
+                    var NrdCorrection = Math.Sign(currCompositeForce.NRd) * steelSize * steelSize * steelFy; // due to steel structural section
+                    var currCompositeForcePoint = currCompositeForce.Point;
+                    currCompositeForcePoint.Z -= NrdCorrection;
+                    var resultBeamComposite = new ResultBeamForces(currCompositeForcePoint.Z, 0.0, 0.0, 0.0, currCompositeForcePoint.X, currCompositeForcePoint.Y, GetLocalCoordinateSystem(sectionRC));
+
+                    var failComposite = new FailureDomainPoint(plastiDomainMeshRC,
+                        resultBeamComposite, vertexToDomainPoint, sectionCheckerRC, SectionSolver.FailureDomainTypes.Plastic, 10);
+
+                    maxErrorConstantEccentricity_intersectionMethod.Add(failComposite.WorkingRatio);
                 }
             }
 
             stopwatch.Stop(); // *** timer ***
 
-            Assert.AreEqual(0.0, maxErrorConstantEccentricity_intersectionMethod.Max(r => Math.Abs(r - 1.0)), 0.03); // 2023-08-03 Max error: 0.0029979178148502594.
+            var maxErrInters = maxErrorConstantEccentricity_intersectionMethod.Max(r => Math.Abs(r - 1.0));
+            Assert.AreEqual(0.0, maxErrInters, 0.003); // 2023-08-03 Max error: 0.0029979178148502594.
             var elapsedTimeIntersect = stopwatch.Elapsed;
 
             // ************ Compare 3 - Iterative method, composite points over RC domain. ************
@@ -2455,6 +2443,8 @@ namespace ConcreteTests
             stopwatch.Stop(); // *** timer ***
             var elapsedTimeDirectOverRC = stopwatch.Elapsed;
             Assert.IsTrue(failForcePointsRC.Count <= 4);
+            var maxErrRC = maxErrorConstantEccentricity_directMethodRC.Max(r => Math.Abs(r.wratio - 1.0));
+            Assert.IsTrue(maxErrRC < 0.011);
 
             // ************ Compare 3 - Iterative method, composite points over composite domain. ************
             var sectionCompositelocalSystem = GetLocalCoordinateSystem(sectionComposite);
@@ -2496,6 +2486,10 @@ namespace ConcreteTests
             }
             stopwatch.Stop(); // *** timer ***
             var elapsedTimeDirectOverComposite = stopwatch.Elapsed;
+
+            Assert.IsTrue(failForcePointsComposite.Count <= 4);
+            var maxErrComp = maxErrorConstantEccentricity_directMethodComposite.Max(r => Math.Abs(r.wratio - 1.0));
+            Assert.IsTrue(maxErrComp < 0.01);
         }
 
         /// <summary>

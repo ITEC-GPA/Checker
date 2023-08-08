@@ -322,8 +322,8 @@ namespace ConcreteTests
 
 			ShowDomainPoints(plasticFailureDomain.Domain);
 			ShowDomainPoints(elasticFailureDomain.Domain);
-			plasticFailureDomain.Domain.GetMesh();
-			elasticFailureDomain.Domain.GetMesh();
+			plasticFailureDomain.Domain.GetMesh(out _);
+			elasticFailureDomain.Domain.GetMesh(out _);
 		}
 
 		[TestMethod]

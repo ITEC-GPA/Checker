@@ -461,7 +461,7 @@ namespace GPC.Checkers.Concrete.Results
                             failureDomain.DomainPoints[i][j - 1].MyRd, failureDomain.DomainPoints[i][j].MyRd, forces.N);
 
                         points[i] = new FailureDomain.FailureDomainPoint(new ForceTuple(forces.N, mx, my),
-                            failureDomain.DomainPoints[i][j].FailureIndex, failureDomain.DomainPoints[i][j].StrainPlane);
+                            failureDomain.DomainPoints[i][j].FailureIndex, failureDomain.DomainPoints[i][j].StrainPlane, failureDomain.DomainPoints[i][j].Immersione);
 
                         break;
                     }

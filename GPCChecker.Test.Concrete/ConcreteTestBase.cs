@@ -1158,9 +1158,9 @@ namespace ConcreteTests
 
             if (showDomain)
             {
-                ExportToGmsh(failureDomain.GetMesh(failureDomain));
+                ExportToGmsh(failureDomain.GetMesh(failureDomain, out _));
             }
-            var _ = ExportToAutocadCommandLine(failureDomain.GetMesh(failureDomain));
+            ExportToAutocadCommandLine(failureDomain.GetMesh(failureDomain, out _));
         }
 
         /// Create a list of commands in toCad, that you can paste into AutoCAD command line to draw edges and faces.
@@ -1253,7 +1253,7 @@ namespace ConcreteTests
             Point3d nearestPoint = new Point3d();
 
             failureDomain.Domain.SetAxialForceSubdivision(100);
-            Mesh mesh = failureDomain.Domain.GetMesh();
+            Mesh mesh = failureDomain.Domain.GetMesh(out _);
 
             for (int i = 1; i <= mesh.VerticesCount; i++)
             {
