@@ -542,7 +542,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebarSection, new Point3d(width, copriferro, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialACI318Data.Fc4000);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, new ConcreteMaterialACI318("fc' 4000", 27.579, ConcreteMaterial.CompressionStressStrainDiagrams.Bilinear));
 			section.AddRebars(rebars);
 
 			ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, 0, GetLocalCoordinateSystem(section));
@@ -553,8 +553,10 @@ namespace ConcreteTests
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
-			double expMxRd1 = 164.95 * 1000000;  // da VCA
-			Assert.IsTrue(Math.Abs(result.MxRd - expMxRd1) / expMxRd1 * 100 < 2.5);
+            // Da documentazione SAP ACI 318-08 Example 001, usano stress block.
+            // L'errore aumenta usando ParabolaRectangle.
+            double expMxRd1 = 164.95 * 1000000;
+            Assert.IsTrue(Math.Abs(result.MxRd - expMxRd1) / expMxRd1 * 100 < 2.5);
 		}
 
 		[TestMethod]
@@ -569,7 +571,8 @@ namespace ConcreteTests
 			double copriferro = 63.5;
 			bool haveSpiral = false;
 
-			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, copriferro, 4, ConcreteMaterialACI318Data.Fc4000, SteelMaterialACI318Data.Grade60);
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, copriferro, 4,
+                new ConcreteMaterialACI318("fc' 4000", 27.579, ConcreteMaterial.CompressionStressStrainDiagrams.Bilinear), SteelMaterialACI318Data.Grade60);
 
 			ResultBeamForces force = new ResultBeamForces(-1772.17 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section));
 			SectionCheckerACI318.SectionOptionsStandardACI318 options =
@@ -579,7 +582,9 @@ namespace ConcreteTests
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
-			double expNrd = -1772.17 * 1000;
+            // Da documentazione SAP ACI 318-08 Example 002, usano stress block.
+            // L'errore aumenta usando ParabolaRectangle.
+            double expNrd = -1772.17 * 1000;
 			double expMxRd = 450.13 * 1000000;
 			Assert.IsTrue(Math.Abs(result.NRd - expNrd) / expNrd * 100 < 1.0);
 			Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 2.5);

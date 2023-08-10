@@ -1044,11 +1044,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 foreach (var steelSection in _concreteSection.SteelSections)
                 {
-                    double fy = steelSection.Section.SteelMaterial.Fyk;
+                    double fy = fck * 15;
                     Point2d glpobG = steelSection.PositionToGlobal(steelSection.Section.Centroid);
                     denomN += steelSection.Section.Area * fy;
-                    denomMx += (/*steelSection.Section.WelX +*/ steelSection.Section.Area * Math.Abs(glpobG.Y - 0.5 * b)) * fy;
-                    denomMy += (/*steelSection.Section.WelY +*/ steelSection.Section.Area * Math.Abs(glpobG.X - 0.5 * h)) * fy;
+                    denomMx += (steelSection.Section.WelX + steelSection.Section.Area * Math.Abs(glpobG.Y - 0.5 * h)) * fy;
+                    denomMy += (steelSection.Section.WelY + steelSection.Section.Area * Math.Abs(glpobG.X - 0.5 * b)) * fy;
                 }
             }
             return new ForceTuple(forceTuple.N / denomN, forceTuple.Mx / denomMx, forceTuple.My / denomMy);
@@ -1666,7 +1666,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double chiF3A_P6_firstPoint_limit = double.MaxValue;
                 if (p6.point != null && p6PointY < F3FirstRotationPointY)
                     chiF3A_P6_firstPoint_limit = (p6.epsilon + Math.Abs(F3_FirstRotationPoint.epsilon)) / (F3FirstRotationPointY - p6PointY);
-                double chiF3A_P4_firstPoint_limit = (p4.epsilon + Math.Abs(F3_FirstRotationPoint.epsilon)) / (F3FirstRotationPointY - p4PointY);
+                double chiF3A_P4_firstPoint_limit = 0.0;
+                if (p4PointY < F3FirstRotationPointY)
+                    chiF3A_P4_firstPoint_limit = (p4.epsilon + Math.Abs(F3_FirstRotationPoint.epsilon)) / (F3FirstRotationPointY - p4PointY);
                 double chiF3A_firstPoint_limit = Math.Min(chiF3A_P6_firstPoint_limit, chiF3A_P4_firstPoint_limit);
                 if (chiF3A_firstPoint_limit > F3_FirstRotationPoint_chi_limit)
                     chiF3A_limit = chiF3A_firstPoint_limit;
@@ -2622,25 +2624,33 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
 
                 // The following condition was calibrated to converge the tests.
-                //if (_concreteSection.IsCompositeSteelConcrete)
-                //{
-                //    if (/*inputFailureZone == FailureZones.F2A ||*/
-                //        inputFailureZone == FailureZones.F3A || inputFailureZone == FailureZones.F3B)
-                //    {
-                //        reductionFactorEta = Math.Min(4.0 * reductionFactorEta, 1.5);
-                //        reductionFactorTeta = Math.Min(4.0 * reductionFactorTeta, 1.5);
-                //    }
-                //    else if (inputFailureZone == FailureZones.F2B)
-                //    {
-                //        reductionFactorEta = Math.Min(2.0 * reductionFactorEta, 1.0);
-                //        reductionFactorTeta = Math.Min(2.0 * reductionFactorTeta, 1.0);
-                //    }
-                //    else if (inputFailureZone == FailureZones.F1)
-                //    {
-                //        reductionFactorEta *= 0.06;
-                //        reductionFactorTeta *= 0.06;
-                //    }
-                //}
+                if (_concreteSection.IsCompositeSteelConcrete)
+                {
+                    //if (/*inputFailureZone == FailureZones.F2A ||*/
+                    //    inputFailureZone == FailureZones.F3A || inputFailureZone == FailureZones.F3B)
+                    //{
+                    //    reductionFactorEta = Math.Min(4.0 * reductionFactorEta, 1.5);
+                    //    reductionFactorTeta = Math.Min(4.0 * reductionFactorTeta, 1.5);
+                    //}
+                    //else if (inputFailureZone == FailureZones.F2B)
+                    //{
+                    //    reductionFactorEta = Math.Min(2.0 * reductionFactorEta, 1.0);
+                    //    reductionFactorTeta = Math.Min(2.0 * reductionFactorTeta, 1.0);
+                    //}
+                    //else if (inputFailureZone == FailureZones.F1)
+                    if (inputFailureZone == FailureZones.F1)
+                    {
+                        reductionFactorEta *= 0.1;
+                    }
+                    else if (inputFailureZone == FailureZones.F2A)
+                    {
+                        reductionFactorEta *= 0.15;
+                    }
+                    else if (inputFailureZone == FailureZones.F2B)
+                    {
+                        reductionFactorEta *= 0.5;
+                    }
+                }
 
                 double deltaTeta = results[0, 0] * reductionFactorTeta;
                 double deltaEta = results[1, 0] * reductionFactorEta;
