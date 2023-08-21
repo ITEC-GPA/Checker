@@ -2231,8 +2231,8 @@ namespace ConcreteTests
                 new Point3d(40915339.5875977, 0, -1141373.2),
                 new Point3d(30686504.6906983, 0, -1212709.025),
                 new Point3d(20457669.7937988, 0, -1284044.85),
-                //new Point3d(10228834.8968994, 0, -1355380.675), // 13% error...
-                //new Point3d(0, 0, -1426716.5)
+                new Point3d(10228834.8968994, 0, -1355380.675), // 13% error...
+                // new Point3d(0, 0, -1426716.5) // Not converge.
             };
 
             var forces = ec3domainPoints.Select(p => new ResultBeamForces(p.Z, 0, 0, 0, p.X, p.Y, cs)).ToArray();
@@ -2259,8 +2259,8 @@ namespace ConcreteTests
                 resDomFail.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantEccentricity, appliedForce, 1.0, 1.0);
                 maxErrorConstantEccentricity_iterativeMethod.Add(resDomFail.WorkingRatio);
             }
-            Assert.AreEqual(0.0, maxErrorConstantN_iterativeMethod.Max(r => Math.Abs(r - 1.0)), 0.075); // 2023-08-04 Max error: 0.070232560241887176.
-            Assert.AreEqual(0.0, maxErrorConstantEccentricity_iterativeMethod.Max(r => Math.Abs(r - 1.0)), 0.075); // 2023-08-04 Max error: 0.070230107560015131.
+            Assert.AreEqual(0.0, maxErrorConstantN_iterativeMethod.Max(r => Math.Abs(r - 1.0)), 0.07); // 2023-08-21 Max error: 0.0653987358653636.
+            Assert.AreEqual(0.0, maxErrorConstantEccentricity_iterativeMethod.Max(r => Math.Abs(r - 1.0)), 0.07); // 2023-08-21 Max error: 0.065398517413020052.
 
             // ****************************************
             // ***** Plastic - Part 3
@@ -2288,7 +2288,7 @@ namespace ConcreteTests
                 double workingRatio = origin.DistanceTo(appliedForcePoint) / origin.DistanceTo(closestEntry.Key);
                 maxErrorConstantEccentricity_intersectionMethod.Add(workingRatio);
             }
-            Assert.AreEqual(0.0, maxErrorConstantEccentricity_intersectionMethod.Max(r => Math.Abs(r - 1.0)), 0.065); // 2023-08-04 Max error: 0.063214531273879437.
+            Assert.AreEqual(0.0, maxErrorConstantEccentricity_intersectionMethod.Max(r => Math.Abs(r - 1.0)), 0.06); // 2023-08-21 Max error: 0.059988981343899406.
         }
 
         // Now two almost identical sections.
@@ -2440,7 +2440,7 @@ namespace ConcreteTests
             }
             stopwatch.Stop(); // *** timer ***
             var elapsedTimeDirectOverRC = stopwatch.Elapsed;
-            Assert.IsTrue(failForcePointsRC.Count <= 4);
+            Assert.IsTrue(failForcePointsRC.Count <= 1);
             var maxErrRC = maxErrorConstantEccentricity_directMethodRC.Max(r => Math.Abs(r.wratio - 1.0));
             Assert.IsTrue(maxErrRC < 0.011);
 
@@ -2485,7 +2485,7 @@ namespace ConcreteTests
             stopwatch.Stop(); // *** timer ***
             var elapsedTimeDirectOverComposite = stopwatch.Elapsed;
 
-            Assert.IsTrue(failForcePointsComposite.Count <= 4);
+            Assert.IsTrue(failForcePointsComposite.Count <= 1);
             var maxErrComp = maxErrorConstantEccentricity_directMethodComposite.Max(r => Math.Abs(r.wratio - 1.0));
             Assert.IsTrue(maxErrComp < 0.01);
         }
@@ -2706,9 +2706,9 @@ namespace ConcreteTests
             var internalMinConcreteCompression = concreteTensions.Min(i => i.tension);
             var internalMinRebarsCompression = rebarTensions.Min(i => i.tension);
 
-            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 3.0);
+            Assert.AreEqual(maxSteelSectionTension, internalMaxSteelTension, 2.0);
             Assert.AreEqual(minConcreteCompression, internalMinConcreteCompression, 0.08);
-            Assert.AreEqual(minRebarsCompression, internalMinRebarsCompression, 6.0);
+            Assert.AreEqual(minRebarsCompression, internalMinRebarsCompression, 5.0);
         }
 
         [TestMethod]

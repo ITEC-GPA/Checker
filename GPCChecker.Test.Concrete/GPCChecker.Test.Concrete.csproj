@@ -87,6 +87,7 @@
     <Compile Include="FailureDomainCheckFRCTest.cs" />
     <Compile Include="FailureDomainCheckRCTest.cs" />
     <Compile Include="FailureDomainFRCTest.cs" />
+    <Compile Include="FailureDomainIntesectVsDirect.cs" />
     <Compile Include="FailureDomainPSCTest.cs" />
     <Compile Include="FailureDomainRCTest.cs" />
     <Compile Include="GeneralTest.cs" />
