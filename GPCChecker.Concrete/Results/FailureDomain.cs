@@ -139,41 +139,64 @@ namespace GPC.Checkers.Concrete.Results
                 {
                     if (j == 0) // pole
                     {
-                        var vA = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j].Point]];
-                        var vB = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j + 1].Point]];
-                        var vC = pointIdAssociation[pointVertexAssociation[domainPoint[i2][j + 1].Point]];
+                        int vA = -1, vB = -1, vC = -1;
+                        if (pointVertexAssociation.TryGetValue(domainPoint[i1][j].Point, out MeshVertex meshVertexA))
+                            vA = pointIdAssociation[meshVertexA];
+                        if (pointVertexAssociation.TryGetValue(domainPoint[i1][j + 1].Point, out MeshVertex meshVertexB))
+                            vB = pointIdAssociation[meshVertexB];
+                        if (pointVertexAssociation.TryGetValue(domainPoint[i2][j + 1].Point, out MeshVertex meshVertexC))
+                            vC = pointIdAssociation[meshVertexC];
 
-                        mesh.Faces.Build(new MeshFace(vA, vB, vC), progressPlateId++);
+                        if (vA != -1 && vB != -1 && vC != -1)
+                            mesh.Faces.Build(new MeshFace(vA, vB, vC), progressPlateId++);
 
                         // only left side
-                        mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
+                        if (vA != -1 && vB != -1)
+                            mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
                     }
                     else if (j == domainPoint[i].Length - 2) // pole
                     {
-                        var vA = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j].Point]];
-                        var vB = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j + 1].Point]];
-                        var vC = pointIdAssociation[pointVertexAssociation[domainPoint[i2][j].Point]];
+                        int vA = -1, vB = -1, vC = -1;
+                        if (pointVertexAssociation.TryGetValue(domainPoint[i1][j].Point, out MeshVertex meshVertexA))
+                            vA = pointIdAssociation[meshVertexA];
+                        if (pointVertexAssociation.TryGetValue(domainPoint[i1][j + 1].Point, out MeshVertex meshVertexB))
+                            vB = pointIdAssociation[meshVertexB];
+                        if (pointVertexAssociation.TryGetValue(domainPoint[i2][j].Point, out MeshVertex meshVertexC))
+                            vC = pointIdAssociation[meshVertexC];
 
-                        mesh.Faces.Build(new MeshFace(vA, vB, vC), progressPlateId++);
+                        if (vA != -1 && vB != -1 && vC != -1)
+                            mesh.Faces.Build(new MeshFace(vA, vB, vC), progressPlateId++);
 
                         // upper and left side
-                        mesh.Edges.Build(new MeshEdge(vC, vA), progressEdgeId++);
-                        mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
+                        if (vC != -1 && vA != -1)
+                            mesh.Edges.Build(new MeshEdge(vC, vA), progressEdgeId++);
+                        if (vA != -1 && vB != -1)
+                            mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
                     }
                     else
                     {
-                        var vA = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j].Point]];
-                        var vB = pointIdAssociation[pointVertexAssociation[domainPoint[i1][j + 1].Point]];
-                        var vC = pointIdAssociation[pointVertexAssociation[domainPoint[i2][j].Point]];
-                        var vD = pointIdAssociation[pointVertexAssociation[domainPoint[i2][j + 1].Point]];
+                        int vA = -1, vB = -1, vC = -1, vD = -1;
+                        if (pointVertexAssociation.TryGetValue(domainPoint[i1][j].Point, out MeshVertex meshVertexA))
+                            vA = pointIdAssociation[meshVertexA];
+                        if (pointVertexAssociation.TryGetValue(domainPoint[i1][j + 1].Point, out MeshVertex meshVertexB))
+                            vB = pointIdAssociation[meshVertexB];
+                        if (pointVertexAssociation.TryGetValue(domainPoint[i2][j].Point, out MeshVertex meshVertexC))
+                            vC = pointIdAssociation[meshVertexC];
+                        if (pointVertexAssociation.TryGetValue(domainPoint[i2][j + 1].Point, out MeshVertex meshVertexD))
+                            vD = pointIdAssociation[meshVertexD];
 
-                        mesh.Faces.Build(new MeshFace(vA, vB, vD), progressPlateId++);
-                        mesh.Faces.Build(new MeshFace(vA, vD, vC), progressPlateId++);
+                        if (vA != -1 && vB != -1 && vD != -1)
+                            mesh.Faces.Build(new MeshFace(vA, vB, vD), progressPlateId++);
+                        if (vA != -1 && vD != -1 && vC != -1)
+                            mesh.Faces.Build(new MeshFace(vA, vD, vC), progressPlateId++);
 
                         // upper, middle and left side
-                        mesh.Edges.Build(new MeshEdge(vC, vA), progressEdgeId++);
-                        mesh.Edges.Build(new MeshEdge(vA, vD), progressEdgeId++);
-                        mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
+                        if (vC != -1 && vA != -1)
+                            mesh.Edges.Build(new MeshEdge(vC, vA), progressEdgeId++);
+                        if (vA != -1 && vD != -1)
+                            mesh.Edges.Build(new MeshEdge(vA, vD), progressEdgeId++);
+                        if (vA != -1 && vB != -1)
+                            mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
                     }
                 }
             }
