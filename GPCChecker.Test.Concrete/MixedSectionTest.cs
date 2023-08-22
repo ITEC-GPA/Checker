@@ -2153,7 +2153,7 @@ namespace ConcreteTests
         public void FailureDomain02()
         {
             // Geometry, material and section.
-            double clsSize = 1.0;
+            double clsSize = 2.0;
             var rebar = new RebarSectionCircular("", 0.5 * clsSize, SteelMaterialEN1992Data.B450C);
             var structuralSteel = SteelMaterialEN1993Data.S275;
             structuralSteel.SetStressStrain(SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic);
@@ -2613,7 +2613,7 @@ namespace ConcreteTests
         public void TensionCheck01()
         {
             double clsSize = 1.0;
-            var rebar = new RebarSectionCircular("", 0.5 * clsSize, SteelMaterialEN1992Data.B450C);
+            var rebar = new RebarSectionCircular("", 1.0 * clsSize, SteelMaterialEN1992Data.B450C);
             var structuralSteel = SteelMaterialEN1993Data.S275;
             structuralSteel.SetStressStrain(SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic);
             var section = new ReinforcedConcreteSection(clsSize, clsSize, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 0.5 * clsSize, null, 200.0,

@@ -1,4 +1,6 @@
-﻿using GPC.Checkers.Concrete.Checkers;
+﻿using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Checkers;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
@@ -6,6 +8,7 @@ using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
 using GPC.Model.Results;
 using GPC.Model.Standards;
+using GPC.Utilities.Maths;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -17,51 +20,122 @@ namespace ConcreteTests
     [TestClass]
     public class FailureDomainIntesectVsDirect : ConcreteTestBase
     {
-        private static void CompareDirectAndIntersectmethods(SectionChecker sectionChecker, ResultBeamForces[] forces, double ratioDifference)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sectionChecker"></param>
+        /// <param name="forces">Forces to check.</param>
+        /// <param name="ratioDifference"></param>
+        /// <param name="referenceWorkingRatio"></param>
+        private static void CompareDirectAndIntersectmethods(SectionChecker sectionChecker, ResultBeamForces[] forces, double ratioDifference, List<double> referenceWorkingRatio, double maxIntersectWRError, double maxDirectWRError, List<ForceTuple> referenceForces, double maxIntersectDomPointError, double maxDirectDomPointError)
         {
             var intersectDomPoint = new List<FailureDomainPoint>();
             var intersectWR = new List<double>();
+            var intersectDomForces = new List<ForceTuple>();
+
             var directDomPoint = new List<FailureDomainPoint>();
             var directWR = new List<double>();
-            var wrDifference = new List<double>();
-            double Mscale = 1000000.0;
-            double Nscale = 1000.0;
+            var directDomForces = new List<ForceTuple>();
+
+            double Mscale = 1000000.0; // Convert in kN m.
+            double Nscale = 1000.0; // Convert in kN.
             // Calculate domain mesh for intersect method.
+            //sectionChecker.SectionSolver.SetTetaDiscretization(64);
             var plasticDomainResult = sectionChecker.GetPlasticFailureDomainResult();
             var plastiDomainMesh = plasticDomainResult.Domain.GetMesh(plasticDomainResult.Domain, out Dictionary<MeshVertex, FailureDomainPoint> vertexToDomainPoint);
+            // Get point of section.
+            var secLines = sectionChecker.SectionSolver.ConcreteSection.SectionShape.Shape.Fill.Explode();
+            var secPoints = secLines.Select(l => l.Start).ToArray();
+            // Solver
+            var solverTest = sectionChecker.SectionSolver as SectionSolverModelCode2010Test;
 
             foreach (var appliedForce in forces)
             {
-                // ***** Intersect method
+                // ***** Intersect method - ratio
                 var failIntersect = new FailureDomainPoint(plastiDomainMesh, appliedForce, vertexToDomainPoint, sectionChecker, SectionSolver.FailureDomainTypes.Plastic, 10);
                 intersectDomPoint.Add(failIntersect);
                 intersectWR.Add(failIntersect.WorkingRatio);
+                intersectDomForces.Add(solverTest.CalculateSectionForceResultant(failIntersect.StrainPlane));
 
-                // ***** Direct/iterative method
+                var epsIntersect = new List<double>();
+                foreach (var p in secPoints)
+                    epsIntersect.Add(failIntersect.StrainPlane.GetStrain(p));
+
+                // ***** Direct/iterative method - ratio
                 var failDirect = sectionChecker.CalculatePlasticFailureDomainPoint(appliedForce);
-                failDirect.CalculateWorkingRatio(sectionChecker.SectionCheckerOptions.FailureAnalysisType, appliedForce, Mscale, Nscale);
+                failDirect?.CalculateWorkingRatio(sectionChecker.SectionCheckerOptions.FailureAnalysisType, appliedForce, Mscale, Nscale);
                 directDomPoint.Add(failDirect);
-                directWR.Add(failDirect.WorkingRatio);
+                directWR.Add(failDirect?.WorkingRatio ?? double.PositiveInfinity);
+                if (failDirect != null)
+                    directDomForces.Add(solverTest.CalculateSectionForceResultant(failDirect.StrainPlane));
+                else
+                    directDomForces.Add(new ForceTuple());
 
-                // Ratio difference
-                wrDifference.Add(failIntersect.WorkingRatio - failDirect.WorkingRatio);
+                if (failDirect != null)
+                {
+                    var epsDirect = new List<double>();
+                    foreach (var p in secPoints)
+                        epsDirect.Add(failDirect.StrainPlane.GetStrain(p));
+                }
+
+                // Strain difference
+                //for (int i = 0; i < epsIntersect.Count; i++)
+                //{
+                //    Assert.AreEqual(epsIntersect[i], epsDirect[i], 5e-4);
+                //}
             }
-            Assert.AreEqual(0.0, wrDifference.Max(r => Math.Abs(r)), ratioDifference);
+            var intersectWRrelativeError = intersectWR.Select((val, index) => Error.CalcRelativeError(val, referenceWorkingRatio[index])).ToArray();
+            var directWRrelativeError = directWR.Select((val, index) => Error.CalcRelativeError(val, referenceWorkingRatio[index])).ToArray();
+
+            var maxIntersectWRrelativeError = intersectWRrelativeError.Max(value => Math.Abs(value));
+            var maxDirectWRrelativeError = directWRrelativeError.Max(value => Math.Abs(value));
+
+            var intersectDomPointAbsoluteError = new List<double>();
+            for (int i = 0; i < intersectDomForces.Count; i++)
+            {
+                var intersectDomForcePoint = new Point3d(intersectDomForces[i]);
+                intersectDomForcePoint.X /= Mscale;
+                intersectDomForcePoint.Y /= Mscale;
+                intersectDomForcePoint.Z /= Nscale;
+
+                intersectDomPointAbsoluteError.Add(intersectDomForcePoint.DistanceTo(new Point3d(referenceForces[i])));
+            }
+            var directDomPointAbsoluteError = new List<double>();
+            for (int i = 0; i < directDomForces.Count; i++)
+            {
+                var directDomForcePoint = new Point3d(directDomForces[i]);
+                directDomForcePoint.X /= Mscale;
+                directDomForcePoint.Y /= Mscale;
+                directDomForcePoint.Z /= Nscale;
+
+                directDomPointAbsoluteError.Add(directDomForcePoint.DistanceTo(new Point3d(referenceForces[i])));
+            }
+
+            var maxIntersectDomPointAbsoluteError = intersectDomPointAbsoluteError.Max();
+            var maxDirectDomPointAbsoluteError = directDomPointAbsoluteError.Max();
+
+            Assert.AreEqual(0.0, maxIntersectWRrelativeError, maxIntersectWRError);
+            Assert.AreEqual(0.0, maxDirectWRrelativeError, maxDirectWRError);
+            //Assert.AreEqual(0.0, maxIntersectDomPointAbsoluteError, maxIntersectWRError);
+            //Assert.AreEqual(0.0, maxDirectDomPointAbsoluteError, maxDirectWRError);
         }
 
-        [TestMethod]
-        public void IntesectVsDirect01()
+        private void MakeSimpleSection01(SectionSolver.FailureAnalysisTypes ratioMode, out CoordinateSystem cs, out SectionCheckerModelCode2010 sectionChecker, out ResultBeamForces[] forces)
         {
             // Geometry, material and section.
-            var section = GetRectangularSection4Rebars(300, 500, 18, 50, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
+            var section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
             var standard = new StandardNTC2018Concrete();
-            var cs = GetLocalCoordinateSystem(section);
-            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN);
+            cs = GetLocalCoordinateSystem(section);
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, ratioMode);
 
             // Code, solver and checker.
-            var sectionChecker = GetSectionCheckerModelCode2010(section, standard, false);
-            sectionChecker.SectionCheckerOptionsModelCode2010.FailureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantN;
-            sectionChecker.SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem = cs;
+            bool considerTensileConcrete = false;
+            int id = -1;
+            StandardEN1993p11 standardStructuralSteel = null;
+            var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+            var solver = new SectionSolverModelCode2010Test(section, standard, considerTensileConcrete, id, standardStructuralSteel);
+            sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, solver, id, standardStructuralSteel);
+            sectionChecker.SectionCheckerOptionsModelCode2010.FailureAnalysisType = ratioMode;
 
             // External forces
             var ec3domainPoints = new List<Point3d>()
@@ -79,9 +153,140 @@ namespace ConcreteTests
                 new Point3d(163661358.350391, 16557705.4225, -285343.3),
                 new Point3d(153432523.453492, 16557705.4225, -356679.125),
             };
-            var forces = ec3domainPoints.Select(p => new ResultBeamForces(p.Z, 0, 0, 0, p.X, p.Y, cs)).ToArray();
+            var loccs = cs;
+            forces = ec3domainPoints.Select(p => new ResultBeamForces(p.Z, 0, 0, 0, p.X, p.Y, loccs)).ToArray();
+        }
 
-            CompareDirectAndIntersectmethods(sectionChecker, forces, 0.01);
+        // SectionSolver.FailureAnalysisTypes.ConstantEccentricity
+        [TestMethod]
+        public void IntersectVsDirect01()
+        {
+            MakeSimpleSection01(SectionSolver.FailureAnalysisTypes.ConstantEccentricity, out CoordinateSystem cs, out SectionCheckerModelCode2010 sectionChecker, out ResultBeamForces[] forces);
+            sectionChecker.SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem = cs;
+
+            // Workiong ratio from SBeton.
+            var referenceWR = new List<double>()
+            {
+                159.98 / 100.0,
+                146.18 / 100.0,
+                132.55 / 100.0,
+                119.19 / 100.0,
+                104.58 / 100.0,
+                84.3 / 100.0,
+                160.54 / 100.0,
+                146.86 / 100.0,
+                133.45 / 100.0,
+                120.58 / 100.0,
+                107.03 / 100.0,
+                89.37 / 100.0
+            };
+
+            // Domaion point force from SBeton.
+            var referenceForces = new List<ForceTuple>()
+            {
+                new ForceTuple( 0, 103.5, 0 ),
+                new ForceTuple( -48.8, 113.27, 0 ),
+                new ForceTuple( -107.64, 124.92, 0 ),
+                new ForceTuple( -179.55, 138.91, 0 ),
+                new ForceTuple( -272.87, 156.48, 0.01 ),
+                new ForceTuple( -423.1, 182, 0 ),
+                new ForceTuple( 0, 103.14, 10.32 ),
+                new ForceTuple( -48.57, 112.75, 11.28 ),
+                new ForceTuple( -106.91, 124.07, 12.41 ),
+                new ForceTuple( -177.49, 137.33, 13.73 ),
+                new ForceTuple( -266.59, 152.91, 15.47 ),
+                new ForceTuple( -399.11, 171.68, 18.53 )
+            };
+
+            CompareDirectAndIntersectmethods(sectionChecker, forces, 0.01, referenceWR, 0.005, 0.005, referenceForces, 100.0, 100.0);
+        }
+
+        // SectionSolver.FailureAnalysisTypes.ConstantN
+        [TestMethod]
+        public void IntersectVsDirect02()
+        {
+            MakeSimpleSection01(SectionSolver.FailureAnalysisTypes.ConstantN, out CoordinateSystem cs, out SectionCheckerModelCode2010 sectionChecker, out ResultBeamForces[] forces);
+            sectionChecker.SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem = cs;
+
+            // Workiong ratio from SBeton.
+            var referenceWR = new List<double>()
+            {
+                159.98 / 100.0,
+                140.62 / 100.0,
+                125.65 / 100.0,
+                113.81 / 100.0,
+                103.09 / 100.0,
+                89.48 / 100.0,
+                160.54 / 100.0,
+                141.28 / 100.0,
+                126.54 / 100.0,
+                115.03 / 100.0,
+                105.00 / 100.0,
+                92.45 / 100.0
+            };
+
+            // Domaion point force from SBeton.
+            var referenceForces = new List<ForceTuple>()
+            {
+                new ForceTuple( 0.00, 103.50, 0.00 ),
+                new ForceTuple( -71.34, 117.75, 0.00 ),
+                new ForceTuple( -142.67, 131.78, 0.00 ),
+                new ForceTuple( -214.01, 145.49, -4.82E-006 ),
+                new ForceTuple( -285.34, 158.76, 0.00 ),
+                new ForceTuple( -356.68, 171.47, 2.83E-006 ),
+                new ForceTuple( 0.00, 103.14, 10.32 ),
+                new ForceTuple( -71.34, 117.20, 11.72 ),
+                new ForceTuple( -142.67, 130.86, 13.09 ),
+                new ForceTuple( -214.01, 143.95, 14.40 ),
+                new ForceTuple( -285.34, 155.87, 15.77 ),
+                new ForceTuple( -356.68, 165.97, 17.91 ),
+            };
+
+            CompareDirectAndIntersectmethods(sectionChecker, forces, 0.01, referenceWR, 0.005, 0.0005, referenceForces, 100.0, 100.0);
+        }
+
+        // SectionSolver.FailureAnalysisTypes.ConstantNMy
+        [TestMethod]
+        public void IntersectVsDirect03()
+        {
+            MakeSimpleSection01(SectionSolver.FailureAnalysisTypes.ConstantNMy, out CoordinateSystem cs, out SectionCheckerModelCode2010 sectionChecker, out ResultBeamForces[] forces);
+            sectionChecker.SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem = cs;
+
+            // Workiong ratio from SBeton.
+            var referenceWR = new List<double>()
+            {
+                159.98 / 100.0,
+                140.62 / 100.0,
+                125.65 / 100.0,
+                113.81 / 100.0,
+                103.09 / 100.0,
+                89.48 / 100.0,
+                161.51 / 100.0,
+                142.03 / 100.0,
+                127.09 / 100.0,
+                115.40 / 100.0,
+                105.19 / 100.0,
+                92.10 / 100.0
+            };
+
+            // Domaion point force from SBeton.
+            var referenceForces = new List<ForceTuple>()
+            {
+                new ForceTuple( 0.00, 103.50, 0.00 ),
+                new ForceTuple( -71.34, 117.75, 0.00 ),
+                new ForceTuple( -142.67, 131.78, 0.00 ),
+                new ForceTuple( -214.01, 145.49, 0.00 ),
+                new ForceTuple( -285.34, 158.76, 0.00 ),
+                new ForceTuple( -356.68, 171.47, 0.00 ),
+                new ForceTuple( 0.00, 102.52, 16.56 ),
+                new ForceTuple( -71.34, 116.58, 16.56 ),
+                new ForceTuple( -142.67, 130.28, 16.56 ),
+                new ForceTuple( -214.01, 143.48, 16.56 ),
+                new ForceTuple( -285.34, 155.58, 16.56 ),
+                new ForceTuple( -356.68, 166.59, 16.56 ),
+            };
+
+            CompareDirectAndIntersectmethods(sectionChecker, forces, 0.01, referenceWR, 0.005, 0.0005, referenceForces, 100.0, 100.0);
         }
     }
 }
