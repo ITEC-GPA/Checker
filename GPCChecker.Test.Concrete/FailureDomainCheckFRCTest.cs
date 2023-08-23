@@ -340,11 +340,10 @@ namespace ConcreteTests
 				new Point2d(0, height)
 			}));
 
-			ShapeEx shapeEx = new ShapeEx(shape, new ConcreteMaterialModelCode2010($"FCM {45}-3.5", 45,
-				ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.ParabolaRectangle,
-				0.45 * 0.92, 0.3 * 0.76, 0.00003, 0.02, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC));
 			RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B500C);
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, new ConcreteMaterialModelCode2010($"FCM {45}-3.5", 45,
+                ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.ParabolaRectangle,
+                0.45 * 0.92, 0.3 * 0.76, 0.00003, 0.02, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear, ConcreteMaterial.ConcreteTypes.FRC));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
