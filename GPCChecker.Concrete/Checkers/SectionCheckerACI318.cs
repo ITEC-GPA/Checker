@@ -34,6 +34,14 @@ namespace GPC.Checkers.Concrete.Checkers
         {
         }
 
+        /// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, SectionSolver int)"/>
+        public SectionCheckerACI318(SectionCheckerAttribute checkerAttribute, SectionOptionsStandardACI318 options,
+            StandardACI318 standard, SectionSolverACI318 solver, int id = ModelObjectId.IDUNASSIGNED,
+            StandardEN1993p11 standardStructuralSteel = null)
+            : base(checkerAttribute, options, standard, solver, id, standardStructuralSteel)
+        {
+        }
+
         #endregion
 
         #region Public Async

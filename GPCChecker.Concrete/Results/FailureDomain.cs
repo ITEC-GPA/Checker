@@ -483,6 +483,9 @@ namespace GPC.Checkers.Concrete.Results
 
             /// <summary>
             /// Given a solicitation finds the point on the strength domain and work rate based on the search method of approaching the surface.
+            /// The calculation of the strain plane is by interpolation and is much less accurate than the iterative/direct method.
+            /// This method is good for always finding an working ratio, which is always in favor of safety.
+            /// If the starting mesh does not have too many elements then it is also a very performing method.
             /// </summary>
             /// <param name="domainMesh">Complete domain in mesh form.</param>
             /// <param name="failureAnalysisType">Method of approaching the surface.</param>
@@ -648,7 +651,36 @@ namespace GPC.Checkers.Concrete.Results
                 // Internal utility.
                 double workingRatioSearch(Point3d pointOrigin, Point3d pointToSearch, out KeyValuePair<Point3d, MeshBase> meshIntersection)
                 {
-                    var intersOnDomain = domainMesh.GetIntersectionWihtSemiInfiniteRay(new Line3d(pointOrigin, pointToSearch), true, lenghtTolerance);
+                    Point3d targetPoint;
+                    bool isRatioZero = pointOrigin.DistanceTo(pointToSearch) < lenghtTolerance;
+
+                    if (!isRatioZero)
+                    {
+                        targetPoint = pointToSearch;
+                    }
+                    else
+                    {
+                        // This is a special case with ratio=0.
+                        switch (failureAnalysisType)
+                        {
+                            case SectionSolver.FailureAnalysisTypes.ConstantNMx:
+                                targetPoint = pointOrigin + new Point3d(0.0, 1000000.0, 0.0);
+                                break;
+
+                            case SectionSolver.FailureAnalysisTypes.ConstantN:
+                            case SectionSolver.FailureAnalysisTypes.ConstantNMy:
+                                targetPoint = pointOrigin + new Point3d(1000000.0, 0.0, 0.0);
+                                break;
+
+                            case SectionSolver.FailureAnalysisTypes.ConstantEccentricity:
+                            case SectionSolver.FailureAnalysisTypes.ConstantMxMy:
+                            default:
+                                targetPoint = pointOrigin + new Point3d(0.0, 0.0, 1000.0);
+                                break;
+                        }
+                    }
+                    Line3d semiRay = new Line3d(pointOrigin, targetPoint);
+                    var intersOnDomain = domainMesh.GetIntersectionWihtSemiInfiniteRay(semiRay, true, lenghtTolerance);
                     if (intersOnDomain.Count == 0)
                         return -1;
 
@@ -659,7 +691,11 @@ namespace GPC.Checkers.Concrete.Results
                         return -1;
 
                     meshIntersection = closestEntryOnDomain;
-                    return pointOrigin.DistanceTo(pointToSearch) / pointOrigin.DistanceTo(closestEntryOnDomain.Key);
+
+                    if (!isRatioZero)
+                        return pointOrigin.DistanceTo(pointToSearch) / pointOrigin.DistanceTo(closestEntryOnDomain.Key);
+                    else
+                        return 0.0;
                 }
 
                 // Internal utility.

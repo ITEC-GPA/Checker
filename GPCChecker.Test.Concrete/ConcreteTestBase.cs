@@ -1760,6 +1760,11 @@ namespace ConcreteTests
                 return base.CalculateForceResultantForTension(strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
             }
 
+            internal ForceTuple CalculateSectionForceResultant(StrainPlane strainPlane)
+            {
+                return base.CalculateForceResultantForDomain(strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
+            }
+
             internal ForceTuple CalculateLinearSectionForceResultant(double psi, double? psiTendon, StrainPlane strainPlane)
             {
                 return base.CalculateForceResultant(psi, psiTendon, strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
