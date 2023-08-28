@@ -1096,14 +1096,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                                     minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignYieldingStrainStructuralSteel(s.Section));
                                     if (_concreteSection.RebarsCount > 0)
-                                        minRebarsStrain = _concreteSection.Rebars.Min(r => GetDesignYieldingStrainRebar(r));
+                                        minRebarsStrain = GetDesignYieldingStrainRebar(distances.dMinRebarId) - _concreteSection.GetRebarById(distances.dMinRebarId).EpsilonP;
                                     break;
 
                                 case FailureDomainTypes.Plastic:
 
                                     minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignUltimateStrainStructuralSteel(s.Section));
                                     if (_concreteSection.RebarsCount > 0)
-                                        minRebarsStrain = _concreteSection.Rebars.Min(r => GetDesignUltimateStrainRebar(r));
+                                        minRebarsStrain = GetDesignUltimateStrainRebar(distances.dMinRebarId) - _concreteSection.GetRebarById(distances.dMinRebarId).EpsilonP;
                                     break;
                             }
 
@@ -1166,10 +1166,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         switch (analysisType)
                         {
                             case FailureDomainTypes.Elastic:
-                                return new DeformationFieldsPoint(GetDesignYieldingStrainRebar(distances.dMinRebarId), minRebarsPoint, (distances.dmaxConcrete - distances.dminRebar));
+                                return new DeformationFieldsPoint(GetDesignYieldingStrainRebar(distances.dMinRebarId) - _concreteSection.GetRebarById(distances.dMinRebarId).EpsilonP, minRebarsPoint, (distances.dmaxConcrete - distances.dminRebar));
 
                             case FailureDomainTypes.Plastic:
-                                return new DeformationFieldsPoint(GetDesignUltimateStrainRebar(distances.dMinRebarId), minRebarsPoint, (distances.dmaxConcrete - distances.dminRebar));
+                                return new DeformationFieldsPoint(GetDesignUltimateStrainRebar(distances.dMinRebarId) - _concreteSection.GetRebarById(distances.dMinRebarId).EpsilonP, minRebarsPoint, (distances.dmaxConcrete - distances.dminRebar));
 
                             default:
                                 return new DeformationFieldsPoint(0.0, null, 0.0);
