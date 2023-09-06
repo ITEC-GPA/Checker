@@ -1,5 +1,6 @@
 ﻿using GPC.Checkers.Steel.Results;
 using GPC.Geometry;
+using GPC.Model.LoadCases;
 using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Bolt;
@@ -11,49 +12,9 @@ using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Steel.Checkers
 {
-    public class EN1993BoltChecker : BoltChecker
+    public class EN1993BoltChecker : ENCommonBoltChecker
     {
-        #region Enumerable
-
-        public enum HoleShapeType
-        {
-            NormalRound, // Bolts in normal holes.
-            OversizeRound, // Bolts in oversized holes.
-            ShortSlotted, // Bolts in short slotted holes.
-            LongSlotted // Bolts in long slotted holes.
-        }
-
-        /// <summary>
-        /// Slip factor, μ, for pre-loaded bolts.
-        /// UNI EN 1993-1-8:2005 - Table 3.7.
-        /// EN 1090-2:2008 - Table 18 - Classifications for friction surfaces.
-        /// </summary>
-        public enum ClassFrictionSurfacesType
-        {
-            A,
-            B,
-            C,
-            D
-        }
-
-        /// <summary>
-        /// UNI EN 1993-1-8:2005 - 3.4.1 Shear connections.
-        /// </summary>
-        public enum ShearConnectionsCategoryType
-        {
-            A, // Category A: Bearing type.
-            B, // Category B: Slip-resistant at serviceability limit state.
-            C  // Category C: Slip-resistant at ultimate limit state.
-        }
-
-        /// <summary>
-        /// UNI EN 1993-1-8:2005 - 3.4.2 Tension connections.
-        /// </summary>
-        public enum TensionConnectionsCategoryType
-        {
-            D, // Category D: non-preloaded.
-            E  // Category E: preloaded.
-        }
+        #region Enum
 
         /// <summary>
         /// UNI EN 1993-1-8:2005 - Table 3.3: Minimum and maximum spacing, end and edge distances.
@@ -84,6 +45,12 @@ namespace GPC.Checkers.Steel.Checkers
         public List<EN1993BoltResults> BoltResultsEN1993 => _boltResults.Cast<EN1993BoltResults>().ToList();
 
         public EN1993BoltResults BoltResultMax => (EN1993BoltResults)_boltResultMax;
+
+        protected override double EnGammaM2 => StandardEN1993.GammaM2;
+
+        protected override double EnGammaM3 => StandardEN1993.GammaM3;
+
+        protected override double EnGammaM3Ser => StandardEN1993.GammaM3Ser;
 
         #endregion
 
@@ -163,7 +130,7 @@ namespace GPC.Checkers.Steel.Checkers
                     {
                         var AlphaD = CalculateCoeffParallel_AlphaD(CurRes.BearingE1, CurRes.BearingP1, SollBolt.Key);
                         CurRes.Bearingk1 = CalculateCoeffPerpendicular_k1(CurRes.BearingE2, CurRes.BearingP2, SollBolt.Key);
-                        CurRes.BearingAlphaB = CalculateCoeffParallel_AlphaB(AlphaD, SollBolt.Key.BoltDef, _plateWithBolts);
+                        CurRes.BearingAlphaB = CalculateCoeffParallel_AlphaB(AlphaD, SollBolt.Key.BoltDef, _plateWithBolts, CurRes.BearingE1, CurRes.BearingP1, SollBolt.Key.Hole.Diameter);
                         CurRes.BearingResistance = CalculateBearingResistance_FbRd(CurRes.Bearingk1, CurRes.BearingAlphaB, SollBolt.Key.BoltDef, _plateWithBolts);
                         CurRes.BearingRatio = GetWorkingRatio(CurRes.SollShear, CurRes.BearingResistance);
                     }
@@ -216,7 +183,7 @@ namespace GPC.Checkers.Steel.Checkers
                     if (CurRes.PunchingIsActive)
                     {
                         CurRes.PunchingDm = SollBolt.Key.BoltDef.CalculateMeanDiameterBoltHead();
-                        CurRes.PunchingResistance = CalculatePunchingShearResistance_BpRd(_plateWithBolts, CurRes.PunchingDm);
+                        CurRes.PunchingResistance = CalculatePunchingShearResistance_BpRd(_plateWithBolts, CurRes.PunchingDm, SollBolt.Key.Hole.Diameter);
                         CurRes.PunchingRatio = GetWorkingRatio(CurRes.SollTension, CurRes.PunchingResistance);
                     }
 
@@ -259,8 +226,11 @@ namespace GPC.Checkers.Steel.Checkers
                 }
             }
 
-            _boltResultMax = EN1993BoltResults.CalcMaxResult(_boltResults);
-            _boltDistancesWarning = EN1993BoltResults.GetDistancesWarnings(_boltResults);
+            _boltResultMax = new EN1993BoltResults(null, new LoadCase("Envelope", Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight), null,
+                (StandardEN1993p11)_boltResults[0].Standard, (EN1993BoltOptions)_boltResults[0].Options);
+            if (!ENCommonBoltResults.CalcMaxResult(_boltResults.Cast<EN1993BoltResults>().ToList(), (EN1993BoltResults)_boltResultMax))
+                _boltResultMax = null;
+            _boltDistancesWarning = ENCommonBoltResults.GetDistancesWarnings(_boltResults);
         }
 
         #endregion
@@ -269,78 +239,11 @@ namespace GPC.Checkers.Steel.Checkers
 
         /// <summary>
         /// UNI EN 1993-1-8:2005 - Table 3.4.
-        /// For inox bolts: UNI EN 1993-1-4:2021.
-        /// </summary>
-        /// <param name="boltMaterial">Single bolt material.</param>
-        /// <returns>α_v</returns>
-        private double CalculateAlphaV(in SteelMaterial boltMaterial)
-        {
-            if (boltMaterial is null)
-            {
-                _errorLog.Add("Error, missing material, α_v=0.5 will be used.");
-                return 0.5;
-            }
-
-            if (!OptionsEN1993.ShearPlaneThroughThreadedPortion) // In "UNI EN 1993-1-4:2021 §6.2 Note" for Inox bolts.
-                return 0.6;
-
-            if (boltMaterial is BoltMaterialEN1993Inox boltMaterialInox) // it is not Inox
-            {
-                // In UNI EN 1993-1-4:2021 §6.2 (2).
-                // Class "50", "70" and "80" as  "4.6", "5.6", "8.8".
-                string ClassName = boltMaterialInox.PropertyClass;
-                if (ClassName == "50" || ClassName == "70" || ClassName == "80")
-                    return 0.6;
-                else
-                    return 0.5;
-            }
-            else
-            {
-                string ClassName = boltMaterial.Name;
-                if (ClassName == "4.6" || ClassName == "5.6" || ClassName == "8.8")
-                    return 0.6;
-                else if (ClassName == "4.8" || ClassName == "5.8" || ClassName == "6.8" || ClassName == "10.9")
-                    return 0.5;
-                else
-                {
-                    _errorLog.Add($"Info: class '{ClassName}' not recognized, α_v=0.5 will be used.");
-                    return 0.5;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Calculate shear resistance per shear plane.
-        /// UNI EN 1993-1-8:2005 - Table 3.4.
-        /// Rivets are not considered.
-        /// </summary>
-        /// <param name="boltSection"></param>
-        /// <returns>F_v,Rd</returns>
-        private double CalculateShearResistance_FvRd(in BoltSection boltSection, in double alpha_v)
-        {
-            double f_ub = boltSection.BoltMaterial.Fu;
-            double area = boltSection.CalculateResistantArea(OptionsEN1993.ShearPlaneThroughThreadedPortion);
-            return alpha_v * f_ub * area / StandardEN1993.GammaM2;
-        }
-
-        /// <summary>
-        /// UNI EN 1993-1-8:2005 - Table 3.4.
         /// </summary>
         /// <returns>k_2</returns>
-        private double CalculateK_2() => OptionsEN1993.IsCounterSunkBolt ? 0.63 : 0.9;
-
-        /// <summary>
-        /// Calculate tension resistance.
-        /// UNI EN 1993-1-8:2005 - Table 3.4.
-        /// Rivets are not considered.
-        /// </summary>
-        /// <param name="boltSection"></param>
-        /// <returns>F_t,Rd</returns>
-        private double CalculateTensionResistance_FtRd(in double k_2, in BoltSection boltSection)
+        protected override double CalculateK_2()
         {
-            double f_ub = boltSection.BoltMaterial.Fu;
-            double area = boltSection.CalculateAreaEff();
-            return k_2 * f_ub * area / StandardEN1993.GammaM2;
+            return OptionsEN1993.IsCounterSunkBolt ? 0.63 : 0.9;
         }
 
         /// <summary>
@@ -350,7 +253,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="p_1"></param>
         /// <param name="boltPos"></param>
         /// <returns>α_d</returns>
-        private double CalculateCoeffParallel_AlphaD(in double e_1, in double p_1, in BoltPosition boltPos)
+        protected override double CalculateCoeffParallel_AlphaD(in double e_1, in double p_1, in BoltPosition boltPos)
         {
             double d_0 = boltPos.Hole.Diameter;
             return Math.Min(e_1 / (3.0 * d_0), p_1 / (3.0 * d_0) - 1.0 / 4.0);
@@ -359,11 +262,8 @@ namespace GPC.Checkers.Steel.Checkers
         /// <summary>
         /// UNI EN 1993-1-8:2005 - Table 3.4.
         /// </summary>
-        /// <param name="alpha_d"></param>
-        /// <param name="boltSection"></param>
-        /// <param name="plateWithBolts"></param>
         /// <returns>α_b</returns>
-        private double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in PlateWithBolts plateWithBolts)
+        protected override double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in PlateWithBolts plateWithBolts, in double e_1, in double p_1, in double d_0)
         {
             return Math.Min(Math.Min(alpha_d, boltSection.BoltMaterial.Fu / plateWithBolts.PlateMaterial.Fu), 1.0);
         }
@@ -375,258 +275,37 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="p_2"></param>
         /// <param name="boltPos"></param>
         /// <returns>k_1</returns>
-        private double CalculateCoeffPerpendicular_k1(in double e_2, in double p_2, in BoltPosition boltPos)
+        protected override double CalculateCoeffPerpendicular_k1(in double e_2, in double p_2, in BoltPosition boltPos)
         {
             double d_0 = boltPos.Hole.Diameter;
             return Math.Min(Math.Min(2.8 * e_2 / d_0 - 1.7, 1.4 * p_2 / d_0 - 1.7), 2.5);
         }
 
         /// <summary>
-        /// Calculate bearing resistance.
-        /// UNI EN 1993-1-8:2005 - Table 3.4.
-        /// </summary>
-        /// <param name="k_1">Coefficient perpendicular to the direction of load transfer.</param>
-        /// <param name="alpha_b">Coefficient in the direction of load transfer.</param>
-        /// <param name="boltSection"></param>
-        /// <param name="plateWithBolts"></param>
-        /// <returns>F_b,Rd</returns>
-        private double CalculateBearingResistance_FbRd(in double k_1, in double alpha_b, in BoltSection boltSection, in PlateWithBolts plateWithBolts)
-        {
-            return k_1 * alpha_b * plateWithBolts.PlateMaterial.Fu * boltSection.Diameter * plateWithBolts.Thickness / StandardEN1993.GammaM2;
-        }
-
-        /// <summary>
-        /// Calculate punching shear resistance.
+        /// Calculate punching shear resistance.<br/>
         /// UNI EN 1993-1-8:2005 - Table 3.4.
         /// </summary>
         /// <param name="plateWithBolts">Plate.</param>
         /// <returns>B_p,Rd</returns>
-        private double CalculatePunchingShearResistance_BpRd(in PlateWithBolts plateWithBolts, in double d_m)
+        protected override double CalculatePunchingShearResistance_BpRd(in PlateWithBolts plateWithBolts, in double d_m, in double d_0)
         {
-            return 0.6 * Math.PI * d_m * plateWithBolts.Thickness * plateWithBolts.PlateMaterial.Fu / StandardEN1993.GammaM2;
+            return 0.6 * Math.PI * d_m * plateWithBolts.Thickness * plateWithBolts.PlateMaterial.Fu / EnGammaM2;
         }
 
         /// <summary>
-        /// Values of ks.
-        /// UNI EN 1993-1-8:2005 - Table 3.6.
-        /// </summary>
-        /// <param name="holeShape"></param>
-        /// <param name="slotPerpendicularLoad">True if load is perpendicuar to the load.</param>
-        /// <returns>k_s</returns>
-        private double Calculate_ks(in HoleShapeType holeShape, in bool slotPerpendicularLoad)
-        {
-            if (holeShape == HoleShapeType.NormalRound)
-                return 1.0;
-            else if (holeShape == HoleShapeType.OversizeRound)
-                return 0.85;
-            else if (holeShape == HoleShapeType.ShortSlotted)
-            {
-                if (slotPerpendicularLoad)
-                    return 0.85;
-                else
-                    return 0.76;
-            }
-            else if (holeShape == HoleShapeType.LongSlotted)
-            {
-                if (slotPerpendicularLoad)
-                    return 0.7;
-                else
-                    return 0.63;
-            }
-            else
-            {
-                _errorLog.Add($"Error: missing hole type '{holeShape}', k_s=1.0 will be used.");
-                return 1.0;
-            }
-        }
-
-        /// <summary>
-        /// Slip factor, μ, for pre-loaded bolts.
-        /// UNI EN 1993-1-8:2005 - Table 3.7.
-        /// EN 1090-2:2008 - Table 18 - Classifications for friction surfaces.
-        /// </summary>
-        /// <returns>μ</returns>
-        private double CalculateSlipFactor_Mu()
-        {
-            switch (OptionsEN1993.ClassFrictionSurfaces)
-            {
-                case ClassFrictionSurfacesType.A:
-                    return 0.5;
-                case ClassFrictionSurfacesType.B:
-                    return 0.4;
-                case ClassFrictionSurfacesType.C:
-                    return 0.3;
-                case ClassFrictionSurfacesType.D:
-                    return 0.2;
-            }
-            _errorLog.Add($"Error: wrong splip class '{OptionsEN1993.ClassFrictionSurfaces}', μ=0.2 will be used.");
-            return 0.2;
-        }
-
-        /// <summary>
-        /// Calculate nominal minimum preloading force -> F_pC.
+        /// EN1993: Calculate nominal minimum preloading force -> F_pC.
         /// </summary>
         /// <param name="boltSection"></param>
         /// <returns></returns>
-        private double CalculateSlipPreloading(in BoltSection boltSection) => 0.7 * boltSection.BoltMaterial.Fu * boltSection.CalculateAreaEff();
-
-        /// <summary>
-        /// Calculate design Slip resistance.
-        /// UNI EN 1993-1-8:2005 - 3.9 Slip-resistant connections using 8.8 or 10.9 bolts.
-        /// </summary>
-        /// <param name="k_s"></param>
-        /// <param name="mu"></param>
-        /// <param name="F_tEd">F_t,Ed (formula 3.8a) or F_t,Ed,ser (formula 3.8b).</param>
-        /// <param name="gammaM">γ_M3 or γ_M3,ser</param>
-        /// <param name="F_pC">Nominal minimum preloading force.</param>
-        /// <returns>F_s,Rd or F_s,Rd,ser</returns>
-        private double CalculateDesignSlipResistance(in double k_s, in double mu, in double F_tEd, in double gammaM, in double F_pC)
+        protected override double CalculateSlipPreloading(in BoltSection boltSection)
         {
-            return k_s * OptionsEN1993.NumFricionPlane * mu * (F_pC - 0.8 * F_tEd) / gammaM;
+            return 0.7 * boltSection.BoltMaterial.Fu * boltSection.CalculateAreaEff();
         }
-        private double CalculateDesignSlipResistance_FsRd(in double k_s, in double mu, in double F_tEd, in double F_pC)
-            => CalculateDesignSlipResistance(k_s, mu, F_tEd, StandardEN1993.GammaM3, F_pC);
-        private double CalculateDesignSlipResistance_FsRdser(in double k_s, in double mu, in double F_tEdser, in double F_pC)
-            => CalculateDesignSlipResistance(k_s, mu, F_tEdser, StandardEN1993.GammaM3Ser, F_pC);
-
-        /// <summary>
-        /// Calculate nominal clearances.
-        /// EN 1090-2:2008 - Table 11 - Nominal clearances for bolts and pins (mm).
-        /// </summary>
-        /// <param name="nominalBoltDiameter"></param>
-        /// <param name="holeShape"></param>
-        /// <returns></returns>
-        private double CalculateNominalClearance(in double nominalBoltDiameter, in HoleShapeType holeShape)
-        {
-            double holeTolerance = 0.01;
-
-            switch (holeShape)
-            {
-                case HoleShapeType.NormalRound:
-                    if (nominalBoltDiameter < 12.0 + holeTolerance)
-                        return 1.0;
-                    else if (nominalBoltDiameter < 24.0 + holeTolerance)
-                        return 2.0; // For bolt nominal diameter equal to 14 can be 2mm according to 3.6.1.(5) EC 1993-1-8.
-                    else
-                        return 3.0;
-
-                case HoleShapeType.OversizeRound:
-                    if (nominalBoltDiameter < 14.0 + holeTolerance)
-                        return 3.0;
-                    else if (nominalBoltDiameter < 22.0 + holeTolerance)
-                        return 4.0;
-                    else if (nominalBoltDiameter < 24.0 + holeTolerance)
-                        return 6.0;
-                    else
-                        return 8.0;
-
-                case HoleShapeType.ShortSlotted:
-                    if (nominalBoltDiameter < 14.0 + holeTolerance)
-                        return 4.0;
-                    else if (nominalBoltDiameter < 22.0 + holeTolerance)
-                        return 6.0;
-                    else if (nominalBoltDiameter < 24.0 + holeTolerance)
-                        return 8.0;
-                    else
-                        return 10.0;
-
-                case HoleShapeType.LongSlotted:
-                    return 1.5 * nominalBoltDiameter;
-
-                default:
-                    _errorLog.Add($"Error: wrong hole type '{holeShape}'.");
-                    return 1.0;
-            }
-        }
-
-        /// <summary>
-        /// Calculate hole type.
-        /// EN 1090-2:2008 - Table 11 - Nominal clearances for bolts and pins (mm).
-        /// </summary>
-        /// <param name="hole"></param>
-        /// <returns></returns>
-        private HoleShapeType CalculateHoleType(in BoltPosition boltpos)
-        {
-            double holeTolerance = 0.01;
-            double clearance = boltpos.Hole.MaxLength - boltpos.BoltDef.Diameter;
-
-            if (!boltpos.Hole.IsSlotted)
-            {
-                double nominnalClearanceNormal = CalculateNominalClearance(boltpos.BoltDef.Diameter, HoleShapeType.NormalRound);
-
-                if (clearance < nominnalClearanceNormal + holeTolerance)
-                    return HoleShapeType.NormalRound;
-                else
-                    return HoleShapeType.OversizeRound;
-            }
-            else
-            {
-                double nominnalClearanceShort = CalculateNominalClearance(boltpos.BoltDef.Diameter, HoleShapeType.ShortSlotted);
-
-                if (clearance < nominnalClearanceShort + holeTolerance)
-                    return HoleShapeType.ShortSlotted;
-                else
-                    return HoleShapeType.LongSlotted;
-            }
-        }
-
-        /// <summary>
-        /// Set hole diameter and slot legth from bolt nominal diameter.
-        /// </summary>
-        /// <param name="boltpos">Hole to change.</param>
-        /// <param name="holeShape">Required hole shape.</param>
-        public void SetHoleDiameter(BoltPosition boltpos, in HoleShapeType holeShape)
-        {
-            double boltNominalDiameter = boltpos.BoltDef.Diameter;
-
-            switch (holeShape)
-            {
-                case HoleShapeType.OversizeRound:
-                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.OversizeRound);
-                    boltpos.Hole.SlotLength = 0.0;
-                    break;
-                case HoleShapeType.ShortSlotted:
-                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.NormalRound);
-                    boltpos.Hole.SlotLength = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.ShortSlotted) - boltpos.Hole.Diameter;
-                    break;
-                case HoleShapeType.LongSlotted:
-                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.NormalRound);
-                    boltpos.Hole.SlotLength = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.LongSlotted) - boltpos.Hole.Diameter;
-                    break;
-                case HoleShapeType.NormalRound:
-                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.NormalRound);
-                    boltpos.Hole.SlotLength = 0.0;
-                    break;
-            }
-        }
-
-        private bool CalculateIsSlottedPerpendicular(in Hole hole, in ResultBeamForces resultBeamForces)
-        {
-            Vector3d v1 = new Vector3d(Math.Cos(hole.Rotation), Math.Sin(hole.Rotation), 0.0);
-            Vector3d v2 = new Vector3d(resultBeamForces.V1, resultBeamForces.V2, 0.0);
-            v2.Unitize();
-            return v1.CrossProduct(v2).Length > Math.Sin(Math.PI * 0.25);
-        }
-
-        /// <summary>
-        /// Calculate the design plastic resistance of the net cross-section at bolt holes.
-        /// UNI EN 1993-1-8:2005 - 3.4.1 Shear connections (1)c).
-        /// UNI EN 1993-1-1:2005 - 6.2.3 (4) (formula 6.8).
-        /// </summary>
-        /// <param name="boltSection"></param>
-        /// <returns>N_net,Rd</returns>
-        //private double CalculatedesignPlasticResistance_NnetRd(in BoltSection boltSection)
-        //{
-        //    return 0.0; //boltSection.CalculateAreaEff() * boltSection.BoltMaterial.Fyk / StandardEN1993.GammaM0;
-        //}
-
-
 
         /// <summary>
         /// UNI EN 1993-1-8:2005 - Table 3.3: Minimum and maximum spacing, end and edge distances.
         /// </summary>
         /// <param name="dHole">Hole diameter.</param>
-        /// <param name="expo">Exposure condition.</param>
         /// <param name="t"></param>
         /// <param name="t_min"></param>
         /// <param name="e1e2_min">End distances e1 and e2. Minimum.</param>
@@ -637,7 +316,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="p1_max">Spacing p1. Maximum.</param>
         /// <param name="p2_min">Spacing p2. Minimum.</param>
         /// <param name="p2_max">Spacing p2. Maximum.</param>
-        private void CalculateDimesionLimits(in double dHole, in double t, in double t_min,
+        protected override void CalculateDimesionLimits(in double dHole, in double t, in double t_min,
             out double e1e2_min, out double e1e2_max,
             out double e3e4_min, out double e3e4_max,
             out double p1_min, out double p1_max,
@@ -685,55 +364,9 @@ namespace GPC.Checkers.Steel.Checkers
         /// Options specific for EN1993.
         /// </summary>
         [Serializable]
-        public class EN1993BoltOptions : BoltOptions, ISerializable
+        public class EN1993BoltOptions : ENCommonBoltOptions, ISerializable
         {
-            #region Fields
-
-            protected ShearConnectionsCategoryType _shearConnectionsCategory;
-
-            protected TensionConnectionsCategoryType _tensionConnectionsCategory;
-
-            #endregion
-
             #region Properties
-
-            /// <summary>
-            /// UNI EN 1993-1-8:2005 - Table 3.6 and EN 1090-2 Table 11.
-            /// Influence on bearing resistance Fb,Rd and tollerances.
-            /// </summary>
-            public HoleShapeType HoleShape { get; set; }
-
-            /// <summary>
-            /// Class of friction surfaces.
-            /// </summary>
-            public ClassFrictionSurfacesType ClassFrictionSurfaces { get; set; }
-
-            /// <summary>
-            /// Shear connection category.
-            /// </summary>
-            public ShearConnectionsCategoryType ShearConnectionsCategory
-            {
-                get => _shearConnectionsCategory;
-                set
-                {
-                    _shearConnectionsCategory = value;
-                    switch (value)
-                    {
-                        case ShearConnectionsCategoryType.A:
-                            _tensionConnectionsCategory = TensionConnectionsCategoryType.D;
-                            break;
-                        case ShearConnectionsCategoryType.B:
-                        case ShearConnectionsCategoryType.C:
-                            _tensionConnectionsCategory = TensionConnectionsCategoryType.E;
-                            break;
-                    }
-                }
-            }
-
-            /// <summary>
-            /// Tension connection category.
-            /// </summary>
-            public TensionConnectionsCategoryType TensionConnectionsCategory => _tensionConnectionsCategory;
 
             /// <summary>
             /// Exposure condition, used for minimum and maximum spacing, end and edge distances.
@@ -746,46 +379,22 @@ namespace GPC.Checkers.Steel.Checkers
 
             public EN1993BoltOptions()
             {
-                HoleShape = HoleShapeType.NormalRound;
-                ClassFrictionSurfaces = ClassFrictionSurfacesType.D;
-                ShearConnectionsCategory = ShearConnectionsCategoryType.A;
                 ExposureCondition = ExposureConditionType.SteelExposed;
             }
 
             public EN1993BoltOptions(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             {
-                int version = info.GetInt32("EN1993BoltOptionsVersion");
-
-                ShearConnectionsCategory = (ShearConnectionsCategoryType)info.GetValue("ShearConnectionsCategory", typeof(ShearConnectionsCategoryType));
-                HoleShape = (HoleShapeType)info.GetValue("HoleShape", typeof(HoleShapeType));
-                ClassFrictionSurfaces = (ClassFrictionSurfacesType)info.GetValue("ClassFrictionSurfaces", typeof(ClassFrictionSurfacesType));
-                if (version == 2)
-                {
-                    ExposureCondition = (ExposureConditionType)info.GetValue("ExposureCondition", typeof(ExposureConditionType));
-                }
+                ExposureCondition = (ExposureConditionType)info.GetValue("ExposureCondition", typeof(ExposureConditionType));
             }
 
             #endregion
 
             #region Methods
 
-            /// <summary>
-            /// In version 2:
-            /// - added ExposureCondition.
-            /// </summary>
-            /// <param name="info"></param>
-            /// <param name="context"></param>
             public override void GetObjectData(SerializationInfo info, StreamingContext context)
             {
                 base.GetObjectData(info, context);
-
-                int version = 2;
-                info.AddValue("EN1993BoltOptionsVersion", version);
-
-                info.AddValue("ShearConnectionsCategory", _shearConnectionsCategory, typeof(ShearConnectionsCategoryType));
-                info.AddValue("HoleShape", HoleShape, typeof(HoleShapeType));
-                info.AddValue("ClassFrictionSurfaces", ClassFrictionSurfaces, typeof(ClassFrictionSurfacesType));
                 info.AddValue("ExposureCondition", ExposureCondition, typeof(ExposureConditionType));
             }
 

@@ -4,7 +4,6 @@ using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using static GPC.Checkers.Steel.Results.EN1993BoltResults;
 
 namespace GPC.Checkers.Steel.Checkers
 {
@@ -20,13 +19,13 @@ namespace GPC.Checkers.Steel.Checkers
         protected readonly List<BoltStresses> _boltStresses;
         protected List<BoltResults> _boltResults;
         protected BoltResults _boltResultMax;
-        protected List<DistanceWarning> _boltDistancesWarning;
+        protected List<ENCommonBoltResults.DistanceWarning> _boltDistancesWarning;
 
         #endregion
 
         #region Properties
 
-        public List<DistanceWarning> BoltDistancesWarning => _boltDistancesWarning;
+        public List<ENCommonBoltResults.DistanceWarning> BoltDistancesWarning => _boltDistancesWarning;
 
         #endregion
 
