@@ -214,9 +214,18 @@ namespace GPC.Checkers.Concrete.Results
         {
             (double maximum, double minimum) = GetAxialForceLimits(out FailureDomainPoint maxPoint, out FailureDomainPoint minPoint);
 
-            double deltaN = (maximum - minimum) / axialForceSubdivision;
+            double deltaN = (maximum - minimum - 100) / (axialForceSubdivision - 1);
 
             FailureDomainPoint[][] newDomain = new FailureDomainPoint[failureDomain.DomainPoints.Length][];
+
+            double[] axialForces = new double[axialForceSubdivision + 1];
+            for (int dEta = 0; dEta < axialForceSubdivision; dEta++)
+            {
+                axialForces[dEta] = maximum - dEta * deltaN;
+            }
+
+            axialForces[axialForceSubdivision] = minimum;
+
 
             for (int dTeta = 0; dTeta < failureDomain.DomainPoints.Length; dTeta++)
             {
@@ -225,13 +234,14 @@ namespace GPC.Checkers.Concrete.Results
 
                 for (int dEta = 0; dEta < axialForceSubdivision + 1; dEta++)
                 {
-                    double nRd = maximum - dEta * deltaN;
+                    double nRd = axialForces[dEta];
                     double mxRd;
                     double myRd;
 
                     for (int i = startingCount[dEta]; i < failureDomain.DomainPoints[dTeta].Length; i++)
                     {
-                        if (i == failureDomain.DomainPoints[dTeta].Length - 1)
+                        if (i == failureDomain.DomainPoints[dTeta].Length - 1 || dEta == axialForceSubdivision ||
+                            (failureDomain.DomainPoints[dTeta][i].NRd - minimum) < tolerance)
                         {
                             newDomain[dTeta][dEta] = minPoint;
                             break;
@@ -332,7 +342,7 @@ namespace GPC.Checkers.Concrete.Results
             {
                 for (int j = 0; j < DomainPoints[i].Length; j++)
                 {
-                    if (Math.Abs(DomainPoints[i][j].NRd - min) < 1000)
+                    if (Math.Abs(DomainPoints[i][j].NRd - min) < 100)
                         minList.Add(DomainPoints[i][j]);
 
                     if (Math.Abs(DomainPoints[i][j].NRd - max) < 1000)
