@@ -1,5 +1,7 @@
 ﻿using GPC.Checkers.Steel.Results;
+using GPC.Model.LoadCases;
 using GPC.Model.Materials;
+using GPC.Model.Results;
 using GPC.Model.Sections.Bolt;
 using GPC.Model.Standards;
 using System;
@@ -52,6 +54,11 @@ namespace GPC.Checkers.Steel.Checkers
         #endregion
 
         #region Private methods
+
+        protected override ENCommonBoltResults BuildENCommonBoltResults(BoltPosition boltPos, ILoadCase loadCase, ResultBeamForces beamForces)
+        {
+            return new EN1999BoltResults(boltPos, loadCase, beamForces, StandardEN1999, OptionsEN1999);
+        }
 
         /// <summary>
         /// UNI EN 1999-1-1:2023 - Does not specify a value, uses 0.9 for all cases.
@@ -141,6 +148,7 @@ namespace GPC.Checkers.Steel.Checkers
             out double p1_min, out double p1_max,
             out double p2_min, out double p2_max)
         {
+
             e1e2_min = 1.2 * dHole;
             e3e4_min = 1.5 * dHole;
             p1_min = 2.2 * dHole;
@@ -155,7 +163,7 @@ namespace GPC.Checkers.Steel.Checkers
                     p2_max = p1_max;
                     break;
                 case ExposureConditionType.AluminiumNotExposed:
-                    e1e2_max = Double.NaN;
+                    e1e2_max = Math.Max(12.0 * t, 150.0);
                     e3e4_max = Double.NaN;
                     p1_max = Math.Min(14.0 * t, 200.0);
                     p2_max = p1_max;
@@ -167,11 +175,6 @@ namespace GPC.Checkers.Steel.Checkers
                     p2_max = Double.NaN;
                     break;
             }
-        }
-
-        public override void PerformCheck()
-        {
-            throw new NotImplementedException();
         }
 
         #endregion

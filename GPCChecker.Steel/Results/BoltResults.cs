@@ -34,8 +34,8 @@ namespace GPC.Checkers.Steel.Results
 
 		#region Constructor
 
-		public BoltResults(BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces, Standard standard, BoltChecker.BoltOptions options, string name = "")
-			: base(@case, standard, options, name)
+		public BoltResults(BoltPosition boltPos, ILoadCase loadCase, ResultBeamForces beamForces, Standard standard, BoltChecker.BoltOptions options, string name = "")
+			: base(loadCase, standard, options, name)
 		{
 			BoltPos = boltPos;
 			BeamForces = beamForces;

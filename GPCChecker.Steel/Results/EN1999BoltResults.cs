@@ -23,9 +23,9 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        public EN1999BoltResults(BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces,
+        public EN1999BoltResults(BoltPosition boltPos, ILoadCase loadCase, ResultBeamForces beamForces,
             StandardEN1999p11 standard, EN1999BoltChecker.EN1999BoltOptions options, string name = "")
-            : base(boltPos, @case, beamForces, standard, options, name)
+            : base(boltPos, loadCase, beamForces, standard, options, name)
         {
         }
 

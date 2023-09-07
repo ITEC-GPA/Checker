@@ -297,14 +297,14 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        public ENCommonBoltResults(BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces, Standard standard, BoltChecker.BoltOptions options, string name = "")
-            : base(boltPos, @case, beamForces, standard, options, name)
+        public ENCommonBoltResults(BoltPosition boltPos, ILoadCase loadCase, ResultBeamForces beamForces, Standard standard, BoltChecker.BoltOptions options, string name = "")
+            : base(boltPos, loadCase, beamForces, standard, options, name)
         {
         }
 
-        public ENCommonBoltResults(BoltPosition boltPos, ILoadCase @case, ResultBeamForces beamForces,
+        public ENCommonBoltResults(BoltPosition boltPos, ILoadCase loadCase, ResultBeamForces beamForces,
             Standard standard, ENCommonBoltChecker.ENCommonBoltOptions options)
-            : base(boltPos, @case, beamForces, standard, options)
+            : base(boltPos, loadCase, beamForces, standard, options)
         {
             SetActiveChecks();
             // Values must be calculated, if they remain NaN it means there is an error or lack,
@@ -534,7 +534,7 @@ namespace GPC.Checkers.Steel.Results
         /// <param name="boltResults">Results from where to get the most.</param>
         /// <param name="maxResult">Worst situation.</param>
         /// <returns>true if the calculation was successful.</returns>
-        public static bool CalcMaxResult<T>(List<T> boltResults, T maxResult) where T : ENCommonBoltResults
+        public static bool CalcMaxResult(List<ENCommonBoltResults> boltResults, ENCommonBoltResults maxResult)
         {
             if (boltResults is null || boltResults.Count == 0)
                 return false;
@@ -677,7 +677,7 @@ namespace GPC.Checkers.Steel.Results
         public static List<DistanceWarning> GetDistancesWarnings(List<BoltResults> boltResults)
         {
             var warnings = new List<DistanceWarning>();
-            List<ENCommonBoltResults> boltResultsEN1993 = boltResults.Cast<ENCommonBoltResults>().ToList();
+            var boltResultsEN1993 = boltResults.Cast<ENCommonBoltResults>().ToList();
 
             foreach (var boltResult in boltResultsEN1993)
                 warnings.AddRange(boltResult.GetDistancesWarnings());
