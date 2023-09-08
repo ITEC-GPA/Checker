@@ -297,11 +297,6 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        public ENCommonBoltResults(BoltPosition boltPos, ILoadCase loadCase, ResultBeamForces beamForces, Standard standard, BoltChecker.BoltOptions options, string name = "")
-            : base(boltPos, loadCase, beamForces, standard, options, name)
-        {
-        }
-
         public ENCommonBoltResults(BoltPosition boltPos, ILoadCase loadCase, ResultBeamForces beamForces,
             Standard standard, ENCommonBoltChecker.ENCommonBoltOptions options)
             : base(boltPos, loadCase, beamForces, standard, options)

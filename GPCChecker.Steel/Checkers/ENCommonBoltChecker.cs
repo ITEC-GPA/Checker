@@ -62,6 +62,17 @@ namespace GPC.Checkers.Steel.Checkers
             E  // Category E: preloaded.
         }
 
+        /// <summary>
+        /// UNI EN 1993-1-8:2005 - Table 3.3: Minimum and maximum spacing, end and edge distances.
+        /// UNI EN 1999-1-1:2023 - Table 10.1: Minimum, regular and maximum spacing, end and edge distances.
+        /// </summary>
+        public enum ExposureConditionType
+        {
+            Exposed, // Steel/Aluminium exposed to the weather or other corrosive influences.
+            NotExposed, // Steel/Aluminium not exposed to the weather or other corrosive influences.
+            Unprotected // Steel used unprotected. Not managed by Aluminium.
+        }
+
         #endregion
 
         #region Constructor
@@ -77,7 +88,16 @@ namespace GPC.Checkers.Steel.Checkers
 
         private ENCommonBoltOptions OptionsENCommon => (ENCommonBoltOptions)_options;
 
+        public List<ENCommonBoltResults> BoltResultsENCommon => _boltResults.Cast<ENCommonBoltResults>().ToList();
+
         #endregion
+
+        public abstract ENCommonBoltResults BoltResultMax { get; }
+
+        /// <summary>
+        /// Characteristic value of ultimate tensile strength.
+        /// </summary>
+        protected abstract double PlateMaterialFu { get; }
 
         /// <summary>
         /// Partial factor for resistance of cross-sections in tension to fracture.
@@ -170,8 +190,8 @@ namespace GPC.Checkers.Steel.Checkers
                     {
                         var AlphaD = CalculateCoeffParallel_AlphaD(CurRes.BearingE1, CurRes.BearingP1, SollBolt.Key);
                         CurRes.Bearingk1 = CalculateCoeffPerpendicular_k1(CurRes.BearingE2, CurRes.BearingP2, SollBolt.Key);
-                        CurRes.BearingAlphaB = CalculateCoeffParallel_AlphaB(AlphaD, SollBolt.Key.BoltDef, _plateWithBolts, CurRes.BearingE1, CurRes.BearingP1, SollBolt.Key.Hole.Diameter);
-                        CurRes.BearingResistance = CalculateBearingResistance_FbRd(CurRes.Bearingk1, CurRes.BearingAlphaB, SollBolt.Key.BoltDef, _plateWithBolts);
+                        CurRes.BearingAlphaB = CalculateCoeffParallel_AlphaB(AlphaD, SollBolt.Key.BoltDef, CurRes.BearingE1, CurRes.BearingP1, SollBolt.Key.Hole.Diameter);
+                        CurRes.BearingResistance = CalculateBearingResistance_FbRd(CurRes.Bearingk1, CurRes.BearingAlphaB, SollBolt.Key.BoltDef, _plateWithBolts.Thickness);
                         CurRes.BearingRatio = GetWorkingRatio(CurRes.SollShear, CurRes.BearingResistance);
                     }
 
@@ -223,7 +243,7 @@ namespace GPC.Checkers.Steel.Checkers
                     if (CurRes.PunchingIsActive)
                     {
                         CurRes.PunchingDm = SollBolt.Key.BoltDef.CalculateMeanDiameterBoltHead();
-                        CurRes.PunchingResistance = CalculatePunchingShearResistance_BpRd(_plateWithBolts, CurRes.PunchingDm, SollBolt.Key.Hole.Diameter);
+                        CurRes.PunchingResistance = CalculatePunchingShearResistance_BpRd(_plateWithBolts.Thickness, CurRes.PunchingDm, SollBolt.Key.Hole.Diameter);
                         CurRes.PunchingRatio = GetWorkingRatio(CurRes.SollTension, CurRes.PunchingResistance);
                     }
 
@@ -388,7 +408,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="p_1">Used by EN1999.</param>
         /// <param name="d_0">Hole diameter. Used by EN1999.</param>
         /// <returns>α_b</returns>
-        protected abstract double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in PlateWithBolts plateWithBolts, in double e_1, in double p_1, in double d_0);
+        protected abstract double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in double e_1, in double p_1, in double d_0);
 
         /// <summary>
         /// Calculate bearing resistance.<br/>
@@ -400,9 +420,9 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="boltSection"></param>
         /// <param name="plateWithBolts"></param>
         /// <returns>F_b,Rd</returns>
-        protected double CalculateBearingResistance_FbRd(in double k_1, in double alpha_b, in BoltSection boltSection, in PlateWithBolts plateWithBolts)
+        protected double CalculateBearingResistance_FbRd(in double k_1, in double alpha_b, in BoltSection boltSection, in double plateWithBoltsThickness)
         {
-            return k_1 * alpha_b * plateWithBolts.PlateMaterial.Fu * boltSection.Diameter * plateWithBolts.Thickness / EnGammaM2;
+            return k_1 * alpha_b * PlateMaterialFu * boltSection.Diameter * plateWithBoltsThickness / EnGammaM2;
         }
 
         /// <summary>
@@ -410,7 +430,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         /// <param name="plateWithBolts">Plate.</param>
         /// <returns>B_p,Rd</returns>
-        protected abstract double CalculatePunchingShearResistance_BpRd(in PlateWithBolts plateWithBolts, in double d_m, in double d_0);
+        protected abstract double CalculatePunchingShearResistance_BpRd(in double plateWithBoltsThickness, in double d_m, in double d_0);
 
         /// <summary>
         /// Values of ks.<br/>
@@ -585,7 +605,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         /// <param name="boltpos">Hole to change.</param>
         /// <param name="holeShape">Required hole shape.</param>
-        protected void SetHoleDiameter(BoltPosition boltpos, in HoleShapeType holeShape)
+        public void SetHoleDiameter(BoltPosition boltpos, in HoleShapeType holeShape)
         {
             double boltNominalDiameter = boltpos.BoltDef.Diameter;
 
@@ -706,6 +726,11 @@ namespace GPC.Checkers.Steel.Checkers
             /// </summary>
             public TensionConnectionsCategoryType TensionConnectionsCategory => _tensionConnectionsCategory;
 
+            /// <summary>
+            /// Exposure condition, used for minimum and maximum spacing, end and edge distances.
+            /// </summary>
+            public ExposureConditionType ExposureCondition { get; set; }
+
             #endregion
 
             #region Constructor
@@ -715,6 +740,7 @@ namespace GPC.Checkers.Steel.Checkers
                 HoleShape = HoleShapeType.NormalRound;
                 ClassFrictionSurfaces = ClassFrictionSurfacesType.D;
                 ShearConnectionsCategory = ShearConnectionsCategoryType.A;
+                ExposureCondition = ExposureConditionType.Exposed;
             }
 
             protected ENCommonBoltOptions(SerializationInfo info, StreamingContext context)
@@ -723,6 +749,7 @@ namespace GPC.Checkers.Steel.Checkers
                 ShearConnectionsCategory = (ShearConnectionsCategoryType)info.GetValue("ShearConnectionsCategory", typeof(ShearConnectionsCategoryType));
                 HoleShape = (HoleShapeType)info.GetValue("HoleShape", typeof(HoleShapeType));
                 ClassFrictionSurfaces = (ClassFrictionSurfacesType)info.GetValue("ClassFrictionSurfaces", typeof(ClassFrictionSurfacesType));
+                ExposureCondition = (ExposureConditionType)info.GetValue("ExposureCondition", typeof(ExposureConditionType));
             }
 
             #endregion
@@ -736,12 +763,13 @@ namespace GPC.Checkers.Steel.Checkers
                 info.AddValue("ShearConnectionsCategory", _shearConnectionsCategory, typeof(ShearConnectionsCategoryType));
                 info.AddValue("HoleShape", HoleShape, typeof(HoleShapeType));
                 info.AddValue("ClassFrictionSurfaces", ClassFrictionSurfaces, typeof(ClassFrictionSurfacesType));
+                info.AddValue("ExposureCondition", ExposureCondition, typeof(ExposureConditionType));
             }
 
             #endregion
+
         }
 
         #endregion
-
     }
 }

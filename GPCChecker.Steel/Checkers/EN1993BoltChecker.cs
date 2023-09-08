@@ -1,5 +1,4 @@
 ﻿using GPC.Checkers.Steel.Results;
-using GPC.Geometry;
 using GPC.Model.LoadCases;
 using GPC.Model.Materials;
 using GPC.Model.Results;
@@ -14,20 +13,6 @@ namespace GPC.Checkers.Steel.Checkers
 {
     public class EN1993BoltChecker : ENCommonBoltChecker
     {
-        #region Enum
-
-        /// <summary>
-        /// UNI EN 1993-1-8:2005 - Table 3.3: Minimum and maximum spacing, end and edge distances.
-        /// </summary>
-        public enum ExposureConditionType
-        {
-            SteelExposed, // Steel exposed to the weather or other corrosive influences
-            SteelNotExposed, // Steel not exposed to the weather or other corrosive influences
-            SteelUnprotected // Steel used unprotected
-        }
-
-        #endregion
-
         #region Public Constructor
 
         public EN1993BoltChecker(PlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, StandardEN1993p11 standard, EN1993BoltOptions options, int id = IDUNASSIGNED, string name = "")
@@ -44,7 +29,9 @@ namespace GPC.Checkers.Steel.Checkers
 
         public List<EN1993BoltResults> BoltResultsEN1993 => _boltResults.Cast<EN1993BoltResults>().ToList();
 
-        public EN1993BoltResults BoltResultMax => (EN1993BoltResults)_boltResultMax;
+        public override ENCommonBoltResults BoltResultMax => (EN1993BoltResults)_boltResultMax;
+
+        protected override double PlateMaterialFu => ((SteelMaterial)_plateWithBolts.PlateMaterial).Fu;
 
         protected override double EnGammaM2 => StandardEN1993.GammaM2;
 
@@ -87,9 +74,9 @@ namespace GPC.Checkers.Steel.Checkers
         /// UNI EN 1993-1-8:2005 - Table 3.4.
         /// </summary>
         /// <returns>α_b</returns>
-        protected override double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in PlateWithBolts plateWithBolts, in double e_1, in double p_1, in double d_0)
+        protected override double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in double e_1, in double p_1, in double d_0)
         {
-            return Math.Min(Math.Min(alpha_d, boltSection.BoltMaterial.Fu / plateWithBolts.PlateMaterial.Fu), 1.0);
+            return Math.Min(Math.Min(alpha_d, boltSection.BoltMaterial.Fu / PlateMaterialFu), 1.0);
         }
 
         /// <summary>
@@ -111,9 +98,9 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         /// <param name="plateWithBolts">Plate.</param>
         /// <returns>B_p,Rd</returns>
-        protected override double CalculatePunchingShearResistance_BpRd(in PlateWithBolts plateWithBolts, in double d_m, in double d_0)
+        protected override double CalculatePunchingShearResistance_BpRd(in double plateWithBoltsThickness, in double d_m, in double d_0)
         {
-            return 0.6 * Math.PI * d_m * plateWithBolts.Thickness * plateWithBolts.PlateMaterial.Fu / EnGammaM2;
+            return 0.6 * Math.PI * d_m * plateWithBoltsThickness * PlateMaterialFu / EnGammaM2;
         }
 
         /// <summary>
@@ -153,19 +140,19 @@ namespace GPC.Checkers.Steel.Checkers
 
             switch (OptionsEN1993.ExposureCondition)
             {
-                case ExposureConditionType.SteelExposed:
+                case ExposureConditionType.Exposed:
                     e1e2_max = 4.0 * t + 40.0;
                     e3e4_max = Double.NaN;
                     p1_max = Math.Min(14.0 * t, 200.0);
                     p2_max = p1_max;
                     break;
-                case ExposureConditionType.SteelNotExposed:
+                case ExposureConditionType.NotExposed:
                     e1e2_max = Double.NaN;
                     e3e4_max = Double.NaN;
                     p1_max = Math.Min(14.0 * t, 200.0);
                     p2_max = p1_max;
                     break;
-                case ExposureConditionType.SteelUnprotected:
+                case ExposureConditionType.Unprotected:
                     e1e2_max = Math.Max(8.0 * t, 125.0);
                     e3e4_max = Double.NaN;
                     p1_max = Math.Min(14.0 * t_min, 175.0);
@@ -190,39 +177,9 @@ namespace GPC.Checkers.Steel.Checkers
         [Serializable]
         public class EN1993BoltOptions : ENCommonBoltOptions, ISerializable
         {
-            #region Properties
-
-            /// <summary>
-            /// Exposure condition, used for minimum and maximum spacing, end and edge distances.
-            /// </summary>
-            public ExposureConditionType ExposureCondition { get; set; }
-
-            #endregion
-
-            #region Constructor
-
             public EN1993BoltOptions()
             {
-                ExposureCondition = ExposureConditionType.SteelExposed;
             }
-
-            public EN1993BoltOptions(SerializationInfo info, StreamingContext context)
-                : base(info, context)
-            {
-                ExposureCondition = (ExposureConditionType)info.GetValue("ExposureCondition", typeof(ExposureConditionType));
-            }
-
-            #endregion
-
-            #region Methods
-
-            public override void GetObjectData(SerializationInfo info, StreamingContext context)
-            {
-                base.GetObjectData(info, context);
-                info.AddValue("ExposureCondition", ExposureCondition, typeof(ExposureConditionType));
-            }
-
-            #endregion
         }
 
         #endregion
