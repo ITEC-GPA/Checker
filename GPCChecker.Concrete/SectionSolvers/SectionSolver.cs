@@ -529,12 +529,30 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 ForceTuple[] rebarStresses = IntegrateRebarStress(strainPlanes, rebarIsInsideAssociation);
                 ForceTuple[] structuralSteelStresses = IntegrateStructuralSteelStress(strainPlanes);
 
+                for (int i = 0; i < strainPlanes.Length; i++)
+                    returnValue[i] = (concreteStresses[i] + rebarStresses[i] + structuralSteelStresses[i]) * GetReductionFactor(strainPlanes[i]);
+
                 double limitCompression = CalculateCompressionAxialForceLimit();
 
-                for (int i = 0; i < strainPlanes.Length; i++)
-                    returnValue[i] = CalculateCompressionReduction((concreteStresses[i] + rebarStresses[i] + structuralSteelStresses[i]) *
-                        GetReductionFactor(strainPlanes[i]), limitCompression);
-
+                if (limitCompression != double.MinValue)
+                {
+                    for (int i = 0; i < returnValue.Length; i++)
+                    {
+                        if (i != 0)
+                        {
+                            if (returnValue[i - 1].N > limitCompression && returnValue[i].N < limitCompression)
+                            {
+                                double mx = Utilities.Maths.Interpolation.GetLinearInterpolation(returnValue[i - 1].N, returnValue[i].N, returnValue[i - 1].Mx, returnValue[i].Mx, limitCompression);
+                                double my = Utilities.Maths.Interpolation.GetLinearInterpolation(returnValue[i - 1].N, returnValue[i].N, returnValue[i - 1].My, returnValue[i].My, limitCompression);
+                                returnValue[i] = new ForceTuple(limitCompression, mx, my);
+                            }
+                            if (returnValue[i].N < limitCompression)
+                            {
+                                returnValue[i] = new ForceTuple(limitCompression, returnValue[i].Mx, returnValue[i].My);
+                            }
+                        }
+                    }
+                }
                 return returnValue;
             }
             catch (Exception e)
