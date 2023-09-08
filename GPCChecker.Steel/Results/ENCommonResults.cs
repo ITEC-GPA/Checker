@@ -382,7 +382,7 @@ namespace GPC.Checkers.Steel.Results
         {
             switch (eNCommonBoltOptions.ShearConnectionsCategory)
             {
-                case ENCommonBoltChecker.ShearConnectionsCategoryType.A:
+                case EN1993BoltChecker.ShearConnectionsCategoryType.A:
                     ShearIsActive = true;
                     BearingIsActive = true;
                     SlipIsActive = false;
@@ -390,7 +390,7 @@ namespace GPC.Checkers.Steel.Results
                     // NetIsActive = false;
                     CombinedShearTensionIsActive = true;
                     break;
-                case ENCommonBoltChecker.ShearConnectionsCategoryType.B:
+                case EN1993BoltChecker.ShearConnectionsCategoryType.B:
                     ShearIsActive = true;
                     BearingIsActive = true;
                     SlipIsActive = false;
@@ -398,7 +398,7 @@ namespace GPC.Checkers.Steel.Results
                     // NetIsActive = false;
                     CombinedShearTensionIsActive = true;
                     break;
-                case ENCommonBoltChecker.ShearConnectionsCategoryType.C:
+                case EN1993BoltChecker.ShearConnectionsCategoryType.C:
                     ShearIsActive = false; // By regulation it should be set to false, but doing so should also set CombinedShearTensionIsActive to false.
                     BearingIsActive = true;
                     SlipIsActive = true;
@@ -416,7 +416,6 @@ namespace GPC.Checkers.Steel.Results
                     break;
             }
         }
-
 
         // Disable unnecessary verification.
         public void SetUnnecessaryVerification()

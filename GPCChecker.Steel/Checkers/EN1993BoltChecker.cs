@@ -6,6 +6,7 @@ using GPC.Model.Sections.Bolt;
 using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 
@@ -13,7 +14,66 @@ namespace GPC.Checkers.Steel.Checkers
 {
     public class EN1993BoltChecker : ENCommonBoltChecker
     {
-        #region Public Constructor
+        #region Enum
+
+        // Keep enums in this class for compatibility in serialization.
+
+        public enum HoleShapeType
+        {
+            NormalRound, // Bolts in normal holes.
+            OversizeRound, // Bolts in oversized holes.
+            ShortSlotted, // Bolts in short slotted holes.
+            LongSlotted // Bolts in long slotted holes.
+        }
+
+        /// <summary>
+        /// Slip factor, μ, for pre-loaded bolts.
+        /// UNI EN 1993-1-8:2005 - Table 3.7.
+        /// EN 1090-2:2008 - Table 18 - Classifications for friction surfaces.
+        /// </summary>
+        public enum ClassFrictionSurfacesType
+        {
+            A,
+            B,
+            C,
+            D
+        }
+
+        /// <summary>
+        /// UNI EN 1993-1-8:2005 - 3.4.1 Shear connections.
+        /// UNI EN 1999-1-1:2023 - 10.5.3.1 Shear connestions.
+        /// </summary>
+        public enum ShearConnectionsCategoryType
+        {
+            A, // Category A: Bearing type.
+            B, // Category B: Slip-resistant at serviceability limit state.
+            C  // Category C: Slip-resistant at ultimate limit state.
+        }
+
+        /// <summary>
+        /// UNI EN 1993-1-8:2005 - 3.4.2 Tension connections.
+        /// UNI EN 1999-1-1:2023 - 10.5.3.2 Tension connestions.
+        /// </summary>
+        public enum TensionConnectionsCategoryType
+        {
+            D, // Category D: non-preloaded.
+            E  // Category E: preloaded.
+        }
+
+        /// <summary>
+        /// UNI EN 1993-1-8:2005 - Table 3.3: Minimum and maximum spacing, end and edge distances.
+        /// UNI EN 1999-1-1:2023 - Table 10.1: Minimum, regular and maximum spacing, end and edge distances.
+        /// </summary>
+        public enum ExposureConditionType
+        {
+            Exposed, // Steel/Aluminium exposed to the weather or other corrosive influences.
+            NotExposed, // Steel/Aluminium not exposed to the weather or other corrosive influences.
+            Unprotected // Steel used unprotected. Not managed by Aluminium.
+        }
+
+        #endregion
+
+        #region Constructor
 
         public EN1993BoltChecker(PlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, StandardEN1993p11 standard, EN1993BoltOptions options, int id = IDUNASSIGNED, string name = "")
             : base(plateWithBolts, boltStresses, standard, options, id, name)
@@ -21,7 +81,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-        #region Public Properties
+        #region Properties
 
         public StandardEN1993p11 StandardEN1993 => (StandardEN1993p11)_standard;
 
@@ -41,7 +101,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-        #region Private Methods
+        #region Protected methods
 
         protected override ENCommonBoltResults BuildENCommonBoltResults(BoltPosition boltPos, ILoadCase loadCase, ResultBeamForces beamForces)
         {
@@ -180,6 +240,42 @@ namespace GPC.Checkers.Steel.Checkers
             public EN1993BoltOptions()
             {
             }
+
+            public EN1993BoltOptions(SerializationInfo info, StreamingContext context)
+            {
+                int version = info.GetInt32("EN1993BoltOptionsVersion");
+
+                ShearConnectionsCategory = (ShearConnectionsCategoryType)info.GetValue("ShearConnectionsCategory", typeof(ShearConnectionsCategoryType));
+                HoleShape = (HoleShapeType)info.GetValue("HoleShape", typeof(HoleShapeType));
+                ClassFrictionSurfaces = (ClassFrictionSurfacesType)info.GetValue("ClassFrictionSurfaces", typeof(ClassFrictionSurfacesType));
+                if (version == 2)
+                {
+                    ExposureCondition = (ExposureConditionType)info.GetValue("ExposureCondition", typeof(ExposureConditionType));
+                }
+            }
+
+            #region Methods
+
+            /// <summary>
+            /// In version 2:
+            /// - added ExposureCondition.
+            /// </summary>
+            /// <param name="info"></param>
+            /// <param name="context"></param>
+            public override void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                base.GetObjectData(info, context);
+
+                int version = 2;
+                info.AddValue("EN1993BoltOptionsVersion", version);
+
+                info.AddValue("ShearConnectionsCategory", _shearConnectionsCategory, typeof(ShearConnectionsCategoryType));
+                info.AddValue("HoleShape", HoleShape, typeof(HoleShapeType));
+                info.AddValue("ClassFrictionSurfaces", ClassFrictionSurfaces, typeof(ClassFrictionSurfacesType));
+                info.AddValue("ExposureCondition", ExposureCondition, typeof(ExposureConditionType));
+            }
+
+            #endregion
         }
 
         #endregion

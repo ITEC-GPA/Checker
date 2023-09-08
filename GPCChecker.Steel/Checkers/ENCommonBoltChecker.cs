@@ -18,63 +18,6 @@ namespace GPC.Checkers.Steel.Checkers
     [Serializable]
     public abstract class ENCommonBoltChecker : BoltChecker
     {
-        #region Enum
-
-        public enum HoleShapeType
-        {
-            NormalRound, // Bolts in normal holes.
-            OversizeRound, // Bolts in oversized holes.
-            ShortSlotted, // Bolts in short slotted holes.
-            LongSlotted // Bolts in long slotted holes.
-        }
-
-        /// <summary>
-        /// Slip factor, μ, for pre-loaded bolts.
-        /// UNI EN 1993-1-8:2005 - Table 3.7.
-        /// EN 1090-2:2008 - Table 18 - Classifications for friction surfaces.
-        /// </summary>
-        public enum ClassFrictionSurfacesType
-        {
-            A,
-            B,
-            C,
-            D
-        }
-
-        /// <summary>
-        /// UNI EN 1993-1-8:2005 - 3.4.1 Shear connections.
-        /// UNI EN 1999-1-1:2023 - 10.5.3.1 Shear connestions.
-        /// </summary>
-        public enum ShearConnectionsCategoryType
-        {
-            A, // Category A: Bearing type.
-            B, // Category B: Slip-resistant at serviceability limit state.
-            C  // Category C: Slip-resistant at ultimate limit state.
-        }
-
-        /// <summary>
-        /// UNI EN 1993-1-8:2005 - 3.4.2 Tension connections.
-        /// UNI EN 1999-1-1:2023 - 10.5.3.2 Tension connestions.
-        /// </summary>
-        public enum TensionConnectionsCategoryType
-        {
-            D, // Category D: non-preloaded.
-            E  // Category E: preloaded.
-        }
-
-        /// <summary>
-        /// UNI EN 1993-1-8:2005 - Table 3.3: Minimum and maximum spacing, end and edge distances.
-        /// UNI EN 1999-1-1:2023 - Table 10.1: Minimum, regular and maximum spacing, end and edge distances.
-        /// </summary>
-        public enum ExposureConditionType
-        {
-            Exposed, // Steel/Aluminium exposed to the weather or other corrosive influences.
-            NotExposed, // Steel/Aluminium not exposed to the weather or other corrosive influences.
-            Unprotected // Steel used unprotected. Not managed by Aluminium.
-        }
-
-        #endregion
-
         #region Constructor
 
         protected ENCommonBoltChecker(PlateWithBolts plateWithBolts, List<BoltStresses> boltStresses, Standard standard, BoltOptions options, int id, string name = "")
@@ -84,13 +27,11 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-        #region Private properties
+        #region Properties
 
         private ENCommonBoltOptions OptionsENCommon => (ENCommonBoltOptions)_options;
 
         public List<ENCommonBoltResults> BoltResultsENCommon => _boltResults.Cast<ENCommonBoltResults>().ToList();
-
-        #endregion
 
         public abstract ENCommonBoltResults BoltResultMax { get; }
 
@@ -113,6 +54,8 @@ namespace GPC.Checkers.Steel.Checkers
         /// Slip resistance of connections at serviceability limit state.
         /// </summary>
         protected abstract double EnGammaM3Ser { get; }
+
+        #endregion
 
         #region Public Methods
 
@@ -292,7 +235,39 @@ namespace GPC.Checkers.Steel.Checkers
             _boltDistancesWarning = ENCommonBoltResults.GetDistancesWarnings(_boltResults);
         }
 
+        /// <summary>
+        /// Set hole diameter and slot legth from bolt nominal diameter.
+        /// </summary>
+        /// <param name="boltpos">Hole to change.</param>
+        /// <param name="holeShape">Required hole shape.</param>
+        public void SetHoleDiameter(BoltPosition boltpos, in EN1993BoltChecker.HoleShapeType holeShape)
+        {
+            double boltNominalDiameter = boltpos.BoltDef.Diameter;
+
+            switch (holeShape)
+            {
+                case EN1993BoltChecker.HoleShapeType.OversizeRound:
+                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, EN1993BoltChecker.HoleShapeType.OversizeRound);
+                    boltpos.Hole.SlotLength = 0.0;
+                    break;
+                case EN1993BoltChecker.HoleShapeType.ShortSlotted:
+                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, EN1993BoltChecker.HoleShapeType.NormalRound);
+                    boltpos.Hole.SlotLength = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, EN1993BoltChecker.HoleShapeType.ShortSlotted) - boltpos.Hole.Diameter;
+                    break;
+                case EN1993BoltChecker.HoleShapeType.LongSlotted:
+                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, EN1993BoltChecker.HoleShapeType.NormalRound);
+                    boltpos.Hole.SlotLength = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, EN1993BoltChecker.HoleShapeType.LongSlotted) - boltpos.Hole.Diameter;
+                    break;
+                case EN1993BoltChecker.HoleShapeType.NormalRound:
+                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, EN1993BoltChecker.HoleShapeType.NormalRound);
+                    boltpos.Hole.SlotLength = 0.0;
+                    break;
+            }
+        }
+
         #endregion
+
+        #region Protected methods
 
         /// <summary>
         /// Build a bolt result specific per standard code.
@@ -440,20 +415,20 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="holeShape"></param>
         /// <param name="slotPerpendicularLoad">True if load is perpendicuar to the load.</param>
         /// <returns>k_s</returns>
-        protected double Calculate_ks(in HoleShapeType holeShape, in bool slotPerpendicularLoad)
+        protected double Calculate_ks(in EN1993BoltChecker.HoleShapeType holeShape, in bool slotPerpendicularLoad)
         {
-            if (holeShape == HoleShapeType.NormalRound)
+            if (holeShape == EN1993BoltChecker.HoleShapeType.NormalRound)
                 return 1.0;
-            else if (holeShape == HoleShapeType.OversizeRound)
+            else if (holeShape == EN1993BoltChecker.HoleShapeType.OversizeRound)
                 return 0.85;
-            else if (holeShape == HoleShapeType.ShortSlotted)
+            else if (holeShape == EN1993BoltChecker.HoleShapeType.ShortSlotted)
             {
                 if (slotPerpendicularLoad)
                     return 0.85;
                 else
                     return 0.76;
             }
-            else if (holeShape == HoleShapeType.LongSlotted)
+            else if (holeShape == EN1993BoltChecker.HoleShapeType.LongSlotted)
             {
                 if (slotPerpendicularLoad)
                     return 0.7;
@@ -479,13 +454,13 @@ namespace GPC.Checkers.Steel.Checkers
         {
             switch (OptionsENCommon.ClassFrictionSurfaces)
             {
-                case ClassFrictionSurfacesType.A:
+                case EN1993BoltChecker.ClassFrictionSurfacesType.A:
                     return 0.5;
-                case ClassFrictionSurfacesType.B:
+                case EN1993BoltChecker.ClassFrictionSurfacesType.B:
                     return 0.4;
-                case ClassFrictionSurfacesType.C:
+                case EN1993BoltChecker.ClassFrictionSurfacesType.C:
                     return 0.3;
-                case ClassFrictionSurfacesType.D:
+                case EN1993BoltChecker.ClassFrictionSurfacesType.D:
                     return 0.2;
             }
             _errorLog.Add($"Error: wrong splip class '{OptionsENCommon.ClassFrictionSurfaces}', μ=0.2 will be used.");
@@ -526,13 +501,13 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="nominalBoltDiameter"></param>
         /// <param name="holeShape"></param>
         /// <returns></returns>
-        protected double CalculateNominalClearance(in double nominalBoltDiameter, in HoleShapeType holeShape)
+        protected double CalculateNominalClearance(in double nominalBoltDiameter, in EN1993BoltChecker.HoleShapeType holeShape)
         {
             double holeTolerance = 0.01;
 
             switch (holeShape)
             {
-                case HoleShapeType.NormalRound:
+                case EN1993BoltChecker.HoleShapeType.NormalRound:
                     if (nominalBoltDiameter < 12.0 + holeTolerance)
                         return 1.0;
                     else if (nominalBoltDiameter < 24.0 + holeTolerance)
@@ -540,7 +515,7 @@ namespace GPC.Checkers.Steel.Checkers
                     else
                         return 3.0;
 
-                case HoleShapeType.OversizeRound:
+                case EN1993BoltChecker.HoleShapeType.OversizeRound:
                     if (nominalBoltDiameter < 14.0 + holeTolerance)
                         return 3.0;
                     else if (nominalBoltDiameter < 22.0 + holeTolerance)
@@ -550,7 +525,7 @@ namespace GPC.Checkers.Steel.Checkers
                     else
                         return 8.0;
 
-                case HoleShapeType.ShortSlotted:
+                case EN1993BoltChecker.HoleShapeType.ShortSlotted:
                     if (nominalBoltDiameter < 14.0 + holeTolerance)
                         return 4.0;
                     else if (nominalBoltDiameter < 22.0 + holeTolerance)
@@ -560,7 +535,7 @@ namespace GPC.Checkers.Steel.Checkers
                     else
                         return 10.0;
 
-                case HoleShapeType.LongSlotted:
+                case EN1993BoltChecker.HoleShapeType.LongSlotted:
                     return 1.5 * nominalBoltDiameter;
 
                 default:
@@ -575,58 +550,28 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         /// <param name="hole"></param>
         /// <returns></returns>
-        protected HoleShapeType CalculateHoleType(in BoltPosition boltpos)
+        protected EN1993BoltChecker.HoleShapeType CalculateHoleType(in BoltPosition boltpos)
         {
             double holeTolerance = 0.01;
             double clearance = boltpos.Hole.MaxLength - boltpos.BoltDef.Diameter;
 
             if (!boltpos.Hole.IsSlotted)
             {
-                double nominnalClearanceNormal = CalculateNominalClearance(boltpos.BoltDef.Diameter, HoleShapeType.NormalRound);
+                double nominnalClearanceNormal = CalculateNominalClearance(boltpos.BoltDef.Diameter, EN1993BoltChecker.HoleShapeType.NormalRound);
 
                 if (clearance < nominnalClearanceNormal + holeTolerance)
-                    return HoleShapeType.NormalRound;
+                    return EN1993BoltChecker.HoleShapeType.NormalRound;
                 else
-                    return HoleShapeType.OversizeRound;
+                    return EN1993BoltChecker.HoleShapeType.OversizeRound;
             }
             else
             {
-                double nominnalClearanceShort = CalculateNominalClearance(boltpos.BoltDef.Diameter, HoleShapeType.ShortSlotted);
+                double nominnalClearanceShort = CalculateNominalClearance(boltpos.BoltDef.Diameter, EN1993BoltChecker.HoleShapeType.ShortSlotted);
 
                 if (clearance < nominnalClearanceShort + holeTolerance)
-                    return HoleShapeType.ShortSlotted;
+                    return EN1993BoltChecker.HoleShapeType.ShortSlotted;
                 else
-                    return HoleShapeType.LongSlotted;
-            }
-        }
-
-        /// <summary>
-        /// Set hole diameter and slot legth from bolt nominal diameter.
-        /// </summary>
-        /// <param name="boltpos">Hole to change.</param>
-        /// <param name="holeShape">Required hole shape.</param>
-        public void SetHoleDiameter(BoltPosition boltpos, in HoleShapeType holeShape)
-        {
-            double boltNominalDiameter = boltpos.BoltDef.Diameter;
-
-            switch (holeShape)
-            {
-                case HoleShapeType.OversizeRound:
-                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.OversizeRound);
-                    boltpos.Hole.SlotLength = 0.0;
-                    break;
-                case HoleShapeType.ShortSlotted:
-                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.NormalRound);
-                    boltpos.Hole.SlotLength = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.ShortSlotted) - boltpos.Hole.Diameter;
-                    break;
-                case HoleShapeType.LongSlotted:
-                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.NormalRound);
-                    boltpos.Hole.SlotLength = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.LongSlotted) - boltpos.Hole.Diameter;
-                    break;
-                case HoleShapeType.NormalRound:
-                    boltpos.Hole.Diameter = boltNominalDiameter + CalculateNominalClearance(boltNominalDiameter, HoleShapeType.NormalRound);
-                    boltpos.Hole.SlotLength = 0.0;
-                    break;
+                    return EN1993BoltChecker.HoleShapeType.LongSlotted;
             }
         }
 
@@ -670,6 +615,8 @@ namespace GPC.Checkers.Steel.Checkers
             out double p1_min, out double p1_max,
             out double p2_min, out double p2_max);
 
+        #endregion
+
         #region Nested Class Options
 
         /// <summary>
@@ -680,9 +627,9 @@ namespace GPC.Checkers.Steel.Checkers
         {
             #region Fields
 
-            protected ShearConnectionsCategoryType _shearConnectionsCategory;
+            protected EN1993BoltChecker.ShearConnectionsCategoryType _shearConnectionsCategory;
 
-            protected TensionConnectionsCategoryType _tensionConnectionsCategory;
+            protected EN1993BoltChecker.TensionConnectionsCategoryType _tensionConnectionsCategory;
 
             #endregion
 
@@ -692,17 +639,17 @@ namespace GPC.Checkers.Steel.Checkers
             /// UNI EN 1993-1-8:2005 - Table 3.6 and EN 1090-2 Table 11.
             /// Influence on bearing resistance Fb,Rd and tollerances.
             /// </summary>
-            public HoleShapeType HoleShape { get; set; }
+            public EN1993BoltChecker.HoleShapeType HoleShape { get; set; }
 
             /// <summary>
             /// Class of friction surfaces.
             /// </summary>
-            public ClassFrictionSurfacesType ClassFrictionSurfaces { get; set; }
+            public EN1993BoltChecker.ClassFrictionSurfacesType ClassFrictionSurfaces { get; set; }
 
             /// <summary>
             /// Shear connection category.
             /// </summary>
-            public ShearConnectionsCategoryType ShearConnectionsCategory
+            public EN1993BoltChecker.ShearConnectionsCategoryType ShearConnectionsCategory
             {
                 get => _shearConnectionsCategory;
                 set
@@ -710,12 +657,12 @@ namespace GPC.Checkers.Steel.Checkers
                     _shearConnectionsCategory = value;
                     switch (value)
                     {
-                        case ShearConnectionsCategoryType.A:
-                            _tensionConnectionsCategory = TensionConnectionsCategoryType.D;
+                        case EN1993BoltChecker.ShearConnectionsCategoryType.A:
+                            _tensionConnectionsCategory = EN1993BoltChecker.TensionConnectionsCategoryType.D;
                             break;
-                        case ShearConnectionsCategoryType.B:
-                        case ShearConnectionsCategoryType.C:
-                            _tensionConnectionsCategory = TensionConnectionsCategoryType.E;
+                        case EN1993BoltChecker.ShearConnectionsCategoryType.B:
+                        case EN1993BoltChecker.ShearConnectionsCategoryType.C:
+                            _tensionConnectionsCategory = EN1993BoltChecker.TensionConnectionsCategoryType.E;
                             break;
                     }
                 }
@@ -724,12 +671,12 @@ namespace GPC.Checkers.Steel.Checkers
             /// <summary>
             /// Tension connection category.
             /// </summary>
-            public TensionConnectionsCategoryType TensionConnectionsCategory => _tensionConnectionsCategory;
+            public EN1993BoltChecker.TensionConnectionsCategoryType TensionConnectionsCategory => _tensionConnectionsCategory;
 
             /// <summary>
             /// Exposure condition, used for minimum and maximum spacing, end and edge distances.
             /// </summary>
-            public ExposureConditionType ExposureCondition { get; set; }
+            public EN1993BoltChecker.ExposureConditionType ExposureCondition { get; set; }
 
             #endregion
 
@@ -737,19 +684,19 @@ namespace GPC.Checkers.Steel.Checkers
 
             protected ENCommonBoltOptions()
             {
-                HoleShape = HoleShapeType.NormalRound;
-                ClassFrictionSurfaces = ClassFrictionSurfacesType.D;
-                ShearConnectionsCategory = ShearConnectionsCategoryType.A;
-                ExposureCondition = ExposureConditionType.Exposed;
+                HoleShape = EN1993BoltChecker.HoleShapeType.NormalRound;
+                ClassFrictionSurfaces = EN1993BoltChecker.ClassFrictionSurfacesType.D;
+                ShearConnectionsCategory = EN1993BoltChecker.ShearConnectionsCategoryType.A;
+                ExposureCondition = EN1993BoltChecker.ExposureConditionType.Exposed;
             }
 
             protected ENCommonBoltOptions(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             {
-                ShearConnectionsCategory = (ShearConnectionsCategoryType)info.GetValue("ShearConnectionsCategory", typeof(ShearConnectionsCategoryType));
-                HoleShape = (HoleShapeType)info.GetValue("HoleShape", typeof(HoleShapeType));
-                ClassFrictionSurfaces = (ClassFrictionSurfacesType)info.GetValue("ClassFrictionSurfaces", typeof(ClassFrictionSurfacesType));
-                ExposureCondition = (ExposureConditionType)info.GetValue("ExposureCondition", typeof(ExposureConditionType));
+                ShearConnectionsCategory = (EN1993BoltChecker.ShearConnectionsCategoryType)info.GetValue("ShearConnectionsCategory", typeof(EN1993BoltChecker.ShearConnectionsCategoryType));
+                HoleShape = (EN1993BoltChecker.HoleShapeType)info.GetValue("HoleShape", typeof(EN1993BoltChecker.HoleShapeType));
+                ClassFrictionSurfaces = (EN1993BoltChecker.ClassFrictionSurfacesType)info.GetValue("ClassFrictionSurfaces", typeof(EN1993BoltChecker.ClassFrictionSurfacesType));
+                ExposureCondition = (EN1993BoltChecker.ExposureConditionType)info.GetValue("ExposureCondition", typeof(EN1993BoltChecker.ExposureConditionType));
             }
 
             #endregion
@@ -760,10 +707,10 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 base.GetObjectData(info, context);
 
-                info.AddValue("ShearConnectionsCategory", _shearConnectionsCategory, typeof(ShearConnectionsCategoryType));
-                info.AddValue("HoleShape", HoleShape, typeof(HoleShapeType));
-                info.AddValue("ClassFrictionSurfaces", ClassFrictionSurfaces, typeof(ClassFrictionSurfacesType));
-                info.AddValue("ExposureCondition", ExposureCondition, typeof(ExposureConditionType));
+                info.AddValue("ShearConnectionsCategory", _shearConnectionsCategory, typeof(EN1993BoltChecker.ShearConnectionsCategoryType));
+                info.AddValue("HoleShape", HoleShape, typeof(EN1993BoltChecker.HoleShapeType));
+                info.AddValue("ClassFrictionSurfaces", ClassFrictionSurfaces, typeof(EN1993BoltChecker.ClassFrictionSurfacesType));
+                info.AddValue("ExposureCondition", ExposureCondition, typeof(EN1993BoltChecker.ExposureConditionType));
             }
 
             #endregion

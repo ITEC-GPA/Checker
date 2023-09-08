@@ -42,7 +42,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-        #region Private methods
+        #region Protected Methods
 
         protected override ENCommonBoltResults BuildENCommonBoltResults(BoltPosition boltPos, ILoadCase loadCase, ResultBeamForces beamForces)
         {
@@ -145,13 +145,13 @@ namespace GPC.Checkers.Steel.Checkers
 
             switch (OptionsEN1999.ExposureCondition)
             {
-                case ExposureConditionType.Exposed:
+                case EN1993BoltChecker.ExposureConditionType.Exposed:
                     e1e2_max = 4.0 * t + 40.0;
                     e3e4_max = Double.NaN;
                     p1_max = Math.Min(14.0 * t, 200.0);
                     p2_max = p1_max;
                     break;
-                case ExposureConditionType.NotExposed:
+                case EN1993BoltChecker.ExposureConditionType.NotExposed:
                     e1e2_max = Math.Max(12.0 * t, 150.0);
                     e3e4_max = Double.NaN;
                     p1_max = Math.Min(14.0 * t, 200.0);
