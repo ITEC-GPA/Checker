@@ -2409,11 +2409,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         return (+0.1, +0.0, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 }
 
-            } while (dMxdTeta == 0.0 && dMydTeta == 0.0);
+            } while ((dNdTeta == 0.0 && (dMxdTeta == 0.0 || dMydTeta == 0.0)) || (dMxdTeta == 0.0 && dMydTeta == 0.0));
 
 
-            // derivate parziali rispetto a immersione nel campo
-            do
+			// derivate parziali rispetto a immersione nel campo
+			do
             {
                 if (etaCounter < 10)
                 {
@@ -2500,7 +2500,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         return (+0.0, +0.01, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 }
 
-            } while (dMxdImm == 0.0 && dMydImm == 0.0);
+            } while ((dNdImm == 0.0 && (dMxdImm == 0.0 || dMydImm == 0.0)) || (dMxdImm == 0.0 && dMydImm == 0.0));
 
             Vector3d v1 = new Vector3d(dMxdTeta, dMydTeta, dNdTeta);
             v1.Unitize();
