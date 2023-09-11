@@ -219,7 +219,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
-            _failureAnalysisAngularTolerance = 0.5e-4;
+            _failureAnalysisAngularTolerance = 0.25e-3;
             _failureAnalysisDistanceTolerance = 0.5e-4;
 
             _considerTensileConcrete = considerTensileConcrete;
