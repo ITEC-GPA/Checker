@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Steel.Results;
+using GPC.Checkers.Steel.Results;
 using GPC.Model.LoadCases;
 using GPC.Model.Materials;
 using GPC.Model.Results;
@@ -92,6 +92,11 @@ namespace GPC.Checkers.Steel.Checkers
         public override ENCommonBoltResults BoltResultMax => (EN1993BoltResults)_boltResultMax;
 
         protected override double PlateMaterialFu => ((SteelMaterial)_plateWithBolts.PlateMaterial).Fu;
+
+        /// <summary>
+        /// For steel this check is not done.
+        /// </summary>
+        public override bool IsLessThanMaximumThickness => true;
 
         protected override double EnGammaM2 => StandardEN1993.GammaM2;
 

@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Steel.Results;
+using GPC.Checkers.Steel.Results;
 using GPC.Geometry;
 using GPC.Model.LoadCases;
 using GPC.Model.Materials;
@@ -39,6 +39,12 @@ namespace GPC.Checkers.Steel.Checkers
         /// Characteristic value of ultimate tensile strength.
         /// </summary>
         protected abstract double PlateMaterialFu { get; }
+
+        /// <summary>
+        /// Check if the plate thickness is less than the maximum.
+        /// </summary>
+        /// <returns></returns>
+        public abstract bool IsLessThanMaximumThickness { get; }
 
         /// <summary>
         /// Partial factor for resistance of cross-sections in tension to fracture.

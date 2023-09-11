@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Steel.Results;
+using GPC.Checkers.Steel.Results;
 using GPC.Model.LoadCases;
 using GPC.Model.Materials;
 using GPC.Model.Results;
@@ -31,6 +31,8 @@ namespace GPC.Checkers.Steel.Checkers
         protected override double EnGammaM3Ser => StandardEN1999.GammaMsSer;
 
         protected override double PlateMaterialFu => ((AluminiumMaterial)_plateWithBolts.PlateMaterial).Fu;
+
+        public override bool IsLessThanMaximumThickness => _plateWithBolts.Thickness < ((AluminiumMaterial)_plateWithBolts.PlateMaterial).ThicknessMax;
 
         #endregion
 
