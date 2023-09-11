@@ -2713,7 +2713,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // piano di nuovo tentativo
             teta += deltaTeta;
 
-            eta += (deltaEta - (int)deltaEta);
+			if (failureZone == FailureZones.F3B && eta + deltaEta < 0)
+			{
+				deltaEta *= 0.5;
+			}
+
+			eta += (deltaEta - (int)deltaEta);
             failureZone += (int)deltaEta;
 
             switch (analysisType)
