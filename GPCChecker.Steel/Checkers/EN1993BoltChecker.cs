@@ -242,6 +242,7 @@ namespace GPC.Checkers.Steel.Checkers
             }
 
             public EN1993BoltOptions(SerializationInfo info, StreamingContext context)
+                : base(info, context)
             {
                 int version = info.GetInt32("EN1993BoltOptionsVersion");
 

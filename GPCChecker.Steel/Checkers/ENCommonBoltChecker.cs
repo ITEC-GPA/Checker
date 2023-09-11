@@ -87,10 +87,8 @@ namespace GPC.Checkers.Steel.Checkers
             foreach (var SolForce in _boltStresses)
             {
                 // ****** Required forces.
-                // Reduce the forces according to the number of cutting planes.
-                var ReducedForces = SolForce.ResBeamForces / OptionsENCommon.NumShearPlane;
                 // Calculate all shear forces for each bolt.
-                var SollAllBolts = _plateWithBolts.BoltGrid.CalculateShearForcesElastic(ReducedForces);
+                var SollAllBolts = _plateWithBolts.BoltGrid.CalculateShearForcesElastic(SolForce.ResBeamForces);
                 // Calculate uniform tension forces for each bolt.
                 var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N / SollAllBolts.Count() : 0;
                 if (SollN > 1) // Positive for tension.
@@ -335,7 +333,7 @@ namespace GPC.Checkers.Steel.Checkers
         {
             double f_ub = boltSection.BoltMaterial.Fu;
             double area = boltSection.CalculateResistantArea(OptionsENCommon.ShearPlaneThroughThreadedPortion);
-            return alpha_v * f_ub * area / EnGammaM2;
+            return alpha_v * f_ub * area * OptionsENCommon.NumShearPlane / EnGammaM2;
         }
 
         /// <summary>
@@ -693,28 +691,9 @@ namespace GPC.Checkers.Steel.Checkers
             protected ENCommonBoltOptions(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             {
-                ShearConnectionsCategory = (EN1993BoltChecker.ShearConnectionsCategoryType)info.GetValue("ShearConnectionsCategory", typeof(EN1993BoltChecker.ShearConnectionsCategoryType));
-                HoleShape = (EN1993BoltChecker.HoleShapeType)info.GetValue("HoleShape", typeof(EN1993BoltChecker.HoleShapeType));
-                ClassFrictionSurfaces = (EN1993BoltChecker.ClassFrictionSurfacesType)info.GetValue("ClassFrictionSurfaces", typeof(EN1993BoltChecker.ClassFrictionSurfacesType));
-                ExposureCondition = (EN1993BoltChecker.ExposureConditionType)info.GetValue("ExposureCondition", typeof(EN1993BoltChecker.ExposureConditionType));
             }
 
             #endregion
-
-            #region Methods
-
-            public override void GetObjectData(SerializationInfo info, StreamingContext context)
-            {
-                base.GetObjectData(info, context);
-
-                info.AddValue("ShearConnectionsCategory", _shearConnectionsCategory, typeof(EN1993BoltChecker.ShearConnectionsCategoryType));
-                info.AddValue("HoleShape", HoleShape, typeof(EN1993BoltChecker.HoleShapeType));
-                info.AddValue("ClassFrictionSurfaces", ClassFrictionSurfaces, typeof(EN1993BoltChecker.ClassFrictionSurfacesType));
-                info.AddValue("ExposureCondition", ExposureCondition, typeof(EN1993BoltChecker.ExposureConditionType));
-            }
-
-            #endregion
-
         }
 
         #endregion

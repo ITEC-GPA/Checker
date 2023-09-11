@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using static GPC.Checkers.Steel.Checkers.EN1993BoltChecker;
 
 namespace GPC.Checkers.Steel.Checkers
 {
@@ -179,6 +180,43 @@ namespace GPC.Checkers.Steel.Checkers
             public EN1999BoltOptions()
             {
             }
+
+            public EN1999BoltOptions(SerializationInfo info, StreamingContext context)
+                : base(info, context)
+            {
+                int version = info.GetInt32("EN1999BoltOptionsVersion");
+
+                ShearConnectionsCategory = (ShearConnectionsCategoryType)info.GetValue("ShearConnectionsCategory", typeof(ShearConnectionsCategoryType));
+                HoleShape = (HoleShapeType)info.GetValue("HoleShape", typeof(HoleShapeType));
+                ClassFrictionSurfaces = (ClassFrictionSurfacesType)info.GetValue("ClassFrictionSurfaces", typeof(ClassFrictionSurfacesType));
+                if (version == 2)
+                {
+                    ExposureCondition = (ExposureConditionType)info.GetValue("ExposureCondition", typeof(ExposureConditionType));
+                }
+            }
+
+            #region Methods
+
+            /// <summary>
+            /// In version 2:
+            /// - added ExposureCondition.
+            /// </summary>
+            /// <param name="info"></param>
+            /// <param name="context"></param>
+            public override void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                base.GetObjectData(info, context);
+
+                int version = 2;
+                info.AddValue("EN1999BoltOptionsVersion", version);
+
+                info.AddValue("ShearConnectionsCategory", _shearConnectionsCategory, typeof(ShearConnectionsCategoryType));
+                info.AddValue("HoleShape", HoleShape, typeof(HoleShapeType));
+                info.AddValue("ClassFrictionSurfaces", ClassFrictionSurfaces, typeof(ClassFrictionSurfacesType));
+                info.AddValue("ExposureCondition", ExposureCondition, typeof(ExposureConditionType));
+            }
+
+            #endregion
         }
 
         #endregion
