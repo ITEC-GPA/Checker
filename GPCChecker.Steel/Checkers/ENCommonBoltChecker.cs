@@ -401,7 +401,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns>F_b,Rd</returns>
         protected double CalculateBearingResistance_FbRd(in double k_1, in double alpha_b, in BoltSection boltSection, in double plateWithBoltsThickness)
         {
-            return k_1 * alpha_b * PlateMaterialFu * boltSection.Diameter * plateWithBoltsThickness / EnGammaM2;
+            return OptionsENCommon.NumBearingPlate * k_1 * alpha_b * PlateMaterialFu * boltSection.Diameter * plateWithBoltsThickness / EnGammaM2;
         }
 
         /// <summary>
