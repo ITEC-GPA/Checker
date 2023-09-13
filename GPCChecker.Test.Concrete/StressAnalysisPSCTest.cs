@@ -27,7 +27,7 @@ namespace ConcreteTests
 			Shape2d shape = GetRectangularShape(300, 300);
 
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
-			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterialEN1992Data.Y1620CHardening);
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterialEN1992Data.Y1620C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
@@ -70,7 +70,7 @@ namespace ConcreteTests
 			Shape2d shape = GetRectangularShape(500, 500);
 
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
-			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterialEN1992Data.Y1620CHardening);
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterialEN1992("Y1620", 195000, 1420, 1620, 0.075, SteelMaterial.StressStrainCurveType.ElasticHardening, SteelMaterial.SteelTypes.Tendon));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
@@ -202,7 +202,7 @@ namespace ConcreteTests
 			Shape2d shape = GetRectangularShape(400, 700);
 
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
-			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, SteelMaterialEN1992Data.Y1620CHardening);
+			RebarSectionCircular rebarP = new RebarSectionCircular(rebarDiameterPrestress, new SteelMaterialEN1992("Y1620", 195000, 1420, 1620, 0.075, SteelMaterial.StressStrainCurveType.ElasticHardening, SteelMaterial.SteelTypes.Tendon));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[] {
 				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
