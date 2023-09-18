@@ -219,11 +219,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
-            _failureAnalysisAngularTolerance = 1.0e-3;
+            _failureAnalysisAngularTolerance = 0.25e-3;
             _failureAnalysisDistanceTolerance = 0.5e-4;
 
             _considerTensileConcrete = considerTensileConcrete;
-            _tetaDiscretization = 32;
+            _tetaDiscretization = 64;
 
             _gaussIntegrationQuadPoints = QuadrangleGaussPoints.GaussPointNumber.Quad400;
             _gaussIntegrationTriPoints = TriangleGaussPoints.GaussPointNumber.Tri79;
@@ -2004,8 +2004,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     }
                     else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-2 && Math.Abs(adimOutputForces.My) < 1e-2)
                     {
-                        failureIndex = FailureZones.F4;
-                        eta = 0.5;
+                        failureIndex = FailureZones.F3B;
+                        eta = 0.8;
                     }
                     else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
                     {
@@ -2014,8 +2014,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     }
                     else
                     {
-                        failureIndex = FailureZones.F4;
-                        eta = 0.2;
+                        failureIndex = FailureZones.F3B;
+                        eta = 0.8;
                     }
                     break;
                 case FailureAnalysisTypes.ConstantN:
@@ -2409,11 +2409,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         return (+0.1, +0.0, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 }
 
-            } while (dNdTeta == 0.0 || (dMxdTeta == 0.0 && dMydTeta == 0.0));
+            } while ((dNdTeta == 0.0 && (dMxdTeta == 0.0 || dMydTeta == 0.0)) || (dMxdTeta == 0.0 && dMydTeta == 0.0));
 
 
-            // derivate parziali rispetto a immersione nel campo
-            do
+			// derivate parziali rispetto a immersione nel campo
+			do
             {
                 if (etaCounter < 10)
                 {
@@ -2500,7 +2500,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         return (+0.0, +0.01, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
                 }
 
-            } while (dNdImm == 0.0 || (dMxdImm == 0.0 && dMydImm == 0.0));
+            } while ((dNdImm == 0.0 && (dMxdImm == 0.0 || dMydImm == 0.0)) || (dMxdImm == 0.0 && dMydImm == 0.0));
 
             Vector3d v1 = new Vector3d(dMxdTeta, dMydTeta, dNdTeta);
             v1.Unitize();
@@ -2534,18 +2534,43 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Vector3d displacementVector = new Vector3d(iterationPoint, intersectionPoint);
 
                 Matrix<double> partialDerivatives = Matrix<double>.Build.Dense(2, 2);
+				Matrix<double> inputVector = Matrix<double>.Build.Dense(2, 1);
 
-                partialDerivatives[0, 0] = dMxdTeta;
-                partialDerivatives[1, 0] = dNdTeta;
+                if ((dNdTeta != 0 || dNdImm != 0) && (dMxdTeta != 0 || dMxdImm != 0))
+                {
+                    partialDerivatives[0, 0] = dMxdTeta;
+                    partialDerivatives[1, 0] = dNdTeta;
 
-                partialDerivatives[0, 1] = dMxdImm;
-                partialDerivatives[1, 1] = dNdImm;
+                    partialDerivatives[0, 1] = dMxdImm;
+                    partialDerivatives[1, 1] = dNdImm;
 
-                Matrix<double> inputVector = Matrix<double>.Build.Dense(2, 1);
-                inputVector[0, 0] = displacementVector.X;
-                inputVector[1, 0] = displacementVector.Z;
+                    inputVector[0, 0] = displacementVector.X;
+                    inputVector[1, 0] = displacementVector.Z;
+                }
+				else if ((dNdTeta != 0 || dNdImm != 0) && (dMydTeta != 0 || dMydImm != 0))
+				{
+					partialDerivatives[0, 0] = dMydTeta;
+					partialDerivatives[1, 0] = dNdTeta;
 
-                Matrix<double> results = partialDerivatives.Inverse() * inputVector;
+					partialDerivatives[0, 1] = dMydImm;
+					partialDerivatives[1, 1] = dNdImm;
+
+					inputVector[0, 0] = displacementVector.Y;
+					inputVector[1, 0] = displacementVector.Z;
+				}
+				else
+				{
+					partialDerivatives[0, 0] = dMxdTeta;
+					partialDerivatives[1, 0] = dMydTeta;
+
+					partialDerivatives[0, 1] = dMxdImm;
+					partialDerivatives[1, 1] = dMydImm;
+
+					inputVector[0, 0] = displacementVector.X;
+					inputVector[1, 0] = displacementVector.Y;
+				}
+
+				Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
                 if (nonLinearErrorEta > 1.0)
                     nonLinearErrorEta = 1.0;
@@ -2688,7 +2713,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // piano di nuovo tentativo
             teta += deltaTeta;
 
-            eta += (deltaEta - (int)deltaEta);
+			if (failureZone == FailureZones.F3B && eta + deltaEta < 0)
+			{
+				deltaEta *= 0.5;
+			}
+
+			eta += (deltaEta - (int)deltaEta);
             failureZone += (int)deltaEta;
 
             switch (analysisType)

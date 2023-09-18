@@ -184,7 +184,7 @@ namespace ConcreteTests
             // Geometry, material and section.
             var section = GetRectangularSection4Rebars(300, 500, 22, 50,
                 new ConcreteMaterialACI318("fc' 30Mpa", 30, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle),
-                new SteelMaterialACI318("Grade 60", 200000, 420, 420, 0.10, SteelMaterial.SteelTypes.Rebar));
+                new SteelMaterialACI318("Grade 60", 200000, 420, 420, 0.10, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar));
             var standard = new StandardACI318p19();
             cs = GetLocalCoordinateSystem(section);
             var sectionOptions = new SectionCheckerACI318.SectionOptionsStandardACI318(cs, ratioMode);

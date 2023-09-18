@@ -4,7 +4,6 @@ using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using static GPC.Checkers.Steel.Results.EN1993BoltResults;
 
 namespace GPC.Checkers.Steel.Checkers
 {
@@ -20,13 +19,13 @@ namespace GPC.Checkers.Steel.Checkers
         protected readonly List<BoltStresses> _boltStresses;
         protected List<BoltResults> _boltResults;
         protected BoltResults _boltResultMax;
-        protected List<DistanceWarning> _boltDistancesWarning;
+        protected List<ENCommonBoltResults.DistanceWarning> _boltDistancesWarning;
 
         #endregion
 
         #region Properties
 
-        public List<DistanceWarning> BoltDistancesWarning => _boltDistancesWarning;
+        public List<ENCommonBoltResults.DistanceWarning> BoltDistancesWarning => _boltDistancesWarning;
 
         #endregion
 
@@ -52,6 +51,8 @@ namespace GPC.Checkers.Steel.Checkers
 
             protected int _numFrictionPlane;
 
+            protected int _numBearingPlate;
+
             #endregion
 
             #region Properties
@@ -63,6 +64,7 @@ namespace GPC.Checkers.Steel.Checkers
 
             /// <summary>
             /// Number of share planes, one or more.
+            /// Coefficient that amplifies shear resistance.
             /// </summary>
             public int NumShearPlane
             {
@@ -77,11 +79,22 @@ namespace GPC.Checkers.Steel.Checkers
 
             /// <summary>
             /// Number of share planes, one or more.
+            /// Coefficient that amplifies slip resistance.
             /// </summary>
             public int NumFricionPlane
             {
                 get => _numFrictionPlane;
                 set => _numFrictionPlane = value < 1 ? 1 : value;
+            }
+
+            /// <summary>
+            /// Number of bearing plates, one or more.
+            /// Coefficient that amplifies bearing resistance.
+            /// </summary>
+            public int NumBearingPlate
+            {
+                get => _numBearingPlate;
+                set => _numBearingPlate = value < 1 ? 1 : value;
             }
 
             #endregion
@@ -94,15 +107,26 @@ namespace GPC.Checkers.Steel.Checkers
                 NumShearPlane = 1;
                 IsCounterSunkBolt = false;
                 NumFricionPlane = 1;
+                NumBearingPlate = 1;
             }
 
             public BoltOptions(SerializationInfo info, StreamingContext context)
             {
+                int BoltOptionsVersion = 1;
+                try
+                {
+                    BoltOptionsVersion = info.GetInt32("BoltOptionsVersion");
+                }
+                catch { }
+
                 ShearPlaneThroughThreadedPortion = info.GetBoolean("ShearPlaneThroughThreadedPortion");
                 _numShearPlane = info.GetInt32("NumShearPlane");
                 IsCounterSunkBolt = info.GetBoolean("IsCounterSunkBolt");
                 _numFrictionPlane = info.GetInt32("NumFrictionPlane");
-
+                if (BoltOptionsVersion > 1)
+                {
+                    _numBearingPlate = info.GetInt32("NumBearingPlate");
+                }
             }
 
             #endregion
@@ -111,10 +135,13 @@ namespace GPC.Checkers.Steel.Checkers
 
             public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
             {
+                int BoltOptionsVersion = 2;
+                info.AddValue("BoltOptionsVersion", BoltOptionsVersion);
                 info.AddValue("ShearPlaneThroughThreadedPortion", ShearPlaneThroughThreadedPortion);
                 info.AddValue("NumShearPlane", _numShearPlane);
                 info.AddValue("IsCounterSunkBolt", IsCounterSunkBolt);
                 info.AddValue("NumFrictionPlane", _numFrictionPlane);
+                info.AddValue("NumBearingPlate", _numBearingPlate);
             }
 
             #endregion

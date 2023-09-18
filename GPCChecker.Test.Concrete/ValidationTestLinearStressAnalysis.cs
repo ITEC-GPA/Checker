@@ -215,7 +215,7 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(h, h);
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C45_55;
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("", 200000, 450, 450, 0.1, SteelMaterial.SteelTypes.Rebar));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("", 200000, 450, 450, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
