@@ -33,7 +33,7 @@ namespace ConcreteTests
 			double omega = 0.25;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -54,7 +54,7 @@ namespace ConcreteTests
 			double omega = 0.37;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C40_50;
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -75,7 +75,7 @@ namespace ConcreteTests
 			double omega = 0.36;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C50_60;
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -96,7 +96,7 @@ namespace ConcreteTests
 			double omega = 0.17;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -117,7 +117,7 @@ namespace ConcreteTests
 			double omega = 0.17;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -138,7 +138,7 @@ namespace ConcreteTests
 			double omega = 0.60;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
-			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("FeB44k", 200000, 430, 430, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -160,7 +160,7 @@ namespace ConcreteTests
 			double omega = 0.40;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -182,7 +182,7 @@ namespace ConcreteTests
 			double omega = 0.40;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -204,7 +204,7 @@ namespace ConcreteTests
 			double omega = 0.60;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C40_50;
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -226,7 +226,7 @@ namespace ConcreteTests
 			double omega = 0.60;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C40_50;
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -248,7 +248,7 @@ namespace ConcreteTests
 			double omega = 0.45;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -270,7 +270,7 @@ namespace ConcreteTests
 			double omega = 0.45;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -292,7 +292,7 @@ namespace ConcreteTests
 			double omega = 0.30;
 
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C40_50;
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			(FailureDomainResult failureDomainResult, ReinforcedConcreteSection section) result = GetAbacusFailureDomainResult(omega, b, h, concreteMaterial, rebarMaterial, standard);
@@ -315,7 +315,7 @@ namespace ConcreteTests
 
 			ConcreteMaterialEN1992[] concreteMaterial = new ConcreteMaterialEN1992[] { ConcreteMaterialEN1992Data.C25_30, ConcreteMaterialEN1992Data.C32_40,
 				ConcreteMaterialEN1992Data.C40_50, ConcreteMaterialEN1992Data.C45_55, ConcreteMaterialEN1992Data.C55_67 };
-			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.SteelTypes.Rebar);
+			SteelMaterial rebarMaterial = new SteelMaterial("", 200000, 440, 440, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
 			StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
 			for (int i = 0; i < concreteMaterial.Length; i++)
@@ -343,11 +343,10 @@ namespace ConcreteTests
 
 			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 49.7, ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.NonLinear);
 
-			ShapeEx shapeEx = new ShapeEx(GetRectangularShape(width, height), concreteMaterial);
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(GetRectangularShape(width, height), concreteMaterial);
 
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("RebarMat", 200000, 534, 630, 0.1, SteelMaterial.SteelTypes.Rebar));
-			RebarSectionCircular rebarComp = new RebarSectionCircular(10, new SteelMaterial("RebarMat", 200000, 534, 630, 0.1, SteelMaterial.SteelTypes.Rebar));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("RebarMat", 200000, 534, 630, 0.1, SteelMaterial.StressStrainCurveType.ElasticHardening, SteelMaterial.SteelTypes.Rebar));
+			RebarSectionCircular rebarComp = new RebarSectionCircular(10, new SteelMaterial("RebarMat", 200000, 534, 630, 0.1, SteelMaterial.StressStrainCurveType.ElasticHardening, SteelMaterial.SteelTypes.Rebar));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
@@ -409,14 +408,12 @@ namespace ConcreteTests
 				1.11, 0.89, 0.00285, 0.02, ConcreteMaterialModelCode2010.TensionStressStrainDiagrams.Bilinear);
 
 			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 30, ConcreteMaterialModelCode2010.CompressionStressStrainDiagrams.NonLinear);
-			ShapeEx shapeExFRC = new ShapeEx(GetRectangularShape(width, height), concreteMaterialFRC);
-			ReinforcedConcreteSection sectionFRC = new ReinforcedConcreteSection(shapeExFRC);
+			ReinforcedConcreteSection sectionFRC = new ReinforcedConcreteSection(GetRectangularShape(width, height), concreteMaterialFRC);
 
-			ShapeEx shapeEx = new ShapeEx(GetRectangularShape(width, height), concreteMaterial);
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(GetRectangularShape(width, height), concreteMaterial);
 
-			RebarSectionCircular rebar20 = new RebarSectionCircular(rebarDiameterP20, SteelMaterialEN1992Data.B450CHardening);
-			RebarSectionCircular rebar16 = new RebarSectionCircular(rebarDiameterP16, SteelMaterialEN1992Data.B450CHardening);
+			RebarSectionCircular rebar20 = new RebarSectionCircular(rebarDiameterP20, new SteelMaterialEN1992("B450C", 200000, 450, 540, 0.075, SteelMaterial.StressStrainCurveType.ElasticHardening, SteelMaterial.SteelTypes.Rebar));
+			RebarSectionCircular rebar16 = new RebarSectionCircular(rebarDiameterP16, new SteelMaterialEN1992("Y1620", 195000, 1420, 1620, 0.075, SteelMaterial.StressStrainCurveType.ElasticHardening, SteelMaterial.SteelTypes.Tendon));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
@@ -524,7 +521,7 @@ namespace ConcreteTests
 
 		[TestMethod]
 		[TestCategory("Sap Validation")]
-		public void SapValidationACI318p08Example001()
+ 		public void SapValidationACI318p08Example001()
 		{
 			//ACI 318-08 Example 001
 
@@ -536,7 +533,6 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(width, height);
 
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialACI318Data.Fc4000);
 			RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, SteelMaterialACI318Data.Grade60);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -546,7 +542,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebarSection, new Point3d(width, copriferro, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, new ConcreteMaterialACI318("fc' 4000", 27.579, ConcreteMaterial.CompressionStressStrainDiagrams.Bilinear));
 			section.AddRebars(rebars);
 
 			ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 10 * 1000000, 0, GetLocalCoordinateSystem(section));
@@ -557,8 +553,10 @@ namespace ConcreteTests
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
-			double expMxRd1 = 164.95 * 1000000;  // da VCA
-			Assert.IsTrue(Math.Abs(result.MxRd - expMxRd1) / expMxRd1 * 100 < 2.5);
+            // Da documentazione SAP ACI 318-08 Example 001, usano stress block.
+            // L'errore aumenta usando ParabolaRectangle.
+            double expMxRd1 = 164.95 * 1000000;
+            Assert.IsTrue(Math.Abs(result.MxRd - expMxRd1) / expMxRd1 * 100 < 2.5);
 		}
 
 		[TestMethod]
@@ -573,7 +571,8 @@ namespace ConcreteTests
 			double copriferro = 63.5;
 			bool haveSpiral = false;
 
-			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, copriferro, 4, ConcreteMaterialACI318Data.Fc4000, SteelMaterialACI318Data.Grade60);
+			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter, copriferro, 4,
+                new ConcreteMaterialACI318("fc' 4000", 27.579, ConcreteMaterial.CompressionStressStrainDiagrams.Bilinear), SteelMaterialACI318Data.Grade60);
 
 			ResultBeamForces force = new ResultBeamForces(-1772.17 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section));
 			SectionCheckerACI318.SectionOptionsStandardACI318 options =
@@ -583,7 +582,9 @@ namespace ConcreteTests
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
-			double expNrd = -1772.17 * 1000;
+            // Da documentazione SAP ACI 318-08 Example 002, usano stress block.
+            // L'errore aumenta usando ParabolaRectangle.
+            double expNrd = -1772.17 * 1000;
 			double expMxRd = 450.13 * 1000000;
 			Assert.IsTrue(Math.Abs(result.NRd - expNrd) / expNrd * 100 < 1.0);
 			Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 2.5);

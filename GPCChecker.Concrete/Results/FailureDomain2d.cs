@@ -99,13 +99,13 @@ namespace GPC.Checkers.Concrete.Results
 							{
 								if (_domainType == FailureDomainResult2d.DomainTypes.ConstantN)
 									return (new FailureDomain.FailureDomainPoint(new ForceTuple(_domainPoints[i].NRd, intersection.X, intersection.Y),
-										_domainPoints[i].FailureIndex, _domainPoints[i].StrainPlane), intersection);
+										_domainPoints[i].FailureIndex, _domainPoints[i].StrainPlane, _domainPoints[i].Immersione), intersection);
 								else
 								{
 									CoordinateSystem coordinateSystem = GetCoordinateSystem();
 									var pointGlobalCoordinate = coordinateSystem.ToGlobal(intersection);
 									return (new FailureDomain.FailureDomainPoint(new ForceTuple(pointGlobalCoordinate.X, pointGlobalCoordinate.Y, pointGlobalCoordinate.Z),
-										_domainPoints[i].FailureIndex, _domainPoints[i].StrainPlane), intersection);
+										_domainPoints[i].FailureIndex, _domainPoints[i].StrainPlane, _domainPoints[i].Immersione), intersection);
 								}
 							}
 						}
@@ -113,8 +113,8 @@ namespace GPC.Checkers.Concrete.Results
 				}
 			}
 
-			return (new FailureDomain.FailureDomainPoint(new ForceTuple(), SectionSolver.FailureZones.F1, 
-				new StrainPlane(0, 0, new Point2d(0,0), 0)), new Point2d());
+			return (new FailureDomain.FailureDomainPoint(new ForceTuple(), SectionSolver.FailureZones.F1,
+				new StrainPlane(0, 0, new Point2d(0, 0), 0), 0.0), new Point2d());
 		}
 
 		protected void CalculateDomainPoints2dAssociation()

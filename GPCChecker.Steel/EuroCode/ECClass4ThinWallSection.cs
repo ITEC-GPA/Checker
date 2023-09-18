@@ -38,10 +38,10 @@
 //        public ECClass4ThinWallSection(ISteelSection section, ResultBeamForces forces)
 //            : base(section.SteelMaterial, section.Name)
 //        {
-//            _section = (Section)section;
+//            _section = section;
 //            _forces = forces;
 
-//            if (section is SteelSectionH sectionH)
+//            if (section.SectionShape is SectionH sectionH)
 //            {
 //                ECThinWall topLeft = new ECThinWall(sectionH.ThicknessTopFlange, new Point2d(sectionH.LenghtBottomFlange / 2 - sectionH.LenghtTopFlange / 2, 
 //                    sectionH.Height - sectionH.ThicknessTopFlange/2), new Point2d(sectionH.LenghtBottomFlange / 2, sectionH.Height - sectionH.ThicknessTopFlange/2), 
@@ -70,7 +70,7 @@
 //                _plates.Add(topLeft);
 //                _plates.Add(topRight);
 //            }
-//            else if (section is SteelSectionRHS sectionRHS)
+//            else if (section.SectionShape is SectionRHS sectionRHS)
 //            {
 //                ECThinWall top = new ECThinWall(sectionRHS.ThicknessTop, new Point2d(sectionRHS.ThicknessWebLeft/2, sectionRHS.Height- sectionRHS.ThicknessTop/2), 
 //                    new Point2d(sectionRHS.Base- sectionRHS.ThicknessWebRight/2, sectionRHS.Height - sectionRHS.ThicknessTop / 2), section.SteelMaterial.Fyk, 

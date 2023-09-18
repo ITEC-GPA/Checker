@@ -1,46 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using GPC.Checkers.Concrete.Attributes;
+﻿using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
 using GPC.Model.Results;
 using GPC.Model.Standards;
+using System;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
     [Serializable]
     public class SectionCheckerModelCode2010 : SectionChecker, ISerializable
     {
-		#region Properties
+        #region Properties
 
-		public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
+        public StandardModelCode2010 StandardModelCode2010 => (StandardModelCode2010)_standard;
 
         public SectionOptionsModelCode2010 SectionCheckerOptionsModelCode2010 => (SectionOptionsModelCode2010)_options;
 
-		#endregion
+        #endregion
 
-		#region Constructor
+        #region Constructor
 
-		/// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, SectionSolver int)"/>
-		public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptionsModelCode2010 options, 
-            StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
-            : base(checkerAttribute, options, standard, new SectionSolverModelCode2010(checkerAttribute.Section, standard, considerTensileConcrete), id)
+        /// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, SectionSolver int)"/>
+        public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptionsModelCode2010 options,
+            StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED,
+            StandardEN1993p11 standardStructuralSteel = null)
+            : base(checkerAttribute, options, standard,
+                  new SectionSolverModelCode2010(checkerAttribute.Section, standard, considerTensileConcrete, id, standardStructuralSteel),
+                  id, standardStructuralSteel)
         {
-
         }
 
         public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptionsModelCode2010 options,
-            StandardModelCode2010 standard, SectionSolverModelCode2010 solver)
-            : base(checkerAttribute, options, standard, solver)
-		{
-
-		}
+            StandardModelCode2010 standard, SectionSolverModelCode2010 solver, int id = ModelObjectId.IDUNASSIGNED,
+            StandardEN1993p11 standardStructuralSteel = null)
+            : base(checkerAttribute, options, standard, solver, id, standardStructuralSteel)
+        {
+        }
 
         #endregion
 
@@ -160,7 +159,7 @@ namespace GPC.Checkers.Concrete.Checkers
             return await Task.Run(() =>
             {
                 try
-                { 
+                {
                     return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptionsModelCode2010);
                 }
                 catch (Exception)
@@ -180,7 +179,7 @@ namespace GPC.Checkers.Concrete.Checkers
             return await Task.Run(() =>
             {
                 try
-                { 
+                {
                     return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, psiTendon, SectionCheckerOptionsModelCode2010);
                 }
                 catch (Exception)
@@ -275,13 +274,13 @@ namespace GPC.Checkers.Concrete.Checkers
 
         /// <inheritdoc cref="SectionChecker.GetStressAnalysisResult(ResultBeamForces)"/>
         public override StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
-		{
+        {
             return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsModelCode2010);
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(ResultBeamForces, double)"/>
         public override StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi, double psiTendon = 0)
-		{
+        {
             return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptionsModelCode2010);
         }
 
@@ -297,6 +296,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #endregion
 
+        #region Nested class
 
         [Serializable]
         public class SectionOptionsModelCode2010 : SectionOptions, ISerializable
@@ -314,7 +314,7 @@ namespace GPC.Checkers.Concrete.Checkers
             }
 
             protected SectionOptionsModelCode2010(SerializationInfo info, StreamingContext context)
-                :base(info, context) 
+                : base(info, context)
             {
             }
 
@@ -323,5 +323,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 base.GetObjectData(info, context);
             }
         }
+
+        #endregion
     }
 }

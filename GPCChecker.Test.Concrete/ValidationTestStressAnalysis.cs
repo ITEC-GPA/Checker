@@ -94,8 +94,7 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(300, 500);
 			ConcreteMaterialEN1992 concreteMaterial = GetLinearConcreteMaterial(elasticModulus);
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("", 200000, 450, 450, 0.1, SteelMaterial.SteelTypes.Rebar));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("", 200000, 450, 450, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
@@ -109,7 +108,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250,250,0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -151,7 +150,6 @@ namespace ConcreteTests
 			double h = 500;
 
 			Shape2d shape = GetRectangularShape(h, h);
-			ShapeEx shapeEx = new ShapeEx(shape, GetLinearConcreteMaterial(elasticModulus));
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -168,7 +166,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(450, 450, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, GetLinearConcreteMaterial(elasticModulus));
 			section.AddRebars(rebars);
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -272,7 +270,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(450, 550, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(new ShapeEx(shape, GetLinearConcreteMaterial(elasticModulus)));
+			var section = new ReinforcedConcreteSection(shape, GetLinearConcreteMaterial(elasticModulus));
 			section.AddRebars(rebars);
 
 			ResultBeamForces[] forces = new ResultBeamForces[]

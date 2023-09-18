@@ -137,7 +137,6 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(300, 500);
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C35_45;
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -152,7 +151,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250,250,0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			double psi = GetPsi(n, section);
@@ -216,8 +215,7 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(h, h);
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C45_55;
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("", 200000, 450, 450, 0.1, SteelMaterial.SteelTypes.Rebar));
+			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("", 200000, 450, 450, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
 			{
@@ -233,7 +231,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(450, 450, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			double psi = GetPsi(n, section);
@@ -298,8 +296,7 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(h, h);
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C45_55;
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
 			{
@@ -454,7 +451,6 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(300, 500);
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C35_45;
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -469,7 +465,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(250,250,0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			double psi = GetPsi(n, section);
@@ -533,7 +529,6 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(h, h);
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C45_55;
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, new SteelMaterial("", 200000, 450, 450));
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -550,7 +545,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(450, 450, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			section.AddRebars(rebars);
 
 			double psi = GetPsi(n, section);
@@ -615,9 +610,8 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(h, h);
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C45_55;
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 			ResultBeamForces[] forces = new ResultBeamForces[]
 			{
 				new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -20 * 1000000, GetLocalCoordinateSystem(section))
@@ -660,9 +654,8 @@ namespace ConcreteTests
 
 			Shape2d shape = GetRectangularShape(h, h);
 			ConcreteMaterialEN1992 concreteMaterial = ConcreteMaterialEN1992Data.C25_30;
-			ShapeEx shapeEx = new ShapeEx(shape, concreteMaterial);
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, concreteMaterial);
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
 			{
@@ -702,7 +695,6 @@ namespace ConcreteTests
 			double h = 500;
 
 			Shape2d shape = GetRectangularShape(h, h);
-			ShapeEx shapeEx = new ShapeEx(shape, ConcreteMaterialEN1992Data.C25_30);
 			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
 			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
@@ -716,7 +708,7 @@ namespace ConcreteTests
 				new ReinforcedConcreteRebar(rebar, new Point3d(450, 350, 0)),
 			};
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shapeEx);
+			var section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
 			section.AddRebars(rebars);
 
 			ResultBeamForces[] forces = new ResultBeamForces[]
@@ -757,7 +749,7 @@ namespace ConcreteTests
 		{
 			double n = 15;
 
-			ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 60,
+			var section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 60,
 				10, 14, 13, 14, 10, 14,
 				7, 12,
 				4, 22, 13, 20, 4, 22,
@@ -795,7 +787,7 @@ namespace ConcreteTests
 		{
 			double n = 15;
 
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50,
+			var section = GetRectangularSection4Rebars(300, 500, 18, 50,
 				ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
 
 			ResultBeamForces forces = new ResultBeamForces(50 * 1000, 0, 0, 0, 0 * 1000000, 0 * 1000000, GetLocalCoordinateSystem(section));

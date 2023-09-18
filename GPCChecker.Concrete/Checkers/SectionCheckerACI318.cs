@@ -1,35 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using GPC.Checkers.Concrete.Attributes;
+﻿using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
 using GPC.Model.Results;
 using GPC.Model.Standards;
+using System;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
     [Serializable]
     public class SectionCheckerACI318 : SectionChecker, ISerializable
     {
+        #region Properties
+
         public StandardACI318 StandardACI318 => (StandardACI318)_standard;
 
         public SectionOptionsStandardACI318 SectionCheckerOptionsACI318 => (SectionOptionsStandardACI318)_options;
 
+        #endregion
+
+        #region Constructors
 
         /// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, SectionSolver int)"/>
         public SectionCheckerACI318(SectionCheckerAttribute checkerAttribute, SectionOptionsStandardACI318 options,
-            StandardACI318 standard, bool haveSpiral, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED)
-            : base(checkerAttribute, options, standard, 
-                  new SectionSolverACI318(checkerAttribute.Section, standard, haveSpiral, considerTensileConcrete), id)
+            StandardACI318 standard, bool haveSpiral, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED,
+            StandardEN1993p11 standardStructuralSteel = null)
+            : base(checkerAttribute, options, standard,
+                  new SectionSolverACI318(checkerAttribute.Section, standard, haveSpiral, considerTensileConcrete, id, standardStructuralSteel),
+                  id, standardStructuralSteel)
         {
-
         }
+
+        /// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, SectionSolver int)"/>
+        public SectionCheckerACI318(SectionCheckerAttribute checkerAttribute, SectionOptionsStandardACI318 options,
+            StandardACI318 standard, SectionSolverACI318 solver, int id = ModelObjectId.IDUNASSIGNED,
+            StandardEN1993p11 standardStructuralSteel = null)
+            : base(checkerAttribute, options, standard, solver, id, standardStructuralSteel)
+        {
+        }
+
+        #endregion
 
         #region Public Async
 
@@ -147,7 +160,7 @@ namespace GPC.Checkers.Concrete.Checkers
             return await Task.Run(() =>
             {
                 try
-                { 
+                {
                     return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptionsACI318);
                 }
                 catch (Exception)
@@ -167,7 +180,7 @@ namespace GPC.Checkers.Concrete.Checkers
             return await Task.Run(() =>
             {
                 try
-                { 
+                {
                     return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, psiTendon, SectionCheckerOptionsACI318);
                 }
                 catch (Exception)
@@ -266,18 +279,18 @@ namespace GPC.Checkers.Concrete.Checkers
 
         /// <inheritdoc cref="SectionChecker.GetStressAnalysisResult(ResultBeamForces)"/>
         public override StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
-		{
+        {
             return _solver.GetStressAnalysisResult(forces, SectionCheckerOptionsACI318);
         }
 
         /// <inheritdoc cref="SectionChecker.GetLinearStressAnalysisResult(ResultBeamForces, double)"/>
         public override StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi, double psiTendon = 0)
-		{
+        {
             return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptionsACI318);
         }
 
         public override FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force)
-		{
+        {
             return _solver.CalculatePlasticDomainPoint(force, SectionCheckerOptionsACI318);
         }
 
@@ -288,6 +301,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #endregion
 
+        #region Nested class
 
         [Serializable]
         public class SectionOptionsStandardACI318 : SectionOptions, ISerializable
@@ -300,7 +314,7 @@ namespace GPC.Checkers.Concrete.Checkers
             }
 
             protected SectionOptionsStandardACI318(SerializationInfo info, StreamingContext context)
-                :base(info, context) 
+                : base(info, context)
             {
             }
 
@@ -309,5 +323,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 base.GetObjectData(info, context);
             }
         }
+
+        #endregion
     }
 }

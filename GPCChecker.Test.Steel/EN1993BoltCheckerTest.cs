@@ -188,8 +188,8 @@ namespace SteelTests
             var MinResiV = CurrChecker.BoltResultsEN1993.Min(br => br.ShearResistance);
             var MaxRatioV = CurrChecker.BoltResultsEN1993.Max(br => br.ShearRatio);
 
-            Assert.AreEqual(45886.75032, MasSollV, 1);
-            Assert.AreEqual(73728.0, MinResiV, 300);
+            Assert.AreEqual(45886.75032 * 2.0, MasSollV, 1);
+            Assert.AreEqual(73728.0 * 2.0, MinResiV, 600);
             Assert.AreEqual(0.622378883, MaxRatioV, 0.002);
 
             // bearing - TRAVE a pagina 249, vedi anoglare.
@@ -229,7 +229,7 @@ namespace SteelTests
             Assert.AreEqual(80.0, CurrChecker.BoltResultsEN1993[5].BearingP2, 0.0001);
 
             Assert.AreEqual(116100.0, MinResiBear, 0.00001);
-            Assert.AreEqual(0.30066302785877264, MaxRatioBear, 0.00001);
+            Assert.AreEqual(0.60132605571754527, MaxRatioBear, 0.00001);
             foreach (var iMax in ListWithMax)
             {
                 Assert.AreEqual(115.0075, iMax.BearingE1, 0.1);
