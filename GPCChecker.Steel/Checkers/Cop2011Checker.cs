@@ -1985,7 +1985,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Nested class Options
 
-        public class Cop2011Options : BeamChecker.BeamOptions
+        public class Cop2011Options : BeamOptions
         {
             #region Enumerable
 

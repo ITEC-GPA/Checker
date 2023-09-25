@@ -1,13 +1,8 @@
 ﻿using GPC.Checkers.Steel.Checkers;
-using GPC.Checkers.Steel.Results;
 using GPC.Model.LoadCases;
-using GPC.Model.Results;
-using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace GPC.Checkers.Results
 {
@@ -41,7 +36,7 @@ namespace GPC.Checkers.Results
 		#endregion
 
 		internal CommonResults(ILoadCase Case, Standard standard, Checker.Options checkerOptions, string name = "")
-			:base(name)
+			: base(name)
 		{
 			_case = Case ?? throw new ArgumentNullException(nameof(Case));
 			_standard = standard ?? throw new ArgumentNullException(nameof(standard));

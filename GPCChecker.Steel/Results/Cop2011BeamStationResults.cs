@@ -83,280 +83,255 @@ namespace GPC.Checkers.Steel.Results
         protected double _shearArea1;
         protected double _shearArea2;
 
-        #endregion
+		#endregion
 
-        #region Properties
+		#region Properties
 
-        /// <summary>
-        /// Axial tension working ratio. Return 0.001 if the section is compressed
-        /// </summary>
-        public double AxialTensionWorkingRatio => _axialTensionWorkingRatio;
+		/// <summary>
+		/// Axial tension working ratio. Return 0.001 if the section is compressed
+		/// </summary>
+		public double AxialTensionWorkingRatio { get => _axialTensionWorkingRatio; set => _axialTensionWorkingRatio = value; }
 
-        /// <summary>
-        /// Axial pure compression (with no buckling) working ratio. Return 0.001 if the section is tensed
-        /// </summary>
-        public double AxialCompressionWorkingRatio => _axialCompressionWorkingRatio;
+		/// <summary>
+		/// Axial pure compression (with no buckling) working ratio. Return 0.001 if the section is tensed
+		/// </summary>
+		public double AxialCompressionWorkingRatio { get => _axialCompressionWorkingRatio; set => _axialCompressionWorkingRatio = value; }
 
-        /// <summary>
-        /// Axial buckling working ratio about 1-principal axis
-        /// </summary>
-        public double AxialBuckling1WorkingRatio => _axialBuckling1WorkingRatio;
+		/// <summary>
+		/// Axial buckling working ratio about 1-principal axis
+		/// </summary>
+		public double AxialBuckling1WorkingRatio { get => _axialBuckling1WorkingRatio; set => _axialBuckling1WorkingRatio = value; }
 
-        /// <summary>
-        /// Axial buckling working ratio about 2-principal axis
-        /// </summary>
-        public double AxialBuckling2WorkingRatio => _axialBuckling2WorkingRatio;
+		/// <summary>
+		/// Axial buckling working ratio about 2-principal axis
+		/// </summary>
+		public double AxialBuckling2WorkingRatio { get => _axialBuckling2WorkingRatio; set => _axialBuckling2WorkingRatio = value; }
 
-        /// <summary>
-        /// Shear working ratio about 1-principal axis
-        /// </summary>
-        public double Shear1WorkingRatio => _shear1WorkingRatio;
+		/// <summary>
+		/// Shear working ratio about 1-principal axis
+		/// </summary>
+		public double Shear1WorkingRatio { get => _shear1WorkingRatio; set => _shear1WorkingRatio = value; }
 
-        /// <summary>
-        /// Shear working ratio about 2-principal axis
-        /// </summary>
-        public double Shear2WorkingRatio => _shear2WorkingRatio;
+		/// <summary>
+		/// Shear working ratio about 2-principal axis
+		/// </summary>
+		public double Shear2WorkingRatio { get => _shear2WorkingRatio; set => _shear2WorkingRatio = value; }
 
-        /// <summary>
-        /// Bending moment working ratio about 1-principal axis
-        /// </summary>
-        public double BendingMoment1WorkingRatio => _bendingMoment1WorkingRatio;
+		/// <summary>
+		/// Bending moment working ratio about 1-principal axis
+		/// </summary>
+		public double BendingMoment1WorkingRatio { get => _bendingMoment1WorkingRatio; set => _bendingMoment1WorkingRatio = value; }
 
-        /// <summary>
-        /// Bending moment working ratio about 2-principal axis
-        /// </summary>
-        public double BendingMoment2WorkingRatio => _bendingMoment2WorkingRatio;
+		/// <summary>
+		/// Bending moment working ratio about 2-principal axis
+		/// </summary>
+		public double BendingMoment2WorkingRatio { get => _bendingMoment2WorkingRatio; set => _bendingMoment2WorkingRatio = value; }
 
-        /// <summary>
-        /// Torque moment working ratio
-        /// </summary>
-        public double TorsionalMomentWorkingRatio => _torsionalMomentWorkingRatio;
+		/// <summary>
+		/// Torque moment working ratio
+		/// </summary>
+		public double TorsionalMomentWorkingRatio { get => _torsionalMomentWorkingRatio; set => _torsionalMomentWorkingRatio = value; }
 
-        /// <summary>
-        /// Lateral torsional working ratio
-        /// </summary>
-        public double LateralTorsionalBucklingWorkingRatio => _lateraTorsionalBucklingWorkingRatio;
-        
-        /// <summary>
-        /// Cop2011 Eq. 8.78
-        /// </summary>
-        public double PMMWorkingRatio => _pMMWorkingRatio;
+		/// <summary>
+		/// Lateral torsional working ratio
+		/// </summary>
+		public double LateralTorsionalBucklingWorkingRatio { get => _lateraTorsionalBucklingWorkingRatio; set => _lateraTorsionalBucklingWorkingRatio = value; }
 
-        /// <summary>
-        /// Cop2011 Eq. 8.79
-        /// </summary>
-        public double PMMWorkingRatioBendingSecondOrderEffect => _pMMWorkingRatioBendingSecondOrderEffect;
+		/// <summary>
+		/// The max working ratio 
+		/// </summary>
+		public double WorkingRatio => GetMaxWorkingRatio();
 
-        /// <summary>
-        /// Cop2011 Eq. 8.80
-        /// </summary>
-        public double PMMWorkingRatioAxialSecondOrderEffect => _pMMWorkingRatioAxialSecondOrderEffect;
+		/// <summary>
+		/// Axial tension capacity
+		/// </summary>
+		public double AxialTensionCapacity { get => _axialTensionRd; set => _axialTensionRd = value; }
 
-        /// <summary>
-        /// Cop2011 Eq. 8.81
-        /// </summary>
-        public double PMMWorkingRatioLateralTorsionalBuckling => _pMMWorkingRatioLateralTorsionalBuckling;
+		/// <summary>
+		/// Axial compression capacity
+		/// </summary>
+		public double AxialCompressionCapacity { get => _axialCompressionRd; set => _axialCompressionRd = value; }
 
-        /// <summary>
-        /// The max working ratio 
-        /// </summary>
-        public double WorkingRatio => GetMaxWorkingRatio();
+		/// <summary>
+		/// Axial buckling about 1-principal axis capacity
+		/// </summary>
+		public double AxialBuckling1Capacity { get => _axialBuckling1Rd; set => _axialBuckling1Rd = value; }
 
-        /// <summary>
-        /// Axial tension capacity
-        /// </summary>
-        public double AxialTensionCapacity => _axialTensionRd;
+		/// <summary>
+		/// Axial buckling about 2-principal axis capacity
+		/// </summary>
+		public double AxialBuckling2Capacity { get => _axialBuckling2Rd; set => _axialBuckling2Rd = value; }
 
-        /// <summary>
-        /// Axial compression capacity
-        /// </summary>
-        public double AxialCompressionCapacity => _axialCompressionRd;
+		/// <summary>
+		/// Shear about 1-principal axis capacity
+		/// </summary>
+		public double Shear1Capacity { get => _shear1Rd; set => _shear1Rd = value; }
 
-        /// <summary>
-        /// Axial buckling about 1-principal axis capacity
-        /// </summary>
-        public double AxialBuckling1Capacity => _axialBuckling1Rd;
+		/// <summary>
+		/// Shear about 2-principal axis capacity
+		/// </summary>
+		public double Shear2Capacity { get => _shear2Rd; set => _shear2Rd = value; }
 
-        /// <summary>
-        /// Axial buckling about 2-principal axis capacity
-        /// </summary>
-        public double AxialBuckling2Capacity => _axialBuckling2Rd;
+		/// <summary>
+		/// Bending moment about 1-principal axis capacity
+		/// </summary>
+		public double BendingMoment1Capacity { get => _bendingMoment1Rd; set => _bendingMoment1Rd = value; }
 
-        /// <summary>
-        /// Shear about 1-principal axis capacity
-        /// </summary>
-        public double Shear1Capacity => _shear1Rd;
+		/// <summary>
+		/// Bending moment about 2-principal axis capacity
+		/// </summary>
+		public double BendingMoment2Capacity { get => _bendingMoment2Rd; set => _bendingMoment2Rd = value; }
 
-        /// <summary>
-        /// Shear about 2-principal axis capacity
-        /// </summary>
-        public double Shear2Capacity => _shear2Rd;
+		/// <summary>
+		/// Torque moment capacity
+		/// </summary>
+		public double TorsionMomentCapacity { get => _torsionalMomentRd; set => _torsionalMomentRd = value; }
 
-        /// <summary>
-        /// Bending moment about 1-principal axis capacity
-        /// </summary>
-        public double BendingMoment1Capacity => _bendingMoment1Rd;
+		/// <summary>
+		/// Lateral torsional buckling capacity
+		/// </summary>
+		public double LateralTosionalBucklingCapacity { get => _lateralTorsionalMomentRd; set => _lateralTorsionalMomentRd = value; }
 
-        /// <summary>
-        /// Bending moment about 2-principal axis capacity
-        /// </summary>
-        public double BendingMoment2Capacity => _bendingMoment2Rd;
+		/// <summary>
+		/// Length for axial buckling about 1-principal axis check
+		/// </summary>
+		public double LengthAxialBuckling1 { get => _lenghtAxialBuckling1; set => _lenghtAxialBuckling1 = value; }
 
-        /// <summary>
-        /// Torque moment capacity
-        /// </summary>
-        public double TorsionMomentCapacity => _torsionalMomentRd;
+		/// <summary>
+		/// Length for axial buckling about 2-principal axis check
+		/// </summary>
+		public double LengthAxialBuckling2 { get => _lenghtAxialBuckling2; set => _lenghtAxialBuckling2 = value; }
 
-        /// <summary>
-        /// Lateral torsional buckling capacity
-        /// </summary>
-        public double LateralTosionalBucklingCapacity => _lateralTorsionalMomentRd;
+		/// <summary>
+		/// Length for lateral torsional buckling check
+		/// </summary>
+		public double LengthLaterlaTorsionalBuckling { get => _lenghtLateralTorsionalBuckling; set => _lenghtLateralTorsionalBuckling = value; }
 
-        /// <summary>
-        /// Length for axial buckling about 1-principal axis check
-        /// </summary>
-        public double LengthAxialBuckling1 => _lenghtAxialBuckling1;
+		/// <summary>
+		/// Pure compression section class. <see cref="Cop2011Checker.SectionClass"/>
+		/// </summary>
+		public Cop2011Checker.SectionClass AxialCompressionClass { get => _axialCompressionClass; set => _axialCompressionClass = value; }
 
-        /// <summary>
-        /// Length for axial buckling about 2-principal axis check
-        /// </summary>
-        public double LengthAxialBuckling2 => _lenghtAxialBuckling2;
+		/// <summary>
+		/// Pure bending section class. <see cref="Cop2011Checker.SectionClass"/>
+		/// </summary>
+		public Cop2011Checker.SectionClass BendingCompressionClass { get => _bendingCompressionClass; set => _bendingCompressionClass = value; }
 
-        /// <summary>
-        /// Length for lateral torsional buckling check
-        /// </summary>
-        public double LengthLaterlaTorsionalBuckling => _lenghtLateralTorsionalBuckling;
+		/// <summary>
+		/// The parameter for section classification (Chapter 7.2)
+		/// </summary>
+		public double Epsilon { get => _epsilon; set => _epsilon = value; }
 
-        /// <summary>
-        /// Pure compression section class. <see cref="Cop2011Checker.SectionClass"/>
-        /// </summary>
-        public Cop2011Checker.SectionClass AxialCompressionClass => _axialCompressionClass;
+		/// <summary>
+		/// The reduced design strength coefficient for effective stress method for slender cross-sections in §7.7
+		/// </summary>
+		public double Beta { get => _beta; set => _beta = value; }
 
-        /// <summary>
-        /// Pure bending section class. <see cref="Cop2011Checker.SectionClass"/>
-        /// </summary>
-        public Cop2011Checker.SectionClass BendingCompressionClass => _bendingCompressionClass;
+		/// <summary>
+		/// Buckling curve about 1principal axis for axial buckling check (Chapter 8.7.6)
+		/// </summary>
+		public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve1 => _bucklingCurve1;
 
-        /// <summary>
-        /// The design strength
-        /// </summary>
-        public double Py => _py;
+		/// <summary>
+		/// Buckling curve about 2-principal axis for axial buckling check (Chapter 8.7.6)
+		/// </summary>
+		public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve2 => _bucklingCurve2;
 
-        /// <summary>
-        /// The parameter for section classification (Chapter 7.2)
-        /// </summary>
-        public double Epsilon => _epsilon;
+		/// <summary>
+		/// Lambda about 1-principal axis for axial buckling check
+		/// </summary>
+		public double LambdaAxialBuckling1 { get => _lambdaAxialBuckling1; set => _lambdaAxialBuckling1 = value; }
 
-        /// <summary>
-        /// The reduced design strength coefficient for effective stress method for slender cross-sections in §7.7
-        /// </summary>
-        public double Beta => _beta;
+		/// <summary>
+		/// Lambda about 2-principal axis for axial buckling check
+		/// </summary>
+		public double LambdaAxialBuckling2 { get => _lambdaAxialBuckling2; set => _lambdaAxialBuckling2 = value; }
 
-        /// <summary>
-        /// Buckling curve about 1principal axis for axial buckling check (Chapter 8.7.6)
-        /// </summary>
-        public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve1 => _bucklingCurve1;
+		/// <summary>
+		/// Lambda0 about 1-principal axis for axial buckling check (Appendix 8.4)
+		/// </summary>
+		public double Lambda0AxialBuckling { get => _lambda0AxialBuckling; set => _lambda0AxialBuckling = value; }
 
-        /// <summary>
-        /// Buckling curve about 2-principal axis for axial buckling check (Chapter 8.7.6)
-        /// </summary>
-        public Cop2011Checker.Cop2011Options.BuckingCurves BuckingCurve2 => _bucklingCurve2;
+		/// <summary>
+		/// Perry factor about 1-principal axis for axial buckling check (Appendix 8.4)
+		/// </summary>
+		public double NAxialBuckling1 { get => _nAxialBuckling1; set => _nAxialBuckling1 = value; }
 
-        /// <summary>
-        /// Lambda about 1-principal axis for axial buckling check
-        /// </summary>
-        public double LambdaAxialBuckling1 => _lambdaAxialBuckling1;
+		/// <summary>
+		/// Perry factor about 2-principal axis for axial buckling check (Appendix 8.4)
+		/// </summary>
+		public double NAxialBuckling2 { get => _nAxialBuckling2; set => _nAxialBuckling2 = value; }
 
-        /// <summary>
-        /// Lambda about 2-principal axis for axial buckling check
-        /// </summary>
-        public double LambdaAxialBuckling2 => _lambdaAxialBuckling2;
+		/// <summary>
+		/// PE about 1-principal axis for axial buckling check (Appendix 8.4)
+		/// </summary>
+		public double PEAxialBuckling1 { get => _pEAxialBuckling1; set => _pEAxialBuckling1 = value; }
 
-        /// <summary>
-        /// Lambda0 about 1-principal axis for axial buckling check (Appendix 8.4)
-        /// </summary>
-        public double Lambda0AxialBuckling => _lambda0AxialBuckling;
+		/// <summary>
+		/// PE about 2-principal axis for axial buckling check (Appendix 8.4)
+		/// </summary>
+		public double PEAxialBuckling2 { get => _pEAxialBuckling2; set => _pEAxialBuckling2 = value; }
 
-        /// <summary>
-        /// Perry factor about 1-principal axis for axial buckling check (Appendix 8.4)
-        /// </summary>
-        public double NAxialBuckling1 => _nAxialBuckling1;
+		/// <summary>
+		/// PhiC about 1-principal axis for axial buckling check (Appendix 8.4)
+		/// </summary>
+		public double PhiCAxialBuckling1 { get => _phiCAxialBuckling1; set => _phiCAxialBuckling1 = value; }
 
-        /// <summary>
-        /// Perry factor about 2-principal axis for axial buckling check (Appendix 8.4)
-        /// </summary>
-        public double NAxialBuckling2 => _nAxialBuckling2;
+		/// <summary>
+		/// PhiC about 2-principal axis for axial buckling check (Appendix 8.4)
+		/// </summary>
+		public double PhiCAxialBuckling2 { get => _phiCAxialBuckling2; set => _phiCAxialBuckling2 = value; }
 
-        /// <summary>
-        /// PE about 1-principal axis for axial buckling check (Appendix 8.4)
-        /// </summary>
-        public double PEAxialBuckling1 => _pEAxialBuckling1;
+		/// <summary>
+		/// Design strength about 1-principal axis for axial buckling check (Appendix 8.4)
+		/// </summary>
+		public double PCAxialBuckling1 { get => _pCAxialBuckling1; set => _pCAxialBuckling1 = value; }
 
-        /// <summary>
-        /// PE about 2-principal axis for axial buckling check (Appendix 8.4)
-        /// </summary>
-        public double PEAxialBuckling2 => _pEAxialBuckling2;
+		/// <summary>
+		/// Design strength about 2-principal axis for axial buckling check (Appendix 8.4)
+		/// </summary>
+		public double PCAxialBuckling2 { get => _pCAxialBuckling2; set => _pCAxialBuckling2 = value; }
 
-        /// <summary>
-        /// PhiC about 1-principal axis for axial buckling check (Appendix 8.4)
-        /// </summary>
-        public double PhiCAxialBuckling1 => _phiCAxialBuckling1;
+		/// <summary>
+		/// Lambda for lateral torsiona buckling check (Appendix 8.1)
+		/// </summary>
+		public double LambdaLateralTorsionalBuckling { get => _lambdaLTBuckling; set => _lambdaLTBuckling = value; }
 
-        /// <summary>
-        /// PhiC about 2-principal axis for axial buckling check (Appendix 8.4)
-        /// </summary>
-        public double PhiCAxialBuckling2 => _phiCAxialBuckling2;
+		/// <summary>
+		/// Lambda0 for lateral torsiona buckling check (Appendix 8.1)
+		/// </summary>
+		public double Lambda0LateralTorsionalBuckling { get => _lambda0LTBuckling; set => _lambda0LTBuckling = value; }
 
-        /// <summary>
-        /// Design strength about 1-principal axis for axial buckling check (Appendix 8.4)
-        /// </summary>
-        public double PCAxialBuckling1 => _pCAxialBuckling1;
+		/// <summary>
+		/// PE for lateral torsiona buckling check (Appendix 8.1)
+		/// </summary>
+		public double PELateralTorsionalBuckling { get => _pELTBuckling; set => _pELTBuckling = value; }
 
-        /// <summary>
-        /// Design strength about 2-principal axis for axial buckling check (Appendix 8.4)
-        /// </summary>
-        public double PCAxialBuckling2 => _pCAxialBuckling2;
+		/// <summary>
+		/// Phi for lateral torsiona buckling check (Appendix 8.1)
+		/// </summary>
+		public double PhiLateralTorsionalBuckling { get => _phiLTBuckling; set => _phiLTBuckling = value; }
 
-        /// <summary>
-        /// Lambda for lateral torsiona buckling check (Appendix 8.1)
-        /// </summary>
-        public double LambdaLateralTorsionalBuckling => _lambdaLTBuckling;
+		/// <summary>
+		/// Design strength for lateral torsiona buckling check (Appendix 8.1)
+		/// </summary>
+		public double PBLateralTorsionalBuckling { get => _pBLTBuckling; set => _pBLTBuckling = value; }
 
-        /// <summary>
-        /// Lambda0 for lateral torsiona buckling check (Appendix 8.1)
-        /// </summary>
-        public double Lambda0LateralTorsionalBuckling => _lambda0LTBuckling;
+		/// <summary>
+		/// Shear area about 1-principal axis (Chapter 8.2.1)
+		/// </summary>
+		public double ShearArea1 { get => _shearArea1; set => _shearArea1 = value; }
 
-        /// <summary>
-        /// PE for lateral torsiona buckling check (Appendix 8.1)
-        /// </summary>
-        public double PELateralTorsionalBuckling => _pELTBuckling;
+		/// <summary>
+		/// Shear area about 2-principal axis (Chapter 8.2.1)
+		/// </summary>
+		public double ShearArea2 { get => _shearArea2; set => _shearArea2 = value; }
 
-        /// <summary>
-        /// Phi for lateral torsiona buckling check (Appendix 8.1)
-        /// </summary>
-        public double PhiLateralTorsionalBuckling => _phiLTBuckling;
+		#endregion
 
-        /// <summary>
-        /// Design strength for lateral torsiona buckling check (Appendix 8.1)
-        /// </summary>
-        public double PBLateralTorsionalBuckling => _pBLTBuckling;
+		#region Constructor
 
-        /// <summary>
-        /// Shear area about 1-principal axis (Chapter 8.2.1)
-        /// </summary>
-        public double ShearArea1 => _shearArea1;
-
-        /// <summary>
-        /// Shear area about 2-principal axis (Chapter 8.2.1)
-        /// </summary>
-        public double ShearArea2 => _shearArea2;
-
-        #endregion
-
-        #region Constructor
-
-        protected Cop2011BeamStationResults(ISteelSection section, ResultLocationStation resultLocationStation, ILoadCase Case,
+		protected Cop2011BeamStationResults(ISteelSection section, ResultLocationStation resultLocationStation, ILoadCase Case,
             Cop2011Checker.Cop2011Options checkerOptions, StandardCopSuos2011 standard, string name = "") 
             : this(section, resultLocationStation, Case, standard, checkerOptions, name)
         {
@@ -365,14 +340,13 @@ namespace GPC.Checkers.Steel.Results
 
 
         internal Cop2011BeamStationResults(ISteelSection section, ResultLocationStation resultLocationStation, ILoadCase Case, 
-                                            StandardCopSuos2011 standard, Cop2011Checker.Cop2011Options checkerOptions, string name = "") 
+            StandardCopSuos2011 standard, Cop2011Checker.Cop2011Options checkerOptions, string name = "") 
             : base(section, resultLocationStation, Case, standard, checkerOptions, name)
         {
 
         }
 
         #endregion
-
 
         #region Public Method
 
