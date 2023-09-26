@@ -33,6 +33,11 @@ namespace GPC.Checkers.Results
 		/// </summary>
 		public Checker.Options Options => _options;
 
+		/// <summary>
+		/// The max working ratio 
+		/// </summary>
+		public double WorkingRatio => GetMaxWorkingRatio();
+
 		#endregion
 
 		internal CommonResults(ILoadCase Case, Standard standard, Checker.Options checkerOptions, string name = "")

@@ -133,11 +133,6 @@ namespace GPC.Checkers.Steel.Results
 		public double LateralTorsionalBucklingWorkingRatio { get => _lateraTorsionalBucklingWorkingRatio; set => _lateraTorsionalBucklingWorkingRatio = value; }
 
 		/// <summary>
-		/// The max working ratio 
-		/// </summary>
-		public double WorkingRatio => GetMaxWorkingRatio();
-
-		/// <summary>
 		/// Axial tension capacity
 		/// </summary>
 		public double AxialTensionCapacity { get => _axialTensionRd; set => _axialTensionRd = value; }

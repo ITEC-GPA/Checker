@@ -43,9 +43,9 @@ namespace GPC.Checkers.Steel.Results
         /// </summary>
         public BeamChecker.BeamOptions CheckerOptions => (BeamChecker.BeamOptions)_options;
 
-        #endregion
+		#endregion
 
-        internal BeamStationResults(ISteelSection section, ResultLocationStation station, ILoadCase Case, Standard standard, 
+		internal BeamStationResults(ISteelSection section, ResultLocationStation station, ILoadCase Case, Standard standard, 
             BeamChecker.BeamOptions checkerOptions, string name = "")
             :base(Case, standard, checkerOptions, name)
         {

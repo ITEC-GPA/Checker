@@ -209,11 +209,6 @@ namespace GPC.Checkers.Steel.Results
         /// </summary>
         public double FlexuralTorsionalInteraction => _flexuralTorsionalInteraction;
 
-        /// <summary>
-        /// The max working ratio 
-        /// </summary>
-        public double WorkingRatio => GetMaxWorkingRatio();
-
         #endregion
 
         #region Capacity
