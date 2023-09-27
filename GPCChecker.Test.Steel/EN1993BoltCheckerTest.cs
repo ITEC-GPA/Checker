@@ -1,9 +1,18 @@
-﻿using GPC.Checkers.Steel.Checkers;
+﻿using ConcreteTests;
+using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Checkers;
+using GPC.Checkers.Concrete.SectionSolvers;
+using GPC.Checkers.Steel.Checkers;
 using GPC.Geometry;
+using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
 using GPC.Model.LoadCases;
+using GPC.Model.Materials;
 using GPC.Model.Results;
+using GPC.Model.Sections;
 using GPC.Model.Sections.Bolt;
+using GPC.Model.Sections.Concrete;
+using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
@@ -290,6 +299,118 @@ namespace SteelTests
             var MaxCombinedRatio = CurrChecker.BoltResultsEN1993.Max(br => br.CombinedShearTensionRatio);
 
             Assert.AreEqual(0.858, MaxCombinedRatio, 0.002);
+        }
+
+        /// <summary>
+        /// Inverse of CalculateHomogenizedFactorN.
+        /// Calculate psi from a required n (e.g., n=15).
+        /// </summary>
+        /// <param name="n">Required homogenization coefficient.</param>
+        /// <param name="steelMaterial"></param>
+        /// <param name="concreteMaterial"></param>
+        /// <returns></returns>
+        public static double CalculateHomogenizedFactorPhi(in double n, in SteelMaterial steelMaterial, in ConcreteMaterial concreteMaterial)
+        {
+            return n * concreteMaterial.ElasticModulusCompression / steelMaterial.ElasticModulusTension - 1.0;
+        }
+
+        // Redistribution of axial stress passing through a reinforced concrete mock section.
+        [TestMethod]
+        public void Test05_ContactSection01()
+        {
+            // Calculate the tensile stresses in the bolts,
+            // considering the contact between the plate assuming it is all in contact with a plane of concrete.
+            // Simulate contact with the area of concrete working only in tension.
+            // Value of phi obtained with n=15.
+            var rebar = new RebarSectionCircular(40, SteelMaterialEN1992Data.B450A);
+            var rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 150, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(750, 150, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(750, 850, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 850, 0))
+            };
+
+            var section = new ReinforcedConcreteSection(new SectionRectangular(1000, 800), ConcreteMaterialEN1992Data.C20_25);
+            section.AddRebars(rebars);
+
+            double phi = CalculateHomogenizedFactorPhi(15, rebar.RebarMaterial, section.ConcreteMaterial);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+            var cs = new CoordinateSystem(section.Centroid, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(-200000, 0, 0, 0, 200000*1200, -200000*1200, cs)
+            };
+            var sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN);
+            var sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, false, -1, null);
+
+            var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
+            (Point2d point, double tension)[] concreteTensions = slsResult[0].GetConcreteVerticesTension(phi);
+            (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = slsResult[0].GetRebarsTension(phi);
+
+            // Valori di confronto con calcolo da foglio excel a bassa precisione.
+            Assert.AreEqual(-7.177, concreteTensions.Min(t => t.tension), 0.002);
+            Assert.AreEqual(172.485, rebarTensions.Max(t => t.tension), 0.5);
+        }
+
+        // Redistribution of axial stress passing through a reinforced concrete mock section.
+        [TestMethod]
+        public void Test06_ContactSection02()
+        {
+            // Calculate the tensile stresses in the bolts,
+            // considering the contact between the plate assuming it is all in contact with a plane of concrete.
+            // Simulate contact with the area of concrete working only in tension.
+            // Value of phi obtained with n=15.
+            var rebar = new RebarSectionCircular(6, SteelMaterialEN1992Data.B450A);
+            var rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(30, 10, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(90, 0, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(140, 20, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(120, 80, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(40, 80, 0))
+            };
+
+            var section = new ReinforcedConcreteSection(
+                new Section(
+                    new Shape2d(
+                        new Polygon2d(
+                            new Point2d[]
+                            {
+                                new Point2d(0, 0),
+                                new Point2d(90, -20),
+                                new Point2d(170, 10),
+                                new Point2d(130, 90),
+                                new Point2d(30, 100),
+                            }
+                            )
+                        )
+                    ),
+                ConcreteMaterialEN1992Data.C20_25);
+
+            section.AddRebars(rebars);
+
+            double phi = CalculateHomogenizedFactorPhi(15, rebar.RebarMaterial, section.ConcreteMaterial);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+            var cs = new CoordinateSystem(Point2d.Origin, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(-20000, 0, 0, 0, -20000*20, -20000*180, cs)
+            };
+            var sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN);
+            var sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, false, -1, null);
+
+            var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
+            (Point2d point, double tension)[] concreteTensions = slsResult[0].GetConcreteVerticesTension(phi);
+            (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = slsResult[0].GetRebarsTension(phi);
+
+            // Valori di confronto con calcolo da foglio excel a bassa precisione.
+            Assert.AreEqual(-16.3, concreteTensions.Min(t => t.tension), 0.06);
+            Assert.AreEqual(283.6, rebarTensions.Max(t => t.tension), 0.2);
         }
     }
 }
