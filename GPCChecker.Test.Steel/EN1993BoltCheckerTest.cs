@@ -320,8 +320,8 @@ namespace SteelTests
         {
             // Calculate the tensile stresses in the bolts,
             // considering the contact between the plate assuming it is all in contact with a plane of concrete.
-            // Simulate contact with the area of concrete working only in tension.
-            // Value of phi obtained with n=15.
+            // Simulate contact with the area of concrete working only in compression.
+            // Value of phi1 obtained with n=15 and n=1.
             var rebar = new RebarSectionCircular(40, SteelMaterialEN1992Data.B450A);
             var rebars = new ReinforcedConcreteRebar[]
             {
@@ -333,26 +333,40 @@ namespace SteelTests
 
             var section = new ReinforcedConcreteSection(new SectionRectangular(1000, 800), ConcreteMaterialEN1992Data.C20_25);
             section.AddRebars(rebars);
-
-            double phi = CalculateHomogenizedFactorPhi(15, rebar.RebarMaterial, section.ConcreteMaterial);
-            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
             var cs = new CoordinateSystem(section.Centroid, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
-
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
                 new ResultBeamForces(-200000, 0, 0, 0, 200000*1200, -200000*1200, cs)
             };
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, forces, null);
             var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN);
             var sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, false, -1, null);
 
-            var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
-            (Point2d point, double tension)[] concreteTensions = slsResult[0].GetConcreteVerticesTension(phi);
-            (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = slsResult[0].GetRebarsTension(phi);
+            { // n = 15
+                double phi15 = CalculateHomogenizedFactorPhi(15, rebar.RebarMaterial, section.ConcreteMaterial);
 
-            // Valori di confronto con calcolo da foglio excel a bassa precisione.
-            Assert.AreEqual(-7.177, concreteTensions.Min(t => t.tension), 0.002);
-            Assert.AreEqual(172.485, rebarTensions.Max(t => t.tension), 0.5);
+                var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi15);
+                (Point2d point, double tension)[] concreteTensions = slsResult[0].GetConcreteVerticesTension(phi15);
+                (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = slsResult[0].GetRebarsTension(phi15);
+
+                // Comparison values with calculation from low-precision excel sheet.
+                Assert.AreEqual(-7.177, concreteTensions.Min(t => t.tension), 0.002);
+                Assert.AreEqual(172.485, rebarTensions.Max(t => t.tension), 0.5);
+            }
+
+            { // n = 1
+                double phi1 = CalculateHomogenizedFactorPhi(1, rebar.RebarMaterial, section.ConcreteMaterial);
+
+                var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi1);
+                (Point2d point, double tension)[] concreteTensions = slsResult[0].GetConcreteVerticesTension(phi1);
+                (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = slsResult[0].GetRebarsTension(phi1);
+
+                // Comparison values with calculation from low-precision excel sheet.
+                Assert.AreEqual(-30.28, concreteTensions.Min(t => t.tension), 0.01);
+                Assert.AreEqual(126.0, rebarTensions.Max(t => t.tension), 0.1);
+            }
         }
 
         // Redistribution of axial stress passing through a reinforced concrete mock section.
@@ -361,8 +375,8 @@ namespace SteelTests
         {
             // Calculate the tensile stresses in the bolts,
             // considering the contact between the plate assuming it is all in contact with a plane of concrete.
-            // Simulate contact with the area of concrete working only in tension.
-            // Value of phi obtained with n=15.
+            // Simulate contact with the area of concrete working only in compression.
+            // Value of phi1 obtained with n=15 and n=1.
             var rebar = new RebarSectionCircular(6, SteelMaterialEN1992Data.B450A);
             var rebars = new ReinforcedConcreteRebar[]
             {
@@ -392,7 +406,6 @@ namespace SteelTests
 
             section.AddRebars(rebars);
 
-            double phi = CalculateHomogenizedFactorPhi(15, rebar.RebarMaterial, section.ConcreteMaterial);
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
             var cs = new CoordinateSystem(Point2d.Origin, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
 
@@ -404,13 +417,29 @@ namespace SteelTests
             var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN);
             var sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, false, -1, null);
 
-            var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
-            (Point2d point, double tension)[] concreteTensions = slsResult[0].GetConcreteVerticesTension(phi);
-            (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = slsResult[0].GetRebarsTension(phi);
+            {
+                double phi15 = CalculateHomogenizedFactorPhi(15, rebar.RebarMaterial, section.ConcreteMaterial);
 
-            // Valori di confronto con calcolo da foglio excel a bassa precisione.
-            Assert.AreEqual(-16.3, concreteTensions.Min(t => t.tension), 0.06);
-            Assert.AreEqual(283.6, rebarTensions.Max(t => t.tension), 0.2);
+                var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi15);
+                (Point2d point, double tension)[] concreteTensions = slsResult[0].GetConcreteVerticesTension(phi15);
+                (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = slsResult[0].GetRebarsTension(phi15);
+
+                // Comparison values with calculation from low-precision excel sheet.
+                Assert.AreEqual(-16.25, concreteTensions.Min(t => t.tension), 0.01);
+                Assert.AreEqual(283.55, rebarTensions.Max(t => t.tension), 0.5);
+            }
+
+            {
+                double phi1 = CalculateHomogenizedFactorPhi(1, rebar.RebarMaterial, section.ConcreteMaterial);
+
+                var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi1);
+                (Point2d point, double tension)[] concreteTensions = slsResult[0].GetConcreteVerticesTension(phi1);
+                (ReinforcedConcreteRebar rebar, double tension)[] rebarTensions = slsResult[0].GetRebarsTension(phi1);
+
+                // Comparison values with calculation from low-precision excel sheet.
+                Assert.AreEqual(-50.37, concreteTensions.Min(t => t.tension), 0.01);
+                Assert.AreEqual(167.95, rebarTensions.Max(t => t.tension), 0.2);
+            }
         }
     }
 }
