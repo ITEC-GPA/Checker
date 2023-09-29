@@ -20,6 +20,8 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public SectionOptionsModelCode2010 SectionCheckerOptionsModelCode2010 => (SectionOptionsModelCode2010)_options;
 
+        public StandardEN1993p11 StandardStructuralSteel => (StandardEN1993p11)_standardStructuralSteel;
+
         #endregion
 
         #region Constructor

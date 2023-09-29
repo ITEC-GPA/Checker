@@ -2536,7 +2536,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Matrix<double> partialDerivatives = Matrix<double>.Build.Dense(2, 2);
 				Matrix<double> inputVector = Matrix<double>.Build.Dense(2, 1);
 
-                if ((dNdTeta != 0 || dNdImm != 0) && (dMxdTeta != 0 || dMxdImm != 0))
+                if ((dNdTeta != 0 || dNdImm != 0) && (dMxdTeta != 0 || dMxdImm != 0) &&
+                    dMxdTeta * dNdImm - dNdTeta * dMxdImm != 0)
                 {
                     partialDerivatives[0, 0] = dMxdTeta;
                     partialDerivatives[1, 0] = dNdTeta;
@@ -2547,7 +2548,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     inputVector[0, 0] = displacementVector.X;
                     inputVector[1, 0] = displacementVector.Z;
                 }
-				else if ((dNdTeta != 0 || dNdImm != 0) && (dMydTeta != 0 || dMydImm != 0))
+				else if ((dNdTeta != 0 || dNdImm != 0) && (dMydTeta != 0 || dMydImm != 0) &&
+                    dMydTeta * dNdImm - dNdTeta * dMydImm != 0)
 				{
 					partialDerivatives[0, 0] = dMydTeta;
 					partialDerivatives[1, 0] = dNdTeta;
@@ -2570,7 +2572,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 					inputVector[1, 0] = displacementVector.Y;
 				}
 
-				Matrix<double> results = partialDerivatives.Inverse() * inputVector;
+                Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
                 if (nonLinearErrorEta > 1.0)
                     nonLinearErrorEta = 1.0;
@@ -2683,15 +2685,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     //else if (inputFailureZone == FailureZones.F1)
                     if (inputFailureZone == FailureZones.F1)
                     {
-                        reductionFactorEta *= 0.1;
+                        reductionFactorEta *= 0.005;
+                        reductionFactorTeta *= 0.005;
                     }
                     else if (inputFailureZone == FailureZones.F2A)
                     {
-                        reductionFactorEta *= 0.15;
+                        reductionFactorEta *= 0.05;
+                        reductionFactorTeta *= 0.1;
                     }
                     else if (inputFailureZone == FailureZones.F2B)
                     {
-                        reductionFactorEta *= 0.5;
+                        reductionFactorEta *= 0.25;
                     }
                 }
 
