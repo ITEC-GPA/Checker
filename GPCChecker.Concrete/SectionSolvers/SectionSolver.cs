@@ -292,7 +292,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
                 zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.SteelSections.Count == 0)
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
@@ -312,7 +312,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
                 zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.SteelSections.Count == 0)
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
@@ -342,7 +342,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             }
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.SteelSections.Count == 0)
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
@@ -372,7 +372,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             }
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.SteelSections.Count == 0)
                 if (ConcreteSection.RebarsCount == 0)
                     return null;
 
