@@ -192,19 +192,31 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 			else if (ConcreteMaterial is ConcreteMaterialEuropeanCommon ec)
 				fc = Math.Abs(ec.Fck);
 
-			if (_haveSpiral)
-				limit = - StandardACI318.PhiMaximumCompressiveAxialLoadSpiral * StandardACI318.PhiCSpiral * (StandardACI318.ConcreteStrengthReductionFactor * fc *
-					(ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
-			else
-				limit = - StandardACI318.PhiMaximumCompressiveAxialLoadTied * StandardACI318.PhiCTied * (StandardACI318.ConcreteStrengthReductionFactor * fc *
-					(ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
+            // Coefficients in Table 22.4.2.1 - Maximum axial strength.
+            double maximumAxialStrengthCoefficient;
+            if (ConcreteSection.IsCompositeSteelConcrete)
+                maximumAxialStrengthCoefficient = StandardACI318.PhiMaximumCompressiveAxialLoadComposite; // 0.85
+            else if (_haveSpiral)
+                maximumAxialStrengthCoefficient = StandardACI318.PhiMaximumCompressiveAxialLoadSpiral; // 0.85
+            else
+                maximumAxialStrengthCoefficient = StandardACI318.PhiMaximumCompressiveAxialLoadTied; // 0.8
 
-			return limit;
-		}
+            // Coefficients for conpression controlled rupture.
+            double conpressionControlledCoefficient;
+            if (_haveSpiral)
+                conpressionControlledCoefficient = StandardACI318.PhiCSpiral;
+            else
+                conpressionControlledCoefficient = StandardACI318.PhiCTied;
 
-		#region Failure domain limit points
+            limit = - maximumAxialStrengthCoefficient * conpressionControlledCoefficient * (StandardACI318.ConcreteStrengthReductionFactor * fc *
+                (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
 
-		internal override DeformationFieldsPoint GetP3(BoundaryDistances distances,
+            return limit;
+        }
+
+        #region Failure domain limit points
+
+        internal override DeformationFieldsPoint GetP3(BoundaryDistances distances,
 			FailureDomainTypes analysisType)
 		{
 			switch (analysisType)
