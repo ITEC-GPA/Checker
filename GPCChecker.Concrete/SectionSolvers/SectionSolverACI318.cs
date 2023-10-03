@@ -1,4 +1,4 @@
-﻿using GPC.Checker.Helper;
+using GPC.Checker.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
 using GPC.Model;
@@ -226,15 +226,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         internal override DeformationFieldsPoint GetP3(BoundaryDistances distances,
 			FailureDomainTypes analysisType)
 		{
+			double minY;
+			if (_concreteSection.IsCompositeSteelConcrete)
+				minY = Math.Min(distances.dminConcrete, distances.dminStrucSteel);
+			else
+				minY = distances.dminConcrete;
+
 			switch (analysisType)
 			{
 				case FailureDomainTypes.Elastic:
 					return new DeformationFieldsPoint(GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
-						(distances.dmaxConcrete - distances.dminRebar));
+						(distances.dmaxConcrete - minY));
 
 				case FailureDomainTypes.Plastic:
 					return new DeformationFieldsPoint(GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
-						(distances.dmaxConcrete - distances.dminRebar));
+						(distances.dmaxConcrete - minY));
 
 				default:
 					return new DeformationFieldsPoint(0.0, null, 0.0);
