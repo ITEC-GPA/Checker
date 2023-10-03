@@ -208,15 +208,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else
                 maximumAxialStrengthCoefficient = StandardACI318.PhiMaximumCompressiveAxialLoadTied; // 0.8
 
-            // Coefficients for conpression controlled rupture.
-            double conpressionControlledCoefficient;
-            if (_haveSpiral)
-                conpressionControlledCoefficient = StandardACI318.PhiCSpiral;
-            else
-                conpressionControlledCoefficient = StandardACI318.PhiCTied;
+			// Coefficients for conpression controlled rupture.
+			double compressionControlledCoefficient;
+			if (_haveSpiral)
+				compressionControlledCoefficient = StandardACI318.PhiCSpiral;
+			else
+				compressionControlledCoefficient = StandardACI318.PhiCTied;
 
-            limit = - maximumAxialStrengthCoefficient * conpressionControlledCoefficient * (StandardACI318.ConcreteStrengthReductionFactor * fc *
-                (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA + fyStructuralSteel);
+			limit = -compressionControlledCoefficient * (maximumAxialStrengthCoefficient * (StandardACI318.ConcreteStrengthReductionFactor * fc *
+                (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA + fyStructuralSteel));
 
             return limit;
         }
