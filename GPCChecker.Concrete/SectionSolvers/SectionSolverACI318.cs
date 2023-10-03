@@ -184,6 +184,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 			for (int i = 0; i < rebars.Length; i++)
 				fyA += rebars[i].Area * Math.Min(rebars[i].RebarMaterial.Fyk, 551.579);
 
+			double fyStructuralSteel = 0;
+			if(ConcreteSection.IsCompositeSteelConcrete)
+			{
+				for (int i = 0; i < ConcreteSection.SteelSections.Count; i++)
+					fyStructuralSteel += ConcreteSection.SteelSections[i].Section.Area * Math.Min(ConcreteSection.SteelSections[i].Section.SteelMaterial.Fyk, 551.579);
+			}
+
 			double limit;
 			double fc = 0;
 
@@ -209,7 +216,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 conpressionControlledCoefficient = StandardACI318.PhiCTied;
 
             limit = - maximumAxialStrengthCoefficient * conpressionControlledCoefficient * (StandardACI318.ConcreteStrengthReductionFactor * fc *
-                (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA);
+                (ConcreteSection.Area - ConcreteSection.AreaRebars) + fyA + fyStructuralSteel);
 
             return limit;
         }
