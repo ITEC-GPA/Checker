@@ -548,8 +548,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             }
                             if (returnValue[i].N < limitCompression)
                             {
-                                returnValue[i] = new ForceTuple(limitCompression, returnValue[i].Mx, returnValue[i].My);
-                            }
+								double ratio = limitCompression / returnValue[i].N;
+
+								returnValue[i] = returnValue[i] * ratio;
+								returnValue[i].N = limitCompression;
+							}
                         }
                     }
                 }

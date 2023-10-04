@@ -1,4 +1,5 @@
-﻿using GPC.Checkers.Concrete.Checkers;
+﻿using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
@@ -18,7 +19,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using static GPC.Checkers.Concrete.Results.FailureDomain;
 
 namespace ConcreteTests
 {
@@ -2376,7 +2376,7 @@ namespace ConcreteTests
             forceRelativeTollerance = 0.001;
             var maxErrorConstantEccentricity_intersectionMethod = new List<double>();
             var origin = Point3d.Origin;
-            var plastiDomainMeshRC = plasticDomainResultRC.Domain.GetMesh(plasticDomainResultRC.Domain, out Dictionary<MeshVertex, FailureDomainPoint> vertexToDomainPoint);
+            var plastiDomainMeshRC = plasticDomainResultRC.Domain.GetMesh(plasticDomainResultRC.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint);
 
             for (int i = 0; i < domSize0; i += domStep0)
             {
@@ -2391,7 +2391,7 @@ namespace ConcreteTests
                     currCompositeForcePoint.Z -= NrdCorrection;
                     var resultBeamComposite = new ResultBeamForces(currCompositeForcePoint.Z, 0.0, 0.0, 0.0, currCompositeForcePoint.X, currCompositeForcePoint.Y, GetLocalCoordinateSystem(sectionRC));
 
-                    var failComposite = new FailureDomainPoint(plastiDomainMeshRC,
+                    var failComposite = new FailureDomain.FailureDomainPoint(plastiDomainMeshRC,
                         resultBeamComposite, vertexToDomainPoint, sectionCheckerRC, SectionSolver.FailureDomainTypes.Plastic, 10);
 
                     maxErrorConstantEccentricity_intersectionMethod.Add(failComposite.WorkingRatio);
@@ -2848,5 +2848,52 @@ namespace ConcreteTests
                         standardStructuralSteel: standardSteel);
             }
         }
-    }
+
+		[TestMethod]
+		public void RectangularSectionWithSteelSetcion04()
+		{
+            double b = 2000;
+            double h = 200;
+            double rebarDiameter = 1;
+            int numberRebars = 8;
+            double rebarsCover = 50;
+
+			double bfw = 500;       // bottom flange width
+			double tfw = 500;       // top flange width
+			double hh = 1000;          // heigth
+			double bft = 40;       // Bottom flange thickness
+			double tft = 40;        // Top flange thickness
+			double wt = 1;        // Web thickness
+
+			ConcreteMaterialACI318 concreteMaterialACI318 = ConcreteMaterialACI318Data.Fc4000;
+            SteelMaterialACI318 steelMaterialACI318 = SteelMaterialAISC360Data.Grade50;
+            SteelMaterialACI318 rebarMaterial = SteelMaterialACI318Data.Grade50;
+
+			SectionH sectionH = new SectionH(hh, wt, tfw, tft, bfw, bft, "Test");
+
+			var fakeRebar = new RebarSectionCircular("", 1.0, rebarMaterial);
+			var rebar = new RebarSectionCircular("", rebarDiameter, rebarMaterial);
+			ReinforcedConcreteSection reinforcedConcreteSection = new ReinforcedConcreteSection(b, h, concreteMaterialACI318, rebar, b / numberRebars, rebarsCover, fakeRebar, 1000, sectionH, steelMaterialACI318);
+
+			StandardACI318p14 standardACI318P14 = new StandardACI318p14();
+			StandardAISC360p16 standardAISC360P16 = new StandardAISC360p16();
+
+			CoordinateSystem coordinateSystem = GetLocalCoordinateSystem(reinforcedConcreteSection);
+			SectionCheckerACI318.SectionOptionsStandardACI318 options = new SectionCheckerACI318.SectionOptionsStandardACI318(coordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantN);
+
+			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(reinforcedConcreteSection);
+			SectionCheckerACI318 sectionCheckerACI318 = new SectionCheckerACI318(sectionCheckerAttribute, options, standardACI318P14, false, false, -1, standardAISC360P16);
+
+			FailureDomainResult elasticFailureDomainResult = sectionCheckerACI318.GetElasticFailureDomainResult();
+            FailureDomainResult plasticFailureDomainResult = sectionCheckerACI318.GetPlasticFailureDomainResult();
+
+			var elasticDomainMesh = elasticFailureDomainResult.Domain.GetMesh(elasticFailureDomainResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> elasticVertexToDomainPoint);
+            var plasticDomainMesh = plasticFailureDomainResult.Domain.GetMesh(plasticFailureDomainResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> plasticVertexToDomainPoint);
+
+            ShowDomainPoints(elasticFailureDomainResult.Domain);
+            ShowDomainPoints(plasticFailureDomainResult.Domain);
+			//ExportToGmsh(elasticDomainMesh);
+			//ExportToGmsh(plasticDomainMesh);
+		}
+	}
 }
