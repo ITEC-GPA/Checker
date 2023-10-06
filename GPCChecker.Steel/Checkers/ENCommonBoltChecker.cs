@@ -95,11 +95,35 @@ namespace GPC.Checkers.Steel.Checkers
                 // ****** Required forces.
                 // Calculate all shear forces for each bolt.
                 var SollAllBolts = _plateWithBolts.BoltGrid.CalculateShearForcesElastic(SolForce.ResBeamForces);
-                // Calculate uniform tension forces for each bolt.
-                var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N / SollAllBolts.Count() : 0;
-                if (SollN > 1) // Positive for tension.
-                    foreach (var SollBolt in SollAllBolts)
-                        SollBolt.Value.N = SollN;
+                // Calculate tension forces for each bolt.
+                switch (OptionsENCommon.TensionDistributionType)
+                {
+                    case TensionDistributionTypes.Uniform:
+                        {
+                            var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N / SollAllBolts.Count() : 0;
+                            if (SollN > 1) // Positive for tension.
+                                foreach (var SollBolt in SollAllBolts)
+                                    SollBolt.Value.N = SollN;
+                            break;
+                        }
+                    case TensionDistributionTypes.SimpleAssign:
+                        {
+                            var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N : 0;
+                            if (SollN > 1) // Positive for tension.
+                                foreach (var SollBolt in SollAllBolts)
+                                    SollBolt.Value.N = SollN;
+                            break;
+                        }
+                    case TensionDistributionTypes.MethodN1:
+                        {
+                            _plateWithBolts.CalculateTensionForcesElastic(SolForce.ResBeamForces, _plateWithBolts.PlateMaterial.E, SollAllBolts, out _);
+                            // Bolts cannot be compressed.
+                            foreach (var SollBolt in SollAllBolts)
+                                if (SollBolt.Value.N < 0)
+                                    SollBolt.Value.N = 0;
+                            break;
+                        }
+                }
 
                 foreach (var SollBolt in SollAllBolts)
                 {

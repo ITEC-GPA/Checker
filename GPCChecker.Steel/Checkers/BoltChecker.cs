@@ -13,6 +13,22 @@ namespace GPC.Checkers.Steel.Checkers
     [Serializable]
     public abstract class BoltChecker : Checker, ISerializable
     {
+        #region Enums
+
+        /// <summary>
+        /// Distribution types for bolt in tension.
+        /// </summary>
+        public enum TensionDistributionTypes
+        {
+            Uniform, // Bolt grid tension is distributed by simply dividing by the number of bolts.
+            SimpleAssign, // Bolt grid tension is simply assigned to each bolt.
+            MethodN1, // Elastic method considering the bolts with linear elastic behavior and the contact area (the whole plate)
+                      // with elastic behavior with compressive strength only.
+                      // N method, with N=1.
+        }
+
+        #endregion
+
         #region Variables
 
         protected readonly PlateWithBolts _plateWithBolts;
@@ -97,6 +113,11 @@ namespace GPC.Checkers.Steel.Checkers
                 set => _numBearingPlate = value < 1 ? 1 : value;
             }
 
+            /// <summary>
+            /// Distribution of tensile stress between bolts.
+            /// </summary>
+            public TensionDistributionTypes TensionDistributionType { get; set; }
+
             #endregion
 
             #region Constructor
@@ -108,6 +129,7 @@ namespace GPC.Checkers.Steel.Checkers
                 IsCounterSunkBolt = false;
                 NumFricionPlane = 1;
                 NumBearingPlate = 1;
+                TensionDistributionType = TensionDistributionTypes.Uniform;
             }
 
             public BoltOptions(SerializationInfo info, StreamingContext context)
@@ -127,6 +149,18 @@ namespace GPC.Checkers.Steel.Checkers
                 {
                     _numBearingPlate = info.GetInt32("NumBearingPlate");
                 }
+                else
+                {
+                    _numBearingPlate = 1;
+                }
+                if (BoltOptionsVersion > 2)
+                {
+                    TensionDistributionType = (TensionDistributionTypes)info.GetValue("TensionDistributionType", typeof(TensionDistributionTypes));
+                }
+                else
+                {
+                    TensionDistributionType = TensionDistributionTypes.Uniform;
+                }
             }
 
             #endregion
@@ -135,13 +169,14 @@ namespace GPC.Checkers.Steel.Checkers
 
             public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
             {
-                int BoltOptionsVersion = 2;
+                int BoltOptionsVersion = 3;
                 info.AddValue("BoltOptionsVersion", BoltOptionsVersion);
                 info.AddValue("ShearPlaneThroughThreadedPortion", ShearPlaneThroughThreadedPortion);
                 info.AddValue("NumShearPlane", _numShearPlane);
                 info.AddValue("IsCounterSunkBolt", IsCounterSunkBolt);
                 info.AddValue("NumFrictionPlane", _numFrictionPlane);
                 info.AddValue("NumBearingPlate", _numBearingPlate);
+                info.AddValue("TensionDistributionType", TensionDistributionType);
             }
 
             #endregion
