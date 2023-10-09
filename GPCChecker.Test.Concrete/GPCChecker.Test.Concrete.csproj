@@ -48,14 +48,17 @@
     <Reference Include="GMsh.Net, Version=1.0.495.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GMsh.Net.1.0.495.1\lib\netstandard2.0\GMsh.Net.dll</HintPath>
     </Reference>
+    <Reference Include="GPCChecker.Concrete, Version=0.0.10.3, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCChecker.Concrete.0.0.10.3\lib\netstandard2.0\GPCChecker.Concrete.dll</HintPath>
+    </Reference>
     <Reference Include="GPCGeometry, Version=2.0.0.4, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCGeometry.2.0.0.4\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=1.0.3.3, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModel.1.0.3.3\lib\netstandard2.0\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCModel.1.0.4\lib\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModelData, Version=0.0.1.7, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModelData.0.0.1.7\lib\netstandard2.0\GPCModelData.dll</HintPath>
+    <Reference Include="GPCModelData, Version=0.0.1.8, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCModelData.0.0.1.8\lib\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.8, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.8\lib\net472\GPCTestUtilities.dll</HintPath>
@@ -104,12 +107,6 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\GPCChecker.Concrete\GPCChecker.Concrete.csproj">
-      <Project>{bd7c1d49-f230-4290-9a04-a4cdfb537bcd}</Project>
-      <Name>GPCChecker.Concrete</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

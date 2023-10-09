@@ -42,15 +42,17 @@
     <Reference Include="DelaunayMesh, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\DelaunayMesh.2.0.0\lib\netstandard2.0\DelaunayMesh.dll</HintPath>
     </Reference>
+    <Reference Include="GPCChecker.Steel, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCChecker.Steel.1.0.5\lib\netstandard2.0\GPCChecker.Steel.dll</HintPath>
+    </Reference>
     <Reference Include="GPCGeometry, Version=2.0.0.4, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCGeometry.2.0.0.4\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=1.0.3.3, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModel.1.0.3.3\lib\netstandard2.0\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCModel.1.0.4\lib\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModelData, Version=0.0.1.7, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModelData.0.0.1.7\lib\netstandard2.0\GPCModelData.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="GPCModelData, Version=0.0.1.8, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCModelData.0.0.1.8\lib\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
     <Reference Include="GPCUtilities, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCUtilities.2.0.0.2\lib\netstandard2.0\GPCUtilities.dll</HintPath>
@@ -84,20 +86,6 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\GPCChecker.Concrete\GPCChecker.Concrete.csproj">
-      <Project>{BD7C1D49-F230-4290-9A04-A4CDFB537BCD}</Project>
-      <Name>GPCChecker.Concrete</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GPCChecker.Steel\GPCChecker.Steel.csproj">
-      <Project>{edff3d15-bbe0-4791-a528-d3d285c0f6de}</Project>
-      <Name>GPCChecker.Steel</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GPCChecker.Test.Concrete\GPCChecker.Test.Concrete.csproj">
-      <Project>{DE309B08-CBBD-441C-B15D-BD6FC0D8D831}</Project>
-      <Name>GPCChecker.Test.Concrete</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
