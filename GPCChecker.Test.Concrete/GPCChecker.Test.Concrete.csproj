@@ -48,9 +48,6 @@
     <Reference Include="GMsh.Net, Version=1.0.495.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GMsh.Net.1.0.495.1\lib\netstandard2.0\GMsh.Net.dll</HintPath>
     </Reference>
-    <Reference Include="GPCChecker.Concrete, Version=0.0.10.3, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCChecker.Concrete.0.0.10.3\lib\netstandard2.0\GPCChecker.Concrete.dll</HintPath>
-    </Reference>
     <Reference Include="GPCGeometry, Version=2.0.0.4, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCGeometry.2.0.0.4\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
@@ -107,6 +104,12 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GPCChecker.Concrete\GPCChecker.Concrete.csproj">
+      <Project>{bd7c1d49-f230-4290-9a04-a4cdfb537bcd}</Project>
+      <Name>GPCChecker.Concrete</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
