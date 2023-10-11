@@ -2805,6 +2805,43 @@ namespace ConcreteTests
             Assert.IsTrue(err333 < 0.026);
         }
 
+
+        // Tension in composite section.
+        // See excel file "01_Steel_Concrete_Member check.xlsm".
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void TensionCheck04()
+        {
+            var rebar = new RebarSectionCircular("", 12.0, SteelMaterialEN1992Data.B450C);
+            var section = new ReinforcedConcreteSection(1200.0, 200.0, ConcreteMaterialEN1992Data.C40_50, rebar, 150, 60.0, null, 150,
+                new GPC.Model.Sections.SectionH(600.0, 21.6, 215.0, 32.4, 215.0, 32.4, "IPN600 r=0"), SteelMaterialEN1993Data.S355);
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0, 0, 0, 0, 1500000000, 0, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(0, 0, 0, 0, 2000000000, 0, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(0, 0, 0, 0, 2500000000, 0, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(0, 0, 0, 0, 3000000000, 0, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(0, 0, 0, 0, 3200000000, 0, GetLocalCoordinateSystem(section)),
+            };
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, standard, true, new StandardEN1993p11());
+
+            var slsResult = sectionChecker.GetStressAnalysisResult();
+
+            for (int i = 0; i < slsResult.Length; i++)
+            {
+                var concreteTensions = slsResult[i].GetConcreteVerticesTension();
+                var rebarTensions = slsResult[i].GetRebarsTension();
+                var steelSectionsTensions = slsResult[i].GetStructuralSteelVerticesTension();
+
+                Console.WriteLine($"CMB {i}");
+                Console.WriteLine(concreteTensions.Select(j => j.tension).Min() + ";" + rebarTensions.Select(j => j.tension).Max() + ";" +
+                    steelSectionsTensions.Select(j => j.tension).Min() + ";" + steelSectionsTensions.Select(j => j.tension).Max());
+            }
+        }
+
         // Tension in composite section.
         [TestMethod]
         [TestCategory("Bridge")]
