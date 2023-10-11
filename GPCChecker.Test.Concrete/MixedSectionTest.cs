@@ -13,6 +13,7 @@ using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
+using GPC.Utilities.Maths;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -2717,6 +2718,169 @@ namespace ConcreteTests
             Assert.AreEqual(minRebarsCompression, internalMinRebarsCompression, 5.0);
         }
 
+        // Tension in composite section.
+        // See excel file "01_Steel_Concrete_Member check.xlsm".
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void TensionCheck03()
+        {
+            var rebar = new RebarSectionCircular("", 12.0, SteelMaterialEN1992Data.B450C);
+            var section = new ReinforcedConcreteSection(1200.0, 200.0, ConcreteMaterialEN1992Data.C40_50, rebar, 150, 60.0, null, 150,
+                new GPC.Model.Sections.SectionH(600.0, 21.6, 215.0, 32.4, 215.0, 32.4, "IPN600 r=0"), SteelMaterialEN1993Data.S355);
+            double phi = 0.0;
+            StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0, 0, 0, 0, 2000000000, 0, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(0, 0, 0, 0, 2500000000, 0, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(0, 0, 0, 0, 1500000000, 0, GetLocalCoordinateSystem(section)),
+            };
+
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, standard, true, new StandardEN1993p11());
+
+            var slsResult = sectionChecker.GetLinearStressAnalysisResult(phi);
+
+            // Combination 0
+            var concreteTensions = slsResult[0].GetConcreteVerticesTension(phi);
+            var rebarTensions = slsResult[0].GetRebarsTension(phi);
+            var steelSectionsTensions = slsResult[0].GetStructuralSteelVerticesTension(phi);
+
+            double maxSteelSectionTension = 270.88;
+            double minConcreteCompression = -20.84;
+            double minRebarsCompression = -95.37;
+
+            var internalMaxSteelTension = steelSectionsTensions.Max(i => i.tension);
+            var internalMinConcreteCompression = concreteTensions.Min(i => i.tension);
+            var internalMinRebarsCompression = rebarTensions.Min(i => i.tension);
+
+            var err1 = Error.TwoValuesRelativeError(maxSteelSectionTension, internalMaxSteelTension);
+            var err2 = Error.TwoValuesRelativeError(minConcreteCompression, internalMinConcreteCompression);
+            var err3 = Error.TwoValuesRelativeError(minRebarsCompression, internalMinRebarsCompression);
+
+            Assert.IsTrue(err1 < 0.0025);
+            Assert.IsTrue(err2 < 0.002);
+            Assert.IsTrue(err3 < 0.026);
+
+            // Combination 1
+            concreteTensions = slsResult[1].GetConcreteVerticesTension(phi);
+            rebarTensions = slsResult[1].GetRebarsTension(phi);
+            steelSectionsTensions = slsResult[1].GetStructuralSteelVerticesTension(phi);
+
+            maxSteelSectionTension = 338.60;
+            minConcreteCompression = -26.05;
+            minRebarsCompression = -119.21;
+
+            internalMaxSteelTension = steelSectionsTensions.Max(i => i.tension);
+            internalMinConcreteCompression = concreteTensions.Min(i => i.tension);
+            internalMinRebarsCompression = rebarTensions.Min(i => i.tension);
+
+            var err11 = Error.TwoValuesRelativeError(maxSteelSectionTension, internalMaxSteelTension);
+            var err22 = Error.TwoValuesRelativeError(minConcreteCompression, internalMinConcreteCompression);
+            var err33 = Error.TwoValuesRelativeError(minRebarsCompression, internalMinRebarsCompression);
+
+            Assert.IsTrue(err11 < 0.0025);
+            Assert.IsTrue(err22 < 0.002);
+            Assert.IsTrue(err33 < 0.026);
+
+            // Combination 1
+            concreteTensions = slsResult[2].GetConcreteVerticesTension(phi);
+            rebarTensions = slsResult[2].GetRebarsTension(phi);
+            steelSectionsTensions = slsResult[2].GetStructuralSteelVerticesTension(phi);
+
+            maxSteelSectionTension = 202.22;
+            minConcreteCompression = -15.92;
+            minRebarsCompression = -68.977;
+
+            internalMaxSteelTension = steelSectionsTensions.Max(i => i.tension);
+            internalMinConcreteCompression = concreteTensions.Min(i => i.tension);
+            internalMinRebarsCompression = rebarTensions.Min(i => i.tension);
+
+            var err111 = Error.TwoValuesRelativeError(maxSteelSectionTension, internalMaxSteelTension);
+            var err222 = Error.TwoValuesRelativeError(minConcreteCompression, internalMinConcreteCompression);
+            var err333 = Error.TwoValuesRelativeError(minRebarsCompression, internalMinRebarsCompression);
+
+            Assert.IsTrue(err111 < 0.0025);
+            Assert.IsTrue(err222 < 0.01);
+            Assert.IsTrue(err333 < 0.026);
+        }
+
+        // Tension in composite section.
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void BendingMomentCheck02()
+        {
+            var rebar = new RebarSectionCircular("", 1, SteelMaterialACI318Data.Grade60);
+            var cnc = new ConcreteMaterialACI318("fc' 4000", 27.579, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
+            var section = new ReinforcedConcreteSection(1200.0, 200.0, cnc, rebar, 150, 60.0, null, 150,
+                new GPC.Model.Sections.SectionH(402.6, 7.7, 177.7, 10.9, 177.7, 10.9, "UB 406 x 178 x 54 r=0"), SteelMaterialAISC360Data.Grade50);
+
+            StandardACI318p08 standard = new StandardACI318p08();
+            StandardAISC360p05 standardAisc = new StandardAISC360p05();
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0, 0, 0, 0, 840000000, 0, GetLocalCoordinateSystem(section), 1),
+            };
+
+            SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, forces, null, standard,
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section)), false, false, standardAisc);
+
+            var slsResult = sectionChecker.GetStressAnalysisResult();
+            var res = slsResult[0].CalculateStrainPlaneResult();
+
+            // Combination 0
+            var concreteTensions = slsResult[0].GetConcreteVerticesTension();
+            var rebarTensions = slsResult[0].GetRebarsTension();
+            var steelSectionsTensions = slsResult[0].GetStructuralSteelVerticesTension();
+
+            Assert.IsTrue(Math.Abs(steelSectionsTensions.Select(i => i.tension).Max() - SteelMaterialAISC360Data.Grade50.Fyk) < 0.001);
+            Assert.IsTrue(Math.Abs(steelSectionsTensions.Select(i => i.tension).Min() - SteelMaterialAISC360Data.Grade50.Fyk) < 0.001);
+            Assert.IsTrue(Math.Abs(concreteTensions.Select(i => i.tension).Min() - 0.85 * cnc.Fc) < 0.001);
+            Assert.IsTrue(Math.Abs(concreteTensions.Select(i => i.tension).Max()) < 0.001);
+        }
+
+        // Tension in composite section.
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void BendingMomentCheck0()
+        {
+            var rebar = new RebarSectionCircular("", 1, SteelMaterialACI318Data.Grade60);
+            var cnc = new ConcreteMaterialACI318("fc' 4000", 27.579, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
+
+            var section = new ReinforcedConcreteSection(1200.0, 200.0, cnc, rebar, 150, 60.0, null, 150,
+                new GPC.Model.Sections.SectionH(402.6, 7.7, 177.7, 10.9, 177.7, 10.9, "UB 406 x 178 x 54 r=0"), SteelMaterialAISC360Data.Grade50);
+
+            StandardACI318p08 standard = new StandardACI318p08();
+            StandardAISC360p05 standardAisc = new StandardAISC360p05();
+
+            ResultBeamForces[] forces = new ResultBeamForces[]
+            {
+                new ResultBeamForces(0, 0, 0, 0, 1000000000, 0, GetLocalCoordinateSystem(section), 1),
+                new ResultBeamForces(0, 0, 0, 0, 1000000000, 0, new CoordinateSystem(new Point3d(600,-402.6/2.0, 0), Vector3d.XAxis, Vector3d.YAxis, "centroidSteel"), 1),
+                new ResultBeamForces(0, 0, 0, 0, 1000000000, 0, new CoordinateSystem(new Point3d(0, 0, 0), Vector3d.XAxis, Vector3d.YAxis, "generic"), 1),
+            };
+
+            SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, null, null, standard,
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section)), false, false, standardAisc);
+
+            FailureDomainResult ulsResult = sectionChecker.GetPlasticFailureDomainResult();
+            Mesh domainMesh = ulsResult.Domain.GetMesh(ulsResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint);
+
+            //ExportToGmsh(domainMesh);
+
+            var domainPoint = new FailureDomain.FailureDomainPoint(domainMesh, forces[0], vertexToDomainPoint, sectionChecker, SectionSolver.FailureDomainTypes.Plastic, 10);
+            var domainPoint2 = new FailureDomain.FailureDomainPoint(domainMesh, forces[1], vertexToDomainPoint, sectionChecker, SectionSolver.FailureDomainTypes.Plastic, 10);
+            var domainPoint3 = new FailureDomain.FailureDomainPoint(domainMesh, forces[2], vertexToDomainPoint, sectionChecker, SectionSolver.FailureDomainTypes.Plastic, 10);
+
+            Console.WriteLine($"MxRd = {Math.Round(domainPoint.MxRd / 1000000, 2)} kNm");
+            Console.WriteLine($"MxRd = {Math.Round(domainPoint2.MxRd / 1000000, 2)} kNm");
+            Console.WriteLine($"MxRd = {Math.Round(domainPoint3.MxRd / 1000000, 2)} kNm");
+
+            Assert.IsTrue(Math.Abs(domainPoint2.MxRd - domainPoint.MxRd) < 1);
+            Assert.IsTrue(Math.Abs(domainPoint3.MxRd - domainPoint.MxRd) < 1);
+        }
+
         [TestMethod]
         public void RectangularSectionWithSteelSetcion01()
         {
@@ -2849,51 +3013,51 @@ namespace ConcreteTests
             }
         }
 
-		[TestMethod]
-		public void RectangularSectionWithSteelSetcion04()
-		{
+        [TestMethod]
+        public void RectangularSectionWithSteelSetcion04()
+        {
             double b = 2000;
             double h = 200;
             double rebarDiameter = 1;
             int numberRebars = 8;
             double rebarsCover = 50;
 
-			double bfw = 500;       // bottom flange width
-			double tfw = 500;       // top flange width
-			double hh = 1000;          // heigth
-			double bft = 40;       // Bottom flange thickness
-			double tft = 40;        // Top flange thickness
-			double wt = 1;        // Web thickness
+            double bfw = 500;       // bottom flange width
+            double tfw = 500;       // top flange width
+            double hh = 1000;          // heigth
+            double bft = 40;       // Bottom flange thickness
+            double tft = 40;        // Top flange thickness
+            double wt = 1;        // Web thickness
 
-			ConcreteMaterialACI318 concreteMaterialACI318 = ConcreteMaterialACI318Data.Fc4000;
+            ConcreteMaterialACI318 concreteMaterialACI318 = ConcreteMaterialACI318Data.Fc4000;
             SteelMaterialACI318 steelMaterialACI318 = SteelMaterialAISC360Data.Grade50;
             SteelMaterialACI318 rebarMaterial = SteelMaterialACI318Data.Grade50;
 
-			SectionH sectionH = new SectionH(hh, wt, tfw, tft, bfw, bft, "Test");
+            SectionH sectionH = new SectionH(hh, wt, tfw, tft, bfw, bft, "Test");
 
-			var fakeRebar = new RebarSectionCircular("", 1.0, rebarMaterial);
-			var rebar = new RebarSectionCircular("", rebarDiameter, rebarMaterial);
-			ReinforcedConcreteSection reinforcedConcreteSection = new ReinforcedConcreteSection(b, h, concreteMaterialACI318, rebar, b / numberRebars, rebarsCover, fakeRebar, 1000, sectionH, steelMaterialACI318);
+            var fakeRebar = new RebarSectionCircular("", 1.0, rebarMaterial);
+            var rebar = new RebarSectionCircular("", rebarDiameter, rebarMaterial);
+            ReinforcedConcreteSection reinforcedConcreteSection = new ReinforcedConcreteSection(b, h, concreteMaterialACI318, rebar, b / numberRebars, rebarsCover, fakeRebar, 1000, sectionH, steelMaterialACI318);
 
-			StandardACI318p14 standardACI318P14 = new StandardACI318p14();
-			StandardAISC360p16 standardAISC360P16 = new StandardAISC360p16();
+            StandardACI318p14 standardACI318P14 = new StandardACI318p14();
+            StandardAISC360p16 standardAISC360P16 = new StandardAISC360p16();
 
-			CoordinateSystem coordinateSystem = GetLocalCoordinateSystem(reinforcedConcreteSection);
-			SectionCheckerACI318.SectionOptionsStandardACI318 options = new SectionCheckerACI318.SectionOptionsStandardACI318(coordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantN);
+            CoordinateSystem coordinateSystem = GetLocalCoordinateSystem(reinforcedConcreteSection);
+            SectionCheckerACI318.SectionOptionsStandardACI318 options = new SectionCheckerACI318.SectionOptionsStandardACI318(coordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantN);
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(reinforcedConcreteSection);
-			SectionCheckerACI318 sectionCheckerACI318 = new SectionCheckerACI318(sectionCheckerAttribute, options, standardACI318P14, false, false, -1, standardAISC360P16);
+            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(reinforcedConcreteSection);
+            SectionCheckerACI318 sectionCheckerACI318 = new SectionCheckerACI318(sectionCheckerAttribute, options, standardACI318P14, false, false, -1, standardAISC360P16);
 
-			FailureDomainResult elasticFailureDomainResult = sectionCheckerACI318.GetElasticFailureDomainResult();
+            FailureDomainResult elasticFailureDomainResult = sectionCheckerACI318.GetElasticFailureDomainResult();
             FailureDomainResult plasticFailureDomainResult = sectionCheckerACI318.GetPlasticFailureDomainResult();
 
-			var elasticDomainMesh = elasticFailureDomainResult.Domain.GetMesh(elasticFailureDomainResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> elasticVertexToDomainPoint);
+            var elasticDomainMesh = elasticFailureDomainResult.Domain.GetMesh(elasticFailureDomainResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> elasticVertexToDomainPoint);
             var plasticDomainMesh = plasticFailureDomainResult.Domain.GetMesh(plasticFailureDomainResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> plasticVertexToDomainPoint);
 
             ShowDomainPoints(elasticFailureDomainResult.Domain);
             ShowDomainPoints(plasticFailureDomainResult.Domain);
-			//ExportToGmsh(elasticDomainMesh);
-			//ExportToGmsh(plasticDomainMesh);
-		}
-	}
+            //ExportToGmsh(elasticDomainMesh);
+            //ExportToGmsh(plasticDomainMesh);
+        }
+    }
 }
