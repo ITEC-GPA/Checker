@@ -2914,8 +2914,13 @@ namespace ConcreteTests
             Console.WriteLine($"MxRd = {Math.Round(domainPoint2.MxRd / 1000000, 2)} kNm");
             Console.WriteLine($"MxRd = {Math.Round(domainPoint3.MxRd / 1000000, 2)} kNm");
 
+            Console.WriteLine($"Nominal MxRd = {Math.Round(domainPoint3.MxRd / 0.9 / 1000000, 4)} kNm");
+
             Assert.IsTrue(Math.Abs(domainPoint2.MxRd - domainPoint.MxRd) < 1);
             Assert.IsTrue(Math.Abs(domainPoint3.MxRd - domainPoint.MxRd) < 1);
+
+            var slsResult = sectionChecker.GetStressAnalysisResult(new ResultBeamForces(0, 0, 0, 0, domainPoint.MxRd, 0, GetLocalCoordinateSystem(section), 1));
+            var res = slsResult.CalculateStrainPlaneResult();
         }
 
         [TestMethod]
