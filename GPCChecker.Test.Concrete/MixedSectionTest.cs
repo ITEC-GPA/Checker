@@ -2850,7 +2850,7 @@ namespace ConcreteTests
             var rebar = new RebarSectionCircular("", 1, SteelMaterialACI318Data.Grade60);
             var cnc = new ConcreteMaterialACI318("fc' 4000", 27.579, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
             var section = new ReinforcedConcreteSection(1200.0, 200.0, cnc, rebar, 150, 60.0, null, 150,
-                new GPC.Model.Sections.SectionH(402.6, 7.7, 177.7, 10.9, 177.7, 10.9, "UB 406 x 178 x 54 r=0"), SteelMaterialAISC360Data.Grade50);
+                new GPC.Model.Sections.SectionH(402.6, 7.7, 177.7, 10.9, 177.7, 10.9, "UB 406 x 178 x 54 r=0"), SteelMaterialACI318Data.Grade50);
 
             StandardACI318p08 standard = new StandardACI318p08();
             StandardAISC360p05 standardAisc = new StandardAISC360p05();
@@ -2871,8 +2871,8 @@ namespace ConcreteTests
             var rebarTensions = slsResult[0].GetRebarsTension();
             var steelSectionsTensions = slsResult[0].GetStructuralSteelVerticesTension();
 
-            Assert.IsTrue(Math.Abs(steelSectionsTensions.Select(i => i.tension).Max() - SteelMaterialAISC360Data.Grade50.Fyk) < 0.001);
-            Assert.IsTrue(Math.Abs(steelSectionsTensions.Select(i => i.tension).Min() - SteelMaterialAISC360Data.Grade50.Fyk) < 0.001);
+            Assert.IsTrue(Math.Abs(steelSectionsTensions.Select(i => i.tension).Max() - SteelMaterialACI318Data.Grade50.Fyk) < 0.001);
+            Assert.IsTrue(Math.Abs(steelSectionsTensions.Select(i => i.tension).Min() - SteelMaterialACI318Data.Grade50.Fyk) < 0.001);
             Assert.IsTrue(Math.Abs(concreteTensions.Select(i => i.tension).Min() - 0.85 * cnc.Fc) < 0.001);
             Assert.IsTrue(Math.Abs(concreteTensions.Select(i => i.tension).Max()) < 0.001);
         }
@@ -2886,7 +2886,7 @@ namespace ConcreteTests
             var cnc = new ConcreteMaterialACI318("fc' 4000", 27.579, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
 
             var section = new ReinforcedConcreteSection(1200.0, 200.0, cnc, rebar, 150, 60.0, null, 150,
-                new GPC.Model.Sections.SectionH(402.6, 7.7, 177.7, 10.9, 177.7, 10.9, "UB 406 x 178 x 54 r=0"), SteelMaterialAISC360Data.Grade50);
+                new GPC.Model.Sections.SectionH(402.6, 7.7, 177.7, 10.9, 177.7, 10.9, "UB 406 x 178 x 54 r=0"), SteelMaterialACI318Data.Grade50);
 
             StandardACI318p08 standard = new StandardACI318p08();
             StandardAISC360p05 standardAisc = new StandardAISC360p05();
@@ -3072,7 +3072,7 @@ namespace ConcreteTests
             double wt = 1;        // Web thickness
 
             ConcreteMaterialACI318 concreteMaterialACI318 = ConcreteMaterialACI318Data.Fc4000;
-            SteelMaterialACI318 steelMaterialACI318 = SteelMaterialAISC360Data.Grade50;
+            SteelMaterialACI318 steelMaterialACI318 = SteelMaterialACI318Data.Grade50;
             SteelMaterialACI318 rebarMaterial = SteelMaterialACI318Data.Grade50;
 
             SectionH sectionH = new SectionH(hh, wt, tfw, tft, bfw, bft, "Test");
