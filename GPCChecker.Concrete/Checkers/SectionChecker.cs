@@ -19,9 +19,6 @@ namespace GPC.Checkers.Concrete.Checkers
     {
         #region Fields
 
-        /// <summary>
-        /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
-        /// </summary>
         protected readonly Standard _standardStructuralSteel;
 
         protected readonly SectionSolver _solver;
@@ -32,10 +29,14 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #region Properties
 
+        /// <summary>
+        /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
+        /// </summary>
+        public Standard StandardStructuralSteel => _standardStructuralSteel;
+
         public SectionOptions SectionCheckerOptions => (SectionOptions)_options;
 
         public SectionSolver SectionSolver => _solver;
-
 
         #endregion
 

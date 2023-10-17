@@ -20,8 +20,6 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public SectionOptionsStandardACI318 SectionCheckerOptionsACI318 => (SectionOptionsStandardACI318)_options;
 
-        public StandardAISC StandardStructuralSteel => (StandardAISC)_standardStructuralSteel;
-
         #endregion
 
         #region Constructors
