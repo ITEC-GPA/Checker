@@ -48,8 +48,8 @@
     <Reference Include="GPCConverters.Straus7">
       <HintPath>..\..\gpc-converters\GPCConverters.Straus7\bin\Debug\GPCConverters.Straus7.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=2.0.0.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCGeometry.2.0.0.4\lib\netstandard2.0\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=2.0.0.6, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCGeometry.2.0.0.6\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
     <Reference Include="GPCModel">
       <HintPath>..\..\gpc-model\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>

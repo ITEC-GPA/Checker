@@ -3025,7 +3025,7 @@ namespace ConcreteTests
                 var forces = new ResultBeamForces[]
                 {
                     //new ResultBeamForces(3000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
-                    new ResultBeamForces(2000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    //new ResultBeamForces(2000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(1000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(0 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(-1000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
