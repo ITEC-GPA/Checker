@@ -339,6 +339,10 @@ namespace GPC.Checkers.Concrete.Results
             return _strainPlane.GetStrain(point);
         }
 
+        #endregion
+
+        #region Steel sections
+
         public virtual (Point2d point, double tension)[] GetStructuralSteelVerticesTension(double? phi = null)
         {
             var structSteelTension = new List<(Point2d point, double tension)>();
@@ -351,11 +355,33 @@ namespace GPC.Checkers.Concrete.Results
                     if (phi.HasValue)
                         structSteelTension.Add((globalVertex, _sectionSolver.CalculateElasticSigmaS(phi.Value, steelSection.Section, strain)));
                     else
-
                         structSteelTension.Add((globalVertex, _sectionSolver.CalculateStressStructuralSteel(steelSection.Section, strain)));
                 }
             }
             return structSteelTension.ToArray();
+        }
+
+        /// <summary>
+        /// Linear elastic material ccnstituve law.
+        /// </summary>
+        /// <param name="phi"></param>
+        /// <returns></returns>
+        public (Point2d point, double strain)[] GetStructuralSteelVerticesStrain(double? phi = null)
+        {
+            var structSteelStrain = new List<(Point2d point, double strain)>();
+            foreach (var steelSection in _section.SteelSections)
+            {
+                foreach (var localVertex in steelSection.Section.Shape.Fill)
+                {
+                    var globalVertex = steelSection.PositionToGlobal(localVertex);
+                    double strain = StrainPlane.GetStrain(globalVertex);
+                    if (phi.HasValue)
+                        strain *= 1 + phi.Value;
+
+                    structSteelStrain.Add((globalVertex, strain));
+                }
+            }
+            return structSteelStrain.ToArray();
         }
 
         #endregion
