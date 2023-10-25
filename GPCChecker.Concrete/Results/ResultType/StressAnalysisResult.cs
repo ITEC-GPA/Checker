@@ -3,6 +3,7 @@ using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
+using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
@@ -359,6 +360,31 @@ namespace GPC.Checkers.Concrete.Results
                 }
             }
             return structSteelTension.ToArray();
+        }
+
+        /// <summary>
+        /// Return the tension at a point that is assumed to belong to the section being passed.
+        /// </summary>
+        /// <param name="steelSectionPosition">Section to which the point belongs.</param>
+        /// <param name="point">Point at which tension is required.</param>
+        /// <param name="phi"></param>
+        /// <returns></returns>
+        public bool GetStructuralSteelTension(in SteelSectionPosition steelSectionPosition, in Point2d point, out double tension, in double? phi = null)
+        {
+            try
+            {
+                double strain = StrainPlane.GetStrain(point);
+                if (phi.HasValue)
+                    tension = _sectionSolver.CalculateElasticSigmaS(phi.Value, steelSectionPosition.Section, strain);
+                else
+                    tension = _sectionSolver.CalculateStressStructuralSteel(steelSectionPosition.Section, strain);
+                return true;
+            }
+            catch
+            {
+                tension = 0.0;
+                return false;
+            }
         }
 
         /// <summary>
