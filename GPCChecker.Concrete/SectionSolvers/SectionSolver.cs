@@ -550,11 +550,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             }
                             if (returnValue[i].N < limitCompression)
                             {
-								double ratio = limitCompression / returnValue[i].N;
+                                double ratio = limitCompression / returnValue[i].N;
 
-								returnValue[i] = returnValue[i] * ratio;
-								returnValue[i].N = limitCompression;
-							}
+                                returnValue[i] = returnValue[i] * ratio;
+                                returnValue[i].N = limitCompression;
+                            }
                         }
                     }
                 }
@@ -2419,8 +2419,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             } while ((dNdTeta == 0.0 && (dMxdTeta == 0.0 || dMydTeta == 0.0)) || (dMxdTeta == 0.0 && dMydTeta == 0.0));
 
 
-			// derivate parziali rispetto a immersione nel campo
-			do
+            // derivate parziali rispetto a immersione nel campo
+            do
             {
                 if (etaCounter < 10)
                 {
@@ -2541,7 +2541,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 Vector3d displacementVector = new Vector3d(iterationPoint, intersectionPoint);
 
                 Matrix<double> partialDerivatives = Matrix<double>.Build.Dense(2, 2);
-				Matrix<double> inputVector = Matrix<double>.Build.Dense(2, 1);
+                Matrix<double> inputVector = Matrix<double>.Build.Dense(2, 1);
 
                 if ((dNdTeta != 0 || dNdImm != 0) && (dMxdTeta != 0 || dMxdImm != 0) &&
                     dMxdTeta * dNdImm - dNdTeta * dMxdImm != 0)
@@ -2555,29 +2555,29 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     inputVector[0, 0] = displacementVector.X;
                     inputVector[1, 0] = displacementVector.Z;
                 }
-				else if ((dNdTeta != 0 || dNdImm != 0) && (dMydTeta != 0 || dMydImm != 0) &&
+                else if ((dNdTeta != 0 || dNdImm != 0) && (dMydTeta != 0 || dMydImm != 0) &&
                     dMydTeta * dNdImm - dNdTeta * dMydImm != 0)
-				{
-					partialDerivatives[0, 0] = dMydTeta;
-					partialDerivatives[1, 0] = dNdTeta;
+                {
+                    partialDerivatives[0, 0] = dMydTeta;
+                    partialDerivatives[1, 0] = dNdTeta;
 
-					partialDerivatives[0, 1] = dMydImm;
-					partialDerivatives[1, 1] = dNdImm;
+                    partialDerivatives[0, 1] = dMydImm;
+                    partialDerivatives[1, 1] = dNdImm;
 
-					inputVector[0, 0] = displacementVector.Y;
-					inputVector[1, 0] = displacementVector.Z;
-				}
-				else
-				{
-					partialDerivatives[0, 0] = dMxdTeta;
-					partialDerivatives[1, 0] = dMydTeta;
+                    inputVector[0, 0] = displacementVector.Y;
+                    inputVector[1, 0] = displacementVector.Z;
+                }
+                else
+                {
+                    partialDerivatives[0, 0] = dMxdTeta;
+                    partialDerivatives[1, 0] = dMydTeta;
 
-					partialDerivatives[0, 1] = dMxdImm;
-					partialDerivatives[1, 1] = dMydImm;
+                    partialDerivatives[0, 1] = dMxdImm;
+                    partialDerivatives[1, 1] = dMydImm;
 
-					inputVector[0, 0] = displacementVector.X;
-					inputVector[1, 0] = displacementVector.Y;
-				}
+                    inputVector[0, 0] = displacementVector.X;
+                    inputVector[1, 0] = displacementVector.Y;
+                }
 
                 Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
@@ -2724,12 +2724,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // piano di nuovo tentativo
             teta += deltaTeta;
 
-			if (failureZone == FailureZones.F3B && eta + deltaEta < 0)
-			{
-				deltaEta *= 0.5;
-			}
+            if (failureZone == FailureZones.F3B && eta + deltaEta < 0)
+            {
+                deltaEta *= 0.5;
+            }
 
-			eta += (deltaEta - (int)deltaEta);
+            eta += (deltaEta - (int)deltaEta);
             failureZone += (int)deltaEta;
 
             switch (analysisType)
@@ -2983,7 +2983,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             Matrix<double> results = partialDerivatives.Inverse() * inputVector;
 
-            double reductionFactor = 0.5;
+            double reductionFactor = 1.0;
 
             return (reductionFactor * results[0, 0] * deltaChiXLimit,
                 reductionFactor * results[1, 0] * deltaChiYLimit,
