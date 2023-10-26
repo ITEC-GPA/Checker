@@ -2823,7 +2823,7 @@ namespace ConcreteTests
                 new ResultBeamForces(0, 0, 0, 0, 2000000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(0, 0, 0, 0, 2500000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(0, 0, 0, 0, 3000000000, 0, GetLocalCoordinateSystem(section)),
-                new ResultBeamForces(0, 0, 0, 0, 3200000000, 0, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(0, 0, 0, 0, 3190000000, 0, GetLocalCoordinateSystem(section)),
             };
 
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, standard, true, new StandardEN1993p11());

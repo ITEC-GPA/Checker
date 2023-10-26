@@ -491,7 +491,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             catch (Exception e)
             {
                 _log.Add(e.Message);
-                _log.Add(e.InnerException.Message);
+                if (e.InnerException != null)
+                    _log.Add(e.InnerException.Message);
                 return new ForceTuple();
             }
         }
@@ -514,7 +515,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             catch (Exception e)
             {
                 _log.Add(e.Message);
-                _log.Add(e.InnerException?.Message ?? "");
+                if (e.InnerException != null)
+                    _log.Add(e.InnerException.Message);
                 return new ForceTuple();
             }
         }
@@ -561,7 +563,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             catch (Exception e)
             {
                 _log.Add(e.Message);
-                _log.Add(e.InnerException?.Message ?? "");
+                if (e.InnerException != null)
+                    _log.Add(e.InnerException.Message);
                 return null;
             }
         }
@@ -581,7 +584,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             catch (Exception e)
             {
                 _log.Add(e.Message);
-                _log.Add(e.InnerException.Message);
+                if (e.InnerException != null)
+                    _log.Add(e.InnerException.Message);
                 return new ForceTuple();
             }
         }
