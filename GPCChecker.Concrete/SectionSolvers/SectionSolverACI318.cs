@@ -155,7 +155,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 if (steelSectionStrain > strain)
                 {
-                    designYeldingStrain = GetDesignYieldingStrainStructuralSteel(ConcreteSection.SteelSections.Select(i => i.Section).Min());
+                    designYeldingStrain = GetDesignYieldingStrainStructuralSteel(ConcreteSection.SteelSections[distances.dminStrucSteelSectionID].Section);
                     strain = steelSectionStrain;
                 }
             }

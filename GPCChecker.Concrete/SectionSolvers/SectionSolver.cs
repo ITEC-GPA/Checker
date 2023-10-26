@@ -561,7 +561,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             catch (Exception e)
             {
                 _log.Add(e.Message);
-                _log.Add(e.InnerException.Message);
+                _log.Add(e.InnerException?.Message ?? "");
                 return null;
             }
         }
