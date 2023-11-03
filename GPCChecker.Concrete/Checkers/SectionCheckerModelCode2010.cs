@@ -29,7 +29,7 @@ namespace GPC.Checkers.Concrete.Checkers
             StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED,
             StandardEN1993p11 standardStructuralSteel = null)
             : base(checkerAttribute, options, standard,
-                  new SectionSolverModelCode2010(checkerAttribute.Section, standard, considerTensileConcrete, id, standardStructuralSteel),
+                  new SectionSolverModelCode2010(checkerAttribute.Section, standard, options.ForceReferenceCoordinateSystem.Origin, considerTensileConcrete, id, standardStructuralSteel),
                   id, standardStructuralSteel)
         {
         }

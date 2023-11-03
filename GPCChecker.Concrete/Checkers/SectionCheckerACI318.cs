@@ -29,7 +29,7 @@ namespace GPC.Checkers.Concrete.Checkers
             StandardACI318 standard, bool haveSpiral, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED,
             StandardAISC standardStructuralSteel = null)
             : base(checkerAttribute, options, standard,
-                  new SectionSolverACI318(checkerAttribute.Section, standard, haveSpiral, considerTensileConcrete, id, standardStructuralSteel),
+                  new SectionSolverACI318(checkerAttribute.Section, standard, haveSpiral, options.ForceReferenceCoordinateSystem.Origin, considerTensileConcrete, id, standardStructuralSteel),
                   id, standardStructuralSteel)
         {
         }

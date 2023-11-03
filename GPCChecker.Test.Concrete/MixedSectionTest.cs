@@ -33,7 +33,7 @@ namespace ConcreteTests
             var section = new ReinforcedConcreteSection(1000.0, 300.0, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 50.0, rebar, 200.0,
                 new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0);
 
-            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
             var dist = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(0.0);
 
             Assert.AreEqual(-150.0, dist.dmaxStrucSteel, 0.0001);
@@ -59,7 +59,7 @@ namespace ConcreteTests
             var section = new ReinforcedConcreteSection(1000.0, 300.0, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 50.0, rebar, 200.0,
                 new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0, eccentricity);
 
-            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
             var dist = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(0.0);
 
             Assert.AreEqual(-150.0, dist.dmaxStrucSteel, 0.0001);
@@ -2069,7 +2069,7 @@ namespace ConcreteTests
                 GammaM0 = gamma_M0
             };
 
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(),
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid,
                 false, -1, structuralSteelCode);
             var sectionDistances = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(rotationAngle);
             var p2 = sectionSolverModelCode2010Test.GetP2(sectionDistances, analysisType);

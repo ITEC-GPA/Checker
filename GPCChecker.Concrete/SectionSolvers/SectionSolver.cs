@@ -183,6 +183,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// Must be StandardEN1993p11, currently the only one implemented.
         /// </summary>
         protected readonly Standard _standardStructuralSteel;
+        /// <summary>
+        /// Point with respect to which the 3D domain is calculated and with respect to which stresses are transformed for verifications with the strength domain.<br/>
+        /// <br/>
+        /// 2023-11-02: This point has always been the center of gravity of the concrete section only.<br/>
+        /// Now with mixed/composite sections it is necessary to use a point more like the center of gravity of the homogenized mixed/composite section.<br/>
+        /// So the center of gravity of the concrete section is used as the initial value.
+        /// </summary>
+        protected readonly Point2d _integrationReferencePoint;
 
         protected List<string> _log;
         protected int _tetaDiscretization;
@@ -210,12 +218,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Constructor
 
-        internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id, Standard standardStructuralSteel = null)
+        internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id, Point2d integrationReferencePoint, Standard standardStructuralSteel)
             : base(id)
         {
             _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
             _standardStructuralSteel = standardStructuralSteel;
+            _integrationReferencePoint = integrationReferencePoint;
+
             _log = new List<string>();
 
             _stressAnalysisTolerance = 1e-5;
@@ -237,6 +247,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _concreteSection = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
             _standardStructuralSteel = (StandardEN1993p11)info.GetValue("StandardStructuralSteel", typeof(StandardEN1993p11));
+            _integrationReferencePoint = (Point2d)info.GetValue("IntegrationReferencePoint", typeof(Point2d));
             _log = (List<string>)info.GetValue("Log", typeof(List<string>));
             _stressAnalysisTolerance = info.GetDouble("StressAnalysisTolerance");
             _failureAnalysisAngularTolerance = info.GetDouble("FailureAnalysisAngularTolerance");
@@ -610,7 +621,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 (double s, double, double) ret = GaussIntegration.IntegrationLinearShapeFunction((x, y) =>
                 {
                     double sigmaC = CalculateSigmaC(strainPlane.GetStrain(x, y));
-                    return (sigmaC, -sigmaC * (y - ConcreteSection.Centroid.Y), sigmaC * (x - ConcreteSection.Centroid.X));
+                    return (sigmaC, -sigmaC * (y - _integrationReferencePoint.Y), sigmaC * (x - _integrationReferencePoint.X));
                 },
                 _globalCoordinateGaussPoints);
 
@@ -639,7 +650,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 (double s, double, double) ret = GaussIntegration.IntegrationLinearShapeFunction((x, y) =>
                 {
                     double sigmaC = CalculateElasticSigmaC(strainPlane.GetStrain(x, y));
-                    return (sigmaC, -sigmaC * (y - ConcreteSection.Centroid.Y), sigmaC * (x - ConcreteSection.Centroid.X));
+                    return (sigmaC, -sigmaC * (y - _integrationReferencePoint.Y), sigmaC * (x - _integrationReferencePoint.X));
                 },
                 _globalCoordinateGaussPoints);
 
@@ -665,7 +676,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     functions[i] = new Func<double, double, (double, double, double)>((x, y) =>
                         {
                             double sigmaC = CalculateSigmaC(sp.GetStrain(x, y));
-                            return (sigmaC, sigmaC * (y - ConcreteSection.Centroid.Y), sigmaC * (x - ConcreteSection.Centroid.X));
+                            return (sigmaC, sigmaC * (y - _integrationReferencePoint.Y), sigmaC * (x - _integrationReferencePoint.X));
                         });
                 }
 
@@ -741,8 +752,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     sigmaC = CalculateSigmaC(strain);
 
                 deltaNArray += (sigmaS - sigmaC) * rebars[i].Area;
-                deltaMxArray += (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.Y - ConcreteSection.Centroid.Y);
-                deltaMyArray += (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.X - ConcreteSection.Centroid.X);
+                deltaMxArray += (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.Y - _integrationReferencePoint.Y);
+                deltaMyArray += (sigmaS - sigmaC) * rebars[i].Area * (rebars[i].Position.X - _integrationReferencePoint.X);
             }
 
             return new ForceTuple(deltaNArray, -deltaMxArray, deltaMyArray);
@@ -804,8 +815,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     sigmaC = CalculateElasticSigmaC(strain);
 
                 deltaNArray[i] = (sigmaS - sigmaC) * rebar.Area;
-                deltaMxArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.Y - ConcreteSection.Centroid.Y);
-                deltaMyArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.X - ConcreteSection.Centroid.X);
+                deltaMxArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.Y - _integrationReferencePoint.Y);
+                deltaMyArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.X - _integrationReferencePoint.X);
             });
 
             return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
@@ -847,8 +858,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     double sigmaC = steelSection.IsInsideConcrete ? CalculateSigmaC(strain) : 0.0;
                     return steelSection.Section.SteelMaterial.GetStress(strain) - sigmaC;
                 }
-                double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - ConcreteSection.Centroid.Y);
-                double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - ConcreteSection.Centroid.X);
+                double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
+                double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
 
                 foreach (var thinWall in steelSection.Section.ThinWalls)
                 {
@@ -910,8 +921,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     double sigmaC = steelSection.IsInsideConcrete ? CalculateSigmaC(strain) : 0.0;
                     return CalculateElasticSigmaS(psi, steelSection.Section, strain) - sigmaC;
                 }
-                double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - ConcreteSection.Centroid.Y);
-                double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - ConcreteSection.Centroid.X);
+                double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
+                double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
 
                 foreach (var thinWall in steelSection.Section.ThinWalls)
                 {
@@ -977,7 +988,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             for (int r = 0; r < rebars.Length; r++)
             {
-                double w1 = (rebars[r].Position.Y - ConcreteSection.Centroid.Y) * cosTeta - (rebars[r].Position.X - ConcreteSection.Centroid.X) * sinTeta;
+                double w1 = (rebars[r].Position.Y - _integrationReferencePoint.Y) * cosTeta - (rebars[r].Position.X - _integrationReferencePoint.X) * sinTeta;
                 double eps = Math.Abs(rebars[r].RebarMaterial.StrainUTension);
 
                 double ratio = w1 / eps;
@@ -1011,7 +1022,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     foreach (var vertex in steelSection.Section.Shape.Fill)
                     {
                         var point = steelSection.PositionToGlobal(vertex);
-                        double w1 = (point.Y - ConcreteSection.Centroid.Y) * cosTeta - (point.X - ConcreteSection.Centroid.X) * sinTeta;
+                        double w1 = (point.Y - _integrationReferencePoint.Y) * cosTeta - (point.X - _integrationReferencePoint.X) * sinTeta;
 
                         if (w1 >= dmaxStructuralSteel)
                         {
@@ -1032,8 +1043,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             for (int c = 0; c < ConcreteSection.Shape.Fill.Count; c++)
             {
-                double w1 = (ConcreteSection.Shape.Fill[c].Y - ConcreteSection.Centroid.Y) * cosTeta -
-                    (ConcreteSection.Shape.Fill[c].X - ConcreteSection.Centroid.X) * sinTeta;
+                double w1 = (ConcreteSection.Shape.Fill[c].Y - _integrationReferencePoint.Y) * cosTeta -
+                    (ConcreteSection.Shape.Fill[c].X - _integrationReferencePoint.X) * sinTeta;
 
                 if (w1 >= dmaxConcrete)
                 {
@@ -1308,8 +1319,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     double cosTeta = Math.Cos(distances.teta);
 
                     Point2d strainPlaneCenter = new Point2d(
-                        (distances.dmaxConcrete - (1.0 - fraction) * heigth) * (-sinTeta) + ConcreteSection.Centroid.X,
-                        (distances.dmaxConcrete - (1.0 - fraction) * heigth) * cosTeta + ConcreteSection.Centroid.Y);
+                        (distances.dmaxConcrete - (1.0 - fraction) * heigth) * (-sinTeta) + _integrationReferencePoint.X,
+                        (distances.dmaxConcrete - (1.0 - fraction) * heigth) * cosTeta + _integrationReferencePoint.Y);
 
                     return new DeformationFieldsPoint(GetYieldingStrainPureCompression(), strainPlaneCenter, fraction * heigth + (distances.dminConcrete - minY));
 
@@ -2074,7 +2085,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
             {
-                if (ConcreteSection.Centroid.Y - ConcreteSection.GetHomogenizedCentroid(out _, out _).Y > 0)
+                if (_integrationReferencePoint.Y - ConcreteSection.GetHomogenizedCentroid(out _, out _).Y > 0)
                     teta = Math.PI;
             }
 
@@ -2996,7 +3007,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
 
             // Valori di primo tentativo
-            Point3d referencePoint = ConcreteSection.Centroid;
+            Point3d referencePoint = _integrationReferencePoint;
             double chiX = 0;
             double chiY = 0;
             double strainReferencePoint = 0;
@@ -3084,16 +3095,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 externalForces.V1,
                 externalForces.V2,
                 externalForces.T,
-                externalForces.M1 + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
-                externalForces.M2 + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X),
-                new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
+                externalForces.M1 + externalForces.N * (_integrationReferencePoint.Y - forceReferencePoint.Y),
+                externalForces.M2 + externalForces.N * (_integrationReferencePoint.X - forceReferencePoint.X),
+                new CoordinateSystem(_integrationReferencePoint, Vector3d.XAxis, Vector3d.YAxis));
         }
 
         protected ForceTuple GetLocalForces(ForceTuple externalForces, Vector2d forceReferencePoint)
         {
             return new ForceTuple(externalForces.N,
-                externalForces.Mx + externalForces.N * (ConcreteSection.Centroid.Y - forceReferencePoint.Y),
-                externalForces.My + externalForces.N * (ConcreteSection.Centroid.X - forceReferencePoint.X));
+                externalForces.Mx + externalForces.N * (_integrationReferencePoint.Y - forceReferencePoint.Y),
+                externalForces.My + externalForces.N * (_integrationReferencePoint.X - forceReferencePoint.X));
         }
 
         protected virtual ResultBeamForces GetExternalForces(ResultBeamForces localForces, CoordinateSystem forceReferenceCoordinateSystem)
@@ -3103,16 +3114,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 localForces.V1,
                 localForces.V2,
                 localForces.T,
-                localForces.M1 + localForces.N * (forceReferenceCoordinateSystem.Origin.Y - ConcreteSection.Centroid.Y),
-                localForces.M2 + localForces.N * (forceReferenceCoordinateSystem.Origin.X - ConcreteSection.Centroid.X),
-                new CoordinateSystem(ConcreteSection.Centroid, Vector3d.XAxis, Vector3d.YAxis));
+                localForces.M1 + localForces.N * (forceReferenceCoordinateSystem.Origin.Y - _integrationReferencePoint.Y),
+                localForces.M2 + localForces.N * (forceReferenceCoordinateSystem.Origin.X - _integrationReferencePoint.X),
+                new CoordinateSystem(_integrationReferencePoint, Vector3d.XAxis, Vector3d.YAxis));
         }
 
         protected virtual ForceTuple GetExternalForces(ForceTuple forceTuple, CoordinateSystem forceReferenceCoordinateSystem)
         {
             return new ForceTuple(forceTuple.N,
-                forceTuple.Mx + forceTuple.N * (forceReferenceCoordinateSystem.Origin.Y - ConcreteSection.Centroid.Y),
-                forceTuple.My - forceTuple.N * (forceReferenceCoordinateSystem.Origin.X - ConcreteSection.Centroid.X));
+                forceTuple.Mx + forceTuple.N * (forceReferenceCoordinateSystem.Origin.Y - _integrationReferencePoint.Y),
+                forceTuple.My - forceTuple.N * (forceReferenceCoordinateSystem.Origin.X - _integrationReferencePoint.X));
         }
 
         #endregion
@@ -3146,6 +3157,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             info.AddValue("ConcreteSection", _concreteSection);
             info.AddValue("Standard", _standard);
             info.AddValue("StandardStructuralSteel", _standardStructuralSteel);
+            info.AddValue("IntegrationReferencePoint", _integrationReferencePoint);
             info.AddValue("Log", _log);
             info.AddValue("StressAnalysisTolerance", _stressAnalysisTolerance);
             info.AddValue("FailureAnalysisAngularTolerance", _failureAnalysisAngularTolerance);

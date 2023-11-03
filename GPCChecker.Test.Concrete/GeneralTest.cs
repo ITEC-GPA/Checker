@@ -166,8 +166,8 @@ namespace ConcreteTests
 		public void SerializationSectionSolverModelCode2010Test()
 		{
 			bool check = true;
-
-			SectionSolverModelCode2010 s = new SectionSolverModelCode2010(GetRectangularSection4Rebars(), new StandardEN1992p11());
+			var section = GetRectangularSection4Rebars();
+			SectionSolverModelCode2010 s = new SectionSolverModelCode2010(section, new StandardEN1992p11(), section.Centroid);
 
 			using (var ms = new MemoryStream())
 			{

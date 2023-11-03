@@ -998,7 +998,7 @@ namespace ConcreteTests
 			ResultBeamForces force = new ResultBeamForces(0, 0, 0, 0, 10000000, 0, GetLocalCoordinateSystem(section));
 			CommonAssertDomainPointMethod(section, force, new StandardNTC2018Concrete(), options);
 
-			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
@@ -1017,7 +1017,7 @@ namespace ConcreteTests
 			ResultBeamForces force = new ResultBeamForces(0, 0, 0, 0, 10000000, 0, GetLocalCoordinateSystem(section));
 			CommonAssertDomainPointMethod(section, force, new StandardNTC2018Concrete(), options);
 
-			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+			var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
@@ -1050,7 +1050,7 @@ namespace ConcreteTests
 
 			ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
 
-			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+			var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
@@ -1083,7 +1083,7 @@ namespace ConcreteTests
 
 			ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
 
-			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+			var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
@@ -1121,7 +1121,7 @@ namespace ConcreteTests
 			SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
 
-			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+			var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
@@ -1157,7 +1157,7 @@ namespace ConcreteTests
 			ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
 			SectionCheckerACI318.SectionOptionsStandardACI318 options = new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
 
-			SectionSolverACI318Test solver = new SectionSolverACI318Test(section, new StandardACI318p08(), true);
+			var solver = new SectionSolverACI318Test(section, new StandardACI318p08(), true, section.Centroid);
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 

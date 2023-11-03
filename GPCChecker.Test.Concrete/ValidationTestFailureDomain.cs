@@ -549,7 +549,7 @@ namespace ConcreteTests
 			SectionCheckerACI318.SectionOptionsStandardACI318 options =
 				new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
 
-			SectionSolverACI318Test solver = new SectionSolverACI318Test(section, new StandardACI318p08(), haveSpiral);
+			var solver = new SectionSolverACI318Test(section, new StandardACI318p08(), haveSpiral, section.Centroid);
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
@@ -578,7 +578,7 @@ namespace ConcreteTests
 			SectionCheckerACI318.SectionOptionsStandardACI318 options =
 				new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN);
 
-			SectionSolverACI318Test solver = new SectionSolverACI318Test(section, new StandardACI318p08(), haveSpiral);
+			var solver = new SectionSolverACI318Test(section, new StandardACI318p08(), haveSpiral, section.Centroid);
 			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
 				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 

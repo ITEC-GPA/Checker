@@ -155,7 +155,7 @@ namespace ConcreteTests
             int id = -1;
             StandardEN1993p11 standardStructuralSteel = null;
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var solver = new SectionSolverModelCode2010Test(section, standard, considerTensileConcrete, id, standardStructuralSteel);
+            var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid, considerTensileConcrete, id, standardStructuralSteel);
             sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, solver, id, standardStructuralSteel);
             sectionChecker.SectionCheckerOptionsModelCode2010.FailureAnalysisType = ratioMode;
 
@@ -194,7 +194,7 @@ namespace ConcreteTests
             int id = -1;
             StandardEN1993p11 standardStructuralSteel = null;
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var solver = new SectionSolverACI318Test(section, standard, considerTensileConcrete, false, id, standardStructuralSteel);
+            var solver = new SectionSolverACI318Test(section, standard, considerTensileConcrete, section.Centroid, false, id, standardStructuralSteel);
             sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, solver, id, standardStructuralSteel);
             sectionChecker.SectionCheckerOptionsACI318.FailureAnalysisType = ratioMode;
 

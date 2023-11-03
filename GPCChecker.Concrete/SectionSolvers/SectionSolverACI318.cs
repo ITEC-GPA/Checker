@@ -1,5 +1,6 @@
 using GPC.Checker.Helper;
 using GPC.Checkers.Concrete.Results;
+using GPC.Geometry;
 using GPC.Model;
 using GPC.Model.Materials;
 using GPC.Model.Sections.Concrete;
@@ -30,9 +31,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Constructor
 
-        internal SectionSolverACI318(IConcreteSection section, StandardACI318 standard, bool haveSpiral,
+        internal SectionSolverACI318(IConcreteSection section, StandardACI318 standard, bool haveSpiral, Point2d integrationReferencePoint,
             bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED, Standard standardStructuralSteel = null)
-            : base(section, standard, considerTensileConcrete, id, standardStructuralSteel)
+            : base(section, standard, considerTensileConcrete, id, integrationReferencePoint, standardStructuralSteel)
         {
             _haveSpiral = haveSpiral;
         }

@@ -719,7 +719,7 @@ namespace ConcreteTests
 		protected bool TensionAnalysisCommonAssertModelCode(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
 			StandardModelCode2010 standard)
 		{
-			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
+			var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid);
 			var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
 
 			List<string> log = result.GetLog();
@@ -765,7 +765,7 @@ namespace ConcreteTests
 		protected bool TensionAnalysisCommonAssertACI(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
 			StandardACI318 standard, bool haveSpiral)
 		{
-			SectionSolverACI318Test solver = new SectionSolverACI318Test(section, standard, haveSpiral);
+			var solver = new SectionSolverACI318Test(section, standard, haveSpiral, section.Centroid);
 			var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
 
 			List<string> log = result.GetLog();
@@ -848,7 +848,7 @@ namespace ConcreteTests
 			if (factor == null)
 				factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
 
-			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard, standardStructuralSteel: standardStructuralSteel);
+			var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid, standardStructuralSteel: standardStructuralSteel);
 			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
 			ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
 			int j = 0;
@@ -940,7 +940,7 @@ namespace ConcreteTests
 			if (factor == null)
 				factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
 
-			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard, considerTensioleConcrete);
+			var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid, considerTensioleConcrete);
 			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
 			ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
 			int j = 0;
@@ -1698,9 +1698,9 @@ namespace ConcreteTests
 
 		internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
 		{
-			internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard,
+			internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, Point2d integrationReferencePoint,
 				bool considerTensileConcrete = false, int id = -1, StandardEN1993p11 standardStructuralSteel = null)
-				: base(section, standard, considerTensileConcrete, id, standardStructuralSteel)
+				: base(section, standard, integrationReferencePoint, considerTensileConcrete, id, standardStructuralSteel)
 			{
 			}
 
@@ -1748,9 +1748,9 @@ namespace ConcreteTests
 
 		internal class SectionSolverACI318Test : SectionSolverACI318
 		{
-			internal SectionSolverACI318Test(IConcreteSection section, StandardACI318 standard, bool haveSpiral,
+			internal SectionSolverACI318Test(IConcreteSection section, StandardACI318 standard, bool haveSpiral, Point2d integrationReferencePoint,
 				bool considerTensileConcrete = false, int id = -1, StandardEN1993p11 standardStructuralSteel = null)
-				: base(section, standard, haveSpiral, considerTensileConcrete, id, standardStructuralSteel)
+				: base(section, standard, haveSpiral, integrationReferencePoint, considerTensileConcrete, id, standardStructuralSteel)
 			{
 			}
 

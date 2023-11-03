@@ -28,7 +28,7 @@ namespace ConcreteTests
 			}
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular, forces.ToArray(), null);
-			SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(concreteSectionRectangular, new StandardEN1992p11());
+			var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(concreteSectionRectangular, new StandardEN1992p11(), concreteSectionRectangular.Centroid);
 
 			GPC.Checkers.Concrete.Results.StressAnalysisResult[] slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray(),
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)));
@@ -47,7 +47,7 @@ namespace ConcreteTests
 		public void FailureDomainTest()
 		{
 			var section = GetRectangularSection4Rebars();
-			SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new StandardEN1992p11());
+			SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new StandardEN1992p11(), section.Centroid);
 
 			Action ac0 = new Action(() =>
 			{
