@@ -2,6 +2,7 @@ using GPC.Checker.Helper;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
+using GPC.Geometry.Meshes;
 using GPC.Model;
 using GPC.Model.Materials;
 using GPC.Model.Maths.GaussIntegrations;
@@ -174,13 +175,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected double _stressAnalysisTolerance;
         protected double _failureAnalysisAngularTolerance;
         protected double _failureAnalysisDistanceTolerance;
+        protected double _failureAnalysisIntersectionTolerance;
         protected bool _considerTensileConcrete;
 
         protected IConcreteSection _concreteSection;
         protected Standard _standard;
         /// <summary>
         /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
-        /// Must be StandardEN1993p11, currently the only one implemented.
         /// </summary>
         protected readonly Standard _standardStructuralSteel;
         /// <summary>
@@ -210,11 +211,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public ConcreteMaterial ConcreteMaterial => _concreteSection.ConcreteMaterial;
 
-        public Standard Standard => _standard;
-
         public Standard StandardStructuralSteel => _standardStructuralSteel;
 
         public bool ConsiderTensileConcrete { get => _considerTensileConcrete; internal set => _considerTensileConcrete = value; }
+
+        public int TetaDiscretization { get => _tetaDiscretization; set => _tetaDiscretization = value; }
 
         #endregion
 
@@ -233,6 +234,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _stressAnalysisTolerance = 1e-5;
             _failureAnalysisAngularTolerance = 0.25e-3;
             _failureAnalysisDistanceTolerance = 0.5e-4;
+            _failureAnalysisIntersectionTolerance = 10;
 
             _considerTensileConcrete = considerTensileConcrete;
             _tetaDiscretization = 64;
@@ -265,33 +267,118 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Abstract Method
 
+        /// <summary>
+        /// Calculate the design yelding strain for <paramref name="rebar"/> steel material
+        /// </summary>
+        /// <param name="rebar">The rebar</param>
+        /// <returns>The yelding strain value</returns>
         protected abstract double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar);
+
+        /// <summary>
+        /// Calculate the design yelding strain for <paramref name="rebar"/> steel material
+        /// </summary>
+        /// <param name="rebar">The rebar index</param>
+        /// <returns>The yelding strain value</returns>
         protected abstract double GetDesignYieldingStrainRebar(int rebar);
+
+        /// <summary>
+        /// Calculate the design ultimate strain for <paramref name="rebar"/> steel material
+        /// </summary>
+        /// <param name="rebar">The rebar</param>
+        /// <returns>The ultimate strain value</returns>
         protected abstract double GetDesignUltimateStrainRebar(ReinforcedConcreteRebar rebar);
+
+        /// <summary>
+        /// Calculate the design ultimate strain for <paramref name="rebar"/> steel material
+        /// </summary>
+        /// <param name="rebar">The rebar index</param>
+        /// <returns>The ultimate strain value</returns>
         protected abstract double GetDesignUltimateStrainRebar(int rebar);
 
+        /// <summary>
+        /// Calculate the design yelding strain for <paramref name="steelSection"/> steel material
+        /// </summary>
+        /// <param name="steelSection">The steel section</param>
+        /// <returns>The yelding strain value</returns>
         protected abstract double GetDesignYieldingStrainStructuralSteel(ISteelSection steelSection);
+
+        /// <summary>
+        /// Calculate the design ultimate strain for <paramref name="steelSection"/> steel material
+        /// </summary>
+        /// <param name="steelSection">The steel section</param>
+        /// <returns>The ultimate strain value</returns>
         protected abstract double GetDesignUltimateStrainStructuralSteel(ISteelSection steelSection);
 
+        /// <summary>
+        /// Calculate the design ultimate strain for concrete material in compression
+        /// </summary>
+        /// <returns>The ultimate strain value</returns>
         protected abstract double GetUltimateStrainConcreteCompression();
+
+        /// <summary>
+        /// Calculate the design yelding strain for concrete material in compression
+        /// </summary>
+        /// <returns>The yelding strain value</returns>
         protected abstract double GetYieldingStrainConcreteCompression();
+
+        /// <summary>
+        /// Calculate the design yelding strain for concrete material in pure compression
+        /// </summary>
+        /// <returns>The yelding strain value</returns>
         protected abstract double GetYieldingStrainPureCompression();
+
+        /// <summary>
+        /// Calculate the design yelding strain for concrete material in tension
+        /// </summary>
+        /// <returns>The yelding strain value</returns>
         protected abstract double GetYieldingStrainConcreteTension();
+
+        /// <summary>
+        /// Calculate the design ultimate strain for concrete material in tension
+        /// </summary>
+        /// <returns>The ultimate strain value</returns>
         protected abstract double GetUltimateStrainConcreteTension();
 
+        /// <summary>
+        /// Calculate the characteristic compressive strength for concrete material in compression
+        /// </summary>
+        /// <returns>The characteristic compressive strength</returns>
         protected abstract double GetFck();
 
+        /// <summary>
+        /// Calculate the design concrete stress related to <paramref name="strain"/>
+        /// </summary>
+        /// <param name="strain"></param>
         /// <returns>The design concrete stress related to <paramref name="strain"/></returns>
         internal abstract double CalculateSigmaC(double strain);
 
+        /// <summary>
+        /// Calculate design steel stress of <paramref name="rebar"/> related to <paramref name="strain"/>
+        /// </summary>
+        /// <param name="rebar">The input rebar</param>
+        /// <param name="strain">The input strain</param>
         /// <returns>The design steel stress related to <paramref name="strain"/></returns>
         internal abstract double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain);
 
+        /// <summary>
+        /// Calculate design steel stress of <paramref name="steelSection"/> related to <paramref name="strain"/>
+        /// </summary>
+        /// <param name="steelSection">The input steel section</param>
+        /// <param name="strain">The input strain</param>
         /// <returns>The design steel stress related to <paramref name="strain"/></returns>
         internal abstract double CalculateStressStructuralSteel(ISteelSection steelSection, double strain);
 
+        /// <summary>
+        /// Calculate the reduction factor of input <paramref name="strainPlane"/> according to input standard
+        /// </summary>
+        /// <param name="strainPlane">The strain plane</param>
+        /// <returns>the reduction factor</returns>
         protected abstract double GetReductionFactor(StrainPlane strainPlane);
 
+        /// <summary>
+        /// Calculate the compression axial force limit according to input standard
+        /// </summary>
+        /// <returns>The compression axial force limi</returns>
         protected abstract double CalculateCompressionAxialForceLimit();
 
         #endregion
@@ -456,25 +543,35 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return CalculateElasticDomainPoint(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem), sectionOption.ForceReferenceCoordinateSystem, sectionOption.FailureAnalysisType);
         }
 
-        public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple force,
-            CoordinateSystem coordinateSystem, FailureAnalysisTypes failureAnalysisType)
+        public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple force, CoordinateSystem coordinateSystem, FailureAnalysisTypes failureAnalysisType)
         {
             return CalculateDomainPoint(force, coordinateSystem, FailureDomainTypes.Plastic, failureAnalysisType, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
-        public virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, CoordinateSystem coordinateSystem,
-            FailureAnalysisTypes failureAnalysisType)
+        public virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, CoordinateSystem coordinateSystem, FailureAnalysisTypes failureAnalysisType)
         {
             return CalculateDomainPoint(force, coordinateSystem, FailureDomainTypes.Elastic, failureAnalysisType, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
-        #endregion
-
-        #region Public Setter
-
-        public void SetTetaDiscretization(int discretization)
+        public virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces resultBeamForce, Mesh domainMesh,
+            Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint, FailureAnalysisTypes failureAnalysisType,
+            FailureDomainTypes failureDomainType)
         {
-            _tetaDiscretization = discretization;
+            return CalculateDomainPoint(domainMesh, resultBeamForce, vertexToDomainPoint, failureAnalysisType, failureDomainType, _failureAnalysisIntersectionTolerance);
+        }
+
+        public virtual FailureDomain.FailureDomainPoint[] CalculateDomainPoint(ResultBeamForces[] force, Mesh domainMesh,
+            Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint, FailureAnalysisTypes failureAnalysisType,
+            FailureDomainTypes failureDomainType)
+        {
+            FailureDomain.FailureDomainPoint[] result = new FailureDomain.FailureDomainPoint[force.Length];
+
+            Parallel.For(0, force.Length, (i) =>
+            {
+                result[i] = CalculateDomainPoint(domainMesh, force[i], vertexToDomainPoint, failureAnalysisType, failureDomainType, _failureAnalysisIntersectionTolerance);
+            });
+
+            return result;
         }
 
         #endregion
@@ -960,8 +1057,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         /// <param name="teta">Angle of the line with respect to which to calculate distances, counterclockwise angle with zero in x-positive.</param>
         /// <returns></returns>
-        internal virtual BoundaryDistances
-            CalculateMaxMinSectionDistances(double teta)
+        internal virtual BoundaryDistances CalculateMaxMinSectionDistances(double teta)
         {
             double cosTeta = Math.Cos(teta);
             double sinTeta = Math.Sin(teta);
@@ -1092,7 +1188,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
-        #region Failure domain limit points
+        #region Protected method - Failure domain limit points
 
         /// <summary>
         /// Calculate P1 point.
@@ -2843,6 +2939,246 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             failureZone = (int)failureZone < 1 ? FailureZones.F1 : failureZone;
             failureZone = (int)failureZone > 6 ? FailureZones.F4 : failureZone;
+        }
+
+        /// <summary>
+        /// Given a solicitation finds the point on the strength domain and work rate based on the search method of approaching the surface.
+        /// The calculation of the strain plane is by interpolation and is much less accurate than the iterative/direct method.
+        /// This method is good for always finding an working ratio, which is always in favor of safety.
+        /// If the starting mesh does not have too many elements then it is also a very performing method.
+        /// </summary>
+        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(Mesh domainMesh, ResultBeamForces resultBeamForce,
+            in Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint, FailureAnalysisTypes failureAnalysisType,
+            FailureDomainTypes failureDomainType, double lenghtTolerance = GeometryBase.Tolerance)
+        {
+            double workingRatio = -1;
+            SectionSolver.FailureZones _failureIndex = FailureZones.F1;
+            double immersione = -1;
+            StrainPlane strainPlane = null;
+            ForceTuple forceTuple = new ForceTuple();
+
+            Point3d rayOrigin = null; // Must be inside the mesh volume.
+
+            switch (failureAnalysisType)
+            {
+                case FailureAnalysisTypes.ConstantEccentricity:
+                    rayOrigin = Point3d.Origin;
+                    break;
+
+                case FailureAnalysisTypes.ConstantN:
+                    rayOrigin = new Point3d(0.0, 0.0, resultBeamForce.N);
+                    break;
+
+                case FailureAnalysisTypes.ConstantMxMy:
+                    rayOrigin = new Point3d(resultBeamForce.M1, resultBeamForce.M2, 0.0);
+                    break;
+
+                case FailureAnalysisTypes.ConstantNMx:
+                    rayOrigin = new Point3d(resultBeamForce.M1, 0.0, resultBeamForce.N);
+                    break;
+
+                case FailureAnalysisTypes.ConstantNMy:
+                    rayOrigin = new Point3d(0.0, resultBeamForce.M2, resultBeamForce.N);
+                    break;
+            }
+
+            // For some surface approach methods there may not be an intersection, for these cases we need to do a control
+            // specifically to change the actual surface approach method used.
+            // The origin of the ray rayOrigin will also determine the ratio and must be internal to the domain.
+            if (failureAnalysisType != FailureAnalysisTypes.ConstantEccentricity || Point3d.Origin.DistanceTo(rayOrigin) > lenghtTolerance)
+            {
+                double rayOriginWorkingRatioOrigin = workingRatioSearch(Point3d.Origin, rayOrigin, out _);
+                // If the origin point of the ray is outside then enforce the use of ConstantEccentricity.
+                if (rayOriginWorkingRatioOrigin >= 1.0)
+                    rayOrigin = Point3d.Origin;
+            }
+
+            // Now the working ratio search.
+            var forcePoint = new Point3d(resultBeamForce.M1, resultBeamForce.M2, resultBeamForce.N);
+            workingRatio = workingRatioSearch(rayOrigin, forcePoint, out KeyValuePair<Point3d, MeshBase> intersection);
+
+            // If a solution has been found assigns the deformation plane.
+            if (workingRatio != -1 && intersection.Value != null)
+            {
+                forceTuple = new ForceTuple(intersection.Key.Z, intersection.Key.X, intersection.Key.Y);
+
+                if (intersection.Value is MeshVertex intersectionVertex)
+                {
+                    var failDomainPoint = vertexToDomainPoint[intersectionVertex];
+                    _failureIndex = failDomainPoint.FailureIndex;
+                    immersione = failDomainPoint.Immersione;
+                    strainPlane = failDomainPoint.StrainPlane;
+                }
+                else if (intersection.Value is MeshEdge intersectionEdge)
+                {
+                    // Calculates linear interpolation weights.
+                    var vA = domainMesh.Vertices[intersectionEdge.A];
+                    var vB = domainMesh.Vertices[intersectionEdge.B];
+                    double distB = vB.Point.DistanceTo(forcePoint);
+                    double distA = vA.Point.DistanceTo(forcePoint);
+                    double weightA = distB / (distA + distB);
+                    double weightB = distA / (distA + distB);
+
+                    // Get failure domain points.
+                    var failA = vertexToDomainPoint[vA];
+                    var failB = vertexToDomainPoint[vB];
+
+                    // Make interpolation.
+                    if (failA != null && failB != null)
+                    {
+                        // FailureIndex
+                        _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, (int)failB.FailureIndex);
+
+                        // Theta
+                        var thetaA = failA.StrainPlane.Teta;
+                        var thetaB = failB.StrainPlane.Teta;
+                        // Make them close together.
+                        if (Math.Abs(thetaA - thetaB) > Math.PI)
+                        {
+                            if (thetaA < thetaB)
+                                thetaA += 2.0 * Math.PI;
+                            else
+                                thetaB += 2.0 * Math.PI;
+                        }
+                        double theta = thetaA * weightA + thetaB * weightB;
+
+                        // Immersione
+                        var immA = GetImmersione(failA);
+                        var immB = GetImmersione(failB);
+                        immersione = immA * weightA + immB * weightB;
+
+                        // StrainPlane
+                        strainPlane = BuildPlane(theta);
+                    }
+                }
+                else if (intersection.Value is MeshFace intersectionFace)
+                {
+                    // Calculates linear interpolation weights.
+                    var vA = domainMesh.Vertices[intersectionFace.A];
+                    var vB = domainMesh.Vertices[intersectionFace.B];
+                    var vC = domainMesh.Vertices[intersectionFace.C];
+                    double areaA = new Vector3d((vB.Point - forcePoint) ^ (vC.Point - forcePoint)).Length;
+                    double areaB = new Vector3d((vC.Point - forcePoint) ^ (vA.Point - forcePoint)).Length;
+                    double areaC = new Vector3d((vA.Point - forcePoint) ^ (vB.Point - forcePoint)).Length;
+                    double areaTOT = areaA + areaB + areaC;
+                    double weightA = areaA / areaTOT;
+                    double weightB = areaB / areaTOT;
+                    double weightC = areaC / areaTOT;
+
+                    // Get failure domain points.
+                    var failA = vertexToDomainPoint[vA];
+                    var failB = vertexToDomainPoint[vB];
+                    var failC = vertexToDomainPoint[vC];
+
+                    // Make interpolation.
+                    if (failA != null && failB != null && failC != null)
+                    {
+                        // FailureIndex
+                        _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, Math.Min((int)failB.FailureIndex, (int)failC.FailureIndex));
+
+                        // Theta
+                        var thetaA = failA.StrainPlane.Teta;
+                        var thetaB = failB.StrainPlane.Teta;
+                        var thetaC = failC.StrainPlane.Teta;
+                        // Make them close together.
+                        if (Math.Abs(thetaA - thetaB) > Math.PI)
+                        {
+                            if (thetaA < thetaB)
+                                thetaA += 2.0 * Math.PI;
+                            else
+                                thetaB += 2.0 * Math.PI;
+                        }
+                        if (Math.Abs(thetaA - thetaC) > Math.PI)
+                        {
+                            thetaC += 2.0 * Math.PI;
+                        }
+                        double theta = thetaA * weightA + thetaB * weightB + thetaC * weightC;
+
+                        // Immersione
+                        var immA = GetImmersione(failA);
+                        var immB = GetImmersione(failB);
+                        var immC = GetImmersione(failC);
+                        immersione = immA * weightA + immB * weightB + immC * weightC;
+
+                        // StrainPlane
+                        strainPlane = BuildPlane(theta);
+                    }
+                }
+                else
+                    return null;
+            }
+
+            return new FailureDomain.FailureDomainPoint(forceTuple, _failureIndex, strainPlane, immersione) { WorkingRatio = workingRatio };
+
+
+            // Internal utility.
+            double workingRatioSearch(Point3d pointOrigin, Point3d pointToSearch, out KeyValuePair<Point3d, MeshBase> meshIntersection)
+            {
+                Point3d targetPoint;
+                bool isRatioZero = pointOrigin.DistanceTo(pointToSearch) < lenghtTolerance;
+
+                if (!isRatioZero)
+                {
+                    targetPoint = pointToSearch;
+                }
+                else
+                {
+                    // This is a special case with ratio=0.
+                    switch (failureAnalysisType)
+                    {
+                        case FailureAnalysisTypes.ConstantNMx:
+                            targetPoint = pointOrigin + new Point3d(0.0, FROM_KNM_TO_NM, 0.0);
+                            break;
+
+                        case FailureAnalysisTypes.ConstantN:
+                        case FailureAnalysisTypes.ConstantNMy:
+                            targetPoint = pointOrigin + new Point3d(FROM_KNM_TO_NM, 0.0, 0.0);
+                            break;
+
+                        case FailureAnalysisTypes.ConstantEccentricity:
+                        case FailureAnalysisTypes.ConstantMxMy:
+                        default:
+                            targetPoint = pointOrigin + new Point3d(0.0, 0.0, FROM_KN_TO_N);
+                            break;
+                    }
+                }
+                Line3d semiRay = new Line3d(pointOrigin, targetPoint);
+                var intersOnDomain = domainMesh.GetIntersectionWihtSemiInfiniteRay(semiRay, true, lenghtTolerance);
+                if (intersOnDomain.Count == 0)
+                    return -1;
+
+                // Find the key with the smallest distance and get the corresponding pair from the dictionary.
+                var closestEntryOnDomain = intersOnDomain.OrderBy(pair => pair.Key.DistanceTo(pointOrigin)).FirstOrDefault();
+
+                if (closestEntryOnDomain.Key is null)
+                    return -1;
+
+                meshIntersection = closestEntryOnDomain;
+
+                if (!isRatioZero)
+                    return pointOrigin.DistanceTo(pointToSearch) / pointOrigin.DistanceTo(closestEntryOnDomain.Key);
+                else
+                    return 0.0;
+            }
+
+            // Internal utility.
+            double GetImmersione(FailureDomain.FailureDomainPoint fail)
+            {
+                return fail.Immersione != 0.0 || fail.FailureIndex <= _failureIndex ? fail.Immersione : 1.0;
+            }
+
+            // Internal utility. Build StrainPlane.
+            StrainPlane BuildPlane(double theta)
+            {
+                var distances = CalculateMaxMinSectionDistances(theta);
+                var p1 = GetP1(distances, failureDomainType, _failureIndex);
+                var p2 = GetP2(distances, failureDomainType);
+                var p3 = GetP3(distances, failureDomainType);
+                var p4 = GetP4(distances, failureDomainType);
+                var p5 = GetP5(distances, failureDomainType);
+                var p6 = GetP6(distances, failureDomainType);
+                return CalculateStrainPlane(theta, _failureIndex, immersione, p1, p2, p3, p4, p5, p6);
+            }
         }
 
         #endregion
