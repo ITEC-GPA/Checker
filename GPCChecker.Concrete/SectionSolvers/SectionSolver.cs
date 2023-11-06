@@ -197,8 +197,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected QuadrangleGaussPoints.GaussPointNumber _gaussIntegrationQuadPoints;
         protected TriangleGaussPoints.GaussPointNumber _gaussIntegrationTriPoints;
+        protected LineGaussPoints.GaussPointNumber _gaussIntegrationLinePoints;
 
-        protected GaussIntegration.GlobalCoordinateGaussPoint[][] _globalCoordinateGaussPoints;
+        protected GaussIntegration.GlobalCoordinateGaussPoint[][] _globalCoordinateGaussPointsMesh;
+        protected GaussIntegration.GlobalCoordinateGaussPoint[][][] _globalCoordinateGaussPointsThinWalls;
 
         #endregion
 
@@ -237,8 +239,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             _gaussIntegrationQuadPoints = QuadrangleGaussPoints.GaussPointNumber.Quad400;
             _gaussIntegrationTriPoints = TriangleGaussPoints.GaussPointNumber.Tri79;
+            _gaussIntegrationLinePoints = LineGaussPoints.GaussPointNumber.Line32;
 
-            _globalCoordinateGaussPoints = GetGlobalCoordinateGaussPointsLinearShapeFunction();
+            _globalCoordinateGaussPointsMesh = GetMeshGlobalCoordinateGaussPointsLinearShapeFunction();
+            _globalCoordinateGaussPointsThinWalls = GetThinWallsGlobalCoordinateGaussPointsLinearShapeFunction();
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)
@@ -477,9 +481,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Protected method - SectionIntegration
 
-        protected virtual GaussIntegration.GlobalCoordinateGaussPoint[][] GetGlobalCoordinateGaussPointsLinearShapeFunction()
+        protected virtual GaussIntegration.GlobalCoordinateGaussPoint[][] GetMeshGlobalCoordinateGaussPointsLinearShapeFunction()
         {
             return GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(ConcreteSection.Mesh, _gaussIntegrationQuadPoints, _gaussIntegrationTriPoints);
+        }
+
+        protected virtual GaussIntegration.GlobalCoordinateGaussPoint[][][] GetThinWallsGlobalCoordinateGaussPointsLinearShapeFunction()
+        {
+            GaussIntegration.GlobalCoordinateGaussPoint[][][] returnValue = new GaussIntegration.GlobalCoordinateGaussPoint[_concreteSection.SteelSections.Count][][];
+            for (int i = 0; i < _concreteSection.SteelSections.Count;i++)
+            {
+                returnValue[i] = GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(_concreteSection.SteelSections[i], _gaussIntegrationLinePoints);
+            }
+            return returnValue;
         }
 
         #region Force resultant 
@@ -623,7 +637,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     double sigmaC = CalculateSigmaC(strainPlane.GetStrain(x, y));
                     return (sigmaC, -sigmaC * (y - _integrationReferencePoint.Y), sigmaC * (x - _integrationReferencePoint.X));
                 },
-                _globalCoordinateGaussPoints);
+                _globalCoordinateGaussPointsMesh);
 
                 return new ForceTuple(ret);
             }
@@ -652,7 +666,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     double sigmaC = CalculateElasticSigmaC(strainPlane.GetStrain(x, y));
                     return (sigmaC, -sigmaC * (y - _integrationReferencePoint.Y), sigmaC * (x - _integrationReferencePoint.X));
                 },
-                _globalCoordinateGaussPoints);
+                _globalCoordinateGaussPointsMesh);
 
                 return new ForceTuple(ret);
             }
@@ -680,7 +694,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         });
                 }
 
-                (double, double, double)[] res = GaussIntegration.IntegrationLinearShapeFunction(functions, _globalCoordinateGaussPoints);
+                (double, double, double)[] res = GaussIntegration.IntegrationLinearShapeFunction(functions, _globalCoordinateGaussPointsMesh);
 
                 for (int j = 0; j < strainPlane.Length; j++)
                     returnValue[j] = new ForceTuple(res[j].Item1, -res[j].Item2, res[j].Item3);
@@ -843,14 +857,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <para>The bending moment about X-axis resultant</para>
         /// <para>The bending moment about Y-axis resultant</para>
         /// </returns>
-        protected virtual ForceTuple IntegrateStructuralSteelStress(StrainPlane strainPlane)
+        protected ForceTuple IntegrateStructuralSteelStress(StrainPlane strainPlane)
         {
             double quadratureN = 0;
             double quadratureMx = 0;
             double quadratureMy = 0;
 
-            foreach (var steelSection in ConcreteSection.SteelSections)
+            for (int i = 0; i < ConcreteSection.SteelSections.Count; i++)
             {
+                SteelSectionPosition steelSection = ConcreteSection.SteelSections[i];
                 // Make functions for stress.
                 double stressFunctionN(double x, double y)
                 {
@@ -861,22 +876,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
                 double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
 
-                foreach (var thinWall in steelSection.Section.ThinWalls)
+                for (int j = 0; j < steelSection.Section.ThinWalls.Length; j++)
                 {
-                    // Get thin wall global position and size.
-                    var middleLine = thinWall.GetMiddleLine();
-                    var startPointGlobal = steelSection.PositionToGlobal(middleLine[0]);
-                    var endPointGlobal = steelSection.PositionToGlobal(middleLine[1]);
-                    var thickness = thinWall.T;
-                    // Move to Point3d vector.
-                    Point3d[] middleLine3d = new Point3d[middleLine.Length];
-                    middleLine3d[0] = startPointGlobal;
-                    middleLine3d[1] = endPointGlobal;
-
+                    var thickness = steelSection.Section.ThinWalls[j].T;
                     // Integrate functions.
-                    quadratureN += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionN, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
-                    quadratureMx += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionMx, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
-                    quadratureMy += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionMy, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
+                    quadratureN += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionN, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
+                    quadratureMx += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionMx, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
+                    quadratureMy += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionMy, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
                 }
             }
             return new ForceTuple(quadratureN, -quadratureMx, quadratureMy);
@@ -903,17 +909,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// Calculate the resultant of all the steel sections
         /// </summary>
         /// <param name="strainPlane">The strain plane</param>
-        /// <param name="deltaN">The axial force resultant</param>
-        /// <param name="deltaMx">The bending moment about X-axis resultant</param>
-        /// <param name="deltaMy">The bending moment about Y-axis resultant</param>
+        /// <returns>
+        /// <para>The axial force resultant</para>
+        /// <para>The bending moment about X-axis resultant</para>
+        /// <para>The bending moment about Y-axis resultant</para>
+        /// </returns>
         protected ForceTuple IntegrateStructuralSteelLinearStress(double psi, StrainPlane strainPlane)
         {
             double quadratureN = 0;
             double quadratureMx = 0;
             double quadratureMy = 0;
 
-            foreach (var steelSection in ConcreteSection.SteelSections)
+            for (int i = 0; i < ConcreteSection.SteelSections.Count; i++)
             {
+                SteelSectionPosition steelSection = ConcreteSection.SteelSections[i];
                 // Make functions for stress.
                 double stressFunctionN(double x, double y)
                 {
@@ -924,22 +933,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
                 double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
 
-                foreach (var thinWall in steelSection.Section.ThinWalls)
+                for (int j = 0; j < steelSection.Section.ThinWalls.Length; j++)
                 {
-                    // Get thin wall global position and size.
-                    var middleLine = thinWall.GetMiddleLine();
-                    var startPointGlobal = steelSection.PositionToGlobal(middleLine[0]);
-                    var endPointGlobal = steelSection.PositionToGlobal(middleLine[1]);
-                    var thickness = thinWall.T;
-                    // Move to Point3d vector.
-                    Point3d[] middleLine3d = new Point3d[middleLine.Length];
-                    middleLine3d[0] = startPointGlobal;
-                    middleLine3d[1] = endPointGlobal;
-
+                    var thickness = steelSection.Section.ThinWalls[j].T;
                     // Integrate functions.
-                    quadratureN += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionN, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
-                    quadratureMx += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionMx, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
-                    quadratureMy += GaussIntegration.IntegrationLineLinearShapeFunction(stressFunctionMy, middleLine3d, LineGaussPoints.GaussPointNumber.Line20) * thickness;
+                    quadratureN += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionN, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
+                    quadratureMx += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionMx, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
+                    quadratureMy += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionMy, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
                 }
             }
             return new ForceTuple(quadratureN, -quadratureMx, quadratureMy);
