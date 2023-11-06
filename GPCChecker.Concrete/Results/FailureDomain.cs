@@ -28,7 +28,7 @@ namespace GPC.Checkers.Concrete.Results
 
         public FailureDomainPoint[][] DomainPoints => _domainPoints;
 
-        public SectionSolver.FailureDomainTypes FailureDomainAnalysisTypes => _analysisType;
+        public SectionSolver.FailureDomainTypes FailureDomainAnalysisTypes { get => _analysisType; set => _analysisType = value; }
 
         /// <summary>
         /// In 3d domain force use of linear interpolation instead of quadratic.
@@ -482,7 +482,7 @@ namespace GPC.Checkers.Concrete.Results
                 _workingRatio = -1;
             }
 
-            internal FailureDomainPoint(SerializationInfo info, StreamingContext context)
+            private FailureDomainPoint(SerializationInfo info, StreamingContext context)
             {
                 _forceTuple = (ForceTuple)info.GetValue("ForceTuple", typeof(ForceTuple));
                 _strainPlane = (StrainPlane)info.GetValue("StrainPlane", typeof(StrainPlane));
@@ -860,7 +860,7 @@ namespace GPC.Checkers.Concrete.Results
                 _failureDomainPoint = failureDomainPoint ?? throw new ArgumentNullException(nameof(failureDomainPoint));
             }
 
-            internal FailureDomainForce(SerializationInfo info, StreamingContext context)
+            protected FailureDomainForce(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             {
                 _failureDomainPoint = (FailureDomainPoint)info.GetValue("FailureDomainPoint", typeof(FailureDomainPoint));
@@ -967,7 +967,7 @@ namespace GPC.Checkers.Concrete.Results
 
             }
 
-            internal FailureDomainForce2d(SerializationInfo info, StreamingContext context)
+            private FailureDomainForce2d(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             {
                 _point2d = (Point2d)info.GetValue("Point2d", typeof(Point2d));
