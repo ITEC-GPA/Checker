@@ -329,6 +329,8 @@ namespace GPC.Checkers.Concrete.Results
 
                 if (linearAnalysis)
                 {
+                    epsilonCMax *= (1 + psiR);
+                    epsilonCMin *= (1 + psiR);
                     epsilonSMax *= (1 + psiR);
                     epsilonSMin *= (1 + psiR);
                     epsilonSSMax *= (1 + psiR);

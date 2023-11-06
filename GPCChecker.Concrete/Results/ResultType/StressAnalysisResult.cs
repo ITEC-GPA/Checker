@@ -340,6 +340,11 @@ namespace GPC.Checkers.Concrete.Results
             return _strainPlane.GetStrain(point);
         }
 
+        public double GetVerticeStrain(Point2d point, double phi)
+        {
+            return _strainPlane.GetStrain(point) * (1 + phi);
+        }
+
         #endregion
 
         #region Steel sections
