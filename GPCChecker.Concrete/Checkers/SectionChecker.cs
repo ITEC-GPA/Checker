@@ -57,19 +57,24 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #endregion
 
-        #region Public Async Method
+        #region Public Async Methods
 
         /// <summary>
-        /// Calculate the plastic failure domain and calculate the domain point for each forces
+        /// Calculate the failure domain and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-        public async Task<FailureDomainResult> GetPlasticFailureDomainResultAsync()
+        public async Task<FailureDomainResult> GetFailureDomainResultAsync()
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
+                    FailureDomainResult failureDomainResult = null;
+
+                    if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
+                        failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
+                    else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
+                        failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
 
                     if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -87,61 +92,17 @@ namespace GPC.Checkers.Concrete.Checkers
         /// Calculate the plastic failure domain 2d and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-        public async Task<FailureDomainResult2d> GetPlasticFailureDomainResult2dAsync(double teta = 0)
+        public async Task<FailureDomainResult2d> GetFailureDomainResult2dAsync(double teta = 0)
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions, teta);
-
-                    if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
-                        failureDomainResult.AddForces(_checkerAttributes.ULSResults);
-
-                    return failureDomainResult;
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
-            });
-        }
-
-        /// <summary>
-        /// Calculate the elastic failure domain and calculate the domain point for each forces
-        /// </summary>
-        /// <returns>The failure domain results</returns>
-        public async Task<FailureDomainResult> GetElasticFailureDomainResultAsync()
-        {
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
-
-                    if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
-                        failureDomainResult.AddForces(_checkerAttributes.ULSResults);
-
-                    return failureDomainResult;
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
-            });
-        }
-
-        /// <summary>
-        /// Calculate the elastic failure domain2d and calculate the domain point for each forces
-        /// </summary>
-        /// <returns>The failure domain results</returns>
-        public async Task<FailureDomainResult2d> GetElasticFailureDomainResult2dAsync(double teta = 0)
-        {
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions, teta);
+                    FailureDomainResult2d failureDomainResult = null;
+                    if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
+                        failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions, teta);
+                    else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
+                        failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions, teta);
 
                     if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -248,29 +209,121 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #endregion
 
-        #region Public Method
+        #region Internal Async Methods
 
         /// <summary>
         /// Calculate the plastic failure domain and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-        public FailureDomainResult GetPlasticFailureDomainResult()
+        internal async Task<FailureDomainResult> GetPlasticFailureDomainResultAsync()
         {
-            var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
 
-            if (_checkerAttributes.ULSResults != null)
-                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+                    if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
+                        failureDomainResult.AddForces(_checkerAttributes.ULSResults);
 
-            return failureDomainResult;
+                    return failureDomainResult;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            });
+        }
+
+        /// <summary>
+        /// Calculate the plastic failure domain 2d and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        internal async Task<FailureDomainResult2d> GetPlasticFailureDomainResult2dAsync(double teta = 0)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions, teta);
+
+                    if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
+                        failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+                    return failureDomainResult;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            });
         }
 
         /// <summary>
         /// Calculate the elastic failure domain and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-        public FailureDomainResult GetElasticFailureDomainResult()
+        internal async Task<FailureDomainResult> GetElasticFailureDomainResultAsync()
         {
-            var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
+
+                    if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
+                        failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+                    return failureDomainResult;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            });
+        }
+
+        /// <summary>
+        /// Calculate the elastic failure domain2d and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        internal async Task<FailureDomainResult2d> GetElasticFailureDomainResult2dAsync(double teta = 0)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions, teta);
+
+                    if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
+                        failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+                    return failureDomainResult;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            });
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Calculate the failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        public FailureDomainResult GetFailureDomainResult()
+        {
+            FailureDomainResult failureDomainResult;
+            if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
+                failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
+            else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
+                failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
+            else
+                failureDomainResult = null;
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -279,26 +332,18 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <summary>
-        /// Calculate the plastic failure domain and calculate the domain point for each forces
+        /// Calculate the failure domain and calculate the domain point for each forces
         /// </summary>
         /// <returns>The failure domain results</returns>
-        public FailureDomainResult2d GetPlasticFailureDomainResult2d()
+        public FailureDomainResult2d GetFailureDomainResult2d()
         {
-            var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions);
-
-            if (_checkerAttributes.ULSResults != null)
-                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
-
-            return failureDomainResult;
-        }
-
-        /// <summary>
-        /// Calculate the elastic failure domain and calculate the domain point for each forces
-        /// </summary>
-        /// <returns>The failure domain results</returns>
-        public FailureDomainResult2d GetElasticFailureDomainResult2d()
-        {
-            var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions);
+            FailureDomainResult2d failureDomainResult;
+            if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
+                failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions);
+            else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
+                failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions);
+            else
+                failureDomainResult = null;
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -348,11 +393,29 @@ namespace GPC.Checkers.Concrete.Checkers
             return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptions);
         }
 
+        #endregion
+
+        #region Internal Methods
+
         /// <summary>
         /// Calculate the plastic domain point for input force
         /// </summary>
         /// <returns>The failure domain point</returns>
-        public FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force)
+        internal FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force)
+        {
+            if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
+                return _solver.CalculatePlasticDomainPoint(force, SectionCheckerOptions);
+            else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
+                return _solver.CalculateElasticDomainPoint(force, SectionCheckerOptions);
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Calculate the plastic domain point for input force
+        /// </summary>
+        /// <returns>The failure domain point</returns>
+        internal FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force)
         {
             return _solver.CalculatePlasticDomainPoint(force, SectionCheckerOptions);
         }
@@ -361,45 +424,83 @@ namespace GPC.Checkers.Concrete.Checkers
         /// Calculate the elastic domain point for input force
         /// </summary>
         /// <returns>The failure domain point</returns>
-        public FailureDomain.FailureDomainPoint CalculateElasticFailureDomainPoint(ResultBeamForces force)
+        internal FailureDomain.FailureDomainPoint CalculateElasticFailureDomainPoint(ResultBeamForces force)
         {
             return _solver.CalculateElasticDomainPoint(force, SectionCheckerOptions);
         }
 
         /// <summary>
-        /// Calculate the plastic domain point for input force with intersection method
+        /// Calculate the domain point for input force with intersection method
         /// </summary>
         /// <returns>The failure domain point</returns>
-        public FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
+        internal FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
         {
-            return _solver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint, SectionCheckerOptions.FailureAnalysisType, SectionSolver.FailureDomainTypes.Plastic);
+            return _solver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint, SectionCheckerOptions);
         }
 
         /// <summary>
-        /// Calculate the elastic domain point for input force with intersection method
-        /// </summary>
-        /// <returns>The failure domain point</returns>
-        public FailureDomain.FailureDomainPoint CalculateElasticFailureDomainPoint(ResultBeamForces force, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            return _solver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint, SectionCheckerOptions.FailureAnalysisType, SectionSolver.FailureDomainTypes.Elastic);
-        }
-
-        /// <summary>
-        /// Calculate the plastic domain points for input forces with intersection method
+        /// Calculate the domain points for input forces with intersection method
         /// </summary>
         /// <returns>The failure domain points</returns>
-        public FailureDomain.FailureDomainPoint[] CalculatePlasticFailureDomainPoint(ResultBeamForces[] forces, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
+        internal FailureDomain.FailureDomainPoint[] CalculateFailureDomainPoint(ResultBeamForces[] forces, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
         {
-            return _solver.CalculateDomainPoint(forces, domainMesh, vertexToDomainPoint, SectionCheckerOptions.FailureAnalysisType, SectionSolver.FailureDomainTypes.Plastic);
+            return _solver.CalculateDomainPoint(forces, domainMesh, vertexToDomainPoint, SectionCheckerOptions);
         }
 
         /// <summary>
-        /// Calculate the elastic domain points for input forces with intersection method
+        /// Calculate the plastic failure domain and calculate the domain point for each forces
         /// </summary>
-        /// <returns>The failure domain points</returns>
-        public FailureDomain.FailureDomainPoint[] CalculateElasticFailureDomainPoint(ResultBeamForces[] forces, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
+        /// <returns>The failure domain results</returns>
+        internal FailureDomainResult GetPlasticFailureDomainResult()
         {
-            return _solver.CalculateDomainPoint(forces, domainMesh, vertexToDomainPoint, SectionCheckerOptions.FailureAnalysisType, SectionSolver.FailureDomainTypes.Elastic);
+            var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
+
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
+        }
+
+        /// <summary>
+        /// Calculate the elastic failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        internal FailureDomainResult GetElasticFailureDomainResult()
+        {
+            var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
+
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
+        }
+
+        /// <summary>
+        /// Calculate the plastic failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        internal FailureDomainResult2d GetPlasticFailureDomainResult2d()
+        {
+            var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions);
+
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
+        }
+
+        /// <summary>
+        /// Calculate the elastic failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        internal FailureDomainResult2d GetElasticFailureDomainResult2d()
+        {
+            var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions);
+
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
         }
 
         #endregion
@@ -420,22 +521,25 @@ namespace GPC.Checkers.Concrete.Checkers
                 ForceReferenceCoordinateSystem = CoordinateSystem.Global;
             }
 
-            public SectionOptions(CoordinateSystem forceReferencePointCoordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType)
+            public SectionOptions(CoordinateSystem forceReferencePointCoordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType, SectionSolver.FailureDomainTypes failureDomainType)
             {
                 ForceReferenceCoordinateSystem = forceReferencePointCoordinateSystem;
                 FailureAnalysisType = failureAnalysisType;
+                FailureDomainType = failureDomainType;
             }
 
             protected SectionOptions(SerializationInfo info, StreamingContext context)
             {
                 ForceReferenceCoordinateSystem = (CoordinateSystem)info.GetValue("ForceReferenceCoordinateSystem", typeof(CoordinateSystem));
                 FailureAnalysisType = (SectionSolver.FailureAnalysisTypes)info.GetValue("FailureAnalysisType", typeof(SectionSolver.FailureAnalysisTypes));
+                FailureDomainType = (SectionSolver.FailureDomainTypes)info.GetValue("FailureDomainType", typeof(SectionSolver.FailureDomainTypes));
             }
 
             public override bool Equals(object obj)
             {
                 return obj is SectionOptions options &&
                     ForceReferenceCoordinateSystem.Equals(options.ForceReferenceCoordinateSystem) &&
+                    FailureDomainType.Equals(options.FailureDomainType) &&
                     FailureAnalysisType.Equals(options.FailureAnalysisType);
             }
 
@@ -446,6 +550,7 @@ namespace GPC.Checkers.Concrete.Checkers
                     int hashCode = -17;
                     hashCode = hashCode * -23 + ForceReferenceCoordinateSystem.GetHashCode();
                     hashCode = hashCode * -23 + FailureAnalysisType.GetHashCode();
+                    hashCode = hashCode * -23 + FailureDomainType.GetHashCode();
                     return hashCode;
                 }
             }
@@ -454,6 +559,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 info.AddValue("ForceReferenceCoordinateSystem", ForceReferenceCoordinateSystem);
                 info.AddValue("FailureAnalysisType", FailureAnalysisType);
+                info.AddValue("FailureDomainType", FailureDomainType);
             }
 
             public static bool operator ==(SectionOptions left, SectionOptions right)

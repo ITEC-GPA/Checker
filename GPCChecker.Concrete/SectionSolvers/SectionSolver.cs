@@ -385,6 +385,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Public method
 
+        public virtual FailureDomainResult GetFailureDomainResult(Checkers.SectionChecker.SectionOptions sectionOption)
+        {
+            if (sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
+                return GetElasticFailureDomainResult(sectionOption);
+            else if (sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
+                return GetPlasticFailureDomainResult(sectionOption);
+            else
+                return null;
+        }
+
+        public virtual FailureDomainResult2d GetFailureDomainResult2d(Checkers.SectionChecker.SectionOptions sectionOption)
+        {
+            if (sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
+                return GetElasticFailureDomainResult2d(sectionOption);
+            else if (sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
+                return GetPlasticFailureDomainResult2d(sectionOption);
+            else
+                return null;
+        }
+
         public virtual FailureDomainResult GetElasticFailureDomainResult(Checkers.SectionChecker.SectionOptions sectionOption)
         {
             (FailureZones, int)[] zoneDiscretization;
@@ -533,6 +553,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 _standardStructuralSteel);
         }
 
+        public virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
+        {
+            if (sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
+                return CalculateElasticDomainPoint(force, sectionOption);
+            else if (sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
+                return CalculatePlasticDomainPoint(force, sectionOption);
+            else
+                return null;
+        }
+
         public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
         {
             return CalculatePlasticDomainPoint(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem), sectionOption.ForceReferenceCoordinateSystem, sectionOption.FailureAnalysisType);
@@ -554,21 +584,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         public virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces resultBeamForce, Mesh domainMesh,
-            Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint, FailureAnalysisTypes failureAnalysisType,
-            FailureDomainTypes failureDomainType)
+            Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint, Checkers.SectionChecker.SectionOptions sectionOption)
         {
-            return CalculateDomainPoint(domainMesh, resultBeamForce, vertexToDomainPoint, failureAnalysisType, failureDomainType, _failureAnalysisIntersectionTolerance);
+            return CalculateDomainPoint(domainMesh, resultBeamForce, vertexToDomainPoint, sectionOption.FailureAnalysisType, sectionOption.FailureDomainType, _failureAnalysisIntersectionTolerance);
         }
 
         public virtual FailureDomain.FailureDomainPoint[] CalculateDomainPoint(ResultBeamForces[] force, Mesh domainMesh,
-            Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint, FailureAnalysisTypes failureAnalysisType,
-            FailureDomainTypes failureDomainType)
+            Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint, Checkers.SectionChecker.SectionOptions sectionOption)
         {
             FailureDomain.FailureDomainPoint[] result = new FailureDomain.FailureDomainPoint[force.Length];
 
             Parallel.For(0, force.Length, (i) =>
             {
-                result[i] = CalculateDomainPoint(domainMesh, force[i], vertexToDomainPoint, failureAnalysisType, failureDomainType, _failureAnalysisIntersectionTolerance);
+                result[i] = CalculateDomainPoint(domainMesh, force[i], vertexToDomainPoint, sectionOption.FailureAnalysisType, sectionOption.FailureDomainType, _failureAnalysisIntersectionTolerance);
             });
 
             return result;
