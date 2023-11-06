@@ -45,8 +45,8 @@ namespace GPC.Checkers.Concrete.Checkers
         [Serializable]
         public class SectionOptionsModelCode2010 : SectionOptions, ISerializable
         {
-            public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantEccentricity,
-                SectionSolver.FailureDomainTypes failureDomainType = SectionSolver.FailureDomainTypes.Plastic)
+            public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType,
+                SectionSolver.FailureDomainTypes failureDomainType)
                 : base(coordinateSystem, failureAnalysisType, failureDomainType)
             {
 
