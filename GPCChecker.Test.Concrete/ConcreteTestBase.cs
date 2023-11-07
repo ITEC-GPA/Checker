@@ -456,7 +456,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             if (sectionOptions == null)
-                sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+                sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }
@@ -465,7 +465,7 @@ namespace ConcreteTests
             bool considerTensileConcrete = false, StandardEN1993p11 standardStructuralSteel = null)
         {
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
             var sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard,
                 considerTensileConcrete, -1, standardStructuralSteel);
             return sectionChecker;
@@ -476,7 +476,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard,
                 considerTensileConcrete, -1, standardStructuralSteel);
             return sectionChecker;
@@ -496,7 +496,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions =
-                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
             SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }
@@ -505,7 +505,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions =
-                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
             SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }
@@ -716,11 +716,11 @@ namespace ConcreteTests
 
         #region Common Asserts
 
-        protected bool TensionAnalysisCommonAssertModelCode(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
-            StandardModelCode2010 standard)
-        {
-            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
-            var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
+		protected bool TensionAnalysisCommonAssertModelCode(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
+			StandardModelCode2010 standard)
+		{
+			var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid);
+			var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
 
             List<string> log = result.GetLog();
             foreach (string s in log)
@@ -762,11 +762,11 @@ namespace ConcreteTests
             return true;
         }
 
-        protected bool TensionAnalysisCommonAssertACI(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
-            StandardACI318 standard, bool haveSpiral)
-        {
-            SectionSolverACI318Test solver = new SectionSolverACI318Test(section, standard, haveSpiral);
-            var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
+		protected bool TensionAnalysisCommonAssertACI(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
+			StandardACI318 standard, bool haveSpiral)
+		{
+			var solver = new SectionSolverACI318Test(section, standard, haveSpiral, section.Centroid);
+			var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
 
             List<string> log = result.GetLog();
             foreach (string s in log)
@@ -848,10 +848,10 @@ namespace ConcreteTests
             if (factor == null)
                 factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
 
-            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard, standardStructuralSteel: standardStructuralSteel);
-            FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
-            ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
-            int j = 0;
+			var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid, standardStructuralSteel: standardStructuralSteel);
+			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
+			ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
+			int j = 0;
 
             try
             {
@@ -940,10 +940,10 @@ namespace ConcreteTests
             if (factor == null)
                 factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
 
-            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard, considerTensioleConcrete);
-            FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
-            ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
-            int j = 0;
+			var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid, considerTensioleConcrete);
+			FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
+			ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
+			int j = 0;
 
             try
             {
@@ -1696,13 +1696,13 @@ namespace ConcreteTests
 
         #endregion
 
-        internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
-        {
-            internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard,
-                bool considerTensileConcrete = false, int id = -1, StandardEN1993p11 standardStructuralSteel = null)
-                : base(section, standard, considerTensileConcrete, id, standardStructuralSteel)
-            {
-            }
+		internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
+		{
+			internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard, Point2d integrationReferencePoint,
+				bool considerTensileConcrete = false, int id = -1, StandardEN1993p11 standardStructuralSteel = null)
+				: base(section, standard, integrationReferencePoint, considerTensileConcrete, id, standardStructuralSteel)
+			{
+			}
 
             internal ForceTuple CalculateSectionForceResultant(StrainPlane strainPlane)
             {
@@ -1746,13 +1746,13 @@ namespace ConcreteTests
             }
         }
 
-        internal class SectionSolverACI318Test : SectionSolverACI318
-        {
-            internal SectionSolverACI318Test(IConcreteSection section, StandardACI318 standard, bool haveSpiral,
-                bool considerTensileConcrete = false, int id = -1, StandardEN1993p11 standardStructuralSteel = null)
-                : base(section, standard, haveSpiral, considerTensileConcrete, id, standardStructuralSteel)
-            {
-            }
+		internal class SectionSolverACI318Test : SectionSolverACI318
+		{
+			internal SectionSolverACI318Test(IConcreteSection section, StandardACI318 standard, bool haveSpiral, Point2d integrationReferencePoint,
+				bool considerTensileConcrete = false, int id = -1, StandardEN1993p11 standardStructuralSteel = null)
+				: base(section, standard, haveSpiral, integrationReferencePoint, considerTensileConcrete, id, standardStructuralSteel)
+			{
+			}
 
             internal ForceTuple CalculateSectionForceResultantForTension(StrainPlane strainPlane)
             {

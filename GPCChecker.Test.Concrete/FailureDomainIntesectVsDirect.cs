@@ -148,14 +148,14 @@ namespace ConcreteTests
             var section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
             var standard = new StandardNTC2018Concrete();
             cs = GetLocalCoordinateSystem(section);
-            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, ratioMode);
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, ratioMode, SectionSolver.FailureDomainTypes.Plastic);
 
             // Code, solver and checker.
             bool considerTensileConcrete = false;
             int id = -1;
             StandardEN1993p11 standardStructuralSteel = null;
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var solver = new SectionSolverModelCode2010Test(section, standard, considerTensileConcrete, id, standardStructuralSteel);
+            var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid, considerTensileConcrete, id, standardStructuralSteel);
             sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, solver, id, standardStructuralSteel);
             sectionChecker.SectionCheckerOptionsModelCode2010.FailureAnalysisType = ratioMode;
 
@@ -187,14 +187,14 @@ namespace ConcreteTests
                 new SteelMaterialACI318("Grade 60", 200000, 420, 420, 0.10, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar));
             var standard = new StandardACI318p19();
             cs = GetLocalCoordinateSystem(section);
-            var sectionOptions = new SectionCheckerACI318.SectionOptionsStandardACI318(cs, ratioMode);
+            var sectionOptions = new SectionCheckerACI318.SectionOptionsStandardACI318(cs, ratioMode, SectionSolver.FailureDomainTypes.Plastic);
 
             // Code, solver and checker.
             bool considerTensileConcrete = false;
             int id = -1;
             StandardEN1993p11 standardStructuralSteel = null;
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var solver = new SectionSolverACI318Test(section, standard, considerTensileConcrete, false, id, standardStructuralSteel);
+            var solver = new SectionSolverACI318Test(section, standard, considerTensileConcrete, section.Centroid, false, id, standardStructuralSteel);
             sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, solver, id, standardStructuralSteel);
             sectionChecker.SectionCheckerOptionsACI318.FailureAnalysisType = ratioMode;
 

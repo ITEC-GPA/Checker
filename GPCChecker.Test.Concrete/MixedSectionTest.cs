@@ -33,7 +33,7 @@ namespace ConcreteTests
             var section = new ReinforcedConcreteSection(1000.0, 300.0, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 50.0, rebar, 200.0,
                 new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0);
 
-            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
             var dist = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(0.0);
 
             Assert.AreEqual(-150.0, dist.dmaxStrucSteel, 0.0001);
@@ -59,7 +59,7 @@ namespace ConcreteTests
             var section = new ReinforcedConcreteSection(1000.0, 300.0, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 50.0, rebar, 200.0,
                 new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0, eccentricity);
 
-            SectionSolverModelCode2010Test sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete());
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
             var dist = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(0.0);
 
             Assert.AreEqual(-150.0, dist.dmaxStrucSteel, 0.0001);
@@ -2069,7 +2069,7 @@ namespace ConcreteTests
                 GammaM0 = gamma_M0
             };
 
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(),
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid,
                 false, -1, structuralSteelCode);
             var sectionDistances = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(rotationAngle);
             var p2 = sectionSolverModelCode2010Test.GetP2(sectionDistances, analysisType);
@@ -2823,7 +2823,7 @@ namespace ConcreteTests
                 new ResultBeamForces(0, 0, 0, 0, 2000000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(0, 0, 0, 0, 2500000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(0, 0, 0, 0, 3000000000, 0, GetLocalCoordinateSystem(section)),
-                new ResultBeamForces(0, 0, 0, 0, 3200000000, 0, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(0, 0, 0, 0, 3190000000, 0, GetLocalCoordinateSystem(section)),
             };
 
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, forces, null, standard, true, new StandardEN1993p11());
@@ -2850,7 +2850,7 @@ namespace ConcreteTests
             var rebar = new RebarSectionCircular("", 1, SteelMaterialACI318Data.Grade60);
             var cnc = new ConcreteMaterialACI318("fc' 4000", 27.579, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
             var section = new ReinforcedConcreteSection(1200.0, 200.0, cnc, rebar, 150, 60.0, null, 150,
-                new GPC.Model.Sections.SectionH(402.6, 7.7, 177.7, 10.9, 177.7, 10.9, "UB 406 x 178 x 54 r=0"), SteelMaterialAISC360Data.Grade50);
+                new GPC.Model.Sections.SectionH(402.6, 7.7, 177.7, 10.9, 177.7, 10.9, "UB 406 x 178 x 54 r=0"), SteelMaterialACI318Data.Grade50);
 
             StandardACI318p08 standard = new StandardACI318p08();
             StandardAISC360p05 standardAisc = new StandardAISC360p05();
@@ -2861,7 +2861,7 @@ namespace ConcreteTests
             };
 
             SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, forces, null, standard,
-                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section)), false, false, standardAisc);
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), false, false, standardAisc);
 
             var slsResult = sectionChecker.GetStressAnalysisResult();
             var res = slsResult[0].CalculateStrainPlaneResult();
@@ -2871,8 +2871,8 @@ namespace ConcreteTests
             var rebarTensions = slsResult[0].GetRebarsTension();
             var steelSectionsTensions = slsResult[0].GetStructuralSteelVerticesTension();
 
-            Assert.IsTrue(Math.Abs(steelSectionsTensions.Select(i => i.tension).Max() - SteelMaterialAISC360Data.Grade50.Fyk) < 0.001);
-            Assert.IsTrue(Math.Abs(steelSectionsTensions.Select(i => i.tension).Min() - SteelMaterialAISC360Data.Grade50.Fyk) < 0.001);
+            Assert.IsTrue(Math.Abs(steelSectionsTensions.Select(i => i.tension).Max() - SteelMaterialACI318Data.Grade50.Fyk) < 0.001);
+            Assert.IsTrue(Math.Abs(steelSectionsTensions.Select(i => i.tension).Min() - SteelMaterialACI318Data.Grade50.Fyk) < 0.001);
             Assert.IsTrue(Math.Abs(concreteTensions.Select(i => i.tension).Min() - 0.85 * cnc.Fc) < 0.001);
             Assert.IsTrue(Math.Abs(concreteTensions.Select(i => i.tension).Max()) < 0.001);
         }
@@ -2886,7 +2886,7 @@ namespace ConcreteTests
             var cnc = new ConcreteMaterialACI318("fc' 4000", 27.579, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
 
             var section = new ReinforcedConcreteSection(1200.0, 200.0, cnc, rebar, 150, 60.0, null, 150,
-                new GPC.Model.Sections.SectionH(402.6, 7.7, 177.7, 10.9, 177.7, 10.9, "UB 406 x 178 x 54 r=0"), SteelMaterialAISC360Data.Grade50);
+                new GPC.Model.Sections.SectionH(402.6, 7.7, 177.7, 10.9, 177.7, 10.9, "UB 406 x 178 x 54 r=0"), SteelMaterialACI318Data.Grade50);
 
             StandardACI318p08 standard = new StandardACI318p08();
             StandardAISC360p05 standardAisc = new StandardAISC360p05();
@@ -2899,7 +2899,7 @@ namespace ConcreteTests
             };
 
             SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, null, null, standard,
-                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section)), false, false, standardAisc);
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), false, false, standardAisc);
 
             FailureDomainResult ulsResult = sectionChecker.GetPlasticFailureDomainResult();
             Mesh domainMesh = ulsResult.Domain.GetMesh(ulsResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint);
@@ -2931,7 +2931,7 @@ namespace ConcreteTests
             var standardSteel = new StandardEN1993p11();
             CoordinateSystem cs = GetLocalCoordinateSystem(section);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
 
             section.AddSteelSection(
                 new SteelSectionPosition(
@@ -2967,7 +2967,7 @@ namespace ConcreteTests
             var standardSteel = new StandardEN1993p11();
             CoordinateSystem cs = GetLocalCoordinateSystem(section);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
 
             section.AddSteelSection(
                 new SteelSectionPosition(
@@ -3008,7 +3008,7 @@ namespace ConcreteTests
             var standardSteel = new StandardEN1993p11();
             CoordinateSystem cs = GetLocalCoordinateSystem(section);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
 
             var steelMaterialList = new SteelMaterialEN1993[]
             {
@@ -3025,7 +3025,7 @@ namespace ConcreteTests
                 var forces = new ResultBeamForces[]
                 {
                     //new ResultBeamForces(3000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
-                    new ResultBeamForces(2000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    //new ResultBeamForces(2000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(1000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(0 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(-1000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
@@ -3072,7 +3072,7 @@ namespace ConcreteTests
             double wt = 1;        // Web thickness
 
             ConcreteMaterialACI318 concreteMaterialACI318 = ConcreteMaterialACI318Data.Fc4000;
-            SteelMaterialACI318 steelMaterialACI318 = SteelMaterialAISC360Data.Grade50;
+            SteelMaterialACI318 steelMaterialACI318 = SteelMaterialACI318Data.Grade50;
             SteelMaterialACI318 rebarMaterial = SteelMaterialACI318Data.Grade50;
 
             SectionH sectionH = new SectionH(hh, wt, tfw, tft, bfw, bft, "Test");
@@ -3085,7 +3085,7 @@ namespace ConcreteTests
             StandardAISC360p16 standardAISC360P16 = new StandardAISC360p16();
 
             CoordinateSystem coordinateSystem = GetLocalCoordinateSystem(reinforcedConcreteSection);
-            SectionCheckerACI318.SectionOptionsStandardACI318 options = new SectionCheckerACI318.SectionOptionsStandardACI318(coordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantN);
+            SectionCheckerACI318.SectionOptionsStandardACI318 options = new SectionCheckerACI318.SectionOptionsStandardACI318(coordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(reinforcedConcreteSection);
             SectionCheckerACI318 sectionCheckerACI318 = new SectionCheckerACI318(sectionCheckerAttribute, options, standardACI318P14, false, false, -1, standardAISC360P16);

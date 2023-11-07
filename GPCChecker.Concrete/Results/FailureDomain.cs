@@ -733,7 +733,7 @@ namespace GPC.Checkers.Concrete.Results
             /// <summary>
             /// Calculate the working ratio for the force <paramref name="resultBeamForce"/> 
             /// </summary>
-            /// <param name="resultBeamForce"></param>
+            /// <param name="resultBeamForce">Force at the domain integration reference point, here the force is not further transformed.</param>
             /// <param name="SCALE_M">Factor for moments units scale</param>
             /// <param name="SCALE_N">Factor for axial force units scale</param>
             /// <returns>-1 if the procedure is failed, the working ratio otherwise</returns>

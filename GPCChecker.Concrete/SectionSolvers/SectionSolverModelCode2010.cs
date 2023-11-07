@@ -1,4 +1,5 @@
 ﻿using GPC.Checkers.Concrete.Results;
+using GPC.Geometry;
 using GPC.Model;
 using GPC.Model.Materials;
 using GPC.Model.Sections.Concrete;
@@ -50,9 +51,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Constructor
 
-        public SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, bool considerTensileConcrete = false,
-            int id = ModelObjectId.IDUNASSIGNED, StandardEN1993p11 standardStructuralSteel = null)
-            : base(section, standard, considerTensileConcrete, id, standardStructuralSteel)
+        public SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, Point2d integrationReferencePoint,
+            bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED, StandardEN1993p11 standardStructuralSteel = null)
+            : base(section, standard, considerTensileConcrete, id, integrationReferencePoint, standardStructuralSteel)
         {
 
         }

@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
@@ -17,8 +17,6 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public SectionOptionsModelCode2010 SectionCheckerOptionsModelCode2010 => (SectionOptionsModelCode2010)_options;
 
-        public StandardEN1993p11 StandardStructuralSteel => (StandardEN1993p11)_standardStructuralSteel;
-
         #endregion
 
         #region Constructor
@@ -28,7 +26,7 @@ namespace GPC.Checkers.Concrete.Checkers
             StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED,
             StandardEN1993p11 standardStructuralSteel = null)
             : base(checkerAttribute, options, standard,
-                  new SectionSolverModelCode2010(checkerAttribute.Section, standard, considerTensileConcrete, id, standardStructuralSteel),
+                  new SectionSolverModelCode2010(checkerAttribute.Section, standard, options.ForceReferenceCoordinateSystem.Origin, considerTensileConcrete, id, standardStructuralSteel),
                   id, standardStructuralSteel)
         {
         }

@@ -37,8 +37,6 @@ namespace GPC.Checkers.Concrete.Results
 
         public SectionSolver.FailureAnalysisTypes FailureAnalysisType => _sectionOption.FailureAnalysisType;
 
-        public CoordinateSystem SectionLocalCoordinateSystem => new CoordinateSystem(ConcreteSection.Centroid, Vector2d.XAxis, Vector2d.YAxis);
-
         #endregion
 
         #region Constructor
