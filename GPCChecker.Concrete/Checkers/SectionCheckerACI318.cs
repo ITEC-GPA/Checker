@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
@@ -17,8 +17,6 @@ namespace GPC.Checkers.Concrete.Checkers
 
         public SectionOptionsStandardACI318 SectionCheckerOptionsACI318 => (SectionOptionsStandardACI318)_options;
 
-        public StandardAISC StandardStructuralSteel => (StandardAISC)_standardStructuralSteel;
-
         #endregion
 
         #region Constructors
@@ -28,7 +26,7 @@ namespace GPC.Checkers.Concrete.Checkers
             StandardACI318 standard, bool haveSpiral, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED,
             StandardAISC standardStructuralSteel = null)
             : base(checkerAttribute, options, standard,
-                  new SectionSolverACI318(checkerAttribute.Section, standard, haveSpiral, considerTensileConcrete, id, standardStructuralSteel),
+                  new SectionSolverACI318(checkerAttribute.Section, standard, haveSpiral, options.ForceReferenceCoordinateSystem.Origin, considerTensileConcrete, id, standardStructuralSteel),
                   id, standardStructuralSteel)
         {
         }
@@ -49,8 +47,9 @@ namespace GPC.Checkers.Concrete.Checkers
         public class SectionOptionsStandardACI318 : SectionOptions, ISerializable
         {
             public SectionOptionsStandardACI318(CoordinateSystem coordinateSystem,
-                SectionSolver.FailureAnalysisTypes failureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes failureDomainType = SectionSolver.FailureDomainTypes.Plastic)
-                : base(coordinateSystem, failureAnalysisType, failureDomainType)
+                SectionSolver.FailureAnalysisTypes failureAnalysisType, SectionSolver.FailureDomainTypes failureDomainType, SectionSolver.StressAnalysisTypes stressAnalysisType,
+                double psiCoefficientRebar, double psiCoefficientTendon, bool considerTensileConcrete, int tetaDiscretization)
+                : base(coordinateSystem, failureAnalysisType, failureDomainType, stressAnalysisType, psiCoefficientRebar, psiCoefficientTendon, considerTensileConcrete, tetaDiscretization)
             {
 
             }

@@ -1,5 +1,6 @@
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
@@ -14,23 +15,23 @@ using System.Linq;
 
 namespace ConcreteTests
 {
-	[TestClass]
-	public class FailureDomainRCTest : ConcreteTestBase
-	{
-		[TestMethod]
-		public void RectangularSectionTest1()
-		{
-			double rebarDiameter = 18;
-			double height = 500;
-			double width = 300;
-			double concreteCover = 50;
+    [TestClass]
+    public class FailureDomainRCTest : ConcreteTestBase
+    {
+        [TestMethod]
+        public void RectangularSectionTest1()
+        {
+            double rebarDiameter = 18;
+            double height = 500;
+            double width = 300;
+            double concreteCover = 50;
 
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992Data.C25_30);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, ConcreteMaterialEN1992Data.C25_30);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
 
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
 				-398.343	0			0			0
 				-398.343	0			0			0
@@ -71,36 +72,36 @@ namespace ConcreteTests
 				-398.343	0			0			0
 				-398.343	0			0			0
 			*/
-		}
+        }
 
-		[TestMethod]
-		public void RectangularSectionTest2()
-		{
-			double rebarDiameter = 26;
+        [TestMethod]
+        public void RectangularSectionTest2()
+        {
+            double rebarDiameter = 26;
 
-			// \\studio\Software_Development\FilesForTesting\Libs\GPCChecker\ConcreteSolver\Test_2 
-			Shape2d shape = GetRectangularShape(300, 500);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            // \\studio\Software_Development\FilesForTesting\Libs\GPCChecker\ConcreteSolver\Test_2 
+            Shape2d shape = GetRectangularShape(300, 500);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0))
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0))
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C45_55);
-			section.AddRebars(rebars);
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C45_55);
+            section.AddRebars(rebars);
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 7);
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 7);
 
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
 				-1454.46	124.668	
 				-1454.46	124.668	
@@ -141,41 +142,41 @@ namespace ConcreteTests
 				-1454.46	124.668		
 				-1454.46	124.668		
 			*/
-		}
+        }
 
-		[TestMethod]
-		public void RectangularSectionTest3()
-		{
-			double rebarDiameter = 18;
+        [TestMethod]
+        public void RectangularSectionTest3()
+        {
+            double rebarDiameter = 18;
 
-			// sezione rettangolare 300x500
-			Shape2d shape = GetRectangularShape(300, 500);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            // sezione rettangolare 300x500
+            Shape2d shape = GetRectangularShape(300, 500);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,70,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0))
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,70,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 70, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 70, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 70, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 70, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 450, 0))
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C45_55);
-			section.AddRebars(rebars);
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C45_55);
+            section.AddRebars(rebars);
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 7);
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 7);
 
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
 				-1192.68	149.085		0			0
 				-1192.68	149.085		0			0
@@ -216,50 +217,50 @@ namespace ConcreteTests
 				-1192.68	149.085		0			0
 				-1192.68	149.085		0			0
 			*/
-		}
+        }
 
-		[TestMethod]
-		public void RectangularSectionTest4()
-		{
-			double rebarDiameter = 26;
+        [TestMethod]
+        public void RectangularSectionTest4()
+        {
+            double rebarDiameter = 26;
 
-			// sezione rettangolare 300x500            
-			Shape2d shape = GetRectangularShape(300, 500);
+            // sezione rettangolare 300x500            
+            Shape2d shape = GetRectangularShape(300, 500);
 
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,70,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 70, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50,430,0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 430, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 430, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 430, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 430, 0))
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,50,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,70,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 70, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 70, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 70, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 70, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,450,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50,430,0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 430, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 430, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 430, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 430, 0))
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
-				new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
-			section.AddRebars(rebars);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
+                new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+            section.AddRebars(rebars);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
 
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
 				-4155.61	0			0			0
 				-4155.61	0			0			0
@@ -299,92 +300,92 @@ namespace ConcreteTests
 				-4155.61	0			0			0
 				-4155.61	0			0			0
 			*/
-		}
+        }
 
-		[TestMethod]
-		[TestCategory("Rebar with fragile material")]
-		public void RectangularSectionTest5()
-		{
-			double rebarDiameter = 18;
-			double height = 500;
-			double width = 300;
-			double concreteCover = 50;
+        [TestMethod]
+        [TestCategory("Rebar with fragile material")]
+        public void RectangularSectionTest5()
+        {
+            double rebarDiameter = 18;
+            double height = 500;
+            double width = 300;
+            double concreteCover = 50;
 
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover,
-				ConcreteMaterialEN1992Data.C35_45, new SteelMaterial("", 200000, 450, 450, 0.002, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar));
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover,
+                ConcreteMaterialEN1992Data.C35_45, new SteelMaterial("", 200000, 450, 450, 0.002, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar));
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 10);
-		}
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 10);
+        }
 
-		[TestMethod]
-		[TestCategory("Rebar with fragile material")]
-		public void RectangularSectionTest6()
-		{
-			double rebarDiameter = 26;
-			double height = 500;
-			double width = 300;
-			double concreteCover = 50;
+        [TestMethod]
+        [TestCategory("Rebar with fragile material")]
+        public void RectangularSectionTest6()
+        {
+            double rebarDiameter = 26;
+            double height = 500;
+            double width = 300;
+            double concreteCover = 50;
 
-			SteelMaterial steelMaterial = new SteelMaterial("", 200000, 450, 450, 0.0025, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
-			ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover,
-				ConcreteMaterialEN1992Data.C35_45, steelMaterial);
+            SteelMaterial steelMaterial = new SteelMaterial("", 200000, 450, 450, 0.0025, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
+            ReinforcedConcreteSection section = GetRectangularSection8Rebars(width, height, rebarDiameter, concreteCover,
+                ConcreteMaterialEN1992Data.C35_45, steelMaterial);
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 10);
-		}
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 10);
+        }
 
-		[TestMethod]
-		[TestCategory("No Rebars")]
-		public void RectangularSectionTest7()
-		{
-			// sezione rettangolare 300x500
-			Shape2d shape = GetRectangularShape(300, 500);
+        [TestMethod]
+        [TestCategory("No Rebars")]
+        public void RectangularSectionTest7()
+        {
+            // sezione rettangolare 300x500
+            Shape2d shape = GetRectangularShape(300, 500);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
-				new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
-			section.AddRebars(rebars);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
+                new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+            section.AddRebars(rebars);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+            var plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+            var elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
-			Assert.IsNull(plasticFailureDomain);
-			Assert.IsNull(elasticFailureDomain);
-		}
+            Assert.IsNull(plasticFailureDomain);
+            Assert.IsNull(elasticFailureDomain);
+        }
 
-		[TestMethod]
-		[TestCategory("Asymmetric rebars")]
-		public void RectangularSectionTest8()
-		{
-			double rebarDiameter = 16;
+        [TestMethod]
+        [TestCategory("Asymmetric rebars")]
+        public void RectangularSectionTest8()
+        {
+            double rebarDiameter = 16;
 
-			// sezione rettangolare 300x500
-			Shape2d shape = GetRectangularShape(300, 500);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            // sezione rettangolare 300x500
+            Shape2d shape = GetRectangularShape(300, 500);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
-			section.AddRebars(rebars);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
+            section.AddRebars(rebars);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
 
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
 				-393.257	-39.3257	0			0
 				-393.257	-39.3257	0			0
@@ -425,31 +426,31 @@ namespace ConcreteTests
 				-393.257	-39.3257	0			0
 				-393.257	-39.3257	0			0
 			*/
-		}
+        }
 
-		[TestMethod]
-		[TestCategory("Asymmetric rebars and force not in centroid")]
-		public void RectangularSectionTest9()
-		{
-			double rebarDiameter = 16;
+        [TestMethod]
+        [TestCategory("Asymmetric rebars and force not in centroid")]
+        public void RectangularSectionTest9()
+        {
+            double rebarDiameter = 16;
 
-			Shape2d shape = GetRectangularShape(300, 300);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            Shape2d shape = GetRectangularShape(300, 300);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
-			section.AddRebars(rebars);
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
+            section.AddRebars(rebars);
             _ = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
                 new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(-150, -150),
-                Vector2d.XAxis, Vector2d.YAxis)));
+                Vector2d.XAxis, Vector2d.YAxis), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
 
             //FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
 
@@ -496,275 +497,275 @@ namespace ConcreteTests
 			*/
         }
 
-		[TestMethod]
-		[TestCategory("Force not in centroid")]
-		public void RectangularSectionTest10()
-		{
-			double rebarDiameter = 16;
+        [TestMethod]
+        [TestCategory("Force not in centroid")]
+        public void RectangularSectionTest10()
+        {
+            double rebarDiameter = 16;
 
-			// sezione rettangolare 300x500
-			Shape2d shape = GetRectangularShape(300, 300);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            // sezione rettangolare 300x500
+            Shape2d shape = GetRectangularShape(300, 300);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
-			section.AddRebars(rebars);
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
+            section.AddRebars(rebars);
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
-			   new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(150, 0),
-				Vector2d.XAxis, Vector2d.YAxis)));
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
+               new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(150, 0),
+                Vector2d.XAxis, Vector2d.YAxis), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
 
-			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+            FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
 
-			Point3d max = new Point3d(309 * 1000000, 0, 2062 * 1000);   // da vca
-			Point3d min = new Point3d(-118 * 1000000, 0, -787 * 1000);
+            Point3d max = new Point3d(309 * 1000000, 0, 2062 * 1000);   // da vca
+            Point3d min = new Point3d(-118 * 1000000, 0, -787 * 1000);
 
-			CommonAssertsDomainBoundingBox(section, plasticFailureDomain.Domain, max, min);
-		}
+            CommonAssertsDomainBoundingBox(section, plasticFailureDomain.Domain, max, min);
+        }
 
-		[TestMethod]
-		[TestCategory("Force not in centroid")]
-		public void RectangularSectionTest11()
-		{
-			double rebarDiameter = 16;
+        [TestMethod]
+        [TestCategory("Force not in centroid")]
+        public void RectangularSectionTest11()
+        {
+            double rebarDiameter = 16;
 
-			Shape2d shape = GetRectangularShape(300, 300);
+            Shape2d shape = GetRectangularShape(300, 300);
 
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
-			section.AddRebars(rebars);
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
+            section.AddRebars(rebars);
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
-			   new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(0, 150),
-				Vector2d.XAxis, Vector2d.YAxis)));
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
+               new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(0, 150),
+                Vector2d.XAxis, Vector2d.YAxis), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
-		}
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+        }
 
-		[TestMethod]
-		[TestCategory("Force not in centroid")]
-		public void RectangularSectionTest12()
-		{
-			double rebarDiameter = 16;
+        [TestMethod]
+        [TestCategory("Force not in centroid")]
+        public void RectangularSectionTest12()
+        {
+            double rebarDiameter = 16;
 
-			Shape2d shape = GetRectangularShape(300, 300);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            Shape2d shape = GetRectangularShape(300, 300);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 50, 0)),
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
-			section.AddRebars(rebars);
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
+            section.AddRebars(rebars);
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(150, 0),
-				Vector2d.XAxis, Vector2d.YAxis)));
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(150, 0),
+                Vector2d.XAxis, Vector2d.YAxis), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
 
-			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			FailureDomainResult elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+            FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+            FailureDomainResult elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
-			ShowDomainPoints(plasticFailureDomain.Domain);
-			ShowDomainPoints(elasticFailureDomain.Domain);
-			CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain);
-			CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), elasticFailureDomain.Domain);
+            ShowDomainPoints(plasticFailureDomain.Domain);
+            ShowDomainPoints(elasticFailureDomain.Domain);
+            CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain);
+            CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), elasticFailureDomain.Domain);
 
-			Point3d max = new Point3d(238 * 1000000, 0, 1590 * 1000);   // da vca
-			Point3d min = new Point3d(-47.2 * 1000000, 0, -315 * 1000);
+            Point3d max = new Point3d(238 * 1000000, 0, 1590 * 1000);   // da vca
+            Point3d min = new Point3d(-47.2 * 1000000, 0, -315 * 1000);
 
-			CommonAssertsDomainBoundingBox(section, plasticFailureDomain.Domain, max, min);
-		}
+            CommonAssertsDomainBoundingBox(section, plasticFailureDomain.Domain, max, min);
+        }
 
-		[TestMethod]
-		[TestCategory("Rebars out of section")]
-		public void RectangularSectionTest13()
-		{
-			double rebarDiameter = 16;
+        [TestMethod]
+        [TestCategory("Rebars out of section")]
+        public void RectangularSectionTest13()
+        {
+            double rebarDiameter = 16;
 
-			Shape2d shape = GetRectangularShape(300, 300);
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            Shape2d shape = GetRectangularShape(300, 300);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 350, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 350, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, -50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, -50, 0)),
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 350, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 350, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, -50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, -50, 0)),
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
-			section.AddRebars(rebars);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
+            section.AddRebars(rebars);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
-		}
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+        }
 
-		[TestMethod]
-		[TestCategory("Rebars out of section")]
-		public void RectangularSectionTest14()
-		{
-			double rebarDiameter = 26;
+        [TestMethod]
+        [TestCategory("Rebars out of section")]
+        public void RectangularSectionTest14()
+        {
+            double rebarDiameter = 26;
 
-			Shape2d shape = GetRectangularShape(400, 400);
+            Shape2d shape = GetRectangularShape(400, 400);
 
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(-100, -100, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(-50, -50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(-100, -100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(-50, -50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 50, 0)),
 
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 350, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(-50, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(-100, 500, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 350, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(-50, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(-100, 500, 0)),
 
-				new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(450, -50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(500, -100, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(350, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(450, -50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(500, -100, 0)),
 
 
-				new ReinforcedConcreteRebar(rebar, new Point3d(350, 350, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(450, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(500, 500, 0)),
-			};
+                new ReinforcedConcreteRebar(rebar, new Point3d(350, 350, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(450, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(500, 500, 0)),
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
-			section.AddRebars(rebars);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
+            section.AddRebars(rebars);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
-		}
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+        }
 
-		[TestMethod]
-		[TestCategory("ACI318")]
-		public void RectangularSectionTestACI_1()
-		{
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialACI318Data.Fc3000, SteelMaterialACI318Data.Grade60);
-			SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, new StandardACI318p08());
+        [TestMethod]
+        [TestCategory("ACI318")]
+        public void RectangularSectionTestACI_1()
+        {
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialACI318Data.Fc3000, SteelMaterialACI318Data.Grade60);
+            SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, new StandardACI318p08());
 
-			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			FailureDomainResult elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
+            FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+            FailureDomainResult elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();
 
-			ShowDomainPoints(plasticFailureDomain.Domain);
-			ShowDomainPoints(elasticFailureDomain.Domain);
-			//CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain);
-			//CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), elasticFailureDomain.Domain);
-		}
+            ShowDomainPoints(plasticFailureDomain.Domain);
+            ShowDomainPoints(elasticFailureDomain.Domain);
+            //CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain);
+            //CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), elasticFailureDomain.Domain);
+        }
 
-		[TestMethod]
-		[TestCategory("ACI318")]
-		public void RectangularSectionTestACI_2()
-		{
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialACI318Data.Fc3000, SteelMaterialACI318Data.Grade60);
-			SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, new StandardACI318p08());
+        [TestMethod]
+        [TestCategory("ACI318")]
+        public void RectangularSectionTestACI_2()
+        {
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialACI318Data.Fc3000, SteelMaterialACI318Data.Grade60);
+            SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, new StandardACI318p08());
 
-			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
-			ShowDomainPoints(plasticFailureDomain.Domain);
+            FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+            ShowDomainPoints(plasticFailureDomain.Domain);
 
-			double min = plasticFailureDomain.Domain.DomainPoints[0].Select(i => i.NRd).Min();
-			double xpValue = -2508;
-			Assert.IsTrue(min - xpValue / xpValue * 100 < 1);
+            double min = plasticFailureDomain.Domain.DomainPoints[0].Select(i => i.NRd).Min();
+            double xpValue = -2508;
+            Assert.IsTrue(min - xpValue / xpValue * 100 < 1);
 
-			//CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain);
-			//CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), elasticFailureDomain.Domain);
-		}
+            //CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain);
+            //CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), elasticFailureDomain.Domain);
+        }
 
-		[TestMethod]
-		[TestCategory("Rebars out of section")]
-		public void RectangularSectionTest16()
-		{
-			double rebarDiameter = 16;
+        [TestMethod]
+        [TestCategory("Rebars out of section")]
+        public void RectangularSectionTest16()
+        {
+            double rebarDiameter = 16;
 
-			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(10000, 3000, rebarDiameter, 50, 60, ConcreteMaterialEN1992Data.C25_30);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            ReinforcedConcreteSection section = GetRectangularSection2SideRebars(10000, 3000, rebarDiameter, 50, 60, ConcreteMaterialEN1992Data.C25_30);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
-		}
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+        }
 
-		[TestMethod]
-		public void RectangularSectionTest17()
-		{
-			double rebarDiameter16 = 10;
-			double rebarDiameter26 = 32;
-			double height = 400;
-			double width = 400;
+        [TestMethod]
+        public void RectangularSectionTest17()
+        {
+            double rebarDiameter16 = 10;
+            double rebarDiameter26 = 32;
+            double height = 400;
+            double width = 400;
 
-			Shape2d shape = GetRectangularShape(width, height);
-			RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter16, SteelMaterialEN1992Data.B450C);
-			RebarSectionCircular rebarSection26 = new RebarSectionCircular(rebarDiameter26, SteelMaterialEN1992Data.B450C);
+            Shape2d shape = GetRectangularShape(width, height);
+            RebarSectionCircular rebarSection16 = new RebarSectionCircular(rebarDiameter16, SteelMaterialEN1992Data.B450C);
+            RebarSectionCircular rebarSection26 = new RebarSectionCircular(rebarDiameter26, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebarSection16, new Point3d(50,350,0)),
-				new ReinforcedConcreteRebar(rebarSection16, new Point3d(350,350,0)),
-				new ReinforcedConcreteRebar(rebarSection26, new Point3d(50,50,0)),
-				new ReinforcedConcreteRebar(rebarSection26, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebarSection26, new Point3d(150, 50, 0)),
-				new ReinforcedConcreteRebar(rebarSection26, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebarSection26, new Point3d(250, 50, 0)),
-				new ReinforcedConcreteRebar(rebarSection26, new Point3d(300, 50, 0)),
-				new ReinforcedConcreteRebar(rebarSection26, new Point3d(350, 50, 0)),
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(50,350,0)),
+                new ReinforcedConcreteRebar(rebarSection16, new Point3d(350,350,0)),
+                new ReinforcedConcreteRebar(rebarSection26, new Point3d(50,50,0)),
+                new ReinforcedConcreteRebar(rebarSection26, new Point3d(100, 50, 0)),
+                new ReinforcedConcreteRebar(rebarSection26, new Point3d(150, 50, 0)),
+                new ReinforcedConcreteRebar(rebarSection26, new Point3d(200, 50, 0)),
+                new ReinforcedConcreteRebar(rebarSection26, new Point3d(250, 50, 0)),
+                new ReinforcedConcreteRebar(rebarSection26, new Point3d(300, 50, 0)),
+                new ReinforcedConcreteRebar(rebarSection26, new Point3d(350, 50, 0)),
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C45_55);
-			section.AddRebars(rebars);
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C45_55);
+            section.AddRebars(rebars);
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 7);
-		}
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 7);
+        }
 
-		[TestMethod]
-		public void RectangularSectionTest18()
-		{
-			double rebarDiameter = 18;
-			double height = 500;
-			double width = 300;
-			double concreteCover = 50;
+        [TestMethod]
+        public void RectangularSectionTest18()
+        {
+            double rebarDiameter = 18;
+            double height = 500;
+            double width = 300;
+            double concreteCover = 50;
 
-			ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("C25/30SB", 25, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock);
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, concreteMaterial);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("C25/30SB", 25, ConcreteMaterialEuropeanCommon.CompressionStressStrainDiagrams.StressBlock);
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, concreteMaterial);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
+            FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 
-			CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain, 5, false);
+            CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), plasticFailureDomain.Domain, 5, false);
 
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
 				-398.343	0			0			0
 				-398.343	0			0			0
@@ -805,158 +806,158 @@ namespace ConcreteTests
 				-398.343	0			0			0
 				-398.343	0			0			0
 			*/
-		}
+        }
 
-		[TestMethod]
-		public void RectangularSectionTest19()
-		{
-			double rebarDiameter = 18;
-			double height = 500;
-			double width = 300;
-			double concreteCover = 50;
+        [TestMethod]
+        public void RectangularSectionTest19()
+        {
+            double rebarDiameter = 18;
+            double height = 500;
+            double width = 300;
+            double concreteCover = 50;
 
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover,
-				ConcreteMaterialACI318Data.Fc4000, SteelMaterialACI318Data.Grade60);
-			SectionCheckerACI318 sectionCheckerACI = GetSectionCheckerACI318(section, new StandardACI318p08());
-			SectionCheckerModelCode2010 sectionCheckerMC = GetSectionCheckerModelCode2010(section, new StandardModelCode2010());
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover,
+                ConcreteMaterialACI318Data.Fc4000, SteelMaterialACI318Data.Grade60);
+            SectionCheckerACI318 sectionCheckerACI = GetSectionCheckerACI318(section, new StandardACI318p08());
+            SectionCheckerModelCode2010 sectionCheckerMC = GetSectionCheckerModelCode2010(section, new StandardModelCode2010());
 
-			try
-			{
-				FailureDomainResult plasticFailureDomainACI = sectionCheckerACI.GetPlasticFailureDomainResult();
-				FailureDomainResult elasticFailureDomainACI = sectionCheckerACI.GetElasticFailureDomainResult();
-				FailureDomainResult plasticFailureDomainMC = sectionCheckerMC.GetPlasticFailureDomainResult();
-				FailureDomainResult elasticFailureDomainMC = sectionCheckerMC.GetElasticFailureDomainResult();
-			}
-			catch(Exception )
-			{
-				Assert.IsTrue(false);
-			}
-		}
+            try
+            {
+                FailureDomainResult plasticFailureDomainACI = sectionCheckerACI.GetPlasticFailureDomainResult();
+                FailureDomainResult elasticFailureDomainACI = sectionCheckerACI.GetElasticFailureDomainResult();
+                FailureDomainResult plasticFailureDomainMC = sectionCheckerMC.GetPlasticFailureDomainResult();
+                FailureDomainResult elasticFailureDomainMC = sectionCheckerMC.GetElasticFailureDomainResult();
+            }
+            catch (Exception)
+            {
+                Assert.IsTrue(false);
+            }
+        }
 
-		[TestMethod]
-		public void RectangularSectionTest20()
-		{
-			double rebarDiameter = 18;
-			double height = 500;
-			double width = 300;
-			double concreteCover = 50;
+        [TestMethod]
+        public void RectangularSectionTest20()
+        {
+            double rebarDiameter = 18;
+            double height = 500;
+            double width = 300;
+            double concreteCover = 50;
 
-			ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover, 
-				ConcreteMaterialModelCode2010Data.C28_35, SteelMaterialEN1992Data.B500C);
-			SectionCheckerACI318 sectionCheckerACI = GetSectionCheckerACI318(section, new StandardACI318p08());
-			SectionCheckerModelCode2010 sectionCheckerMC = GetSectionCheckerModelCode2010(section, new StandardModelCode2010());
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter, concreteCover,
+                ConcreteMaterialModelCode2010Data.C28_35, SteelMaterialEN1992Data.B500C);
+            SectionCheckerACI318 sectionCheckerACI = GetSectionCheckerACI318(section, new StandardACI318p08());
+            SectionCheckerModelCode2010 sectionCheckerMC = GetSectionCheckerModelCode2010(section, new StandardModelCode2010());
 
-			try
-			{
-				FailureDomainResult plasticFailureDomainACI = sectionCheckerACI.GetPlasticFailureDomainResult();
-				FailureDomainResult elasticFailureDomainACI = sectionCheckerACI.GetElasticFailureDomainResult();
-				FailureDomainResult plasticFailureDomainMC = sectionCheckerMC.GetPlasticFailureDomainResult();
-				FailureDomainResult elasticFailureDomainMC = sectionCheckerMC.GetElasticFailureDomainResult();
-			}
-			catch (Exception)
-			{
-				Assert.IsTrue(false);
-			}
-		}
+            try
+            {
+                FailureDomainResult plasticFailureDomainACI = sectionCheckerACI.GetPlasticFailureDomainResult();
+                FailureDomainResult elasticFailureDomainACI = sectionCheckerACI.GetElasticFailureDomainResult();
+                FailureDomainResult plasticFailureDomainMC = sectionCheckerMC.GetPlasticFailureDomainResult();
+                FailureDomainResult elasticFailureDomainMC = sectionCheckerMC.GetElasticFailureDomainResult();
+            }
+            catch (Exception)
+            {
+                Assert.IsTrue(false);
+            }
+        }
 
-		[TestMethod]
-		[TestCategory("Bridge section")]
-		public void Bridge_1()
-		{
-			ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 50,
-				10, 14, 13, 14, 10, 14,
-				7, 12,
-				4, 22, 13, 20, 4, 22,
-				ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+        [TestMethod]
+        [TestCategory("Bridge section")]
+        public void Bridge_1()
+        {
+            ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 50,
+                10, 14, 13, 14, 10, 14,
+                7, 12,
+                4, 22, 13, 20, 4, 22,
+                ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
-		}
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+        }
 
-		[TestMethod]
-		[TestCategory("Bridge")]
-		public void Bridge_2()
-		{
-			ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 60,
-				10, 14, 13, 14, 10, 14,
-				7, 12,
-				4, 22, 13, 20, 4, 22,
-				ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
-			//ExportToGmsh(section);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void Bridge_2()
+        {
+            ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 60,
+                10, 14, 13, 14, 10, 14,
+                7, 12,
+                4, 22, 13, 20, 4, 22,
+                ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
+            //ExportToGmsh(section);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			var result = sectionChecker.GetPlasticFailureDomainResultAsync();
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
-			CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), result.Result.Domain);
-		}
+            var result = sectionChecker.GetPlasticFailureDomainResultAsync();
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+            CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), result.Result.Domain);
+        }
 
-		[TestMethod]
-		[TestCategory("Bridge")]
-		public void VCA_13()
-		{
-			ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 60,
-				10, 14, 13, 14, 10, 14,
-				7, 14,
-				4, 14, 13, 14, 4, 14,
-				ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
-			//ExportToGmsh(section);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+        [TestMethod]
+        [TestCategory("Bridge")]
+        public void VCA_13()
+        {
+            ReinforcedConcreteSection section = GetBridgeSection(4600, 1800, 3000, 300, 300, 200, 60,
+                10, 14, 13, 14, 10, 14,
+                7, 14,
+                4, 14, 13, 14, 4, 14,
+                ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
+            //ExportToGmsh(section);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			var result = sectionChecker.GetPlasticFailureDomainResultAsync();
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
-			CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), result.Result.Domain);
-		}
+            var result = sectionChecker.GetPlasticFailureDomainResultAsync();
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+            CommonAssertsFailureDomainModelCode(section, new StandardNTC2018Concrete(), result.Result.Domain);
+        }
 
-		[TestMethod]
-		public void SquareSectionTest1()
-		{
-			double rebarDiameter = 18;
-			double height = 300;
-			double concreteCover = 50;
-			int numberOfRebars = 5;
+        [TestMethod]
+        public void SquareSectionTest1()
+        {
+            double rebarDiameter = 18;
+            double height = 300;
+            double concreteCover = 50;
+            int numberOfRebars = 5;
 
-			ReinforcedConcreteSection section = GetRectangularSection2SideRebars(height, height, rebarDiameter, concreteCover, numberOfRebars, ConcreteMaterialEN1992Data.C45_55);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardEN1992p11());
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardEN1992p11());
-		}
+            ReinforcedConcreteSection section = GetRectangularSection2SideRebars(height, height, rebarDiameter, concreteCover, numberOfRebars, ConcreteMaterialEN1992Data.C45_55);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardEN1992p11());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardEN1992p11());
+        }
 
-		[TestMethod]
-		public void CircularSectionTest1()
-		{
-			// sezione circolare diametro 500
-			double rebarDiameter = 16;
-			double sectionDiameter = 500;
+        [TestMethod]
+        public void CircularSectionTest1()
+        {
+            // sezione circolare diametro 500
+            double rebarDiameter = 16;
+            double sectionDiameter = 500;
 
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(450, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(434.77591, 326.536678, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(391.421355, 391.421357, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(326.536686, 434.775907, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(173.463322, 434.77591, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(108.578643, 391.421355, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(65.224093, 326.536686, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(65.22409, 173.463322, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(108.578645, 108.578643, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(173.463314, 65.224093, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(250.0, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(326.536678, 65.22409, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(391.421357, 108.578645, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(434.775907, 173.463314, 0))
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(450, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(434.77591, 326.536678, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(391.421355, 391.421357, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(326.536686, 434.775907, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(173.463322, 434.77591, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(108.578643, 391.421355, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(65.224093, 326.536686, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(50, 250, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(65.22409, 173.463322, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(108.578645, 108.578643, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(173.463314, 65.224093, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(250.0, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(326.536678, 65.22409, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(391.421357, 108.578645, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(434.775907, 173.463314, 0))
+            };
 
 
-			var section = new ReinforcedConcreteSection(new SectionCircular(sectionDiameter), ConcreteMaterialEN1992Data.C45_55);
-			section.AddRebars(rebars);
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardEN1992p11());
+            var section = new ReinforcedConcreteSection(new SectionCircular(sectionDiameter), ConcreteMaterialEN1992Data.C45_55);
+            section.AddRebars(rebars);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardEN1992p11());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardEN1992p11());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardEN1992p11());
 
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
 				-1258.81	4.84e-014	0			0
 				-1258.81	4.84e-014	0			0
@@ -997,26 +998,26 @@ namespace ConcreteTests
 				-1258.81	5.21e-014	0			0
 				-1258.81	5.21e-014	0			0
 			*/
-		}
+        }
 
-		[TestMethod]
-		public void CHSSectionTest1()
-		{
-			double rebarDiameter = 26;
-			double diameterExternal = 1000;
-			double thickness = 100;
-			double concreteCover = 50;
-			int numberOfRebars = 32;
+        [TestMethod]
+        public void CHSSectionTest1()
+        {
+            double rebarDiameter = 26;
+            double diameterExternal = 1000;
+            double thickness = 100;
+            double concreteCover = 50;
+            int numberOfRebars = 32;
 
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
-			var section = new ReinforcedConcreteSection(new SectionCHS(diameterExternal, thickness), ConcreteMaterialEN1992Data.C25_30);
-			section.AddRadialRebars(diameterExternal, concreteCover, numberOfRebars, rebar);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            var section = new ReinforcedConcreteSection(new SectionCHS(diameterExternal, thickness), ConcreteMaterialEN1992Data.C25_30);
+            section.AddRadialRebars(diameterExternal, concreteCover, numberOfRebars, rebar);
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
 
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
 				-6648.08	-8.94e-014	0			0
 				-6648.08	-8.94e-014	0			0
@@ -1057,79 +1058,79 @@ namespace ConcreteTests
 				-6648.08	-1.49e-013	0			0
 				-6648.08	-1.49e-013	0			0
 			*/
-		}
+        }
 
-		[TestMethod]
-		public void CHSSectionTest2()
-		{
-			double rebarDiameter = 18;
-			double externalDiameter = 1000;
-			double internalDiameter = 800;
+        [TestMethod]
+        public void CHSSectionTest2()
+        {
+            double rebarDiameter = 18;
+            double externalDiameter = 1000;
+            double internalDiameter = 800;
 
-			Polygon2d fill = new Polygon2d(externalDiameter);
-			Polygon2d hole = new Polygon2d(internalDiameter);
+            Polygon2d fill = new Polygon2d(externalDiameter);
+            Polygon2d hole = new Polygon2d(internalDiameter);
 
-			Polygon2d rebarPoligon = new Polygon2d((externalDiameter + internalDiameter) / 2.0);
+            Polygon2d rebarPoligon = new Polygon2d((externalDiameter + internalDiameter) / 2.0);
 
-			var shape2d = new Shape2d(fill, new Polygon2d[] { hole });
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape2d, ConcreteMaterialModelCode2010Data.C45_55);
+            var shape2d = new Shape2d(fill, new Polygon2d[] { hole });
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape2d, ConcreteMaterialModelCode2010Data.C45_55);
 
-			RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            RebarSectionCircular rebarSection = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			for (int i = 0; i < rebarPoligon.Count; i++)
-			{
-				section.AddRebar(new ReinforcedConcreteRebar(rebarSection, rebarPoligon[i]));
-			}
+            for (int i = 0; i < rebarPoligon.Count; i++)
+            {
+                section.AddRebar(new ReinforcedConcreteRebar(rebarSection, rebarPoligon[i]));
+            }
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardEN1992p11());
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardEN1992p11());
 
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardEN1992p11());
-		}
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardEN1992p11());
+        }
 
-		[TestMethod]
-		public void SectionTTest1()
-		{
-			double rebarDiameter = 26;
+        [TestMethod]
+        public void SectionTTest1()
+        {
+            double rebarDiameter = 26;
 
-			// sezion a T tovescia 
-			Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
-			{
-				new Point2d(0, 0),
-				new Point2d(500, 0),
-				new Point2d(500, 500),
-				new Point2d(400, 500),
-				new Point2d(400, 1000),
-				new Point2d(100, 1000),
-				new Point2d(100, 500),
-				new Point2d(0, 500)
-			}));
+            // sezion a T tovescia 
+            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+            {
+                new Point2d(0, 0),
+                new Point2d(500, 0),
+                new Point2d(500, 500),
+                new Point2d(400, 500),
+                new Point2d(400, 1000),
+                new Point2d(100, 1000),
+                new Point2d(100, 500),
+                new Point2d(0, 500)
+            }));
 
-			RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
+            RebarSectionCircular rebar = new RebarSectionCircular(rebarDiameter, SteelMaterialEN1992Data.B450C);
 
-			ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
-			{
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(300, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(400, 50, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(100, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(300, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(400, 450, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(150, 950, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(200, 950, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(300, 950, 0)),
-				new ReinforcedConcreteRebar(rebar, new Point3d(350, 950, 0))
-			};
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(300, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(400, 50, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(100, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(300, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(400, 450, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(150, 950, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(200, 950, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(300, 950, 0)),
+                new ReinforcedConcreteRebar(rebar, new Point3d(350, 950, 0))
+            };
 
-			ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
-				new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
-			section.AddRebars(rebars);
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape,
+                new ConcreteMaterialEN1992("", 45, ConcreteMaterialEN1992.CompressionStressStrainDiagrams.ParabolaRectangle));
+            section.AddRebars(rebars);
 
-			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
-			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 7);
+            SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, new StandardNTC2018Concrete());
+            FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete(), 7);
 
-			/* DOMINIO DI ROTTURA CALCOLATO CON VCA
+            /* DOMINIO DI ROTTURA CALCOLATO CON VCA
 				NRd			MRd			C3			C4
 				-2493.36	-114.279	0			0
 				-2493.36	-114.279	0			0
@@ -1170,6 +1171,6 @@ namespace ConcreteTests
 				-2493.36	-114.279	0			0
 				-2493.36	-114.279	0			0
 			*/
-		}
-	}
+        }
+    }
 }

@@ -3,6 +3,7 @@ using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
+using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
@@ -339,6 +340,15 @@ namespace GPC.Checkers.Concrete.Results
             return _strainPlane.GetStrain(point);
         }
 
+        public double GetVerticeStrain(Point2d point, double phi)
+        {
+            return _strainPlane.GetStrain(point) * (1 + phi);
+        }
+
+        #endregion
+
+        #region Steel sections
+
         public virtual (Point2d point, double tension)[] GetStructuralSteelVerticesTension(double? phi = null)
         {
             var structSteelTension = new List<(Point2d point, double tension)>();
@@ -351,11 +361,58 @@ namespace GPC.Checkers.Concrete.Results
                     if (phi.HasValue)
                         structSteelTension.Add((globalVertex, _sectionSolver.CalculateElasticSigmaS(phi.Value, steelSection.Section, strain)));
                     else
-
                         structSteelTension.Add((globalVertex, _sectionSolver.CalculateStressStructuralSteel(steelSection.Section, strain)));
                 }
             }
             return structSteelTension.ToArray();
+        }
+
+        /// <summary>
+        /// Return the tension at a point that is assumed to belong to the section being passed.
+        /// </summary>
+        /// <param name="steelSectionPosition">Section to which the point belongs.</param>
+        /// <param name="point">Point at which tension is required.</param>
+        /// <param name="phi"></param>
+        /// <returns></returns>
+        public bool GetStructuralSteelTension(in SteelSectionPosition steelSectionPosition, in Point2d point, out double tension, in double? phi = null)
+        {
+            try
+            {
+                double strain = StrainPlane.GetStrain(point);
+                if (phi.HasValue)
+                    tension = _sectionSolver.CalculateElasticSigmaS(phi.Value, steelSectionPosition.Section, strain);
+                else
+                    tension = _sectionSolver.CalculateStressStructuralSteel(steelSectionPosition.Section, strain);
+                return true;
+            }
+            catch
+            {
+                tension = 0.0;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Linear elastic material ccnstituve law.
+        /// </summary>
+        /// <param name="phi"></param>
+        /// <returns></returns>
+        public (Point2d point, double strain)[] GetStructuralSteelVerticesStrain(double? phi = null)
+        {
+            var structSteelStrain = new List<(Point2d point, double strain)>();
+            foreach (var steelSection in _section.SteelSections)
+            {
+                foreach (var localVertex in steelSection.Section.Shape.Fill)
+                {
+                    var globalVertex = steelSection.PositionToGlobal(localVertex);
+                    double strain = StrainPlane.GetStrain(globalVertex);
+                    if (phi.HasValue)
+                        strain *= 1 + phi.Value;
+
+                    structSteelStrain.Add((globalVertex, strain));
+                }
+            }
+            return structSteelStrain.ToArray();
         }
 
         #endregion

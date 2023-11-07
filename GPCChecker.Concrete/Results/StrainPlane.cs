@@ -169,7 +169,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="standardStructuralSteel"></param>
         /// <returns></returns>
         public StrainPlaneResult CalculateStrainPlaneResult(IConcreteSection _section, ResultBeamForces resultBeamForces, SectionSolver _sectionSolver, Standard _standard,
-            bool linearAnalysis = false, double psiR = 0, double psiT = 0, StandardEN1993p11 standardStructuralSteel = null)
+            bool linearAnalysis = false, double psiR = 0, double psiT = 0, Standard standardStructuralSteel = null)
         {
             double sigmaCMax = double.MinValue;
             double sigmaSMax = double.MinValue;
@@ -329,6 +329,8 @@ namespace GPC.Checkers.Concrete.Results
 
                 if (linearAnalysis)
                 {
+                    epsilonCMax *= (1 + psiR);
+                    epsilonCMin *= (1 + psiR);
                     epsilonSMax *= (1 + psiR);
                     epsilonSMin *= (1 + psiR);
                     epsilonSSMax *= (1 + psiR);

@@ -17,9 +17,6 @@ namespace GPC.Checkers.Concrete.Checkers
     {
         #region Fields
 
-        /// <summary>
-        /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
-        /// </summary>
         protected readonly Standard _standardStructuralSteel;
 
         protected readonly SectionSolver _solver;
@@ -30,10 +27,14 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #region Properties
 
+        /// <summary>
+        /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
+        /// </summary>
+        public Standard StandardStructuralSteel => _standardStructuralSteel;
+
         public SectionOptions SectionCheckerOptions => (SectionOptions)_options;
 
         public SectionSolver SectionSolver => _solver;
-
 
         #endregion
 
@@ -52,6 +53,8 @@ namespace GPC.Checkers.Concrete.Checkers
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
             _solver = solver ?? throw new ArgumentNullException(nameof(solver));
             _standardStructuralSteel = standardStructuralSteel;
+            _solver.TetaDiscretization = options.TetaDiscretization;
+            _solver.ConsiderTensileConcrete = options.ConsiderTensileConcrete;
         }
 
         #endregion
@@ -116,33 +119,175 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <summary>
+        /// Calculate the stress analysis for <paramref name="forces"/>
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        public async Task<StressAnalysisResult> GetTensionAnalysisResultAsync(ResultBeamForces forces)
+        {
+            if (forces is null)
+                return null;
+
+            if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.Linear)
+            {
+                return await Task.Run(() =>
+                {
+                    try
+                    {
+                        return _solver.GetLinearStressAnalysisResult(forces, SectionCheckerOptions.PsiCoefficientRebar, SectionCheckerOptions.PsiCoefficientTendon, SectionCheckerOptions);
+                    }
+                    catch (Exception)
+                    {
+                        return null;
+                    }
+                });
+            }
+            else if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.NonLinear)
+            {
+                return await Task.Run(() =>
+                {
+                    try
+                    {
+                        return _solver.GetStressAnalysisResult(forces, SectionCheckerOptions);
+                    }
+                    catch (Exception)
+                    {
+                        return null;
+                    }
+                });
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Calculate the stress analysis for each forces
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        public async Task<StressAnalysisResult[]> GetStressAnalysisResultAsync()
+        public async Task<StressAnalysisResult[]> GetTensionAnalysisResultAsync()
         {
-
             if (_checkerAttributes.SLSResults is null)
                 return null;
 
-            return await Task.Run(() =>
+            if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.Linear)
             {
-                try
+                return await Task.Run(() =>
                 {
-                    return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions);
-                }
-                catch (Exception)
+                    try
+                    {
+                        return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions);
+                    }
+                    catch (Exception)
+                    {
+                        return null;
+                    }
+                });
+            }
+            else if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.NonLinear)
+            {
+                return await Task.Run(() =>
                 {
-                    return null;
-                }
-            });
+                    try
+                    {
+                        return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions.PsiCoefficientRebar, SectionCheckerOptions.PsiCoefficientTendon, SectionCheckerOptions);
+                    }
+                    catch (Exception)
+                    {
+                        return null;
+                    }
+                });
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Calculate the failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        public FailureDomainResult GetFailureDomainResult()
+        {
+            FailureDomainResult failureDomainResult;
+            if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
+                failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
+            else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
+                failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
+            else
+                failureDomainResult = null;
+
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
+        }
+
+        /// <summary>
+        /// Calculate the failure domain and calculate the domain point for each forces
+        /// </summary>
+        /// <returns>The failure domain results</returns>
+        public FailureDomainResult2d GetFailureDomainResult2d()
+        {
+            FailureDomainResult2d failureDomainResult;
+            if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
+                failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions);
+            else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
+                failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions);
+            else
+                failureDomainResult = null;
+
+            if (_checkerAttributes.ULSResults != null)
+                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
+
+            return failureDomainResult;
+        }
+
+        /// <summary>
+        /// Calculate the stress analysis for each forces
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        public StressAnalysisResult[] GetTensionAnalysisResult()
+        {
+            if (_checkerAttributes.SLSResults is null)
+                return null;
+
+            if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.NonLinear)
+                return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions);
+            else if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.Linear)
+                return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions.PsiCoefficientRebar, SectionCheckerOptions.PsiCoefficientTendon, SectionCheckerOptions);
+            else
+                return null;
         }
 
         /// <summary>
         /// Calculate the stress analysis for <paramref name="forces"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        public async Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double psi, double psiTendon = 0)
+        public StressAnalysisResult GetTensionAnalysisResult(ResultBeamForces forces)
+        {
+            if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.NonLinear)
+                return _solver.GetStressAnalysisResult(forces, SectionCheckerOptions);
+            else if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.Linear)
+                return _solver.GetLinearStressAnalysisResult(forces, SectionCheckerOptions.PsiCoefficientRebar, SectionCheckerOptions.PsiCoefficientTendon, SectionCheckerOptions);
+            else
+                return null;
+        }
+
+        #endregion
+
+        #region Internal Async Methods
+
+        /// <summary>
+        /// Calculate the stress analysis for <paramref name="forces"/>
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        internal async Task<StressAnalysisResult> GetLinearStressAnalysisResultAsync(ResultBeamForces forces, double psi, double psiTendon = 0)
         {
 
             if (forces is null)
@@ -162,12 +307,33 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <summary>
+        /// Calculate the stress analysis for each forces
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        internal async Task<StressAnalysisResult[]> GetStressAnalysisResultAsync()
+        {
+            if (_checkerAttributes.SLSResults is null)
+                return null;
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions);
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            });
+        }
+
+        /// <summary>
         /// Calculate the stress analysis for each forces with creep coefficient <paramref name="psi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        public async Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double psi, double psiTendon = 0)
+        internal async Task<StressAnalysisResult[]> GetLinearStressAnalysisResultAsync(double psi, double psiTendon = 0)
         {
-
             if (_checkerAttributes.SLSResults is null)
                 return null;
 
@@ -188,7 +354,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="psi"/>
         /// </summary>
         /// <returns>The stress analysis results</returns>
-        public async Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces)
+        internal async Task<StressAnalysisResult> GetStressAnalysisResultAsync(ResultBeamForces forces)
         {
             if (forces is null)
                 return null;
@@ -205,10 +371,6 @@ namespace GPC.Checkers.Concrete.Checkers
                 }
             });
         }
-
-        #endregion
-
-        #region Internal Async Methods
 
         /// <summary>
         /// Calculate the plastic failure domain and calculate the domain point for each forces
@@ -304,92 +466,6 @@ namespace GPC.Checkers.Concrete.Checkers
                     return null;
                 }
             });
-        }
-
-        #endregion
-
-        #region Public Methods
-
-        /// <summary>
-        /// Calculate the failure domain and calculate the domain point for each forces
-        /// </summary>
-        /// <returns>The failure domain results</returns>
-        public FailureDomainResult GetFailureDomainResult()
-        {
-            FailureDomainResult failureDomainResult;
-            if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
-                failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
-            else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
-                failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
-            else
-                failureDomainResult = null;
-
-            if (_checkerAttributes.ULSResults != null)
-                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
-
-            return failureDomainResult;
-        }
-
-        /// <summary>
-        /// Calculate the failure domain and calculate the domain point for each forces
-        /// </summary>
-        /// <returns>The failure domain results</returns>
-        public FailureDomainResult2d GetFailureDomainResult2d()
-        {
-            FailureDomainResult2d failureDomainResult;
-            if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
-                failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions);
-            else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
-                failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions);
-            else
-                failureDomainResult = null;
-
-            if (_checkerAttributes.ULSResults != null)
-                failureDomainResult.AddForces(_checkerAttributes.ULSResults);
-
-            return failureDomainResult;
-        }
-
-        /// <summary>
-        /// Calculate the stress analysis for each forces
-        /// </summary>
-        /// <returns>The stress analysis results</returns>
-        public StressAnalysisResult[] GetStressAnalysisResult()
-        {
-            if (_checkerAttributes.SLSResults is null)
-                return null;
-
-            return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions);
-        }
-
-        /// <summary>
-        /// Calculate the stress analysis for <paramref name="forces"/>
-        /// </summary>
-        /// <returns>The stress analysis results</returns>
-        public StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
-        {
-            return _solver.GetStressAnalysisResult(forces, SectionCheckerOptions);
-        }
-
-        /// <summary>
-        /// Calculate the stress analysis for each forces with creep coefficient <paramref name="phi"/>
-        /// </summary>
-        /// <returns>The stress analysis results</returns>
-        public StressAnalysisResult[] GetLinearStressAnalysisResult(double psi, double psiTendon = 0)
-        {
-            if (_checkerAttributes.SLSResults is null)
-                return null;
-
-            return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, psiTendon, SectionCheckerOptions);
-        }
-
-        /// <summary>
-        /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="phi"/>
-        /// </summary>
-        /// <returns>The stress analysis results</returns>
-        public StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi, double psiTendon = 0)
-        {
-            return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptions);
         }
 
         #endregion
@@ -502,6 +578,48 @@ namespace GPC.Checkers.Concrete.Checkers
             return failureDomainResult;
         }
 
+        /// <summary>
+        /// Calculate the stress analysis for each forces
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        internal StressAnalysisResult[] GetStressAnalysisResult()
+        {
+            if (_checkerAttributes.SLSResults is null)
+                return null;
+
+            return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions);
+        }
+
+        /// <summary>
+        /// Calculate the stress analysis for <paramref name="forces"/>
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        internal StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
+        {
+            return _solver.GetStressAnalysisResult(forces, SectionCheckerOptions);
+        }
+
+        /// <summary>
+        /// Calculate the stress analysis for each forces with creep coefficient <paramref name="phi"/>
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        internal StressAnalysisResult[] GetLinearStressAnalysisResult(double psi, double psiTendon = 0)
+        {
+            if (_checkerAttributes.SLSResults is null)
+                return null;
+
+            return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, psi, psiTendon, SectionCheckerOptions);
+        }
+
+        /// <summary>
+        /// Calculate the stress analysis for <paramref name="forces"/> with creep coefficient <paramref name="phi"/>
+        /// </summary>
+        /// <returns>The stress analysis results</returns>
+        internal StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi, double psiTendon = 0)
+        {
+            return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptions);
+        }
+
         #endregion
 
         #region Nested class
@@ -515,16 +633,32 @@ namespace GPC.Checkers.Concrete.Checkers
 
             public SectionSolver.FailureDomainTypes FailureDomainType { get; set; }
 
+            public SectionSolver.StressAnalysisTypes StressAnalysisType { get; set; }
+
+            public double PsiCoefficientRebar { get; set; }
+
+            public double PsiCoefficientTendon { get; set; }
+
+            public bool ConsiderTensileConcrete { get; set; }
+
+            public int TetaDiscretization { get; set; }
+
             public SectionOptions()
             {
                 ForceReferenceCoordinateSystem = CoordinateSystem.Global;
             }
 
-            public SectionOptions(CoordinateSystem forceReferencePointCoordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType, SectionSolver.FailureDomainTypes failureDomainType)
+            public SectionOptions(CoordinateSystem forceReferencePointCoordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType, SectionSolver.FailureDomainTypes failureDomainType,
+                SectionSolver.StressAnalysisTypes stressAnalysisType, double psiCoefficientRebar, double psiCoefficientTendon, bool considerTensileConcrete, int tetaDiscretization)
             {
                 ForceReferenceCoordinateSystem = forceReferencePointCoordinateSystem;
                 FailureAnalysisType = failureAnalysisType;
                 FailureDomainType = failureDomainType;
+                StressAnalysisType = stressAnalysisType;
+                PsiCoefficientRebar = psiCoefficientRebar;
+                PsiCoefficientTendon = psiCoefficientTendon;
+                ConsiderTensileConcrete = considerTensileConcrete;
+                TetaDiscretization = tetaDiscretization;
             }
 
             protected SectionOptions(SerializationInfo info, StreamingContext context)
@@ -532,6 +666,11 @@ namespace GPC.Checkers.Concrete.Checkers
                 ForceReferenceCoordinateSystem = (CoordinateSystem)info.GetValue("ForceReferenceCoordinateSystem", typeof(CoordinateSystem));
                 FailureAnalysisType = (SectionSolver.FailureAnalysisTypes)info.GetValue("FailureAnalysisType", typeof(SectionSolver.FailureAnalysisTypes));
                 FailureDomainType = (SectionSolver.FailureDomainTypes)info.GetValue("FailureDomainType", typeof(SectionSolver.FailureDomainTypes));
+                StressAnalysisType = (SectionSolver.StressAnalysisTypes)info.GetValue("StressAnalysisType", typeof(SectionSolver.StressAnalysisTypes));
+                PsiCoefficientRebar = info.GetDouble("PsiCoefficientRebar");
+                PsiCoefficientTendon = info.GetDouble("PsiCoefficientTendon");
+                ConsiderTensileConcrete = info.GetBoolean("ConsiderTensileConcrete");
+                TetaDiscretization = info.GetInt16("TetaDiscretization");
             }
 
             public override bool Equals(object obj)
@@ -539,6 +678,11 @@ namespace GPC.Checkers.Concrete.Checkers
                 return obj is SectionOptions options &&
                     ForceReferenceCoordinateSystem.Equals(options.ForceReferenceCoordinateSystem) &&
                     FailureDomainType.Equals(options.FailureDomainType) &&
+                    StressAnalysisType.Equals(options.StressAnalysisType) &&
+                    PsiCoefficientRebar.Equals(options.PsiCoefficientRebar) &&
+                    PsiCoefficientTendon.Equals(options.PsiCoefficientTendon) &&
+                    ConsiderTensileConcrete.Equals(options.ConsiderTensileConcrete) &&
+                    TetaDiscretization.Equals(options.TetaDiscretization) &&
                     FailureAnalysisType.Equals(options.FailureAnalysisType);
             }
 
@@ -550,6 +694,11 @@ namespace GPC.Checkers.Concrete.Checkers
                     hashCode = hashCode * -23 + ForceReferenceCoordinateSystem.GetHashCode();
                     hashCode = hashCode * -23 + FailureAnalysisType.GetHashCode();
                     hashCode = hashCode * -23 + FailureDomainType.GetHashCode();
+                    hashCode = hashCode * -23 + StressAnalysisType.GetHashCode();
+                    hashCode = hashCode * -23 + PsiCoefficientRebar.GetHashCode();
+                    hashCode = hashCode * -23 + ConsiderTensileConcrete.GetHashCode();
+                    hashCode = hashCode * -23 + TetaDiscretization.GetHashCode();
+                    hashCode = hashCode * -23 + PsiCoefficientTendon.GetHashCode();
                     return hashCode;
                 }
             }
@@ -559,6 +708,11 @@ namespace GPC.Checkers.Concrete.Checkers
                 info.AddValue("ForceReferenceCoordinateSystem", ForceReferenceCoordinateSystem);
                 info.AddValue("FailureAnalysisType", FailureAnalysisType);
                 info.AddValue("FailureDomainType", FailureDomainType);
+                info.AddValue("StressAnalysisType", StressAnalysisType);
+                info.AddValue("PsiCoefficientRebar", PsiCoefficientRebar);
+                info.AddValue("PsiCoefficientTendon", PsiCoefficientTendon);
+                info.AddValue("ConsiderTensileConcrete", ConsiderTensileConcrete);
+                info.AddValue("TetaDiscretization", TetaDiscretization);
             }
 
             public static bool operator ==(SectionOptions left, SectionOptions right)
