@@ -35,6 +35,8 @@ namespace GPC.Checkers.Concrete.Results
         /// </summary>
         public bool ForceLinearInterpolation { get; set; }
 
+        public int AxialForceSubdivision { get => _axialForceSubdivision; set => _axialForceSubdivision = value; }
+
         #endregion
 
         #region Constructor
@@ -398,20 +400,6 @@ namespace GPC.Checkers.Concrete.Results
             info.AddValue("AnalysisType", _analysisType);
             info.AddValue("FailureDomainPoints", _domainPoints);
             info.AddValue("ForceLinearInterpolation", ForceLinearInterpolation);
-        }
-
-        #endregion
-
-        #region Setter
-
-        public void SetFailureDomainType(SectionSolver.FailureDomainTypes failureDomainType)
-        {
-            _analysisType = failureDomainType;
-        }
-
-        public void SetAxialForceSubdivision(int subdivision)
-        {
-            _axialForceSubdivision = subdivision;
         }
 
         #endregion

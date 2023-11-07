@@ -1254,7 +1254,7 @@ namespace ConcreteTests
             double distance = double.MaxValue;
             Point3d nearestPoint = new Point3d();
 
-            failureDomain.Domain.SetAxialForceSubdivision(100);
+            failureDomain.Domain.AxialForceSubdivision = 100;
             Mesh mesh = failureDomain.Domain.GetMesh(out _);
 
             for (int i = 1; i <= mesh.VerticesCount; i++)
