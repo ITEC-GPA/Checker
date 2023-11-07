@@ -456,7 +456,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             if (sectionOptions == null)
-                sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+                sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }
@@ -465,7 +465,7 @@ namespace ConcreteTests
             bool considerTensileConcrete = false, StandardEN1993p11 standardStructuralSteel = null)
         {
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
             var sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard,
                 considerTensileConcrete, -1, standardStructuralSteel);
             return sectionChecker;
@@ -476,7 +476,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard,
                 considerTensileConcrete, -1, standardStructuralSteel);
             return sectionChecker;
@@ -496,7 +496,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions =
-                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
             SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }
@@ -505,7 +505,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions =
-                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
             SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }

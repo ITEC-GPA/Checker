@@ -1,6 +1,7 @@
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
@@ -559,7 +560,7 @@ namespace ConcreteTests
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
             FailureDomain.FailureDomainPoint point = sectionChecker.CalculatePlasticFailureDomainPoint(force);
@@ -576,7 +577,7 @@ namespace ConcreteTests
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
                 new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section),
-                GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+                SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, true);
 
             FailureDomain.FailureDomainPoint point = sectionChecker.CalculatePlasticFailureDomainPoint(force);

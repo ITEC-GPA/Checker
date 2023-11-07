@@ -1,5 +1,6 @@
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
@@ -449,7 +450,7 @@ namespace ConcreteTests
 			section.AddRebars(rebars);
             _ = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
                 new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(-150, -150),
-                Vector2d.XAxis, Vector2d.YAxis)));
+                Vector2d.XAxis, Vector2d.YAxis), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
 
             //FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
 
@@ -525,7 +526,7 @@ namespace ConcreteTests
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
 			   new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(150, 0),
-				Vector2d.XAxis, Vector2d.YAxis)));
+				Vector2d.XAxis, Vector2d.YAxis), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
 
 			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 
@@ -566,7 +567,7 @@ namespace ConcreteTests
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
 			   new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(0, 150),
-				Vector2d.XAxis, Vector2d.YAxis)));
+				Vector2d.XAxis, Vector2d.YAxis), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
 
 			FailureDomainCommonAssertModelCode(section, sectionChecker, new StandardNTC2018Concrete());
 		}
@@ -593,7 +594,7 @@ namespace ConcreteTests
 
 			SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, null, null, new StandardNTC2018Concrete(),
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(new CoordinateSystem(new Point2d(150, 0),
-				Vector2d.XAxis, Vector2d.YAxis)));
+				Vector2d.XAxis, Vector2d.YAxis), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
 
 			FailureDomainResult plasticFailureDomain = sectionChecker.GetPlasticFailureDomainResult();
 			FailureDomainResult elasticFailureDomain = sectionChecker.GetElasticFailureDomainResult();

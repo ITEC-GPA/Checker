@@ -2861,7 +2861,7 @@ namespace ConcreteTests
             };
 
             SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, forces, null, standard,
-                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section)), false, false, standardAisc);
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), false, false, standardAisc);
 
             var slsResult = sectionChecker.GetStressAnalysisResult();
             var res = slsResult[0].CalculateStrainPlaneResult();
@@ -2899,7 +2899,7 @@ namespace ConcreteTests
             };
 
             SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, null, null, standard,
-                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section)), false, false, standardAisc);
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), false, false, standardAisc);
 
             FailureDomainResult ulsResult = sectionChecker.GetPlasticFailureDomainResult();
             Mesh domainMesh = ulsResult.Domain.GetMesh(ulsResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint);
@@ -2931,7 +2931,7 @@ namespace ConcreteTests
             var standardSteel = new StandardEN1993p11();
             CoordinateSystem cs = GetLocalCoordinateSystem(section);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
 
             section.AddSteelSection(
                 new SteelSectionPosition(
@@ -2967,7 +2967,7 @@ namespace ConcreteTests
             var standardSteel = new StandardEN1993p11();
             CoordinateSystem cs = GetLocalCoordinateSystem(section);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
 
             section.AddSteelSection(
                 new SteelSectionPosition(
@@ -3008,7 +3008,7 @@ namespace ConcreteTests
             var standardSteel = new StandardEN1993p11();
             CoordinateSystem cs = GetLocalCoordinateSystem(section);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
 
             var steelMaterialList = new SteelMaterialEN1993[]
             {
@@ -3085,7 +3085,7 @@ namespace ConcreteTests
             StandardAISC360p16 standardAISC360P16 = new StandardAISC360p16();
 
             CoordinateSystem coordinateSystem = GetLocalCoordinateSystem(reinforcedConcreteSection);
-            SectionCheckerACI318.SectionOptionsStandardACI318 options = new SectionCheckerACI318.SectionOptionsStandardACI318(coordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantN);
+            SectionCheckerACI318.SectionOptionsStandardACI318 options = new SectionCheckerACI318.SectionOptionsStandardACI318(coordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(reinforcedConcreteSection);
             SectionCheckerACI318 sectionCheckerACI318 = new SectionCheckerACI318(sectionCheckerAttribute, options, standardACI318P14, false, false, -1, standardAISC360P16);

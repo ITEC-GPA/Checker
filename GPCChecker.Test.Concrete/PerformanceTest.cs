@@ -31,7 +31,7 @@ namespace ConcreteTests
 			var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(concreteSectionRectangular, new StandardEN1992p11(), concreteSectionRectangular.Centroid);
 
             GPC.Checkers.Concrete.Results.StressAnalysisResult[] slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray(),
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)));
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
 
             Action ac0 = new Action(() =>
                 {
@@ -51,7 +51,7 @@ namespace ConcreteTests
 
             Action ac0 = new Action(() =>
             {
-                solver.GetPlasticFailureDomainResult(new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section)));
+                solver.GetPlasticFailureDomainResult(new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
             });
 
             var bb0 = MeasureTime.FunctionExecutionTime(10, ac0, true); ;

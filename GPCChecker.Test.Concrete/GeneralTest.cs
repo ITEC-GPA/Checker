@@ -45,7 +45,7 @@ namespace ConcreteTests
 			}
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular, forces.ToArray(), null);
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute,
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), new StandardEN1992p11());
 
 			Task<StressAnalysisResult[]> stressResult = sectionChecker.GetStressAnalysisResultAsync();
 
@@ -65,7 +65,7 @@ namespace ConcreteTests
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular);
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute,
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), new StandardEN1992p11());
 
 			Task<StressAnalysisResult> stressResult = sectionChecker.GetStressAnalysisResultAsync(force);
 
@@ -87,7 +87,7 @@ namespace ConcreteTests
 
 			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular);
 			SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute,
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), new StandardEN1992p11());
 
 			Task<StressAnalysisResult> stressResult = sectionChecker.GetStressAnalysisResultAsync(force);
 
@@ -217,10 +217,10 @@ namespace ConcreteTests
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010();
             Assert.IsNotNull(sectionOptions);
 
-			sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular));
+			sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
 			Assert.IsNotNull(sectionOptions);
 
-			sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+			sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
 			Assert.IsNotNull(sectionOptions);
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular);
 
@@ -232,11 +232,11 @@ namespace ConcreteTests
 			Assert.IsTrue(sectionChecker == sectionChecker3);
 
 			sectionChecker2 = new SectionCheckerModelCode2010(sectionCheckerAttribute,
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), new StandardEN1992p11());
 			sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute,
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), new StandardEN1992p11());
 			sectionChecker3 = new SectionCheckerModelCode2010(sectionCheckerAttribute,
-				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular)), new StandardEN1992p11());
+				new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), new StandardEN1992p11());
 
 			Assert.IsNotNull(sectionChecker);
 			Assert.IsNotNull(sectionChecker2);

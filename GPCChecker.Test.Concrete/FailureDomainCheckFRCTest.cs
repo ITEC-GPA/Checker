@@ -1,6 +1,7 @@
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
@@ -524,7 +525,7 @@ namespace ConcreteTests
 			{
 				FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
 					GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
-					false, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+					false, SectionSolver.FailureAnalysisTypes.ConstantN);
 				for (int i = 0; i < point.Length; i++)
 					Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
 			}
@@ -533,7 +534,7 @@ namespace ConcreteTests
 			{
 				FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
 					GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
-					true, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+					true, SectionSolver.FailureAnalysisTypes.ConstantN);
 				for (int i = 0; i < point.Length; i++)
 					Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
 			}
@@ -558,7 +559,7 @@ namespace ConcreteTests
 			{
 				FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
 					GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
-					false, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+					false, SectionSolver.FailureAnalysisTypes.ConstantN);
 				for (int i = 0; i < point.Length; i++)
 					Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
 			}
@@ -567,7 +568,7 @@ namespace ConcreteTests
 			{
 				FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
 					GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
-					true, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+					true, SectionSolver.FailureAnalysisTypes.ConstantN);
 				for (int i = 0; i < point.Length; i++)
 					Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
 			}
@@ -592,7 +593,7 @@ namespace ConcreteTests
 			{
 				FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
 					GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
-					false, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+					false, SectionSolver.FailureAnalysisTypes.ConstantN);
 				for (int i = 0; i < point.Length; i++)
 					Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
 			}
@@ -601,7 +602,7 @@ namespace ConcreteTests
 			{
 				FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
 					GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
-					true, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+					true, SectionSolver.FailureAnalysisTypes.ConstantN);
 				for (int i = 0; i < point.Length; i++)
 					Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
 			}
@@ -626,7 +627,7 @@ namespace ConcreteTests
 			{
 				FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
 					GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
-					false, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+					false, SectionSolver.FailureAnalysisTypes.ConstantN);
 				for (int i = 0; i < point.Length; i++)
 					Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
 			}
@@ -635,7 +636,7 @@ namespace ConcreteTests
 			{
 				FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
 					GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
-					true, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+					true, SectionSolver.FailureAnalysisTypes.ConstantN);
 				for (int i = 0; i < point.Length; i++)
 					Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
 			}
@@ -664,7 +665,7 @@ namespace ConcreteTests
 			{
 				FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
 					GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
-					false, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+					false, SectionSolver.FailureAnalysisTypes.ConstantN);
 				for (int i = 0; i < point.Length; i++)
 					Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
 			}
@@ -673,7 +674,7 @@ namespace ConcreteTests
 			{
 				FailureDomain.FailureDomainPoint[] point = CommonAssertDomainPointMethodFRCMod(section, forces[j], standard,
 					GetLocalCoordinateSystem(section), 0.005, new double[] { 1.0 },
-					true, GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN);
+					true, SectionSolver.FailureAnalysisTypes.ConstantN);
 				for (int i = 0; i < point.Length; i++)
 					Assert.IsTrue(Math.Abs(point[i].NRd - forces[j].N) / 1000 < 1); // la differenza minore di 1KN
 			}
@@ -696,7 +697,7 @@ namespace ConcreteTests
 
 			SectionCheckerModelCode2010 sectionCheckerModelCode2010 = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section),
 				new SectionCheckerModelCode2010.SectionOptionsModelCode2010((coordinateSystem),
-				GPC.Checkers.Concrete.SectionSolvers.SectionSolver.FailureAnalysisTypes.ConstantN),
+                SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic),
 				new StandardNTC2018Concrete(), false);
 
 			FailureDomainResult domain = sectionCheckerModelCode2010.GetPlasticFailureDomainResult();
