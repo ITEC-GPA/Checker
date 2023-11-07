@@ -456,7 +456,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             if (sectionOptions == null)
-                sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
+                sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, considerTensileConcrete, 64);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }
@@ -465,7 +465,7 @@ namespace ConcreteTests
             bool considerTensileConcrete = false, StandardEN1993p11 standardStructuralSteel = null)
         {
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, considerTensileConcrete, 64);
             var sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard,
                 considerTensileConcrete, -1, standardStructuralSteel);
             return sectionChecker;
@@ -476,7 +476,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, considerTensileConcrete, 64);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard,
                 considerTensileConcrete, -1, standardStructuralSteel);
             return sectionChecker;
@@ -497,7 +497,7 @@ namespace ConcreteTests
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions =
                 new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity,
-                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
+                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, considerTensileConcrete, 64);
             SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }
@@ -507,7 +507,7 @@ namespace ConcreteTests
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions =
                 new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity,
-                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
+                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, considerTensileConcrete, 64);
             SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }
