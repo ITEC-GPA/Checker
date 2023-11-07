@@ -27,11 +27,11 @@ namespace ConcreteTests
                 forces.Add(new ResultBeamForces(-10 * 1000, 20, 30, 40, 15 * 1000000, 5 * 1000000, GetLocalCoordinateSystem(concreteSectionRectangular)));
             }
 
-			SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular, forces.ToArray(), null);
-			var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(concreteSectionRectangular, new StandardEN1992p11(), concreteSectionRectangular.Centroid);
+            SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular, forces.ToArray(), null);
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(concreteSectionRectangular, new StandardEN1992p11(), concreteSectionRectangular.Centroid);
 
             GPC.Checkers.Concrete.Results.StressAnalysisResult[] slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray(),
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
 
             Action ac0 = new Action(() =>
                 {
@@ -43,15 +43,15 @@ namespace ConcreteTests
             Console.WriteLine(bb0);
         }
 
-		[TestMethod]
-		public void FailureDomainTest()
-		{
-			var section = GetRectangularSection4Rebars();
-			SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new StandardEN1992p11(), section.Centroid);
+        [TestMethod]
+        public void FailureDomainTest()
+        {
+            var section = GetRectangularSection4Rebars();
+            SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new StandardEN1992p11(), section.Centroid);
 
             Action ac0 = new Action(() =>
             {
-                solver.GetPlasticFailureDomainResult(new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                solver.GetPlasticFailureDomainResult(new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
             });
 
             var bb0 = MeasureTime.FunctionExecutionTime(10, ac0, true); ;

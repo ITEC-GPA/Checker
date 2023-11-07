@@ -47,7 +47,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -78,7 +78,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -109,7 +109,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic),
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64),
                     0.005, new double[] { 0.5, 1.0, 1.5 });
         }
 
@@ -142,7 +142,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -173,7 +173,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -201,7 +201,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -226,7 +226,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -253,7 +253,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -287,7 +287,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), 0.01);
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64), 0.01);
         }
 
         [TestMethod]
@@ -321,7 +321,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), 0.01);
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64), 0.01);
         }
 
         [TestMethod]
@@ -355,7 +355,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -389,7 +389,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -423,7 +423,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -483,7 +483,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -509,7 +509,7 @@ namespace ConcreteTests
             section.AddRebars(rebars);
             StandardEN1992p11 standard = new StandardEN1992p11();
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
@@ -606,7 +606,7 @@ namespace ConcreteTests
 
             for (int i = 0; i < forces.Length; i++)
                 CommonAssertDomainPointMethod(section, forces[i], standard,
-                    new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic), 0.01, new double[] { 1.0 });
+                    new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64), 0.01, new double[] { 1.0 });
         }
 
         [TestMethod]
@@ -640,7 +640,8 @@ namespace ConcreteTests
 
             for (int i = 0; i < forces.Length; i++)
                 CommonAssertDomainPointMethod(section, forces[i], standard,
-                    new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic));
+                    new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                    SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -668,7 +669,8 @@ namespace ConcreteTests
 
             for (int i = 0; i < forces.Length; i++)
                 CommonAssertDomainPointMethod(section, forces[i], standard,
-                    new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic));
+                    new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                    SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -682,7 +684,8 @@ namespace ConcreteTests
             StandardEN1992p11 standard = new StandardEN1992p11();
 
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
@@ -720,7 +723,8 @@ namespace ConcreteTests
             StandardEN1992p11 standard = new StandardEN1992p11();
 
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
@@ -759,7 +763,8 @@ namespace ConcreteTests
             StandardEN1992p11 standard = new StandardEN1992p11();
 
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetForces(section, 20 * 1000, 20 * 1000000, 20 * 1000000, 3);
 
@@ -774,7 +779,8 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection2SideRebars(400, 400, rebarDiameter, 2, rebarDiameter, 4, 50);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetForces(section, -200 * 1000, 20 * 1000000, 20 * 1000000, 3);
 
@@ -803,7 +809,8 @@ namespace ConcreteTests
             StandardEN1992p11 standard = new StandardEN1992p11();
 
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetForces(section, -200 * 1000, 20 * 1000000, 20 * 1000000, 3);
 
@@ -834,7 +841,8 @@ namespace ConcreteTests
             StandardEN1992p11 standard = new StandardEN1992p11();
 
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantNMy, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantNMy, SectionSolver.FailureDomainTypes.Plastic,
+                SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetForces(section, -200 * 1000, 20 * 1000000, 5 * 1000000, 3);
 
@@ -867,7 +875,8 @@ namespace ConcreteTests
             StandardEN1992p11 standard = new StandardEN1992p11();
 
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantNMx, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantNMx, SectionSolver.FailureDomainTypes.Plastic,
+                SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             double n = -300 * 1000;
             double Mx = 20 * 1000000;
@@ -889,7 +898,8 @@ namespace ConcreteTests
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
             CoordinateSystem cs = new CoordinateSystem(new Point3d(150, 150, 0), Vector2d.XAxis, Vector2d.YAxis);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic,
+                SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
@@ -908,7 +918,8 @@ namespace ConcreteTests
         {
             ReinforcedConcreteSection section = GetRectangularSection2SideRebars(400, 400, 18, 2, 18, 4, 50);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
             ResultBeamForces[] forces = GetForces(section, -200 * 1000, 30 * 1000000, 10 * 1000000, 3);
 
             for (int i = 0; i < forces.Length; i++)
@@ -920,7 +931,7 @@ namespace ConcreteTests
         {
             ReinforcedConcreteSection section = GetRectangularSection2SideRebars(400, 400, 18, 2, 18, 4, 50);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetForces(section, -200 * 1000, 20 * 1000000, 20 * 1000000, 3);
 
@@ -948,7 +959,7 @@ namespace ConcreteTests
             section.AddRebars(rebars);
 
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantNMy, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantNMy, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetForces(section, -200 * 1000, 20 * 1000000, 0 * 1000000, 3);
 
@@ -976,7 +987,7 @@ namespace ConcreteTests
             section.AddRebars(rebars);
 
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetRandomResultBeamForces(section);
 
@@ -992,14 +1003,14 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, concreteMaterial);
 
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces force = new ResultBeamForces(0, 0, 0, 0, 10000000, 0, GetLocalCoordinateSystem(section));
             CommonAssertDomainPointMethod(section, force, new StandardNTC2018Concrete(), options);
 
-			SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
-			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
             double expMxRd = 84.6 * 1000000;  // da VCA
             Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 1);
@@ -1011,14 +1022,14 @@ namespace ConcreteTests
             ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, concreteMaterial);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces force = new ResultBeamForces(0, 0, 0, 0, 10000000, 0, GetLocalCoordinateSystem(section));
             CommonAssertDomainPointMethod(section, force, new StandardNTC2018Concrete(), options);
 
-			var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
-			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+            var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
             double expMxRd = 88.0 * 1000000;  // da VCA
             Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 1);
@@ -1045,13 +1056,13 @@ namespace ConcreteTests
             section.AddRebars(rebars);
 
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
 
-			var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
-			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+            var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
             double expMxRd = 208.0 * 1000000;  // da VCA
             Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 2);
@@ -1078,13 +1089,13 @@ namespace ConcreteTests
             section.AddRebars(rebars);
 
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
 
-			var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
-			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+            var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
             double expMxRd = 419.7 * 1000000;  // da VCA
             Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 1);
@@ -1118,11 +1129,11 @@ namespace ConcreteTests
 
             ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 options =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
-			var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
-			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+            var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
             double expMxRd1 = 512 * 1000000;  // da VCA
             double expMxRd2 = 516 * 1000000;  // da Excel
@@ -1154,11 +1165,12 @@ namespace ConcreteTests
             section.AddRebars(rebars);
 
             ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
-            SectionCheckerACI318.SectionOptionsStandardACI318 options = new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+            SectionCheckerACI318.SectionOptionsStandardACI318 options = new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section),
+                SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
-			var solver = new SectionSolverACI318Test(section, new StandardACI318p08(), true, section.Centroid);
-			FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-				options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+            var solver = new SectionSolverACI318Test(section, new StandardACI318p08(), true, section.Centroid);
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
+                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
 
             double expMxRd1 = 247.4 * 1000000 * 0.9;  // valore nominale da design_of_reinforced_concrete_9th_edition
             Assert.IsTrue(Math.Abs(result.MxRd - expMxRd1) / expMxRd1 * 100 < 2);
@@ -1176,7 +1188,7 @@ namespace ConcreteTests
 
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
@@ -1208,7 +1220,7 @@ namespace ConcreteTests
 
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
@@ -1239,7 +1251,7 @@ namespace ConcreteTests
 
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
@@ -1270,7 +1282,7 @@ namespace ConcreteTests
 
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
@@ -1308,7 +1320,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
 
         }
 
@@ -1334,7 +1346,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -1357,7 +1369,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -1383,7 +1395,7 @@ namespace ConcreteTests
             };
 
             for (int j = 0; j < forces.Length; j++)
-                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[j], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -1415,7 +1427,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic));
+                CommonAssertDomainPointMethod(section, forces[i], standard, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
         }
 
         [TestMethod]
@@ -1489,7 +1501,7 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter,
                 ConcreteMaterialEN1992Data.C45_55);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetRandomResultBeamForces(section);
 
@@ -1509,7 +1521,7 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter,
                 ConcreteMaterialEN1992Data.C40_50);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetRandomResultBeamForces(section);
 
@@ -1529,7 +1541,7 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover, numberOfRebars, rebarDiameter,
                 ConcreteMaterialEN1992Data.C55_67);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             //ResultBeamForces[] forces = new ResultBeamForces[] { 
             //    new ResultBeamForces(-450.0 * 1000, 0, 0, 0, 75 * 1000000,0, GetLocalCoordinateSystem(section)) };// GetRandomResultBeamForces(section);
@@ -1551,7 +1563,7 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover,
                 numberOfRebars, rebarDiameter, ConcreteMaterialEN1992Data.C30_37);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetRandomResultBeamForces(section);
 
@@ -1571,7 +1583,7 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover,
                 numberOfRebars, rebarDiameter, ConcreteMaterialEN1992Data.C45_55);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetRandomResultBeamForces(section);
 
@@ -1594,7 +1606,7 @@ namespace ConcreteTests
 
             SectionCheckerModelCode2010 sectionCheckerModelCode2010 = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section),
                 new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section),
-                SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic),
+                SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64),
                 new StandardNTC2018Concrete(), false);
 
             var domain = sectionCheckerModelCode2010.GetPlasticFailureDomainResult();
@@ -1621,7 +1633,8 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover,
                 numberOfRebars, rebarDiameter, ConcreteMaterialEN1992Data.C30_37);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN,
+                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetRandomResultBeamForces(section);
 
@@ -1641,7 +1654,7 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = GetCHS(externalDiameter, thickness, concreteCover,
                 numberOfRebars, rebarDiameter, ConcreteMaterialEN1992Data.C45_55);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             ResultBeamForces[] forces = GetRandomResultBeamForces(section);
 
@@ -1664,7 +1677,7 @@ namespace ConcreteTests
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
             FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
@@ -1706,7 +1719,7 @@ namespace ConcreteTests
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
             FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();
@@ -1735,7 +1748,7 @@ namespace ConcreteTests
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic);
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard);
 
             FailureDomainResult failureDomainResult = sectionChecker.GetPlasticFailureDomainResult();

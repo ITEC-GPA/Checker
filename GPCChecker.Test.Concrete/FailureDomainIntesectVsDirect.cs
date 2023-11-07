@@ -148,7 +148,7 @@ namespace ConcreteTests
             var section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
             var standard = new StandardNTC2018Concrete();
             cs = GetLocalCoordinateSystem(section);
-            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, ratioMode, SectionSolver.FailureDomainTypes.Plastic);
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, ratioMode, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             // Code, solver and checker.
             bool considerTensileConcrete = false;
@@ -187,7 +187,7 @@ namespace ConcreteTests
                 new SteelMaterialACI318("Grade 60", 200000, 420, 420, 0.10, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar));
             var standard = new StandardACI318p19();
             cs = GetLocalCoordinateSystem(section);
-            var sectionOptions = new SectionCheckerACI318.SectionOptionsStandardACI318(cs, ratioMode, SectionSolver.FailureDomainTypes.Plastic);
+            var sectionOptions = new SectionCheckerACI318.SectionOptionsStandardACI318(cs, ratioMode, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             // Code, solver and checker.
             bool considerTensileConcrete = false;

@@ -52,6 +52,11 @@ namespace GPC.Checkers.Concrete.Checkers
             {
             }
 
+            public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem)
+                : base(coordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64)
+            {
+            }
+
             public SectionOptionsModelCode2010()
                 : base(CoordinateSystem.Global, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64)
             {

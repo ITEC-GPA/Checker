@@ -53,6 +53,8 @@ namespace GPC.Checkers.Concrete.Checkers
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
             _solver = solver ?? throw new ArgumentNullException(nameof(solver));
             _standardStructuralSteel = standardStructuralSteel;
+            _solver.TetaDiscretization = options.TetaDiscretization;
+            _solver.ConsiderTensileConcrete = options.ConsiderTensileConcrete;
         }
 
         #endregion
@@ -122,7 +124,6 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The stress analysis results</returns>
         public async Task<StressAnalysisResult> GetTensionAnalysisResultAsync(ResultBeamForces forces)
         {
-
             if (forces is null)
                 return null;
 
