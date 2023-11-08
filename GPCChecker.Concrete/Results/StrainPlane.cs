@@ -313,7 +313,7 @@ namespace GPC.Checkers.Concrete.Results
                             if (linearAnalysis)
                                 sigmaSSMax = _sectionSolver.CalculateElasticSigmaS(psiR, steelSection.Section, strain);
                             else
-                                sigmaSSMax = steelSection.Section.SteelMaterial.CalculateDesignStress(_standard, strain);
+                                sigmaSSMax = steelSection.Section.SteelMaterial.CalculateDesignStress(standardStructuralSteel, strain);
                         }
                         if (strain < epsilonSSMin)
                         {
@@ -322,7 +322,7 @@ namespace GPC.Checkers.Concrete.Results
                             if (linearAnalysis)
                                 sigmaSSMin = _sectionSolver.CalculateElasticSigmaS(psiR, steelSection.Section, strain);
                             else
-                                sigmaSSMin = steelSection.Section.SteelMaterial.CalculateDesignStress(_standard, strain);
+                                sigmaSSMin = steelSection.Section.SteelMaterial.CalculateDesignStress(standardStructuralSteel, strain);
                         }
                     }
                 }
