@@ -7,7 +7,6 @@ using GPC.Geometry;
 using GPC.Geometry.Meshes;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
-using GPC.Model.Elements;
 using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
@@ -1083,10 +1082,11 @@ namespace ConcreteTests
             {
                 NRdMin = failureDomain.DomainPoints[0].Last().Point;
 
-                var maxStrainInRebars = section.GetRebars().Select(r => r.RebarMaterial.StrainYCompression).Max();
+                // usa le deformazioni di calcolo, dividendo per i gamma, in modo da mantenere costante il modulo E
+                var maxStrainInRebars = section.GetRebars().Select(r => r.RebarMaterial.StrainYCompression / standard.GammaS).Max();
                 double maxStrainInSteelSections;
                 if (section.SteelSections.Count > 0)
-                    maxStrainInSteelSections = section.SteelSections.Select(ss => ss.Section.SteelMaterial.StrainYCompression).Max();
+                    maxStrainInSteelSections = section.SteelSections.Select(ss => ss.Section.SteelMaterial.StrainYCompression / standardStructuralSteel.GammaM0).Max();
                 else
                     maxStrainInSteelSections = double.MinValue;
                 var strainInConcrete = section.ConcreteMaterial.StrainYCompression;
@@ -1096,7 +1096,7 @@ namespace ConcreteTests
             }
             else
             {
-                maxStrain = section.ConcreteMaterial.StrainYCompression;
+                maxStrain = -0.002;
                 pureCompressionClsStress = ((ConcreteMaterialEuropeanCommon)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC;
             }
 
@@ -1108,11 +1108,7 @@ namespace ConcreteTests
 
             foreach (ReinforcedConcreteRebar rebar in section.GetRebars())
             {
-                double rebarsFydMinusConcrete;
-                if (section.IsCompositeSteelConcrete)
-                    rebarsFydMinusConcrete = rebar.RebarMaterial.GetStress(maxStrain) / standard.GammaS - pureCompressionClsStress;
-                else
-                    rebarsFydMinusConcrete = -rebar.RebarMaterial.Fyk / standard.GammaS - pureCompressionClsStress;
+                double rebarsFydMinusConcrete = rebar.RebarMaterial.CalculateDesignStress(standard, maxStrain) - pureCompressionClsStress;
                 pureCompressionAxialForce += rebar.Area * rebarsFydMinusConcrete;
                 pureCompressionMomentX -= rebar.Area * rebarsFydMinusConcrete * (rebar.Position.Y - centerId.Y);
                 pureCompressionMomentY += rebar.Area * rebarsFydMinusConcrete * (rebar.Position.X - centerId.X);
