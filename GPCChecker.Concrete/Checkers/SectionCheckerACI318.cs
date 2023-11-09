@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
@@ -47,8 +47,9 @@ namespace GPC.Checkers.Concrete.Checkers
         public class SectionOptionsStandardACI318 : SectionOptions, ISerializable
         {
             public SectionOptionsStandardACI318(CoordinateSystem coordinateSystem,
-                SectionSolver.FailureAnalysisTypes failureAnalysisType, SectionSolver.FailureDomainTypes failureDomainType)
-                : base(coordinateSystem, failureAnalysisType, failureDomainType)
+                SectionSolver.FailureAnalysisTypes failureAnalysisType, SectionSolver.FailureDomainTypes failureDomainType, SectionSolver.StressAnalysisTypes stressAnalysisType,
+                double psiCoefficientRebar, double psiCoefficientTendon, bool considerTensileConcrete, int tetaDiscretization)
+                : base(coordinateSystem, failureAnalysisType, failureDomainType, stressAnalysisType, psiCoefficientRebar, psiCoefficientTendon, considerTensileConcrete, tetaDiscretization)
             {
 
             }

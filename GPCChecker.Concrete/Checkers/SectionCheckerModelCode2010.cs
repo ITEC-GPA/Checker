@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
@@ -45,17 +45,21 @@ namespace GPC.Checkers.Concrete.Checkers
         [Serializable]
         public class SectionOptionsModelCode2010 : SectionOptions, ISerializable
         {
-            public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem, SectionSolver.FailureAnalysisTypes failureAnalysisType,
-                SectionSolver.FailureDomainTypes failureDomainType)
-                : base(coordinateSystem, failureAnalysisType, failureDomainType)
+            public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem,
+                SectionSolver.FailureAnalysisTypes failureAnalysisType, SectionSolver.FailureDomainTypes failureDomainType, SectionSolver.StressAnalysisTypes stressAnalysisType,
+                double psiCoefficientRebar, double psiCoefficientTendon, bool considerTensileConcrete, int tetaDiscretization)
+                : base(coordinateSystem, failureAnalysisType, failureDomainType, stressAnalysisType, psiCoefficientRebar, psiCoefficientTendon, considerTensileConcrete, tetaDiscretization)
             {
+            }
 
+            public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem)
+                : base(coordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64)
+            {
             }
 
             public SectionOptionsModelCode2010()
-                : base(CoordinateSystem.Global, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic)
+                : base(CoordinateSystem.Global, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64)
             {
-
             }
 
             protected SectionOptionsModelCode2010(SerializationInfo info, StreamingContext context)

@@ -31,11 +31,11 @@ namespace GPC.Checkers.Concrete.Results
 
         public FailureDomain Domain => _failureDomain;
 
-        internal SectionSolver.FailureDomainTypes FailureDomainAnalysisType => _failureDomain.FailureDomainAnalysisTypes;
+        public SectionSolver.FailureDomainTypes FailureDomainAnalysisType { get => _failureDomain.FailureDomainAnalysisTypes; set => _failureDomain.FailureDomainAnalysisTypes = value; }
 
         public CoordinateSystem CoordinateSystem => _sectionOption.ForceReferenceCoordinateSystem;
 
-        public SectionSolver.FailureAnalysisTypes FailureAnalysisType => _sectionOption.FailureAnalysisType;
+        public SectionSolver.FailureAnalysisTypes FailureAnalysisType { get => _sectionOption.FailureAnalysisType; set => _sectionOption.FailureAnalysisType = value; }
 
         #endregion
 
@@ -180,8 +180,10 @@ namespace GPC.Checkers.Concrete.Results
 
                     if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
                         point = _sectionSolver.CalculatePlasticDomainPoint(forcesList[i].ConvertToForceTuple(CoordinateSystem), CoordinateSystem, FailureAnalysisType);
-                    else
+                    else if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Elastic)
                         point = _sectionSolver.CalculateElasticDomainPoint(forcesList[i].ConvertToForceTuple(CoordinateSystem), CoordinateSystem, FailureAnalysisType);
+                    else
+                        point = null;
 
                     _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
                     failureDomainPoint[i] = point;
@@ -872,25 +874,6 @@ namespace GPC.Checkers.Concrete.Results
         public static bool operator !=(FailureDomainResult left, FailureDomainResult right)
         {
             return !(left == right);
-        }
-
-        #endregion
-
-        #region Setter
-
-        public void SetFailureDomainType(SectionSolver.FailureDomainTypes failureDomainType)
-        {
-            _failureDomain.SetFailureDomainType(failureDomainType);
-        }
-
-        public void SetFailureAnalysisType(SectionSolver.FailureAnalysisTypes failureAnalysisTypes)
-        {
-            _sectionOption.FailureAnalysisType = failureAnalysisTypes;
-        }
-
-        public void SetFailureDomain2dSubdivision(int subdivision)
-        {
-            _failureSectionSubdivision = subdivision;
         }
 
         #endregion

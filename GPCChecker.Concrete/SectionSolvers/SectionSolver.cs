@@ -150,6 +150,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Plastic,
         }
 
+        public enum StressAnalysisTypes
+        {
+            NonLinear,
+            Linear,
+        }
+
         public enum FailureAnalysisTypes
         {
             [Description("Constant N")]
