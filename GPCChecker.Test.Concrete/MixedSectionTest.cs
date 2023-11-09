@@ -3500,7 +3500,7 @@ namespace ConcreteTests
                 new ResultBeamForces(-2500 * 1000, 0, 0, 0, -20 * 1000000, 70 * 1000000, cs),
             };
 
-            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Elastic);
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Elastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             for (int i = 0; i < forces.Length; i++)
                 CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005,
