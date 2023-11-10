@@ -620,7 +620,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected virtual GaussIntegration.GlobalCoordinateGaussPoint[][][] GetThinWallsGlobalCoordinateGaussPointsLinearShapeFunction()
         {
             GaussIntegration.GlobalCoordinateGaussPoint[][][] returnValue = new GaussIntegration.GlobalCoordinateGaussPoint[_concreteSection.SteelSections.Count][][];
-            for (int i = 0; i < _concreteSection.SteelSections.Count;i++)
+            for (int i = 0; i < _concreteSection.SteelSections.Count; i++)
             {
                 returnValue[i] = GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(_concreteSection.SteelSections[i], _gaussIntegrationLinePoints);
             }
@@ -3082,7 +3082,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         immersione = immA * weightA + immB * weightB;
 
                         // StrainPlane
-                        strainPlane = BuildPlane(theta);
+                        strainPlane = BuildPlane(theta, failureDomainType, _failureIndex, immersione);
                     }
                 }
                 else if (intersection.Value is MeshFace intersectionFace)
@@ -3135,7 +3135,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         immersione = immA * weightA + immB * weightB + immC * weightC;
 
                         // StrainPlane
-                        strainPlane = BuildPlane(theta);
+                        strainPlane = BuildPlane(theta, failureDomainType, _failureIndex, immersione);
                     }
                 }
                 else
@@ -3200,19 +3200,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 return fail.Immersione != 0.0 || fail.FailureIndex <= _failureIndex ? fail.Immersione : 1.0;
             }
+        }
 
-            // Internal utility. Build StrainPlane.
-            StrainPlane BuildPlane(double theta)
-            {
-                var distances = CalculateMaxMinSectionDistances(theta);
-                var p1 = GetP1(distances, failureDomainType, _failureIndex);
-                var p2 = GetP2(distances, failureDomainType);
-                var p3 = GetP3(distances, failureDomainType);
-                var p4 = GetP4(distances, failureDomainType);
-                var p5 = GetP5(distances, failureDomainType);
-                var p6 = GetP6(distances, failureDomainType);
-                return CalculateStrainPlane(theta, _failureIndex, immersione, p1, p2, p3, p4, p5, p6);
-            }
+        internal StrainPlane BuildPlane(double theta, FailureDomainTypes failureDomainType, SectionSolver.FailureZones failureIndex, double immersione)
+        {
+            var distances = CalculateMaxMinSectionDistances(theta);
+            var p1 = GetP1(distances, failureDomainType, failureIndex);
+            var p2 = GetP2(distances, failureDomainType);
+            var p3 = GetP3(distances, failureDomainType);
+            var p4 = GetP4(distances, failureDomainType);
+            var p5 = GetP5(distances, failureDomainType);
+            var p6 = GetP6(distances, failureDomainType);
+            return CalculateStrainPlane(theta, failureIndex, immersione, p1, p2, p3, p4, p5, p6);
         }
 
         #endregion

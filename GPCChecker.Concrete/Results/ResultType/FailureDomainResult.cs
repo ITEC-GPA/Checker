@@ -680,7 +680,7 @@ namespace GPC.Checkers.Concrete.Results
             if (forces.N > _failureDomain.DomainPoints.FirstOrDefault().FirstOrDefault().NRd || forces.N < _failureDomain.DomainPoints.LastOrDefault().LastOrDefault().NRd)
                 return null;
 
-            FailureDomain failureDomain = _failureDomain.RebuildFailureDomain(axialForceSubdivision);
+            FailureDomain failureDomain = _failureDomain;
 
             FailureDomain.FailureDomainPoint[] points = new FailureDomain.FailureDomainPoint[failureDomain.DomainPoints.Length];
 
@@ -688,26 +688,58 @@ namespace GPC.Checkers.Concrete.Results
             {
                 for (int j = 1; j < failureDomain.DomainPoints[i].Length; j++)
                 {
-                    if (forces.N == failureDomain.DomainPoints[i][j].NRd)
+                    FailureDomain.FailureDomainPoint vA = failureDomain.DomainPoints[i][j - 1];
+                    FailureDomain.FailureDomainPoint vB = failureDomain.DomainPoints[i][j];
+
+                    if (forces.N == vB.NRd)
                     {
-                        points[i] = failureDomain.DomainPoints[i][j];
+                        points[i] = vB;
                         break;
                     }
 
-                    if (forces.N > failureDomain.DomainPoints[i][j].NRd && forces.N < failureDomain.DomainPoints[i][j - 1].NRd)
+                    if (forces.N > vB.NRd && forces.N < vA.NRd)
                     {
-                        double mx = Utilities.Maths.Interpolation.GetLinearInterpolation(failureDomain.DomainPoints[i][j - 1].NRd, failureDomain.DomainPoints[i][j].NRd,
-                            failureDomain.DomainPoints[i][j - 1].MxRd, failureDomain.DomainPoints[i][j].MxRd, forces.N);
-                        double my = Utilities.Maths.Interpolation.GetLinearInterpolation(failureDomain.DomainPoints[i][j - 1].NRd, failureDomain.DomainPoints[i][j].NRd,
-                            failureDomain.DomainPoints[i][j - 1].MyRd, failureDomain.DomainPoints[i][j].MyRd, forces.N);
+                        double mx = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, vA.MxRd, vB.MxRd, forces.N);
+                        double my = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, vA.MyRd, vB.MyRd, forces.N);
 
-                        points[i] = new FailureDomain.FailureDomainPoint(new ForceTuple(forces.N, mx, my),
-                            failureDomain.DomainPoints[i][j].FailureIndex, failureDomain.DomainPoints[i][j].StrainPlane, failureDomain.DomainPoints[i][j].Immersione);
+                        // FailureIndex
+                        SectionSolver.FailureZones _failureIndex = (SectionSolver.FailureZones)Math.Min((int)vA.FailureIndex, (int)vB.FailureIndex);
+
+                        double weightA = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, 0, 1, forces.N);
+                        double weightB = 1 - weightA;
+
+                        // Theta
+                        var thetaA = vA.StrainPlane.Teta;
+                        var thetaB = vB.StrainPlane.Teta;
+
+                        // Make them close together.
+                        if (Math.Abs(thetaA - thetaB) > Math.PI)
+                        {
+                            if (thetaA < thetaB)
+                                thetaA += 2.0 * Math.PI;
+                            else
+                                thetaB += 2.0 * Math.PI;
+                        }
+                        double theta = thetaA * weightA + thetaB * weightB;
+
+                        // Immersione
+                        var immA = GetImmersione(vA, _failureIndex);
+                        var immB = GetImmersione(vB, _failureIndex);
+                        double immersione = immA * weightA + immB * weightB;
+
+                        StrainPlane strainPlane = _sectionSolver.BuildPlane(theta, _sectionOption.FailureDomainType, _failureIndex, immersione);
+
+                        points[i] = new FailureDomain.FailureDomainPoint(new ForceTuple(forces.N, mx, my), _failureIndex, strainPlane, immersione);
 
                         break;
                     }
                 }
             });
+
+            double GetImmersione(FailureDomain.FailureDomainPoint fail, SectionSolver.FailureZones failureIndex)
+            {
+                return fail.Immersione != 0.0 || fail.FailureIndex <= failureIndex ? fail.Immersione : 1.0;
+            }
 
             return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantN);
         }
