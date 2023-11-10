@@ -1731,6 +1731,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             if (_concreteSection.IsCompositeSteelConcrete)
             {
+                double zeroDistanceError = 1E-8;
+
                 // Rotate points.
                 double cosTeta = Math.Cos(teta);
                 double sinTeta = Math.Sin(teta);
@@ -1751,15 +1753,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 // Limit F3B-F4
                 double epsilonF4_limit;
-                if (p5PointY > p3PointY)
+                if (p5PointY > p3PointY && p5.epsilon < p3.epsilon && Math.Abs(p5PointY - p3PointY) > zeroDistanceError)
                     epsilonF4_limit = Math.Max(Math.Min(p5.epsilon - (p5.epsilon - p3.epsilon) * p5.distanceFromBaricentre / (p5PointY - p3PointY), 0.0), p3.epsilon);
                 else
                     epsilonF4_limit = 0.0;
-                double chiF3B_limit = (epsilonF4_limit + Math.Abs(p3.epsilon)) / p3.distanceFromBaricentre;
+                double chiF3B_P3_limit = (epsilonF4_limit + Math.Abs(p3.epsilon)) / p3.distanceFromBaricentre;
+                double chiF3B_P5_limit = (epsilonF4_limit + Math.Abs(p5.epsilon)) / p5.distanceFromBaricentre;
+                double chiF3B_limit = Math.Min(chiF3B_P3_limit, chiF3B_P5_limit);
 
                 // Limit F2B-F3A
                 double chiF2B_P5_limit = double.MaxValue;
-                if (p5PointY > p1PointY)
+                if (p5PointY > p1PointY && Math.Abs(p5PointY - p1PointY) > zeroDistanceError)
                     chiF2B_P5_limit = (p1.epsilon + Math.Abs(p5.epsilon)) / (p5PointY - p1PointY);
 
                 double chiF2B_P2_limit = (p1.epsilon + Math.Abs(p2.epsilon)) / (p2PointY - p1PointY);
@@ -1780,9 +1784,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     // Point p5 is rotation point and there can be also both p2 and p3.
                     // p5 is the first rotation point.
                     F3_FirstRotationPoint = p5;
-                    double chi_p2_p5 = (p2.epsilon - p5.epsilon) / (p5PointY - p2PointY);
-                    double chi_p3_p5 = (p3.epsilon - p5.epsilon) / (p5PointY - p3PointY);
-                    if (chi_p2_p5 <= 0.0 && chi_p3_p5 <= 0.0)
+                    double chi_p2_p5 = Math.Abs(p5PointY - p2PointY) > zeroDistanceError ? (p2.epsilon - p5.epsilon) / (p5PointY - p2PointY) : 0.0;
+                    double chi_p3_p5 = Math.Abs(p5PointY - p3PointY) > zeroDistanceError ? (p3.epsilon - p5.epsilon) / (p5PointY - p3PointY) : 0.0;
+                    if ((chi_p2_p5 <= 0.0 && chi_p3_p5 <= 0.0) || chi_p2_p5 > chiF2B_limit)
                     {
                         // There are no other rotation points.
                         F3_FirstRotationPoint_chi_limit = 0.0; // no limit
@@ -1804,15 +1808,72 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
                 else if (chiF2B_limit == chiF2B_P2_limit)
                 {
-                    // The p2 point is rotation point and then there is also the p3 point.
+                    // The p2 point is rotation point and then there is also the p3 or p5 points.
                     // p2 is the first rotation point.
-                    double chi_p3_p2 = 0.0;
-                    if (p2PointY > p3PointY)
-                        chi_p3_p2 = (p3.epsilon - p2.epsilon) / (p2PointY - p3PointY);
                     F3_FirstRotationPoint = p2;
-                    F3_FirstRotationPoint_chi_limit = chi_p3_p2;
 
-                    F3_SecondRotationPoint = p3;
+                    // p3 can be a rotation point.
+                    double chi_p3_p2;
+                    if (p2PointY > p3PointY && Math.Abs(p2PointY - p3PointY) > zeroDistanceError)
+                        chi_p3_p2 = (p3.epsilon - p2.epsilon) / (p2PointY - p3PointY);
+                    else
+                        chi_p3_p2 = 0.0;
+
+                    // p5 can be a rotation point.
+                    double chi_p5_p2;
+                    if (p2PointY > p5PointY && Math.Abs(p2PointY - p5PointY) > zeroDistanceError)
+                        chi_p5_p2 = (p5.epsilon - p2.epsilon) / (p2PointY - p5PointY);
+                    else
+                        chi_p5_p2 = 0.0;
+
+                    if (p3PointY >= p5PointY)
+                    {
+                        if (chi_p5_p2 > chi_p3_p2)
+                        {
+                            // There is only p5 rotation point.
+                            F3_SecondRotationPoint = p5;
+                            F3_FirstRotationPoint_chi_limit = chi_p5_p2;
+                        }
+                        else
+                        {
+                            // There are p3 and p5 rotation points.
+                            F3_SecondRotationPoint = p3;
+                            F3_FirstRotationPoint_chi_limit = chi_p3_p2;
+                            if (chi_p5_p2 > 0)
+                            {
+                                F3_ThirdRotationPoint = p5;
+                                F3_SecondRotationPoint_chi_limit = chi_p5_p2;
+                            }
+                            else
+                            {
+                                F3_SecondRotationPoint_chi_limit = 0.0;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (chi_p3_p2 > chi_p5_p2)
+                        {
+                            // There is only p5 rotation point.
+                            F3_SecondRotationPoint = p3;
+                            F3_FirstRotationPoint_chi_limit = chi_p3_p2;
+                        }
+                        else
+                        {
+                            // There are p3 and p5 rotation points.
+                            F3_SecondRotationPoint = p5;
+                            F3_FirstRotationPoint_chi_limit = chi_p5_p2;
+                            if (chi_p3_p2 > 0)
+                            {
+                                F3_ThirdRotationPoint = p3;
+                                F3_SecondRotationPoint_chi_limit = chi_p3_p2;
+                            }
+                            else
+                            {
+                                F3_SecondRotationPoint_chi_limit = 0.0;
+                            }
+                        }
+                    }
                 }
                 else if (chiF2B_limit == chiF2B_P3_limit)
                 {
@@ -1863,6 +1924,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         }
                     }
                 }
+                if (chiF3A_limit < chiF3B_limit)
+                    chiF3A_limit = chiF3B_limit;
 
                 double chiSx;
                 double chiDx;
@@ -1912,15 +1975,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 switch (failureIndex)
                 {
                     case FailureZones.F1:
-                        centerPoint = p1.point;
-                        centerPointEpsilon = p1.epsilon;
-                        break;
-
                     case FailureZones.F2A:
-                        centerPoint = p1.point;
-                        centerPointEpsilon = p1.epsilon;
-                        break;
-
                     case FailureZones.F2B:
                         centerPoint = p1.point;
                         centerPointEpsilon = p1.epsilon;
@@ -1928,12 +1983,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                     case FailureZones.F3A:
                     case FailureZones.F3B:
-                        if (chi > F3_FirstRotationPoint_chi_limit)
+                    case FailureZones.F4:
+                        if (chi >= F3_FirstRotationPoint_chi_limit)
                         {
                             centerPoint = F3_FirstRotationPoint.point;
                             centerPointEpsilon = F3_FirstRotationPoint.epsilon;
                         }
-                        else if (F3_SecondRotationPoint != null && chi > F3_SecondRotationPoint_chi_limit)
+                        else if (F3_SecondRotationPoint != null && chi >= F3_SecondRotationPoint_chi_limit)
                         {
                             centerPoint = F3_SecondRotationPoint.point;
                             centerPointEpsilon = F3_SecondRotationPoint.epsilon;
@@ -1945,11 +2001,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         }
                         else
                             return null;
-                        break;
-
-                    case FailureZones.F4:
-                        centerPoint = p3.point;
-                        centerPointEpsilon = p3.epsilon;
                         break;
 
                     default:

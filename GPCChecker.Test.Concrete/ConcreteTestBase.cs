@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
@@ -1074,7 +1075,31 @@ namespace ConcreteTests
 
 
             // valore per campo di deformazione 6 (epsilon 0.2% costante)
-            double pureCompressionClsStress = ((ConcreteMaterialEuropeanCommon)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC;
+            double pureCompressionClsStress;
+            double maxStrain;
+            // possibile riduzione della tensione nel calcestruzzo dovuto all'acciaio usando il campo elastico
+            if (failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Elastic)
+            {
+                NRdMin = failureDomain.DomainPoints[0].Last().Point;
+
+                // usa le deformazioni di calcolo, dividendo per i gamma, in modo da mantenere costante il modulo E
+                var maxStrainInRebars = section.GetRebars().Select(r => r.RebarMaterial.StrainYCompression / standard.GammaS).Max();
+                double maxStrainInSteelSections;
+                if (section.SteelSections.Count > 0)
+                    maxStrainInSteelSections = section.SteelSections.Select(ss => ss.Section.SteelMaterial.StrainYCompression / standardStructuralSteel.GammaM0).Max();
+                else
+                    maxStrainInSteelSections = double.MinValue;
+                var strainInConcrete = section.ConcreteMaterial.StrainYCompression;
+
+                maxStrain = Math.Max(Math.Max(maxStrainInRebars, maxStrainInSteelSections), strainInConcrete);
+                pureCompressionClsStress = section.ConcreteMaterial.GetStress(maxStrain) * standard.AlphaCC / standard.GammaC;
+            }
+            else
+            {
+                maxStrain = -0.002;
+                pureCompressionClsStress = ((ConcreteMaterialEuropeanCommon)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC;
+            }
+
             double clsArea = section.Shape.GetArea();
             var centerId = GetLocalCoordinateSystem(section).Origin;
             double pureCompressionAxialForce = clsArea * pureCompressionClsStress;
@@ -1083,18 +1108,18 @@ namespace ConcreteTests
 
             foreach (ReinforcedConcreteRebar rebar in section.GetRebars())
             {
-                var rebarsFyd = rebar.RebarMaterial.Fyk / standard.GammaS + pureCompressionClsStress;
-                pureCompressionAxialForce -= rebar.Area * rebarsFyd;
-                pureCompressionMomentX += rebar.Area * rebarsFyd * (rebar.Position.Y - centerId.Y);
-                pureCompressionMomentY -= rebar.Area * rebarsFyd * (rebar.Position.X - centerId.X);
+                double rebarsFydMinusConcrete = rebar.RebarMaterial.CalculateDesignStress(standard, maxStrain) - pureCompressionClsStress;
+                pureCompressionAxialForce += rebar.Area * rebarsFydMinusConcrete;
+                pureCompressionMomentX -= rebar.Area * rebarsFydMinusConcrete * (rebar.Position.Y - centerId.Y);
+                pureCompressionMomentY += rebar.Area * rebarsFydMinusConcrete * (rebar.Position.X - centerId.X);
             }
             foreach (var steelSection in section.SteelSections)
             {
-                var steelMatFyd = steelSection.Section.SteelMaterial.Fyk / standardStructuralSteel.GammaM0;
-                pureCompressionAxialForce -= steelSection.Section.Area * steelMatFyd;
+                var steelMatFyd = steelSection.Section.SteelMaterial.GetStress(maxStrain) / standardStructuralSteel.GammaM0;
+                pureCompressionAxialForce += steelSection.Section.Area * steelMatFyd;
                 var steelSectionGlobalPosition = steelSection.PositionToGlobal(steelSection.Section.Centroid);
-                pureCompressionMomentX += steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.Y - centerId.Y);
-                pureCompressionMomentY -= steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.X - centerId.X);
+                pureCompressionMomentX -= steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.Y - centerId.Y);
+                pureCompressionMomentY += steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.X - centerId.X);
             }
 
             if (Math.Abs(NRdMin.Z) > errorAbsoluteN && Math.Abs(pureCompressionAxialForce) > errorAbsoluteN)
