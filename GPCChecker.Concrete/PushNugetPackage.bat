@@ -6,7 +6,7 @@ del *.nupkg
 
 
 echo PACKING
-nuget pack GPCChecker.Concrete.csproj -Version 0.0.11.2  -properties Configuration=Release
+nuget pack GPCChecker.Concrete.csproj -Version 0.0.11.3  -properties Configuration=Release
 
 
 echo PUSHING
