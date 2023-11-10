@@ -3265,6 +3265,54 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return CalculateStrainPlane(theta, failureIndex, immersione, p1, p2, p3, p4, p5, p6);
         }
 
+        internal double GetImmersione(FailureDomain.FailureDomainPoint fail, SectionSolver.FailureZones failureIndex)
+        {
+            return fail.Immersione != 0.0 || fail.FailureIndex <= failureIndex ? fail.Immersione : 1.0;
+        }
+
+        internal StrainPlane InterpolateStrainPlane(ForceTuple forces, FailureDomain.FailureDomainPoint vA, FailureDomain.FailureDomainPoint vB, FailureDomainTypes failureDomainType,
+            out FailureDomain.FailureDomainPoint failureDomainPoint)
+        {
+            double distB = vB.Point.DistanceTo(forces);
+            double distA = vA.Point.DistanceTo(forces);
+            double weightA = distB / (distA + distB);
+            double weightB = distA / (distA + distB);
+
+            // FailureIndex
+            FailureZones _failureIndex = (FailureZones)Math.Min((int)vA.FailureIndex, (int)vB.FailureIndex);
+
+            // Theta
+            var thetaA = vA.StrainPlane.Teta;
+            var thetaB = vB.StrainPlane.Teta;
+
+            // Make them close together.
+            if (Math.Abs(thetaA - thetaB) > Math.PI)
+            {
+                if (thetaA < thetaB)
+                    thetaA += 2.0 * Math.PI;
+                else
+                    thetaB += 2.0 * Math.PI;
+            }
+
+            double theta = thetaA * weightA + thetaB * weightB;
+
+            // Immersione
+            var immA = GetImmersione(vA, _failureIndex);
+            var immB = GetImmersione(vB, _failureIndex);
+            double immersione = immA * weightA + immB * weightB;
+
+            StrainPlane strainPlane = BuildPlane(theta, failureDomainType, _failureIndex, immersione);
+
+            var n = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, 1, vA.Point.Z, vB.Point.Z, weightA);
+            var mx = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, 1, vA.Point.X, vB.Point.X, weightA);
+            var my = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, 1, vA.Point.Y, vB.Point.Y, weightA);
+
+            ForceTuple forceTuple = new ForceTuple(n, mx, my);
+
+            failureDomainPoint = new FailureDomain.FailureDomainPoint(forceTuple, _failureIndex, strainPlane, immersione);
+            return strainPlane;
+        }
+
         #endregion
 
         #region Protected method - Stress SLS

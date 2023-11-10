@@ -56,7 +56,7 @@ namespace GPC.Checkers.Concrete.Results
 
                 for (int i = 0; i < forces.Count(); i++)
                 {
-                    (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forcesList[i]));
+                    (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forcesList[i]), _sectionSolver, _sectionOption);
                     FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forcesList[i], domainPoint.failureDomainPoint);
                     _forces.Add(new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D));
                 }
@@ -99,7 +99,7 @@ namespace GPC.Checkers.Concrete.Results
 
             await Task.Run(() =>
             {
-                (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
+                (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces), _sectionSolver, _sectionOption);
                 FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forces, domainPoint.failureDomainPoint);
                 failureDomainPoint2d = new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D);
                 _forces.Add(failureDomainPoint2d);
@@ -135,7 +135,7 @@ namespace GPC.Checkers.Concrete.Results
 
                 Parallel.For(0, forces.Count(), (i) =>
                 {
-                    (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forcesList[i]));
+                    (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forcesList[i]), _sectionSolver, _sectionOption);
                     FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forcesList[i], domainPoint.failureDomainPoint);
                     failureDomainPoint2d[i] = new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D);
                     _forces.Add(failureDomainPoint2d[i]);
@@ -175,7 +175,7 @@ namespace GPC.Checkers.Concrete.Results
 
             await Task.Run(() =>
             {
-                (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
+                (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces), _sectionSolver, _sectionOption);
                 FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forces, domainPoint.failureDomainPoint);
                 failureDomainPoint2d = new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D);
                 _forces.RemoveAt(index);
@@ -203,7 +203,7 @@ namespace GPC.Checkers.Concrete.Results
             else if (forces.Id == -1)
                 throw new ArgumentException(nameof(forces));
 
-            (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
+            (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces), _sectionSolver, _sectionOption);
             FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forces, domainPoint.failureDomainPoint);
             FailureDomain.FailureDomainForce2d failureDomainPoint2d = new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D);
 
@@ -260,7 +260,7 @@ namespace GPC.Checkers.Concrete.Results
                 throw new KeyNotFoundException(nameof(id));
             }
 
-            (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces));
+            (FailureDomain.FailureDomainPoint failureDomainPoint, Point2d point2D) domainPoint = _failureDomain2d.GetDomainPoint(ConvertForceToPoint(forces), _sectionSolver, _sectionOption);
             FailureDomain.FailureDomainForce domainForce = new FailureDomain.FailureDomainForce(forces, domainPoint.failureDomainPoint);
             FailureDomain.FailureDomainForce2d failureDomainPoint2d = new FailureDomain.FailureDomainForce2d(domainForce, domainPoint.point2D);
 

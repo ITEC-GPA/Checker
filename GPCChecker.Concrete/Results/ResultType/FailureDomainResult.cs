@@ -723,8 +723,8 @@ namespace GPC.Checkers.Concrete.Results
                         double theta = thetaA * weightA + thetaB * weightB;
 
                         // Immersione
-                        var immA = GetImmersione(vA, _failureIndex);
-                        var immB = GetImmersione(vB, _failureIndex);
+                        var immA = _sectionSolver.GetImmersione(vA, _failureIndex);
+                        var immB = _sectionSolver.GetImmersione(vB, _failureIndex);
                         double immersione = immA * weightA + immB * weightB;
 
                         StrainPlane strainPlane = _sectionSolver.BuildPlane(theta, _sectionOption.FailureDomainType, _failureIndex, immersione);
@@ -735,11 +735,6 @@ namespace GPC.Checkers.Concrete.Results
                     }
                 }
             });
-
-            double GetImmersione(FailureDomain.FailureDomainPoint fail, SectionSolver.FailureZones failureIndex)
-            {
-                return fail.Immersione != 0.0 || fail.FailureIndex <= failureIndex ? fail.Immersione : 1.0;
-            }
 
             return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantN);
         }
