@@ -1,6 +1,7 @@
 ﻿using GPC.Checker.Results.ResultType;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
+using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Steel;
@@ -97,6 +98,16 @@ namespace GPC.Checkers.Concrete.Results
             return _sectionSolver.CalculateElasticSigmaS(phi, rebar, StrainPlane.GetStrain(rebar.Position));
         }
 
+        public virtual double GetRebarTension(SteelMaterial steelMaterial, Point2d position, double epsilonP)
+        {
+            return _sectionSolver.CalculateStressRebar(steelMaterial, StrainPlane.GetStrain(position), epsilonP);
+        }
+
+        public virtual double GetRebarTension(double phi, SteelMaterial steelMaterial, Point2d position, double epsilonP)
+        {
+            return _sectionSolver.CalculateElasticSigmaS(phi, steelMaterial, StrainPlane.GetStrain(position), epsilonP);
+        }
+
         public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension(double phi)
         {
             return _section.Rebars.Select(i => (i, GetRebarTension(phi, i))).ToArray();
@@ -132,6 +143,20 @@ namespace GPC.Checkers.Concrete.Results
             }
         }
 
+        public virtual bool GetRebarTension(SteelMaterial steelMaterial, Point2d position, double epsilonP, out double tension)
+        {
+            try
+            {
+                tension = GetRebarTension(steelMaterial, position, epsilonP);
+                return true;
+            }
+            catch (Exception)
+            {
+                tension = double.NaN;
+                return false;
+            }
+        }
+
         public virtual bool GetRebarsTension(out (ReinforcedConcreteRebar rebar, double tension)[] rebarTensionAssociation)
         {
             try
@@ -151,6 +176,20 @@ namespace GPC.Checkers.Concrete.Results
             try
             {
                 tension = GetRebarTension(phi, rebar);
+                return true;
+            }
+            catch (Exception)
+            {
+                tension = double.NaN;
+                return false;
+            }
+        }
+
+        public virtual bool GetRebarTension(double phi, SteelMaterial steelMaterial, Point2d position, double epsilonP, out double tension)
+        {
+            try
+            {
+                tension = GetRebarTension(phi, steelMaterial, position, epsilonP);
                 return true;
             }
             catch (Exception)

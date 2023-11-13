@@ -157,6 +157,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return rebar.RebarMaterial.CalculateDesignStress(StandardModelCode2010, strain + rebar.EpsilonP);
         }
 
+        /// <inheritdoc cref="SectionSolver.CalculateStressRebar(ReinforcedConcreteRebar, double)"/>
+        internal override double CalculateStressRebar(SteelMaterial steelMaterial, double strain, double epsilonP)
+        {
+            return steelMaterial.CalculateDesignStress(StandardModelCode2010, strain + epsilonP);
+        }
+
         internal override double CalculateStressStructuralSteel(ISteelSection steelSection, double strain)
         {
             return steelSection.SteelMaterial.CalculateDesignStress(StandardEN1993P11, strain);

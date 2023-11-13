@@ -367,6 +367,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         internal abstract double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain);
 
         /// <summary>
+        /// Calculate design steel stress of <paramref name="steelMaterial"/> related to <paramref name="strain"/>
+        /// </summary>
+        /// <param name="steelMaterial"></param>
+        /// <param name="strain"></param>
+        /// <param name="epsilonP"></param>
+        /// <returns></returns>
+        internal abstract double CalculateStressRebar(SteelMaterial steelMaterial, double strain, double epsilonP);
+
+        /// <summary>
         /// Calculate design steel stress of <paramref name="steelSection"/> related to <paramref name="strain"/>
         /// </summary>
         /// <param name="steelSection">The input steel section</param>
@@ -973,6 +982,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 return rebar.RebarMaterial.ElasticModulusCompression * (1 + psi) * strain + rebar.RebarMaterial.ElasticModulusCompression * rebar.EpsilonP;
             else
                 return rebar.RebarMaterial.ElasticModulusTension * (1 + psi) * strain + rebar.RebarMaterial.ElasticModulusTension * rebar.EpsilonP;
+        }
+
+        public double CalculateElasticSigmaS(double psi, SteelMaterial steelMaterial, double strain, double epsilonP)
+        {
+            if (strain < 0)
+                return steelMaterial.ElasticModulusCompression * (1 + psi) * strain + steelMaterial.ElasticModulusCompression * epsilonP;
+            else
+                return steelMaterial.ElasticModulusTension * (1 + psi) * strain + steelMaterial.ElasticModulusTension * epsilonP;
         }
 
         #endregion

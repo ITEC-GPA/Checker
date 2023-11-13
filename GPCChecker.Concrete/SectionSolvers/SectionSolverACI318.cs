@@ -7,7 +7,6 @@ using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
@@ -136,6 +135,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         internal override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
         {
             return rebar.RebarMaterial.GetStress(strain + rebar.EpsilonP);
+        }
+
+        /// <inheritdoc cref="SectionSolver.CalculateStressRebar(ReinforcedConcreteRebar, double)"/>
+        internal override double CalculateStressRebar(SteelMaterial steelMaterial, double strain, double epsilonP)
+        {
+            return steelMaterial.GetStress(strain + epsilonP);
         }
 
         internal override double CalculateStressStructuralSteel(ISteelSection steelSection, double strain)
