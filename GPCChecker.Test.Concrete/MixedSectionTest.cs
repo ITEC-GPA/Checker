@@ -2964,6 +2964,127 @@ namespace ConcreteTests
             CollectionAssert.AreEqual(max_y_strian_sequence_result, max_y_strian_sequence);
         }
 
+        /// <summary>
+        /// Tests the sequence of deformation planes in a composite section.
+        /// Section without rebars.
+        /// </summary>
+        [TestMethod]
+        public void StrainPlanesDomain15()
+        {
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(400, 400, 14, 40, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
+            var rebarIdList = section.Rebars.Select(x => x.Id).ToArray();
+            for (int i = 0; i < rebarIdList.Length; i++)
+                section.RemoveRebar(i);
+
+            section.AddSteelSection(
+                new SteelSectionPosition(
+                    new SteelSection(
+                        new SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"),
+                        SteelMaterialEN1993Data.S235
+                        ),
+                    Point2d.Origin,
+                    0.0,
+                    new Vector2d(125.5, 50)
+                    )
+                );
+            section.SteelSections[0].IsInsideConcrete = false;
+
+            List<StrainPlane> planes = CalculateStrainPlanes(
+                section: section,
+                analysisType: SectionSolver.FailureDomainTypes.Plastic,
+                rotationAngle: 0.0,
+                gamma_M0: 1.0);
+
+            var stringForCad = MakePlaneListString(planes, 0.0, 400.0,
+                out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
+
+            var min_y_strian_sequence_result = new List<string>()
+            {
+                "0.067500000000",
+                "0.069107142857",
+                "0.070714285714",
+                "0.072321428571",
+                "0.073928571429",
+                "0.075535714286",
+                "0.077142857143",
+                "0.077190476190",
+                "0.077238095238",
+                "0.077285714286",
+                "0.077333333333",
+                "0.077380952381",
+                "0.077428571429",
+                "0.077464285714",
+                "0.077500000000",
+                "0.077535714286",
+                "0.077571428571",
+                "0.077607142857",
+                "0.077642857143",
+                "0.064998866213",
+                "0.052354875283",
+                "0.039710884354",
+                "0.027066893424",
+                "0.014422902494",
+                "0.001778911565",
+                "0.001482426304",
+                "0.001185941043",
+                "0.000889455782",
+                "0.000592970522",
+                "0.000296485261",
+                "0.000000000000",
+                "-0.000333333333",
+                "-0.000666666667",
+                "-0.001000000000",
+                "-0.001333333333",
+                "-0.001666666667",
+                "-0.002000000000"
+            };
+
+            var max_y_strian_sequence_result = new List<string>()
+            {
+                "0.067500000000",
+                "0.056250000000",
+                "0.045000000000",
+                "0.033750000000",
+                "0.022500000000",
+                "0.011250000000",
+                "0.000000000000",
+                "-0.000333333333",
+                "-0.000666666667",
+                "-0.001000000000",
+                "-0.001333333333",
+                "-0.001666666667",
+                "-0.002000000000",
+                "-0.002250000000",
+                "-0.002500000000",
+                "-0.002750000000",
+                "-0.003000000000",
+                "-0.003250000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003500000000",
+                "-0.003250000000",
+                "-0.003000000000",
+                "-0.002750000000",
+                "-0.002500000000",
+                "-0.002250000000",
+                "-0.002000000000"
+            };
+
+            Assert.IsNotNull(stringForCad);
+            CollectionAssert.AreEqual(min_y_strian_sequence_result, min_y_strian_sequence);
+            CollectionAssert.AreEqual(max_y_strian_sequence_result, max_y_strian_sequence);
+        }
+
         private static void CalculateStrainPlanesMultiDirection(ReinforcedConcreteSection section,
             out Dictionary<double, List<StrainPlane>> planes,
             out Dictionary<double, List<string>> min_y_strian_sequence,

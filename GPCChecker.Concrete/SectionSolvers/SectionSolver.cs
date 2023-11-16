@@ -1253,7 +1253,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             FailureDomainTypes analysisType, FailureZones failureZone)
         {
             Point2d minRebarsPoint = null;
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.Rebars.Count() > 0)
             {
                 var minRebar = _concreteSection.GetRebarById(distances.dMinRebarId);
                 double radius = 0.5 * minRebar.RebarSection.Diameter;
@@ -1298,7 +1298,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             {
                                 var minRebarsDistance = distances.dmaxConcrete - distances.dminRebar;
 
-                                if (minRebarsDistance > minSteelDistance)
+                                if (minRebarsDistance > minSteelDistance && minRebarsPoint != null)
                                     return new DeformationFieldsPoint(Math.Min(minSteelStrain, minRebarsStrain), minRebarsPoint, minRebarsDistance);
                                 else
                                     return new DeformationFieldsPoint(Math.Min(minSteelStrain, minRebarsStrain), minSteelPoint, minSteelDistance);
@@ -1491,12 +1491,24 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 case ConcreteMaterial.ConcreteTypes.Concrete:
                     {
-                        var minRebar = _concreteSection.GetRebarById(distances.dMinRebarId);
-                        double radius = 0.5 * minRebar.RebarSection.Diameter;
-                        var deltaMinRebarsPoint = new Point2d(radius * Math.Sin(distances.teta), -radius * Math.Cos(distances.teta));
-                        var minYpoints = minRebar.Position + deltaMinRebarsPoint;
-                        var minY = distances.dminRebar;
-                        var minStrain = GetDesignYieldingStrainRebar(distances.dMinRebarId);
+                        double minStrain, minY;
+                        Point2d minYpoints;
+
+                        if (distances.dMinRebarId != -1)
+                        {
+                            var minRebar = _concreteSection.GetRebarById(distances.dMinRebarId);
+                            double radius = 0.5 * minRebar.RebarSection.Diameter;
+                            var deltaMinRebarsPoint = new Point2d(radius * Math.Sin(distances.teta), -radius * Math.Cos(distances.teta));
+                            minYpoints = minRebar.Position + deltaMinRebarsPoint;
+                            minY = distances.dminRebar;
+                            minStrain = GetDesignYieldingStrainRebar(distances.dMinRebarId);
+                        }
+                        else
+                        {
+                            minYpoints = ConcreteSection.Shape.Fill[distances.dMinVertexIndex];
+                            minY = distances.dminConcrete;
+                            minStrain = 0.0;
+                        }
 
                         switch (analysisType)
                         {
