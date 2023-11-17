@@ -156,7 +156,7 @@ namespace ConcreteTests
             StandardEN1993p11 standardStructuralSteel = null;
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid, considerTensileConcrete, id, standardStructuralSteel);
-            sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, solver, id, standardStructuralSteel);
+            sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, solver, id);
             sectionChecker.SectionCheckerOptionsModelCode2010.FailureAnalysisType = ratioMode;
 
             // External forces
@@ -195,7 +195,7 @@ namespace ConcreteTests
             StandardEN1993p11 standardStructuralSteel = null;
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             var solver = new SectionSolverACI318Test(section, standard, considerTensileConcrete, section.Centroid, false, id, standardStructuralSteel);
-            sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, solver, id, standardStructuralSteel);
+            sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, solver, id);
             sectionChecker.SectionCheckerOptionsACI318.FailureAnalysisType = ratioMode;
 
             // External forces, Mx My N

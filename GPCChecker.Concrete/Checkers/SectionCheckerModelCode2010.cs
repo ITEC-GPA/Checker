@@ -27,14 +27,13 @@ namespace GPC.Checkers.Concrete.Checkers
             StandardEN1993p11 standardStructuralSteel = null)
             : base(checkerAttribute, options, standard,
                   new SectionSolverModelCode2010(checkerAttribute.Section, standard, options.ForceReferenceCoordinateSystem.Origin, considerTensileConcrete, id, standardStructuralSteel),
-                  id, standardStructuralSteel)
+                  id)
         {
         }
 
         public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptionsModelCode2010 options,
-            StandardModelCode2010 standard, SectionSolverModelCode2010 solver, int id = ModelObjectId.IDUNASSIGNED,
-            StandardEN1993p11 standardStructuralSteel = null)
-            : base(checkerAttribute, options, standard, solver, id, standardStructuralSteel)
+            StandardModelCode2010 standard, SectionSolverModelCode2010 solver, int id = ModelObjectId.IDUNASSIGNED)
+            : base(checkerAttribute, options, standard, solver, id)
         {
         }
 

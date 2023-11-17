@@ -27,15 +27,14 @@ namespace GPC.Checkers.Concrete.Checkers
             StandardAISC standardStructuralSteel = null)
             : base(checkerAttribute, options, standard,
                   new SectionSolverACI318(checkerAttribute.Section, standard, haveSpiral, options.ForceReferenceCoordinateSystem.Origin, considerTensileConcrete, id, standardStructuralSteel),
-                  id, standardStructuralSteel)
+                  id)
         {
         }
 
         /// <inheritdoc cref="SectionChecker(SectionCheckerAttribute, SectionOptions, Standard, SectionSolver int)"/>
         public SectionCheckerACI318(SectionCheckerAttribute checkerAttribute, SectionOptionsStandardACI318 options,
-            StandardACI318 standard, SectionSolverACI318 solver, int id = ModelObjectId.IDUNASSIGNED,
-            StandardEN1993p11 standardStructuralSteel = null)
-            : base(checkerAttribute, options, standard, solver, id, standardStructuralSteel)
+            StandardACI318 standard, SectionSolverACI318 solver, int id = ModelObjectId.IDUNASSIGNED)
+            : base(checkerAttribute, options, standard, solver, id)
         {
         }
 

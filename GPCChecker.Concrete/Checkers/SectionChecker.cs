@@ -17,8 +17,6 @@ namespace GPC.Checkers.Concrete.Checkers
     {
         #region Fields
 
-        protected readonly Standard _standardStructuralSteel;
-
         protected readonly SectionSolver _solver;
 
         protected readonly SectionCheckerAttribute _checkerAttributes;
@@ -26,11 +24,6 @@ namespace GPC.Checkers.Concrete.Checkers
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
-        /// </summary>
-        public Standard StandardStructuralSteel => _standardStructuralSteel;
 
         public SectionOptions SectionCheckerOptions => (SectionOptions)_options;
 
@@ -47,12 +40,11 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <param name="solver"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionOptions options, Standard standard,
-            SectionSolver solver, int id = IDUNASSIGNED, Standard standardStructuralSteel = null)
+            SectionSolver solver, int id = IDUNASSIGNED)
             : base(standard, options, id)
         {
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
             _solver = solver ?? throw new ArgumentNullException(nameof(solver));
-            _standardStructuralSteel = standardStructuralSteel;
             _solver.TetaDiscretization = options.TetaDiscretization;
             _solver.ConsiderTensileConcrete = options.ConsiderTensileConcrete;
         }
