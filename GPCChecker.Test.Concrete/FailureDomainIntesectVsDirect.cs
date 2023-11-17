@@ -1,6 +1,7 @@
 ﻿using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Geometry.Meshes;
@@ -14,7 +15,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static GPC.Checkers.Concrete.Results.FailureDomain;
 
 namespace ConcreteTests
 {
@@ -34,11 +34,11 @@ namespace ConcreteTests
         /// <param name="maxDirectDomPointError"></param>
         private static void CompareDirectAndIntersectmethods(SectionChecker sectionChecker, ResultBeamForces[] forces, List<double> referenceWorkingRatio, double maxIntersectWRError, double maxDirectWRError, List<ForceTuple> referenceForces/*, double maxIntersectDomPointError, double maxDirectDomPointError*/)
         {
-            var intersectDomPoint = new List<FailureDomainPoint>();
+            var intersectDomPoint = new List<FailureDomain.FailureDomainPoint>();
             var intersectWR = new List<double>();
             var intersectDomForces = new List<ForceTuple>();
 
-            var directDomPoint = new List<FailureDomainPoint>();
+            var directDomPoint = new List<FailureDomain.FailureDomainPoint>();
             var directWR = new List<double>();
             var directDomForces = new List<ForceTuple>();
 
@@ -47,7 +47,7 @@ namespace ConcreteTests
             // Calculate domain mesh for intersect method.
             //sectionChecker.SectionSolver.SetTetaDiscretization(64);
             var plasticDomainResult = sectionChecker.GetPlasticFailureDomainResult();
-            var plastiDomainMesh = plasticDomainResult.Domain.GetMesh(plasticDomainResult.Domain, out Dictionary<MeshVertex, FailureDomainPoint> vertexToDomainPoint);
+            var plastiDomainMesh = plasticDomainResult.Domain.GetMesh(plasticDomainResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint);
             // Get point of section.
             var secLines = sectionChecker.SectionSolver.ConcreteSection.SectionShape.Shape.Fill.Explode();
             var secPoints = secLines.Select(l => l.Start).ToArray();
@@ -58,7 +58,7 @@ namespace ConcreteTests
             foreach (var appliedForce in forces)
             {
                 // ***** Intersect method - ratio
-                var failIntersect = new FailureDomainPoint(plastiDomainMesh, appliedForce, vertexToDomainPoint, sectionChecker, SectionSolver.FailureDomainTypes.Plastic, 10);
+                var failIntersect = sectionChecker.SectionSolver.CalculateDomainPoint(appliedForce, plastiDomainMesh, vertexToDomainPoint, sectionChecker.SectionCheckerOptions);
                 intersectDomPoint.Add(failIntersect);
                 intersectWR.Add(failIntersect.WorkingRatio);
                 if (solverTestACI is null)
@@ -71,7 +71,7 @@ namespace ConcreteTests
                     epsIntersect.Add(failIntersect.StrainPlane.GetStrain(p));
 
                 // ***** Direct/iterative method - ratio
-                FailureDomainPoint failDirect;
+                FailureDomain.FailureDomainPoint failDirect;
                 try
                 {
                     failDirect = sectionChecker.CalculatePlasticFailureDomainPoint(appliedForce);

@@ -2422,8 +2422,7 @@ namespace ConcreteTests
                     currCompositeForcePoint.Z -= NrdCorrection;
                     var resultBeamComposite = new ResultBeamForces(currCompositeForcePoint.Z, 0.0, 0.0, 0.0, currCompositeForcePoint.X, currCompositeForcePoint.Y, GetLocalCoordinateSystem(sectionRC));
 
-                    var failComposite = new FailureDomain.FailureDomainPoint(plastiDomainMeshRC,
-                        resultBeamComposite, vertexToDomainPoint, sectionCheckerRC, SectionSolver.FailureDomainTypes.Plastic, 10);
+                    var failComposite = sectionCheckerRC.SectionSolver.CalculateDomainPoint(resultBeamComposite, plastiDomainMeshRC, vertexToDomainPoint, sectionCheckerRC.SectionCheckerOptions);
 
                     maxErrorConstantEccentricity_intersectionMethod.Add(failComposite.WorkingRatio);
                 }
@@ -3399,9 +3398,10 @@ namespace ConcreteTests
 
             //ExportToGmsh(domainMesh);
 
-            var domainPoint = new FailureDomain.FailureDomainPoint(domainMesh, forces[0], vertexToDomainPoint, sectionChecker, SectionSolver.FailureDomainTypes.Plastic, 10);
-            var domainPoint2 = new FailureDomain.FailureDomainPoint(domainMesh, forces[1], vertexToDomainPoint, sectionChecker, SectionSolver.FailureDomainTypes.Plastic, 10);
-            var domainPoint3 = new FailureDomain.FailureDomainPoint(domainMesh, forces[2], vertexToDomainPoint, sectionChecker, SectionSolver.FailureDomainTypes.Plastic, 10);
+            var domainPoint = sectionChecker.SectionSolver.CalculateDomainPoint(forces[0], domainMesh, vertexToDomainPoint, sectionChecker.SectionCheckerOptions);
+            var domainPoint2 = sectionChecker.SectionSolver.CalculateDomainPoint(forces[1], domainMesh, vertexToDomainPoint, sectionChecker.SectionCheckerOptions);
+            var domainPoint3 = sectionChecker.SectionSolver.CalculateDomainPoint(forces[2], domainMesh, vertexToDomainPoint, sectionChecker.SectionCheckerOptions);
+
 
             Console.WriteLine($"MxRd = {Math.Round(domainPoint.MxRd / 1000000, 2)} kNm");
             Console.WriteLine($"MxRd = {Math.Round(domainPoint2.MxRd / 1000000, 2)} kNm");
