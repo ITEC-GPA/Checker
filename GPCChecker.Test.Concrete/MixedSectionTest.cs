@@ -3634,5 +3634,66 @@ namespace ConcreteTests
             ShowDomainPoints(elasticFailureDomainResult.Domain);
             //ExportToGmsh(elasticDomainMesh);
         }
+
+        /// <summary>
+        /// Check whether when the insertion point is changed, the properties of the homogenized section do not change.
+        /// </summary>
+        [TestMethod]
+        public void InsertionPoint01()
+        {
+            ReinforcedConcreteSection section = GetRectangularSection4Rebars(400, 400, 14, 40, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
+            section.ClearRebars();
+
+            section.AddSteelSection(
+                new SteelSectionPosition(
+                    new SteelSection(
+                        new SectionL(200.0, 60.0, 300.0, 40.0, "L 300×200×60"),
+                        SteelMaterialEN1993Data.S235
+                        ),
+                    Point2d.Origin,
+                    0.0,
+                    new Vector2d(200.0, 200.0),
+                    InsertionPointType.MiddleCenter,
+                    MiddleCenterType.Midpoint
+                    )
+                );
+            section.SteelSections[0].IsInsideConcrete = true;
+
+            // With InsertionPointType.MiddleCenter
+            var homo5 = section.GetHomogeneizedMechanicalProperties(0);
+            Assert.AreEqual(282510.69, homo5.areaH, 0.01);
+            Assert.AreEqual(17.85, homo5.angleX.ToDegrees(), 0.01);
+
+            // With all other inserion points.
+            var positionInfo = new (InsertionPointType insPoint, double xTras, double yTras)[]
+            {
+                (InsertionPointType.BottomLeft, 100.0, 50.0),
+                (InsertionPointType.BottomCenter, 200.0, 50.0),
+                (InsertionPointType.BottomRight, 300.0, 50.0),
+                (InsertionPointType.MiddleLeft, 100.0, 200.0),
+                (InsertionPointType.MiddleCenter, 200.0, 200.0),
+                (InsertionPointType.MiddleRight, 300.0, 200.0),
+                (InsertionPointType.TopLeft, 100.0, 350.0),
+                (InsertionPointType.TopCenter, 200.0, 350.0),
+                (InsertionPointType.TopRight, 300.0, 350.0),
+                (InsertionPointType.Centroid, 164.4444444444, 146.6666666667),
+                (InsertionPointType.ShearCenter, 120.0, 80.0)
+            };
+
+            foreach (var position in positionInfo)
+            {
+                section.SteelSections[0].CardinalPoint = position.insPoint;
+                section.SteelSections[0].Traslation.X = position.xTras;
+                section.SteelSections[0].Traslation.Y = position.yTras;
+
+                var homo = section.GetHomogeneizedMechanicalProperties();
+
+                Assert.AreEqual(282510.69, homo.areaH, 0.01);
+                Assert.AreEqual(17.85, homo.angleX.ToDegrees(), 0.01);
+
+                Assert.AreEqual(homo5.J11H, homo.J11H, 1.0);
+                Assert.AreEqual(homo5.J22H, homo.J22H, 1.0);
+            }
+        }
     }
 }
