@@ -1999,7 +1999,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     default:
                         return null;
                 }
-                chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                if (failureIndex != FailureZones.F3A)
+                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+                else
+                {
+                    // Linear increase in compressed area.
+                    double epsilon_p2 = Math.Abs(p2.epsilon);
+                    double y_sx_F2B = epsilon_p2 / chiSx;
+                    double y_dx_F3A = epsilon_p2 / chiDx;
+                    double y_immersione = y_sx_F2B + (y_dx_F3A - y_sx_F2B) * immersioneNelCampo;
+                    chi = epsilon_p2 / y_immersione;
+                }
 
                 switch (failureIndex)
                 {
