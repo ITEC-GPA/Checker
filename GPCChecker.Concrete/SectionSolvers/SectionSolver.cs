@@ -23,6 +23,9 @@ using System.Threading.Tasks;
 [assembly: InternalsVisibleTo("GPCChecker.Test.Concrete")]
 namespace GPC.Checkers.Concrete.SectionSolvers
 {
+    /// <summary>
+    /// Solver objects should generally not be instantiated directly (apart from tests) but always through a checker.
+    /// </summary>
     [Serializable]
     public abstract class SectionSolver : ModelObjectId, ISerializable
     {
@@ -572,32 +575,33 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 _standardStructuralSteel);
         }
 
-        public virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
+        internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
-            if (sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
-                return CalculateElasticDomainPoint(new ForceTuple(force));
-            else if (sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
-                return CalculatePlasticDomainPoint(new ForceTuple(force));
+            var forceToReferenceSystem = force.ToCoordinateSystemWithEccentricity(_sectionOption.ForceReferenceCoordinateSystem);
+            if (_sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
+                return CalculateElasticDomainPoint(new ForceTuple(forceToReferenceSystem), failureAnalysisTypeOverride);
+            else if (_sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
+                return CalculatePlasticDomainPoint(new ForceTuple(forceToReferenceSystem), failureAnalysisTypeOverride);
             else
                 return null;
         }
 
-        public FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
+        internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
             var failureAnalysisTypes = failureAnalysisTypeOverride is null ? _sectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
             return CalculateDomainPoint(force, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic, failureAnalysisTypes, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
-        public FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
+        internal FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
             var failureAnalysisTypes = failureAnalysisTypeOverride is null ? _sectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
             return CalculateDomainPoint(force, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic, failureAnalysisTypes, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
-        public virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces resultBeamForce, Mesh domainMesh,
-            Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint, Checkers.SectionChecker.SectionOptions sectionOption)
+        internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces resultBeamForce, Mesh domainMesh,
+            Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
         {
-            return CalculateDomainPoint(domainMesh, resultBeamForce, vertexToDomainPoint, sectionOption.FailureAnalysisType, sectionOption.FailureDomainType, _failureAnalysisIntersectionTolerance);
+            return CalculateDomainPoint(domainMesh, resultBeamForce, vertexToDomainPoint, _sectionOption.FailureAnalysisType, _sectionOption.FailureDomainType, _failureAnalysisIntersectionTolerance);
         }
 
         public virtual FailureDomain.FailureDomainPoint[] CalculateDomainPoint(ResultBeamForces[] force, Mesh domainMesh,

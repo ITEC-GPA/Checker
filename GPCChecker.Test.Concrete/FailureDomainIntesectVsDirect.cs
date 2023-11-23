@@ -59,7 +59,7 @@ namespace ConcreteTests
             foreach (var appliedForce in forces)
             {
                 // ***** Intersect method - ratio
-                var failIntersect = sectionChecker.SectionSolver.CalculateDomainPoint(appliedForce, plastiDomainMesh, vertexToDomainPoint, sectionChecker.SectionCheckerOptions);
+                var failIntersect = sectionChecker.SectionSolver.CalculateDomainPoint(appliedForce, plastiDomainMesh, vertexToDomainPoint);
                 intersectDomPoint.Add(failIntersect);
                 intersectWR.Add(failIntersect.WorkingRatio);
                 if (solverTestACI is null)

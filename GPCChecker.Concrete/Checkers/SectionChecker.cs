@@ -469,14 +469,9 @@ namespace GPC.Checkers.Concrete.Checkers
         /// Calculate the plastic domain point for input force
         /// </summary>
         /// <returns>The failure domain point</returns>
-        internal FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force)
+        public FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force, SectionSolver.FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
-            if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
-                return _solver.CalculatePlasticDomainPoint(new ForceTuple(force));
-            else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
-                return _solver.CalculateElasticDomainPoint(new ForceTuple(force));
-            else
-                return null;
+            return _solver.CalculateDomainPoint(force, failureAnalysisTypeOverride);
         }
 
         /// <summary>
@@ -503,7 +498,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The failure domain point</returns>
         internal FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
         {
-            return _solver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint, SectionCheckerOptions);
+            return _solver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
         }
 
         /// <summary>
