@@ -8,6 +8,7 @@ using GPC.Model.Standards;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using GPC.Checkers.Concrete.Checkers;
 
 [assembly: InternalsVisibleTo("GPCChecker.Test.Concrete")]
 namespace GPC.Checkers.Concrete.SectionSolvers
@@ -51,9 +52,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Constructor
 
-        public SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, Point2d integrationReferencePoint,
+        public SectionSolverModelCode2010(IConcreteSection section, SectionChecker.SectionOptions sectionOption, StandardModelCode2010 standard, Point2d integrationReferencePoint,
             bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED, StandardEN1993p11 standardStructuralSteel = null)
-            : base(section, standard, considerTensileConcrete, id, integrationReferencePoint, standardStructuralSteel)
+            : base(section, standard, considerTensileConcrete, id, integrationReferencePoint, standardStructuralSteel, sectionOption)
         {
 
         }

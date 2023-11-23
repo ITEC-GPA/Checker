@@ -18,6 +18,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using GPC.Checkers.Concrete.Checkers;
 
 [assembly: InternalsVisibleTo("GPCChecker.Test.Concrete")]
 namespace GPC.Checkers.Concrete.SectionSolvers
@@ -208,6 +209,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected GaussIntegration.GlobalCoordinateGaussPoint[][] _globalCoordinateGaussPointsMesh;
         protected GaussIntegration.GlobalCoordinateGaussPoint[][][] _globalCoordinateGaussPointsThinWalls;
+        protected SectionChecker.SectionOptions _sectionOption;
 
         #endregion
 
@@ -227,7 +229,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Constructor
 
-        internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id, Point2d integrationReferencePoint, Standard standardStructuralSteel)
+        internal SectionSolver(IConcreteSection section, Standard standard, bool considerTensileConcrete, int id, Point2d integrationReferencePoint, Standard standardStructuralSteel, SectionChecker.SectionOptions sectionOption)
             : base(id)
         {
             _concreteSection = section ?? throw new ArgumentNullException(nameof(section));
@@ -251,6 +253,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             _globalCoordinateGaussPointsMesh = GetMeshGlobalCoordinateGaussPointsLinearShapeFunction();
             _globalCoordinateGaussPointsThinWalls = GetThinWallsGlobalCoordinateGaussPointsLinearShapeFunction();
+            _sectionOption = sectionOption;
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)
@@ -267,6 +270,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _gaussIntegrationQuadPoints = (QuadrangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationQuadPoints", typeof(QuadrangleGaussPoints.GaussPointNumber));
             _gaussIntegrationTriPoints = (TriangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationTriPoints", typeof(TriangleGaussPoints.GaussPointNumber));
             _considerTensileConcrete = info.GetBoolean("ConsiderTensileConcrete");
+            _sectionOption = (SectionChecker.SectionOptions)info.GetValue("SectionOption", typeof(SectionChecker.SectionOptions));
         }
 
         #endregion
@@ -573,24 +577,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             if (sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
                 return CalculateElasticDomainPoint(force, sectionOption);
             else if (sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
-                return CalculatePlasticDomainPoint(force, sectionOption);
+                return CalculatePlasticDomainPoint(new ForceTuple(force));
             else
                 return null;
         }
 
-        public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
+        public FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
-            return CalculatePlasticDomainPoint(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem), sectionOption.ForceReferenceCoordinateSystem, sectionOption.FailureAnalysisType);
+            var failureAnalysisTypes = failureAnalysisTypeOverride is null ? _sectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
+            return CalculateDomainPoint(force, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic, failureAnalysisTypes, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
         public virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
         {
             return CalculateElasticDomainPoint(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem), sectionOption.ForceReferenceCoordinateSystem, sectionOption.FailureAnalysisType);
-        }
-
-        public virtual FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple force, CoordinateSystem coordinateSystem, FailureAnalysisTypes failureAnalysisType)
-        {
-            return CalculateDomainPoint(force, coordinateSystem, FailureDomainTypes.Plastic, failureAnalysisType, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
         public virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, CoordinateSystem coordinateSystem, FailureAnalysisTypes failureAnalysisType)
@@ -638,6 +638,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Force resultant 
 
+        internal ForceTuple CalculateForceResultantForTension(StrainPlane strainPlane)
+        {
+            return CalculateForceResultantForTension(strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
+        }
+
         /// <summary>
         /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
         /// </summary>
@@ -660,6 +665,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     _log.Add(e.InnerException.Message);
                 return new ForceTuple();
             }
+        }
+
+        internal ForceTuple CalculateForceResultantForDomain(StrainPlane strainPlane)
+        {
+            return CalculateForceResultantForDomain(strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
         }
 
         /// <summary>
@@ -768,7 +778,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <para>The bending moment about X-axis resultant</para>
         /// <para>The bending moment about Y-axis resultant</para>
         /// </returns>
-        protected virtual ForceTuple IntegrateSectionStress(StrainPlane strainPlane)
+        internal virtual ForceTuple IntegrateSectionStress(StrainPlane strainPlane)
         {
             try
             {
@@ -1212,7 +1222,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 dMaxSteelSectionId, dMaxSteelVertex, dmaxStructuralSteel);
         }
 
-        protected virtual ForceTuple ConvertToAdimensionalForces(ForceTuple forceTuple)
+        internal virtual ForceTuple ConvertToAdimensionalForces(ForceTuple forceTuple)
         {
             BoundingBox2d bBox = _concreteSection.Shape.Get2dBoundingBox();
             double h = bBox.Size.Y;
@@ -3672,6 +3682,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             info.AddValue("GaussIntegrationQuadPoints", _gaussIntegrationQuadPoints);
             info.AddValue("GaussIntegrationTriPoints", _gaussIntegrationTriPoints);
             info.AddValue("ConsiderTensileConcrete", _considerTensileConcrete);
+            info.AddValue("SectionOption", _sectionOption);
         }
 
         public List<string> GetLog()

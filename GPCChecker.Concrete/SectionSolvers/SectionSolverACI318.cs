@@ -9,6 +9,7 @@ using GPC.Model.Standards;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using GPC.Checkers.Concrete.Checkers;
 
 [assembly: InternalsVisibleTo("GPCChecker.Test.Concrete")]
 namespace GPC.Checkers.Concrete.SectionSolvers
@@ -30,9 +31,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Constructor
 
-        internal SectionSolverACI318(IConcreteSection section, StandardACI318 standard, bool haveSpiral, Point2d integrationReferencePoint,
-            bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED, Standard standardStructuralSteel = null)
-            : base(section, standard, considerTensileConcrete, id, integrationReferencePoint, standardStructuralSteel)
+        internal SectionSolverACI318(IConcreteSection section, SectionChecker.SectionOptions sectionOption, StandardACI318 standard, bool haveSpiral, Point2d integrationReferencePoint, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED, Standard standardStructuralSteel = null)
+            : base(section, standard, considerTensileConcrete, id, integrationReferencePoint, standardStructuralSteel, sectionOption)
         {
             _haveSpiral = haveSpiral;
         }

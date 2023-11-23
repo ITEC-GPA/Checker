@@ -1,4 +1,5 @@
 ﻿using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
@@ -471,7 +472,7 @@ namespace GPC.Checkers.Concrete.Checkers
         internal FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force)
         {
             if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
-                return _solver.CalculatePlasticDomainPoint(force, SectionCheckerOptions);
+                return _solver.CalculatePlasticDomainPoint(new ForceTuple(force));
             else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
                 return _solver.CalculateElasticDomainPoint(force, SectionCheckerOptions);
             else
@@ -484,7 +485,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The failure domain point</returns>
         internal FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force)
         {
-            return _solver.CalculatePlasticDomainPoint(force, SectionCheckerOptions);
+            return _solver.CalculatePlasticDomainPoint(new ForceTuple(force));
         }
 
         /// <summary>

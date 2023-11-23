@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static GPC.Checkers.Concrete.Checkers.SectionCheckerModelCode2010;
 
 namespace ConcreteTests
 {
@@ -28,14 +29,15 @@ namespace ConcreteTests
             }
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular, forces.ToArray(), null);
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(concreteSectionRectangular, new StandardEN1992p11(), concreteSectionRectangular.Centroid);
+            var sectionCheckerOptions = new SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(concreteSectionRectangular, sectionCheckerOptions, new StandardEN1992p11(), concreteSectionRectangular.Centroid);
 
             GPC.Checkers.Concrete.Results.StressAnalysisResult[] slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray(),
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
+                sectionCheckerOptions);
 
             Action ac0 = new Action(() =>
                 {
-                    sectionSolverModelCode2010Test.IntegrateSectionStressTest(slsResult.Select(i => i.StrainPlane).First());
+                    sectionSolverModelCode2010Test.IntegrateSectionStress(slsResult.Select(i => i.StrainPlane).First());
                 });
 
             double bb0 = MeasureTime.FunctionExecutionTime(20, ac0, true); ;
@@ -47,7 +49,7 @@ namespace ConcreteTests
         public void FailureDomainTest()
         {
             var section = GetRectangularSection4Rebars();
-            SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new StandardEN1992p11(), section.Centroid);
+            SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardEN1992p11(), section.Centroid);
 
             Action ac0 = new Action(() =>
             {

@@ -34,7 +34,7 @@ namespace ConcreteTests
             var section = new ReinforcedConcreteSection(1000.0, 300.0, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 50.0, rebar, 200.0,
                 new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0);
 
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
             var dist = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(0.0);
 
             Assert.AreEqual(-150.0, dist.dmaxStrucSteel, 0.0001);
@@ -60,7 +60,7 @@ namespace ConcreteTests
             var section = new ReinforcedConcreteSection(1000.0, 300.0, ConcreteMaterialEN1992Data.C25_30, rebar, 200.0, 50.0, rebar, 200.0,
                 new GPC.Model.Sections.SectionH(300.0, 7.1, 150.0, 10.7, 150.0, 10.7, "IPE300 r=0"), SteelMaterialEN1993Data.S275, 50.0, eccentricity);
 
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
             var dist = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(0.0);
 
             Assert.AreEqual(-150.0, dist.dmaxStrucSteel, 0.0001);
@@ -2070,7 +2070,7 @@ namespace ConcreteTests
                 GammaM0 = gamma_M0
             };
 
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid,
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid,
                 false, -1, structuralSteelCode);
             var sectionDistances = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(rotationAngle);
             var p2 = sectionSolverModelCode2010Test.GetP2(sectionDistances, analysisType);
@@ -2365,7 +2365,6 @@ namespace ConcreteTests
             // 2d -> 1d
             double Mscale = 1000000.0;
             double Nscale = 1000.0;
-            double forceRelativeTollerance = 0.001;
             int domSize0 = plasticDomainResultComposite.Domain.DomainPoints.GetLength(0);
             int subdivision = 10; // Number of subdivisions to make the test faster.
             int domStep0 = domSize0 / subdivision;
@@ -2404,7 +2403,6 @@ namespace ConcreteTests
             stopwatch.Reset();
             stopwatch.Start(); // *** timer ***
 
-            forceRelativeTollerance = 0.001;
             var maxErrorConstantEccentricity_intersectionMethod = new List<double>();
             var origin = Point3d.Origin;
             var plastiDomainMeshRC = plasticDomainResultRC.Domain.GetMesh(plasticDomainResultRC.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint);

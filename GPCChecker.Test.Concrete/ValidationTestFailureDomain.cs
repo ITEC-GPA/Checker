@@ -548,9 +548,8 @@ namespace ConcreteTests
             SectionCheckerACI318.SectionOptionsStandardACI318 options =
                 new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
-            var solver = new SectionSolverACI318Test(section, new StandardACI318p08(), haveSpiral, section.Centroid);
-            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+            var solver = new SectionSolverACI318(section, new SectionCheckerACI318.SectionOptionsStandardACI318(), new StandardACI318p08(), haveSpiral, section.Centroid);
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPoint(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem), options.FailureAnalysisType);
 
             // Da documentazione SAP ACI 318-08 Example 001, usano stress block.
             // L'errore aumenta usando ParabolaRectangle.
@@ -578,9 +577,8 @@ namespace ConcreteTests
                 new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantN,
                 SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
-            var solver = new SectionSolverACI318Test(section, new StandardACI318p08(), haveSpiral, section.Centroid);
-            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPointTest(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-                options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+            var solver = new SectionSolverACI318(section, options, new StandardACI318p08(), haveSpiral, section.Centroid);
+            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPoint(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem), options.FailureAnalysisType);
 
             // Da documentazione SAP ACI 318-08 Example 002, usano stress block.
             // L'errore aumenta usando ParabolaRectangle.

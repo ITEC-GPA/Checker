@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static GPC.Checkers.Concrete.Checkers.SectionCheckerACI318;
 
 namespace ConcreteTests
 {
@@ -52,8 +53,8 @@ namespace ConcreteTests
             var secLines = sectionChecker.SectionSolver.ConcreteSection.SectionShape.Shape.Fill.Explode();
             var secPoints = secLines.Select(l => l.Start).ToArray();
             // Solver
-            var solverTestModelCode = sectionChecker.SectionSolver as SectionSolverModelCode2010Test;
-            var solverTestACI = sectionChecker.SectionSolver as SectionSolverACI318Test;
+            var solverTestModelCode = sectionChecker.SectionSolver as SectionSolverModelCode2010;
+            var solverTestACI = sectionChecker.SectionSolver as SectionSolverACI318;
 
             foreach (var appliedForce in forces)
             {
@@ -62,9 +63,9 @@ namespace ConcreteTests
                 intersectDomPoint.Add(failIntersect);
                 intersectWR.Add(failIntersect.WorkingRatio);
                 if (solverTestACI is null)
-                    intersectDomForces.Add(solverTestModelCode.CalculateSectionForceResultant(failIntersect.StrainPlane));
+                    intersectDomForces.Add(solverTestModelCode.CalculateForceResultantForDomain(failIntersect.StrainPlane));
                 else
-                    intersectDomForces.Add(solverTestACI.CalculateSectionForceResultant(failIntersect.StrainPlane));
+                    intersectDomForces.Add(solverTestACI.CalculateForceResultantForDomain(failIntersect.StrainPlane));
 
                 var epsIntersect = new List<double>();
                 foreach (var p in secPoints)
@@ -86,9 +87,9 @@ namespace ConcreteTests
                 if (failDirect != null)
                 {
                     if (solverTestACI is null)
-                        directDomForces.Add(solverTestModelCode.CalculateSectionForceResultant(failDirect.StrainPlane));
+                        directDomForces.Add(solverTestModelCode.CalculateForceResultantForDomain(failDirect.StrainPlane));
                     else
-                        directDomForces.Add(solverTestACI.CalculateSectionForceResultant(failDirect.StrainPlane));
+                        directDomForces.Add(solverTestACI.CalculateForceResultantForDomain(failDirect.StrainPlane));
                 }
                 else
                     directDomForces.Add(new ForceTuple());
@@ -155,7 +156,7 @@ namespace ConcreteTests
             int id = -1;
             StandardEN1993p11 standardStructuralSteel = null;
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid, considerTensileConcrete, id, standardStructuralSteel);
+            var solver = new SectionSolverModelCode2010(section, sectionOptions, standard, section.Centroid, considerTensileConcrete, id, standardStructuralSteel);
             sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, solver, id);
             sectionChecker.SectionCheckerOptionsModelCode2010.FailureAnalysisType = ratioMode;
 
@@ -194,7 +195,7 @@ namespace ConcreteTests
             int id = -1;
             StandardEN1993p11 standardStructuralSteel = null;
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var solver = new SectionSolverACI318Test(section, standard, considerTensileConcrete, section.Centroid, false, id, standardStructuralSteel);
+            var solver = new SectionSolverACI318(section, sectionOptions, standard, considerTensileConcrete, section.Centroid, false, id, standardStructuralSteel);
             sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, solver, id);
             sectionChecker.SectionCheckerOptionsACI318.FailureAnalysisType = ratioMode;
 
