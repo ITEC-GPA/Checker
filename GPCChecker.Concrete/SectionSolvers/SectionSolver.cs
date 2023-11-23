@@ -3177,8 +3177,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         double theta = thetaA * weightA + thetaB * weightB;
 
                         // Immersione
-                        var immA = GetImmersione(failA);
-                        var immB = GetImmersione(failB);
+                        var immA = GetImmersione(failA, _failureIndex);
+                        var immB = GetImmersione(failB, _failureIndex);
                         immersione = immA * weightA + immB * weightB;
 
                         // StrainPlane
@@ -3229,9 +3229,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         double theta = thetaA * weightA + thetaB * weightB + thetaC * weightC;
 
                         // Immersione
-                        var immA = GetImmersione(failA);
-                        var immB = GetImmersione(failB);
-                        var immC = GetImmersione(failC);
+                        var immA = GetImmersione(failA, _failureIndex);
+                        var immB = GetImmersione(failB, _failureIndex);
+                        var immC = GetImmersione(failC, _failureIndex);
                         immersione = immA * weightA + immB * weightB + immC * weightC;
 
                         // StrainPlane
@@ -3293,12 +3293,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     return pointOrigin.DistanceTo(pointToSearch) / pointOrigin.DistanceTo(closestEntryOnDomain.Key);
                 else
                     return 0.0;
-            }
-
-            // Internal utility.
-            double GetImmersione(FailureDomain.FailureDomainPoint fail)
-            {
-                return fail.Immersione != 0.0 || fail.FailureIndex <= _failureIndex ? fail.Immersione : 1.0;
             }
         }
 
