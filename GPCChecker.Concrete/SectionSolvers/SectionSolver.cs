@@ -1,4 +1,5 @@
 using GPC.Checker.Helper;
+using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
@@ -18,7 +19,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using GPC.Checkers.Concrete.Checkers;
 
 [assembly: InternalsVisibleTo("GPCChecker.Test.Concrete")]
 namespace GPC.Checkers.Concrete.SectionSolvers
@@ -575,7 +575,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
         {
             if (sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
-                return CalculateElasticDomainPoint(force, sectionOption);
+                return CalculateElasticDomainPoint(new ForceTuple(force));
             else if (sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
                 return CalculatePlasticDomainPoint(new ForceTuple(force));
             else
@@ -588,14 +588,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return CalculateDomainPoint(force, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic, failureAnalysisTypes, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
-        public virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
+        public FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
-            return CalculateElasticDomainPoint(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem), sectionOption.ForceReferenceCoordinateSystem, sectionOption.FailureAnalysisType);
-        }
-
-        public virtual FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, CoordinateSystem coordinateSystem, FailureAnalysisTypes failureAnalysisType)
-        {
-            return CalculateDomainPoint(force, coordinateSystem, FailureDomainTypes.Elastic, failureAnalysisType, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
+            var failureAnalysisTypes = failureAnalysisTypeOverride is null ? _sectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
+            return CalculateDomainPoint(force, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic, failureAnalysisTypes, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
         }
 
         public virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces resultBeamForce, Mesh domainMesh,

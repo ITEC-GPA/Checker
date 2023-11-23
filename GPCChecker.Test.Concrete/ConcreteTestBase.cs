@@ -878,7 +878,7 @@ namespace ConcreteTests
                             options.FailureAnalysisType);
                     else
                         failureDomainPoints[j] = solver.CalculateElasticDomainPoint(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-                            options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+                            options.FailureAnalysisType);
                 }
             }
             catch (Exception e)
