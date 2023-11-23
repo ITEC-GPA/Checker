@@ -1797,7 +1797,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else
                     epsilonF4_limit = 0.0;
                 double chiF3B_P3_limit = (epsilonF4_limit + Math.Abs(p3.epsilon)) / p3.distanceFromBaricentre;
-                double chiF3B_P5_limit = (epsilonF4_limit + Math.Abs(p5.epsilon)) / p5.distanceFromBaricentre;
+                double chiF3B_P5_limit = (epsilonF4_limit + Math.Abs(p5.epsilon)) / (p5PointY - p1PointY);
                 double chiF3B_limit = Math.Min(chiF3B_P3_limit, chiF3B_P5_limit);
 
                 // Limit F2B-F3A
