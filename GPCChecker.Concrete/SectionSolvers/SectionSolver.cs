@@ -8,6 +8,7 @@ using GPC.Model;
 using GPC.Model.Materials;
 using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Results;
+using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
@@ -211,6 +212,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected LineGaussPoints.GaussPointNumber _gaussIntegrationLinePoints;
 
         protected GaussIntegration.GlobalCoordinateGaussPoint[][] _globalCoordinateGaussPointsMesh;
+        protected ThinWallSection.ThinWall[][] _steelSectionsThinWallsBreaked;
         protected GaussIntegration.GlobalCoordinateGaussPoint[][][] _globalCoordinateGaussPointsThinWalls;
         protected SectionChecker.SectionOptions _sectionOption;
 
@@ -255,6 +257,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _gaussIntegrationLinePoints = LineGaussPoints.GaussPointNumber.Line32;
 
             _globalCoordinateGaussPointsMesh = GetMeshGlobalCoordinateGaussPointsLinearShapeFunction();
+            _steelSectionsThinWallsBreaked = BreakThinwallAtConcreteIntesections();
             _globalCoordinateGaussPointsThinWalls = GetThinWallsGlobalCoordinateGaussPointsLinearShapeFunction();
             _sectionOption = sectionOption;
         }
@@ -631,9 +634,55 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             GaussIntegration.GlobalCoordinateGaussPoint[][][] returnValue = new GaussIntegration.GlobalCoordinateGaussPoint[_concreteSection.SteelSections.Count][][];
             for (int i = 0; i < _concreteSection.SteelSections.Count; i++)
             {
-                returnValue[i] = GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(_concreteSection.SteelSections[i], _gaussIntegrationLinePoints);
+                returnValue[i] = GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(_concreteSection.SteelSections[i], _steelSectionsThinWallsBreaked[i], _gaussIntegrationLinePoints);
             }
             return returnValue;
+        }
+
+        /// <summary>
+        /// Prepare a list of broken thinwalls on the sides of the concrete.
+        /// The purpose is to have entire thinwalls either inside or outside the concrete section.
+        /// </summary>
+        /// <returns></returns>
+        private ThinWallSection.ThinWall[][] BreakThinwallAtConcreteIntesections()
+        {
+            // Get all concrete edes.
+            var clsEdges = _concreteSection.Shape.Fill2d.Explode().ToList();
+            if (_concreteSection.Shape.HasHoles)
+                for (int i = 0; i < _concreteSection.Shape.Holes2d.Length; i++)
+                    clsEdges.AddRange(_concreteSection.Shape.Holes2d[i].Explode());
+
+            // Break all thiwall in concrete edges.
+            var returnThinWalls = new ThinWallSection.ThinWall[_concreteSection.SteelSections.Count][];
+            for (int i = 0; i < _concreteSection.SteelSections.Count; i++)
+            {
+                var steelSection = _concreteSection.SteelSections[i];
+
+                if (steelSection.Section.SectionShape is ThinWallSection thinSection)
+                {
+                    // Move edges to local in steel section system.
+                    var clsEdgeInLocal = new List<Line2d>();
+                    foreach (var clsEdge in clsEdges)
+                    {
+                        clsEdgeInLocal.Add(new Line2d(
+                            steelSection.PositionToLocal(clsEdge.Start),
+                            steelSection.PositionToLocal(clsEdge.End)
+                            ));
+                    }
+                    // Break all thinwalls in current section.
+                    var thinWallsBreaked = thinSection.BreakThinWallsInEdges(clsEdgeInLocal);
+
+                    // Are inside or outside?
+                    for (int j = 0; j < thinWallsBreaked.Length; j++)
+                    {
+                        var thinWall = thinWallsBreaked[j];
+                        var thinWallCenterid = steelSection.PositionToGlobal(thinWall.Point);
+                        thinWall.IsInsideConcrete = _concreteSection.Shape.IsPointInside(thinWallCenterid);
+                    }
+                    returnThinWalls[i] = thinWallsBreaked.ToArray();
+                }
+            }
+            return returnThinWalls;
         }
 
         #region Force resultant 
@@ -1024,19 +1073,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             for (int i = 0; i < ConcreteSection.SteelSections.Count; i++)
             {
                 SteelSectionPosition steelSection = ConcreteSection.SteelSections[i];
-                // Make functions for stress.
-                double stressFunctionN(double x, double y)
-                {
-                    var strain = strainPlane.GetStrain(x, y);
-                    double sigmaC = steelSection.IsInsideConcrete ? CalculateSigmaC(strain) : 0.0;
-                    return steelSection.Section.SteelMaterial.GetStress(strain) - sigmaC;
-                }
-                double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
-                double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
 
-                for (int j = 0; j < steelSection.Section.ThinWalls.Length; j++)
+                for (int j = 0; j < _steelSectionsThinWallsBreaked[i].Length; j++)
                 {
-                    var thickness = steelSection.Section.ThinWalls[j].T;
+                    // Make functions for stress.
+                    double stressFunctionN(double x, double y)
+                    {
+                        var strain = strainPlane.GetStrain(x, y);
+                        double sigmaC = _steelSectionsThinWallsBreaked[i][j].IsInsideConcrete ? CalculateSigmaC(strain) : 0.0;
+                        return steelSection.Section.SteelMaterial.GetStress(strain) - sigmaC;
+                    }
+                    double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
+                    double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
+
+                    var thickness = _steelSectionsThinWallsBreaked[i][j].T;
                     // Integrate functions.
                     quadratureN += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionN, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
                     quadratureMx += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionMx, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
@@ -1081,19 +1131,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             for (int i = 0; i < ConcreteSection.SteelSections.Count; i++)
             {
                 SteelSectionPosition steelSection = ConcreteSection.SteelSections[i];
-                // Make functions for stress.
-                double stressFunctionN(double x, double y)
-                {
-                    var strain = strainPlane.GetStrain(x, y);
-                    double sigmaC = steelSection.IsInsideConcrete ? CalculateSigmaC(strain) : 0.0;
-                    return CalculateElasticSigmaS(psi, steelSection.Section, strain) - sigmaC;
-                }
-                double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
-                double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
 
-                for (int j = 0; j < steelSection.Section.ThinWalls.Length; j++)
+                for (int j = 0; j < _steelSectionsThinWallsBreaked[i].Length; j++)
                 {
-                    var thickness = steelSection.Section.ThinWalls[j].T;
+                    // Make functions for stress.
+                    double stressFunctionN(double x, double y)
+                    {
+                        var strain = strainPlane.GetStrain(x, y);
+                        double sigmaC = _steelSectionsThinWallsBreaked[i][j].IsInsideConcrete ? CalculateSigmaC(strain) : 0.0;
+                        return CalculateElasticSigmaS(psi, steelSection.Section, strain) - sigmaC;
+                    }
+                    double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
+                    double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
+
+                    var thickness = _steelSectionsThinWallsBreaked[i][j].T;
                     // Integrate functions.
                     quadratureN += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionN, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
                     quadratureMx += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionMx, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
