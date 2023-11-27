@@ -45,14 +45,14 @@
     <Reference Include="GPCGeometry, Version=2.0.0.6, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCGeometry.2.0.0.6\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel">
-      <HintPath>..\..\gpc-model\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel, Version=1.0.5.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCModel.1.0.5.2\lib\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModelData">
-      <HintPath>..\..\gpc-model\GPCModelData\bin\Debug\netstandard2.0\GPCModelData.dll</HintPath>
+    <Reference Include="GPCModelData, Version=0.0.1.9, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCModelData.0.0.1.9\lib\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
-    <Reference Include="GPCUtilities, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCUtilities.2.0.0.2\lib\netstandard2.0\GPCUtilities.dll</HintPath>
+    <Reference Include="GPCUtilities, Version=2.0.0.5, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCUtilities.2.0.0.5\lib\netstandard2.0\GPCUtilities.dll</HintPath>
     </Reference>
     <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.5.0.0\lib\net461\MathNet.Numerics.dll</HintPath>

@@ -8,13 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="GPCGeometry" Version="2.0.0.6" />
-    <PackageReference Include="GPCUtilities" Version="2.0.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="GPCModel">
-      <HintPath>..\..\gpc-model\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
-    </Reference>
+    <PackageReference Include="GPCModel" Version="1.0.5.2" />
+    <PackageReference Include="GPCUtilities" Version="2.0.0.5" />
   </ItemGroup>
 
 </Project>
