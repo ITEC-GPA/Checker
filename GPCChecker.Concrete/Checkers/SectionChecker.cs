@@ -1,4 +1,5 @@
 ﻿using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
@@ -17,8 +18,6 @@ namespace GPC.Checkers.Concrete.Checkers
     {
         #region Fields
 
-        protected readonly Standard _standardStructuralSteel;
-
         protected readonly SectionSolver _solver;
 
         protected readonly SectionCheckerAttribute _checkerAttributes;
@@ -26,11 +25,6 @@ namespace GPC.Checkers.Concrete.Checkers
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
-        /// </summary>
-        public Standard StandardStructuralSteel => _standardStructuralSteel;
 
         public SectionOptions SectionCheckerOptions => (SectionOptions)_options;
 
@@ -47,12 +41,11 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <param name="solver"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public SectionChecker(SectionCheckerAttribute checkerAttribute, SectionOptions options, Standard standard,
-            SectionSolver solver, int id = IDUNASSIGNED, Standard standardStructuralSteel = null)
+            SectionSolver solver, int id = IDUNASSIGNED)
             : base(standard, options, id)
         {
             _checkerAttributes = checkerAttribute ?? throw new ArgumentNullException(nameof(checkerAttribute));
             _solver = solver ?? throw new ArgumentNullException(nameof(solver));
-            _standardStructuralSteel = standardStructuralSteel;
             _solver.TetaDiscretization = options.TetaDiscretization;
             _solver.ConsiderTensileConcrete = options.ConsiderTensileConcrete;
         }
@@ -476,14 +469,9 @@ namespace GPC.Checkers.Concrete.Checkers
         /// Calculate the plastic domain point for input force
         /// </summary>
         /// <returns>The failure domain point</returns>
-        internal FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force)
+        public FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force, SectionSolver.FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
-            if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
-                return _solver.CalculatePlasticDomainPoint(force, SectionCheckerOptions);
-            else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
-                return _solver.CalculateElasticDomainPoint(force, SectionCheckerOptions);
-            else
-                return null;
+            return _solver.CalculateDomainPoint(force, failureAnalysisTypeOverride);
         }
 
         /// <summary>
@@ -492,7 +480,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The failure domain point</returns>
         internal FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force)
         {
-            return _solver.CalculatePlasticDomainPoint(force, SectionCheckerOptions);
+            return _solver.CalculatePlasticDomainPoint(new ForceTuple(force));
         }
 
         /// <summary>
@@ -501,7 +489,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The failure domain point</returns>
         internal FailureDomain.FailureDomainPoint CalculateElasticFailureDomainPoint(ResultBeamForces force)
         {
-            return _solver.CalculateElasticDomainPoint(force, SectionCheckerOptions);
+            return _solver.CalculateElasticDomainPoint(new ForceTuple(force));
         }
 
         /// <summary>
@@ -510,7 +498,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The failure domain point</returns>
         internal FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
         {
-            return _solver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint, SectionCheckerOptions);
+            return _solver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
         }
 
         /// <summary>

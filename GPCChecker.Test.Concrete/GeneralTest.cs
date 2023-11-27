@@ -167,7 +167,7 @@ namespace ConcreteTests
         {
             bool check = true;
             var section = GetRectangularSection4Rebars();
-            SectionSolverModelCode2010 s = new SectionSolverModelCode2010(section, new StandardEN1992p11(), section.Centroid);
+            SectionSolverModelCode2010 s = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardEN1992p11(), section.Centroid);
 
             using (var ms = new MemoryStream())
             {

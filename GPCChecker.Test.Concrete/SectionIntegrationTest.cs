@@ -1,5 +1,7 @@
-﻿using GPC.Checkers.Concrete.Helper;
+﻿using GPC.Checkers.Concrete.Checkers;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
@@ -37,11 +39,11 @@ namespace ConcreteTests
 
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, section.Centroid, strainRefPoint);
 
-            var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), standard, section.Centroid);
 
-            ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = solver.CalculateForceResultantForDomain(strainPlane);
 
-            ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
+            ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaC(strainRefPoint), 0, 0);
             ForceTuple expForceTupleNumerics = new ForceTuple(-2500000, 0, 0);
 
             Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) < 1);
@@ -75,11 +77,11 @@ namespace ConcreteTests
 
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, section.Centroid, strainRefPoint);
 
-            var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), standard, section.Centroid);
 
-            ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = solver.CalculateForceResultantForDomain(strainPlane);
 
-            ForceTuple expForceTuple = new ForceTuple(shape2d.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
+            ForceTuple expForceTuple = new ForceTuple(shape2d.GetArea() * solver.CalculateSigmaC(strainRefPoint), 0, 0);
             ForceTuple expForceTupleNumerics = new ForceTuple(-2500000, 0, 0);
 
             Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) < 1);
@@ -113,11 +115,11 @@ namespace ConcreteTests
 
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, section.Centroid, strainRefPoint);
 
-            var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), standard, section.Centroid);
 
-            ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = solver.CalculateForceResultantForDomain(strainPlane);
 
-            ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
+            ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaC(strainRefPoint), 0, 0);
             ForceTuple expForceTupleNumerics = new ForceTuple(-1250000, 0, 0);
 
             Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) < 1);
@@ -151,11 +153,11 @@ namespace ConcreteTests
 
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, section.Centroid, strainRefPoint);
 
-            var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), standard, section.Centroid);
 
-            ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = solver.CalculateForceResultantForDomain(strainPlane);
 
-            ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
+            ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaC(strainRefPoint), 0, 0);
             ForceTuple expForceTupleNumerics = new ForceTuple(0, 0, 0);
 
             Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) < 1);
@@ -189,11 +191,11 @@ namespace ConcreteTests
 
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, section.Centroid, strainRefPoint);
 
-            var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), standard, section.Centroid);
 
-            ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = solver.CalculateForceResultantForDomain(strainPlane);
 
-            ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaConcrete(strainRefPoint), 0, 0);
+            ForceTuple expForceTuple = new ForceTuple(shape.GetArea() * solver.CalculateSigmaC(strainRefPoint), 0, 0);
             ForceTuple expForceTupleNumerics = new ForceTuple(0, 0, 0);
 
             Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) < 1);
@@ -218,9 +220,9 @@ namespace ConcreteTests
 
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, section.Centroid, strainRefPoint);
 
-            var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), standard, section.Centroid);
 
-            ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = solver.CalculateForceResultantForDomain(strainPlane);
 
             var rebars = section.GetRebars();
 
@@ -248,9 +250,9 @@ namespace ConcreteTests
 
             StrainPlane strainPlane = new StrainPlane(chiX, chiY, section.Centroid, strainRefPoint);
 
-            var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), standard, section.Centroid);
 
-            ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = solver.CalculateForceResultantForDomain(strainPlane);
             ForceTuple expForceTuple = new ForceTuple(-255 * 1000, 50 * 1000000, 0);
 
             Assert.IsTrue(Math.Abs(force.N - expForceTuple.N) / Math.Abs(force.N) < 0.1);
@@ -274,10 +276,10 @@ namespace ConcreteTests
             StrainPlane strainPlaneT = new StrainPlane(section.Centroid, 0, 0, strainRefPointT);
             StrainPlane strainPlaneC = new StrainPlane(section.Centroid, 0, 0, strainRefPointC);
 
-            var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
 
-            ForceTuple forceT = solver.CalculateSectionForceResultant(strainPlaneT);
-            ForceTuple forceC = solver.CalculateSectionForceResultant(strainPlaneC);
+            ForceTuple forceT = solver.CalculateForceResultantForDomain(strainPlaneT);
+            ForceTuple forceC = solver.CalculateForceResultantForDomain(strainPlaneC);
             ForceTuple expForceTupleT = new ForceTuple(10789 * 1000, 3574.0 * 1000000, 0);
             ForceTuple expForceTupleC = new ForceTuple(-50170 * 1000, -3374.0 * 1000000, 0);
 
@@ -297,9 +299,9 @@ namespace ConcreteTests
                 ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
 
             StrainPlane strainPlane = new StrainPlane(section.Centroid, 0, 0, strainRefPoint);
-            var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
 
-            ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = solver.CalculateForceResultantForDomain(strainPlane);
             ForceTuple expForce = new ForceTuple(3977 * 1000, -2239.0 * 1000000, 0);
 
             CheckFailureDomainLimit(force, expForce);
@@ -317,9 +319,9 @@ namespace ConcreteTests
                 ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
 
             StrainPlane strainPlane = new StrainPlane(section.Centroid, 0, 0, strainRefPoint);
-            var solver = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
 
-            ForceTuple force = solver.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = solver.CalculateForceResultantForDomain(strainPlane);
             ForceTuple expForce = new ForceTuple(2410 * 1000, -1357 * 1000000, 0);
 
             CheckFailureDomainLimit(force, expForce);
@@ -350,10 +352,10 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
             section.AddRebars(rebars);
 
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
 
             StrainPlane strainPlane = new StrainPlane(section.Centroid, 0, 0, 0.01);
-            ForceTuple force = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = sectionSolverModelCode2010Test.CalculateForceResultantForDomain(strainPlane);
             ForceTuple expForce = new ForceTuple(216 * 1000, -32.5 * 1000000, 0);
 
             CheckFailureDomainLimit(force, expForce);
@@ -368,10 +370,10 @@ namespace ConcreteTests
             double width = 400;
 
             ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter10, 7, rebarDiameter26, 7, 50);
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
 
             StrainPlane strainPlane = new StrainPlane(section.Centroid, 0, 0, 0.01);
-            ForceTuple force = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = sectionSolverModelCode2010Test.CalculateForceResultantForDomain(strainPlane);
 
             ForceTuple expForce = new ForceTuple(1671 * 1000, 186 * 1000000, 0);
 
@@ -392,10 +394,10 @@ namespace ConcreteTests
             double width = 400;
 
             ReinforcedConcreteSection section = GetRectangularSection2SideRebars(width, height, rebarDiameter10, 2, rebarDiameter26, 7, 50);
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
 
             StrainPlane strainPlane = new StrainPlane(section.Centroid, 0, 0, 0.01);
-            ForceTuple force = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = sectionSolverModelCode2010Test.CalculateForceResultantForDomain(strainPlane);
 
             ForceTuple expForce = new ForceTuple(1516 * 1000, 209 * 1000000, 0);
 
@@ -416,10 +418,10 @@ namespace ConcreteTests
 
             ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter10, 50, concreteMaterial);
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
 
             StrainPlane strainPlane = new StrainPlane(new Point2d(0, 500), 0, 0.00006333, -0.0035);
-            ForceTuple force = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = sectionSolverModelCode2010Test.CalculateForceResultantForDomain(strainPlane);
 
             ForceTuple expForce = new ForceTuple(0 * 1000, 175 * 1000000, 0);
 
@@ -440,10 +442,10 @@ namespace ConcreteTests
 
             ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(width, height, rebarDiameter10, 50, concreteMaterial);
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
 
             StrainPlane strainPlane = new StrainPlane(new Point2d(0, 500), 0, 0.00012111, -0.0035);
-            ForceTuple force = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = sectionSolverModelCode2010Test.CalculateForceResultantForDomain(strainPlane);
 
             ForceTuple expForce = new ForceTuple(0 * 1000, 42.1 * 1000000, 0);
 
@@ -480,10 +482,10 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, concreteMaterial);
             section.AddRebars(rebars);
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
 
             StrainPlane strainPlane = new StrainPlane(new Point2d(0, 500), 0, 0.00001504, -0.0035);
-            ForceTuple force = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane);
+            ForceTuple force = sectionSolverModelCode2010Test.CalculateForceResultantForDomain(strainPlane);
 
             ForceTuple expForce = new ForceTuple(0 * 1000, 512.4 * 1000000, 0);
 
@@ -517,12 +519,12 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, ConcreteMaterialEN1992Data.C25_30);
             section.AddRebars(rebars);
-            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010Test(section, new StandardNTC2018Concrete(), section.Centroid);
+            var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid);
 
             StrainPlane strainPlane1 = new StrainPlane(new Point2d(0, 500), 0, 0, 0.0035);
             StrainPlane strainPlane2 = new StrainPlane(new Point2d(0, 500), 0, 0, -0.002);
-            ForceTuple force1 = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane1);
-            ForceTuple force2 = sectionSolverModelCode2010Test.CalculateSectionForceResultant(strainPlane2);
+            ForceTuple force1 = sectionSolverModelCode2010Test.CalculateForceResultantForDomain(strainPlane1);
+            ForceTuple force2 = sectionSolverModelCode2010Test.CalculateForceResultantForDomain(strainPlane2);
 
             // Valori ottenuti da VCA
             ForceTuple expForce1 = new ForceTuple(1352 * 1000, 114 * 1000000, 0);
@@ -565,7 +567,7 @@ namespace ConcreteTests
 
             StandardNTC2018Concrete standard = new StandardNTC2018Concrete();
 
-            var solver = new SectionSolverModelCode2010Test(section, standard, section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), standard, section.Centroid);
 
             List<double> stresses = new List<double>();
 
