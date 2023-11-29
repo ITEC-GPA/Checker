@@ -1,4 +1,5 @@
-﻿using GPC.Checkers.Concrete.Attributes;
+﻿using GPC.Checker.Helper;
+using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
@@ -2071,7 +2072,11 @@ namespace ConcreteTests
             };
 
             var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid,
-                false, -1, structuralSteelCode);
+            false, -1, structuralSteelCode);
+
+            sectionSolverModelCode2010Test.CalculateRotationPointsPerMaterial(rotationAngle, analysisType, SectionSolver.FailureZones.F3A, out DeformationFieldsPoint[] tensionPoints, out DeformationFieldsPoint[] compressionPoints);
+            sectionSolverModelCode2010Test.CleanRotationPointsPerMaterial(tensionPoints, compressionPoints, out List<(DeformationFieldsPoint defPoint, double angle)> tensionRotationPoints, out List<(DeformationFieldsPoint defPoint, double angle)> compressionRotationPoints);
+
             var sectionDistances = sectionSolverModelCode2010Test.CalculateMaxMinSectionDistances(rotationAngle);
             var p2 = sectionSolverModelCode2010Test.GetP2(sectionDistances, analysisType);
             var p3 = sectionSolverModelCode2010Test.GetP3(sectionDistances, analysisType);

@@ -55,36 +55,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return 0;
         }
 
-        protected override double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar)
-        {
-            return CalculateDesignYieldingStrainRebar(rebar.RebarMaterial);
-        }
-
-        protected override double GetDesignYieldingStrainRebar(int rebarID)
-        {
-            return CalculateDesignYieldingStrainRebar(ConcreteSection.GetRebarById(rebarID).RebarMaterial);
-        }
-
-        protected override double GetDesignUltimateStrainRebar(ReinforcedConcreteRebar rebar)
-        {
-            return CalculateDesignUltimateStrainRebar(rebar.RebarMaterial);
-        }
-
-        protected override double GetDesignUltimateStrainRebar(int rebarID)
-        {
-            return CalculateDesignUltimateStrainRebar(ConcreteSection.GetRebarById(rebarID).RebarMaterial);
-        }
-
-        protected override double GetDesignYieldingStrainStructuralSteel(ISteelSection steelSection)
-        {
-            return CalculateDesignYieldingStrainStructuralSteel(steelSection.SteelMaterial);
-        }
-
-        protected override double GetDesignUltimateStrainStructuralSteel(ISteelSection steelSection)
-        {
-            return CalculateDesignUltimateStrainStructuralSteel(steelSection.SteelMaterial);
-        }
-
         protected override double GetUltimateStrainConcreteCompression()
         {
             return ConcreteMaterial.StrainUCompression;
@@ -292,24 +262,44 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return material.Fyk;
         }
 
-        protected double CalculateDesignYieldingStrainRebar(SteelMaterial material)
+        protected override double CalculateDesignYieldingStrainTensionRebar(SteelMaterial material)
         {
             return CalculateDesignYieldingStressRebar(material) / material.E;
         }
 
-        protected double CalculateDesignUltimateStrainRebar(SteelMaterial material)
+        protected override double CalculateDesignUltimateStrainTensionRebar(SteelMaterial material)
         {
             return material.StrainUTension;
         }
 
-        protected double CalculateDesignYieldingStrainStructuralSteel(SteelMaterial material)
+        protected override double CalculateDesignYieldingStrainCompressionRebar(SteelMaterial material)
+        {
+            return -CalculateDesignYieldingStressRebar(material) / material.E;
+        }
+
+        protected override double CalculateDesignUltimateStrainCompressionRebar(SteelMaterial material)
+        {
+            return material.StrainUCompression;
+        }
+
+        protected override double CalculateDesignYieldingStrainTensionStructuralSteel(SteelMaterial material)
         {
             return material.Fyk / material.E;
         }
 
-        protected double CalculateDesignUltimateStrainStructuralSteel(SteelMaterial material)
+        protected override double CalculateDesignUltimateStrainTensionStructuralSteel(SteelMaterial material)
         {
             return material.StrainUTension;
+        }
+
+        protected override double CalculateDesignYieldingStrainCompressionStructuralSteel(SteelMaterial material)
+        {
+            return -CalculateDesignYieldingStrainTensionStructuralSteel(material);
+        }
+
+        protected override double CalculateDesignUltimateStrainCompressionStructuralSteel(SteelMaterial material)
+        {
+            return material.StrainUCompression;
         }
 
         #endregion
