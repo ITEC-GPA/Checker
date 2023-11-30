@@ -12,12 +12,11 @@ using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
-using MathNet.Numerics.Financial;
+using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
@@ -1303,12 +1302,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="failureZone"></param>
         /// <param name="tensionPoints">Points of rotation possible in tension.</param>
         /// <param name="compressionPoints">Points of rotation possible in compression.</param>
-        internal void CalculateRotationPointsPerMaterial(in double teta, in FailureDomainTypes analysisType, in FailureZones failureZone, out DeformationFieldsPoint[] tensionPoints, out DeformationFieldsPoint[] compressionPoints)
+        /// <param name="minDistanceCompression">Point with minimum y that can be compressed.</param>
+        /// <param name="minDistanceTension">Point with minimum y that can be tensioned.</param>
+        /// <param name="elasticEpsilonTension">Yield tensile strain at the farthest point (most in tension).</param>
+        internal void CalculateRotationPointsPerMaterial(in double teta, in FailureDomainTypes analysisType, in bool isFailureZoneF1, out DeformationFieldsPoint[] tensionPoints, out DeformationFieldsPoint[] compressionPoints, out double minDistanceCompression, out double elasticEpsilonTension)
         {
             double cosTeta = Math.Cos(teta);
             double sinTeta = Math.Sin(teta);
             var tensionPointsList = new List<DeformationFieldsPoint>();
             var compressionPointsList = new List<DeformationFieldsPoint>();
+            elasticEpsilonTension = double.MaxValue;
+            double minDistanceTension = double.MaxValue;
 
             // *** Concrete ***
             {
@@ -1336,6 +1340,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         dMinConcrete = w1;
                     }
                 }
+                minDistanceCompression = dMinConcrete;
                 // *** Concrete in tension ***
                 // It can become the P1 point.
                 if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC)
@@ -1351,18 +1356,22 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         case FailureDomainTypes.Plastic:
                             {
                                 maxClsStrain = Math.Min(0.02, GetUltimateStrainConcreteTension());
-                                if (failureZone == FailureZones.F1)
+                                if (isFailureZoneF1)
                                     maxClsStrain = Math.Min(0.01, maxClsStrain);
                             }
                             break;
                     }
                     tensionPointsList.Add(new DeformationFieldsPoint(maxClsStrain, dMinConcretePoint, dMinConcrete));
+                    minDistanceTension = dMinConcrete;
+                    elasticEpsilonTension = GetYieldingStrainConcreteTension();
                 }
                 else if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete &&
                     _concreteSection.Rebars.Count() == 0 && _concreteSection.SteelSections.Count == 0)
                 {
                     // Special case, there is only concrete, a traction point needs to be set.
                     tensionPointsList.Add(new DeformationFieldsPoint(0.0, dMinConcretePoint, dMinConcrete));
+                    minDistanceTension = dMinConcrete;
+                    elasticEpsilonTension = 0.0;
                 }
                 // *** Concrete in compression ***
                 // Also called P2.
@@ -1444,6 +1453,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         {
                             dMinRebarsPoint = positionMin;
                             dMinRebars = w1Min;
+                        }
+                    }
+                    if (dMinRebars < minDistanceCompression)
+                        minDistanceCompression = dMinRebars;
+                    if (dMinRebars < minDistanceTension)
+                    {
+                        minDistanceTension = dMinRebars;
+
+                        switch (analysisType)
+                        {
+                            case FailureDomainTypes.Elastic:
+                                elasticEpsilonTension = 0.0;
+                                break;
+
+                            case FailureDomainTypes.Plastic:
+                                elasticEpsilonTension = CalculateDesignYieldingStrainTensionRebar(rebarsGroup.RebarsMaterial) - rebarsGroup.RebarsEpsilonP;
+                                break;
                         }
                     }
                     // *** Rebars in tension ***
@@ -1530,6 +1556,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             }
                         }
                     }
+                    if (dminStructuralSteel < minDistanceCompression)
+                        minDistanceCompression = dminStructuralSteel;
+                    if (dminStructuralSteel < minDistanceTension)
+                    {
+                        minDistanceTension = dminStructuralSteel;
+
+                        switch (analysisType)
+                        {
+                            case FailureDomainTypes.Elastic:
+                                elasticEpsilonTension = 0.0;
+                                break;
+
+                            case FailureDomainTypes.Plastic:
+                                elasticEpsilonTension = CalculateDesignYieldingStrainTensionStructuralSteel(steelSectionsGroup.SteelSectionsMaterial);
+                                break;
+                        }
+                    }
                     // *** Steel sections in tension ***
                     // It can become the P1 point.
                     {
@@ -1574,8 +1617,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// Remove all insignificant points so that only the effective rotation points remain.
         /// Each point is also associated with a rotation, that is, the minimum rotation in which the rotation point is used.
         /// </summary>
-        /// <param name="tensionPoints"></param>
-        /// <param name="compressionPoints"></param>
+        /// <param name="tensionPoints">Rotation points in tension zone sorted by y-decreasing. The last point is the most distant and tensioned point.</param>
+        /// <param name="compressionPoints">Rotation points in the compression zone sorted by y-increase. The last point is the most distant and compressed point.</param>
         internal void CleanRotationPointsPerMaterial(in DeformationFieldsPoint[] tensionPoints, in DeformationFieldsPoint[] compressionPoints,
             out List<(DeformationFieldsPoint defPoint, double angle)> tensionRotationPoints, out List<(DeformationFieldsPoint defPoint, double angle)> compressionRotationPoints)
         {
@@ -2553,6 +2596,218 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
                 chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
                 return new StrainPlane(centerPoint, teta, chi, centerPointEpsilon, id);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="teta"></param>
+        /// <param name="failureIndex"></param>
+        /// <param name="immersioneNelCampo"></param>
+        /// <param name="tensionRotationPoints"></param>
+        /// <param name="compressionRotationPoints"></param>
+        /// <param name="minDistanceCompression"></param>
+        /// <param name="elasticEpsilonTension">Tension yelding epsilon in most tensioned point.</param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        internal StrainPlane CalculateStrainPlaneMultiPoints(double teta, FailureZones failureIndex, double immersioneNelCampo,
+            List<(DeformationFieldsPoint defPoint, double angle)> tensionRotationPoints, List<(DeformationFieldsPoint defPoint, double angle)> compressionRotationPoints,
+            double minDistanceCompression, double elasticEpsilonTension, int id = -1)
+        {
+            double chiSx = 0.0, chiDx = 0.0, chi;
+            var mostTensionedPoint = tensionRotationPoints.Last();
+            var mostCompressedPoint = compressionRotationPoints.Last();
+            double epsilonMostTension;
+            double epsilonMostCompression;
+
+            var chiF2B_F3Alimit = CalculateF2B_F3Alimit(); // To calculate epsilonMostTension and epsilonMostCompression.
+
+            switch (failureIndex)
+            {
+                case FailureZones.F1:
+                    {
+                        chiSx = 0.0;
+                        chiDx = CalculateF1_F2Alimit();
+                    }
+                    break;
+                case FailureZones.F2A:
+                    {
+                        chiSx = CalculateF1_F2Alimit();
+                        chiDx = CalculateF2A_F2Blimit();
+                    }
+                    break;
+                case FailureZones.F2B:
+                    {
+                        chiSx = CalculateF2A_F2Blimit();
+                        chiDx = chiF2B_F3Alimit;
+                    }
+                    break;
+                case FailureZones.F3A:
+                    {
+                        chiSx = chiF2B_F3Alimit;
+                        chiDx = CalculateF3A_F3Blimit();
+                    }
+                    break;
+                case FailureZones.F3B:
+                    {
+                        chiSx = CalculateF3A_F3Blimit();
+                        chiDx = CalculateF3B_F4limit();
+                    }
+                    break;
+                case FailureZones.F4:
+                    {
+                        chiSx = CalculateF3B_F4limit();
+                        chiDx = 0.0;
+                    }
+                    break;
+            }
+            if (failureIndex != FailureZones.F3A)
+                chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
+            else
+            {
+                // Linear increase in compressed area.
+                double epsilon_p2 = Math.Abs(epsilonMostCompression);
+                double y_sx_F2B = epsilon_p2 / chiSx;
+                double y_dx_F3A = epsilon_p2 / chiDx;
+                double y_immersione = y_sx_F2B + (y_dx_F3A - y_sx_F2B) * immersioneNelCampo;
+                chi = epsilon_p2 / y_immersione;
+            }
+
+            DeformationFieldsPoint rotationPoint;
+
+            switch (failureIndex)
+            {
+                case FailureZones.F1:
+                case FailureZones.F2A:
+                case FailureZones.F2B:
+                    rotationPoint = FindRotationPointTensionZone(chi);
+                    break;
+
+                case FailureZones.F3A:
+                case FailureZones.F3B:
+                case FailureZones.F4:
+                    rotationPoint = FindRotationPointCompressionZone(chi);
+                    break;
+
+                default:
+                    return null;
+            }
+            return new StrainPlane(rotationPoint.point, teta, chi, rotationPoint.epsilon, id);
+
+            // *** Internal utilities. ***
+            double CalculateF1_F2Alimit()
+            {
+                // The section goes from all tension to a compressed part.
+                return FindChiInTensionZone(mostCompressedPoint.defPoint.distanceFromBaricentre, 0.0);
+            }
+
+            double CalculateF2A_F2Blimit()
+            {
+                // Point of transition, at the position with maximum y compressed and minimum epsilon limit.
+                return FindChiInTensionZone(mostCompressedPoint.defPoint.distanceFromBaricentre, compressionRotationPoints.First().defPoint.epsilon);
+            }
+
+            double CalculateF2B_F3Alimit()
+            {
+                // Maximum angle of transition between control given by traction to compression.
+                // Do a search for the maximum angle.
+                int indexMostTension = tensionRotationPoints.Count - 1;
+                int indexMostCompression = compressionRotationPoints.Count - 1;
+                double angle;
+                do
+                {
+                    angle = (tensionRotationPoints[indexMostTension].defPoint.epsilon - compressionRotationPoints[indexMostCompression].defPoint.epsilon) / (compressionRotationPoints[indexMostCompression].defPoint.distanceFromBaricentre - tensionRotationPoints[indexMostTension].defPoint.distanceFromBaricentre);
+
+                    if (tensionRotationPoints[indexMostTension].angle <= angle && compressionRotationPoints[indexMostCompression].angle <= angle)
+                        break;
+                    else
+                    {
+                        if (tensionRotationPoints[indexMostTension].angle == compressionRotationPoints[indexMostCompression].angle)
+                        {
+                            indexMostTension--;
+                            indexMostCompression--;
+                        }
+                        else if (tensionRotationPoints[indexMostTension].angle > compressionRotationPoints[indexMostCompression].angle)
+                        {
+                            indexMostTension--;
+                        }
+                        else
+                        {
+                            indexMostCompression--;
+                        }
+                    }
+                } while (indexMostTension >= 0 && indexMostCompression >= 0);
+
+                if (indexMostTension != tensionRotationPoints.Count - 1)
+                    epsilonMostTension = tensionRotationPoints[indexMostTension].defPoint.epsilon + (tensionRotationPoints[indexMostTension].defPoint.distanceFromBaricentre - mostTensionedPoint.defPoint.distanceFromBaricentre) * angle;
+                else
+                    epsilonMostTension = tensionRotationPoints[indexMostTension].defPoint.epsilon;
+
+                if (indexMostCompression != compressionRotationPoints.Count -1)
+                    epsilonMostCompression = compressionRotationPoints[indexMostCompression].defPoint.epsilon + (mostCompressedPoint.defPoint.distanceFromBaricentre - compressionRotationPoints[indexMostCompression].defPoint.distanceFromBaricentre) * angle;
+                else
+                    epsilonMostCompression = compressionRotationPoints[indexMostCompression].defPoint.epsilon;
+
+                return angle;
+            }
+
+            double CalculateF3A_F3Blimit()
+            {
+                var minTensionInMostTensionedPoint = Math.Min(epsilonMostTension, elasticEpsilonTension);
+                return FindChiInCompressionZone(mostTensionedPoint.defPoint.distanceFromBaricentre, minTensionInMostTensionedPoint);
+            }
+
+            double CalculateF3B_F4limit()
+            {
+                // The section changes to all compressed.
+                return FindChiInCompressionZone(minDistanceCompression, 0.0);
+            }
+
+            // Find the maximum angle passing through (distance, epsilon) bounded by the tension zone.
+            double FindChiInTensionZone(double distance, double epsilon)
+            {
+                for (int i = tensionRotationPoints.Count - 1; i >= 0; i--)
+                {
+                    double angle = (epsilon - tensionRotationPoints[i].defPoint.epsilon) / (tensionRotationPoints[i].defPoint.distanceFromBaricentre - distance);
+                    if (tensionRotationPoints[i].angle <= angle)
+                        return angle;
+                }
+                return 0.0;
+            }
+
+            // Find the maximum angle passing through (distance, epsilon) bounded by the compression zone.
+            double FindChiInCompressionZone(double distance, double epsilon)
+            {
+                for (int i = compressionRotationPoints.Count - 1; i >= 0; i--)
+                {
+                    double angle = (epsilon - compressionRotationPoints[i].defPoint.epsilon) / (compressionRotationPoints[i].defPoint.distanceFromBaricentre - distance);
+                    if (compressionRotationPoints[i].angle <= angle)
+                        return angle;
+                }
+                return 0.0;
+            }
+
+            // Find rotation point from chi bounded by the tension zone.
+            DeformationFieldsPoint FindRotationPointTensionZone(double chiTension)
+            {
+                for (int i = tensionRotationPoints.Count - 1; i >= 0; i--)
+                {
+                    if (tensionRotationPoints[i].angle <= chiTension)
+                        return tensionRotationPoints[i].defPoint;
+                }
+                return tensionRotationPoints[0].defPoint;
+            }
+
+            // Find rotation point from chi bounded by the tension zone.
+            DeformationFieldsPoint FindRotationPointCompressionZone(double chiCompression)
+            {
+                for (int i = compressionRotationPoints.Count - 1; i >= 0; i--)
+                {
+                    if (compressionRotationPoints[i].angle <= chiCompression)
+                        return compressionRotationPoints[i].defPoint;
+                }
+                return compressionRotationPoints[0].defPoint;
             }
         }
 
