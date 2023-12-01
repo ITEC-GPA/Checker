@@ -2075,23 +2075,7 @@ namespace ConcreteTests
             var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardNTC2018Concrete(), section.Centroid,
             false, -1, structuralSteelCode);
 
-            sectionSolverModelCode2010Test.CalculateRotationPointsPerMaterial(rotationAngle, analysisType, false, out DeformationFieldsPoint[] tensionPoints, out DeformationFieldsPoint[] compressionPoints, out double minDistanceCompression, out double elasticEpsilonTension);
-            sectionSolverModelCode2010Test.CleanRotationPointsPerMaterial(tensionPoints, compressionPoints, out List<(DeformationFieldsPoint defPoint, double angle)> tensionRotationPoints, out List<(DeformationFieldsPoint defPoint, double angle)> compressionRotationPoints);
-
-            double minDistanceCompressionF1, elasticEpsilonTensionF1;
-            List<(DeformationFieldsPoint defPoint, double angle)> tensionRotationPointsF1, compressionRotationPointsF1;
-            if (section.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC)
-            {
-                sectionSolverModelCode2010Test.CalculateRotationPointsPerMaterial(rotationAngle, analysisType, true, out DeformationFieldsPoint[] tensionPointsF1, out DeformationFieldsPoint[] compressionPointsF1, out minDistanceCompressionF1, out elasticEpsilonTensionF1);
-                sectionSolverModelCode2010Test.CleanRotationPointsPerMaterial(tensionPointsF1, compressionPointsF1, out tensionRotationPointsF1, out compressionRotationPointsF1);
-            }
-            else
-            {
-                minDistanceCompressionF1 = minDistanceCompression;
-                elasticEpsilonTensionF1 = elasticEpsilonTension;
-                tensionRotationPointsF1 = tensionRotationPoints;
-                compressionRotationPointsF1 = compressionRotationPoints;
-            }
+            sectionSolverModelCode2010Test.CalculateRotationPointsPerMaterial(rotationAngle, analysisType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
 
             var planes = new List<StrainPlane>();
 
@@ -2103,10 +2087,7 @@ namespace ConcreteTests
 
                 for (int j = 0; j < subdivision; j++)
                 {
-                    if (failureZones == SectionSolver.FailureZones.F1)
-                        planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlaneMultiPoints(rotationAngle, failureZones, (double)j / (double)subdivision, tensionRotationPointsF1, compressionRotationPointsF1, minDistanceCompressionF1, elasticEpsilonTensionF1, subIndex));
-                    else
-                        planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlaneMultiPoints(rotationAngle, failureZones, (double)j / (double)subdivision, tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, subIndex));
+                    planes.Add(sectionSolverModelCode2010Test.CalculateStrainPlaneMultiPoints(rotationAngle, failureZones, (double)j / (double)subdivision, failureZones == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, subIndex));
                     subIndex++;
                 }
             }

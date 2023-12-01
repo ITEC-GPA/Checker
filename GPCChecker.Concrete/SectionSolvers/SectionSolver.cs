@@ -12,7 +12,6 @@ using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
-using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
 using System;
 using System.Collections.Generic;
@@ -1299,20 +1298,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         /// <param name="teta"></param>
         /// <param name="analysisType"></param>
-        /// <param name="failureZone"></param>
-        /// <param name="tensionPoints">Points of rotation possible in tension.</param>
-        /// <param name="compressionPoints">Points of rotation possible in compression.</param>
+        /// <param name="tensionRotationPoints">Points of rotation possible in tension.</param>
+        /// <param name="tensionRotationPointsF1">Points of rotation possible in tension in zone F1.</param>
+        /// <param name="compressionRotationPoints">Points of rotation possible in compression.</param>
         /// <param name="minDistanceCompression">Point with minimum y that can be compressed.</param>
-        /// <param name="minDistanceTension">Point with minimum y that can be tensioned.</param>
         /// <param name="elasticEpsilonTension">Yield tensile strain at the farthest point (most in tension).</param>
-        internal void CalculateRotationPointsPerMaterial(in double teta, in FailureDomainTypes analysisType, in bool isFailureZoneF1, out DeformationFieldsPoint[] tensionPoints, out DeformationFieldsPoint[] compressionPoints, out double minDistanceCompression, out double elasticEpsilonTension)
+        internal void CalculateRotationPointsPerMaterial(in double teta, in FailureDomainTypes analysisType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension)
         {
             double cosTeta = Math.Cos(teta);
             double sinTeta = Math.Sin(teta);
             var tensionPointsList = new List<DeformationFieldsPoint>();
+            var tensionPointsListF1 = new List<DeformationFieldsPoint>(); // List very similar to the previous one with the only distinction for FRC sections changing the epsilon to F1 zone.
             var compressionPointsList = new List<DeformationFieldsPoint>();
             elasticEpsilonTension = double.MaxValue;
-            double minDistanceTension = double.MaxValue;
+            double minDistanceTension = double.MaxValue; // Point with minimum y that can be tensioned.
 
             // *** Concrete ***
             {
@@ -1346,6 +1345,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC)
                 {
                     double maxClsStrain = 0.0;
+                    double maxClsStrainF1 = 0.0;
 
                     switch (analysisType)
                     {
@@ -1356,12 +1356,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         case FailureDomainTypes.Plastic:
                             {
                                 maxClsStrain = Math.Min(0.02, GetUltimateStrainConcreteTension());
-                                if (isFailureZoneF1)
-                                    maxClsStrain = Math.Min(0.01, maxClsStrain);
+                                maxClsStrainF1 = Math.Min(0.01, maxClsStrain);
                             }
                             break;
                     }
                     tensionPointsList.Add(new DeformationFieldsPoint(maxClsStrain, dMinConcretePoint, dMinConcrete));
+                    tensionPointsListF1.Add(new DeformationFieldsPoint(maxClsStrainF1, dMinConcretePoint, dMinConcrete));
                     minDistanceTension = dMinConcrete;
                     elasticEpsilonTension = GetYieldingStrainConcreteTension();
                 }
@@ -1369,7 +1369,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     _concreteSection.Rebars.Count() == 0 && _concreteSection.SteelSections.Count == 0)
                 {
                     // Special case, there is only concrete, a traction point needs to be set.
-                    tensionPointsList.Add(new DeformationFieldsPoint(0.0, dMinConcretePoint, dMinConcrete));
+                    var tensionPoint = new DeformationFieldsPoint(0.0, dMinConcretePoint, dMinConcrete);
+                    tensionPointsList.Add(tensionPoint);
+                    tensionPointsListF1.Add(tensionPoint);
                     minDistanceTension = dMinConcrete;
                     elasticEpsilonTension = 0.0;
                 }
@@ -1488,7 +1490,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                 break;
                         }
                         // maxRebarsStrain should always be positive.
-                        tensionPointsList.Add(new DeformationFieldsPoint(maxRebarsStrain, dMinRebarsPoint, dMinRebars));
+                        var tensionPoint = new DeformationFieldsPoint(maxRebarsStrain, dMinRebarsPoint, dMinRebars);
+                        tensionPointsList.Add(tensionPoint);
+                        tensionPointsListF1.Add(tensionPoint);
                     }
                     // *** Rebars in compression ***
                     {
@@ -1588,7 +1592,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                 maxSteelSectionsStrain = CalculateDesignUltimateStrainTensionStructuralSteel(steelSectionsGroup.SteelSectionsMaterial);
                                 break;
                         }
-                        tensionPointsList.Add(new DeformationFieldsPoint(maxSteelSectionsStrain, dminStructuralSteelVertex, dminStructuralSteel));
+                        var tensionPoint = new DeformationFieldsPoint(maxSteelSectionsStrain, dminStructuralSteelVertex, dminStructuralSteel);
+                        tensionPointsList.Add(tensionPoint);
+                        tensionPointsListF1.Add(tensionPoint);
                     }
                     // *** Steel sections in compression ***
                     {
@@ -1609,8 +1615,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             }
 
-            tensionPoints = tensionPointsList.ToArray();
-            compressionPoints = compressionPointsList.ToArray();
+            // Remove all insignificant points.
+            CleanRotationPointsPerMaterial(tensionPointsList.ToArray(), compressionPointsList.ToArray(), out tensionRotationPoints, out compressionRotationPoints);
+            CleanRotationPointsPerMaterial(tensionPointsListF1.ToArray(), new DeformationFieldsPoint[] {}, out tensionRotationPointsF1, out _);
         }
 
         /// <summary>
@@ -1620,75 +1627,85 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="tensionPoints">Rotation points in tension zone sorted by y-decreasing. The last point is the most distant and tensioned point.</param>
         /// <param name="compressionPoints">Rotation points in the compression zone sorted by y-increase. The last point is the most distant and compressed point.</param>
         internal void CleanRotationPointsPerMaterial(in DeformationFieldsPoint[] tensionPoints, in DeformationFieldsPoint[] compressionPoints,
-            out List<(DeformationFieldsPoint defPoint, double angle)> tensionRotationPoints, out List<(DeformationFieldsPoint defPoint, double angle)> compressionRotationPoints)
+            out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> compressionRotationPoints)
         {
             // *** Tension ***
             var tensionPointsList = tensionPoints.ToList();
-            tensionRotationPoints = new List<(DeformationFieldsPoint defPoint, double angle)>();
-            // Select point with minum tension.
-            var firstTensionRotationPoint = tensionPointsList.Aggregate((min, next) => next.epsilon < min.epsilon || (next.epsilon == min.epsilon && next.distanceFromBaricentre < min.distanceFromBaricentre) ? next : min);
-            tensionRotationPoints.Add((firstTensionRotationPoint, 0.0));
-            tensionPointsList.Remove(firstTensionRotationPoint);
-            // Deletes all tension points with y greater than or equal to that of the first point.
-            tensionPointsList.RemoveAll(p => p.distanceFromBaricentre > firstTensionRotationPoint.distanceFromBaricentre ||
-                (p.distanceFromBaricentre == firstTensionRotationPoint.distanceFromBaricentre && p.epsilon >= firstTensionRotationPoint.epsilon));
-            // Of all remaining points, look for the one that imposes the lowest rotation.
-            // This becomes the next point of rotation.
-            while (tensionPointsList.Count > 0)
+            tensionRotationPoints = new List<DeformationFieldsPoint>();
+            if (tensionPoints.Length > 0)
             {
-                // Find the point that imposes the minimum rotation.
-                double minAngle = double.MaxValue;
-                DeformationFieldsPoint minAnglepoint = null;
-                var lastRotationPoint = tensionRotationPoints.Last();
-                foreach (var tensionPoint in tensionPointsList)
+                // Select point with minum tension.
+                var firstTensionRotationPoint = tensionPointsList.Aggregate((min, next) => next.Epsilon < min.Epsilon || (next.Epsilon == min.Epsilon && next.Distance < min.Distance) ? next : min);
+                firstTensionRotationPoint.Angle = 0.0;
+                tensionRotationPoints.Add(firstTensionRotationPoint);
+                tensionPointsList.Remove(firstTensionRotationPoint);
+                // Deletes all tension points with y greater than or equal to that of the first point.
+                tensionPointsList.RemoveAll(p => p.Distance > firstTensionRotationPoint.Distance ||
+                    (p.Distance == firstTensionRotationPoint.Distance && p.Epsilon >= firstTensionRotationPoint.Epsilon));
+                // Of all remaining points, look for the one that imposes the lowest rotation.
+                // This becomes the next point of rotation.
+                while (tensionPointsList.Count > 0)
                 {
-                    double currAngle = (tensionPoint.epsilon - lastRotationPoint.defPoint.epsilon) / (lastRotationPoint.defPoint.distanceFromBaricentre - tensionPoint.distanceFromBaricentre);
-                    if (currAngle < minAngle)
+                    // Find the point that imposes the minimum rotation.
+                    double minAngle = double.MaxValue;
+                    DeformationFieldsPoint minAnglepoint = null;
+                    var lastRotationPoint = tensionRotationPoints.Last();
+                    foreach (var tensionPoint in tensionPointsList)
                     {
-                        minAngle = currAngle;
-                        minAnglepoint = tensionPoint;
+                        double currAngle = (tensionPoint.Epsilon - lastRotationPoint.Epsilon) / (lastRotationPoint.Distance - tensionPoint.Distance);
+                        if (currAngle < minAngle)
+                        {
+                            minAngle = currAngle;
+                            minAnglepoint = tensionPoint;
+                            minAnglepoint.Angle = minAngle;
+                        }
                     }
+                    // The point found becomes the next rotation point.
+                    tensionRotationPoints.Add(minAnglepoint);
+                    tensionPointsList.Remove(minAnglepoint);
+                    // Deletes all tension points with y greater than or equal to this rotation point.
+                    tensionPointsList.RemoveAll(p => p.Distance > minAnglepoint.Distance ||
+                        (p.Distance == minAnglepoint.Distance && p.Epsilon >= minAnglepoint.Epsilon));
                 }
-                // The point found becomes the next rotation point.
-                tensionRotationPoints.Add((minAnglepoint, minAngle));
-                tensionPointsList.Remove(minAnglepoint);
-                // Deletes all tension points with y greater than or equal to this rotation point.
-                tensionPointsList.RemoveAll(p => p.distanceFromBaricentre > minAnglepoint.distanceFromBaricentre ||
-                    (p.distanceFromBaricentre == minAnglepoint.distanceFromBaricentre && p.epsilon >= minAnglepoint.epsilon));
             }
 
             // *** Compression ***
             var compressionPointsList = compressionPoints.ToList();
-            compressionRotationPoints = new List<(DeformationFieldsPoint defPoint, double angle)>();
-            // Select point with maximum compression.
-            var firstCompressionRotationPoint = compressionPointsList.Aggregate((max, next) => next.epsilon > max.epsilon || (next.epsilon == max.epsilon && next.distanceFromBaricentre > max.distanceFromBaricentre) ? next : max);
-            compressionRotationPoints.Add((firstCompressionRotationPoint, 0.0));
-            compressionPointsList.Remove(firstCompressionRotationPoint);
-            // Deletes all compression points with y less than or equal to that of the first point.
-            compressionPointsList.RemoveAll(p => p.distanceFromBaricentre < firstCompressionRotationPoint.distanceFromBaricentre);
-            // Of all remaining points, look for the one that imposes the lowest rotation.
-            // This becomes the next point of rotation.
-            while (compressionPointsList.Count > 0)
+            compressionRotationPoints = new List<DeformationFieldsPoint>();
+            if (compressionPoints.Length > 0)
             {
-                // Find the point that imposes the minimum rotation.
-                double minAngle = double.MaxValue;
-                DeformationFieldsPoint minAnglepoint = null;
-                var lastRotationPoint = compressionRotationPoints.Last();
-                foreach (var compressionPoint in compressionPointsList)
+                // Select point with maximum compression.
+                var firstCompressionRotationPoint = compressionPointsList.Aggregate((max, next) => next.Epsilon > max.Epsilon || (next.Epsilon == max.Epsilon && next.Distance > max.Distance) ? next : max);
+                firstCompressionRotationPoint.Angle = 0.0;
+                compressionRotationPoints.Add(firstCompressionRotationPoint);
+                compressionPointsList.Remove(firstCompressionRotationPoint);
+                // Deletes all compression points with y less than or equal to that of the first point.
+                compressionPointsList.RemoveAll(p => p.Distance < firstCompressionRotationPoint.Distance);
+                // Of all remaining points, look for the one that imposes the lowest rotation.
+                // This becomes the next point of rotation.
+                while (compressionPointsList.Count > 0)
                 {
-                    double currAngle = (compressionPoint.epsilon - lastRotationPoint.defPoint.epsilon) / (lastRotationPoint.defPoint.distanceFromBaricentre - compressionPoint.distanceFromBaricentre);
-                    if (currAngle < minAngle)
+                    // Find the point that imposes the minimum rotation.
+                    double minAngle = double.MaxValue;
+                    DeformationFieldsPoint minAnglepoint = null;
+                    var lastRotationPoint = compressionRotationPoints.Last();
+                    foreach (var compressionPoint in compressionPointsList)
                     {
-                        minAngle = currAngle;
-                        minAnglepoint = compressionPoint;
+                        double currAngle = (compressionPoint.Epsilon - lastRotationPoint.Epsilon) / (lastRotationPoint.Distance - compressionPoint.Distance);
+                        if (currAngle < minAngle)
+                        {
+                            minAngle = currAngle;
+                            minAnglepoint = compressionPoint;
+                            minAnglepoint.Angle = minAngle;
+                        }
                     }
+                    // The point found becomes the next rotation point.
+                    compressionRotationPoints.Add(minAnglepoint);
+                    compressionPointsList.Remove(minAnglepoint);
+                    // Deletes all tension points with y greater than or equal to this rotation point.
+                    compressionPointsList.RemoveAll(p => p.Distance < minAnglepoint.Distance ||
+                        (p.Distance == minAnglepoint.Distance && p.Epsilon <= minAnglepoint.Epsilon));
                 }
-                // The point found becomes the next rotation point.
-                compressionRotationPoints.Add((minAnglepoint, minAngle));
-                compressionPointsList.Remove(minAnglepoint);
-                // Deletes all tension points with y greater than or equal to this rotation point.
-                compressionPointsList.RemoveAll(p => p.distanceFromBaricentre < minAnglepoint.distanceFromBaricentre ||
-                    (p.distanceFromBaricentre == minAnglepoint.distanceFromBaricentre && p.epsilon <= minAnglepoint.epsilon));
             }
         }
 
@@ -2246,37 +2263,37 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double cosTeta = Math.Cos(teta);
                 double sinTeta = Math.Sin(teta);
 
-                double p1PointY = p1.point.Y * cosTeta - p1.point.X * sinTeta;
-                double p2PointY = p2.point.Y * cosTeta - p2.point.X * sinTeta;
-                double p3PointY = p3.point.Y * cosTeta - p3.point.X * sinTeta;
-                double p4PointY = p4.point.Y * cosTeta - p4.point.X * sinTeta;
-                double p5PointY = p5.point.Y * cosTeta - p5.point.X * sinTeta;
-                double p6PointY = p6.point.Y * cosTeta - p6.point.X * sinTeta;
+                double p1PointY = p1.Point.Y * cosTeta - p1.Point.X * sinTeta;
+                double p2PointY = p2.Point.Y * cosTeta - p2.Point.X * sinTeta;
+                double p3PointY = p3.Point.Y * cosTeta - p3.Point.X * sinTeta;
+                double p4PointY = p4.Point.Y * cosTeta - p4.Point.X * sinTeta;
+                double p5PointY = p5.Point.Y * cosTeta - p5.Point.X * sinTeta;
+                double p6PointY = p6.Point.Y * cosTeta - p6.Point.X * sinTeta;
 
                 // Steel and concrete composite section.
                 // Limit F1-F2A
                 // Limit F2A-F2B
                 double distance_F1_F2A = Math.Max(p2PointY, p5PointY) - p1PointY;
-                double chiF1_limit = p1.epsilon / distance_F1_F2A;
-                double chiF2A_limit = (p1.epsilon + Math.Abs(p3.epsilon)) / distance_F1_F2A;
+                double chiF1_limit = p1.Epsilon / distance_F1_F2A;
+                double chiF2A_limit = (p1.Epsilon + Math.Abs(p3.Epsilon)) / distance_F1_F2A;
 
                 // Limit F3B-F4
                 double epsilonF4_limit;
-                if (p5PointY > p3PointY && p5.epsilon < p3.epsilon && Math.Abs(p5PointY - p3PointY) > zeroDistanceError)
-                    epsilonF4_limit = Math.Max(Math.Min(p5.epsilon - (p5.epsilon - p3.epsilon) * p5.distanceFromBaricentre / (p5PointY - p3PointY), 0.0), p3.epsilon);
+                if (p5PointY > p3PointY && p5.Epsilon < p3.Epsilon && Math.Abs(p5PointY - p3PointY) > zeroDistanceError)
+                    epsilonF4_limit = Math.Max(Math.Min(p5.Epsilon - (p5.Epsilon - p3.Epsilon) * p5.Distance / (p5PointY - p3PointY), 0.0), p3.Epsilon);
                 else
                     epsilonF4_limit = 0.0;
-                double chiF3B_P3_limit = (epsilonF4_limit + Math.Abs(p3.epsilon)) / p3.distanceFromBaricentre;
-                double chiF3B_P5_limit = (epsilonF4_limit + Math.Abs(p5.epsilon)) / (p5PointY - p1PointY);
+                double chiF3B_P3_limit = (epsilonF4_limit + Math.Abs(p3.Epsilon)) / p3.Distance;
+                double chiF3B_P5_limit = (epsilonF4_limit + Math.Abs(p5.Epsilon)) / (p5PointY - p1PointY);
                 double chiF3B_limit = Math.Min(chiF3B_P3_limit, chiF3B_P5_limit);
 
                 // Limit F2B-F3A
                 double chiF2B_P5_limit = double.MaxValue;
                 if (p5PointY > p1PointY && Math.Abs(p5PointY - p1PointY) > zeroDistanceError)
-                    chiF2B_P5_limit = (p1.epsilon + Math.Abs(p5.epsilon)) / (p5PointY - p1PointY);
+                    chiF2B_P5_limit = (p1.Epsilon + Math.Abs(p5.Epsilon)) / (p5PointY - p1PointY);
 
-                double chiF2B_P2_limit = (p1.epsilon + Math.Abs(p2.epsilon)) / (p2PointY - p1PointY);
-                double chiF2B_P3_limit = (p1.epsilon + Math.Abs(p3.epsilon)) / (p3PointY - p1PointY);
+                double chiF2B_P2_limit = (p1.Epsilon + Math.Abs(p2.Epsilon)) / (p2PointY - p1PointY);
+                double chiF2B_P3_limit = (p1.Epsilon + Math.Abs(p3.Epsilon)) / (p3PointY - p1PointY);
                 double chiF2B_limit = Math.Min(chiF2B_P5_limit, Math.Min(chiF2B_P2_limit, chiF2B_P3_limit));
                 // Check the F2A limit; it cannot be greater than the F2B limit.
                 if (chiF2A_limit > chiF2B_limit)
@@ -2293,8 +2310,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     // Point p5 is rotation point and there can be also both p2 and p3.
                     // p5 is the first rotation point.
                     F3_FirstRotationPoint = p5;
-                    double chi_p2_p5 = Math.Abs(p5PointY - p2PointY) > zeroDistanceError ? (p2.epsilon - p5.epsilon) / (p5PointY - p2PointY) : 0.0;
-                    double chi_p3_p5 = Math.Abs(p5PointY - p3PointY) > zeroDistanceError ? (p3.epsilon - p5.epsilon) / (p5PointY - p3PointY) : 0.0;
+                    double chi_p2_p5 = Math.Abs(p5PointY - p2PointY) > zeroDistanceError ? (p2.Epsilon - p5.Epsilon) / (p5PointY - p2PointY) : 0.0;
+                    double chi_p3_p5 = Math.Abs(p5PointY - p3PointY) > zeroDistanceError ? (p3.Epsilon - p5.Epsilon) / (p5PointY - p3PointY) : 0.0;
                     if ((chi_p2_p5 <= 0.0 && chi_p3_p5 <= 0.0) || chi_p2_p5 > chiF2B_limit)
                     {
                         // There are no other rotation points.
@@ -2306,7 +2323,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         F3_SecondRotationPoint = p2;
                         F3_FirstRotationPoint_chi_limit = chi_p2_p5;
                         F3_ThirdRotationPoint = p3;
-                        F3_SecondRotationPoint_chi_limit = (p3.epsilon - p2.epsilon) / (p2PointY - p3PointY);
+                        F3_SecondRotationPoint_chi_limit = (p3.Epsilon - p2.Epsilon) / (p2PointY - p3PointY);
                     }
                     else
                     {
@@ -2324,14 +2341,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     // p3 can be a rotation point.
                     double chi_p3_p2;
                     if (p2PointY > p3PointY && Math.Abs(p2PointY - p3PointY) > zeroDistanceError)
-                        chi_p3_p2 = (p3.epsilon - p2.epsilon) / (p2PointY - p3PointY);
+                        chi_p3_p2 = (p3.Epsilon - p2.Epsilon) / (p2PointY - p3PointY);
                     else
                         chi_p3_p2 = 0.0;
 
                     // p5 can be a rotation point.
                     double chi_p5_p2;
                     if (p2PointY > p5PointY && Math.Abs(p2PointY - p5PointY) > zeroDistanceError)
-                        chi_p5_p2 = (p5.epsilon - p2.epsilon) / (p2PointY - p5PointY);
+                        chi_p5_p2 = (p5.Epsilon - p2.Epsilon) / (p2PointY - p5PointY);
                     else
                         chi_p5_p2 = 0.0;
 
@@ -2395,16 +2412,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 // Limit F3A-F3B
                 double chiF3A_limit = 0.0;
-                double F3FirstRotationPointY = F3_FirstRotationPoint.point.Y * cosTeta - F3_FirstRotationPoint.point.X * sinTeta;
-                double F3SecondRotationPointY = F3_SecondRotationPoint is null ? 0.0 : F3_SecondRotationPoint.point.Y * cosTeta - F3_SecondRotationPoint.point.X * sinTeta;
-                double F3ThirddRotationPointY = F3_ThirdRotationPoint is null ? 0.0 : F3_ThirdRotationPoint.point.Y * cosTeta - F3_ThirdRotationPoint.point.X * sinTeta;
+                double F3FirstRotationPointY = F3_FirstRotationPoint.Point.Y * cosTeta - F3_FirstRotationPoint.Point.X * sinTeta;
+                double F3SecondRotationPointY = F3_SecondRotationPoint is null ? 0.0 : F3_SecondRotationPoint.Point.Y * cosTeta - F3_SecondRotationPoint.Point.X * sinTeta;
+                double F3ThirddRotationPointY = F3_ThirdRotationPoint is null ? 0.0 : F3_ThirdRotationPoint.Point.Y * cosTeta - F3_ThirdRotationPoint.Point.X * sinTeta;
 
                 double chiF3A_P6_firstPoint_limit = double.MaxValue;
-                if (p6.point != null && p6PointY < F3FirstRotationPointY)
-                    chiF3A_P6_firstPoint_limit = (p6.epsilon + Math.Abs(F3_FirstRotationPoint.epsilon)) / (F3FirstRotationPointY - p6PointY);
+                if (p6.Point != null && p6PointY < F3FirstRotationPointY)
+                    chiF3A_P6_firstPoint_limit = (p6.Epsilon + Math.Abs(F3_FirstRotationPoint.Epsilon)) / (F3FirstRotationPointY - p6PointY);
                 double chiF3A_P4_firstPoint_limit = 0.0;
                 if (p4PointY < F3FirstRotationPointY)
-                    chiF3A_P4_firstPoint_limit = (p4.epsilon + Math.Abs(F3_FirstRotationPoint.epsilon)) / (F3FirstRotationPointY - p4PointY);
+                    chiF3A_P4_firstPoint_limit = (p4.Epsilon + Math.Abs(F3_FirstRotationPoint.Epsilon)) / (F3FirstRotationPointY - p4PointY);
                 double chiF3A_firstPoint_limit = Math.Min(chiF3A_P6_firstPoint_limit, chiF3A_P4_firstPoint_limit);
                 if (chiF3A_firstPoint_limit > F3_FirstRotationPoint_chi_limit)
                     chiF3A_limit = chiF3A_firstPoint_limit;
@@ -2413,9 +2430,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     if (F3_SecondRotationPoint != null)
                     {
                         double chiF3A_P6_secondPoint_limit = double.MaxValue;
-                        if (p6.point != null && p6PointY < F3SecondRotationPointY)
-                            chiF3A_P6_secondPoint_limit = (p6.epsilon + Math.Abs(F3_SecondRotationPoint.epsilon)) / (F3SecondRotationPointY - p6PointY);
-                        double chiF3A_P4_secondPoint_limit = (p4.epsilon + Math.Abs(F3_SecondRotationPoint.epsilon)) / (F3SecondRotationPointY - p4PointY);
+                        if (p6.Point != null && p6PointY < F3SecondRotationPointY)
+                            chiF3A_P6_secondPoint_limit = (p6.Epsilon + Math.Abs(F3_SecondRotationPoint.Epsilon)) / (F3SecondRotationPointY - p6PointY);
+                        double chiF3A_P4_secondPoint_limit = (p4.Epsilon + Math.Abs(F3_SecondRotationPoint.Epsilon)) / (F3SecondRotationPointY - p4PointY);
                         double chiF3A_secondPoint_limit = Math.Min(chiF3A_P6_secondPoint_limit, chiF3A_P4_secondPoint_limit);
                         if (chiF3A_secondPoint_limit > F3_SecondRotationPoint_chi_limit)
                             chiF3A_limit = chiF3A_secondPoint_limit;
@@ -2424,9 +2441,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             if (F3_ThirdRotationPoint != null)
                             {
                                 double chiF3A_P6_thirdPoint_limit = double.MaxValue;
-                                if (p6.point != null && p6PointY < F3ThirddRotationPointY)
-                                    chiF3A_P6_thirdPoint_limit = (p6.epsilon + Math.Abs(F3_ThirdRotationPoint.epsilon)) / (F3ThirddRotationPointY - p6PointY);
-                                double chiF3A_P4_thirdPoint_limit = (p4.epsilon + Math.Abs(F3_ThirdRotationPoint.epsilon)) / (F3ThirddRotationPointY - p4PointY);
+                                if (p6.Point != null && p6PointY < F3ThirddRotationPointY)
+                                    chiF3A_P6_thirdPoint_limit = (p6.Epsilon + Math.Abs(F3_ThirdRotationPoint.Epsilon)) / (F3ThirddRotationPointY - p6PointY);
+                                double chiF3A_P4_thirdPoint_limit = (p4.Epsilon + Math.Abs(F3_ThirdRotationPoint.Epsilon)) / (F3ThirddRotationPointY - p4PointY);
                                 double chiF3A_thirdPoint_limit = Math.Min(chiF3A_P6_thirdPoint_limit, chiF3A_P4_thirdPoint_limit);
                                 chiF3A_limit = chiF3A_thirdPoint_limit;
                             }
@@ -2484,7 +2501,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else
                 {
                     // Linear increase in compressed area.
-                    double epsilon_p2 = Math.Abs(p2.epsilon);
+                    double epsilon_p2 = Math.Abs(p2.Epsilon);
                     double y_sx_F2B = epsilon_p2 / chiSx;
                     double y_dx_F3A = epsilon_p2 / chiDx;
                     double y_immersione = y_sx_F2B + (y_dx_F3A - y_sx_F2B) * immersioneNelCampo;
@@ -2496,8 +2513,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     case FailureZones.F1:
                     case FailureZones.F2A:
                     case FailureZones.F2B:
-                        centerPoint = p1.point;
-                        centerPointEpsilon = p1.epsilon;
+                        centerPoint = p1.Point;
+                        centerPointEpsilon = p1.Epsilon;
                         break;
 
                     case FailureZones.F3A:
@@ -2505,18 +2522,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     case FailureZones.F4:
                         if (chi >= F3_FirstRotationPoint_chi_limit)
                         {
-                            centerPoint = F3_FirstRotationPoint.point;
-                            centerPointEpsilon = F3_FirstRotationPoint.epsilon;
+                            centerPoint = F3_FirstRotationPoint.Point;
+                            centerPointEpsilon = F3_FirstRotationPoint.Epsilon;
                         }
                         else if (F3_SecondRotationPoint != null && chi >= F3_SecondRotationPoint_chi_limit)
                         {
-                            centerPoint = F3_SecondRotationPoint.point;
-                            centerPointEpsilon = F3_SecondRotationPoint.epsilon;
+                            centerPoint = F3_SecondRotationPoint.Point;
+                            centerPointEpsilon = F3_SecondRotationPoint.Epsilon;
                         }
                         else if (F3_ThirdRotationPoint != null)
                         {
-                            centerPoint = F3_ThirdRotationPoint.point;
-                            centerPointEpsilon = F3_ThirdRotationPoint.epsilon;
+                            centerPoint = F3_ThirdRotationPoint.Point;
+                            centerPointEpsilon = F3_ThirdRotationPoint.Epsilon;
                         }
                         else
                             return null;
@@ -2529,11 +2546,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             else
             {
-                double chiF1_limit = p1.epsilon / p1.distanceFromBaricentre;
-                double chiF2A_limit = (p1.epsilon + Math.Abs(p3.epsilon)) / p1.distanceFromBaricentre;
-                double chiF2B_limit = (p1.epsilon + Math.Abs(p2.epsilon)) / p1.distanceFromBaricentre;
-                double chiF3A_limit = (p4.epsilon + Math.Abs(p2.epsilon)) / p4.distanceFromBaricentre;
-                double chiF3B_limit = Math.Abs(p2.epsilon) / p2.distanceFromBaricentre;
+                double chiF1_limit = p1.Epsilon / p1.Distance;
+                double chiF2A_limit = (p1.Epsilon + Math.Abs(p3.Epsilon)) / p1.Distance;
+                double chiF2B_limit = (p1.Epsilon + Math.Abs(p2.Epsilon)) / p1.Distance;
+                double chiF3A_limit = (p4.Epsilon + Math.Abs(p2.Epsilon)) / p4.Distance;
+                double chiF3B_limit = Math.Abs(p2.Epsilon) / p2.Distance;
 
                 double chiSx;
                 double chiDx;
@@ -2547,48 +2564,48 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         chiSx = 0;
                         chiDx = chiF1_limit;
 
-                        centerPoint = p1.point;
-                        centerPointEpsilon = p1.epsilon;
+                        centerPoint = p1.Point;
+                        centerPointEpsilon = p1.Epsilon;
                         break;
 
                     case FailureZones.F2A:
                         chiSx = chiF1_limit;
                         chiDx = chiF2A_limit;
 
-                        centerPoint = p1.point;
-                        centerPointEpsilon = p1.epsilon;
+                        centerPoint = p1.Point;
+                        centerPointEpsilon = p1.Epsilon;
                         break;
 
                     case FailureZones.F2B:
                         chiSx = chiF2A_limit;
                         chiDx = chiF2B_limit;
 
-                        centerPoint = p1.point;
-                        centerPointEpsilon = p1.epsilon;
+                        centerPoint = p1.Point;
+                        centerPointEpsilon = p1.Epsilon;
                         break;
 
                     case FailureZones.F3A:
                         chiSx = chiF2B_limit;
                         chiDx = chiF3A_limit;
 
-                        centerPoint = p2.point;
-                        centerPointEpsilon = p2.epsilon;
+                        centerPoint = p2.Point;
+                        centerPointEpsilon = p2.Epsilon;
                         break;
 
                     case FailureZones.F3B:
                         chiSx = chiF3A_limit;
                         chiDx = chiF3B_limit;
 
-                        centerPoint = p2.point;
-                        centerPointEpsilon = p2.epsilon;
+                        centerPoint = p2.Point;
+                        centerPointEpsilon = p2.Epsilon;
                         break;
 
                     case FailureZones.F4:
                         chiSx = chiF3B_limit;
                         chiDx = 0.0;
 
-                        centerPoint = p3.point;
-                        centerPointEpsilon = p3.epsilon;
+                        centerPoint = p3.Point;
+                        centerPointEpsilon = p3.Epsilon;
                         break;
 
                     default:
@@ -2612,7 +2629,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <param name="id"></param>
         /// <returns></returns>
         internal StrainPlane CalculateStrainPlaneMultiPoints(double teta, FailureZones failureIndex, double immersioneNelCampo,
-            List<(DeformationFieldsPoint defPoint, double angle)> tensionRotationPoints, List<(DeformationFieldsPoint defPoint, double angle)> compressionRotationPoints,
+            List<DeformationFieldsPoint> tensionRotationPoints, List<DeformationFieldsPoint> compressionRotationPoints,
             double minDistanceCompression, double elasticEpsilonTension, int id = -1)
         {
             double chiSx = 0.0, chiDx = 0.0, chi;
@@ -2693,19 +2710,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 default:
                     return null;
             }
-            return new StrainPlane(rotationPoint.point, teta, chi, rotationPoint.epsilon, id);
+            return new StrainPlane(rotationPoint.Point, teta, chi, rotationPoint.Epsilon, id);
 
+            // ***************************
             // *** Internal utilities. ***
             double CalculateF1_F2Alimit()
             {
                 // The section goes from all tension to a compressed part.
-                return FindChiInTensionZone(mostCompressedPoint.defPoint.distanceFromBaricentre, 0.0);
+                return FindChiInTensionZone(mostCompressedPoint.Distance, 0.0);
             }
 
             double CalculateF2A_F2Blimit()
             {
                 // Point of transition, at the position with maximum y compressed and minimum epsilon limit.
-                return FindChiInTensionZone(mostCompressedPoint.defPoint.distanceFromBaricentre, compressionRotationPoints.First().defPoint.epsilon);
+                return FindChiInTensionZone(mostCompressedPoint.Distance, compressionRotationPoints.First().Epsilon);
             }
 
             double CalculateF2B_F3Alimit()
@@ -2717,18 +2735,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double angle;
                 do
                 {
-                    angle = (tensionRotationPoints[indexMostTension].defPoint.epsilon - compressionRotationPoints[indexMostCompression].defPoint.epsilon) / (compressionRotationPoints[indexMostCompression].defPoint.distanceFromBaricentre - tensionRotationPoints[indexMostTension].defPoint.distanceFromBaricentre);
+                    angle = (tensionRotationPoints[indexMostTension].Epsilon - compressionRotationPoints[indexMostCompression].Epsilon) / (compressionRotationPoints[indexMostCompression].Distance - tensionRotationPoints[indexMostTension].Distance);
 
-                    if (tensionRotationPoints[indexMostTension].angle <= angle && compressionRotationPoints[indexMostCompression].angle <= angle)
+                    if (tensionRotationPoints[indexMostTension].Angle <= angle && compressionRotationPoints[indexMostCompression].Angle <= angle)
                         break;
                     else
                     {
-                        if (tensionRotationPoints[indexMostTension].angle == compressionRotationPoints[indexMostCompression].angle)
+                        if (tensionRotationPoints[indexMostTension].Angle == compressionRotationPoints[indexMostCompression].Angle)
                         {
                             indexMostTension--;
                             indexMostCompression--;
                         }
-                        else if (tensionRotationPoints[indexMostTension].angle > compressionRotationPoints[indexMostCompression].angle)
+                        else if (tensionRotationPoints[indexMostTension].Angle > compressionRotationPoints[indexMostCompression].Angle)
                         {
                             indexMostTension--;
                         }
@@ -2740,14 +2758,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 } while (indexMostTension >= 0 && indexMostCompression >= 0);
 
                 if (indexMostTension != tensionRotationPoints.Count - 1)
-                    epsilonMostTension = tensionRotationPoints[indexMostTension].defPoint.epsilon + (tensionRotationPoints[indexMostTension].defPoint.distanceFromBaricentre - mostTensionedPoint.defPoint.distanceFromBaricentre) * angle;
+                    epsilonMostTension = tensionRotationPoints[indexMostTension].Epsilon + (tensionRotationPoints[indexMostTension].Distance - mostTensionedPoint.Distance) * angle;
                 else
-                    epsilonMostTension = tensionRotationPoints[indexMostTension].defPoint.epsilon;
+                    epsilonMostTension = tensionRotationPoints[indexMostTension].Epsilon;
 
-                if (indexMostCompression != compressionRotationPoints.Count -1)
-                    epsilonMostCompression = compressionRotationPoints[indexMostCompression].defPoint.epsilon + (mostCompressedPoint.defPoint.distanceFromBaricentre - compressionRotationPoints[indexMostCompression].defPoint.distanceFromBaricentre) * angle;
+                if (indexMostCompression != compressionRotationPoints.Count - 1)
+                    epsilonMostCompression = compressionRotationPoints[indexMostCompression].Epsilon + (mostCompressedPoint.Distance - compressionRotationPoints[indexMostCompression].Distance) * angle;
                 else
-                    epsilonMostCompression = compressionRotationPoints[indexMostCompression].defPoint.epsilon;
+                    epsilonMostCompression = compressionRotationPoints[indexMostCompression].Epsilon;
 
                 return angle;
             }
@@ -2755,7 +2773,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double CalculateF3A_F3Blimit()
             {
                 var minTensionInMostTensionedPoint = Math.Min(epsilonMostTension, elasticEpsilonTension);
-                return FindChiInCompressionZone(mostTensionedPoint.defPoint.distanceFromBaricentre, minTensionInMostTensionedPoint);
+                return FindChiInCompressionZone(mostTensionedPoint.Distance, minTensionInMostTensionedPoint);
             }
 
             double CalculateF3B_F4limit()
@@ -2769,8 +2787,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 for (int i = tensionRotationPoints.Count - 1; i >= 0; i--)
                 {
-                    double angle = (epsilon - tensionRotationPoints[i].defPoint.epsilon) / (tensionRotationPoints[i].defPoint.distanceFromBaricentre - distance);
-                    if (tensionRotationPoints[i].angle <= angle)
+                    double angle = (epsilon - tensionRotationPoints[i].Epsilon) / (tensionRotationPoints[i].Distance - distance);
+                    if (tensionRotationPoints[i].Angle <= angle)
                         return angle;
                 }
                 return 0.0;
@@ -2781,8 +2799,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 for (int i = compressionRotationPoints.Count - 1; i >= 0; i--)
                 {
-                    double angle = (epsilon - compressionRotationPoints[i].defPoint.epsilon) / (compressionRotationPoints[i].defPoint.distanceFromBaricentre - distance);
-                    if (compressionRotationPoints[i].angle <= angle)
+                    double angle = (epsilon - compressionRotationPoints[i].Epsilon) / (compressionRotationPoints[i].Distance - distance);
+                    if (compressionRotationPoints[i].Angle <= angle)
                         return angle;
                 }
                 return 0.0;
@@ -2793,10 +2811,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 for (int i = tensionRotationPoints.Count - 1; i >= 0; i--)
                 {
-                    if (tensionRotationPoints[i].angle <= chiTension)
-                        return tensionRotationPoints[i].defPoint;
+                    if (tensionRotationPoints[i].Angle <= chiTension)
+                        return tensionRotationPoints[i];
                 }
-                return tensionRotationPoints[0].defPoint;
+                return tensionRotationPoints[0];
             }
 
             // Find rotation point from chi bounded by the tension zone.
@@ -2804,10 +2822,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 for (int i = compressionRotationPoints.Count - 1; i >= 0; i--)
                 {
-                    if (compressionRotationPoints[i].angle <= chiCompression)
-                        return compressionRotationPoints[i].defPoint;
+                    if (compressionRotationPoints[i].Angle <= chiCompression)
+                        return  compressionRotationPoints[i];
                 }
-                return compressionRotationPoints[0].defPoint;
+                return compressionRotationPoints[0];
             }
         }
 
@@ -3116,7 +3134,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         // 2023-07-11 AA - part 3 of 3
                         // If these two epsilon values are equal the F2B field collapses, a problem emerged with ACI.
                         // If they are equal, p2 and p3 are also equal.
-                        if (failureIndex == FailureZones.F2B && p2.epsilon == p3.epsilon)
+                        if (failureIndex == FailureZones.F2B && p2.Epsilon == p3.Epsilon)
                         {
                             if (increment.deltaEta >= 0.0)
                                 failureIndex = FailureZones.F3A;
@@ -3378,7 +3396,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     // 2023-07-11 AA - part 2 of 3
                     // If these two epsilon values are equal the F2B field collapses, a problem emerged with ACI.
                     // If they are equal, p2 and p3 are also equal.
-                    if (p2Eta.epsilon == p3Eta.epsilon)
+                    if (p2Eta.Epsilon == p3Eta.Epsilon)
                     {
                         if (inputFailureZoneNext == FailureZones.F2B)
                             inputFailureZoneNext = FailureZones.F3A;
