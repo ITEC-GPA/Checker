@@ -51,7 +51,7 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        [TestCategory("Convergence problem.")]
+        //[TestCategory("Convergence problem.")]
         public void RectangularSectionTest2()
         {
             double rebarDiameter = 18;
@@ -71,7 +71,7 @@ namespace ConcreteTests
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, -100 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section)),
-				//new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),  // This force makes iteration method divergent.
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
@@ -82,7 +82,7 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        [TestCategory("Convergence problem.")]
+        //[TestCategory("Convergence problem.")]
         public void RectangularSectionTest3()
         {
             double rebarDiameter = 18;
@@ -102,7 +102,7 @@ namespace ConcreteTests
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, -100 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section)),
-				//new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),  // This force makes iteration method divergent.
+				new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
 				new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
@@ -890,8 +890,8 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        [Ignore("The search for the domain point does not converge.")]
-        [TestCategory("Convergence problem.")]
+        //[Ignore("The search for the domain point does not converge.")]
+        //[TestCategory("Convergence problem.")]
         public void RectangularSectionTest26()
         {
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);

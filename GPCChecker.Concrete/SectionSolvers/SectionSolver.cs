@@ -1617,7 +1617,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             // Remove all insignificant points.
             CleanRotationPointsPerMaterial(tensionPointsList.ToArray(), compressionPointsList.ToArray(), out tensionRotationPoints, out compressionRotationPoints);
-            CleanRotationPointsPerMaterial(tensionPointsListF1.ToArray(), new DeformationFieldsPoint[] {}, out tensionRotationPointsF1, out _);
+            CleanRotationPointsPerMaterial(tensionPointsListF1.ToArray(), new DeformationFieldsPoint[] { }, out tensionRotationPointsF1, out _);
         }
 
         /// <summary>
@@ -1630,7 +1630,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> compressionRotationPoints)
         {
             // *** Tension ***
-            var tensionPointsList = tensionPoints.ToList();
+            var tensionPointsList = tensionPoints.Distinct(new ComparerEqualRotationPoints()).ToList();
             tensionRotationPoints = new List<DeformationFieldsPoint>();
             if (tensionPoints.Length > 0)
             {
@@ -1664,13 +1664,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     tensionRotationPoints.Add(minAnglepoint);
                     tensionPointsList.Remove(minAnglepoint);
                     // Deletes all tension points with y greater than or equal to this rotation point.
-                    tensionPointsList.RemoveAll(p => p.Distance > minAnglepoint.Distance ||
-                        (p.Distance == minAnglepoint.Distance && p.Epsilon >= minAnglepoint.Epsilon));
+                    if (tensionPointsList.Count > 0)
+                        tensionPointsList.RemoveAll(p => p.Distance > minAnglepoint.Distance ||
+                            (p.Distance == minAnglepoint.Distance && p.Epsilon >= minAnglepoint.Epsilon));
                 }
             }
 
             // *** Compression ***
-            var compressionPointsList = compressionPoints.ToList();
+            var compressionPointsList = compressionPoints.Distinct(new ComparerEqualRotationPoints()).ToList();
             compressionRotationPoints = new List<DeformationFieldsPoint>();
             if (compressionPoints.Length > 0)
             {
@@ -1703,8 +1704,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     compressionRotationPoints.Add(minAnglepoint);
                     compressionPointsList.Remove(minAnglepoint);
                     // Deletes all tension points with y greater than or equal to this rotation point.
-                    compressionPointsList.RemoveAll(p => p.Distance < minAnglepoint.Distance ||
-                        (p.Distance == minAnglepoint.Distance && p.Epsilon <= minAnglepoint.Epsilon));
+                    if (compressionPointsList.Count > 0)
+                        compressionPointsList.RemoveAll(p => p.Distance < minAnglepoint.Distance ||
+                            (p.Distance == minAnglepoint.Distance && p.Epsilon <= minAnglepoint.Epsilon));
                 }
             }
         }
@@ -1732,389 +1734,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             }
             return new ForceTuple(forceTuple.N / denomN, forceTuple.Mx / denomMx, forceTuple.My / denomMy);
-        }
-
-        #endregion
-
-        #region Protected method - Failure domain limit points
-
-        /// <summary>
-        /// Calculate P1 point.
-        /// Rotation point of deformations in the most tensioned bar (minor distance) with the deformation at the point.
-        /// </summary>
-        /// <param name="distances"></param>
-        /// <param name="analysisType"></param>
-        /// <param name="failureZone"></param>
-        /// <returns></returns>
-        internal virtual DeformationFieldsPoint GetP1(BoundaryDistances distances,
-            FailureDomainTypes analysisType, FailureZones failureZone)
-        {
-            Point2d minRebarsPoint = null;
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.Rebars.Count() > 0)
-            {
-                var minRebar = _concreteSection.GetRebarById(distances.dMinRebarId);
-                double radius = 0.5 * minRebar.RebarSection.Diameter;
-                var deltaMinRebarsPoint = new Point2d(radius * Math.Sin(distances.teta), -radius * Math.Cos(distances.teta));
-                minRebarsPoint = minRebar.Position + deltaMinRebarsPoint;
-            }
-
-            if (_concreteSection.IsCompositeSteelConcrete)
-            {
-                var minSteelPoint = distances.dMinStrucSteelVertex;
-                var minSteelDistance = distances.dmaxConcrete - distances.dminStrucSteel;
-                double minSteelStrain = 0.0;
-                double minRebarsStrain = 0.0;
-                double minClsStrain = 0.0;
-
-                switch (_concreteSection.ConcreteMaterial.ConcreteType)
-                {
-                    case ConcreteMaterial.ConcreteTypes.Concrete:
-                        {
-                            switch (analysisType)
-                            {
-                                case FailureDomainTypes.Elastic:
-
-                                    minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignYieldingStrainStructuralSteel(s.Section));
-                                    if (_concreteSection.RebarsCount > 0)
-                                        minRebarsStrain = GetDesignYieldingStrainRebar(distances.dMinRebarId) - _concreteSection.GetRebarById(distances.dMinRebarId).EpsilonP;
-                                    break;
-
-                                case FailureDomainTypes.Plastic:
-
-                                    minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignUltimateStrainStructuralSteel(s.Section));
-                                    if (_concreteSection.RebarsCount > 0)
-                                        minRebarsStrain = GetDesignUltimateStrainRebar(distances.dMinRebarId) - _concreteSection.GetRebarById(distances.dMinRebarId).EpsilonP;
-                                    break;
-                            }
-
-                            if (_concreteSection.RebarsCount == 0)
-                            {
-                                return new DeformationFieldsPoint(minSteelStrain, minSteelPoint, minSteelDistance);
-                            }
-                            else
-                            {
-                                var minRebarsDistance = distances.dmaxConcrete - distances.dminRebar;
-
-                                if (minRebarsDistance > minSteelDistance && minRebarsPoint != null)
-                                    return new DeformationFieldsPoint(Math.Min(minSteelStrain, minRebarsStrain), minRebarsPoint, minRebarsDistance);
-                                else
-                                    return new DeformationFieldsPoint(Math.Min(minSteelStrain, minRebarsStrain), minSteelPoint, minSteelDistance);
-                            }
-                        }
-
-                    case ConcreteMaterial.ConcreteTypes.FRC:
-                        {
-                            switch (analysisType)
-                            {
-                                case FailureDomainTypes.Elastic:
-
-                                    minClsStrain = GetYieldingStrainConcreteTension();
-                                    minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignYieldingStrainStructuralSteel(s.Section));
-                                    break;
-
-                                case FailureDomainTypes.Plastic:
-                                    {
-                                        minClsStrain = Math.Min(0.02, GetUltimateStrainConcreteTension());
-
-                                        if (failureZone == FailureZones.F1)
-                                            minClsStrain = Math.Min(0.01, minClsStrain);
-
-                                        minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignUltimateStrainStructuralSteel(s.Section));
-                                    }
-                                    break;
-                            }
-
-                            var minClsPoint = ConcreteSection.Shape.Fill[distances.dMinVertexIndex];
-                            var minClsDistance = distances.dmaxConcrete - distances.dminConcrete;
-
-                            if (minClsDistance > minSteelDistance)
-                                return new DeformationFieldsPoint(Math.Min(minSteelStrain, minClsStrain), minClsPoint, minClsDistance);
-                            else
-                                return new DeformationFieldsPoint(Math.Min(minSteelStrain, minClsStrain), minSteelPoint, minSteelDistance);
-                        }
-
-                    default:
-                        return new DeformationFieldsPoint(0.0, null, 0.0);
-                }
-            }
-            else
-            {
-                switch (_concreteSection.ConcreteMaterial.ConcreteType)
-                {
-                    case ConcreteMaterial.ConcreteTypes.Concrete:
-
-                        switch (analysisType)
-                        {
-                            case FailureDomainTypes.Elastic:
-                                return new DeformationFieldsPoint(GetDesignYieldingStrainRebar(distances.dMinRebarId) - _concreteSection.GetRebarById(distances.dMinRebarId).EpsilonP, minRebarsPoint, (distances.dmaxConcrete - distances.dminRebar));
-
-                            case FailureDomainTypes.Plastic:
-                                return new DeformationFieldsPoint(GetDesignUltimateStrainRebar(distances.dMinRebarId) - _concreteSection.GetRebarById(distances.dMinRebarId).EpsilonP, minRebarsPoint, (distances.dmaxConcrete - distances.dminRebar));
-
-                            default:
-                                return new DeformationFieldsPoint(0.0, null, 0.0);
-                        }
-
-                    case ConcreteMaterial.ConcreteTypes.FRC:
-
-                        switch (analysisType)
-                        {
-                            case FailureDomainTypes.Elastic:
-                                return new DeformationFieldsPoint(GetYieldingStrainConcreteTension(), ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
-                                    (distances.dmaxConcrete - distances.dminConcrete));
-
-                            case FailureDomainTypes.Plastic:
-                                {
-                                    double strain = Math.Min(0.02, GetUltimateStrainConcreteTension());
-
-                                    if (failureZone == FailureZones.F1)
-                                        strain = Math.Min(0.01, strain);
-
-                                    return new DeformationFieldsPoint(strain, ConcreteSection.Shape.Fill[distances.dMinVertexIndex],
-                                        (distances.dmaxConcrete - distances.dminConcrete));
-                                }
-                            default:
-                                return new DeformationFieldsPoint(0.0, null, 0.0);
-                        }
-
-                    default:
-                        return new DeformationFieldsPoint(0.0, null, 0.0);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Calculate P2 point.
-        /// Rotation point of deformations in the most compressed concrete fiber (major distance) with the deformation at the point.
-        /// </summary>
-        /// <param name="distances"></param>
-        /// <param name="analysisType"></param>
-        /// <returns></returns>
-        internal virtual DeformationFieldsPoint GetP2(BoundaryDistances distances,
-            FailureDomainTypes analysisType)
-        {
-            double maxDistance;
-            if (_concreteSection.IsCompositeSteelConcrete)
-                maxDistance = distances.dmaxConcrete - Math.Min(distances.dminConcrete, distances.dminStrucSteel);
-            else
-                maxDistance = distances.dmaxConcrete - distances.dminConcrete;
-
-            switch (_concreteSection.ConcreteMaterial.ConcreteType)
-            {
-                case ConcreteMaterial.ConcreteTypes.Concrete:
-
-                    switch (analysisType)
-                    {
-                        case FailureDomainTypes.Elastic:
-                            return new DeformationFieldsPoint(GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], maxDistance);
-
-                        case FailureDomainTypes.Plastic:
-                            return new DeformationFieldsPoint(GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], maxDistance);
-
-                        default:
-                            return new DeformationFieldsPoint(0.0, null, 0.0);
-                    }
-
-                case ConcreteMaterial.ConcreteTypes.FRC:
-
-                    switch (analysisType)
-                    {
-                        case FailureDomainTypes.Elastic:
-                            return new DeformationFieldsPoint(GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], maxDistance);
-
-                        case FailureDomainTypes.Plastic:
-                            return new DeformationFieldsPoint(GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], maxDistance);
-
-                        default:
-                            return new DeformationFieldsPoint(0.0, null, 0.0);
-                    }
-
-                default:
-                    return new DeformationFieldsPoint(0.0, null, 0.0);
-            }
-        }
-
-        /// <summary>
-        /// Calculate P3 point.
-        /// Intersection of pure compressive strain and maximum compressed edge.
-        /// Rotation point.
-        /// </summary>
-        /// <param name="distances"></param>
-        /// <param name="analysisType"></param>
-        /// <returns></returns>
-        internal virtual DeformationFieldsPoint GetP3(BoundaryDistances distances,
-            FailureDomainTypes analysisType)
-        {
-            double minY;
-            if (_concreteSection.IsCompositeSteelConcrete)
-                minY = Math.Min(distances.dminConcrete, distances.dminStrucSteel);
-            else
-                minY = distances.dminConcrete;
-
-            switch (analysisType)
-            {
-                case FailureDomainTypes.Elastic:
-                    return new DeformationFieldsPoint(GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex], distances.dmaxConcrete - minY);
-
-                case FailureDomainTypes.Plastic:
-                    double fraction = GetYieldingStrainPureCompression() / GetUltimateStrainConcreteCompression();
-                    double heigth = distances.dmaxConcrete - distances.dminConcrete;
-                    double sinTeta = Math.Sin(distances.teta);
-                    double cosTeta = Math.Cos(distances.teta);
-
-                    Point2d strainPlaneCenter = new Point2d(
-                        (distances.dmaxConcrete - (1.0 - fraction) * heigth) * (-sinTeta) + _integrationReferencePoint.X,
-                        (distances.dmaxConcrete - (1.0 - fraction) * heigth) * cosTeta + _integrationReferencePoint.Y);
-
-                    return new DeformationFieldsPoint(GetYieldingStrainPureCompression(), strainPlaneCenter, fraction * heigth + (distances.dminConcrete - minY));
-
-                default:
-                    return new DeformationFieldsPoint(0.0, null, 0.0);
-            }
-        }
-
-        /// <summary>
-        /// Point with yield stress in the bottom bar, useful for identifying the domain point with theoretically the
-        /// maximum resistant moment as the steel is working at maximum tension and the compressed concrete area is maximum.
-        /// It is not a rotation point but a transition point.
-        /// </summary>
-        /// <param name="distances"></param>
-        /// <param name="analysisType"></param>
-        /// <returns></returns>
-        internal virtual DeformationFieldsPoint GetP4(BoundaryDistances distances,
-            FailureDomainTypes analysisType)
-        {
-            switch (_concreteSection.ConcreteMaterial.ConcreteType)
-            {
-                case ConcreteMaterial.ConcreteTypes.Concrete:
-                    {
-                        double minStrain, minY;
-                        Point2d minYpoints;
-
-                        if (distances.dMinRebarId != -1)
-                        {
-                            var minRebar = _concreteSection.GetRebarById(distances.dMinRebarId);
-                            double radius = 0.5 * minRebar.RebarSection.Diameter;
-                            var deltaMinRebarsPoint = new Point2d(radius * Math.Sin(distances.teta), -radius * Math.Cos(distances.teta));
-                            minYpoints = minRebar.Position + deltaMinRebarsPoint;
-                            minY = distances.dminRebar;
-                            minStrain = GetDesignYieldingStrainRebar(distances.dMinRebarId);
-                        }
-                        else
-                        {
-                            minYpoints = ConcreteSection.Shape.Fill[distances.dMinVertexIndex];
-                            minY = distances.dminConcrete;
-                            minStrain = 0.0;
-                        }
-
-                        switch (analysisType)
-                        {
-                            case FailureDomainTypes.Elastic:
-
-                                return new DeformationFieldsPoint(0.0, minYpoints, (distances.dmaxConcrete - minY));
-
-                            case FailureDomainTypes.Plastic:
-
-                                return new DeformationFieldsPoint(minStrain, minYpoints, (distances.dmaxConcrete - minY));
-
-                            default:
-                                return new DeformationFieldsPoint(0.0, null, 0.0);
-                        }
-                    }
-
-                case ConcreteMaterial.ConcreteTypes.FRC:
-                    {
-                        var minY = distances.dminConcrete;
-                        var minYpoints = ConcreteSection.Shape.Fill[distances.dMinVertexIndex];
-                        var minStrain = GetYieldingStrainConcreteTension();
-
-                        switch (analysisType)
-                        {
-                            case FailureDomainTypes.Elastic:
-                                return new DeformationFieldsPoint(0.0, minYpoints, (distances.dmaxConcrete - minY));
-
-                            case FailureDomainTypes.Plastic:
-                                return new DeformationFieldsPoint(minStrain, minYpoints, (distances.dmaxConcrete - minY));
-
-                            default:
-                                return new DeformationFieldsPoint(0.0, null, 0.0);
-                        }
-                    }
-
-                default:
-                    return new DeformationFieldsPoint(0.0, null, 0.0);
-            }
-        }
-
-        /// <summary>
-        /// Most compressed point in steel section, new rotation point required for steel and concrete composite sections.
-        /// (internal notes)
-        /// </summary>
-        /// <param name="distances"></param>
-        /// <param name="analysisType"></param>
-        /// <returns></returns>
-        internal virtual DeformationFieldsPoint GetP5(BoundaryDistances distances, FailureDomainTypes analysisType)
-        {
-            if (_concreteSection.IsCompositeSteelConcrete)
-            {
-                var maxSteelPoint = distances.dMaxStrucSteelVertex;
-                var maxSteelDistance = distances.dmaxStrucSteel - distances.dminConcrete;
-                double minSteelStrain = 0.0;
-
-                switch (analysisType)
-                {
-                    case FailureDomainTypes.Elastic:
-
-                        minSteelStrain = -_concreteSection.SteelSections.Min(s => GetDesignYieldingStrainStructuralSteel(s.Section));
-                        break;
-
-                    case FailureDomainTypes.Plastic:
-
-                        minSteelStrain = -_concreteSection.SteelSections.Min(s => GetDesignUltimateStrainStructuralSteel(s.Section));
-                        break;
-
-                }
-
-                return new DeformationFieldsPoint(minSteelStrain, maxSteelPoint, maxSteelDistance);
-            }
-            else
-                return new DeformationFieldsPoint(0.0, null, 0.0);
-        }
-
-        /// <summary>
-        /// Most tensioned point in steel section, new point required for steel and concrete composite sections.
-        /// Point with yield stress in the bottom steel section point.
-        /// It is not a rotation point but a transition point, similar to P4 but specific for composite sections.
-        /// </summary>
-        /// <param name="distances"></param>
-        /// <param name="analysisType"></param>
-        /// <returns></returns>
-        internal virtual DeformationFieldsPoint GetP6(BoundaryDistances distances, FailureDomainTypes analysisType)
-        {
-            if (_concreteSection.IsCompositeSteelConcrete)
-            {
-                var minSteelPoint = distances.dMinStrucSteelVertex;
-                var minSteelDistance = distances.dmaxConcrete - distances.dminStrucSteel;
-                double minSteelStrain = 0.0;
-
-                switch (analysisType)
-                {
-                    case FailureDomainTypes.Elastic:
-
-                        minSteelStrain = 0.0;
-                        break;
-
-                    case FailureDomainTypes.Plastic:
-
-                        minSteelStrain = _concreteSection.SteelSections.Min(s => GetDesignYieldingStrainStructuralSteel(s.Section));
-                        break;
-
-                }
-
-                return new DeformationFieldsPoint(minSteelStrain, minSteelPoint, minSteelDistance);
-            }
-            else
-                return new DeformationFieldsPoint(0.0, null, 0.0);
         }
 
         #endregion
@@ -2207,13 +1826,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             var strainPlanes = new (StrainPlane, FailureZones, double Immersione)[zoneSubdivision.Select(i => i.Item2).Sum() + zoneSubdivision.Length + 1];
 
-            var sectionDistances = CalculateMaxMinSectionDistances(teta);
-
-            var p2 = GetP2(sectionDistances, failureDomainType);
-            var p3 = GetP3(sectionDistances, failureDomainType);
-            var p4 = GetP4(sectionDistances, failureDomainType);
-            var p5 = GetP5(sectionDistances, failureDomainType);
-            var p6 = GetP6(sectionDistances, failureDomainType);
+            CalculateRotationPointsPerMaterial(teta, failureDomainType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
 
             int subIndex = 0;
 
@@ -2222,398 +1835,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 FailureZones failureZones = zoneSubdivision[i].Item1;
                 int subdivision = zoneSubdivision[i].Item2 + 1;
 
-                var p1 = GetP1(sectionDistances, failureDomainType, failureZones);
-
                 for (int j = 0; j < subdivision; j++)
                 {
                     double immersione = (double)j / (double)subdivision;
-                    strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, immersione, p1, p2, p3, p4, p5, p6, subIndex), failureZones, immersione);
+                    strainPlanes[subIndex] = (CalculateStrainPlaneMultiPoints(teta, failureZones, immersione, failureZones == FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, subIndex), failureZones, immersione);
                     subIndex++;
                 }
 
                 if (failureZones == FailureZones.F4)
-                    strainPlanes[subIndex] = (CalculateStrainPlane(teta, failureZones, 1.0, p1, p2, p3, p4, p5, p6, subIndex), failureZones, 1.0);
+                    strainPlanes[subIndex] = (CalculateStrainPlaneMultiPoints(teta, failureZones, 1.0, tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, subIndex), failureZones, 1.0);
             }
 
             return strainPlanes;
-        }
-
-        /// <summary>
-        /// Calculate the strain plane for angle <paramref name="teta"/> with input <see cref="FailureZones"/> 
-        /// </summary>
-        /// <param name="teta">The angle of rotation of the axis</param>
-        /// <param name="failureIndex">The index of the failure zone</param>
-        /// <param name="immersioneNelCampo"></param>
-        /// <param name="id"></param>
-        /// <returns>Strain Plane</returns>
-        /// <exception cref="ArgumentException"></exception>
-        internal virtual StrainPlane CalculateStrainPlane(double teta, FailureZones failureIndex, double immersioneNelCampo,
-            DeformationFieldsPoint p1, DeformationFieldsPoint p2,
-            DeformationFieldsPoint p3, DeformationFieldsPoint p4,
-            DeformationFieldsPoint p5, DeformationFieldsPoint p6, int id = -1)
-        {
-            if (immersioneNelCampo > 1.0 || immersioneNelCampo < 0.0)
-                throw new ArgumentException("ImmersioneNelCampo cannot be greater than 1 and less than 0");
-
-            if (_concreteSection.IsCompositeSteelConcrete)
-            {
-                double zeroDistanceError = 1E-8;
-
-                // Rotate points.
-                double cosTeta = Math.Cos(teta);
-                double sinTeta = Math.Sin(teta);
-
-                double p1PointY = p1.Point.Y * cosTeta - p1.Point.X * sinTeta;
-                double p2PointY = p2.Point.Y * cosTeta - p2.Point.X * sinTeta;
-                double p3PointY = p3.Point.Y * cosTeta - p3.Point.X * sinTeta;
-                double p4PointY = p4.Point.Y * cosTeta - p4.Point.X * sinTeta;
-                double p5PointY = p5.Point.Y * cosTeta - p5.Point.X * sinTeta;
-                double p6PointY = p6.Point.Y * cosTeta - p6.Point.X * sinTeta;
-
-                // Steel and concrete composite section.
-                // Limit F1-F2A
-                // Limit F2A-F2B
-                double distance_F1_F2A = Math.Max(p2PointY, p5PointY) - p1PointY;
-                double chiF1_limit = p1.Epsilon / distance_F1_F2A;
-                double chiF2A_limit = (p1.Epsilon + Math.Abs(p3.Epsilon)) / distance_F1_F2A;
-
-                // Limit F3B-F4
-                double epsilonF4_limit;
-                if (p5PointY > p3PointY && p5.Epsilon < p3.Epsilon && Math.Abs(p5PointY - p3PointY) > zeroDistanceError)
-                    epsilonF4_limit = Math.Max(Math.Min(p5.Epsilon - (p5.Epsilon - p3.Epsilon) * p5.Distance / (p5PointY - p3PointY), 0.0), p3.Epsilon);
-                else
-                    epsilonF4_limit = 0.0;
-                double chiF3B_P3_limit = (epsilonF4_limit + Math.Abs(p3.Epsilon)) / p3.Distance;
-                double chiF3B_P5_limit = (epsilonF4_limit + Math.Abs(p5.Epsilon)) / (p5PointY - p1PointY);
-                double chiF3B_limit = Math.Min(chiF3B_P3_limit, chiF3B_P5_limit);
-
-                // Limit F2B-F3A
-                double chiF2B_P5_limit = double.MaxValue;
-                if (p5PointY > p1PointY && Math.Abs(p5PointY - p1PointY) > zeroDistanceError)
-                    chiF2B_P5_limit = (p1.Epsilon + Math.Abs(p5.Epsilon)) / (p5PointY - p1PointY);
-
-                double chiF2B_P2_limit = (p1.Epsilon + Math.Abs(p2.Epsilon)) / (p2PointY - p1PointY);
-                double chiF2B_P3_limit = (p1.Epsilon + Math.Abs(p3.Epsilon)) / (p3PointY - p1PointY);
-                double chiF2B_limit = Math.Min(chiF2B_P5_limit, Math.Min(chiF2B_P2_limit, chiF2B_P3_limit));
-                // Check the F2A limit; it cannot be greater than the F2B limit.
-                if (chiF2A_limit > chiF2B_limit)
-                    chiF2A_limit = chiF2B_limit;
-
-                DeformationFieldsPoint F3_FirstRotationPoint;
-                double F3_FirstRotationPoint_chi_limit;
-                DeformationFieldsPoint F3_SecondRotationPoint = null;
-                double F3_SecondRotationPoint_chi_limit = 0.0;
-                DeformationFieldsPoint F3_ThirdRotationPoint = null;
-
-                if (chiF2B_limit == chiF2B_P5_limit)
-                {
-                    // Point p5 is rotation point and there can be also both p2 and p3.
-                    // p5 is the first rotation point.
-                    F3_FirstRotationPoint = p5;
-                    double chi_p2_p5 = Math.Abs(p5PointY - p2PointY) > zeroDistanceError ? (p2.Epsilon - p5.Epsilon) / (p5PointY - p2PointY) : 0.0;
-                    double chi_p3_p5 = Math.Abs(p5PointY - p3PointY) > zeroDistanceError ? (p3.Epsilon - p5.Epsilon) / (p5PointY - p3PointY) : 0.0;
-                    if ((chi_p2_p5 <= 0.0 && chi_p3_p5 <= 0.0) || chi_p2_p5 > chiF2B_limit)
-                    {
-                        // There are no other rotation points.
-                        F3_FirstRotationPoint_chi_limit = 0.0; // no limit
-                    }
-                    else if (chi_p2_p5 > chi_p3_p5)
-                    {
-                        // There are p2 and p3 rotation points.
-                        F3_SecondRotationPoint = p2;
-                        F3_FirstRotationPoint_chi_limit = chi_p2_p5;
-                        F3_ThirdRotationPoint = p3;
-                        F3_SecondRotationPoint_chi_limit = (p3.Epsilon - p2.Epsilon) / (p2PointY - p3PointY);
-                    }
-                    else
-                    {
-                        // There is only p3 rotation point.
-                        F3_SecondRotationPoint = p3;
-                        F3_FirstRotationPoint_chi_limit = chi_p3_p5;
-                    }
-                }
-                else if (chiF2B_limit == chiF2B_P2_limit)
-                {
-                    // The p2 point is rotation point and then there is also the p3 or p5 points.
-                    // p2 is the first rotation point.
-                    F3_FirstRotationPoint = p2;
-
-                    // p3 can be a rotation point.
-                    double chi_p3_p2;
-                    if (p2PointY > p3PointY && Math.Abs(p2PointY - p3PointY) > zeroDistanceError)
-                        chi_p3_p2 = (p3.Epsilon - p2.Epsilon) / (p2PointY - p3PointY);
-                    else
-                        chi_p3_p2 = 0.0;
-
-                    // p5 can be a rotation point.
-                    double chi_p5_p2;
-                    if (p2PointY > p5PointY && Math.Abs(p2PointY - p5PointY) > zeroDistanceError)
-                        chi_p5_p2 = (p5.Epsilon - p2.Epsilon) / (p2PointY - p5PointY);
-                    else
-                        chi_p5_p2 = 0.0;
-
-                    if (p3PointY >= p5PointY)
-                    {
-                        if (chi_p5_p2 > chi_p3_p2)
-                        {
-                            // There is only p5 rotation point.
-                            F3_SecondRotationPoint = p5;
-                            F3_FirstRotationPoint_chi_limit = chi_p5_p2;
-                        }
-                        else
-                        {
-                            // There are p3 and p5 rotation points.
-                            F3_SecondRotationPoint = p3;
-                            F3_FirstRotationPoint_chi_limit = chi_p3_p2;
-                            if (chi_p5_p2 > 0)
-                            {
-                                F3_ThirdRotationPoint = p5;
-                                F3_SecondRotationPoint_chi_limit = chi_p5_p2;
-                            }
-                            else
-                            {
-                                F3_SecondRotationPoint_chi_limit = 0.0;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (chi_p3_p2 > chi_p5_p2)
-                        {
-                            // There is only p5 rotation point.
-                            F3_SecondRotationPoint = p3;
-                            F3_FirstRotationPoint_chi_limit = chi_p3_p2;
-                        }
-                        else
-                        {
-                            // There are p3 and p5 rotation points.
-                            F3_SecondRotationPoint = p5;
-                            F3_FirstRotationPoint_chi_limit = chi_p5_p2;
-                            if (chi_p3_p2 > 0)
-                            {
-                                F3_ThirdRotationPoint = p3;
-                                F3_SecondRotationPoint_chi_limit = chi_p3_p2;
-                            }
-                            else
-                            {
-                                F3_SecondRotationPoint_chi_limit = 0.0;
-                            }
-                        }
-                    }
-                }
-                else if (chiF2B_limit == chiF2B_P3_limit)
-                {
-                    // p3 is the first rotation point.
-                    F3_FirstRotationPoint = p3;
-                    F3_FirstRotationPoint_chi_limit = 0.0; // no limit
-                }
-                else
-                    return null;
-
-                // Limit F3A-F3B
-                double chiF3A_limit = 0.0;
-                double F3FirstRotationPointY = F3_FirstRotationPoint.Point.Y * cosTeta - F3_FirstRotationPoint.Point.X * sinTeta;
-                double F3SecondRotationPointY = F3_SecondRotationPoint is null ? 0.0 : F3_SecondRotationPoint.Point.Y * cosTeta - F3_SecondRotationPoint.Point.X * sinTeta;
-                double F3ThirddRotationPointY = F3_ThirdRotationPoint is null ? 0.0 : F3_ThirdRotationPoint.Point.Y * cosTeta - F3_ThirdRotationPoint.Point.X * sinTeta;
-
-                double chiF3A_P6_firstPoint_limit = double.MaxValue;
-                if (p6.Point != null && p6PointY < F3FirstRotationPointY)
-                    chiF3A_P6_firstPoint_limit = (p6.Epsilon + Math.Abs(F3_FirstRotationPoint.Epsilon)) / (F3FirstRotationPointY - p6PointY);
-                double chiF3A_P4_firstPoint_limit = 0.0;
-                if (p4PointY < F3FirstRotationPointY)
-                    chiF3A_P4_firstPoint_limit = (p4.Epsilon + Math.Abs(F3_FirstRotationPoint.Epsilon)) / (F3FirstRotationPointY - p4PointY);
-                double chiF3A_firstPoint_limit = Math.Min(chiF3A_P6_firstPoint_limit, chiF3A_P4_firstPoint_limit);
-                if (chiF3A_firstPoint_limit > F3_FirstRotationPoint_chi_limit)
-                    chiF3A_limit = chiF3A_firstPoint_limit;
-                else
-                {
-                    if (F3_SecondRotationPoint != null)
-                    {
-                        double chiF3A_P6_secondPoint_limit = double.MaxValue;
-                        if (p6.Point != null && p6PointY < F3SecondRotationPointY)
-                            chiF3A_P6_secondPoint_limit = (p6.Epsilon + Math.Abs(F3_SecondRotationPoint.Epsilon)) / (F3SecondRotationPointY - p6PointY);
-                        double chiF3A_P4_secondPoint_limit = (p4.Epsilon + Math.Abs(F3_SecondRotationPoint.Epsilon)) / (F3SecondRotationPointY - p4PointY);
-                        double chiF3A_secondPoint_limit = Math.Min(chiF3A_P6_secondPoint_limit, chiF3A_P4_secondPoint_limit);
-                        if (chiF3A_secondPoint_limit > F3_SecondRotationPoint_chi_limit)
-                            chiF3A_limit = chiF3A_secondPoint_limit;
-                        else
-                        {
-                            if (F3_ThirdRotationPoint != null)
-                            {
-                                double chiF3A_P6_thirdPoint_limit = double.MaxValue;
-                                if (p6.Point != null && p6PointY < F3ThirddRotationPointY)
-                                    chiF3A_P6_thirdPoint_limit = (p6.Epsilon + Math.Abs(F3_ThirdRotationPoint.Epsilon)) / (F3ThirddRotationPointY - p6PointY);
-                                double chiF3A_P4_thirdPoint_limit = (p4.Epsilon + Math.Abs(F3_ThirdRotationPoint.Epsilon)) / (F3ThirddRotationPointY - p4PointY);
-                                double chiF3A_thirdPoint_limit = Math.Min(chiF3A_P6_thirdPoint_limit, chiF3A_P4_thirdPoint_limit);
-                                chiF3A_limit = chiF3A_thirdPoint_limit;
-                            }
-                        }
-                    }
-                }
-                if (chiF3A_limit < chiF3B_limit)
-                    chiF3A_limit = chiF3B_limit;
-
-                double chiSx;
-                double chiDx;
-                double chi;
-                Point2d centerPoint;
-                double centerPointEpsilon;
-
-                switch (failureIndex)
-                {
-                    case FailureZones.F1:
-                        chiSx = 0;
-                        chiDx = chiF1_limit;
-                        break;
-
-                    case FailureZones.F2A:
-                        chiSx = chiF1_limit;
-                        chiDx = chiF2A_limit;
-                        break;
-
-                    case FailureZones.F2B:
-                        // The maximum rotation can be up to P5, P2 or P3.
-                        // This sets the end of the zone.
-                        chiSx = chiF2A_limit;
-                        chiDx = chiF2B_limit;
-                        break;
-
-                    case FailureZones.F3A:
-                        chiSx = chiF2B_limit;
-                        chiDx = chiF3A_limit;
-                        break;
-
-                    case FailureZones.F3B:
-                        chiSx = chiF3A_limit;
-                        chiDx = chiF3B_limit;
-                        break;
-
-                    case FailureZones.F4:
-                        chiSx = chiF3B_limit;
-                        chiDx = 0.0;
-                        break;
-
-                    default:
-                        return null;
-                }
-                if (failureIndex != FailureZones.F3A)
-                    chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                else
-                {
-                    // Linear increase in compressed area.
-                    double epsilon_p2 = Math.Abs(p2.Epsilon);
-                    double y_sx_F2B = epsilon_p2 / chiSx;
-                    double y_dx_F3A = epsilon_p2 / chiDx;
-                    double y_immersione = y_sx_F2B + (y_dx_F3A - y_sx_F2B) * immersioneNelCampo;
-                    chi = epsilon_p2 / y_immersione;
-                }
-
-                switch (failureIndex)
-                {
-                    case FailureZones.F1:
-                    case FailureZones.F2A:
-                    case FailureZones.F2B:
-                        centerPoint = p1.Point;
-                        centerPointEpsilon = p1.Epsilon;
-                        break;
-
-                    case FailureZones.F3A:
-                    case FailureZones.F3B:
-                    case FailureZones.F4:
-                        if (chi >= F3_FirstRotationPoint_chi_limit)
-                        {
-                            centerPoint = F3_FirstRotationPoint.Point;
-                            centerPointEpsilon = F3_FirstRotationPoint.Epsilon;
-                        }
-                        else if (F3_SecondRotationPoint != null && chi >= F3_SecondRotationPoint_chi_limit)
-                        {
-                            centerPoint = F3_SecondRotationPoint.Point;
-                            centerPointEpsilon = F3_SecondRotationPoint.Epsilon;
-                        }
-                        else if (F3_ThirdRotationPoint != null)
-                        {
-                            centerPoint = F3_ThirdRotationPoint.Point;
-                            centerPointEpsilon = F3_ThirdRotationPoint.Epsilon;
-                        }
-                        else
-                            return null;
-                        break;
-
-                    default:
-                        return null;
-                }
-                return new StrainPlane(centerPoint, teta, chi, centerPointEpsilon, id);
-            }
-            else
-            {
-                double chiF1_limit = p1.Epsilon / p1.Distance;
-                double chiF2A_limit = (p1.Epsilon + Math.Abs(p3.Epsilon)) / p1.Distance;
-                double chiF2B_limit = (p1.Epsilon + Math.Abs(p2.Epsilon)) / p1.Distance;
-                double chiF3A_limit = (p4.Epsilon + Math.Abs(p2.Epsilon)) / p4.Distance;
-                double chiF3B_limit = Math.Abs(p2.Epsilon) / p2.Distance;
-
-                double chiSx;
-                double chiDx;
-                double chi;
-                Point2d centerPoint;
-                double centerPointEpsilon;
-
-                switch (failureIndex)
-                {
-                    case FailureZones.F1:
-                        chiSx = 0;
-                        chiDx = chiF1_limit;
-
-                        centerPoint = p1.Point;
-                        centerPointEpsilon = p1.Epsilon;
-                        break;
-
-                    case FailureZones.F2A:
-                        chiSx = chiF1_limit;
-                        chiDx = chiF2A_limit;
-
-                        centerPoint = p1.Point;
-                        centerPointEpsilon = p1.Epsilon;
-                        break;
-
-                    case FailureZones.F2B:
-                        chiSx = chiF2A_limit;
-                        chiDx = chiF2B_limit;
-
-                        centerPoint = p1.Point;
-                        centerPointEpsilon = p1.Epsilon;
-                        break;
-
-                    case FailureZones.F3A:
-                        chiSx = chiF2B_limit;
-                        chiDx = chiF3A_limit;
-
-                        centerPoint = p2.Point;
-                        centerPointEpsilon = p2.Epsilon;
-                        break;
-
-                    case FailureZones.F3B:
-                        chiSx = chiF3A_limit;
-                        chiDx = chiF3B_limit;
-
-                        centerPoint = p2.Point;
-                        centerPointEpsilon = p2.Epsilon;
-                        break;
-
-                    case FailureZones.F4:
-                        chiSx = chiF3B_limit;
-                        chiDx = 0.0;
-
-                        centerPoint = p3.Point;
-                        centerPointEpsilon = p3.Epsilon;
-                        break;
-
-                    default:
-                        return null;
-                }
-                chi = chiSx + immersioneNelCampo * (chiDx - chiSx);
-                return new StrainPlane(centerPoint, teta, chi, centerPointEpsilon, id);
-            }
         }
 
         /// <summary>
@@ -2823,7 +2056,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 for (int i = compressionRotationPoints.Count - 1; i >= 0; i--)
                 {
                     if (compressionRotationPoints[i].Angle <= chiCompression)
-                        return  compressionRotationPoints[i];
+                        return compressionRotationPoints[i];
                 }
                 return compressionRotationPoints[0];
             }
@@ -3020,16 +2253,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
 
             int id = 1;
-            var distances = CalculateMaxMinSectionDistances(teta);
-
-            var p1 = GetP1(distances, failureDomainType, failureIndex);
-            var p2 = GetP2(distances, failureDomainType);
-            var p3 = GetP3(distances, failureDomainType);
-            var p4 = GetP4(distances, failureDomainType);
-            var p5 = GetP5(distances, failureDomainType);
-            var p6 = GetP6(distances, failureDomainType);
-
-            StrainPlane strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, p5, p6, id);
+            StrainPlane strainPlane = BuildPlane(teta, failureDomainType, failureIndex, eta, id);
 
             teta = strainPlane.Teta;
 
@@ -3131,29 +2355,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                 _log.Add(e.InnerException.Message);
                             return null;
                         }
-                        // 2023-07-11 AA - part 3 of 3
-                        // If these two epsilon values are equal the F2B field collapses, a problem emerged with ACI.
-                        // If they are equal, p2 and p3 are also equal.
-                        if (failureIndex == FailureZones.F2B && p2.Epsilon == p3.Epsilon)
-                        {
-                            if (increment.deltaEta >= 0.0)
-                                failureIndex = FailureZones.F3A;
-                            else
-                                failureIndex = FailureZones.F2A;
-                        }
+                        //// 2023-07-11 AA - part 3 of 3
+                        //// If these two epsilon values are equal the F2B field collapses, a problem emerged with ACI.
+                        //// If they are equal, p2 and p3 are also equal.
+                        //if (failureIndex == FailureZones.F2B && p2.Epsilon == p3.Epsilon)
+                        //{
+                        //    if (increment.deltaEta >= 0.0)
+                        //        failureIndex = FailureZones.F3A;
+                        //    else
+                        //        failureIndex = FailureZones.F2A;
+                        //}
                         SetIncrement(failureDomainType, ref failureIndex, ref teta, ref eta, increment.deltaTeta, increment.deltaEta);
 
-                        distances = CalculateMaxMinSectionDistances(teta);
-
-                        p1 = GetP1(distances, failureDomainType, failureIndex);
-                        p2 = GetP2(distances, failureDomainType);
-                        p3 = GetP3(distances, failureDomainType);
-                        p4 = GetP4(distances, failureDomainType);
-                        p5 = GetP5(distances, failureDomainType);
-                        p6 = GetP6(distances, failureDomainType);
-
                         id++;
-                        strainPlane = CalculateStrainPlane(teta, failureIndex, eta, p1, p2, p3, p4, p5, p6, id);
+                        strainPlane = BuildPlane(teta, failureDomainType, failureIndex, eta, id);
                         forces = GetExternalForces(CalculateForceResultantForDomain(strainPlane, rebarIsInsideAssociation), coordinateSystem);
 
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
@@ -3301,27 +2516,13 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 if (tetaCounter < 10)
                 {
-                    var distancesPlusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta + dTetaBuffer);
-                    var distancesMinusTeta = CalculateMaxMinSectionDistances(inputStrainPlane.Teta - dTetaBuffer);
+                    var tetaPlus = inputStrainPlane.Teta + dTetaBuffer;
+                    CalculateRotationPointsPerMaterial(tetaPlus, failureDomainType, out List<DeformationFieldsPoint> tensionRotationPointsPlusdTeta, out List<DeformationFieldsPoint> tensionRotationPointsF1PlusdTeta, out List<DeformationFieldsPoint> compressionRotationPointsPlusdTeta, out double minDistanceCompressionPlusdTeta, out double elasticEpsilonTensionPlusdTeta);
+                    StrainPlane strainPlanePlusdTeta = CalculateStrainPlaneMultiPoints(tetaPlus, inputFailureZone, inputImmersioneNelCampo, inputFailureZone == FailureZones.F1 ? tensionRotationPointsF1PlusdTeta : tensionRotationPointsPlusdTeta, compressionRotationPointsPlusdTeta, minDistanceCompressionPlusdTeta, elasticEpsilonTensionPlusdTeta);
 
-                    var p1PlusTeta = GetP1(distancesPlusTeta, failureDomainType, inputFailureZone);
-                    var p2PlusTeta = GetP2(distancesPlusTeta, failureDomainType);
-                    var p3PlusTeta = GetP3(distancesPlusTeta, failureDomainType);
-                    var p4PlusTeta = GetP4(distancesPlusTeta, failureDomainType);
-                    var p5PlusTeta = GetP5(distancesPlusTeta, failureDomainType);
-                    var p6PlusTeta = GetP6(distancesPlusTeta, failureDomainType);
-
-                    var p1MinusTeta = GetP1(distancesMinusTeta, failureDomainType, inputFailureZone);
-                    var p2MinusTeta = GetP2(distancesMinusTeta, failureDomainType);
-                    var p3MinusTeta = GetP3(distancesMinusTeta, failureDomainType);
-                    var p4MinusTeta = GetP4(distancesMinusTeta, failureDomainType);
-                    var p5MinusTeta = GetP5(distancesMinusTeta, failureDomainType);
-                    var p6MinusTeta = GetP6(distancesMinusTeta, failureDomainType);
-
-                    StrainPlane strainPlanePlusdTeta = CalculateStrainPlane(distancesPlusTeta.teta, inputFailureZone,
-                        inputImmersioneNelCampo, p1PlusTeta, p2PlusTeta, p3PlusTeta, p4PlusTeta, p5PlusTeta, p6PlusTeta);
-                    StrainPlane strainPlaneMinusdTeta = CalculateStrainPlane(distancesMinusTeta.teta, inputFailureZone,
-                        inputImmersioneNelCampo, p1MinusTeta, p2MinusTeta, p3MinusTeta, p4MinusTeta, p5MinusTeta, p6MinusTeta);
+                    var tetaMinus = inputStrainPlane.Teta - dTetaBuffer;
+                    CalculateRotationPointsPerMaterial(tetaMinus, failureDomainType, out List<DeformationFieldsPoint> tensionRotationPointsMinusdTeta, out List<DeformationFieldsPoint> tensionRotationPointsF1MinusdTeta, out List<DeformationFieldsPoint> compressionRotationPointsMinusdTeta, out double minDistanceCompressionMinusdTeta, out double elasticEpsilonTensionMinusdTeta);
+                    StrainPlane strainPlaneMinusdTeta = CalculateStrainPlaneMultiPoints(tetaMinus, inputFailureZone, inputImmersioneNelCampo, inputFailureZone == FailureZones.F1 ? tensionRotationPointsF1MinusdTeta : tensionRotationPointsMinusdTeta, compressionRotationPointsMinusdTeta, minDistanceCompressionMinusdTeta, elasticEpsilonTensionMinusdTeta);
 
                     var forcesPlusTeta = CalculateForceResultantForDomain(strainPlanePlusdTeta, rebarIsInsideAssociation);
                     var forcesMinusTeta = CalculateForceResultantForDomain(strainPlaneMinusdTeta, rebarIsInsideAssociation);
@@ -3365,8 +2566,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 if (etaCounter < 10)
                 {
-                    var distances = CalculateMaxMinSectionDistances(inputStrainPlane.Teta);
-
                     var immersioneNelCampoNext = inputImmersioneNelCampo + dEtaBuffer;
                     var inputFailureZoneNext = inputFailureZone;
                     var immersioneNelCampoPrev = inputImmersioneNelCampo - dEtaBuffer;
@@ -3387,30 +2586,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         inputFailureZoneNext--;
                     }
 
-                    var p2Eta = GetP2(distances, failureDomainType);
-                    var p3Eta = GetP3(distances, failureDomainType);
-                    var p4Eta = GetP4(distances, failureDomainType);
-                    var p5Eta = GetP5(distances, failureDomainType);
-                    var p6Eta = GetP6(distances, failureDomainType);
+                    CalculateRotationPointsPerMaterial(inputStrainPlane.Teta, failureDomainType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
 
-                    // 2023-07-11 AA - part 2 of 3
-                    // If these two epsilon values are equal the F2B field collapses, a problem emerged with ACI.
-                    // If they are equal, p2 and p3 are also equal.
-                    if (p2Eta.Epsilon == p3Eta.Epsilon)
-                    {
-                        if (inputFailureZoneNext == FailureZones.F2B)
-                            inputFailureZoneNext = FailureZones.F3A;
-                        if (inputFailureZonePrev == FailureZones.F2B)
-                            inputFailureZonePrev = FailureZones.F2A;
-                    }
+                    //// 2023-07-11 AA - part 2 of 3
+                    //// If these two epsilon values are equal the F2B field collapses, a problem emerged with ACI.
+                    //// If they are equal, p2 and p3 are also equal.
+                    //if (p2Eta.Epsilon == p3Eta.Epsilon)
+                    //{
+                    //    if (inputFailureZoneNext == FailureZones.F2B)
+                    //        inputFailureZoneNext = FailureZones.F3A;
+                    //    if (inputFailureZonePrev == FailureZones.F2B)
+                    //        inputFailureZonePrev = FailureZones.F2A;
+                    //}
 
-                    var p1EtaPrev = GetP1(distances, failureDomainType, inputFailureZonePrev);
-                    var p1EtaNext = GetP1(distances, failureDomainType, inputFailureZoneNext);
-
-                    StrainPlane strainPlanePlusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZoneNext,
-                        Math.Min(immersioneNelCampoNext, 1.0), p1EtaNext, p2Eta, p3Eta, p4Eta, p5Eta, p6Eta);
-                    StrainPlane strainPlaneMinusdImm = CalculateStrainPlane(inputStrainPlane.Teta, inputFailureZonePrev,
-                        Math.Max(immersioneNelCampoPrev, 0.0), p1EtaPrev, p2Eta, p3Eta, p4Eta, p5Eta, p6Eta);
+                    StrainPlane strainPlanePlusdImm = CalculateStrainPlaneMultiPoints(inputStrainPlane.Teta, inputFailureZoneNext, Math.Min(immersioneNelCampoNext, 1.0), inputFailureZoneNext == FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension);
+                    StrainPlane strainPlaneMinusdImm = CalculateStrainPlaneMultiPoints(inputStrainPlane.Teta, inputFailureZonePrev, Math.Max(immersioneNelCampoPrev, 0.0), inputFailureZonePrev == FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension);
 
                     var forcesPlusEta = CalculateForceResultantForDomain(strainPlanePlusdImm, rebarIsInsideAssociation);
                     var forcesMinusEta = CalculateForceResultantForDomain(strainPlaneMinusdImm, rebarIsInsideAssociation);
@@ -3690,17 +2880,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     {
                         if (failureZone == FailureZones.F2A)
                         {
-                            var distances = CalculateMaxMinSectionDistances(teta);
-                            var p1 = GetP1(distances, analysisType, failureZone);
-                            var p2 = GetP2(distances, analysisType);
-                            var p3 = GetP3(distances, analysisType);
-                            var p4 = GetP4(distances, analysisType);
-                            var p5 = GetP5(distances, analysisType);
-                            var p6 = GetP6(distances, analysisType);
+                            CalculateRotationPointsPerMaterial(teta, analysisType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
+                            StrainPlane strainPlane = CalculateStrainPlaneMultiPoints(teta, failureZone, eta, failureZone == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension);
 
-                            StrainPlane strainPlane = CalculateStrainPlane(distances.teta, failureZone,
-                                eta, p1, p2, p3, p4, p5, p6);
-                            double strain = strainPlane.GetStrain(_concreteSection.Shape.Fill[distances.dMaxVertexIndex]);
+                            double strain = strainPlane.GetStrain(compressionRotationPoints.Last().Point);
                             if (strain < _concreteSection.ConcreteMaterial.StrainYCompression)
                             {
                                 failureZone++;
@@ -3996,16 +3179,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
-        internal StrainPlane BuildPlane(double theta, FailureDomainTypes failureDomainType, SectionSolver.FailureZones failureIndex, double immersione)
+        internal StrainPlane BuildPlane(double theta, FailureDomainTypes failureDomainType, SectionSolver.FailureZones failureIndex, double immersione, int id = -1)
         {
-            var distances = CalculateMaxMinSectionDistances(theta);
-            var p1 = GetP1(distances, failureDomainType, failureIndex);
-            var p2 = GetP2(distances, failureDomainType);
-            var p3 = GetP3(distances, failureDomainType);
-            var p4 = GetP4(distances, failureDomainType);
-            var p5 = GetP5(distances, failureDomainType);
-            var p6 = GetP6(distances, failureDomainType);
-            return CalculateStrainPlane(theta, failureIndex, immersione, p1, p2, p3, p4, p5, p6);
+            CalculateRotationPointsPerMaterial(theta, failureDomainType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
+            return CalculateStrainPlaneMultiPoints(theta, failureIndex, immersione, failureIndex == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, id);
         }
 
         internal double GetImmersione(FailureDomain.FailureDomainPoint fail, SectionSolver.FailureZones failureIndex)
@@ -4382,6 +3559,35 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public List<string> GetLog()
         {
             return _log;
+        }
+
+        #endregion
+
+        #region Nested class
+
+        /// <summary>
+        /// Ultity class, to delete duplicate rotation points.
+        /// </summary>
+        class ComparerEqualRotationPoints : IEqualityComparer<DeformationFieldsPoint>
+        {
+            public bool Equals(DeformationFieldsPoint x, DeformationFieldsPoint y)
+            {
+                if (ReferenceEquals(x, y)) return true;
+                if (x is null || y is null)
+                    return false;
+                return x.Distance == y.Distance && x.Epsilon == y.Epsilon;
+            }
+
+            public int GetHashCode(DeformationFieldsPoint myObject)
+            {
+                unchecked
+                {
+                    int hashCode = 23;
+                    hashCode = hashCode * -17 + myObject.Distance.GetHashCode();
+                    hashCode = hashCode * -17 + myObject.Epsilon.GetHashCode();
+                    return hashCode;
+                }
+            }
         }
 
         #endregion
