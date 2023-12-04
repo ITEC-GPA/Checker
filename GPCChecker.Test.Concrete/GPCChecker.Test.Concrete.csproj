@@ -51,13 +51,11 @@
     <Reference Include="GPCGeometry, Version=2.0.0.6, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCGeometry.2.0.0.6\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=1.0.5.2, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\gpc-model\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel">
+      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModelData, Version=0.0.1.9, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\gpc-model\GPCModelData\bin\Debug\netstandard2.0\GPCModelData.dll</HintPath>
+    <Reference Include="GPCModelData">
+      <HintPath>..\..\GPCModel\GPCModelData\bin\Debug\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.8, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.8\lib\net472\GPCTestUtilities.dll</HintPath>
