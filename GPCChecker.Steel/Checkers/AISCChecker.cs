@@ -1,4 +1,6 @@
 ﻿using GPC.Checkers.Steel.Results;
+using GPC.Model.ElementProperties;
+using GPC.Model.Elements;
 using GPC.Model.Results.ElementResults;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
@@ -38,7 +40,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Constructor
 
-        public AISCChecker(BeamCheckerAttributes attributes, Options options, Standard standard, int id = IDUNASSIGNED, string name = "")
+        public AISCChecker(BeamElement attributes, Options options, Standard standard, int id = IDUNASSIGNED, string name = "")
             : base(attributes, options, standard, id, name)
         {
 
@@ -55,14 +57,14 @@ namespace GPC.Checkers.Steel.Checkers
 
         public override void PerformCheck()
         {
-            _beamStationResults = PerformCheck(_beamCheckerAttributes.Sections, _beamCheckerAttributes.Results);
+            _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, (BeamResult[])_beamElement.Results.ToArray());
         }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _beamStationResults = PerformCheck(_beamCheckerAttributes.Sections, _beamCheckerAttributes.Results);
+                _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, (BeamResult[])_beamElement.Results.ToArray());
             });
         }
 
@@ -73,9 +75,9 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="steelSection">section of each station</param>
         /// <param name="beamResult">result for each station and loadcase</param>
         /// <returns></returns>
-        protected AISCBeamStationResults[] PerformCheck(ISteelSection[] steelSection, BeamResult[] beamResult)
+        protected AISCBeamStationResults[] PerformCheck(BeamProperty steelSection, BeamResult[] beamResult)
         {
-            AISCBeamStationResults[] stationResults = new AISCBeamStationResults[steelSection.Length * beamResult.Select(i => i.Results.Count).Sum()];
+            AISCBeamStationResults[] stationResults = new AISCBeamStationResults[beamResult.Select(i => i.Results.Count).Sum()];
 
             for (int k = 0; k < beamResult.Length; k++)
             {

@@ -1,4 +1,5 @@
 using GPC.Checkers.Steel.Results;
+using GPC.Model.Elements;
 using GPC.Model.Results;
 using GPC.Model.Results.ElementResults;
 using GPC.Model.Results.ResultLocations;
@@ -67,12 +68,16 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Constructor
 
-        public Cop2011Checker(BeamCheckerAttributes attributes, Cop2011Checker.Cop2011Options options, StandardCopSuos2011 standard, int id = IDUNASSIGNED, string name = "")
-            : base(attributes, options, standard, id, name)
+        public Cop2011Checker(BeamElement beamElement, Cop2011Options options, StandardCopSuos2011 standard, int id = IDUNASSIGNED, string name = "")
+            : base(beamElement, options, standard, id, name)
         {
-            _py = GetPy(attributes.Sections.Select(i => i.SteelMaterial.Fyk).Min(), attributes.Sections.Select(i => i.SteelMaterial.Fu).Min());
-            _beta = 1.0;
-            _epsilon = Math.Sqrt(275 / _py);        //value of Epsilon for section classification            
+            if (beamElement.BeamProperty is SteelSection steelSection)
+            {
+                _py = GetPy(steelSection.SteelMaterial.Fyk, steelSection.SteelMaterial.Fu);
+                _beta = 1.0;
+                _epsilon = Math.Sqrt(275 / _py);        //value of Epsilon for section classification           
+
+            }
         }
 
         public Cop2011Checker(SerializationInfo info, StreamingContext context)
@@ -89,14 +94,14 @@ namespace GPC.Checkers.Steel.Checkers
 
         public override void PerformCheck()
         {
-            _beamStationResults = PerformCheck(_beamCheckerAttributes.Sections, _beamCheckerAttributes.Results);
+            _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, (BeamResult[])_beamElement.Results.ToArray());
         }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _beamStationResults = PerformCheck(_beamCheckerAttributes.Sections, _beamCheckerAttributes.Results);
+                _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, (BeamResult[])_beamElement.Results.ToArray());
             });
         }
 
@@ -107,9 +112,9 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="steelSection">section of each station</param>
         /// <param name="beamResult">result for each station and loadcase</param>
         /// <returns></returns>
-        protected Cop2011BeamStationResults[] PerformCheck(ISteelSection[] steelSection, BeamResult[] beamResult)
+        protected BeamStationResults[] PerformCheck(SteelSection steelSection, BeamResult[] beamResult)
         {
-            Cop2011BeamStationResults[] stationResults = new Cop2011BeamStationResults[steelSection.Length * beamResult.Select(i => i.Results.Count).Sum()];
+            Cop2011BeamStationResults[] stationResults = new Cop2011BeamStationResults[beamResult.Select(i => i.Results.Count).Sum()];
             int index = 0;
 
             double py = _py;
@@ -127,7 +132,7 @@ namespace GPC.Checkers.Steel.Checkers
                         {
                             ResultBeamForces rbf = stationResultBeamForces.ResultBeamForces;
                             //TODO: sistemare ordine sezioni
-                            ISteelSection steelSect = steelSection.FirstOrDefault();
+                            ISteelSection steelSect = steelSection;
 
                             stationResults[index] =
                                 new Cop2011BeamStationResults(steelSect, stationResultBeamForces,

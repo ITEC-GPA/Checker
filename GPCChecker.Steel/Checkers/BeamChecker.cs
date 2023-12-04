@@ -1,8 +1,9 @@
 ﻿using GPC.Checkers.Steel.Results;
+using GPC.Model.Elements;
 using GPC.Model.LoadCases;
+using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
@@ -12,20 +13,20 @@ namespace GPC.Checkers.Steel.Checkers
     {
         #region Variables
 
-        protected readonly BeamCheckerAttributes _beamCheckerAttributes;
+        protected readonly BeamElement _beamElement;
         protected BeamStationResults[] _beamStationResults;
 
         #endregion
 
         #region Properties
 
-        public BeamCheckerAttributes BeamCheckersAttribute => _beamCheckerAttributes;
+        public BeamElement BeamElement => _beamElement;
 
         public BeamStationResults[] BeamStationCheckerResults => _beamStationResults;
 
         public BeamOptions BeamCheckerOptions => (BeamOptions)_options;
 
-        public double BeamLength => _beamCheckerAttributes.Length;
+        public double BeamLength => _beamElement.Length;
 
         /// <summary>
         /// The unique ILoadCases array
@@ -35,35 +36,30 @@ namespace GPC.Checkers.Steel.Checkers
         /// <summary>
         /// Name of the beam
         /// </summary>
-        public string BeamName => _beamCheckerAttributes.Name;
+        public string BeamName => _beamElement.Name;
 
 
         #endregion
 
         #region Constructor
 
-        public BeamChecker(BeamCheckerAttributes beamCheckerAttributes, Options options, Standard standard, string name = "")
-            : this(beamCheckerAttributes, options, standard, Model.ModelObjectId.IDUNASSIGNED, name)
-        {
-            _errorLog = new List<string>();
-        }
-
-        public BeamChecker(BeamCheckerAttributes beamCheckerAttributes, Options options, Standard standard, int id, string name = "")
+        public BeamChecker(BeamElement beamElement, Options options, Standard standard, int id = IDUNASSIGNED, string name = "")
             : base(options, standard, id, name)
         {
-            if (beamCheckerAttributes is null)
-                throw new ArgumentNullException(nameof(beamCheckerAttributes));
-
+            if (beamElement is null)
+                throw new ArgumentNullException(nameof(beamElement));
             if (options is null)
                 throw new ArgumentNullException(nameof(options));
+            if (!(beamElement.BeamProperty is SteelSection))
+                throw new ArgumentNullException(nameof(beamElement.BeamProperty));
 
-            _beamCheckerAttributes = beamCheckerAttributes;
+            _beamElement = beamElement;
         }
 
         protected BeamChecker(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            _beamCheckerAttributes = (BeamCheckerAttributes)info.GetValue("BeamCheckerAttributes", typeof(BeamCheckerAttributes));
+            _beamElement = (BeamElement)info.GetValue("BeamElement", typeof(BeamElement));
         }
 
         #endregion
@@ -112,7 +108,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns>The unique ILoadCases array</returns>
         private ILoadCase[] GetLoadCases()
         {
-            return _beamCheckerAttributes.Results.SelectMany(i => i.Results.Select(j => j.Case)).ToArray();
+            return _beamElement.Results.SelectMany(i => i.Results.Select(j => j.Case)).ToArray();
         }
 
         #endregion
@@ -124,7 +120,7 @@ namespace GPC.Checkers.Steel.Checkers
             base.GetObjectData(info, context);
             info.AddValue("Standard", _standard);
             info.AddValue("Options", _options);
-            info.AddValue("BeamCheckerAttributes", _beamCheckerAttributes);
+            info.AddValue("BeamElement", _beamElement);
         }
 
         public override bool Equals(object obj)
@@ -134,7 +130,7 @@ namespace GPC.Checkers.Steel.Checkers
 
             return obj is BeamChecker checker &&
                 base.Equals(obj) &&
-                _beamCheckerAttributes.Equals(checker._beamCheckerAttributes);
+                _beamElement.Equals(checker._beamElement);
         }
 
         public override int GetHashCode()
@@ -145,7 +141,7 @@ namespace GPC.Checkers.Steel.Checkers
                 hashCode = hashCode * -17 + base.GetHashCode();
                 hashCode = hashCode * -17 + _standard.GetHashCode();
                 hashCode = hashCode * -17 + _options.GetHashCode();
-                hashCode = hashCode * -17 + _beamCheckerAttributes.GetHashCode();
+                hashCode = hashCode * -17 + _beamElement.GetHashCode();
                 return hashCode;
             }
         }
