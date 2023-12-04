@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <Reference Include="GPCModel">
-      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
+      <HintPath>..\..\gpc-model\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
   </ItemGroup>
 
