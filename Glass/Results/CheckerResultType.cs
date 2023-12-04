@@ -7,73 +7,73 @@ using System.Runtime.Serialization;
 
 namespace GPC.Checkers.GlassV2.Results
 {
-	[Serializable]
-	public abstract class CheckerResultType : ModelObjectId, ISerializable
-	{
-		#region Variables
+    [Serializable]
+    public abstract class CheckerResultType : ModelObjectId, ISerializable
+    {
+        #region Variables
 
-		protected readonly IGlassPanel _section;
-		protected readonly Standard _standard;
+        protected readonly GlassPlateProperty _section;
+        protected readonly Standard _standard;
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		public IGlassPanel ConcreteSection => _section;
+        public GlassPlateProperty GlassPlateProperty => _section;
 
-		/// <summary>
-		/// <inheritdoc cref="_standard"/>
-		/// </summary>
-		public Standard Standard => _standard;
+        /// <summary>
+        /// <inheritdoc cref="_standard"/>
+        /// </summary>
+        public Standard Standard => _standard;
 
-		#endregion
+        #endregion
 
-		#region Constructor
+        #region Constructor
 
-		public CheckerResultType(IGlassPanel section, Standard standard, int id = IDUNASSIGNED)
-			: base(id)
-		{
-			_section = section ?? throw new ArgumentNullException(nameof(section));
-			_standard = standard ?? throw new ArgumentNullException(nameof(standard));
-		}
+        public CheckerResultType(GlassPlateProperty section, Standard standard, int id = IDUNASSIGNED)
+            : base(id)
+        {
+            _section = section ?? throw new ArgumentNullException(nameof(section));
+            _standard = standard ?? throw new ArgumentNullException(nameof(standard));
+        }
 
-		protected CheckerResultType(SerializationInfo info, StreamingContext context)
-			: base(info, context)
-		{
-			_section = (IGlassPanel)info.GetValue("Section", typeof(IGlassPanel));
-			_standard = (Standard)info.GetValue("Standard", typeof(Standard));
-		}
+        protected CheckerResultType(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+            _section = (GlassPlateProperty)info.GetValue("Section", typeof(GlassPlateProperty));
+            _standard = (Standard)info.GetValue("Standard", typeof(Standard));
+        }
 
-		#endregion
+        #endregion
 
-		#region Equals, hashcode, operators
+        #region Equals, hashcode, operators
 
-		public override bool Equals(object obj)
-		{
-			return obj is CheckerResultType type &&
-				   base.Equals(obj) &&
-				   EqualityComparer<IGlassPanel>.Default.Equals(_section, type._section);
-		}
+        public override bool Equals(object obj)
+        {
+            return obj is CheckerResultType type &&
+                   base.Equals(obj) &&
+                   EqualityComparer<GlassPlateProperty>.Default.Equals(_section, type._section);
+        }
 
-		public override int GetHashCode()
-		{
-			unchecked
-			{
-				int hashCode = -23;
-				hashCode = hashCode * -17 + base.GetHashCode();
-				hashCode = hashCode * -17 + _section.GetHashCode();
-				hashCode = hashCode * -17 + _standard.GetHashCode();
-				return hashCode;
-			}
-		}
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = -23;
+                hashCode = hashCode * -17 + base.GetHashCode();
+                hashCode = hashCode * -17 + _section.GetHashCode();
+                hashCode = hashCode * -17 + _standard.GetHashCode();
+                return hashCode;
+            }
+        }
 
-		public override void GetObjectData(SerializationInfo info, StreamingContext context)
-		{
-			base.GetObjectData(info, context);
-			info.AddValue("Section", _section);
-			info.AddValue("Standard", _standard);
-		}
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("Section", _section);
+            info.AddValue("Standard", _standard);
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

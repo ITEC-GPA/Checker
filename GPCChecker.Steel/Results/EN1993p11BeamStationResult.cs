@@ -1,16 +1,12 @@
-﻿using System;
+﻿using GPC.Checkers.Steel.Checkers;
+using GPC.Model.LoadCases;
+using GPC.Model.Results.ResultLocations;
+using GPC.Model.Sections.Steel;
+using GPC.Model.Standards;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GPC.Model.Results;
-using GPC.Model.Sections;
-using GPC.Model.Standards;
-using GPC.Model.LoadCases;
-using GPC.Model.Sections.Steel;
-using GPC.Checkers.Steel.Checkers;
 using System.Runtime.Serialization;
-using GPC.Geometry;
 
 namespace GPC.Checkers.Steel.Results
 {
@@ -91,8 +87,8 @@ namespace GPC.Checkers.Steel.Results
         protected double _mCr;
         protected EN1993p11Checker.EN1993p11Options.LateralTorsionalBuckingCurves _lateraltorsionalBucklingCurve;
 
-        protected double _NcrTorsional;     
-        protected double _NcrFlexuralTorsional; 
+        protected double _NcrTorsional;
+        protected double _NcrFlexuralTorsional;
 
         protected double _shearArea1;
         protected double _shearArea2;
@@ -128,8 +124,8 @@ namespace GPC.Checkers.Steel.Results
         protected double _kyy;
 
         protected double _kwInteraction;
-        protected double _kywInteraction; 
-        protected double _kAlphaInteraction; 
+        protected double _kywInteraction;
+        protected double _kAlphaInteraction;
 
 
         #endregion
@@ -319,7 +315,7 @@ namespace GPC.Checkers.Steel.Results
         /// </summary>
         public EN1993p11Checker.EN1993p11Options.AxialBuckingCurves BuckingCurve2 => _axialBuckingCurves2;
 
-        public double ChiLTBuckling =>_chiLTBuckling;
+        public double ChiLTBuckling => _chiLTBuckling;
         public double PhiLTBuckling => _phiLTBuckling;
         public double LambdaSignedLTBuckling => _lambdaSignedLTBuckling;
         public double Lambda0LTBuckling => _lambda0LTBuckling;
@@ -336,12 +332,12 @@ namespace GPC.Checkers.Steel.Results
         /// Lambda about 2-principal axis for axial buckling check
         /// </summary>
         public double LambdaAxialBuckling2 => _lambdaAxialBuckling2;
-               
+
         /// <summary>
         /// Lambda for lateral torsiona buckling check (Appendix 8.1)
         /// </summary>
         public double LambdaLateralTorsionalBuckling => _lambda0LTBuckling;
-                
+
         /// <summary>
         /// Shear area about 1-principal axis (Chapter 8.2.1)
         /// </summary>
@@ -354,17 +350,17 @@ namespace GPC.Checkers.Steel.Results
 
         public double CmX0 => _cmX0;
         public double CmY0 => _cmY0;
-                      
+
         public double Mux => _mux;
         public double Muy => _muy;
-                       
+
         public double Wx => _wx;
         public double Wy => _wy;
-                      
+
         public double Cmx => _cmx;
         public double Cmy => _cmy;
         public double CmLT => _cmLT;
-                       
+
         public double ALT => _aLT;
         public double BLT => _bLT;
         public double CLT => _cLT;
@@ -374,17 +370,17 @@ namespace GPC.Checkers.Steel.Results
         public double Cxy => _cxy;
         public double Cyx => _cyx;
         public double Cyy => _cyy;
-                      
+
         public double EpsilonX => _epsilonx;
-        
+
         public double Kxx => _kxx;
         public double Kxy => _kxy;
         public double Kyx => _kyx;
         public double Kyy => _kyy;
-                      
+
         public double KwInteraction => _kwInteraction;
         public double KywInteraction => _kywInteraction;
-        public double KAlphaInteraction  => _kAlphaInteraction;
+        public double KAlphaInteraction => _kAlphaInteraction;
 
         public double NcrTorsional => _NcrTorsional;
         public double NcrFlexuralTorsional => _NcrFlexuralTorsional;
@@ -396,15 +392,15 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        protected EN1993p11BeamStationResult(ISteelSection section, ResultLocationStation resultLocationStation, ILoadCase Case,
-            EN1993p11Checker.EN1993p11Options checkerOptions, StandardEN1993p11 standard, string name = "") 
+        protected EN1993p11BeamStationResult(ISteelSection section, StationResultBeamForces resultLocationStation, ILoadCase Case,
+            EN1993p11Checker.EN1993p11Options checkerOptions, StandardEN1993p11 standard, string name = "")
             : this(section, resultLocationStation, Case, standard, checkerOptions, name)
         {
 
         }
 
-        internal EN1993p11BeamStationResult(ISteelSection section, ResultLocationStation resultLocationStation, ILoadCase Case, 
-            StandardEN1993p11 standard, EN1993p11Checker.EN1993p11Options checkerOptions, string name = "") 
+        internal EN1993p11BeamStationResult(ISteelSection section, StationResultBeamForces resultLocationStation, ILoadCase Case,
+            StandardEN1993p11 standard, EN1993p11Checker.EN1993p11Options checkerOptions, string name = "")
             : base(section, resultLocationStation, Case, standard, checkerOptions, name)
         {
 
@@ -415,7 +411,7 @@ namespace GPC.Checkers.Steel.Results
 
         #region Public Method
 
-        internal void SetCapacity(double axialTension, double axialCompression, double axialBuck1, double axialBuck2, 
+        internal void SetCapacity(double axialTension, double axialCompression, double axialBuck1, double axialBuck2,
             double shear1, double shear2, double bending1, double bending2, double latTors)
         {
             _axialTensionRd = axialTension < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : axialTension;
@@ -429,8 +425,8 @@ namespace GPC.Checkers.Steel.Results
             _lateralTorsionalMomentRd = latTors < 0 ? throw new ArgumentException($"LateralTorsionalBucklingRd cannot be lower than zero") : latTors;
         }
 
-        internal void SetWorkingRatio(double axialTensionWR, double axialCompressionWR, double axialBuck1WR, double axialBuck2WR, 
-            double shear1WR, double shear2WR, double bending1WR, double bending2WR, double latTorsWR, double crossSectionInteraction, 
+        internal void SetWorkingRatio(double axialTensionWR, double axialCompressionWR, double axialBuck1WR, double axialBuck2WR,
+            double shear1WR, double shear2WR, double bending1WR, double bending2WR, double latTorsWR, double crossSectionInteraction,
             double bucklingInteraction1Axis, double bucklingInteraction2Axis, double flextureTorsionInteraction)
         {
             _axialTensionWorkingRatio = axialTensionWR < 0 ? throw new ArgumentException($"AxialTensionWorkingRatio cannot be lower than zero") : axialTensionWR;
@@ -455,17 +451,17 @@ namespace GPC.Checkers.Steel.Results
             _sectionClass = sectionClass;
         }
 
-        internal void SetBucklingLenght(double lengthAxialBuckling1, double lengthAxialBuckling2, double lengthLateralTorsionalBuckling, 
+        internal void SetBucklingLenght(double lengthAxialBuckling1, double lengthAxialBuckling2, double lengthLateralTorsionalBuckling,
             double lengthCriticalMoment1, double lengthCriticalMoment2)
         {
-            _lengthAxialBuckling1 = lengthAxialBuckling1; 
+            _lengthAxialBuckling1 = lengthAxialBuckling1;
             _lengthAxialBuckling2 = lengthAxialBuckling2;
             _lengthLateralTorsionalBuckling = lengthLateralTorsionalBuckling;
             _lengthCriticalMoment1 = lengthCriticalMoment1;
             _lengthCriticalMoment2 = lengthCriticalMoment2;
         }
 
-        internal void SetResultsForReportAxialBuckling1Axis(double chi1, double phi1, double lambdaSigned1, double alpha1, double nCr1, 
+        internal void SetResultsForReportAxialBuckling1Axis(double chi1, double phi1, double lambdaSigned1, double alpha1, double nCr1,
             EN1993p11Checker.EN1993p11Options.AxialBuckingCurves axialBuckingCurves1)
         {
             _chiAxialBuckling1 = chi1;
@@ -476,7 +472,7 @@ namespace GPC.Checkers.Steel.Results
             _axialBuckingCurves1 = axialBuckingCurves1;
         }
 
-        internal void SetResultsForReportAxialBuckling2Axis(double chi2, double phi2, double lambdaSigned2, double alpha2, double nCr2, 
+        internal void SetResultsForReportAxialBuckling2Axis(double chi2, double phi2, double lambdaSigned2, double alpha2, double nCr2,
             EN1993p11Checker.EN1993p11Options.AxialBuckingCurves axialBuckingCurves2)
         {
             _chiAxialBuckling2 = chi2;
@@ -487,7 +483,7 @@ namespace GPC.Checkers.Steel.Results
             _axialBuckingCurves2 = axialBuckingCurves2;
         }
 
-        internal void SetResultsForReportLateralTorsionalBuckling(double chi, double phi, double lambdaSigned, double lambda0, double alpha, double mCr, 
+        internal void SetResultsForReportLateralTorsionalBuckling(double chi, double phi, double lambdaSigned, double lambda0, double alpha, double mCr,
             EN1993p11Checker.EN1993p11Options.LateralTorsionalBuckingCurves LTBuckingCurves, double NcrT, double NcrFT)
         {
             _chiLTBuckling = chi;
@@ -503,9 +499,9 @@ namespace GPC.Checkers.Steel.Results
 
         internal void SetResultForReportInteractionCoefficient(double cmX0, double cmy0, double mux, double muy, double wx, double wy, double cmx, double cmy, double cmLT,
             double bLT, double cLT, double dLT, double eLT, double cxx, double cxy, double cyx, double cyy, double epsilonx,
-            double kxx, double kxy, double kyx,double kyy, double kwInteraction, double kywInteraction, double kAlphaInteraction)
-        {                                                   
-            _cmX0 = cmX0;                                   
+            double kxx, double kxy, double kyx, double kyy, double kwInteraction, double kywInteraction, double kAlphaInteraction)
+        {
+            _cmX0 = cmX0;
             _cmY0 = cmy0;
 
             _mux = mux;
@@ -541,8 +537,8 @@ namespace GPC.Checkers.Steel.Results
 
         internal override double GetMaxWorkingRatio()
         {
-            List<double> workingRatioList = new List<double>() { _axialTensionWorkingRatio, _axialCompressionWorkingRatio, _axialBuckling1WorkingRatio, 
-                                                                _axialBuckling2WorkingRatio, _shear1WorkingRatio, _shear2WorkingRatio, _bendingMoment1WorkingRatio, 
+            List<double> workingRatioList = new List<double>() { _axialTensionWorkingRatio, _axialCompressionWorkingRatio, _axialBuckling1WorkingRatio,
+                                                                _axialBuckling2WorkingRatio, _shear1WorkingRatio, _shear2WorkingRatio, _bendingMoment1WorkingRatio,
                                                                 _bendingMoment2WorkingRatio, _torsionalMomentWorkingRatio, _lateraTorsionalBucklingWorkingRatio,
                                                                 _bucklingInteraction1Axis, _bucklingInteraction2Axis, _flexuralTorsionalInteraction, _crossSectionInteraction};
 
@@ -550,6 +546,6 @@ namespace GPC.Checkers.Steel.Results
         }
 
         #endregion
-                
+
     }
 }

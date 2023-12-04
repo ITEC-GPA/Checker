@@ -1,19 +1,15 @@
+using GPC.Model.Results.ElementResults;
+using GPC.Model.Sections.Steel;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using GPC.Model.LoadCases;
-using GPC.Model.Results;
-using GPC.Model.Sections.Steel;
 
 namespace GPC.Checkers.Steel.Checkers
 {
     /// <summary>
     /// This class rapresent the results of one beam (multiple loadcase/combination).
     /// </summary>
-    
+
     [Serializable]
     public class BeamCheckerAttributes : Model.ModelObject, ISerializable
     {
@@ -57,15 +53,15 @@ namespace GPC.Checkers.Steel.Checkers
             //{
             //    throw new ArgumentException("Different beam station number");
             //}
-                        
-            if (beamResults.Select(i => i.Length).Distinct().Count() > 1)            
-                throw new ArgumentException("Different beam result lenght");            
+
+            if (beamResults.Select(i => i.Length).Distinct().Count() > 1)
+                throw new ArgumentException("Different beam result lenght");
 
             _sections = Enumerable.Repeat(section, beamResults.FirstOrDefault().ResultLocations.FirstOrDefault().ResultTypes.Length).ToArray();
         }
 
 
-        public BeamCheckerAttributes(ISteelSection[] sections, BeamResult[] beamResults, string name = "") 
+        public BeamCheckerAttributes(ISteelSection[] sections, BeamResult[] beamResults, string name = "")
             : base(name)
         {
             _results = beamResults ?? throw new ArgumentException("Input resultBeamForces can not be null");
@@ -81,7 +77,7 @@ namespace GPC.Checkers.Steel.Checkers
             //{
             //    throw new ArgumentException("Different beam station number");
             //}
-                        
+
             //if (beamResults.Select(i => i.Length).Distinct().Count() > 1)
             //{
             //    throw new ArgumentException("Different beam result lenght");
@@ -91,7 +87,7 @@ namespace GPC.Checkers.Steel.Checkers
             //    throw new ArgumentException("Sections number different than station number");
         }
 
-        public BeamCheckerAttributes(SerializationInfo info, StreamingContext context) 
+        public BeamCheckerAttributes(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             _sections = (ISteelSection[])info.GetValue("Sections", typeof(ISteelSection[]));
@@ -111,9 +107,10 @@ namespace GPC.Checkers.Steel.Checkers
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return (obj is BeamCheckerAttributes objCasted) && _sections.SequenceEqual(objCasted.Sections)
-                                                            && _results.SequenceEqual(objCasted.Results)
-                                                            && base.Equals(objCasted);
+            return (obj is BeamCheckerAttributes objCasted) &&
+                _sections.SequenceEqual(objCasted.Sections) &&
+                _results.SequenceEqual(objCasted.Results) &&
+                base.Equals(objCasted);
         }
 
         public override int GetHashCode()
@@ -124,14 +121,10 @@ namespace GPC.Checkers.Steel.Checkers
                 hashCode = hashCode * -17 + base.GetHashCode();
 
                 for (int i = 0; i < _sections.Length; i++)
-                {
                     hashCode = hashCode * -17 + _sections[i].GetHashCode();
-                }
 
                 for (int i = 0; i < _results.Length; i++)
-                {
                     hashCode = hashCode * -17 + _results[i].GetHashCode();
-                }
 
                 return hashCode;
             }
