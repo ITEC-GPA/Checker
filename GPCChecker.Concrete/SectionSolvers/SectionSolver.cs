@@ -2816,6 +2816,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     else if (inputFailureZone == FailureZones.F2B)
                     {
                         reductionFactorEta *= 0.25;
+                        reductionFactorTeta *= 0.25;
+                    }
+                    else if (inputFailureZone == FailureZones.F3A)
+                    {
+                        reductionFactorEta *= 0.5;
+                        reductionFactorTeta *= 0.25;
                     }
                 }
 

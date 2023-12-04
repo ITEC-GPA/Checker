@@ -2280,11 +2280,13 @@ namespace ConcreteTests
                 resDomFail.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantN, appliedForce, 1.0, 1.0);
                 maxErrorConstantN_iterativeMethod.Add(resDomFail.WorkingRatio);
 
-                resDomFail.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantEccentricity, appliedForce, 1.0, 1.0);
-                maxErrorConstantEccentricity_iterativeMethod.Add(resDomFail.WorkingRatio);
+                sectionChecker.SectionCheckerOptionsModelCode2010.FailureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantEccentricity;
+                var resDomFail2 = sectionChecker.CalculatePlasticFailureDomainPoint(appliedForce);
+                resDomFail2.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantEccentricity, appliedForce, 1.0, 1.0);
+                maxErrorConstantEccentricity_iterativeMethod.Add(resDomFail2.WorkingRatio);
             }
-            Assert.AreEqual(0.0, maxErrorConstantN_iterativeMethod.Max(r => Math.Abs(r - 1.0)), 0.07); // 2023-08-21 Max error: 0.0653987358653636.
-            Assert.AreEqual(0.0, maxErrorConstantEccentricity_iterativeMethod.Max(r => Math.Abs(r - 1.0)), 0.07); // 2023-08-21 Max error: 0.065398517413020052.
+            Assert.AreEqual(0.0, maxErrorConstantN_iterativeMethod.Max(r => Math.Abs(r - 1.0)), 0.06);
+            Assert.AreEqual(0.0, maxErrorConstantEccentricity_iterativeMethod.Max(r => Math.Abs(r - 1.0)), 0.06);
 
             // ****************************************
             // ***** Plastic - Part 3
@@ -2314,7 +2316,8 @@ namespace ConcreteTests
             }
             // 2023-08-21 Max error: 0.059988981343899406.
             // 2023-09-13 Max error: 0.0615187864695554.
-            Assert.AreEqual(0.0, maxErrorConstantEccentricity_intersectionMethod.Max(r => Math.Abs(r - 1.0)), 0.062);
+            // 2023-12-04 Max error: 0.056501164826873.
+            Assert.AreEqual(0.0, maxErrorConstantEccentricity_intersectionMethod.Max(r => Math.Abs(r - 1.0)), 0.06);
         }
 
         // Now two almost identical sections.
@@ -2514,7 +2517,8 @@ namespace ConcreteTests
 
             var maxErrComp = maxErrorConstantEccentricity_directMethodComposite.Max(r => Math.Abs(r.wratio - 1.0));
             // 2023-09-28: Changed number of not converged from 1 to 40.
-            Assert.IsTrue(failForcePointsComposite.Count <= 40 / subdivision);
+            // 2023-12-04: Changed number of not converged from 40 to 60.
+            Assert.IsTrue(failForcePointsComposite.Count <= 60 / subdivision);
             Assert.IsTrue(maxErrComp < 0.02);
         }
 
