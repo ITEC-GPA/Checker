@@ -2253,7 +2253,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
 
             int id = 1;
-            StrainPlane strainPlane = BuildPlane(teta, failureDomainType, failureIndex, eta, id);
+            List<DeformationFieldsPoint> tensionRotationPoints, tensionRotationPointsF1, compressionRotationPoints;
+            double minDistanceCompression, elasticEpsilonTension;
+            CalculateRotationPointsPerMaterial(teta, failureDomainType, out tensionRotationPoints, out tensionRotationPointsF1, out compressionRotationPoints, out minDistanceCompression, out elasticEpsilonTension);
+            var strainPlane = CalculateStrainPlaneMultiPoints(teta, failureIndex, eta, failureIndex == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, id);
 
             teta = strainPlane.Teta;
 
@@ -2355,20 +2358,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                 _log.Add(e.InnerException.Message);
                             return null;
                         }
-                        //// 2023-07-11 AA - part 3 of 3
-                        //// If these two epsilon values are equal the F2B field collapses, a problem emerged with ACI.
-                        //// If they are equal, p2 and p3 are also equal.
-                        //if (failureIndex == FailureZones.F2B && p2.Epsilon == p3.Epsilon)
-                        //{
-                        //    if (increment.deltaEta >= 0.0)
-                        //        failureIndex = FailureZones.F3A;
-                        //    else
-                        //        failureIndex = FailureZones.F2A;
-                        //}
                         SetIncrement(failureDomainType, ref failureIndex, ref teta, ref eta, increment.deltaTeta, increment.deltaEta);
 
                         id++;
-                        strainPlane = BuildPlane(teta, failureDomainType, failureIndex, eta, id);
+                        CalculateRotationPointsPerMaterial(teta, failureDomainType, out tensionRotationPoints, out tensionRotationPointsF1, out compressionRotationPoints, out minDistanceCompression, out elasticEpsilonTension);
+                        strainPlane = CalculateStrainPlaneMultiPoints(teta, failureIndex, eta, failureIndex == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, id);
                         forces = GetExternalForces(CalculateForceResultantForDomain(strainPlane, rebarIsInsideAssociation), coordinateSystem);
 
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
@@ -2571,7 +2565,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     var immersioneNelCampoPrev = inputImmersioneNelCampo - dEtaBuffer;
                     var inputFailureZonePrev = inputFailureZone;
 
-                    // 2023-07-11 AA - part 1 of 3
                     // With the next two while loops, we want to handle the transition to the next field (for example,
                     // the transition from F2B to F3A) in order to find the tangent.
                     // Problem emerged with tests on ACI.
@@ -2587,17 +2580,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     }
 
                     CalculateRotationPointsPerMaterial(inputStrainPlane.Teta, failureDomainType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
-
-                    //// 2023-07-11 AA - part 2 of 3
-                    //// If these two epsilon values are equal the F2B field collapses, a problem emerged with ACI.
-                    //// If they are equal, p2 and p3 are also equal.
-                    //if (p2Eta.Epsilon == p3Eta.Epsilon)
-                    //{
-                    //    if (inputFailureZoneNext == FailureZones.F2B)
-                    //        inputFailureZoneNext = FailureZones.F3A;
-                    //    if (inputFailureZonePrev == FailureZones.F2B)
-                    //        inputFailureZonePrev = FailureZones.F2A;
-                    //}
 
                     StrainPlane strainPlanePlusdImm = CalculateStrainPlaneMultiPoints(inputStrainPlane.Teta, inputFailureZoneNext, Math.Min(immersioneNelCampoNext, 1.0), inputFailureZoneNext == FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension);
                     StrainPlane strainPlaneMinusdImm = CalculateStrainPlaneMultiPoints(inputStrainPlane.Teta, inputFailureZonePrev, Math.Max(immersioneNelCampoPrev, 0.0), inputFailureZonePrev == FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension);
@@ -2744,7 +2726,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     if (c.Length > 0.1)
                         reductionFactorEta = 0.2;
                     else if (c.Length > 0.01)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 0.2, 0.5, nonLinearErrorEta);
+                        reductionFactorEta = 0.2;
                     else if (c.Length > 0.001)
                         reductionFactorEta = 0.2;
                     else
