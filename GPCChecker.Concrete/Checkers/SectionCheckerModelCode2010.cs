@@ -26,15 +26,14 @@ namespace GPC.Checkers.Concrete.Checkers
             StandardModelCode2010 standard, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED,
             StandardEN1993p11 standardStructuralSteel = null)
             : base(checkerAttribute, options, standard,
-                  new SectionSolverModelCode2010(checkerAttribute.Section, standard, options.ForceReferenceCoordinateSystem.Origin, considerTensileConcrete, id, standardStructuralSteel),
-                  id, standardStructuralSteel)
+                  new SectionSolverModelCode2010(checkerAttribute.Section, options, standard, options.ForceReferenceCoordinateSystem.Origin, considerTensileConcrete, id, standardStructuralSteel),
+                  id)
         {
         }
 
         public SectionCheckerModelCode2010(SectionCheckerAttribute checkerAttribute, SectionOptionsModelCode2010 options,
-            StandardModelCode2010 standard, SectionSolverModelCode2010 solver, int id = ModelObjectId.IDUNASSIGNED,
-            StandardEN1993p11 standardStructuralSteel = null)
-            : base(checkerAttribute, options, standard, solver, id, standardStructuralSteel)
+            StandardModelCode2010 standard, SectionSolverModelCode2010 solver, int id = ModelObjectId.IDUNASSIGNED)
+            : base(checkerAttribute, options, standard, solver, id)
         {
         }
 
@@ -49,11 +48,6 @@ namespace GPC.Checkers.Concrete.Checkers
                 SectionSolver.FailureAnalysisTypes failureAnalysisType, SectionSolver.FailureDomainTypes failureDomainType, SectionSolver.StressAnalysisTypes stressAnalysisType,
                 double psiCoefficientRebar, double psiCoefficientTendon, bool considerTensileConcrete, int tetaDiscretization)
                 : base(coordinateSystem, failureAnalysisType, failureDomainType, stressAnalysisType, psiCoefficientRebar, psiCoefficientTendon, considerTensileConcrete, tetaDiscretization)
-            {
-            }
-
-            public SectionOptionsModelCode2010(CoordinateSystem coordinateSystem)
-                : base(coordinateSystem, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64)
             {
             }
 

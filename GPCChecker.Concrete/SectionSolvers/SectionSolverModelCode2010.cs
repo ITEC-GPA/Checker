@@ -8,6 +8,7 @@ using GPC.Model.Standards;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using GPC.Checkers.Concrete.Checkers;
 
 [assembly: InternalsVisibleTo("GPCChecker.Test.Concrete")]
 namespace GPC.Checkers.Concrete.SectionSolvers
@@ -51,9 +52,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Constructor
 
-        public SectionSolverModelCode2010(IConcreteSection section, StandardModelCode2010 standard, Point2d integrationReferencePoint,
+        public SectionSolverModelCode2010(IConcreteSection section, SectionChecker.SectionOptions sectionOption, StandardModelCode2010 standard, Point2d integrationReferencePoint,
             bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED, StandardEN1993p11 standardStructuralSteel = null)
-            : base(section, standard, considerTensileConcrete, id, integrationReferencePoint, standardStructuralSteel)
+            : base(section, standard, considerTensileConcrete, id, integrationReferencePoint, standardStructuralSteel, sectionOption)
         {
 
         }
@@ -74,36 +75,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else if (ConcreteMaterial is ConcreteMaterialACI318 concreteMaterialACI318)
                 return concreteMaterialACI318.Fc;
             return 0;
-        }
-
-        protected override double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar)
-        {
-            return CalculateDesignYieldingStrainRebar(rebar.RebarMaterial);
-        }
-
-        protected override double GetDesignYieldingStrainRebar(int rebarID)
-        {
-            return CalculateDesignYieldingStrainRebar(ConcreteSection.GetRebarById(rebarID).RebarMaterial);
-        }
-
-        protected override double GetDesignUltimateStrainRebar(ReinforcedConcreteRebar rebar)
-        {
-            return CalculateDesignUltimateStrainRebar(rebar.RebarMaterial);
-        }
-
-        protected override double GetDesignUltimateStrainRebar(int rebarID)
-        {
-            return CalculateDesignUltimateStrainRebar(ConcreteSection.GetRebarById(rebarID).RebarMaterial);
-        }
-
-        protected override double GetDesignYieldingStrainStructuralSteel(ISteelSection steelSection)
-        {
-            return CalculateDesignYieldingStrainStructuralSteel(steelSection.SteelMaterial);
-        }
-
-        protected override double GetDesignUltimateStrainStructuralSteel(ISteelSection steelSection)
-        {
-            return CalculateDesignUltimateStrainStructuralSteel(steelSection.SteelMaterial);
         }
 
         protected override double GetUltimateStrainConcreteCompression()
@@ -219,12 +190,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected double CalculateUltimateDesignStrainRebar(ReinforcedConcreteRebar rebar)
         {
-            return rebar.RebarMaterial.CalculateDesignUltimateStrain(StandardModelCode2010);
+            return rebar.RebarMaterial.CalculateDesignUltimateStrainTension(StandardModelCode2010);
         }
 
         protected double CalculateUltimateDesignStrainRebar(int rebarId)
         {
-            return _concreteSection.GetRebarById(rebarId).RebarMaterial.CalculateDesignUltimateStrain(StandardModelCode2010);
+            return _concreteSection.GetRebarById(rebarId).RebarMaterial.CalculateDesignUltimateStrainTension(StandardModelCode2010);
         }
 
         protected double CalculateDesignYieldingStressRebar(SteelMaterial material)
@@ -232,24 +203,44 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return material.CalculateDesignYieldingStressTension(StandardModelCode2010);
         }
 
-        protected double CalculateDesignYieldingStrainRebar(SteelMaterial material)
+        protected override double CalculateDesignYieldingStrainTensionRebar(SteelMaterial material)
         {
             return material.CalculateDesignYieldingStrainTension(StandardModelCode2010);
         }
 
-        protected double CalculateDesignUltimateStrainRebar(SteelMaterial material)
+        protected override double CalculateDesignUltimateStrainTensionRebar(SteelMaterial material)
         {
-            return material.CalculateDesignUltimateStrain(StandardModelCode2010);
+            return material.CalculateDesignUltimateStrainTension(StandardModelCode2010);
         }
 
-        protected double CalculateDesignYieldingStrainStructuralSteel(SteelMaterial material)
+        protected override double CalculateDesignYieldingStrainCompressionRebar(SteelMaterial material)
         {
-            return material.CalculateDesignYieldingStrainTension(StandardStructuralSteel as StandardEN1993p11);
+            return material.CalculateDesignYieldingStrainCompression(StandardModelCode2010);
         }
 
-        protected double CalculateDesignUltimateStrainStructuralSteel(SteelMaterial material)
+        protected override double CalculateDesignUltimateStrainCompressionRebar(SteelMaterial material)
         {
-            return material.CalculateDesignUltimateStrain(StandardEN1993P11);
+            return material.CalculateDesignUltimateStrainCompression(StandardModelCode2010);
+        }
+
+        protected override double CalculateDesignYieldingStrainTensionStructuralSteel(SteelMaterial material)
+        {
+            return material.CalculateDesignYieldingStrainTension(StandardEN1993P11);
+        }
+
+        protected override double CalculateDesignUltimateStrainTensionStructuralSteel(SteelMaterial material)
+        {
+            return material.CalculateDesignUltimateStrainTension(StandardEN1993P11);
+        }
+
+        protected override double CalculateDesignYieldingStrainCompressionStructuralSteel(SteelMaterial material)
+        {
+            return material.CalculateDesignYieldingStrainCompression(StandardEN1993P11);
+        }
+
+        protected override double CalculateDesignUltimateStrainCompressionStructuralSteel(SteelMaterial material)
+        {
+            return material.CalculateDesignUltimateStrainCompression(StandardEN1993P11);
         }
 
         #endregion

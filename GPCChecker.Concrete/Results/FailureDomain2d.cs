@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
@@ -148,7 +148,7 @@ namespace GPC.Checkers.Concrete.Results
                                 if (Math.Abs(vA.MxRd) - Math.Abs(vB.MxRd) > Math.Abs(vA.MyRd) - Math.Abs(vB.MyRd))
                                     weightA = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.MxRd, vB.MxRd, 0, 1, forceTuple.Mx);
                                 else
-                                    weightA = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.MyRd, vB.MyRd, 0, 1, forceTuple.My);
+                                    weightA = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.MyRd, vB.MyRd, 0, 1, forceTuple.Mx);
 
                                 double weightB = 1 - weightA;
 

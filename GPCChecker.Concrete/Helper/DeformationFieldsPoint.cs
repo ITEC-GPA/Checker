@@ -5,32 +5,54 @@ namespace GPC.Checker.Helper
 {
     public class DeformationFieldsPoint
     {
-        public double epsilon;
-        public Point2d point;
-        public double distanceFromBaricentre;
+        /// <summary>
+        /// Strain in point.
+        /// </summary>
+        public double Epsilon { get; set; }
 
-        public DeformationFieldsPoint(double epsilon, Point2d point, double distanceFromBaricentre)
+        /// <summary>
+        /// Strain plane rotation point in initial section coodinate system.
+        /// </summary>
+        public Point2d Point { get; set; }
+
+        /// <summary>
+        /// Distance from axis parallel to neutral axis and that passes for a point of reference.
+        /// </summary>
+        public double Distance { get; set; }
+
+        /// <summary>
+        /// Angle of rotation chi from which this rotation point begins to take effect.
+        /// </summary>
+        public double Angle { get; set; }
+
+        public DeformationFieldsPoint(double epsilon, Point2d point, double distance, double angle = 0.0)
         {
-            this.epsilon = epsilon;
-            this.point = point;
-            this.distanceFromBaricentre = distanceFromBaricentre;
+            Epsilon = epsilon;
+            Point = point;
+            Distance = distance;
+            Angle = angle;
         }
 
         public override bool Equals(object obj)
         {
             return obj is DeformationFieldsPoint other &&
-                   epsilon == other.epsilon &&
-                   EqualityComparer<Point2d>.Default.Equals(point, other.point) &&
-                   distanceFromBaricentre == other.distanceFromBaricentre;
+                   Epsilon == other.Epsilon &&
+                   EqualityComparer<Point2d>.Default.Equals(Point, other.Point) &&
+                   Distance == other.Distance &&
+                   Angle == other.Angle;
         }
 
         public override int GetHashCode()
         {
-            int hashCode = 1820279999;
-            hashCode = hashCode * -1521134295 + epsilon.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<Point2d>.Default.GetHashCode(point);
-            hashCode = hashCode * -1521134295 + distanceFromBaricentre.GetHashCode();
-            return hashCode;
+            unchecked
+            {
+                int hashCode = 1820279999;
+                hashCode = hashCode * -1521134295 + Epsilon.GetHashCode();
+                hashCode = hashCode * -1521134295 + EqualityComparer<Point2d>.Default.GetHashCode(Point);
+                hashCode = hashCode * -1521134295 + Distance.GetHashCode();
+                hashCode = hashCode * -1521134295 + Angle.GetHashCode();
+                return hashCode;
+            }
         }
     }
 }

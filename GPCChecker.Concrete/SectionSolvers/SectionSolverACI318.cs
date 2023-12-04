@@ -9,6 +9,7 @@ using GPC.Model.Standards;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using GPC.Checkers.Concrete.Checkers;
 
 [assembly: InternalsVisibleTo("GPCChecker.Test.Concrete")]
 namespace GPC.Checkers.Concrete.SectionSolvers
@@ -30,9 +31,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Constructor
 
-        internal SectionSolverACI318(IConcreteSection section, StandardACI318 standard, bool haveSpiral, Point2d integrationReferencePoint,
-            bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED, Standard standardStructuralSteel = null)
-            : base(section, standard, considerTensileConcrete, id, integrationReferencePoint, standardStructuralSteel)
+        internal SectionSolverACI318(IConcreteSection section, SectionChecker.SectionOptions sectionOption, StandardACI318 standard, bool haveSpiral, Point2d integrationReferencePoint, bool considerTensileConcrete = false, int id = ModelObjectId.IDUNASSIGNED, Standard standardStructuralSteel = null)
+            : base(section, standard, considerTensileConcrete, id, integrationReferencePoint, standardStructuralSteel, sectionOption)
         {
             _haveSpiral = haveSpiral;
         }
@@ -53,36 +53,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             else if (ConcreteMaterial is ConcreteMaterialACI318 concreteMaterialACI318)
                 return concreteMaterialACI318.Fc;
             return 0;
-        }
-
-        protected override double GetDesignYieldingStrainRebar(ReinforcedConcreteRebar rebar)
-        {
-            return CalculateDesignYieldingStrainRebar(rebar.RebarMaterial);
-        }
-
-        protected override double GetDesignYieldingStrainRebar(int rebarID)
-        {
-            return CalculateDesignYieldingStrainRebar(ConcreteSection.GetRebarById(rebarID).RebarMaterial);
-        }
-
-        protected override double GetDesignUltimateStrainRebar(ReinforcedConcreteRebar rebar)
-        {
-            return CalculateDesignUltimateStrainRebar(rebar.RebarMaterial);
-        }
-
-        protected override double GetDesignUltimateStrainRebar(int rebarID)
-        {
-            return CalculateDesignUltimateStrainRebar(ConcreteSection.GetRebarById(rebarID).RebarMaterial);
-        }
-
-        protected override double GetDesignYieldingStrainStructuralSteel(ISteelSection steelSection)
-        {
-            return CalculateDesignYieldingStrainStructuralSteel(steelSection.SteelMaterial);
-        }
-
-        protected override double GetDesignUltimateStrainStructuralSteel(ISteelSection steelSection)
-        {
-            return CalculateDesignUltimateStrainStructuralSteel(steelSection.SteelMaterial);
         }
 
         protected override double GetUltimateStrainConcreteCompression()
@@ -239,34 +209,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return limit;
         }
 
-        #region Failure domain limit points
-
-        internal override DeformationFieldsPoint GetP3(BoundaryDistances distances,
-            FailureDomainTypes analysisType)
-        {
-            double minY;
-            if (_concreteSection.IsCompositeSteelConcrete)
-                minY = Math.Min(distances.dminConcrete, distances.dminStrucSteel);
-            else
-                minY = distances.dminConcrete;
-
-            switch (analysisType)
-            {
-                case FailureDomainTypes.Elastic:
-                    return new DeformationFieldsPoint(GetYieldingStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
-                        (distances.dmaxConcrete - minY));
-
-                case FailureDomainTypes.Plastic:
-                    return new DeformationFieldsPoint(GetUltimateStrainConcreteCompression(), ConcreteSection.Shape.Fill[distances.dMaxVertexIndex],
-                        (distances.dmaxConcrete - minY));
-
-                default:
-                    return new DeformationFieldsPoint(0.0, null, 0.0);
-            }
-        }
-
-        #endregion
-
         #endregion
 
         #region Protected Design Rebars
@@ -292,24 +234,44 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return material.Fyk;
         }
 
-        protected double CalculateDesignYieldingStrainRebar(SteelMaterial material)
+        protected override double CalculateDesignYieldingStrainTensionRebar(SteelMaterial material)
         {
             return CalculateDesignYieldingStressRebar(material) / material.E;
         }
 
-        protected double CalculateDesignUltimateStrainRebar(SteelMaterial material)
+        protected override double CalculateDesignUltimateStrainTensionRebar(SteelMaterial material)
         {
             return material.StrainUTension;
         }
 
-        protected double CalculateDesignYieldingStrainStructuralSteel(SteelMaterial material)
+        protected override double CalculateDesignYieldingStrainCompressionRebar(SteelMaterial material)
+        {
+            return -CalculateDesignYieldingStressRebar(material) / material.E;
+        }
+
+        protected override double CalculateDesignUltimateStrainCompressionRebar(SteelMaterial material)
+        {
+            return material.StrainUCompression;
+        }
+
+        protected override double CalculateDesignYieldingStrainTensionStructuralSteel(SteelMaterial material)
         {
             return material.Fyk / material.E;
         }
 
-        protected double CalculateDesignUltimateStrainStructuralSteel(SteelMaterial material)
+        protected override double CalculateDesignUltimateStrainTensionStructuralSteel(SteelMaterial material)
         {
             return material.StrainUTension;
+        }
+
+        protected override double CalculateDesignYieldingStrainCompressionStructuralSteel(SteelMaterial material)
+        {
+            return -CalculateDesignYieldingStrainTensionStructuralSteel(material);
+        }
+
+        protected override double CalculateDesignUltimateStrainCompressionStructuralSteel(SteelMaterial material)
+        {
+            return material.StrainUCompression;
         }
 
         #endregion

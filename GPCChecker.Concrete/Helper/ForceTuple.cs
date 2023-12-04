@@ -49,6 +49,13 @@ namespace GPC.Checkers.Concrete.Helper
             _My = My;
         }
 
+        internal ForceTuple(ResultBeamForces rbf)
+        {
+            _N = rbf.N;
+            _Mx = rbf.M1;
+            _My = rbf.M2;
+        }
+
 		#endregion
 
 		#region Operators
