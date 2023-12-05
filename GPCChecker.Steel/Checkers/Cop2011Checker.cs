@@ -75,8 +75,7 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 _py = GetPy(steelSection.SteelMaterial.Fyk, steelSection.SteelMaterial.Fu);
                 _beta = 1.0;
-                _epsilon = Math.Sqrt(275 / _py);        //value of Epsilon for section classification           
-
+                _epsilon = Math.Sqrt(275 / _py);        //value of Epsilon for section classification       
             }
         }
 
@@ -94,14 +93,14 @@ namespace GPC.Checkers.Steel.Checkers
 
         public override void PerformCheck()
         {
-            _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, _beamElement.Results.Select(i => (BeamResult)i).ToArray());
+            _beamStationResults = PerformCheck(_beamElement, _beamElement.Results.Select(i => (BeamResult)i).ToArray());
         }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, _beamElement.Results.Select(i => (BeamResult)i).ToArray());
+                _beamStationResults = PerformCheck(_beamElement, _beamElement.Results.Select(i => (BeamResult)i).ToArray());
             });
         }
 
@@ -112,7 +111,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="steelSection">section of each station</param>
         /// <param name="beamResult">result for each station and loadcase</param>
         /// <returns></returns>
-        protected BeamStationResults[] PerformCheck(SteelSection steelSection, BeamResult[] beamResult)
+        protected BeamStationResults[] PerformCheck(BeamElement beamElement, BeamResult[] beamResult)
         {
             Cop2011BeamStationResults[] stationResults = new Cop2011BeamStationResults[beamResult.Select(i => i.Results.Count).Sum()];
             int index = 0;
@@ -132,10 +131,10 @@ namespace GPC.Checkers.Steel.Checkers
                         {
                             ResultBeamForces rbf = stationResultBeamForces.ResultBeamForces;
                             //TODO: sistemare ordine sezioni
-                            ISteelSection steelSect = steelSection;
+                            ISteelSection steelSect = beamElement.BeamProperty as SteelSection;
 
                             stationResults[index] =
-                                new Cop2011BeamStationResults(steelSect, stationResultBeamForces,
+                                new Cop2011BeamStationResults(beamElement, stationResultBeamForces,
                                 stationResultBeamForces.Case, (StandardCopSuos2011)_standard, (Cop2011Options)_options, BeamName);
 
                             SectionClass axialCompSectionClass = CalculateSectionClassDueToCompression(rbf, steelSect);

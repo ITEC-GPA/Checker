@@ -1,7 +1,7 @@
 ﻿using GPC.Checkers.Steel.Checkers;
+using GPC.Model.Elements;
 using GPC.Model.LoadCases;
 using GPC.Model.Results.ResultLocations;
-using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
@@ -348,17 +348,17 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        protected Cop2011BeamStationResults(ISteelSection section, StationResultBeamForces resultLocationStation, ILoadCase Case,
+        protected Cop2011BeamStationResults(BeamElement beam, StationResultBeamForces resultLocationStation, ILoadCase Case,
             Cop2011Checker.Cop2011Options checkerOptions, StandardCopSuos2011 standard, string name = "")
-            : this(section, resultLocationStation, Case, standard, checkerOptions, name)
+            : this(beam, resultLocationStation, Case, standard, checkerOptions, name)
         {
 
         }
 
 
-        internal Cop2011BeamStationResults(ISteelSection section, StationResultBeamForces resultLocationStation, ILoadCase Case,
+        internal Cop2011BeamStationResults(BeamElement beam, StationResultBeamForces resultLocationStation, ILoadCase Case,
             StandardCopSuos2011 standard, Cop2011Checker.Cop2011Options checkerOptions, string name = "")
-            : base(section, resultLocationStation, Case, standard, checkerOptions, name)
+            : base(beam, resultLocationStation, Case, standard, checkerOptions, name)
         {
 
         }

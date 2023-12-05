@@ -1,7 +1,7 @@
 ﻿using GPC.Checkers.Steel.Checkers;
+using GPC.Model.Elements;
 using GPC.Model.LoadCases;
 using GPC.Model.Results.ResultLocations;
-using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;
 using System.Runtime.Serialization;
@@ -321,15 +321,15 @@ namespace GPC.Checkers.Steel.Results
 
         #region Constructor
 
-        protected AISCBeamStationResults(ISteelSection section, StationResultBeamForces resultLocationStation, ILoadCase Case, AISCChecker.AISCOptions checkerOptions, StandardAISC standard, string name = "")
-            : this(section, resultLocationStation, Case, standard, checkerOptions, name)
+        protected AISCBeamStationResults(BeamElement beam, StationResultBeamForces resultLocationStation, ILoadCase Case, AISCChecker.AISCOptions checkerOptions, StandardAISC standard, string name = "")
+            : this(beam, resultLocationStation, Case, standard, checkerOptions, name)
         {
 
         }
 
 
-        internal AISCBeamStationResults(ISteelSection section, StationResultBeamForces resultLocationStation, ILoadCase Case, StandardAISC standard, AISCChecker.AISCOptions checkerOptions, string name = "")
-            : base(section, resultLocationStation, Case, standard, checkerOptions, name)
+        internal AISCBeamStationResults(BeamElement beam, StationResultBeamForces resultLocationStation, ILoadCase Case, StandardAISC standard, AISCChecker.AISCOptions checkerOptions, string name = "")
+            : base(beam, resultLocationStation, Case, standard, checkerOptions, name)
         {
 
         }

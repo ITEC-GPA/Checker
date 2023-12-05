@@ -70,14 +70,14 @@ namespace GPC.Checkers.Steel.Checkers
 
         public override void PerformCheck()
         {
-            _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, _beamElement.Results.Select(i => (BeamResult)i).ToArray(), EN1993P11Options);
+            _beamStationResults = PerformCheck(_beamElement, _beamElement.Results.Select(i => (BeamResult)i).ToArray(), EN1993P11Options);
         }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, _beamElement.Results.Select(i => (BeamResult)i).ToArray(), EN1993P11Options);
+                _beamStationResults = PerformCheck(_beamElement, _beamElement.Results.Select(i => (BeamResult)i).ToArray(), EN1993P11Options);
             });
         }
 
@@ -87,7 +87,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="beamResult">result for each station and loadcase</param>
         /// <param name="options"></param>
         /// <returns></returns>
-        protected EN1993p11BeamStationResult[] PerformCheck(SteelSection steelSection, BeamResult[] beamResult, EN1993p11Options options)
+        protected EN1993p11BeamStationResult[] PerformCheck(BeamElement beamElement, BeamResult[] beamResult, EN1993p11Options options)
         {
             EN1993p11BeamStationResult[] stationResults = new EN1993p11BeamStationResult[beamResult.Select(i => i.Results.Count).Sum()];
             int index = 0;
@@ -103,8 +103,10 @@ namespace GPC.Checkers.Steel.Checkers
                             ResultBeamForces rbf = stationResultBeamForces.ResultBeamForces;
 
                             //TODO: sistemare ordine sezioni
-                            stationResults[index] = new EN1993p11BeamStationResult(steelSection, stationResultBeamForces,
+                            stationResults[index] = new EN1993p11BeamStationResult(beamElement, stationResultBeamForces,
                                 stationResultBeamForces.Case, (StandardEN1993p11)_standard, (EN1993p11Options)_options, BeamName);
+
+                            SteelSection steelSection = BeamElement.BeamProperty as SteelSection;
 
                             SectionClass axialCompSectionClass;
                             SectionClass bendingCompSectionClass;

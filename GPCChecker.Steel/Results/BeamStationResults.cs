@@ -1,5 +1,7 @@
 ﻿using GPC.Checkers.Results;
 using GPC.Checkers.Steel.Checkers;
+using GPC.Model.ElementProperties;
+using GPC.Model.Elements;
 using GPC.Model.LoadCases;
 using GPC.Model.Results;
 using GPC.Model.Results.ResultLocations;
@@ -18,7 +20,7 @@ namespace GPC.Checkers.Steel.Results
     {
         #region Variables
 
-        protected readonly ISteelSection _section;
+        protected readonly BeamElement _beamElement;
         protected readonly StationResultBeamForces _resultLocationStation;
 
         #endregion
@@ -32,7 +34,9 @@ namespace GPC.Checkers.Steel.Results
         /// <summary>
         /// The <see cref="ISteelSection"/> to check
         /// </summary>
-        public ISteelSection Section => _section;
+        public BeamElement BeamElement => _beamElement;
+
+        public BeamProperty Section => _beamElement.BeamProperty;
 
         /// <summary>
         /// The options to perform the check.
@@ -41,25 +45,25 @@ namespace GPC.Checkers.Steel.Results
 
         #endregion
 
-        internal BeamStationResults(ISteelSection section, StationResultBeamForces station, ILoadCase Case, Standard standard,
+        internal BeamStationResults(BeamElement beam, StationResultBeamForces station, ILoadCase Case, Standard standard,
             BeamChecker.BeamOptions checkerOptions, string name = "")
             : base(Case, standard, checkerOptions, name)
         {
-            _section = section ?? throw new ArgumentNullException(nameof(section));
+            _beamElement = beam ?? throw new ArgumentNullException(nameof(beam));
             _resultLocationStation = station ?? throw new ArgumentNullException(nameof(station));
         }
 
         internal BeamStationResults(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            _section = (ISteelSection)info.GetValue("ISteelSection", typeof(ISteelSection));
+            _beamElement = (BeamElement)info.GetValue("BeamElement", typeof(BeamElement));
             _resultLocationStation = (StationResultBeamForces)info.GetValue("ResultStation", typeof(StationResultBeamForces));
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue("ISteelSection", _section, typeof(ISteelSection));
+            info.AddValue("BeamElement", _beamElement, typeof(BeamElement));
             info.AddValue("ResultStation", _resultLocationStation, typeof(StationResultBeamForces));
         }
 
@@ -69,7 +73,7 @@ namespace GPC.Checkers.Steel.Results
                 return true;
 
             return (obj is BeamStationResults objCasted)
-                && _section.Equals(objCasted._section)
+                && _beamElement.Equals(objCasted._beamElement)
                 && _resultLocationStation.Equals(objCasted._resultLocationStation)
                 && base.Equals(objCasted);
         }
@@ -80,7 +84,7 @@ namespace GPC.Checkers.Steel.Results
             {
                 int hashCode = 23;
                 hashCode = hashCode * -17 + base.GetHashCode();
-                hashCode = hashCode * -17 + _section.GetHashCode();
+                hashCode = hashCode * -17 + _beamElement.GetHashCode();
                 hashCode = hashCode * -17 + _resultLocationStation.GetHashCode();
 
                 return hashCode;
