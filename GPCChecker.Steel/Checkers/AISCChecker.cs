@@ -57,14 +57,14 @@ namespace GPC.Checkers.Steel.Checkers
 
         public override void PerformCheck()
         {
-            _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, (BeamResult[])_beamElement.Results.ToArray());
+            _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, _beamElement.Results.Select(i => (BeamResult)i).ToArray());
         }
 
         public async void PerformCheckAsync()
         {
             await Task.Run(() =>
             {
-                _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, (BeamResult[])_beamElement.Results.ToArray());
+                _beamStationResults = PerformCheck(_beamElement.BeamProperty as SteelSection, _beamElement.Results.Select(i => (BeamResult)i).ToArray());
             });
         }
 
