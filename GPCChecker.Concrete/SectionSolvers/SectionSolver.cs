@@ -214,6 +214,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected GaussIntegration.GlobalCoordinateGaussPoint[][] _globalCoordinateGaussPointsMesh;
         protected ThinWallSection.ThinWall[][] _steelSectionsThinWallsBreaked;
         protected GaussIntegration.GlobalCoordinateGaussPoint[][][] _globalCoordinateGaussPointsThinWalls;
+
+        /// <summary>
+        /// Section checker options.
+        /// </summary>
         protected SectionChecker.SectionOptions _sectionOption;
 
         #endregion
@@ -430,27 +434,27 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Public method
 
-        public virtual FailureDomainResult GetFailureDomainResult(Checkers.SectionChecker.SectionOptions sectionOption)
+        public virtual FailureDomainResult GetFailureDomainResult()
         {
-            if (sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
-                return GetElasticFailureDomainResult(sectionOption);
-            else if (sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
-                return GetPlasticFailureDomainResult(sectionOption);
+            if (_sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
+                return GetElasticFailureDomainResult();
+            else if (_sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
+                return GetPlasticFailureDomainResult();
             else
                 return null;
         }
 
-        public virtual FailureDomainResult2d GetFailureDomainResult2d(Checkers.SectionChecker.SectionOptions sectionOption)
+        public virtual FailureDomainResult2d GetFailureDomainResult2d()
         {
-            if (sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
-                return GetElasticFailureDomainResult2d(sectionOption);
-            else if (sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
-                return GetPlasticFailureDomainResult2d(sectionOption);
+            if (_sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
+                return GetElasticFailureDomainResult2d();
+            else if (_sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
+                return GetPlasticFailureDomainResult2d();
             else
                 return null;
         }
 
-        public virtual FailureDomainResult GetElasticFailureDomainResult(Checkers.SectionChecker.SectionOptions sectionOption)
+        public virtual FailureDomainResult GetElasticFailureDomainResult()
         {
             (FailureZones, int)[] zoneDiscretization;
 
@@ -466,11 +470,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization, zoneDiscretization, FailureDomainTypes.Elastic);
 
             return new FailureDomainResult(ConcreteSection,
-                CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic),
-                null, this, _standard, sectionOption, Id, _standardStructuralSteel);
+                CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic),
+                null, this, _standard, _sectionOption, Id, _standardStructuralSteel);
         }
 
-        public virtual FailureDomainResult2d GetElasticFailureDomainResult2d(Checkers.SectionChecker.SectionOptions sectionOption, double angle = 0)
+        public virtual FailureDomainResult2d GetElasticFailureDomainResult2d(double angle = 0)
         {
             (FailureZones, int)[] zoneDiscretization;
 
@@ -486,11 +490,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var strainPlanes = CalculateDesignFailureStrainPlanes(2, zoneDiscretization, FailureDomainTypes.Elastic, angle);
 
             return new FailureDomainResult2d(ConcreteSection,
-                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic).RebuildFailureDomain()),
-                null, this, _standard, sectionOption, Id, _standardStructuralSteel);
+                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic).RebuildFailureDomain()),
+                null, this, _standard, _sectionOption, Id, _standardStructuralSteel);
         }
 
-        public virtual FailureDomainResult GetPlasticFailureDomainResult(Checkers.SectionChecker.SectionOptions sectionOption)
+        public virtual FailureDomainResult GetPlasticFailureDomainResult()
         {
             (FailureZones, int)[] zoneDiscretization;
 
@@ -516,11 +520,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization, zoneDiscretization, FailureDomainTypes.Plastic);
 
             return new FailureDomainResult(ConcreteSection,
-                CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic), null, this, _standard,
-                sectionOption, Id, _standardStructuralSteel);
+                CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic), null, this, _standard,
+                _sectionOption, Id, _standardStructuralSteel);
         }
 
-        public virtual FailureDomainResult2d GetPlasticFailureDomainResult2d(Checkers.SectionChecker.SectionOptions sectionOption, double angle = 0)
+        public virtual FailureDomainResult2d GetPlasticFailureDomainResult2d(double angle = 0)
         {
             (FailureZones, int)[] zoneDiscretization;
 
@@ -546,30 +550,30 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var strainPlanes = CalculateDesignFailureStrainPlanes(2, zoneDiscretization, FailureDomainTypes.Plastic, angle);
 
             return new FailureDomainResult2d(ConcreteSection,
-                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic).RebuildFailureDomain()), null, this, _standard,
-                sectionOption, Id, _standardStructuralSteel);
+                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic).RebuildFailureDomain()), null, this, _standard,
+                _sectionOption, Id, _standardStructuralSteel);
         }
 
-        public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force, Checkers.SectionChecker.SectionOptions sectionOption)
+        public virtual StressAnalysisResult[] GetStressAnalysisResults(ResultBeamForces[] force)
         {
             StressAnalysisResult[] stressAnalysisResults = new StressAnalysisResult[force.Length];
 
             Parallel.For(0, force.Length, (i) =>
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
-                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
-                    sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id,
+                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(_sectionOption.ForceReferenceCoordinateSystem),
+                    _sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id,
                     _standardStructuralSteel);
             });
 
             return stressAnalysisResults;
         }
 
-        public virtual StressAnalysisResult GetStressAnalysisResult(ResultBeamForces force, Checkers.SectionChecker.SectionOptions sectionOption)
+        public virtual StressAnalysisResult GetStressAnalysisResult(ResultBeamForces force)
         {
             return new StressAnalysisResult(ConcreteSection, force,
-                    CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
-                    sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id,
+                    CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(_sectionOption.ForceReferenceCoordinateSystem),
+                    _sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id,
                     _standardStructuralSteel);
         }
 
@@ -589,11 +593,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return stressAnalysisResults;
         }
 
-        public virtual StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces force, double psi, double? psiTendon, Checkers.SectionChecker.SectionOptions sectionOption)
+        public virtual StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces force, double psi, double? psiTendon)
         {
             return new StressAnalysisResult(ConcreteSection, force,
-                CalculateStrainPlaneLinearStressAnalysis(force.ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
-                sectionOption.ForceReferenceCoordinateSystem, psi, psiTendon,
+                CalculateStrainPlaneLinearStressAnalysis(force.ConvertToForceTuple(_sectionOption.ForceReferenceCoordinateSystem),
+                _sectionOption.ForceReferenceCoordinateSystem, psi, psiTendon,
                 _stressAnalysisTolerance), this, _standard, true, psi, psiTendon, Id,
                 _standardStructuralSteel);
         }
@@ -601,40 +605,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
             var forceToReferenceSystem = force.ToCoordinateSystemWithEccentricity(_sectionOption.ForceReferenceCoordinateSystem);
-            if (_sectionOption.FailureDomainType == FailureDomainTypes.Elastic)
-                return CalculateElasticDomainPoint(new ForceTuple(forceToReferenceSystem), failureAnalysisTypeOverride);
-            else if (_sectionOption.FailureDomainType == FailureDomainTypes.Plastic)
-                return CalculatePlasticDomainPoint(new ForceTuple(forceToReferenceSystem), failureAnalysisTypeOverride);
-            else
-                return null;
+            return CalculateDomainPoint(new ForceTuple(forceToReferenceSystem), failureAnalysisTypeOverride);
         }
 
-        internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPoint(ForceTuple force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
-        {
-            var failureAnalysisTypes = failureAnalysisTypeOverride is null ? _sectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
-            return CalculateDomainPoint(force, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic, failureAnalysisTypes, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
-        }
-
-        internal FailureDomain.FailureDomainPoint CalculateElasticDomainPoint(ForceTuple force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
-        {
-            var failureAnalysisTypes = failureAnalysisTypeOverride is null ? _sectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
-            return CalculateDomainPoint(force, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic, failureAnalysisTypes, _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
-        }
-
-        internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces resultBeamForce, Mesh domainMesh,
+        public FailureDomain.FailureDomainPoint[] CalculateDomainPoint(ResultBeamForces[] force, Mesh domainMesh,
             Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            return CalculateDomainPoint(domainMesh, resultBeamForce, vertexToDomainPoint, _sectionOption.FailureAnalysisType, _sectionOption.FailureDomainType, _failureAnalysisIntersectionTolerance);
-        }
-
-        public virtual FailureDomain.FailureDomainPoint[] CalculateDomainPoint(ResultBeamForces[] force, Mesh domainMesh,
-            Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint, Checkers.SectionChecker.SectionOptions sectionOption)
         {
             FailureDomain.FailureDomainPoint[] result = new FailureDomain.FailureDomainPoint[force.Length];
 
             Parallel.For(0, force.Length, (i) =>
             {
-                result[i] = CalculateDomainPoint(domainMesh, force[i], vertexToDomainPoint, sectionOption.FailureAnalysisType, sectionOption.FailureDomainType, _failureAnalysisIntersectionTolerance);
+                result[i] = CalculateDomainPoint(force[i], domainMesh, vertexToDomainPoint);
             });
 
             return result;
@@ -2091,24 +2072,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Protected method - Point on failure domain
 
-        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(Vector3d vector, CoordinateSystem coordinateSystem,
-            FailureDomainTypes failureDomainType, FailureAnalysisTypes failureAnalysisType)
+        /// <summary>
+        /// Iterative method to find a point in the resistant domain.
+        /// </summary>
+        /// <param name="targetLocalForces"></param>
+        /// <param name="failureAnalysisTypeOverride"></param>
+        /// <returns></returns>
+        internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
-            return CalculateDomainPoint(new ForceTuple(vector.Z, vector.X, vector.Y), coordinateSystem, failureDomainType, failureAnalysisType,
-                _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
-        }
-
-        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
-            FailureDomainTypes failureDomainType, FailureAnalysisTypes failureAnalysisType)
-        {
-            return CalculateDomainPoint(targetLocalForces, coordinateSystem, failureDomainType, failureAnalysisType,
-                _failureAnalysisAngularTolerance, _failureAnalysisDistanceTolerance);
-        }
-
-        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
-            FailureDomainTypes failureDomainType, FailureAnalysisTypes failureAnalysisType,
-            double angularTolerance = 1e-3, double distanceTolerance = 1e-4)
-        {
+            var failureAnalysisType = failureAnalysisTypeOverride is null ? _sectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
             switch (failureAnalysisType)
             {
                 case FailureAnalysisTypes.ConstantEccentricity:
@@ -2253,14 +2225,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
 
             int id = 1;
-            List<DeformationFieldsPoint> tensionRotationPoints, tensionRotationPointsF1, compressionRotationPoints;
-            double minDistanceCompression, elasticEpsilonTension;
-            CalculateRotationPointsPerMaterial(teta, failureDomainType, out tensionRotationPoints, out tensionRotationPointsF1, out compressionRotationPoints, out minDistanceCompression, out elasticEpsilonTension);
+            CalculateRotationPointsPerMaterial(teta, _sectionOption.FailureDomainType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
             var strainPlane = CalculateStrainPlaneMultiPoints(teta, failureIndex, eta, failureIndex == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, id);
 
             teta = strainPlane.Teta;
 
-            ForceTuple forces = GetExternalForces(CalculateForceResultantForDomain(strainPlane, rebarIsInsideAssociation), coordinateSystem);
+            ForceTuple forces = GetExternalForces(CalculateForceResultantForDomain(strainPlane, rebarIsInsideAssociation), _sectionOption.ForceReferenceCoordinateSystem);
             ForceTuple adimIncrement = ConvertToAdimensionalForces(forces - targetLocalForces);
 
             (double deltaTeta, double deltaEta, Vector3d distanceToTarget) increment;
@@ -2276,31 +2246,31 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 case FailureAnalysisTypes.ConstantEccentricity:
                     angle = new Vector3d(forces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, forces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
                         targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
-                    if (Math.Abs(angle) < angularTolerance)
+                    if (Math.Abs(angle) < _failureAnalysisAngularTolerance)
                         exit = true;
                     break;
                 case FailureAnalysisTypes.ConstantN:
                     angle = new Vector3d(forces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, 0).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
                         targetLocalForces.My / FROM_KNM_TO_NM, 0));
-                    if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
+                    if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance && Math.Abs(angle) < _failureAnalysisAngularTolerance)
                         exit = true;
                     break;
                 case FailureAnalysisTypes.ConstantMxMy:
                     angle = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, targetLocalForces.My / FROM_KNM_TO_NM, forces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
                         targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
-                    if (Math.Abs(adimIncrement.Mx) < distanceTolerance && Math.Abs(adimIncrement.My) < distanceTolerance)
+                    if (Math.Abs(adimIncrement.Mx) < _failureAnalysisDistanceTolerance && Math.Abs(adimIncrement.My) < _failureAnalysisDistanceTolerance)
                         exit = true;
                     break;
                 case FailureAnalysisTypes.ConstantNMx:
                     angle = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
                         targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
-                    if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(adimIncrement.Mx) < distanceTolerance)
+                    if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance && Math.Abs(adimIncrement.Mx) < _failureAnalysisDistanceTolerance)
                         exit = true;
                     break;
                 case FailureAnalysisTypes.ConstantNMy:
                     angle = new Vector3d(forces.Mx / FROM_KNM_TO_NM, targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
                         targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
-                    if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(adimIncrement.My) < distanceTolerance)
+                    if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance && Math.Abs(adimIncrement.My) < _failureAnalysisDistanceTolerance)
                         exit = true;
                     break;
             }
@@ -2332,10 +2302,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
                 if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
                 {
-                    FailureDomain.FailureDomainPoint pointBuffer = CalculateDomainPoint(targetLocalForces, coordinateSystem, failureDomainType,
-                        FailureAnalysisTypes.ConstantEccentricity, angularTolerance, distanceTolerance);
+                    FailureDomain.FailureDomainPoint pointBuffer = CalculateDomainPoint(targetLocalForces);
                     FailureDomain.FailureDomainForce failureDomainForce = new FailureDomain.FailureDomainForce(
-                        new ResultBeamForces(targetLocalForces.N, 0, 0, 0, targetLocalForces.Mx, targetLocalForces.My, coordinateSystem), pointBuffer);
+                        new ResultBeamForces(targetLocalForces.N, 0, 0, 0, targetLocalForces.Mx, targetLocalForces.My, _sectionOption.ForceReferenceCoordinateSystem), pointBuffer);
 
                     double wr = failureDomainForce.CalculateWorkingRatio(failureAnalysisType, FROM_KNM_TO_NM, FROM_KN_TO_N);
                     if (wr > 1)
@@ -2348,8 +2317,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     {
                         try
                         {
-                            increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, externalForcesLine, angle,
-                                failureDomainType, rebarIsInsideAssociation);
+                            increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, externalForcesLine, angle, _sectionOption.FailureDomainType, rebarIsInsideAssociation);
                         }
                         catch (Exception e)
                         {
@@ -2358,12 +2326,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                                 _log.Add(e.InnerException.Message);
                             return null;
                         }
-                        SetIncrement(failureDomainType, ref failureIndex, ref teta, ref eta, increment.deltaTeta, increment.deltaEta);
+                        SetIncrement(_sectionOption.FailureDomainType, ref failureIndex, ref teta, ref eta, increment.deltaTeta, increment.deltaEta);
 
                         id++;
-                        CalculateRotationPointsPerMaterial(teta, failureDomainType, out tensionRotationPoints, out tensionRotationPointsF1, out compressionRotationPoints, out minDistanceCompression, out elasticEpsilonTension);
+                        CalculateRotationPointsPerMaterial(teta, _sectionOption.FailureDomainType, out tensionRotationPoints, out tensionRotationPointsF1, out compressionRotationPoints, out minDistanceCompression, out elasticEpsilonTension);
                         strainPlane = CalculateStrainPlaneMultiPoints(teta, failureIndex, eta, failureIndex == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, id);
-                        forces = GetExternalForces(CalculateForceResultantForDomain(strainPlane, rebarIsInsideAssociation), coordinateSystem);
+                        forces = GetExternalForces(CalculateForceResultantForDomain(strainPlane, rebarIsInsideAssociation), _sectionOption.ForceReferenceCoordinateSystem);
 
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
                         adimIncrement = ConvertToAdimensionalForces(incrementForce);
@@ -2392,9 +2360,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             angle = angleBuffer;
                         }
 
-                        if ((Math.Abs(adimIncrement.N) < distanceTolerance &&
-                            Math.Abs(adimIncrement.Mx) < distanceTolerance &&
-                            Math.Abs(adimIncrement.My) < distanceTolerance))
+                        if ((Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance &&
+                            Math.Abs(adimIncrement.Mx) < _failureAnalysisDistanceTolerance &&
+                            Math.Abs(adimIncrement.My) < _failureAnalysisDistanceTolerance))
                             break;
                     }
                     else
@@ -2416,28 +2384,28 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     switch (failureAnalysisType)
                     {
                         case FailureAnalysisTypes.ConstantEccentricity:
-                            if (Math.Abs(angle) < angularTolerance)
+                            if (Math.Abs(angle) < _failureAnalysisAngularTolerance)
                                 exit = true;
                             break;
                         case FailureAnalysisTypes.ConstantN:
-                            if (Math.Abs(adimIncrement.N) < distanceTolerance && Math.Abs(angle) < angularTolerance)
+                            if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance && Math.Abs(angle) < _failureAnalysisAngularTolerance)
                                 exit = true;
                             break;
                         case FailureAnalysisTypes.ConstantMxMy:
-                            if (Math.Abs(adimIncrement.Mx) < distanceTolerance &&
-                                Math.Abs(adimIncrement.My) < distanceTolerance)
+                            if (Math.Abs(adimIncrement.Mx) < _failureAnalysisDistanceTolerance &&
+                                Math.Abs(adimIncrement.My) < _failureAnalysisDistanceTolerance)
                                 exit = true;
                             break;
                         case FailureAnalysisTypes.ConstantNMx:
-                            if (Math.Abs(adimIncrement.N) < distanceTolerance &&
-                                Math.Abs(adimIncrement.Mx) < distanceTolerance &&
-                                Math.Abs(angle) < angularTolerance)
+                            if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance &&
+                                Math.Abs(adimIncrement.Mx) < _failureAnalysisDistanceTolerance &&
+                                Math.Abs(angle) < _failureAnalysisAngularTolerance)
                                 exit = true;
                             break;
                         case FailureAnalysisTypes.ConstantNMy:
-                            if (Math.Abs(adimIncrement.N) < distanceTolerance &&
-                                Math.Abs(adimIncrement.My) < distanceTolerance &&
-                                Math.Abs(angle) < angularTolerance)
+                            if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance &&
+                                Math.Abs(adimIncrement.My) < _failureAnalysisDistanceTolerance &&
+                                Math.Abs(angle) < _failureAnalysisAngularTolerance)
                                 exit = true;
                             break;
                     }
@@ -2952,9 +2920,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// This method is good for always finding an working ratio, which is always in favor of safety.
         /// If the starting mesh does not have too many elements then it is also a very performing method.
         /// </summary>
-        protected virtual FailureDomain.FailureDomainPoint CalculateDomainPoint(Mesh domainMesh, ResultBeamForces resultBeamForce,
-            in Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint, FailureAnalysisTypes failureAnalysisType,
-            FailureDomainTypes failureDomainType, double lenghtTolerance = GeometryBase.Tolerance)
+        internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces resultBeamForce, Mesh domainMesh, in Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
         {
             double workingRatio = -1;
             SectionSolver.FailureZones _failureIndex = FailureZones.F1;
@@ -2964,7 +2930,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             Point3d rayOrigin = null; // Must be inside the mesh volume.
 
-            switch (failureAnalysisType)
+            switch (_sectionOption.FailureAnalysisType)
             {
                 case FailureAnalysisTypes.ConstantEccentricity:
                     rayOrigin = Point3d.Origin;
@@ -2990,7 +2956,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             // For some surface approach methods there may not be an intersection, for these cases we need to do a control
             // specifically to change the actual surface approach method used.
             // The origin of the ray rayOrigin will also determine the ratio and must be internal to the domain.
-            if (failureAnalysisType != FailureAnalysisTypes.ConstantEccentricity || Point3d.Origin.DistanceTo(rayOrigin) > lenghtTolerance)
+            if (_sectionOption.FailureAnalysisType != FailureAnalysisTypes.ConstantEccentricity || Point3d.Origin.DistanceTo(rayOrigin) > _failureAnalysisIntersectionTolerance)
             {
                 double rayOriginWorkingRatioOrigin = workingRatioSearch(Point3d.Origin, rayOrigin, out _);
                 // If the origin point of the ray is outside then enforce the use of ConstantEccentricity.
@@ -3053,7 +3019,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         immersione = immA * weightA + immB * weightB;
 
                         // StrainPlane
-                        strainPlane = BuildPlane(theta, failureDomainType, _failureIndex, immersione);
+                        strainPlane = BuildPlane(theta, _sectionOption.FailureDomainType, _failureIndex, immersione);
                     }
                 }
                 else if (intersection.Value is MeshFace intersectionFace)
@@ -3106,7 +3072,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         immersione = immA * weightA + immB * weightB + immC * weightC;
 
                         // StrainPlane
-                        strainPlane = BuildPlane(theta, failureDomainType, _failureIndex, immersione);
+                        strainPlane = BuildPlane(theta, _sectionOption.FailureDomainType, _failureIndex, immersione);
                     }
                 }
                 else
@@ -3120,7 +3086,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double workingRatioSearch(Point3d pointOrigin, Point3d pointToSearch, out KeyValuePair<Point3d, MeshBase> meshIntersection)
             {
                 Point3d targetPoint;
-                bool isRatioZero = pointOrigin.DistanceTo(pointToSearch) < lenghtTolerance;
+                bool isRatioZero = pointOrigin.DistanceTo(pointToSearch) < _failureAnalysisIntersectionTolerance;
 
                 if (!isRatioZero)
                 {
@@ -3129,7 +3095,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 else
                 {
                     // This is a special case with ratio=0.
-                    switch (failureAnalysisType)
+                    switch (_sectionOption.FailureAnalysisType)
                     {
                         case FailureAnalysisTypes.ConstantNMx:
                             targetPoint = pointOrigin + new Point3d(0.0, FROM_KNM_TO_NM, 0.0);
@@ -3148,7 +3114,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     }
                 }
                 Line3d semiRay = new Line3d(pointOrigin, targetPoint);
-                var intersOnDomain = domainMesh.GetIntersectionWihtSemiInfiniteRay(semiRay, true, lenghtTolerance);
+                var intersOnDomain = domainMesh.GetIntersectionWihtSemiInfiniteRay(semiRay, true, _failureAnalysisIntersectionTolerance);
                 if (intersOnDomain.Count == 0)
                     return -1;
 

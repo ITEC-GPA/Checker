@@ -1369,7 +1369,7 @@ namespace ConcreteTests
             {
                 var resDomFail = sectionChecker.CalculatePlasticFailureDomainPoint(appliedForce.Item1);
                 resDomFail.CalculateWorkingRatio(failMode, appliedForce.Item1, SectionSolver.FROM_KNM_TO_NM, SectionSolver.FROM_KN_TO_N);
-                maxErrorConstantN_iterativeMethod.Add(Math.Abs(resDomFail.WorkingRatio - appliedForce.Item2));
+                maxErrorConstantN_iterativeMethod.Add(Math.Abs(resDomFail.WorkingRatio - appliedForce.ratio));
             }
             Assert.AreEqual(0.0, maxErrorConstantN_iterativeMethod.Max(), 0.004);
         }

@@ -910,7 +910,7 @@ namespace ConcreteTests
             };
 
             for (int i = 0; i < forces.Length; i++)
-                CommonAssertDomainPointMethod(section, forces[i], standard, sectionOptions, 0.005, new double[] { 1.0 });
+                CommonAssertDomainPointMethod(section, forces[i].ToCoordinateSystemWithEccentricity(cs), standard, sectionOptions, 0.005, new double[] { 1.0 });
         }
 
         [TestMethod]
@@ -1009,7 +1009,7 @@ namespace ConcreteTests
             CommonAssertDomainPointMethod(section, force, new StandardNTC2018Concrete(), options);
 
             SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, options, new StandardNTC2018Concrete(), section.Centroid);
-            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPoint(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem), options.FailureAnalysisType);
+            FailureDomain.FailureDomainPoint result = solver.CalculateDomainPoint(force, options.FailureAnalysisType);
 
             double expMxRd = 84.6 * 1000000;  // da VCA
             Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 1);
@@ -1028,7 +1028,7 @@ namespace ConcreteTests
             CommonAssertDomainPointMethod(section, force, new StandardNTC2018Concrete(), options);
 
             var solver = new SectionSolverModelCode2010(section, options, new StandardNTC2018Concrete(), section.Centroid);
-            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPoint(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem), options.FailureAnalysisType);
+            FailureDomain.FailureDomainPoint result = solver.CalculateDomainPoint(force, options.FailureAnalysisType);
 
             double expMxRd = 88.0 * 1000000;  // da VCA
             Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 1);
@@ -1060,7 +1060,7 @@ namespace ConcreteTests
             ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
 
             var solver = new SectionSolverModelCode2010(section, options, new StandardNTC2018Concrete(), section.Centroid);
-            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPoint(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem), options.FailureAnalysisType);
+            FailureDomain.FailureDomainPoint result = solver.CalculateDomainPoint(force, options.FailureAnalysisType);
 
             double expMxRd = 208.0 * 1000000;  // da VCA
             Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 2);
@@ -1093,7 +1093,7 @@ namespace ConcreteTests
             ResultBeamForces force = new ResultBeamForces(0 * 1000, 0, 0, 0, 100000000, 0, GetLocalCoordinateSystem(section));
 
             var solver = new SectionSolverModelCode2010(section, options, new StandardNTC2018Concrete(), section.Centroid);
-            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPoint(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem), options.FailureAnalysisType);
+            FailureDomain.FailureDomainPoint result = solver.CalculateDomainPoint(force, options.FailureAnalysisType);
 
             double expMxRd = 419.7 * 1000000;  // da VCA
             Assert.IsTrue(Math.Abs(result.MxRd - expMxRd) / expMxRd * 100 < 1);
@@ -1130,7 +1130,7 @@ namespace ConcreteTests
                 new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             var solver = new SectionSolverModelCode2010(section, options, new StandardNTC2018Concrete(), section.Centroid);
-            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPoint(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem), options.FailureAnalysisType);
+            FailureDomain.FailureDomainPoint result = solver.CalculateDomainPoint(force, options.FailureAnalysisType);
 
             double expMxRd1 = 512 * 1000000;  // da VCA
             double expMxRd2 = 516 * 1000000;  // da Excel
@@ -1166,7 +1166,7 @@ namespace ConcreteTests
                 SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             var solver = new SectionSolverACI318(section, options, new StandardACI318p08(), true, section.Centroid);
-            FailureDomain.FailureDomainPoint result = solver.CalculatePlasticDomainPoint(force.ConvertToForceTuple(options.ForceReferenceCoordinateSystem), options.FailureAnalysisType);
+            FailureDomain.FailureDomainPoint result = solver.CalculateDomainPoint(force, options.FailureAnalysisType);
 
             double expMxRd1 = 247.4 * 1000000 * 0.9;  // valore nominale da design_of_reinforced_concrete_9th_edition
             Assert.IsTrue(Math.Abs(result.MxRd - expMxRd1) / expMxRd1 * 100 < 2);
@@ -1464,6 +1464,7 @@ namespace ConcreteTests
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section,
                 null, new ResultBeamForces[] { force }, new StandardNTC2018Concrete());
 
+            sectionChecker.SectionCheckerOptionsModelCode2010.FailureDomainType = SectionSolver.FailureDomainTypes.Elastic;
             FailureDomain.FailureDomainPoint forceConstEccentr = sectionChecker.CalculateElasticFailureDomainPoint(force);
 
             FailureDomainResult result = sectionChecker.GetElasticFailureDomainResult();
