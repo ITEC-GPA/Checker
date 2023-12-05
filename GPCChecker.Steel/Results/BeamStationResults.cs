@@ -29,7 +29,7 @@ namespace GPC.Checkers.Steel.Results
 
         public ResultBeamForces ResultBeamForces => _resultLocationStation.ResultBeamForces;
 
-        public StationResultBeamForces Station => _resultLocationStation;
+        public StationResultBeamForces StationResultBeamForces => _resultLocationStation;
 
         /// <summary>
         /// The <see cref="ISteelSection"/> to check
