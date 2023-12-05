@@ -60,7 +60,7 @@ namespace SteelTests
             {
                 Assert.IsTrue(checkers[j].Cop2011BeamStationResults.Count() == 1);
                 Assert.IsTrue(checkers[j].Cop2011BeamStationResults.Count() == 1);
-                Assert.IsTrue(checkers[j].Cop2011BeamStationResults[0].Station == resultLocationStations[0]);
+                Assert.IsTrue(checkers[j].Cop2011BeamStationResults[0].StationResultBeamForces == resultLocationStations[0]);
                 Assert.IsTrue(checkers[j].Cop2011BeamStationResults[0].ResultBeamForces == resultBeamForces);
                 Assert.IsTrue(checkers[j].Cop2011BeamStationResults[0].WorkingRatio >= 0.01);
             }
