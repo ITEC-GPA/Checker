@@ -5,12 +5,14 @@ using GPC.Geometry;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
+using GPC.Model.Results;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ConcreteTests
@@ -1171,6 +1173,205 @@ namespace ConcreteTests
 				-2493.36	-114.279	0			0
 				-2493.36	-114.279	0			0
 			*/
+        }
+
+        [TestMethod]
+        [Description("Bug reported on 11 july 2023")]
+        public void SectionLTest1()
+        {
+            // sezion a L
+            Shape2d shape = new Shape2d(new Polygon2d(new Point2d[]
+            {
+                new Point2d(0, 0),
+                new Point2d(10000, 0),
+                new Point2d(10000, 800),
+                new Point2d(800, 800),
+                new Point2d(800, 10000),
+                new Point2d(0, 10000)
+            }));
+
+            RebarSectionCircular rebar = new RebarSectionCircular(30, SteelMaterialACI318Data.Grade75);
+
+            ReinforcedConcreteRebar[] rebars = new ReinforcedConcreteRebar[]
+            {
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 9960)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(580, 9960)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(400, 9960)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(220, 9960)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 9960)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(382.07, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(724.14, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(1066.21, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(1408.28, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(1750.34, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(2092.41, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(2434.48, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(2776.55, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(3118.62, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(3460.69, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(3802.76, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(4144.83, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(4486.9, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(4828.97, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(5171.03, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(5513.1, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(5855.17, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(6197.24, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(6539.31, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(6881.38, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(7223.45, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(7565.52, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(7907.59, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(8249.66, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(8591.72, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(8933.79, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9275.86, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9617.93, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9960, 40)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 800)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 1115.86)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 1431.72)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 1747.59)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 2063.45)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 2379.31)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 2695.17)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 3011.03)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 3326.9)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 3642.76)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 3958.62)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 4274.48)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 4590.34)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 4906.21)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 5222.07)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 5537.93)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 5853.79)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 6169.66)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 6485.52)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 6801.38)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 7117.24)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 7433.1)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 7748.97)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 8064.83)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 8380.69)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 8696.55)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 9012.41)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 9328.28)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(760, 9644.14)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 800)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 1115.86)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 1431.72)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 1747.59)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 2063.45)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 2379.31)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 2695.17)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 3011.03)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 3326.9)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 3642.76)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 3958.62)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 4274.48)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 4590.34)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 4906.21)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 5222.07)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 5537.93)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 5853.79)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 6169.66)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 6485.52)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 6801.38)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 7117.24)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 7433.1)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 7748.97)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 8064.83)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 8380.69)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 8696.55)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 9012.41)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 9328.28)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 9644.14)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9960, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9617.93, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9275.86, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(8933.79, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(8591.72, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(8249.66, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(7907.59, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(7565.52, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(7223.45, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(6881.38, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(6539.31, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(6197.24, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(5855.17, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(5513.1, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(5171.03, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(4828.97, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(4486.9, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(4144.83, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(3802.76, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(3460.69, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(3118.62, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(2776.55, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(2434.48, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(2092.41, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(1750.34, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(1408.28, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(1066.21, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(724.14, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(382.07, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(40, 760)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(200, 9600)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(400, 9600)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(600, 9600)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(200, 9200)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(400, 9200)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(600, 9200)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9600, 600)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9600, 400)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9600, 200)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9800, 200)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9800, 400)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9800, 600)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9400, 600)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9400, 400)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(9400, 200)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(200, 600)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(200, 400)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(200, 200)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(800, 200)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(800, 400)),
+                new ReinforcedConcreteRebar(rebar, new Point2d(800, 600))
+            };
+
+            var concreteMaterial = ConcreteMaterialACI318Data.Fc5000;
+            concreteMaterial.CompressionStressStrainDiagram = ConcreteMaterial.CompressionStressStrainDiagrams.Bilinear;
+
+            ReinforcedConcreteSection section = new ReinforcedConcreteSection(shape, concreteMaterial);
+
+            section.AddRebars(rebars);
+            var cs = GetLocalCoordinateSystem(section);
+            var csForces = GetLocalCoordinateSystem(section);
+            csForces.SetOrigin(new Point3d(2795.83, 2795.83, 0));
+
+            // Code, solver and checker.
+            var standard = new StandardACI318p14();
+            var sectionChecker = GetSectionCheckerACI318(section, standard);
+            var failMode = SectionSolver.FailureAnalysisTypes.ConstantN;
+            sectionChecker.SectionCheckerOptionsACI318.FailureAnalysisType = failMode;
+            sectionChecker.SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem = cs;
+
+            // External forces, Mx My N
+            var externalForces = new List<(Point3d force, double ratio)>()
+            {
+                (new Point3d(14648.09184 * SectionSolver.FROM_KNM_TO_NM, 149792.7432 * SectionSolver.FROM_KNM_TO_NM, -16217 * SectionSolver.FROM_KN_TO_N), 0.861),
+            };
+            var forces = externalForces.Select(p => (new ResultBeamForces(p.force.Z, 0, 0, 0, p.force.X, p.force.Y, csForces), p.ratio)).ToArray();
+
+            var maxErrorConstantN_iterativeMethod = new List<double>();
+            foreach (var appliedForce in forces)
+            {
+                var resDomFail = sectionChecker.CalculatePlasticFailureDomainPoint(appliedForce.Item1);
+                resDomFail.CalculateWorkingRatio(failMode, appliedForce.Item1, SectionSolver.FROM_KNM_TO_NM, SectionSolver.FROM_KN_TO_N);
+                maxErrorConstantN_iterativeMethod.Add(Math.Abs(resDomFail.WorkingRatio - appliedForce.Item2));
+            }
+            Assert.AreEqual(0.0, maxErrorConstantN_iterativeMethod.Max(), 0.004);
         }
     }
 }
