@@ -58,7 +58,7 @@ namespace GPC.Checkers.Concrete.Results
                 for (int i = 0; i < forces.Count(); i++)
                 {
                     _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i],
-                        _sectionSolver.CalculateDomainPoint(new ForceTuple(forcesList[i]), FailureAnalysisType)));
+                        _sectionSolver.CalculateDomainPoint(forcesList[i], FailureAnalysisType)));
                 }
             }
 
@@ -101,7 +101,7 @@ namespace GPC.Checkers.Concrete.Results
 
             await Task.Run(() =>
             {
-                failureDomainPoint = _sectionSolver.CalculateDomainPoint(new ForceTuple(force), FailureAnalysisType);
+                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, FailureAnalysisType);
                 _forces.Add(new FailureDomain.FailureDomainForce(force, failureDomainPoint));
             });
 
@@ -130,7 +130,7 @@ namespace GPC.Checkers.Concrete.Results
 
             await Task.Run(() =>
             {
-                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
+                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force);
                 _forces.Add(new FailureDomain.FailureDomainForce(force, failureDomainPoint));
             });
 
@@ -164,7 +164,7 @@ namespace GPC.Checkers.Concrete.Results
 
                 for (int i = 0; i < forcesList.Count(); i++)
                 {
-                    var point = _sectionSolver.CalculateDomainPoint(new ForceTuple(forcesList[i]), FailureAnalysisType);
+                    var point = _sectionSolver.CalculateDomainPoint(forcesList[i], FailureAnalysisType);
                     _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
                     failureDomainPoint[i] = point;
                 }
@@ -200,7 +200,7 @@ namespace GPC.Checkers.Concrete.Results
 
                 for (int i = 0; i < forcesList.Count(); i++)
                 {
-                    var point = _sectionSolver.CalculateDomainPoint(forcesList[i], domainMesh, vertexToDomainPoint);
+                    var point = _sectionSolver.CalculateDomainPoint(forcesList[i]);
                     _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
                     failureDomainPoint[i] = point;
                 }
@@ -239,7 +239,7 @@ namespace GPC.Checkers.Concrete.Results
 
             await Task.Run(() =>
             {
-                failureDomainPoint = _sectionSolver.CalculateDomainPoint(new ForceTuple(force), FailureAnalysisType);
+                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, FailureAnalysisType);
                 _forces.RemoveAt(index);
                 _forces.Insert(index, new FailureDomain.FailureDomainForce(force, failureDomainPoint));
             });
@@ -277,7 +277,7 @@ namespace GPC.Checkers.Concrete.Results
 
             await Task.Run(() =>
             {
-                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
+                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force);
                 _forces.RemoveAt(index);
                 _forces.Insert(index, new FailureDomain.FailureDomainForce(force, failureDomainPoint));
             });
@@ -377,7 +377,7 @@ namespace GPC.Checkers.Concrete.Results
 
             await Task.Run(() =>
             {
-                failureDomainPoint = _sectionSolver.CalculateDomainPoint(new ForceTuple(force), FailureAnalysisType);
+                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, FailureAnalysisType);
             });
 
             return failureDomainPoint;
@@ -401,7 +401,7 @@ namespace GPC.Checkers.Concrete.Results
 
             await Task.Run(() =>
             {
-                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
+                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force);
             });
 
             return failureDomainPoint;
@@ -429,7 +429,7 @@ namespace GPC.Checkers.Concrete.Results
                 throw new ArgumentException(nameof(force));
             }
 
-            var point = _sectionSolver.CalculateDomainPoint(new ForceTuple(force), FailureAnalysisType);
+            var point = _sectionSolver.CalculateDomainPoint(force, FailureAnalysisType);
             _forces.Add(new FailureDomain.FailureDomainForce(force, point));
 
             return point;
@@ -453,7 +453,7 @@ namespace GPC.Checkers.Concrete.Results
                 throw new ArgumentException(nameof(force));
             }
 
-            var point = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
+            var point = _sectionSolver.CalculateDomainPoint(force);
             _forces.Add(new FailureDomain.FailureDomainForce(force, point));
             return point;
         }
@@ -481,7 +481,7 @@ namespace GPC.Checkers.Concrete.Results
 
             for (int i = 0; i < forcesList.Count(); i++)
             {
-                var point = _sectionSolver.CalculateDomainPoint(new ForceTuple(forcesList[i]), FailureAnalysisType);
+                var point = _sectionSolver.CalculateDomainPoint(forcesList[i], FailureAnalysisType);
                 _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
                 failureDomainPoint[i] = point;
             }
@@ -514,7 +514,7 @@ namespace GPC.Checkers.Concrete.Results
 
             for (int i = 0; i < forcesList.Count(); i++)
             {
-                var point = _sectionSolver.CalculateDomainPoint(forcesList[i], mesh, vertexToDomainPoint);
+                var point = _sectionSolver.CalculateDomainPoint(forcesList[i]);
                 _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
                 failureDomainPoint[i] = point;
             }
@@ -535,7 +535,7 @@ namespace GPC.Checkers.Concrete.Results
             {
                 throw new ArgumentNullException(nameof(force));
             }
-            return _sectionSolver.CalculateDomainPoint(new ForceTuple(force), FailureAnalysisType);
+            return _sectionSolver.CalculateDomainPoint(force, FailureAnalysisType);
         }
 
         /// <summary>
@@ -552,7 +552,7 @@ namespace GPC.Checkers.Concrete.Results
                 throw new ArgumentNullException(nameof(force));
             }
 
-            var failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, mesh, vertexToDomainPoint);
+            var failureDomainPoint = _sectionSolver.CalculateDomainPoint(force);
             return failureDomainPoint;
         }
 
@@ -686,10 +686,11 @@ namespace GPC.Checkers.Concrete.Results
 
             Parallel.For(0, forceTuples.Length, (i) =>
             {
+                var force = new ResultBeamForces(forceTuples[i].N, 0.0, 0.0, 0.0, forceTuples[i].Mx, forceTuples[i].My, _sectionSolver.SectionOption.ForceReferenceCoordinateSystem);
                 if (forceTuples[i].Mx != 0 || forceTuples[i].My != 0)
-                    points[i] = _sectionSolver.CalculateDomainPoint(forceTuples[i], SectionSolver.FailureAnalysisTypes.ConstantN);
+                    points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantN);
                 else
-                    points[i] = _sectionSolver.CalculateDomainPoint(forceTuples[i], SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+                    points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
             });
 
             return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);
@@ -706,10 +707,11 @@ namespace GPC.Checkers.Concrete.Results
 
             Parallel.For(0, forceTuples.Length, (i) =>
             {
+                var force = new ResultBeamForces(forceTuples[i].N, 0.0, 0.0, 0.0, forceTuples[i].Mx, forceTuples[i].My, _sectionSolver.SectionOption.ForceReferenceCoordinateSystem);
                 if (forceTuples[i].Mx != 0 || forceTuples[i].My != 0)
-                    points[i] = _sectionSolver.CalculateDomainPoint(forceTuples[i], SectionSolver.FailureAnalysisTypes.ConstantN);
+                    points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantN);
                 else
-                    points[i] = _sectionSolver.CalculateDomainPoint(forceTuples[i], SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+                    points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
             });
 
             return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);

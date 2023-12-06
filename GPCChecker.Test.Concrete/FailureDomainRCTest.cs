@@ -1356,6 +1356,7 @@ namespace ConcreteTests
             var failMode = SectionSolver.FailureAnalysisTypes.ConstantN;
             sectionChecker.SectionCheckerOptionsACI318.FailureAnalysisType = failMode;
             sectionChecker.SectionCheckerOptionsACI318.ForceReferenceCoordinateSystem = cs;
+            sectionChecker.SectionCheckerOptionsACI318.FailureDomainType = SectionSolver.FailureDomainTypes.Plastic;
 
             // External forces, Mx My N
             var externalForces = new List<(Point3d force, double ratio)>()
@@ -1367,7 +1368,7 @@ namespace ConcreteTests
             var maxErrorConstantN_iterativeMethod = new List<double>();
             foreach (var appliedForce in forces)
             {
-                var resDomFail = sectionChecker.CalculatePlasticFailureDomainPoint(appliedForce.Item1);
+                var resDomFail = sectionChecker.CalculateFailureDomainPoint(appliedForce.Item1);
                 resDomFail.CalculateWorkingRatio(failMode, appliedForce.Item1, SectionSolver.FROM_KNM_TO_NM, SectionSolver.FROM_KN_TO_N);
                 maxErrorConstantN_iterativeMethod.Add(Math.Abs(resDomFail.WorkingRatio - appliedForce.ratio));
             }

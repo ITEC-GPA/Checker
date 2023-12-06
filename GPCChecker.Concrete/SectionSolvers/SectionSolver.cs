@@ -1,4 +1,5 @@
 using GPC.Checker.Helper;
+using GPC.Checker.SectionSolvers;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
@@ -179,6 +180,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             ConstantNMy,
         }
 
+        public enum DomainPointStrategyTypes
+        {
+            Iterative,
+            Intersection
+        }
+
         #endregion
 
         #region Variables
@@ -186,7 +193,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected double _stressAnalysisTolerance;
         protected double _failureAnalysisAngularTolerance;
         protected double _failureAnalysisDistanceTolerance;
-        protected double _failureAnalysisIntersectionTolerance;
         protected bool _considerTensileConcrete;
 
         protected IConcreteSection _concreteSection;
@@ -220,9 +226,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         protected SectionChecker.SectionOptions _sectionOption;
 
+        /// <summary>
+        /// Save a copy to see if it changes.
+        /// </summary>
+        protected DomainPointStrategyTypes? _sectionOptionDomainPointStrategy;
+
+        /// <summary>
+        /// Concrete strategy of calculating the domain point.
+        /// </summary>
+        protected IDomainPointStrategy _calculateDomainPointStrategy;
+
         #endregion
 
         #region Properties
+
+        internal double FailureAnalysisAngularTolerance => _failureAnalysisAngularTolerance;
+
+        internal double FailureAnalysisDistanceTolerance => _failureAnalysisDistanceTolerance;
 
         public IConcreteSection ConcreteSection => _concreteSection;
 
@@ -230,9 +250,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public Standard StandardStructuralSteel => _standardStructuralSteel;
 
+        internal Point2d IntegrationReferencePoint => _integrationReferencePoint;
+
         public bool ConsiderTensileConcrete { get => _considerTensileConcrete; internal set => _considerTensileConcrete = value; }
 
+        internal List<string> Log => _log;
+
         public int TetaDiscretization { get => _tetaDiscretization; set => _tetaDiscretization = value; }
+
+        internal SectionChecker.SectionOptions SectionOption => _sectionOption;
 
         #endregion
 
@@ -251,7 +277,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _stressAnalysisTolerance = 1e-5;
             _failureAnalysisAngularTolerance = 0.25e-3;
             _failureAnalysisDistanceTolerance = 0.5e-4;
-            _failureAnalysisIntersectionTolerance = 10;
 
             _considerTensileConcrete = considerTensileConcrete;
             _tetaDiscretization = 64;
@@ -264,6 +289,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _steelSectionsThinWallsBreaked = BreakThinwallAtConcreteIntesections();
             _globalCoordinateGaussPointsThinWalls = GetThinWallsGlobalCoordinateGaussPointsLinearShapeFunction();
             _sectionOption = sectionOption;
+            _sectionOptionDomainPointStrategy = null;
+            SetDomainPointStrategy(_sectionOption.DomainPointStrategy);
         }
 
         protected SectionSolver(SerializationInfo info, StreamingContext context)
@@ -281,6 +308,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _gaussIntegrationTriPoints = (TriangleGaussPoints.GaussPointNumber)info.GetValue("GaussIntegrationTriPoints", typeof(TriangleGaussPoints.GaussPointNumber));
             _considerTensileConcrete = info.GetBoolean("ConsiderTensileConcrete");
             _sectionOption = (SectionChecker.SectionOptions)info.GetValue("SectionOption", typeof(SectionChecker.SectionOptions));
+            _sectionOptionDomainPointStrategy = null;
+            SetDomainPointStrategy(_sectionOption.DomainPointStrategy);
         }
 
         #endregion
@@ -604,21 +633,40 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
-            var forceToReferenceSystem = force.ToCoordinateSystemWithEccentricity(_sectionOption.ForceReferenceCoordinateSystem);
-            return CalculateDomainPoint(new ForceTuple(forceToReferenceSystem), failureAnalysisTypeOverride);
+            return _calculateDomainPointStrategy.CalculateDomainPoint(force, failureAnalysisTypeOverride);
         }
 
-        public FailureDomain.FailureDomainPoint[] CalculateDomainPoint(ResultBeamForces[] force, Mesh domainMesh,
-            Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
+        public FailureDomain.FailureDomainPoint[] CalculateDomainPoint(ResultBeamForces[] force)
         {
             FailureDomain.FailureDomainPoint[] result = new FailureDomain.FailureDomainPoint[force.Length];
 
             Parallel.For(0, force.Length, (i) =>
             {
-                result[i] = CalculateDomainPoint(force[i], domainMesh, vertexToDomainPoint);
+                result[i] = _calculateDomainPointStrategy.CalculateDomainPoint(force[i]);
             });
 
             return result;
+        }
+
+        #endregion
+
+        #region Internal methods
+
+        internal void SetDomainPointStrategy(DomainPointStrategyTypes domainPointStrategyTypes)
+        {
+            if (!_sectionOptionDomainPointStrategy.HasValue || _sectionOptionDomainPointStrategy.Value != domainPointStrategyTypes)
+            {
+                _sectionOptionDomainPointStrategy = domainPointStrategyTypes;
+                switch (domainPointStrategyTypes)
+                {
+                    case DomainPointStrategyTypes.Iterative:
+                        _calculateDomainPointStrategy = new DomainPointStrategyIterative(this);
+                        break;
+                    case DomainPointStrategyTypes.Intersection:
+                        _calculateDomainPointStrategy = new DomainPointStrategyIntersection(this);
+                        break;
+                }
+            }
         }
 
         #endregion
@@ -726,7 +774,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// Integrate the stress on the section given by the <paramref name="strainPlane"/> and gives the resultant forces
         /// </summary>
         /// <returns>The forces in the local reference system</returns>
-        protected virtual ForceTuple CalculateForceResultantForDomain(StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
+        internal virtual ForceTuple CalculateForceResultantForDomain(StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation)
         {
             try
             {
@@ -2072,1067 +2120,6 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Protected method - Point on failure domain
 
-        /// <summary>
-        /// Iterative method to find a point in the resistant domain.
-        /// </summary>
-        /// <param name="targetLocalForces"></param>
-        /// <param name="failureAnalysisTypeOverride"></param>
-        /// <returns></returns>
-        internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ForceTuple targetLocalForces, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
-        {
-            var failureAnalysisType = failureAnalysisTypeOverride is null ? _sectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
-            switch (failureAnalysisType)
-            {
-                case FailureAnalysisTypes.ConstantEccentricity:
-                    break;
-                case FailureAnalysisTypes.ConstantN:
-                    if (targetLocalForces.Mx == 0 && targetLocalForces.My == 0)
-                        return null;
-                    break;
-                case FailureAnalysisTypes.ConstantNMx:
-                    if (targetLocalForces.My == 0)
-                        return null;
-                    break;
-                case FailureAnalysisTypes.ConstantNMy:
-                    if (targetLocalForces.Mx == 0)
-                        return null;
-                    break;
-                case FailureAnalysisTypes.ConstantMxMy:
-                    break;
-                default:
-                    break;
-            }
-
-            var rebarIsInsideAssociation = ConcreteSection.GetRebarIsInsideAssociation();
-
-            ForceTuple adimOutputForces = ConvertToAdimensionalForces(targetLocalForces);
-
-            Vector3d vectorEd = null;
-            switch (failureAnalysisType)
-            {
-                case FailureAnalysisTypes.ConstantEccentricity:
-                    vectorEd = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N);
-                    break;
-                case FailureAnalysisTypes.ConstantN:
-                    vectorEd = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, targetLocalForces.My / FROM_KNM_TO_NM, 0.0);
-                    break;
-                case FailureAnalysisTypes.ConstantNMx:
-                    vectorEd = new Vector3d(0, targetLocalForces.My / FROM_KNM_TO_NM, 0);
-                    break;
-                case FailureAnalysisTypes.ConstantNMy:
-                    vectorEd = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, 0, 0);
-                    break;
-                case FailureAnalysisTypes.ConstantMxMy:
-                    vectorEd = new Vector3d(0, 0, targetLocalForces.N / FROM_KN_TO_N);
-                    break;
-            }
-
-            // Valori di primo tentativo
-            FailureZones failureIndex = FailureZones.F3A;
-            double eta = 0.5;
-            double teta = Math.Atan2(targetLocalForces.My, targetLocalForces.Mx);
-
-            switch (failureAnalysisType)
-            {
-                case FailureAnalysisTypes.ConstantEccentricity:
-                    if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
-                    {
-                        failureIndex = FailureZones.F3A;
-                        eta = 0.40;
-                    }
-                    else if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
-                    {
-                        failureIndex = FailureZones.F3A;
-                        eta = 0.50;
-                    }
-                    else if (adimOutputForces.N > 0.0)
-                    {
-                        failureIndex = FailureZones.F3A;
-                        eta = 0.6;
-                    }
-                    else if (Math.Abs(adimOutputForces.N) < 1e-5)
-                    {
-                        failureIndex = FailureZones.F3A;
-                        eta = 0.60;
-                    }
-                    else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-2 && Math.Abs(adimOutputForces.My) < 1e-2)
-                    {
-                        failureIndex = FailureZones.F3B;
-                        eta = 0.8;
-                    }
-                    else if (adimOutputForces.N < 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-7 && Math.Abs(adimOutputForces.My) < 1e-7)
-                    {
-                        failureIndex = FailureZones.F4;
-                        eta = 0.9;
-                    }
-                    else
-                    {
-                        failureIndex = FailureZones.F3B;
-                        eta = 0.8;
-                    }
-                    break;
-                case FailureAnalysisTypes.ConstantN:
-                case FailureAnalysisTypes.ConstantNMx:
-                case FailureAnalysisTypes.ConstantNMy:
-                    if (adimOutputForces.N > 0.0)
-                    {
-                        failureIndex = FailureZones.F3A;
-                        eta = 0.90;
-                    }
-                    else if (adimOutputForces.N < 0.2)
-                    {
-                        failureIndex = FailureZones.F3A;
-                        eta = 0.95;
-                    }
-                    else if (adimOutputForces.N < 0.4)
-                    {
-                        failureIndex = FailureZones.F4;
-                        eta = 0.25;
-                    }
-                    else if (adimOutputForces.N < 0.6)
-                    {
-                        failureIndex = FailureZones.F4;
-                        eta = 0.5;
-                    }
-                    else if (adimOutputForces.N < 1)
-                    {
-                        failureIndex = FailureZones.F4;
-                        eta = 0.75;
-                    }
-                    else
-                    {
-                        failureIndex = FailureZones.F3A;
-                        eta = 0.95;
-                    }
-                    break;
-                case FailureAnalysisTypes.ConstantMxMy:
-                    if (adimOutputForces.N > 0.0)
-                    {
-                        failureIndex = FailureZones.F3A;
-                        eta = 0.1;
-                    }
-                    else
-                    {
-                        failureIndex = FailureZones.F4;
-                        eta = 0.5;
-                    }
-                    break;
-            }
-            if (adimOutputForces.N > 0.0 && Math.Abs(adimOutputForces.Mx) < 1e-10 && Math.Abs(adimOutputForces.My) < 1e-10)
-            {
-                if (_integrationReferencePoint.Y - ConcreteSection.GetHomogenizedCentroid(out _, out _).Y > 0)
-                    teta = Math.PI;
-            }
-
-            int id = 1;
-            CalculateRotationPointsPerMaterial(teta, _sectionOption.FailureDomainType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
-            var strainPlane = CalculateStrainPlaneMultiPoints(teta, failureIndex, eta, failureIndex == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, id);
-
-            teta = strainPlane.Teta;
-
-            ForceTuple forces = GetExternalForces(CalculateForceResultantForDomain(strainPlane, rebarIsInsideAssociation), _sectionOption.ForceReferenceCoordinateSystem);
-            ForceTuple adimIncrement = ConvertToAdimensionalForces(forces - targetLocalForces);
-
-            (double deltaTeta, double deltaEta, Vector3d distanceToTarget) increment;
-
-            double angle = -1;
-            bool exit = false;
-            bool pointOutOfDomain = false;
-
-            var closestPoint = new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane, eta);
-
-            switch (failureAnalysisType)
-            {
-                case FailureAnalysisTypes.ConstantEccentricity:
-                    angle = new Vector3d(forces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, forces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
-                        targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
-                    if (Math.Abs(angle) < _failureAnalysisAngularTolerance)
-                        exit = true;
-                    break;
-                case FailureAnalysisTypes.ConstantN:
-                    angle = new Vector3d(forces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, 0).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
-                        targetLocalForces.My / FROM_KNM_TO_NM, 0));
-                    if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance && Math.Abs(angle) < _failureAnalysisAngularTolerance)
-                        exit = true;
-                    break;
-                case FailureAnalysisTypes.ConstantMxMy:
-                    angle = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, targetLocalForces.My / FROM_KNM_TO_NM, forces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
-                        targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
-                    if (Math.Abs(adimIncrement.Mx) < _failureAnalysisDistanceTolerance && Math.Abs(adimIncrement.My) < _failureAnalysisDistanceTolerance)
-                        exit = true;
-                    break;
-                case FailureAnalysisTypes.ConstantNMx:
-                    angle = new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
-                        targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
-                    if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance && Math.Abs(adimIncrement.Mx) < _failureAnalysisDistanceTolerance)
-                        exit = true;
-                    break;
-                case FailureAnalysisTypes.ConstantNMy:
-                    angle = new Vector3d(forces.Mx / FROM_KNM_TO_NM, targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N).AngleTo(new Vector3d(targetLocalForces.Mx / FROM_KNM_TO_NM,
-                        targetLocalForces.My / FROM_KNM_TO_NM, targetLocalForces.N / FROM_KN_TO_N));
-                    if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance && Math.Abs(adimIncrement.My) < _failureAnalysisDistanceTolerance)
-                        exit = true;
-                    break;
-            }
-
-            if (!exit)
-            {
-                Line3d externalForcesLine = null;
-                switch (failureAnalysisType)
-                {
-                    case FailureAnalysisTypes.ConstantEccentricity:
-                        externalForcesLine = new Line3d(new Point3d(0, 0, 0), targetLocalForces);
-                        break;
-                    case FailureAnalysisTypes.ConstantN:
-                        externalForcesLine = new Line3d(new Point3d(0, 0, targetLocalForces.N), targetLocalForces);
-                        break;
-                    case FailureAnalysisTypes.ConstantMxMy:
-                        externalForcesLine = new Line3d(new Point3d(targetLocalForces.Mx, targetLocalForces.My, 0),
-                            new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N - FROM_KN_TO_N));
-                        break;
-                    case FailureAnalysisTypes.ConstantNMx:
-                        externalForcesLine = new Line3d(new Point3d(targetLocalForces.Mx, 0, targetLocalForces.N),
-                            new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N));
-                        break;
-                    case FailureAnalysisTypes.ConstantNMy:
-                        externalForcesLine = new Line3d(new Point3d(0, targetLocalForces.My, targetLocalForces.N),
-                            new Point3d(targetLocalForces.Mx, targetLocalForces.My, targetLocalForces.N));
-                        break;
-                }
-
-                if (failureAnalysisType == FailureAnalysisTypes.ConstantMxMy)
-                {
-                    FailureDomain.FailureDomainPoint pointBuffer = CalculateDomainPoint(targetLocalForces);
-                    FailureDomain.FailureDomainForce failureDomainForce = new FailureDomain.FailureDomainForce(
-                        new ResultBeamForces(targetLocalForces.N, 0, 0, 0, targetLocalForces.Mx, targetLocalForces.My, _sectionOption.ForceReferenceCoordinateSystem), pointBuffer);
-
-                    double wr = failureDomainForce.CalculateWorkingRatio(failureAnalysisType, FROM_KNM_TO_NM, FROM_KN_TO_N);
-                    if (wr > 1)
-                        pointOutOfDomain = true;
-                }
-
-                do
-                {
-                    if (id < 200 && !pointOutOfDomain)
-                    {
-                        try
-                        {
-                            increment = CalculateIncrement(forces, strainPlane, failureIndex, eta, externalForcesLine, angle, _sectionOption.FailureDomainType, rebarIsInsideAssociation);
-                        }
-                        catch (Exception e)
-                        {
-                            _log.Add(e.Message);
-                            if (e.InnerException != null)
-                                _log.Add(e.InnerException.Message);
-                            return null;
-                        }
-                        SetIncrement(_sectionOption.FailureDomainType, ref failureIndex, ref teta, ref eta, increment.deltaTeta, increment.deltaEta);
-
-                        id++;
-                        CalculateRotationPointsPerMaterial(teta, _sectionOption.FailureDomainType, out tensionRotationPoints, out tensionRotationPointsF1, out compressionRotationPoints, out minDistanceCompression, out elasticEpsilonTension);
-                        strainPlane = CalculateStrainPlaneMultiPoints(teta, failureIndex, eta, failureIndex == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, id);
-                        forces = GetExternalForces(CalculateForceResultantForDomain(strainPlane, rebarIsInsideAssociation), _sectionOption.ForceReferenceCoordinateSystem);
-
-                        ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
-                        adimIncrement = ConvertToAdimensionalForces(incrementForce);
-
-                        double angleBuffer = Math.PI;
-
-                        switch (failureAnalysisType)
-                        {
-                            case FailureAnalysisTypes.ConstantEccentricity:
-                                angleBuffer = new Vector3d(forces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, forces.N / FROM_KN_TO_N).AngleTo(vectorEd);
-                                break;
-                            case FailureAnalysisTypes.ConstantN:
-                                angleBuffer = new Vector3d(forces.Mx / FROM_KNM_TO_NM, forces.My / FROM_KNM_TO_NM, 0).AngleTo(vectorEd);
-                                break;
-                            case FailureAnalysisTypes.ConstantNMx:
-                            case FailureAnalysisTypes.ConstantNMy:
-                            case FailureAnalysisTypes.ConstantMxMy:
-                                angleBuffer = new Vector3d((forces.Mx - targetLocalForces.Mx) / FROM_KNM_TO_NM, (forces.My - targetLocalForces.My) / FROM_KNM_TO_NM,
-                                    (forces.N - targetLocalForces.N) / FROM_KN_TO_N).AngleTo(vectorEd);
-                                break;
-                        }
-
-                        if (angleBuffer < angle)
-                        {
-                            closestPoint = new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane, eta);
-                            angle = angleBuffer;
-                        }
-
-                        if ((Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance &&
-                            Math.Abs(adimIncrement.Mx) < _failureAnalysisDistanceTolerance &&
-                            Math.Abs(adimIncrement.My) < _failureAnalysisDistanceTolerance))
-                            break;
-                    }
-                    else
-                    {
-                        _log.Add("Fail to calculate point on domain");
-                        if (failureIndex == FailureZones.F2A || failureIndex == FailureZones.F2B)
-                        {
-                            if (angle < 250 * _failureAnalysisAngularTolerance)
-                                return closestPoint;
-                        }
-                        else if (failureIndex == FailureZones.F3A || failureIndex == FailureZones.F3B || failureIndex == FailureZones.F4)
-                        {
-                            if (angle < 20 * _failureAnalysisAngularTolerance)
-                                return closestPoint;
-                        }
-                        return null;
-                    }
-
-                    switch (failureAnalysisType)
-                    {
-                        case FailureAnalysisTypes.ConstantEccentricity:
-                            if (Math.Abs(angle) < _failureAnalysisAngularTolerance)
-                                exit = true;
-                            break;
-                        case FailureAnalysisTypes.ConstantN:
-                            if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance && Math.Abs(angle) < _failureAnalysisAngularTolerance)
-                                exit = true;
-                            break;
-                        case FailureAnalysisTypes.ConstantMxMy:
-                            if (Math.Abs(adimIncrement.Mx) < _failureAnalysisDistanceTolerance &&
-                                Math.Abs(adimIncrement.My) < _failureAnalysisDistanceTolerance)
-                                exit = true;
-                            break;
-                        case FailureAnalysisTypes.ConstantNMx:
-                            if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance &&
-                                Math.Abs(adimIncrement.Mx) < _failureAnalysisDistanceTolerance &&
-                                Math.Abs(angle) < _failureAnalysisAngularTolerance)
-                                exit = true;
-                            break;
-                        case FailureAnalysisTypes.ConstantNMy:
-                            if (Math.Abs(adimIncrement.N) < _failureAnalysisDistanceTolerance &&
-                                Math.Abs(adimIncrement.My) < _failureAnalysisDistanceTolerance &&
-                                Math.Abs(angle) < _failureAnalysisAngularTolerance)
-                                exit = true;
-                            break;
-                    }
-
-                } while (!exit);
-            }
-
-            return new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane, eta);
-        }
-
-        protected (double deltaTeta, double deltaEta, Vector3d distanceToTarget) CalculateIncrement(ForceTuple iterationPoint,
-            StrainPlane inputStrainPlane, FailureZones inputFailureZone, double inputImmersioneNelCampo, Line3d externalForcesLine,
-            double deltaAngle, FailureDomainTypes failureDomainType, Dictionary<int, bool> rebarIsInsideAssociation)
-        {
-            var adimIteractionPoint = ConvertToAdimensionalForces(iterationPoint);
-
-            double dTeta;
-            double dEta;
-
-            switch (inputFailureZone)
-            {
-                case FailureZones.F1:
-                    dTeta = 0.25;
-                    dEta = 0.25;
-                    break;
-
-                case FailureZones.F2A:
-                    dTeta = Math.Max(Math.Min(deltaAngle, 0.01), 0.005);
-                    dEta = Math.Max(Math.Min(deltaAngle, 0.01), 0.001);
-                    break;
-
-                case FailureZones.F2B:
-                    dTeta = Math.Max(Math.Min(deltaAngle, 0.01), 0.005);
-                    dEta = Math.Max(Math.Min(deltaAngle, 0.01), 0.0005);
-                    break;
-
-                case FailureZones.F3A:
-                    dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.0001);
-                    dEta = Math.Max(0.01 * Math.Min(deltaAngle, 0.01), 0.00001);
-                    break;
-
-                case FailureZones.F3B:
-                    dTeta = Math.Max(0.1 * Math.Min(deltaAngle, 0.01), 0.00001);
-                    dEta = Math.Max(0.01 * Math.Min(deltaAngle, 0.01), 0.000001);
-                    break;
-
-                default:
-                    dTeta = Math.Max(Math.Min(deltaAngle, 0.01), 0.0001);
-                    dEta = Math.Max(Math.Min(deltaAngle, 0.01), 0.0001);
-                    break;
-            }
-
-            double dNdTeta;
-            double dMxdTeta;
-            double dMydTeta;
-            double dNdImm;
-            double dMxdImm;
-            double dMydImm;
-
-            double nonLinearErrorTeta;
-            double nonLinearErrorEta;
-            double dTetaBuffer = dTeta;
-            double dEtaBuffer = dEta;
-
-            int etaCounter = 1;
-            int tetaCounter = 1;
-
-            // derivate parziali rispetto a teta
-            do
-            {
-                if (tetaCounter < 10)
-                {
-                    var tetaPlus = inputStrainPlane.Teta + dTetaBuffer;
-                    CalculateRotationPointsPerMaterial(tetaPlus, failureDomainType, out List<DeformationFieldsPoint> tensionRotationPointsPlusdTeta, out List<DeformationFieldsPoint> tensionRotationPointsF1PlusdTeta, out List<DeformationFieldsPoint> compressionRotationPointsPlusdTeta, out double minDistanceCompressionPlusdTeta, out double elasticEpsilonTensionPlusdTeta);
-                    StrainPlane strainPlanePlusdTeta = CalculateStrainPlaneMultiPoints(tetaPlus, inputFailureZone, inputImmersioneNelCampo, inputFailureZone == FailureZones.F1 ? tensionRotationPointsF1PlusdTeta : tensionRotationPointsPlusdTeta, compressionRotationPointsPlusdTeta, minDistanceCompressionPlusdTeta, elasticEpsilonTensionPlusdTeta);
-
-                    var tetaMinus = inputStrainPlane.Teta - dTetaBuffer;
-                    CalculateRotationPointsPerMaterial(tetaMinus, failureDomainType, out List<DeformationFieldsPoint> tensionRotationPointsMinusdTeta, out List<DeformationFieldsPoint> tensionRotationPointsF1MinusdTeta, out List<DeformationFieldsPoint> compressionRotationPointsMinusdTeta, out double minDistanceCompressionMinusdTeta, out double elasticEpsilonTensionMinusdTeta);
-                    StrainPlane strainPlaneMinusdTeta = CalculateStrainPlaneMultiPoints(tetaMinus, inputFailureZone, inputImmersioneNelCampo, inputFailureZone == FailureZones.F1 ? tensionRotationPointsF1MinusdTeta : tensionRotationPointsMinusdTeta, compressionRotationPointsMinusdTeta, minDistanceCompressionMinusdTeta, elasticEpsilonTensionMinusdTeta);
-
-                    var forcesPlusTeta = CalculateForceResultantForDomain(strainPlanePlusdTeta, rebarIsInsideAssociation);
-                    var forcesMinusTeta = CalculateForceResultantForDomain(strainPlaneMinusdTeta, rebarIsInsideAssociation);
-
-                    dNdTeta = (forcesPlusTeta.N - forcesMinusTeta.N) / (2.0 * dTetaBuffer);
-                    dMxdTeta = (forcesPlusTeta.Mx - forcesMinusTeta.Mx) / (2.0 * dTetaBuffer);
-                    dMydTeta = (forcesPlusTeta.My - forcesMinusTeta.My) / (2.0 * dTetaBuffer);
-
-                    dTetaBuffer += 2.0 * dTeta;
-
-                    var adimForcePlusTeta = ConvertToAdimensionalForces(new ForceTuple(forcesPlusTeta.N, forcesPlusTeta.Mx, forcesPlusTeta.My));
-                    var adimForceMinusTeta = ConvertToAdimensionalForces(new ForceTuple(forcesMinusTeta.N, forcesMinusTeta.Mx, forcesMinusTeta.My));
-
-                    double nonLinearErrorTetaBuffer = Math.Max(Math.Max(
-                        Math.Abs((adimForcePlusTeta.N + adimForceMinusTeta.N) / 2.0 - adimIteractionPoint.N),
-                        Math.Abs((adimForcePlusTeta.Mx + adimForceMinusTeta.Mx) / 2.0 - adimIteractionPoint.Mx)),
-                        Math.Abs((adimForcePlusTeta.My + adimForceMinusTeta.My) / 2.0 - adimIteractionPoint.My));
-
-                    if (Math.Abs(nonLinearErrorTetaBuffer) < 0.00001)
-                        nonLinearErrorTetaBuffer = 0.00001;
-
-                    nonLinearErrorTeta = Math.Sqrt(Math.Max(Math.Abs(adimForcePlusTeta.N - adimForceMinusTeta.N),
-                        Math.Max(Math.Abs(adimForcePlusTeta.Mx - adimForceMinusTeta.Mx),
-                        Math.Abs(adimForcePlusTeta.My - adimForceMinusTeta.My))) / Math.Sqrt(nonLinearErrorTetaBuffer));
-
-                    tetaCounter++;
-                }
-                else
-                {
-                    if (inputFailureZone == FailureZones.F1)
-                        return (+0.5, +0.0, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
-                    else
-                        return (+0.1, +0.0, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
-                }
-
-            } while ((dNdTeta == 0.0 && (dMxdTeta == 0.0 || dMydTeta == 0.0)) || (dMxdTeta == 0.0 && dMydTeta == 0.0));
-
-
-            // derivate parziali rispetto a immersione nel campo
-            do
-            {
-                if (etaCounter < 10)
-                {
-                    var immersioneNelCampoNext = inputImmersioneNelCampo + dEtaBuffer;
-                    var inputFailureZoneNext = inputFailureZone;
-                    var immersioneNelCampoPrev = inputImmersioneNelCampo - dEtaBuffer;
-                    var inputFailureZonePrev = inputFailureZone;
-
-                    // With the next two while loops, we want to handle the transition to the next field (for example,
-                    // the transition from F2B to F3A) in order to find the tangent.
-                    // Problem emerged with tests on ACI.
-                    while (immersioneNelCampoNext >= 1.0 && (int)inputFailureZoneNext < 6)
-                    {
-                        immersioneNelCampoNext -= 1.0;
-                        inputFailureZoneNext++;
-                    }
-                    while (immersioneNelCampoNext < 0.0 && (int)inputFailureZoneNext > 1)
-                    {
-                        immersioneNelCampoNext += 1.0;
-                        inputFailureZoneNext--;
-                    }
-
-                    CalculateRotationPointsPerMaterial(inputStrainPlane.Teta, failureDomainType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
-
-                    StrainPlane strainPlanePlusdImm = CalculateStrainPlaneMultiPoints(inputStrainPlane.Teta, inputFailureZoneNext, Math.Min(immersioneNelCampoNext, 1.0), inputFailureZoneNext == FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension);
-                    StrainPlane strainPlaneMinusdImm = CalculateStrainPlaneMultiPoints(inputStrainPlane.Teta, inputFailureZonePrev, Math.Max(immersioneNelCampoPrev, 0.0), inputFailureZonePrev == FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension);
-
-                    var forcesPlusEta = CalculateForceResultantForDomain(strainPlanePlusdImm, rebarIsInsideAssociation);
-                    var forcesMinusEta = CalculateForceResultantForDomain(strainPlaneMinusdImm, rebarIsInsideAssociation);
-
-                    dNdImm = (forcesPlusEta.N - forcesMinusEta.N) / (2.0 * dEtaBuffer);
-                    dMxdImm = (forcesPlusEta.Mx - forcesMinusEta.Mx) / (2.0 * dEtaBuffer);
-                    dMydImm = (forcesPlusEta.My - forcesMinusEta.My) / (2.0 * dEtaBuffer);
-
-                    dEtaBuffer += 10.0 * dEta;
-
-                    var adimForcePlusEta = ConvertToAdimensionalForces(new ForceTuple(forcesPlusEta.N, forcesPlusEta.Mx, forcesPlusEta.My));
-                    var adimForceMinusEta = ConvertToAdimensionalForces(new ForceTuple(forcesMinusEta.N, forcesMinusEta.Mx, forcesMinusEta.My));
-
-                    double nonLinearErrorEtaBuffer = Math.Max(Math.Max(
-                        Math.Abs((adimForcePlusEta.N + adimForceMinusEta.N) / 2.0 - adimIteractionPoint.N),
-                        Math.Abs((adimForcePlusEta.Mx + adimForceMinusEta.Mx) / 2.0 - adimIteractionPoint.Mx)),
-                        Math.Abs((adimForcePlusEta.My + adimForceMinusEta.My) / 2.0 - adimIteractionPoint.My));
-
-                    if (Math.Abs(nonLinearErrorEtaBuffer) < 0.00001)
-                        nonLinearErrorEtaBuffer = 0.00001;
-
-                    nonLinearErrorEta = Math.Sqrt(Math.Max(Math.Abs(adimForcePlusEta.N - adimForceMinusEta.N),
-                        Math.Max(Math.Abs(adimForcePlusEta.Mx - adimForceMinusEta.Mx),
-                        Math.Abs(adimForcePlusEta.My - adimForceMinusEta.My))) / Math.Sqrt(nonLinearErrorEtaBuffer));
-
-                    etaCounter++;
-                }
-                else
-                {
-                    if (inputFailureZone == FailureZones.F1)
-                        return (+0.0, +0.5, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
-                    else if (inputFailureZone == FailureZones.F2A)
-                        return (+0.0, -0.05, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
-                    else
-                        return (+0.0, +0.01, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
-                }
-
-            } while ((dNdImm == 0.0 && (dMxdImm == 0.0 || dMydImm == 0.0)) || (dMxdImm == 0.0 && dMydImm == 0.0));
-
-            Vector3d v1 = new Vector3d(dMxdTeta, dMydTeta, dNdTeta);
-            v1.Unitize();
-            Vector3d v2 = new Vector3d(dMxdImm, dMydImm, dNdImm);
-            v2.Unitize();
-
-            // vettore uscente dal punto M di test
-            Vector3d gradient = v1 ^ v2;
-            gradient.Unitize();
-
-            // k dell'equazione del piano tangente alla superficie in M    //      A*x + B*y + C*z + k = 0
-            double k = -(gradient.X * iterationPoint.Mx + gradient.Y * iterationPoint.My + gradient.Z * iterationPoint.N);
-
-            // piano tangente 
-            Plane planeTg = new Plane(gradient.X, gradient.Y, gradient.Z, k);
-
-            // punto di intersezione tra raggio delle forze sollecitanti e il piano tangente
-            bool intersect = planeTg.IntersectWithRay(externalForcesLine, out Point3d intersectionPoint);
-
-            if (!intersect || double.IsNaN(intersectionPoint.X) || double.IsNaN(intersectionPoint.Y) || double.IsNaN(intersectionPoint.Z))
-            {
-                if (inputFailureZone == FailureZones.F1)
-                    return (+0.5, +0.5, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
-                else if (inputFailureZone == FailureZones.F2A)
-                    return (+0.01, -0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
-                else
-                    return (+0.01, +0.1, new Vector3d(double.MaxValue, double.MaxValue, double.MaxValue));
-            }
-            else
-            {
-                Vector3d displacementVector = new Vector3d(iterationPoint, intersectionPoint);
-
-                Matrix<double> partialDerivatives = Matrix<double>.Build.Dense(2, 2);
-                Matrix<double> inputVector = Matrix<double>.Build.Dense(2, 1);
-
-                if ((dNdTeta != 0 || dNdImm != 0) && (dMxdTeta != 0 || dMxdImm != 0) &&
-                    dMxdTeta * dNdImm - dNdTeta * dMxdImm != 0)
-                {
-                    partialDerivatives[0, 0] = dMxdTeta;
-                    partialDerivatives[1, 0] = dNdTeta;
-
-                    partialDerivatives[0, 1] = dMxdImm;
-                    partialDerivatives[1, 1] = dNdImm;
-
-                    inputVector[0, 0] = displacementVector.X;
-                    inputVector[1, 0] = displacementVector.Z;
-                }
-                else if ((dNdTeta != 0 || dNdImm != 0) && (dMydTeta != 0 || dMydImm != 0) &&
-                    dMydTeta * dNdImm - dNdTeta * dMydImm != 0)
-                {
-                    partialDerivatives[0, 0] = dMydTeta;
-                    partialDerivatives[1, 0] = dNdTeta;
-
-                    partialDerivatives[0, 1] = dMydImm;
-                    partialDerivatives[1, 1] = dNdImm;
-
-                    inputVector[0, 0] = displacementVector.Y;
-                    inputVector[1, 0] = displacementVector.Z;
-                }
-                else
-                {
-                    partialDerivatives[0, 0] = dMxdTeta;
-                    partialDerivatives[1, 0] = dMydTeta;
-
-                    partialDerivatives[0, 1] = dMxdImm;
-                    partialDerivatives[1, 1] = dMydImm;
-
-                    inputVector[0, 0] = displacementVector.X;
-                    inputVector[1, 0] = displacementVector.Y;
-                }
-
-                Matrix<double> results = partialDerivatives.Inverse() * inputVector;
-
-                if (nonLinearErrorEta > 1.0)
-                    nonLinearErrorEta = 1.0;
-                if (nonLinearErrorTeta > 1.0)
-                    nonLinearErrorTeta = 1.0;
-
-                var a = ConvertToAdimensionalForces(new ForceTuple(displacementVector.Z, displacementVector.X, displacementVector.Y));
-                var b = new Vector3d(0, a.My, 0);
-                var c = new Vector3d(a.Mx, 0, a.N);
-
-
-                double reductionFactorTeta;
-                double reductionFactorEta;
-
-                if (inputFailureZone == FailureZones.F3B)
-                {
-                    if (c.Length > 0.01)
-                        reductionFactorEta = 0.3;
-                    else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.2, nonLinearErrorEta);
-
-                    if (b.Length > 0.001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
-                    else if (b.Length > 0.0001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
-                    else
-                        reductionFactorTeta = 0.05;
-                }
-                else if (inputFailureZone == FailureZones.F3A)
-                {
-                    if (c.Length > 0.1)
-                        reductionFactorEta = 0.2;
-                    else if (c.Length > 0.01)
-                        reductionFactorEta = 0.2;
-                    else if (c.Length > 0.001)
-                        reductionFactorEta = 0.2;
-                    else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.1, 0.1, nonLinearErrorEta);
-
-                    if (b.Length > 0.001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
-                    else if (b.Length > 0.0001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
-                    else
-                        reductionFactorTeta = 0.05;
-                }
-                else if (inputFailureZone == FailureZones.F2B)
-                {
-                    if (c.Length > 0.1)
-                        reductionFactorEta = 0.5;
-                    else if (c.Length > 0.01)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.5, nonLinearErrorEta);
-                    else if (c.Length > 0.0025)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.3, nonLinearErrorEta);
-                    else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.3, 0.1, nonLinearErrorEta);
-
-                    if (b.Length > 0.001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
-                    else if (b.Length > 0.0001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
-                    else
-                        reductionFactorTeta = 0.05;
-                }
-                else if (inputFailureZone == FailureZones.F2A)
-                {
-                    if (c.Length > 0.01)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.5, nonLinearErrorEta);
-                    else if (c.Length > 0.0025)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.3, nonLinearErrorEta);
-                    else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.3, 0.1, nonLinearErrorEta);
-
-                    if (b.Length > 0.001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
-                    else if (b.Length > 0.0001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
-                    else
-                        reductionFactorTeta = 0.05;
-                }
-                else
-                {
-                    if (c.Length > 0.01)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.5, nonLinearErrorEta);
-                    else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.2, nonLinearErrorEta);
-
-                    if (b.Length > 0.001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
-                    else if (b.Length > 0.0001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
-                    else
-                        reductionFactorTeta = 0.05;
-                }
-
-                // The following condition was calibrated to converge the tests.
-                if (_concreteSection.IsCompositeSteelConcrete)
-                {
-                    //if (/*inputFailureZone == FailureZones.F2A ||*/
-                    //    inputFailureZone == FailureZones.F3A || inputFailureZone == FailureZones.F3B)
-                    //{
-                    //    reductionFactorEta = Math.Min(4.0 * reductionFactorEta, 1.5);
-                    //    reductionFactorTeta = Math.Min(4.0 * reductionFactorTeta, 1.5);
-                    //}
-                    //else if (inputFailureZone == FailureZones.F2B)
-                    //{
-                    //    reductionFactorEta = Math.Min(2.0 * reductionFactorEta, 1.0);
-                    //    reductionFactorTeta = Math.Min(2.0 * reductionFactorTeta, 1.0);
-                    //}
-                    //else if (inputFailureZone == FailureZones.F1)
-                    if (inputFailureZone == FailureZones.F1)
-                    {
-                        reductionFactorEta *= 0.005;
-                        reductionFactorTeta *= 0.005;
-                    }
-                    else if (inputFailureZone == FailureZones.F2A)
-                    {
-                        reductionFactorEta *= 0.05;
-                        reductionFactorTeta *= 0.1;
-                    }
-                    else if (inputFailureZone == FailureZones.F2B)
-                    {
-                        reductionFactorEta *= 0.25;
-                        reductionFactorTeta *= 0.25;
-                    }
-                    else if (inputFailureZone == FailureZones.F3A)
-                    {
-                        reductionFactorEta *= 0.5;
-                        reductionFactorTeta *= 0.25;
-                    }
-                }
-
-                double deltaTeta = results[0, 0] * reductionFactorTeta;
-                double deltaEta = results[1, 0] * reductionFactorEta;
-
-                return (deltaTeta, deltaEta, displacementVector);
-            }
-        }
-
-        protected void SetIncrement(FailureDomainTypes analysisType, ref FailureZones failureZone, ref double teta, ref double eta, double deltaTeta, double deltaEta)
-        {
-            deltaEta = deltaEta > 0.35 ? 0.35 : deltaEta;
-            deltaEta = deltaEta < -0.35 ? -0.35 : deltaEta;
-
-            deltaTeta = deltaTeta > Math.PI / 7.0 ? Math.PI / 7.0 : deltaTeta;
-            deltaTeta = deltaTeta < -Math.PI / 7.0 ? -Math.PI / 7.0 : deltaTeta;
-
-            // piano di nuovo tentativo
-            teta += deltaTeta;
-
-            if (failureZone == FailureZones.F3B && eta + deltaEta < 0)
-            {
-                deltaEta *= 0.5;
-            }
-
-            eta += (deltaEta - (int)deltaEta);
-            failureZone += (int)deltaEta;
-
-            switch (analysisType)
-            {
-                case FailureDomainTypes.Plastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete:
-                    if (eta < 0.0)
-                    {
-                        eta++;
-                        failureZone--;
-                    }
-                    if (eta > 1.0)
-                    {
-                        eta--;
-                        failureZone++;
-                    }
-                    if (_concreteSection.ConcreteMaterial.CompressionStressStrainDiagram == ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock)
-                    {
-                        if (failureZone == FailureZones.F2A)
-                        {
-                            CalculateRotationPointsPerMaterial(teta, analysisType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
-                            StrainPlane strainPlane = CalculateStrainPlaneMultiPoints(teta, failureZone, eta, failureZone == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension);
-
-                            double strain = strainPlane.GetStrain(compressionRotationPoints.Last().Point);
-                            if (strain < _concreteSection.ConcreteMaterial.StrainYCompression)
-                            {
-                                failureZone++;
-                                eta = 0.10;
-                            }
-                        }
-                    }
-                    break;
-
-                case FailureDomainTypes.Plastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC:
-                    if (eta < 0.0)
-                    {
-                        eta++;
-                        failureZone--;
-
-                        if (failureZone == FailureZones.F3A)
-                            eta = 0.99;
-                    }
-                    if (eta > 1.0)
-                    {
-                        eta--;
-                        failureZone++;
-                    }
-                    break;
-
-                case FailureDomainTypes.Elastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete:
-                    if (eta < 0.0)
-                    {
-                        eta++;
-                        failureZone--;
-
-                        if (failureZone == FailureZones.F3B || failureZone == FailureZones.F2B)
-                            failureZone--;
-                    }
-                    if (eta > 1.0)
-                    {
-                        eta--;
-                        failureZone++;
-
-                        if (failureZone == FailureZones.F2B)
-                            failureZone++;
-                    }
-                    break;
-
-                case FailureDomainTypes.Elastic when _concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.FRC:
-                    if (eta < 0.0)
-                    {
-                        eta++;
-                        failureZone--;
-
-                        if (failureZone == FailureZones.F3B || failureZone == FailureZones.F2B)
-                            failureZone--;
-                    }
-                    if (eta > 1.0)
-                    {
-                        eta--;
-                        failureZone++;
-
-                        if (failureZone == FailureZones.F3B)
-                            failureZone++;
-
-                        if (failureZone == FailureZones.F2B)
-                            failureZone++;
-                    }
-                    break;
-
-                default:
-                    throw new Exception();
-            }
-
-            failureZone = (int)failureZone < 1 ? FailureZones.F1 : failureZone;
-            failureZone = (int)failureZone > 6 ? FailureZones.F4 : failureZone;
-        }
-
-        /// <summary>
-        /// Given a solicitation finds the point on the strength domain and work rate based on the search method of approaching the surface.
-        /// The calculation of the strain plane is by interpolation and is much less accurate than the iterative/direct method.
-        /// This method is good for always finding an working ratio, which is always in favor of safety.
-        /// If the starting mesh does not have too many elements then it is also a very performing method.
-        /// </summary>
-        internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces resultBeamForce, Mesh domainMesh, in Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            double workingRatio = -1;
-            SectionSolver.FailureZones _failureIndex = FailureZones.F1;
-            double immersione = -1;
-            StrainPlane strainPlane = null;
-            ForceTuple forceTuple = new ForceTuple();
-
-            Point3d rayOrigin = null; // Must be inside the mesh volume.
-
-            switch (_sectionOption.FailureAnalysisType)
-            {
-                case FailureAnalysisTypes.ConstantEccentricity:
-                    rayOrigin = Point3d.Origin;
-                    break;
-
-                case FailureAnalysisTypes.ConstantN:
-                    rayOrigin = new Point3d(0.0, 0.0, resultBeamForce.N);
-                    break;
-
-                case FailureAnalysisTypes.ConstantMxMy:
-                    rayOrigin = new Point3d(resultBeamForce.M1, resultBeamForce.M2, 0.0);
-                    break;
-
-                case FailureAnalysisTypes.ConstantNMx:
-                    rayOrigin = new Point3d(resultBeamForce.M1, 0.0, resultBeamForce.N);
-                    break;
-
-                case FailureAnalysisTypes.ConstantNMy:
-                    rayOrigin = new Point3d(0.0, resultBeamForce.M2, resultBeamForce.N);
-                    break;
-            }
-
-            // For some surface approach methods there may not be an intersection, for these cases we need to do a control
-            // specifically to change the actual surface approach method used.
-            // The origin of the ray rayOrigin will also determine the ratio and must be internal to the domain.
-            if (_sectionOption.FailureAnalysisType != FailureAnalysisTypes.ConstantEccentricity || Point3d.Origin.DistanceTo(rayOrigin) > _failureAnalysisIntersectionTolerance)
-            {
-                double rayOriginWorkingRatioOrigin = workingRatioSearch(Point3d.Origin, rayOrigin, out _);
-                // If the origin point of the ray is outside then enforce the use of ConstantEccentricity.
-                if (rayOriginWorkingRatioOrigin >= 1.0)
-                    rayOrigin = Point3d.Origin;
-            }
-
-            // Now the working ratio search.
-            var forcePoint = new Point3d(resultBeamForce.M1, resultBeamForce.M2, resultBeamForce.N);
-            workingRatio = workingRatioSearch(rayOrigin, forcePoint, out KeyValuePair<Point3d, MeshBase> intersection);
-
-            // If a solution has been found assigns the deformation plane.
-            if (workingRatio != -1 && intersection.Value != null)
-            {
-                forceTuple = new ForceTuple(intersection.Key.Z, intersection.Key.X, intersection.Key.Y);
-
-                if (intersection.Value is MeshVertex intersectionVertex)
-                {
-                    var failDomainPoint = vertexToDomainPoint[intersectionVertex];
-                    _failureIndex = failDomainPoint.FailureIndex;
-                    immersione = failDomainPoint.Immersione;
-                    strainPlane = failDomainPoint.StrainPlane;
-                }
-                else if (intersection.Value is MeshEdge intersectionEdge)
-                {
-                    // Calculates linear interpolation weights.
-                    var vA = domainMesh.Vertices[intersectionEdge.A];
-                    var vB = domainMesh.Vertices[intersectionEdge.B];
-                    double distB = vB.Point.DistanceTo(forcePoint);
-                    double distA = vA.Point.DistanceTo(forcePoint);
-                    double weightA = distB / (distA + distB);
-                    double weightB = distA / (distA + distB);
-
-                    // Get failure domain points.
-                    var failA = vertexToDomainPoint[vA];
-                    var failB = vertexToDomainPoint[vB];
-
-                    // Make interpolation.
-                    if (failA != null && failB != null)
-                    {
-                        // FailureIndex
-                        _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, (int)failB.FailureIndex);
-
-                        // Theta
-                        var thetaA = failA.StrainPlane.Teta;
-                        var thetaB = failB.StrainPlane.Teta;
-                        // Make them close together.
-                        if (Math.Abs(thetaA - thetaB) > Math.PI)
-                        {
-                            if (thetaA < thetaB)
-                                thetaA += 2.0 * Math.PI;
-                            else
-                                thetaB += 2.0 * Math.PI;
-                        }
-                        double theta = thetaA * weightA + thetaB * weightB;
-
-                        // Immersione
-                        var immA = GetImmersione(failA, _failureIndex);
-                        var immB = GetImmersione(failB, _failureIndex);
-                        immersione = immA * weightA + immB * weightB;
-
-                        // StrainPlane
-                        strainPlane = BuildPlane(theta, _sectionOption.FailureDomainType, _failureIndex, immersione);
-                    }
-                }
-                else if (intersection.Value is MeshFace intersectionFace)
-                {
-                    // Calculates linear interpolation weights.
-                    var vA = domainMesh.Vertices[intersectionFace.A];
-                    var vB = domainMesh.Vertices[intersectionFace.B];
-                    var vC = domainMesh.Vertices[intersectionFace.C];
-                    double areaA = new Vector3d((vB.Point - forcePoint) ^ (vC.Point - forcePoint)).Length;
-                    double areaB = new Vector3d((vC.Point - forcePoint) ^ (vA.Point - forcePoint)).Length;
-                    double areaC = new Vector3d((vA.Point - forcePoint) ^ (vB.Point - forcePoint)).Length;
-                    double areaTOT = areaA + areaB + areaC;
-                    double weightA = areaA / areaTOT;
-                    double weightB = areaB / areaTOT;
-                    double weightC = areaC / areaTOT;
-
-                    // Get failure domain points.
-                    var failA = vertexToDomainPoint[vA];
-                    var failB = vertexToDomainPoint[vB];
-                    var failC = vertexToDomainPoint[vC];
-
-                    // Make interpolation.
-                    if (failA != null && failB != null && failC != null)
-                    {
-                        // FailureIndex
-                        _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, Math.Min((int)failB.FailureIndex, (int)failC.FailureIndex));
-
-                        // Theta
-                        var thetaA = failA.StrainPlane.Teta;
-                        var thetaB = failB.StrainPlane.Teta;
-                        var thetaC = failC.StrainPlane.Teta;
-                        // Make them close together.
-                        if (Math.Abs(thetaA - thetaB) > Math.PI)
-                        {
-                            if (thetaA < thetaB)
-                                thetaA += 2.0 * Math.PI;
-                            else
-                                thetaB += 2.0 * Math.PI;
-                        }
-                        if (Math.Abs(thetaA - thetaC) > Math.PI)
-                        {
-                            thetaC += 2.0 * Math.PI;
-                        }
-                        double theta = thetaA * weightA + thetaB * weightB + thetaC * weightC;
-
-                        // Immersione
-                        var immA = GetImmersione(failA, _failureIndex);
-                        var immB = GetImmersione(failB, _failureIndex);
-                        var immC = GetImmersione(failC, _failureIndex);
-                        immersione = immA * weightA + immB * weightB + immC * weightC;
-
-                        // StrainPlane
-                        strainPlane = BuildPlane(theta, _sectionOption.FailureDomainType, _failureIndex, immersione);
-                    }
-                }
-                else
-                    return null;
-            }
-
-            return new FailureDomain.FailureDomainPoint(forceTuple, _failureIndex, strainPlane, immersione) { WorkingRatio = workingRatio };
-
-
-            // Internal utility.
-            double workingRatioSearch(Point3d pointOrigin, Point3d pointToSearch, out KeyValuePair<Point3d, MeshBase> meshIntersection)
-            {
-                Point3d targetPoint;
-                bool isRatioZero = pointOrigin.DistanceTo(pointToSearch) < _failureAnalysisIntersectionTolerance;
-
-                if (!isRatioZero)
-                {
-                    targetPoint = pointToSearch;
-                }
-                else
-                {
-                    // This is a special case with ratio=0.
-                    switch (_sectionOption.FailureAnalysisType)
-                    {
-                        case FailureAnalysisTypes.ConstantNMx:
-                            targetPoint = pointOrigin + new Point3d(0.0, FROM_KNM_TO_NM, 0.0);
-                            break;
-
-                        case FailureAnalysisTypes.ConstantN:
-                        case FailureAnalysisTypes.ConstantNMy:
-                            targetPoint = pointOrigin + new Point3d(FROM_KNM_TO_NM, 0.0, 0.0);
-                            break;
-
-                        case FailureAnalysisTypes.ConstantEccentricity:
-                        case FailureAnalysisTypes.ConstantMxMy:
-                        default:
-                            targetPoint = pointOrigin + new Point3d(0.0, 0.0, FROM_KN_TO_N);
-                            break;
-                    }
-                }
-                Line3d semiRay = new Line3d(pointOrigin, targetPoint);
-                var intersOnDomain = domainMesh.GetIntersectionWihtSemiInfiniteRay(semiRay, true, _failureAnalysisIntersectionTolerance);
-                if (intersOnDomain.Count == 0)
-                    return -1;
-
-                // Find the key with the smallest distance and get the corresponding pair from the dictionary.
-                var closestEntryOnDomain = intersOnDomain.OrderBy(pair => pair.Key.DistanceTo(pointOrigin)).FirstOrDefault();
-
-                if (closestEntryOnDomain.Key is null)
-                    return -1;
-
-                meshIntersection = closestEntryOnDomain;
-
-                if (!isRatioZero)
-                    return pointOrigin.DistanceTo(pointToSearch) / pointOrigin.DistanceTo(closestEntryOnDomain.Key);
-                else
-                    return 0.0;
-            }
-        }
-
         internal StrainPlane BuildPlane(double theta, FailureDomainTypes failureDomainType, SectionSolver.FailureZones failureIndex, double immersione, int id = -1)
         {
             CalculateRotationPointsPerMaterial(theta, failureDomainType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
@@ -3461,7 +2448,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 new CoordinateSystem(_integrationReferencePoint, Vector3d.XAxis, Vector3d.YAxis));
         }
 
-        protected virtual ForceTuple GetExternalForces(ForceTuple forceTuple, CoordinateSystem forceReferenceCoordinateSystem)
+        internal virtual ForceTuple GetExternalForces(ForceTuple forceTuple, CoordinateSystem forceReferenceCoordinateSystem)
         {
             return new ForceTuple(forceTuple.N,
                 forceTuple.Mx + forceTuple.N * (forceReferenceCoordinateSystem.Origin.Y - _integrationReferencePoint.Y),

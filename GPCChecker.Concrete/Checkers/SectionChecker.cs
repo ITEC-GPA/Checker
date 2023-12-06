@@ -1,13 +1,10 @@
 ﻿using GPC.Checkers.Concrete.Attributes;
-using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
-using GPC.Geometry.Meshes;
 using GPC.Model.Results;
 using GPC.Model.Standards;
 using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
@@ -272,6 +269,11 @@ namespace GPC.Checkers.Concrete.Checkers
                 return null;
         }
 
+        public void SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes domainPointStrategyTypes)
+        {
+            _solver.SetDomainPointStrategy(domainPointStrategyTypes);
+        }
+
         #endregion
 
         #region Internal Async Methods
@@ -475,39 +477,12 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <summary>
-        /// Calculate the plastic domain point for input force
-        /// </summary>
-        /// <returns>The failure domain point</returns>
-        internal FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force)
-        {
-            return _solver.CalculateDomainPoint(force);
-        }
-
-        /// <summary>
-        /// Calculate the elastic domain point for input force
-        /// </summary>
-        /// <returns>The failure domain point</returns>
-        internal FailureDomain.FailureDomainPoint CalculateElasticFailureDomainPoint(ResultBeamForces force)
-        {
-            return _solver.CalculateDomainPoint(force);
-        }
-
-        /// <summary>
-        /// Calculate the domain point for input force with intersection method
-        /// </summary>
-        /// <returns>The failure domain point</returns>
-        internal FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            return _solver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
-        }
-
-        /// <summary>
         /// Calculate the domain points for input forces with intersection method
         /// </summary>
         /// <returns>The failure domain points</returns>
-        internal FailureDomain.FailureDomainPoint[] CalculateFailureDomainPoint(ResultBeamForces[] forces, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
+        internal FailureDomain.FailureDomainPoint[] CalculateFailureDomainPoint(ResultBeamForces[] forces)
         {
-            return _solver.CalculateDomainPoint(forces, domainMesh, vertexToDomainPoint);
+            return _solver.CalculateDomainPoint(forces);
         }
 
         /// <summary>
@@ -631,6 +606,8 @@ namespace GPC.Checkers.Concrete.Checkers
 
             public int TetaDiscretization { get; set; }
 
+            public SectionSolver.DomainPointStrategyTypes DomainPointStrategy { get; set; }
+
             public SectionOptions()
             {
                 ForceReferenceCoordinateSystem = CoordinateSystem.Global;
@@ -647,6 +624,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 PsiCoefficientTendon = psiCoefficientTendon;
                 ConsiderTensileConcrete = considerTensileConcrete;
                 TetaDiscretization = tetaDiscretization;
+                DomainPointStrategy = SectionSolver.DomainPointStrategyTypes.Iterative;
             }
 
             protected SectionOptions(SerializationInfo info, StreamingContext context)
@@ -659,6 +637,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 PsiCoefficientTendon = info.GetDouble("PsiCoefficientTendon");
                 ConsiderTensileConcrete = info.GetBoolean("ConsiderTensileConcrete");
                 TetaDiscretization = info.GetInt16("TetaDiscretization");
+                DomainPointStrategy = (SectionSolver.DomainPointStrategyTypes)info.GetValue("DomainPointStrategy", typeof(SectionSolver.DomainPointStrategyTypes));
             }
 
             public override bool Equals(object obj)
@@ -701,6 +680,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 info.AddValue("PsiCoefficientTendon", PsiCoefficientTendon);
                 info.AddValue("ConsiderTensileConcrete", ConsiderTensileConcrete);
                 info.AddValue("TetaDiscretization", TetaDiscretization);
+                info.AddValue("DomainPointStrategy", DomainPointStrategy);
             }
 
             public static bool operator ==(SectionOptions left, SectionOptions right)

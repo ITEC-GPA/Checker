@@ -2195,6 +2195,7 @@ namespace ConcreteTests
             var sectionChecker = GetSectionCheckerModelCode2010(section, standard, false, standardSteel);
             sectionChecker.SectionCheckerOptionsModelCode2010.FailureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantN;
             sectionChecker.SectionCheckerOptionsModelCode2010.ForceReferenceCoordinateSystem = cs;
+            sectionChecker.SectionCheckerOptionsModelCode2010.FailureDomainType = SectionSolver.FailureDomainTypes.Plastic;
 
             // ****************************************
             // Common checks.
@@ -2275,13 +2276,13 @@ namespace ConcreteTests
 
             foreach (var appliedForce in forces)
             {
-                var resDomFail = sectionChecker.CalculatePlasticFailureDomainPoint(appliedForce);
+                var resDomFail = sectionChecker.CalculateFailureDomainPoint(appliedForce);
                 //var fr = resDomFail.StrainPlane;
                 resDomFail.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantN, appliedForce, 1.0, 1.0);
                 maxErrorConstantN_iterativeMethod.Add(resDomFail.WorkingRatio);
 
                 sectionChecker.SectionCheckerOptionsModelCode2010.FailureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantEccentricity;
-                var resDomFail2 = sectionChecker.CalculatePlasticFailureDomainPoint(appliedForce);
+                var resDomFail2 = sectionChecker.CalculateFailureDomainPoint(appliedForce);
                 resDomFail2.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantEccentricity, appliedForce, 1.0, 1.0);
                 maxErrorConstantEccentricity_iterativeMethod.Add(resDomFail2.WorkingRatio);
             }
@@ -2402,6 +2403,7 @@ namespace ConcreteTests
             var maxErrorConstantEccentricity_intersectionMethod = new List<double>();
             var origin = Point3d.Origin;
             var plastiDomainMeshRC = plasticDomainResultRC.Domain.GetMesh(plasticDomainResultRC.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint);
+            sectionCheckerRC.SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes.Intersection);
 
             for (int i = 0; i < domSize0; i += domStep0)
             {
@@ -2416,7 +2418,7 @@ namespace ConcreteTests
                     currCompositeForcePoint.Z -= NrdCorrection;
                     var resultBeamComposite = new ResultBeamForces(currCompositeForcePoint.Z, 0.0, 0.0, 0.0, currCompositeForcePoint.X, currCompositeForcePoint.Y, GetLocalCoordinateSystem(sectionRC));
 
-                    var failComposite = sectionCheckerRC.SectionSolver.CalculateDomainPoint(resultBeamComposite, plastiDomainMeshRC, vertexToDomainPoint);
+                    var failComposite = sectionCheckerRC.SectionSolver.CalculateDomainPoint(resultBeamComposite);
 
                     maxErrorConstantEccentricity_intersectionMethod.Add(failComposite.WorkingRatio);
                 }
@@ -2435,6 +2437,7 @@ namespace ConcreteTests
             stopwatch.Start(); // *** timer ***
             var maxErrorConstantEccentricity_directMethodRC = new List<(double wratio, int iterations, double N, double Mx, double My)>();
             var failForcePointsRC = new List<Point3d>();
+            sectionCheckerRC.SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes.Iterative);
 
             for (int i = 0; i < domSize0; i += domStep0)
             {
@@ -2452,7 +2455,7 @@ namespace ConcreteTests
                     //    continue;
                     {
                         var appliedForce = new ResultBeamForces(currCompositeForcePoint.Z, 0.0, 0.0, 0.0, currCompositeForcePoint.X, currCompositeForcePoint.Y, sectionRClocalSystem);
-                        var resDomFail = sectionCheckerRC.CalculatePlasticFailureDomainPoint(appliedForce);
+                        var resDomFail = sectionCheckerRC.CalculateFailureDomainPoint(appliedForce);
 
                         if (resDomFail is null)
                         {
@@ -2481,6 +2484,7 @@ namespace ConcreteTests
             var failForcePointsComposite = new List<Point3d>();
             domSize0 = plasticDomainResultRC.Domain.DomainPoints.GetLength(0);
             domStep0 = domSize0 / subdivision;
+            sectionCheckerComposite.SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes.Iterative);
 
             for (int i = 0; i < domSize0; i += domStep0)
             {
@@ -2498,7 +2502,7 @@ namespace ConcreteTests
                     //    continue;
                     {
                         var appliedForce = new ResultBeamForces(currRCForcePoint.Z, 0.0, 0.0, 0.0, currRCForcePoint.X, currRCForcePoint.Y, sectionCompositelocalSystem);
-                        var resDomFail = sectionCheckerComposite.CalculatePlasticFailureDomainPoint(appliedForce);
+                        var resDomFail = sectionCheckerComposite.CalculateFailureDomainPoint(appliedForce);
 
                         if (resDomFail is null)
                         {
@@ -3470,14 +3474,11 @@ namespace ConcreteTests
             SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, null, null, standard,
                 new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64), false, false, standardAisc);
 
-            FailureDomainResult ulsResult = sectionChecker.GetPlasticFailureDomainResult();
-            Mesh domainMesh = ulsResult.Domain.GetMesh(ulsResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint);
-
             //ExportToGmsh(domainMesh);
-
-            var domainPoint = sectionChecker.SectionSolver.CalculateDomainPoint(forces[0], domainMesh, vertexToDomainPoint);
-            var domainPoint2 = sectionChecker.SectionSolver.CalculateDomainPoint(forces[1], domainMesh, vertexToDomainPoint);
-            var domainPoint3 = sectionChecker.SectionSolver.CalculateDomainPoint(forces[2], domainMesh, vertexToDomainPoint);
+            sectionChecker.SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes.Intersection);
+            var domainPoint = sectionChecker.SectionSolver.CalculateDomainPoint(forces[0]);
+            var domainPoint2 = sectionChecker.SectionSolver.CalculateDomainPoint(forces[1]);
+            var domainPoint3 = sectionChecker.SectionSolver.CalculateDomainPoint(forces[2]);
 
 
             Console.WriteLine($"MxRd = {Math.Round(domainPoint.MxRd / 1000000, 2)} kNm");

@@ -71,8 +71,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, -100 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section)),
-				new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),
-				new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -30 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
             };
@@ -102,8 +102,8 @@ namespace ConcreteTests
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 0 * 1000000, -100 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-200 * 1000, 0, 0, 0, 20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-400 * 1000, 0, 0, 0, 20 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section)),
-				new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
-				new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(-100 * 1000, 0, 0, 0, -20 * 1000000, -40 * 1000000, GetLocalCoordinateSystem(section)),
+                new ResultBeamForces(0 * 1000, 0, 0, 0, -40 * 1000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 100 * 1000000, 0, GetLocalCoordinateSystem(section)),
                 new ResultBeamForces(-800 * 1000, 0, 0, 0, 120 * 1000000, 120 * 1000000, GetLocalCoordinateSystem(section))
             };
@@ -1465,7 +1465,7 @@ namespace ConcreteTests
                 null, new ResultBeamForces[] { force }, new StandardNTC2018Concrete());
 
             sectionChecker.SectionCheckerOptionsModelCode2010.FailureDomainType = SectionSolver.FailureDomainTypes.Elastic;
-            FailureDomain.FailureDomainPoint forceConstEccentr = sectionChecker.CalculateElasticFailureDomainPoint(force);
+            FailureDomain.FailureDomainPoint forceConstEccentr = sectionChecker.CalculateFailureDomainPoint(force);
 
             FailureDomainResult result = sectionChecker.GetElasticFailureDomainResult();
             FailureDomain.FailureDomainForce[] forces = result.GetFailureDomainForces();
