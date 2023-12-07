@@ -2402,7 +2402,6 @@ namespace ConcreteTests
 
             var maxErrorConstantEccentricity_intersectionMethod = new List<double>();
             var origin = Point3d.Origin;
-            var plastiDomainMeshRC = plasticDomainResultRC.Domain.GetMesh(plasticDomainResultRC.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint);
             sectionCheckerRC.SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes.Intersection);
 
             for (int i = 0; i < domSize0; i += domStep0)
@@ -3664,9 +3663,6 @@ namespace ConcreteTests
             FailureDomainResult elasticFailureDomainResult = sectionCheckerACI318.GetElasticFailureDomainResult();
             FailureDomainResult plasticFailureDomainResult = sectionCheckerACI318.GetPlasticFailureDomainResult();
 
-            var elasticDomainMesh = elasticFailureDomainResult.Domain.GetMesh(elasticFailureDomainResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> elasticVertexToDomainPoint);
-            var plasticDomainMesh = plasticFailureDomainResult.Domain.GetMesh(plasticFailureDomainResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> plasticVertexToDomainPoint);
-
             ShowDomainPoints(elasticFailureDomainResult.Domain);
             ShowDomainPoints(plasticFailureDomainResult.Domain);
             //ExportToGmsh(elasticDomainMesh);
@@ -3708,9 +3704,7 @@ namespace ConcreteTests
             var sectionCheckerAttribute = new SectionCheckerAttribute(section);
             var sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, false, -1, new StandardEN1993p11());
             var elasticFailureDomainResult = sectionChecker.GetElasticFailureDomainResult();
-            var elasticDomainMesh = elasticFailureDomainResult.Domain.GetMesh(elasticFailureDomainResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> elasticVertexToDomainPoint);
             ShowDomainPoints(elasticFailureDomainResult.Domain);
-            //ExportToGmsh(elasticDomainMesh);
         }
 
         /// <summary>

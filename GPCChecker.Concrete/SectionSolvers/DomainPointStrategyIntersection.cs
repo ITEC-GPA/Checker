@@ -59,6 +59,7 @@ namespace GPC.Checker.SectionSolvers
         public FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces targetLocalForces, SectionSolver.FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
             CalculateDomainMesh();
+            var failureAnalysisType = failureAnalysisTypeOverride is null ? _solver.SectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
 
             double workingRatio = -1;
             SectionSolver.FailureZones _failureIndex = SectionSolver.FailureZones.F1;
@@ -68,7 +69,7 @@ namespace GPC.Checker.SectionSolvers
 
             Point3d rayOrigin = null; // Must be inside the mesh volume.
 
-            switch (_solver.SectionOption.FailureAnalysisType)
+            switch (failureAnalysisType)
             {
                 case SectionSolver.FailureAnalysisTypes.ConstantEccentricity:
                     rayOrigin = Point3d.Origin;
@@ -94,7 +95,7 @@ namespace GPC.Checker.SectionSolvers
             // For some surface approach methods there may not be an intersection, for these cases we need to do a control
             // specifically to change the actual surface approach method used.
             // The origin of the ray rayOrigin will also determine the ratio and must be internal to the domain.
-            if (_solver.SectionOption.FailureAnalysisType != SectionSolver.FailureAnalysisTypes.ConstantEccentricity || Point3d.Origin.DistanceTo(rayOrigin) > _failureAnalysisIntersectionTolerance)
+            if (failureAnalysisType != SectionSolver.FailureAnalysisTypes.ConstantEccentricity || Point3d.Origin.DistanceTo(rayOrigin) > _failureAnalysisIntersectionTolerance)
             {
                 double rayOriginWorkingRatioOrigin = workingRatioSearch(Point3d.Origin, rayOrigin, out _);
                 // If the origin point of the ray is outside then enforce the use of ConstantEccentricity.
@@ -233,7 +234,7 @@ namespace GPC.Checker.SectionSolvers
                 else
                 {
                     // This is a special case with ratio=0.
-                    switch (_solver.SectionOption.FailureAnalysisType)
+                    switch (failureAnalysisType)
                     {
                         case SectionSolver.FailureAnalysisTypes.ConstantNMx:
                             targetPoint = pointOrigin + new Point3d(0.0, SectionSolver.FROM_KNM_TO_NM, 0.0);
