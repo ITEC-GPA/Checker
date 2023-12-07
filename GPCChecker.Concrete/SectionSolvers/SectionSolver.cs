@@ -69,6 +69,19 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         };
 
         /// <summary>
+        /// Rapresent the discretization of the axial force in the solver for elastic analysis
+        /// </summary>
+        protected readonly (FailureZones, int)[] _elasticFailureZonesDiscretizationsComposite =
+        {
+            (FailureZones.F1, 2),
+            (FailureZones.F2A, 5),
+            (FailureZones.F2B, 5),
+            (FailureZones.F3A, 15),
+            (FailureZones.F3B, 5),
+            (FailureZones.F4, 5)
+        };
+
+        /// <summary>
         /// Rapresent the discretization of the axial force in the solver for plastic analysis for FRC material
         /// </summary>
         protected readonly (FailureZones, int)[] _plasticFailureZonesDiscretizationsFRC =
@@ -487,7 +500,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             (FailureZones, int)[] zoneDiscretization;
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
+            if (_concreteSection.IsCompositeSteelConcrete)
+                zoneDiscretization = _elasticFailureZonesDiscretizationsComposite;
+            else if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
                 zoneDiscretization = _elasticFailureZonesDiscretizations;
             else
                 zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
@@ -507,7 +522,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             (FailureZones, int)[] zoneDiscretization;
 
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
+            if (_concreteSection.IsCompositeSteelConcrete)
+                zoneDiscretization = _elasticFailureZonesDiscretizationsComposite;
+            else if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
                 zoneDiscretization = _elasticFailureZonesDiscretizations;
             else
                 zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
