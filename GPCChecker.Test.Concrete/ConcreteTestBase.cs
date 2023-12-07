@@ -1285,7 +1285,7 @@ namespace ConcreteTests
             failureDomain.Domain.AxialForceSubdivision = 100;
             Mesh mesh = failureDomain.Domain.GetMesh(out _);
 
-            for (int i = 1; i <= mesh.VerticesCount; i++)
+            for (int i = 0; i < mesh.VerticesCount; i++)
             {
                 double d = new Point3d(mesh.Vertices[i].Point.X / 1000000, mesh.Vertices[i].Point.Y / 1000000,
                     mesh.Vertices[i].Point.Z / 1000).DistanceTo(new Point3d(expForce.Mx / 1000000, expForce.My / 1000000, expForce.N / 1000));
