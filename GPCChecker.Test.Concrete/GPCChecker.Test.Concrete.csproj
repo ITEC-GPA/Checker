@@ -51,14 +51,6 @@
     <Reference Include="GPCGeometry, Version=2.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCGeometry.2.0.1\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=1.0.5.2, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCModelData, Version=0.0.1.9, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\GPCModel\GPCModelData\bin\Debug\netstandard2.0\GPCModelData.dll</HintPath>
-    </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.8, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.8\lib\net472\GPCTestUtilities.dll</HintPath>
     </Reference>
@@ -81,6 +73,14 @@
     </Reference>
     <Reference Include="UnsafeEx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\UnsafeEx.1.0.0\lib\netstandard2.0\UnsafeEx.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' Or '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Reference Include="GPCModel">
+      <HintPath>..\..\GPCModel\GPCModel\bin\$(Configuration)\netstandard2.0\GPCModel.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCModelData">
+      <HintPath>..\..\GPCModel\GPCModelData\bin\$(Configuration)\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

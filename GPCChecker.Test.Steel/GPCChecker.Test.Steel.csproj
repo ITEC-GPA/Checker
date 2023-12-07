@@ -45,12 +45,6 @@
     <Reference Include="GPCGeometry, Version=2.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCGeometry.2.0.1\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel">
-      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCModelData">
-      <HintPath>..\..\GPCModel\GPCModelData\bin\Debug\netstandard2.0\GPCModelData.dll</HintPath>
-    </Reference>
     <Reference Include="GPCUtilities, Version=2.0.0.5, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCUtilities.2.0.0.5\lib\netstandard2.0\GPCUtilities.dll</HintPath>
     </Reference>
@@ -67,6 +61,14 @@
     <Reference Include="System.Core" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' Or '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Reference Include="GPCModel">
+      <HintPath>..\..\GPCModel\GPCModel\bin\$(Configuration)\netstandard2.0\GPCModel.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCModelData">
+      <HintPath>..\..\GPCModel\GPCModelData\bin\$(Configuration)\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
