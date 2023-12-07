@@ -114,10 +114,12 @@ namespace GPC.Checker.SectionSolvers
 
                 if (intersection.Value is MeshVertex intersectionVertex)
                 {
-                    var failDomainPoint = _vertexToDomainPoint[intersectionVertex];
-                    _failureIndex = failDomainPoint.FailureIndex;
-                    immersione = failDomainPoint.Immersione;
-                    strainPlane = failDomainPoint.StrainPlane;
+                    if (_vertexToDomainPoint.TryGetValue(intersectionVertex, out var failDomainPoint))
+                    {
+                        _failureIndex = failDomainPoint.FailureIndex;
+                        immersione = failDomainPoint.Immersione;
+                        strainPlane = failDomainPoint.StrainPlane;
+                    }
                 }
                 else if (intersection.Value is MeshEdge intersectionEdge)
                 {
@@ -129,12 +131,9 @@ namespace GPC.Checker.SectionSolvers
                     double weightA = distB / (distA + distB);
                     double weightB = distA / (distA + distB);
 
-                    // Get failure domain points.
-                    var failA = _vertexToDomainPoint[vA];
-                    var failB = _vertexToDomainPoint[vB];
-
                     // Make interpolation.
-                    if (failA != null && failB != null)
+                    if (_vertexToDomainPoint.TryGetValue(vA, out var failA) &&
+                        _vertexToDomainPoint.TryGetValue(vB, out var failB))
                     {
                         // FailureIndex
                         _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, (int)failB.FailureIndex);
@@ -175,13 +174,10 @@ namespace GPC.Checker.SectionSolvers
                     double weightB = areaB / areaTOT;
                     double weightC = areaC / areaTOT;
 
-                    // Get failure domain points.
-                    var failA = _vertexToDomainPoint[vA];
-                    var failB = _vertexToDomainPoint[vB];
-                    var failC = _vertexToDomainPoint[vC];
-
                     // Make interpolation.
-                    if (failA != null && failB != null && failC != null)
+                    if (_vertexToDomainPoint.TryGetValue(vA, out var failA) &&
+                        _vertexToDomainPoint.TryGetValue(vB, out var failB) &&
+                        _vertexToDomainPoint.TryGetValue(vC, out var failC))
                     {
                         // FailureIndex
                         _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, Math.Min((int)failB.FailureIndex, (int)failC.FailureIndex));

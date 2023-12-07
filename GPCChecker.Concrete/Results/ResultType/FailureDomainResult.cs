@@ -35,6 +35,8 @@ namespace GPC.Checkers.Concrete.Results
 
         public CoordinateSystem CoordinateSystem => _sectionOption.ForceReferenceCoordinateSystem;
 
+        public SectionSolver.FailureAnalysisTypes FailureAnalysisType { get => _sectionOption.FailureAnalysisType; set => _sectionOption.FailureAnalysisType = value; }
+
         #endregion
 
         #region Constructor
