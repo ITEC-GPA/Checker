@@ -105,13 +105,14 @@ namespace GPC.Checker.SectionSolvers
             }
 
             // Now the working ratio search.
-            var forcePoint = new Point3d(targetLocalForces.M1, targetLocalForces.M2, targetLocalForces.N);
-            workingRatio = workingRatioSearch(rayOrigin, forcePoint, out KeyValuePair<Point3d, MeshBase> intersection);
+            var forceP = new Point3d(targetLocalForces.M1, targetLocalForces.M2, targetLocalForces.N);
+            workingRatio = workingRatioSearch(rayOrigin, forceP, out KeyValuePair<Point3d, MeshBase> intersection);
 
             // If a solution has been found assigns the deformation plane.
             if (workingRatio != -1 && intersection.Value != null)
             {
                 forceTuple = new ForceTuple(intersection.Key.Z, intersection.Key.X, intersection.Key.Y);
+                var forcePoint = new Point3d(intersection.Key);
 
                 if (intersection.Value is MeshVertex intersectionVertex)
                 {
