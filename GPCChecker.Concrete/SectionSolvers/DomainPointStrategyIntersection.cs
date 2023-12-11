@@ -1,4 +1,4 @@
-﻿using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
@@ -33,6 +33,7 @@ namespace GPC.Checker.SectionSolvers
             _failureAnalysisIntersectionTolerance = 10;
             _vertexToDomainPoint = null;
             _domainMesh = null;
+            CalculateDomainMesh();
         }
 
         /// <summary>
@@ -131,34 +132,34 @@ namespace GPC.Checker.SectionSolvers
                     double weightA = distB / (distA + distB);
                     double weightB = distA / (distA + distB);
 
+                    var failA = _vertexToDomainPoint[vA];
+                    var failB = _vertexToDomainPoint[vB];
+
                     // Make interpolation.
-                    if (_vertexToDomainPoint.TryGetValue(vA, out var failA) &&
-                        _vertexToDomainPoint.TryGetValue(vB, out var failB))
+
+                    // FailureIndex
+                    _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, (int)failB.FailureIndex);
+
+                    // Theta
+                    var thetaA = failA.StrainPlane.Teta;
+                    var thetaB = failB.StrainPlane.Teta;
+                    // Make them close together.
+                    if (Math.Abs(thetaA - thetaB) > Math.PI)
                     {
-                        // FailureIndex
-                        _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, (int)failB.FailureIndex);
-
-                        // Theta
-                        var thetaA = failA.StrainPlane.Teta;
-                        var thetaB = failB.StrainPlane.Teta;
-                        // Make them close together.
-                        if (Math.Abs(thetaA - thetaB) > Math.PI)
-                        {
-                            if (thetaA < thetaB)
-                                thetaA += 2.0 * Math.PI;
-                            else
-                                thetaB += 2.0 * Math.PI;
-                        }
-                        double theta = thetaA * weightA + thetaB * weightB;
-
-                        // Immersione
-                        var immA = _solver.GetImmersione(failA, _failureIndex);
-                        var immB = _solver.GetImmersione(failB, _failureIndex);
-                        immersione = immA * weightA + immB * weightB;
-
-                        // StrainPlane
-                        strainPlane = _solver.BuildPlane(theta, _solver.SectionOption.FailureDomainType, _failureIndex, immersione);
+                        if (thetaA < thetaB)
+                            thetaA += 2.0 * Math.PI;
+                        else
+                            thetaB += 2.0 * Math.PI;
                     }
+                    double theta = thetaA * weightA + thetaB * weightB;
+
+                    // Immersione
+                    var immA = _solver.GetImmersione(failA, _failureIndex);
+                    var immB = _solver.GetImmersione(failB, _failureIndex);
+                    immersione = immA * weightA + immB * weightB;
+
+                    // StrainPlane
+                    strainPlane = _solver.BuildPlane(theta, _solver.SectionOption.FailureDomainType, _failureIndex, immersione);
                 }
                 else if (intersection.Value is MeshFace intersectionFace)
                 {
@@ -175,40 +176,39 @@ namespace GPC.Checker.SectionSolvers
                     double weightC = areaC / areaTOT;
 
                     // Make interpolation.
-                    if (_vertexToDomainPoint.TryGetValue(vA, out var failA) &&
-                        _vertexToDomainPoint.TryGetValue(vB, out var failB) &&
-                        _vertexToDomainPoint.TryGetValue(vC, out var failC))
+                    var failA = _vertexToDomainPoint[vA];
+                    var failB = _vertexToDomainPoint[vB];
+                    var failC = _vertexToDomainPoint[vC];
+
+                    // FailureIndex
+                    _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, Math.Min((int)failB.FailureIndex, (int)failC.FailureIndex));
+
+                    // Theta
+                    var thetaA = failA.StrainPlane.Teta;
+                    var thetaB = failB.StrainPlane.Teta;
+                    var thetaC = failC.StrainPlane.Teta;
+                    // Make them close together.
+                    if (Math.Abs(thetaA - thetaB) > Math.PI)
                     {
-                        // FailureIndex
-                        _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, Math.Min((int)failB.FailureIndex, (int)failC.FailureIndex));
-
-                        // Theta
-                        var thetaA = failA.StrainPlane.Teta;
-                        var thetaB = failB.StrainPlane.Teta;
-                        var thetaC = failC.StrainPlane.Teta;
-                        // Make them close together.
-                        if (Math.Abs(thetaA - thetaB) > Math.PI)
-                        {
-                            if (thetaA < thetaB)
-                                thetaA += 2.0 * Math.PI;
-                            else
-                                thetaB += 2.0 * Math.PI;
-                        }
-                        if (Math.Abs(thetaA - thetaC) > Math.PI)
-                        {
-                            thetaC += 2.0 * Math.PI;
-                        }
-                        double theta = thetaA * weightA + thetaB * weightB + thetaC * weightC;
-
-                        // Immersione
-                        var immA = _solver.GetImmersione(failA, _failureIndex);
-                        var immB = _solver.GetImmersione(failB, _failureIndex);
-                        var immC = _solver.GetImmersione(failC, _failureIndex);
-                        immersione = immA * weightA + immB * weightB + immC * weightC;
-
-                        // StrainPlane
-                        strainPlane = _solver.BuildPlane(theta, _solver.SectionOption.FailureDomainType, _failureIndex, immersione);
+                        if (thetaA < thetaB)
+                            thetaA += 2.0 * Math.PI;
+                        else
+                            thetaB += 2.0 * Math.PI;
                     }
+                    if (Math.Abs(thetaA - thetaC) > Math.PI)
+                    {
+                        thetaC += 2.0 * Math.PI;
+                    }
+                    double theta = thetaA * weightA + thetaB * weightB + thetaC * weightC;
+
+                    // Immersione
+                    var immA = _solver.GetImmersione(failA, _failureIndex);
+                    var immB = _solver.GetImmersione(failB, _failureIndex);
+                    var immC = _solver.GetImmersione(failC, _failureIndex);
+                    immersione = immA * weightA + immB * weightB + immC * weightC;
+
+                    // StrainPlane
+                    strainPlane = _solver.BuildPlane(theta, _solver.SectionOption.FailureDomainType, _failureIndex, immersione);
                 }
                 else
                     return null;

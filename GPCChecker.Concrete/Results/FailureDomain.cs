@@ -1,4 +1,3 @@
-using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
@@ -124,7 +123,6 @@ namespace GPC.Checkers.Concrete.Results
                     {
                         throw new NotSupportedException("Vertex id not assigned");
                     }
-
                 }
             }
 
