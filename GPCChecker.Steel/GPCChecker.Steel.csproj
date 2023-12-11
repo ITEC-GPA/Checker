@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="GPCGeometry" Version="2.0.1" />
+    <PackageReference Include="GPCUtilities" Version="2.0.0.5" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' Or '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">

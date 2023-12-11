@@ -136,12 +136,38 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         /// <summary>
+        /// Non è specificato nella EN 1993.
+        /// </summary>
+        /// <param name="holeShape"></param>
+        /// <returns></returns>
+        protected override double CalculateShearCoeff_kh(in HoleShapeType holeShape)
+        {
+            return 1.0;
+        }
+
+        /// <summary>
         /// UNI EN 1993-1-8:2005 - Table 3.4.
         /// </summary>
         /// <returns>α_b</returns>
-        protected override double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in double e_1, in double p_1, in double d_0)
+        protected override double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in double e_1, in double p_1, in double d_0, in EN1993BoltChecker.HoleShapeType holeShape)
         {
             return Math.Min(Math.Min(alpha_d, boltSection.BoltMaterial.Fu / PlateMaterialFu), 1.0);
+        }
+
+        /// <summary>
+        /// UNI EN 1993-1-8:2005 - Table 3.4, in footer point 1).
+        /// </summary>
+        /// <param name="holeShape"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        protected override double CalculateBearingCoeff_kh(in HoleShapeType holeShape)
+        {
+            if (holeShape == HoleShapeType.ShortSlotted || holeShape == HoleShapeType.LongSlotted)
+                return 0.6;
+            else if (holeShape == HoleShapeType.OversizeRound)
+                return 0.8;
+            else
+                return 1.0;
         }
 
         /// <summary>

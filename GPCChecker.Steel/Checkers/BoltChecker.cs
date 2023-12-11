@@ -118,6 +118,12 @@ namespace GPC.Checkers.Steel.Checkers
             /// </summary>
             public TensionDistributionTypes TensionDistributionType { get; set; }
 
+            /// <summary>
+            /// Hole rotation angle, general option for all holes.
+            /// Then each hole can override with a particular value.
+            /// /// </summary>
+            public double HoleAngle { get; set; }
+
             #endregion
 
             #region Constructor
@@ -130,6 +136,7 @@ namespace GPC.Checkers.Steel.Checkers
                 NumFricionPlane = 1;
                 NumBearingPlate = 1;
                 TensionDistributionType = TensionDistributionTypes.Uniform;
+                HoleAngle = 0.0;
             }
 
             public BoltOptions(SerializationInfo info, StreamingContext context)
@@ -161,6 +168,10 @@ namespace GPC.Checkers.Steel.Checkers
                 {
                     TensionDistributionType = TensionDistributionTypes.Uniform;
                 }
+                if (BoltOptionsVersion > 3)
+                    HoleAngle = info.GetDouble("HoleAngle");
+                else
+                    HoleAngle = 0.0;
             }
 
             #endregion
@@ -169,7 +180,7 @@ namespace GPC.Checkers.Steel.Checkers
 
             public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
             {
-                int BoltOptionsVersion = 3;
+                int BoltOptionsVersion = 4;
                 info.AddValue("BoltOptionsVersion", BoltOptionsVersion);
                 info.AddValue("ShearPlaneThroughThreadedPortion", ShearPlaneThroughThreadedPortion);
                 info.AddValue("NumShearPlane", _numShearPlane);
@@ -177,6 +188,7 @@ namespace GPC.Checkers.Steel.Checkers
                 info.AddValue("NumFrictionPlane", _numFrictionPlane);
                 info.AddValue("NumBearingPlate", _numBearingPlate);
                 info.AddValue("TensionDistributionType", TensionDistributionType);
+                info.AddValue("HoleAngle", HoleAngle);
             }
 
             #endregion
