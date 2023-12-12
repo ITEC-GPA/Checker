@@ -4,7 +4,6 @@ using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
-using GPC.Geometry.Meshes;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
@@ -3233,8 +3232,8 @@ namespace ConcreteTests
             var sectionL = new SectionL(100, 10, 100, 10, "L100x10");
             var steelSectionL = new SteelSection(sectionL, SteelMaterialAISC360Data.A501);
 
-            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 0.0,   new Vector2d(0.0, 0.0), InsertionPointType.BottomLeft));
-            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 90.0.ToRadians(),  new Vector2d(400.0, 0.0), InsertionPointType.BottomLeft));
+            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 0.0, new Vector2d(0.0, 0.0), InsertionPointType.BottomLeft));
+            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 90.0.ToRadians(), new Vector2d(400.0, 0.0), InsertionPointType.BottomLeft));
             section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 180.0.ToRadians(), new Vector2d(400.0, 400.0), InsertionPointType.BottomLeft));
             section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 270.0.ToRadians(), new Vector2d(0.0, 400.0), InsertionPointType.BottomLeft));
 
@@ -3720,8 +3719,8 @@ namespace ConcreteTests
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
-                //new ResultBeamForces(3000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
-                //new ResultBeamForces(2000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(3000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(2000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                 new ResultBeamForces(1000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                 new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
@@ -3760,8 +3759,8 @@ namespace ConcreteTests
                 double Nconst = 1000 * steelMat.Fyk / 275.0;
                 var forces = new ResultBeamForces[]
                 {
-                    //new ResultBeamForces(3000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
-                    //new ResultBeamForces(2000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(3000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(2000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(1000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(0 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(-1000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
