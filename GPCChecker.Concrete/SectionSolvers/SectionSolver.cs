@@ -4,7 +4,6 @@ using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
-using GPC.Geometry.Meshes;
 using GPC.Model;
 using GPC.Model.Materials;
 using GPC.Model.Maths.GaussIntegrations;
@@ -289,7 +288,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             _stressAnalysisTolerance = 1e-5;
             _failureAnalysisAngularTolerance = 0.25e-3;
-            _failureAnalysisDistanceTolerance = 0.5e-4;
+            _failureAnalysisDistanceTolerance = 0.25e-4;
 
             _considerTensileConcrete = considerTensileConcrete;
             _tetaDiscretization = 64;
