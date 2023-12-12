@@ -1,4 +1,4 @@
-﻿using GPC.Checker.Helper;
+using GPC.Checker.Helper;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
@@ -262,6 +262,8 @@ namespace GPC.Checker.SectionSolvers
 
                 do
                 {
+                    double angleBuffer;
+
                     if (id < 200 && !pointOutOfDomain)
                     {
                         try
@@ -285,7 +287,7 @@ namespace GPC.Checker.SectionSolvers
                         ForceTuple incrementForce = new ForceTuple(increment.distanceToTarget.Z, increment.distanceToTarget.X, increment.distanceToTarget.Y);
                         adimIncrement = _solver.ConvertToAdimensionalForces(incrementForce);
 
-                        double angleBuffer = Math.PI;
+                        angleBuffer = Math.PI;
 
                         switch (failureAnalysisType)
                         {
@@ -319,7 +321,7 @@ namespace GPC.Checker.SectionSolvers
                         _solver.Log.Add("Fail to calculate point on domain");
                         if (failureIndex == SectionSolver.FailureZones.F2A || failureIndex == SectionSolver.FailureZones.F2B)
                         {
-                            if (angle < 250 * _solver.FailureAnalysisAngularTolerance)
+                            if (angle < 100 * _solver.FailureAnalysisAngularTolerance)
                                 return closestPoint;
                         }
                         else if (failureIndex == SectionSolver.FailureZones.F3A || failureIndex == SectionSolver.FailureZones.F3B || failureIndex == SectionSolver.FailureZones.F4)
@@ -333,11 +335,11 @@ namespace GPC.Checker.SectionSolvers
                     switch (failureAnalysisType)
                     {
                         case SectionSolver.FailureAnalysisTypes.ConstantEccentricity:
-                            if (Math.Abs(angle) < _solver.FailureAnalysisAngularTolerance)
+                            if (Math.Abs(angleBuffer) < _solver.FailureAnalysisAngularTolerance)
                                 exit = true;
                             break;
                         case SectionSolver.FailureAnalysisTypes.ConstantN:
-                            if (Math.Abs(adimIncrement.N) < _solver.FailureAnalysisDistanceTolerance && Math.Abs(angle) < _solver.FailureAnalysisAngularTolerance)
+                            if (Math.Abs(adimIncrement.N) < _solver.FailureAnalysisDistanceTolerance && Math.Abs(angleBuffer) < _solver.FailureAnalysisAngularTolerance)
                                 exit = true;
                             break;
                         case SectionSolver.FailureAnalysisTypes.ConstantMxMy:
@@ -348,13 +350,13 @@ namespace GPC.Checker.SectionSolvers
                         case SectionSolver.FailureAnalysisTypes.ConstantNMx:
                             if (Math.Abs(adimIncrement.N) < _solver.FailureAnalysisDistanceTolerance &&
                                 Math.Abs(adimIncrement.Mx) < _solver.FailureAnalysisDistanceTolerance &&
-                                Math.Abs(angle) < _solver.FailureAnalysisAngularTolerance)
+                                Math.Abs(angleBuffer) < _solver.FailureAnalysisAngularTolerance)
                                 exit = true;
                             break;
                         case SectionSolver.FailureAnalysisTypes.ConstantNMy:
                             if (Math.Abs(adimIncrement.N) < _solver.FailureAnalysisDistanceTolerance &&
                                 Math.Abs(adimIncrement.My) < _solver.FailureAnalysisDistanceTolerance &&
-                                Math.Abs(angle) < _solver.FailureAnalysisAngularTolerance)
+                                Math.Abs(angleBuffer) < _solver.FailureAnalysisAngularTolerance)
                                 exit = true;
                             break;
                     }
@@ -617,7 +619,7 @@ namespace GPC.Checker.SectionSolvers
                     nonLinearErrorTeta = 1.0;
 
                 var a = _solver.ConvertToAdimensionalForces(new ForceTuple(displacementVector.Z, displacementVector.X, displacementVector.Y));
-                var b = new Vector3d(0, a.My, 0);
+                var b = new Vector3d(a.Mx, a.My, 0);
                 var c = new Vector3d(a.Mx, 0, a.N);
 
 
@@ -627,82 +629,82 @@ namespace GPC.Checker.SectionSolvers
                 if (inputFailureZone == SectionSolver.FailureZones.F3B)
                 {
                     if (c.Length > 0.01)
-                        reductionFactorEta = 0.3;
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorEta);
                     else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.2, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorEta);
 
                     if (b.Length > 0.001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
+                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorTeta);
                     else if (b.Length > 0.0001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
+                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.25, nonLinearErrorTeta);
                     else
-                        reductionFactorTeta = 0.05;
+                        reductionFactorTeta = 0.25;
                 }
                 else if (inputFailureZone == SectionSolver.FailureZones.F3A)
                 {
                     if (c.Length > 0.1)
-                        reductionFactorEta = 0.2;
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorEta);
                     else if (c.Length > 0.01)
-                        reductionFactorEta = 0.2;
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorEta);
                     else if (c.Length > 0.001)
-                        reductionFactorEta = 0.2;
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorEta);
                     else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.1, 0.1, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorEta);
 
                     if (b.Length > 0.001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
+                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorTeta);
                     else if (b.Length > 0.0001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
+                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.25, nonLinearErrorTeta);
                     else
-                        reductionFactorTeta = 0.05;
+                        reductionFactorTeta = 0.25;
                 }
                 else if (inputFailureZone == SectionSolver.FailureZones.F2B)
                 {
                     if (c.Length > 0.1)
-                        reductionFactorEta = 0.5;
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 0.8, 0.5, nonLinearErrorEta);
                     else if (c.Length > 0.01)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.5, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 0.8, 0.5, nonLinearErrorEta);
                     else if (c.Length > 0.0025)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.3, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorEta);
                     else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.3, 0.1, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorEta);
 
                     if (b.Length > 0.001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
+                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorTeta);
                     else if (b.Length > 0.0001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
+                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.25, nonLinearErrorTeta);
                     else
-                        reductionFactorTeta = 0.05;
+                        reductionFactorTeta = 0.25;
                 }
                 else if (inputFailureZone == SectionSolver.FailureZones.F2A)
                 {
                     if (c.Length > 0.01)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.5, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 0.8, 0.5, nonLinearErrorEta);
                     else if (c.Length > 0.0025)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.3, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorEta);
                     else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.3, 0.1, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorEta);
 
                     if (b.Length > 0.001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
+                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorTeta);
                     else if (b.Length > 0.0001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
+                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.25, nonLinearErrorTeta);
                     else
-                        reductionFactorTeta = 0.05;
+                        reductionFactorTeta = 0.25;
                 }
                 else
                 {
                     if (c.Length > 0.01)
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 1.0, 0.5, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.01, 0.8, 0.5, nonLinearErrorEta);
                     else
-                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.2, nonLinearErrorEta);
+                        reductionFactorEta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorEta);
 
                     if (b.Length > 0.001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.05, 0.25, nonLinearErrorTeta);
+                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.8, 0.5, nonLinearErrorTeta);
                     else if (b.Length > 0.0001)
-                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.25, 0.1, nonLinearErrorTeta);
+                        reductionFactorTeta = Utilities.Maths.Interpolation.GetLinearInterpolation(1.0, 0.001, 0.5, 0.25, nonLinearErrorTeta);
                     else
-                        reductionFactorTeta = 0.05;
+                        reductionFactorTeta = 0.25;
                 }
 
                 // The following condition was calibrated to converge the tests.
@@ -720,6 +722,7 @@ namespace GPC.Checker.SectionSolvers
                     //    reductionFactorTeta = Math.Min(2.0 * reductionFactorTeta, 1.0);
                     //}
                     //else if (inputFailureZone == SectionSolver.FailureZones.F1)
+                    /*
                     if (inputFailureZone == SectionSolver.FailureZones.F1)
                     {
                         reductionFactorEta *= 0.005;
@@ -739,7 +742,10 @@ namespace GPC.Checker.SectionSolvers
                     {
                         reductionFactorEta *= 0.5;
                         reductionFactorTeta *= 0.25;
-                    }
+                    }*/
+
+                    //reductionFactorEta *= 1.5;
+                    //reductionFactorTeta *= 1.5;
                 }
 
                 double deltaTeta = results[0, 0] * reductionFactorTeta;
@@ -751,11 +757,11 @@ namespace GPC.Checker.SectionSolvers
 
         protected void SetIncrement(SectionSolver.FailureDomainTypes analysisType, ref SectionSolver.FailureZones failureZone, ref double teta, ref double eta, double deltaTeta, double deltaEta)
         {
-            deltaEta = deltaEta > 0.35 ? 0.35 : deltaEta;
-            deltaEta = deltaEta < -0.35 ? -0.35 : deltaEta;
+            deltaEta = deltaEta > 0.30 ? 0.30 : deltaEta;
+            deltaEta = deltaEta < -0.30 ? -0.30 : deltaEta;
 
-            deltaTeta = deltaTeta > Math.PI / 7.0 ? Math.PI / 7.0 : deltaTeta;
-            deltaTeta = deltaTeta < -Math.PI / 7.0 ? -Math.PI / 7.0 : deltaTeta;
+            deltaTeta = deltaTeta > Math.PI / 16.0 ? Math.PI / 16.0 : deltaTeta;
+            deltaTeta = deltaTeta < -Math.PI / 16.0 ? -Math.PI / 16.0 : deltaTeta;
 
             // piano di nuovo tentativo
             teta += deltaTeta;
