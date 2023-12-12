@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.Test.Glass", "GP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.Test.Steel", "GPCChecker.Test.Steel\GPCChecker.Test.Steel.csproj", "{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.GlassV2", "Glass\GPCChecker.GlassV2.csproj", "{44F7BBE4-A6E5-4DBA-89CB-7FBEA8ABCAEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GPCChecker.GlassV2", "Glass\GPCChecker.GlassV2.csproj", "{44F7BBE4-A6E5-4DBA-89CB-7FBEA8ABCAEF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,9 +44,7 @@ Global
 		{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}.Release|Any CPU.Build.0 = Release|Any CPU
 		{44F7BBE4-A6E5-4DBA-89CB-7FBEA8ABCAEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{44F7BBE4-A6E5-4DBA-89CB-7FBEA8ABCAEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44F7BBE4-A6E5-4DBA-89CB-7FBEA8ABCAEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{44F7BBE4-A6E5-4DBA-89CB-7FBEA8ABCAEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
