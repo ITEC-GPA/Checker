@@ -1727,7 +1727,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 compressionRotationPoints.Add(firstCompressionRotationPoint);
                 compressionPointsList.Remove(firstCompressionRotationPoint);
                 // Deletes all compression points with y less than or equal to that of the first point.
-                compressionPointsList.RemoveAll(p => p.Distance < firstCompressionRotationPoint.Distance);
+                compressionPointsList.RemoveAll(p => p.Distance < firstCompressionRotationPoint.Distance ||
+                    (p.Distance == firstCompressionRotationPoint.Distance && p.Epsilon <= firstCompressionRotationPoint.Epsilon));
                 // Of all remaining points, look for the one that imposes the lowest rotation.
                 // This becomes the next point of rotation.
                 while (compressionPointsList.Count > 0)
@@ -1749,7 +1750,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     // The point found becomes the next rotation point.
                     compressionRotationPoints.Add(minAnglepoint);
                     compressionPointsList.Remove(minAnglepoint);
-                    // Deletes all tension points with y greater than or equal to this rotation point.
+                    // Deletes all compression points with y less than or equal to that of the first point.
                     if (compressionPointsList.Count > 0)
                         compressionPointsList.RemoveAll(p => p.Distance < minAnglepoint.Distance ||
                             (p.Distance == minAnglepoint.Distance && p.Epsilon <= minAnglepoint.Epsilon));

@@ -2096,6 +2096,63 @@ namespace ConcreteTests
         }
 
         /// <summary>
+        /// Calculates the deformation planes for a composite section.
+        /// </summary>
+        /// <param name="section"></param>
+        /// <returns></returns>
+        private static List<StrainPlane> CalculateStrainPlanesACI(ReinforcedConcreteSection section, SectionSolver.FailureDomainTypes analysisType = SectionSolver.FailureDomainTypes.Plastic, double rotationAngle = 0.0)
+        {
+            (SectionSolver.FailureZones, int)[] plasticZones;
+
+            if (analysisType == SectionSolver.FailureDomainTypes.Plastic)
+            {
+                plasticZones = new (SectionSolver.FailureZones, int)[]
+                {
+                    (SectionSolver.FailureZones.F1, 5),
+                    (SectionSolver.FailureZones.F2A, 5),
+                    (SectionSolver.FailureZones.F2B, 5),
+                    (SectionSolver.FailureZones.F3A, 5),
+                    (SectionSolver.FailureZones.F3B, 5),
+                    (SectionSolver.FailureZones.F4, 5)
+                };
+            }
+            else if (analysisType == SectionSolver.FailureDomainTypes.Elastic)
+            {
+                plasticZones = new (SectionSolver.FailureZones, int)[]
+                {
+                    (SectionSolver.FailureZones.F1, 5),
+                    (SectionSolver.FailureZones.F2A, 5),
+                    (SectionSolver.FailureZones.F2B, 5),
+                    (SectionSolver.FailureZones.F3A, 5),
+                    (SectionSolver.FailureZones.F4, 5)
+                };
+            }
+            else
+                return null;
+
+            var sectionSolverACITest = new SectionSolverACI318(section, new SectionCheckerACI318.SectionOptionsStandardACI318(), new StandardACI318p08(), false, section.Centroid, false, -1, new StandardAISC360p05());
+
+            sectionSolverACITest.CalculateRotationPointsPerMaterial(rotationAngle, analysisType, out List<DeformationFieldsPoint> tensionRotationPoints, out List<DeformationFieldsPoint> tensionRotationPointsF1, out List<DeformationFieldsPoint> compressionRotationPoints, out double minDistanceCompression, out double elasticEpsilonTension);
+
+            var planes = new List<StrainPlane>();
+
+            for (int i = 0; i < plasticZones.Length; i++)
+            {
+                SectionSolver.FailureZones failureZones = plasticZones[i].Item1;
+                int subdivision = plasticZones[i].Item2 + 1;
+                int subIndex = 0;
+
+                for (int j = 0; j < subdivision; j++)
+                {
+                    planes.Add(sectionSolverACITest.CalculateStrainPlaneMultiPoints(rotationAngle, failureZones, (double)j / (double)subdivision, failureZones == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, subIndex));
+                    subIndex++;
+                }
+            }
+            planes.Add(sectionSolverACITest.CalculateStrainPlaneMultiPoints(rotationAngle, SectionSolver.FailureZones.F4, 1.0, tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, 6));
+            return planes;
+        }
+
+        /// <summary>
         /// Utility to build a string to paste into AutoCAD to draw plan lines.
         /// </summary>
         /// <param name="planes"></param>
@@ -3157,6 +3214,115 @@ namespace ConcreteTests
                 "-0.002010752688",
                 "-0.002005376344",
                 "-0.002000000000"
+            };
+
+            Assert.IsNotNull(stringForCad);
+            CollectionAssert.AreEqual(min_y_strian_sequence_result, min_y_strian_sequence);
+            CollectionAssert.AreEqual(max_y_strian_sequence_result, max_y_strian_sequence);
+        }
+
+        /// <summary>
+        /// Tests the sequence of deformation planes in a composite section, ACI materials.
+        /// Concrete is between four L sections.
+        /// </summary>
+        [TestMethod]
+        public void StrainPlanesDomain17()
+        {
+            var section = GetRectangularSection4Rebars(400, 400, 14, 40, ConcreteMaterialACI318Data.Fc4000, SteelMaterialACI318Data.Grade60);
+
+            var sectionL = new SectionL(100, 10, 100, 10, "L100x10");
+            var steelSectionL = new SteelSection(sectionL, SteelMaterialAISC360Data.A501);
+
+            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 0.0,   new Vector2d(0.0, 0.0), InsertionPointType.BottomLeft));
+            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 90.0.ToRadians(),  new Vector2d(400.0, 0.0), InsertionPointType.BottomLeft));
+            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 180.0.ToRadians(), new Vector2d(400.0, 400.0), InsertionPointType.BottomLeft));
+            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 270.0.ToRadians(), new Vector2d(0.0, 400.0), InsertionPointType.BottomLeft));
+
+            List<StrainPlane> planes = CalculateStrainPlanesACI(section: section);
+
+            var stringForCad = MakePlaneListString(planes, 0.0, 400.0,
+                out List<string> min_y_strian_sequence, out List<string> max_y_strian_sequence);
+
+            var min_y_strian_sequence_result = new List<string>()
+            {
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.100000000000",
+                "0.018103276731",
+                "0.008755954702",
+                "0.005147267227",
+                "0.003233721772",
+                "0.002048080976",
+                "0.001241379498",
+                "0.001034482915",
+                "0.000827586332",
+                "0.000620689749",
+                "0.000413793166",
+                "0.000206896583",
+                "0.000000000000",
+                "-0.000500000000",
+                "-0.001000000000",
+                "-0.001500000000",
+                "-0.002000000000",
+                "-0.002500000000",
+                "-0.003000000000"
+            };
+
+            var max_y_strian_sequence_result = new List<string>()
+            {
+                "0.100000000000",
+                "0.083333333333",
+                "0.066666666667",
+                "0.050000000000",
+                "0.033333333333",
+                "0.016666666667",
+                "0.000000000000",
+                "-0.000500000000",
+                "-0.001000000000",
+                "-0.001500000000",
+                "-0.002000000000",
+                "-0.002500000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000",
+                "-0.003000000000"
             };
 
             Assert.IsNotNull(stringForCad);
