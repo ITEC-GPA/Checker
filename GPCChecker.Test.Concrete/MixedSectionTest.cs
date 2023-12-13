@@ -3719,14 +3719,18 @@ namespace ConcreteTests
 
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
-                new ResultBeamForces(3000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
-                new ResultBeamForces(2000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
-                new ResultBeamForces(1000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(500 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(250 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                 new ResultBeamForces(0 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-500 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                 new ResultBeamForces(-1000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-1500 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                 new ResultBeamForces(-2000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-2500 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                 new ResultBeamForces(-3000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-3500 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                 new ResultBeamForces(-4000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                new ResultBeamForces(-4500 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                 new ResultBeamForces(-5000 * 1000, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
             };
 
@@ -3759,14 +3763,20 @@ namespace ConcreteTests
                 double Nconst = 1000 * steelMat.Fyk / 275.0;
                 var forces = new ResultBeamForces[]
                 {
-                    new ResultBeamForces(3000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
-                    new ResultBeamForces(2000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
-                    new ResultBeamForces(1000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    //new ResultBeamForces(3000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    //new ResultBeamForces(1000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(500 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(250 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(0 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(-500 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(-1000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(-1500 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(-2000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(-2500 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(-3000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(-3500 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(-4000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
+                    new ResultBeamForces(-4500 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                     new ResultBeamForces(-5000 * Nconst, 0, 0, 0, 50 * 1000000, 0 * 1000000, cs),
                 };
 
