@@ -49,13 +49,16 @@
       <HintPath>..\packages\GMsh.Net.1.0.495.1\lib\netstandard2.0\GMsh.Net.dll</HintPath>
     </Reference>
     <Reference Include="GPCGeometry, Version=2.0.1.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCGeometry.2.0.1.2\lib\netstandard2.0\GPCGeometry.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
     <Reference Include="GPCModel, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModel.1.1.0\lib\netstandard2.0\GPCModel.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
     <Reference Include="GPCModelData, Version=0.0.1.10, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModelData.0.0.1.10\lib\netstandard2.0\GPCModelData.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\GPCModel\GPCModelData\bin\Debug\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
     <Reference Include="GPCTestUtilities, Version=1.0.0.8, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCTestUtilities.1.0.0.8\lib\net472\GPCTestUtilities.dll</HintPath>

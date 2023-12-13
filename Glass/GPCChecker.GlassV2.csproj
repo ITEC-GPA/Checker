@@ -5,8 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GPCGeometry" Version="2.0.1.2" />
-    <PackageReference Include="GPCModel" Version="1.1.0" />
+    <Reference Include="GPCGeometry">
+      <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\netstandard2.0\GPCGeometry.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCModel">
+      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
