@@ -4,7 +4,6 @@ using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
-using GPC.Geometry.Meshes;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
@@ -14,8 +13,8 @@ using GPC.Utilities.Maths;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using static GPC.Checkers.Concrete.Checkers.SectionCheckerACI318;
 
 namespace ConcreteTests
 {
@@ -48,7 +47,6 @@ namespace ConcreteTests
             // Calculate domain mesh for intersect method.
             //sectionChecker.SectionSolver.SetTetaDiscretization(64);
             var plasticDomainResult = sectionChecker.GetPlasticFailureDomainResult();
-            var plastiDomainMesh = plasticDomainResult.Domain.GetMesh(plasticDomainResult.Domain, out Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint);
             // Get point of section.
             var secLines = sectionChecker.SectionSolver.ConcreteSection.SectionShape.Shape.Fill.Explode();
             var secPoints = secLines.Select(l => l.Start).ToArray();
@@ -56,10 +54,16 @@ namespace ConcreteTests
             var solverTestModelCode = sectionChecker.SectionSolver as SectionSolverModelCode2010;
             var solverTestACI = sectionChecker.SectionSolver as SectionSolverACI318;
 
+            // Timer
+            var stopwatch = new Stopwatch();
+            stopwatch.Reset();
+            stopwatch.Start(); // *** timer ***
+
             foreach (var appliedForce in forces)
             {
                 // ***** Intersect method - ratio
-                var failIntersect = sectionChecker.SectionSolver.CalculateDomainPoint(appliedForce, plastiDomainMesh, vertexToDomainPoint);
+                sectionChecker.SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes.Intersection);
+                var failIntersect = sectionChecker.SectionSolver.CalculateDomainPoint(appliedForce);
                 intersectDomPoint.Add(failIntersect);
                 intersectWR.Add(failIntersect.WorkingRatio);
                 if (solverTestACI is null)
@@ -70,12 +74,21 @@ namespace ConcreteTests
                 var epsIntersect = new List<double>();
                 foreach (var p in secPoints)
                     epsIntersect.Add(failIntersect.StrainPlane.GetStrain(p));
+            }
 
+            stopwatch.Stop(); // *** timer ***
+            var elapsedTimeIntersect = stopwatch.Elapsed;
+            stopwatch.Reset();
+            stopwatch.Start(); // *** timer ***
+
+            foreach (var appliedForce in forces)
+            {
                 // ***** Direct/iterative method - ratio
+                sectionChecker.SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes.Iterative);
                 FailureDomain.FailureDomainPoint failDirect;
                 try
                 {
-                    failDirect = sectionChecker.CalculatePlasticFailureDomainPoint(appliedForce);
+                    failDirect = sectionChecker.CalculateFailureDomainPoint(appliedForce);
                 }
                 catch
                 {
@@ -107,6 +120,10 @@ namespace ConcreteTests
                 //    Assert.AreEqual(epsIntersect[i], epsDirect[i], 5e-4);
                 //}
             }
+
+            stopwatch.Stop(); // *** timer ***
+            var elapsedTimeIntersectIterative = stopwatch.Elapsed;
+
             var intersectWRrelativeError = intersectWR.Select((val, index) => Error.CalcRelativeError(val, referenceWorkingRatio[index])).ToArray();
             var directWRrelativeError = directWR.Select((val, index) => Error.CalcRelativeError(val, referenceWorkingRatio[index])).ToArray();
 

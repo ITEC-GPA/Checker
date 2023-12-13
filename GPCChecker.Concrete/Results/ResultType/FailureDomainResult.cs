@@ -57,12 +57,8 @@ namespace GPC.Checkers.Concrete.Results
 
                 for (int i = 0; i < forces.Count(); i++)
                 {
-                    if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                        _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i],
-                            _sectionSolver.CalculatePlasticDomainPoint(new ForceTuple(forcesList[i]), FailureAnalysisType)));
-                    else
-                        _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i],
-                            _sectionSolver.CalculateElasticDomainPoint(new ForceTuple(forcesList[i]), FailureAnalysisType)));
+                    _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i],
+                        _sectionSolver.CalculateDomainPoint(forcesList[i])));
                 }
             }
 
@@ -105,44 +101,7 @@ namespace GPC.Checkers.Concrete.Results
 
             await Task.Run(() =>
             {
-                if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                    failureDomainPoint = _sectionSolver.CalculatePlasticDomainPoint(new ForceTuple(force), FailureAnalysisType);
-                else
-                    failureDomainPoint = _sectionSolver.CalculateElasticDomainPoint(new ForceTuple(force), FailureAnalysisType);
-
-                _forces.Add(new FailureDomain.FailureDomainForce(force, failureDomainPoint));
-            });
-
-            return failureDomainPoint;
-        }
-
-        /// <summary>
-        /// Adds a new single force asynchronously with intersection method
-        /// </summary>
-        /// <param name="force">The force to add</param>
-        /// <returns>The corresponding domain point</returns>
-        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
-        /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
-        public async Task<FailureDomain.FailureDomainPoint> AddForceAsync(ResultBeamForces force, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            if (force is null)
-            {
-                throw new ArgumentNullException(nameof(force));
-            }
-            else if (force.Id == -1)
-            {
-                throw new ArgumentException(nameof(force));
-            }
-
-            FailureDomain.FailureDomainPoint failureDomainPoint = null;
-
-            await Task.Run(() =>
-            {
-                if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                    failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
-                else
-                    failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
-
+                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force);
                 _forces.Add(new FailureDomain.FailureDomainForce(force, failureDomainPoint));
             });
 
@@ -176,57 +135,7 @@ namespace GPC.Checkers.Concrete.Results
 
                 for (int i = 0; i < forcesList.Count(); i++)
                 {
-                    FailureDomain.FailureDomainPoint point;
-
-                    if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                        point = _sectionSolver.CalculatePlasticDomainPoint(new ForceTuple(forcesList[i]), FailureAnalysisType);
-                    else if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Elastic)
-                        point = _sectionSolver.CalculateElasticDomainPoint(new ForceTuple(forcesList[i]), FailureAnalysisType);
-                    else
-                        point = null;
-
-                    _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
-                    failureDomainPoint[i] = point;
-                }
-            });
-
-            return failureDomainPoint;
-        }
-
-        /// <summary>
-        /// Adds a new range of forces asynchronously with intersection method
-        /// </summary>
-        /// <param name="forces">The forces array</param>
-        /// <returns>The corresponding points in the domain</returns>
-        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
-        /// <exception cref="ArgumentException">Thrown when forces contains items with Id == -1</exception>
-        public async Task<FailureDomain.FailureDomainPoint[]> AddForcesAsync(IEnumerable<ResultBeamForces> forces, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            if (forces is null)
-            {
-                throw new ArgumentNullException(nameof(forces));
-            }
-            else if (forces.Any(f => f.Id == -1))
-            {
-                throw new ArgumentException(nameof(forces));
-            }
-
-            FailureDomain.FailureDomainPoint[] failureDomainPoint = null;
-
-            await Task.Run(() =>
-            {
-                var forcesList = forces.ToList();
-                failureDomainPoint = new FailureDomain.FailureDomainPoint[forcesList.Count];
-
-                for (int i = 0; i < forcesList.Count(); i++)
-                {
-                    FailureDomain.FailureDomainPoint point;
-
-                    if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                        point = _sectionSolver.CalculateDomainPoint(forcesList[i], domainMesh, vertexToDomainPoint);
-                    else
-                        point = _sectionSolver.CalculateDomainPoint(forcesList[i], domainMesh, vertexToDomainPoint);
-
+                    var point = _sectionSolver.CalculateDomainPoint(forcesList[i]);
                     _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
                     failureDomainPoint[i] = point;
                 }
@@ -265,53 +174,7 @@ namespace GPC.Checkers.Concrete.Results
 
             await Task.Run(() =>
             {
-                if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                    failureDomainPoint = _sectionSolver.CalculatePlasticDomainPoint(new ForceTuple(force), FailureAnalysisType);
-                else
-                    failureDomainPoint = _sectionSolver.CalculateElasticDomainPoint(new ForceTuple(force), FailureAnalysisType);
-
-                _forces.RemoveAt(index);
-                _forces.Insert(index, new FailureDomain.FailureDomainForce(force, failureDomainPoint));
-            });
-
-            return failureDomainPoint;
-        }
-
-        /// <summary>
-        /// Update an extisting force racalculating the domain point asynchronously with intersection method
-        /// </summary>
-        /// <param name="id">The id of the original force</param>
-        /// <param name="force">The new force</param>
-        /// <returns>The new corresponding point in the domain</returns>
-        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
-        /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
-        /// <exception cref="KeyNotFoundException">Thrown when did not found a force with the given id</exception>
-        public async Task<FailureDomain.FailureDomainPoint> UpdateForceAsync(int id, ResultBeamForces force, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            if (force is null)
-            {
-                throw new ArgumentNullException(nameof(force));
-            }
-            else if (force.Id == -1)
-            {
-                throw new ArgumentException(nameof(force));
-            }
-
-            int index = _forces.FindIndex(f => f.Id == id);
-            if (index < 0)
-            {
-                throw new KeyNotFoundException(nameof(id));
-            }
-
-            FailureDomain.FailureDomainPoint failureDomainPoint = null;
-
-            await Task.Run(() =>
-            {
-                if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                    failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
-                else
-                    failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
-
+                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force);
                 _forces.RemoveAt(index);
                 _forces.Insert(index, new FailureDomain.FailureDomainForce(force, failureDomainPoint));
             });
@@ -411,37 +274,7 @@ namespace GPC.Checkers.Concrete.Results
 
             await Task.Run(() =>
             {
-                if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                    failureDomainPoint = _sectionSolver.CalculatePlasticDomainPoint(new ForceTuple(force), FailureAnalysisType);
-                else
-                    failureDomainPoint = _sectionSolver.CalculateElasticDomainPoint(new ForceTuple(force), FailureAnalysisType);
-            });
-
-            return failureDomainPoint;
-        }
-
-        /// <summary>
-        /// Calculate a new single force asynchronously with intersection method
-        /// </summary>
-        /// <param name="force">The force to add</param>
-        /// <returns>The corresponding domain point</returns>
-        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
-        /// <remarks>Force is not added to list of forces</remarks>
-        public async Task<FailureDomain.FailureDomainPoint> CalculateForceAsync(ResultBeamForces force, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            if (force is null)
-            {
-                throw new ArgumentNullException(nameof(force));
-            }
-
-            FailureDomain.FailureDomainPoint failureDomainPoint = null;
-
-            await Task.Run(() =>
-            {
-                if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                    failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
-                else
-                    failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
+                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force);
             });
 
             return failureDomainPoint;
@@ -469,43 +302,7 @@ namespace GPC.Checkers.Concrete.Results
                 throw new ArgumentException(nameof(force));
             }
 
-            FailureDomain.FailureDomainPoint point;
-
-            if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                point = _sectionSolver.CalculatePlasticDomainPoint(new ForceTuple(force), FailureAnalysisType);
-            else
-                point = _sectionSolver.CalculateElasticDomainPoint(new ForceTuple(force), FailureAnalysisType);
-
-            _forces.Add(new FailureDomain.FailureDomainForce(force, point));
-
-            return point;
-        }
-
-        /// <summary>
-        /// Adds a new single force with intersection method
-        /// </summary>
-        /// <param name="force">The force to add</param>
-        /// <returns>The corresponding domain point</returns>
-        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
-        /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
-        public FailureDomain.FailureDomainPoint AddForce(ResultBeamForces force, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            if (force is null || force.Id == -1)
-            {
-                throw new ArgumentNullException(nameof(force));
-            }
-            else if (force.Id == -1)
-            {
-                throw new ArgumentException(nameof(force));
-            }
-
-            FailureDomain.FailureDomainPoint point;
-
-            if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                point = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
-            else
-                point = _sectionSolver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
-
+            var point = _sectionSolver.CalculateDomainPoint(force);
             _forces.Add(new FailureDomain.FailureDomainForce(force, point));
 
             return point;
@@ -534,52 +331,7 @@ namespace GPC.Checkers.Concrete.Results
 
             for (int i = 0; i < forcesList.Count(); i++)
             {
-                FailureDomain.FailureDomainPoint point;
-
-                if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                    point = _sectionSolver.CalculatePlasticDomainPoint(new ForceTuple(forcesList[i]), FailureAnalysisType);
-                else
-                    point = _sectionSolver.CalculateElasticDomainPoint(new ForceTuple(forcesList[i]), FailureAnalysisType);
-
-                _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
-                failureDomainPoint[i] = point;
-            }
-
-            return failureDomainPoint;
-        }
-
-        /// <summary>
-        /// Adds a new range of forces with intersection method 
-        /// </summary>
-        /// <param name="forces">The forces array</param>
-        /// <param name="mesh">The domain mesh</param>
-        /// <param name="vertexToDomainPoint">The association dictionary between mesh vertex and failure domain point</param>
-        /// <returns>The corresponding points in the domain</returns>
-        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
-        /// <exception cref="ArgumentException">Thrown when forces contains items with Id == -1</exception>
-        public FailureDomain.FailureDomainPoint[] AddForces(ResultBeamForces[] forces, Mesh mesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            if (forces is null)
-            {
-                throw new ArgumentNullException(nameof(forces));
-            }
-            else if (forces.Any(f => f.Id == -1))
-            {
-                throw new ArgumentException(nameof(forces));
-            }
-
-            List<ResultBeamForces> forcesList = forces.ToList();
-            var failureDomainPoint = new FailureDomain.FailureDomainPoint[forcesList.Count];
-
-            for (int i = 0; i < forcesList.Count(); i++)
-            {
-                FailureDomain.FailureDomainPoint point;
-
-                if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                    point = _sectionSolver.CalculateDomainPoint(forcesList[i], mesh, vertexToDomainPoint);
-                else
-                    point = _sectionSolver.CalculateDomainPoint(forcesList[i], mesh, vertexToDomainPoint);
-
+                var point = _sectionSolver.CalculateDomainPoint(forcesList[i]);
                 _forces.Add(new FailureDomain.FailureDomainForce(forcesList[i], point));
                 failureDomainPoint[i] = point;
             }
@@ -600,37 +352,7 @@ namespace GPC.Checkers.Concrete.Results
             {
                 throw new ArgumentNullException(nameof(force));
             }
-
-            FailureDomain.FailureDomainPoint failureDomainPoint;
-            if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                failureDomainPoint = _sectionSolver.CalculatePlasticDomainPoint(new ForceTuple(force), FailureAnalysisType);
-            else
-                failureDomainPoint = _sectionSolver.CalculateElasticDomainPoint(new ForceTuple(force), FailureAnalysisType);
-
-            return failureDomainPoint;
-        }
-
-        /// <summary>
-        /// Calculate a new single force
-        /// </summary>
-        /// <param name="force">The force to add</param>
-        /// <returns>The corresponding domain point</returns>
-        /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
-        /// <remarks>Force is not added to list of forces</remarks>
-        public FailureDomain.FailureDomainPoint CalculateForce(ResultBeamForces force, Mesh mesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            if (force is null)
-            {
-                throw new ArgumentNullException(nameof(force));
-            }
-
-            FailureDomain.FailureDomainPoint failureDomainPoint;
-            if (_failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Plastic)
-                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, mesh, vertexToDomainPoint);
-            else
-                failureDomainPoint = _sectionSolver.CalculateDomainPoint(force, mesh, vertexToDomainPoint);
-
-            return failureDomainPoint;
+            return _sectionSolver.CalculateDomainPoint(force);
         }
 
         /// <summary>
@@ -763,10 +485,11 @@ namespace GPC.Checkers.Concrete.Results
 
             Parallel.For(0, forceTuples.Length, (i) =>
             {
+                var force = new ResultBeamForces(forceTuples[i].N, 0.0, 0.0, 0.0, forceTuples[i].Mx, forceTuples[i].My, _sectionSolver.SectionOption.ForceReferenceCoordinateSystem);
                 if (forceTuples[i].Mx != 0 || forceTuples[i].My != 0)
-                    points[i] = _sectionSolver.CalculatePlasticDomainPoint(forceTuples[i], SectionSolver.FailureAnalysisTypes.ConstantN);
+                    points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantN);
                 else
-                    points[i] = _sectionSolver.CalculatePlasticDomainPoint(forceTuples[i], SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+                    points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
             });
 
             return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);
@@ -783,10 +506,11 @@ namespace GPC.Checkers.Concrete.Results
 
             Parallel.For(0, forceTuples.Length, (i) =>
             {
+                var force = new ResultBeamForces(forceTuples[i].N, 0.0, 0.0, 0.0, forceTuples[i].Mx, forceTuples[i].My, _sectionSolver.SectionOption.ForceReferenceCoordinateSystem);
                 if (forceTuples[i].Mx != 0 || forceTuples[i].My != 0)
-                    points[i] = _sectionSolver.CalculateElasticDomainPoint(forceTuples[i], SectionSolver.FailureAnalysisTypes.ConstantN);
+                    points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantN);
                 else
-                    points[i] = _sectionSolver.CalculateElasticDomainPoint(forceTuples[i], SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+                    points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
             });
 
             return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);

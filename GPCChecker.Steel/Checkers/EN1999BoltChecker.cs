@@ -75,12 +75,56 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         /// <summary>
+        /// EN1999-1-1:2023 - § 10.5.4 (5).
+        /// </summary>
+        /// <param name="holeShape"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        protected override double CalculateShearCoeff_kh(in HoleShapeType holeShape)
+        {
+            if (holeShape != HoleShapeType.NormalRound)
+                return 0.7;
+            else
+                return 1.0;
+        }
+
+        /// <summary>
         /// EN1999-1-1:2023 - Table 10.3.
         /// </summary>
         /// <returns>α_b</returns>
-        protected override double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in double e_1, in double p_1, in double d_0)
+        protected override double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in double e_1, in double p_1, in double d_0, in EN1993BoltChecker.HoleShapeType holeShape)
         {
-            return Math.Min(Math.Min(e_1 / d_0, p_1 / d_0 - 0.5), Math.Min(3.0 * boltSection.BoltMaterial.Fu / PlateMaterialFu, 3.0));
+            double d_0_override = d_0;
+            double e_1_override = e_1;
+            double p_1_override = p_1;
+            // In footer point c).
+            if (holeShape == HoleShapeType.ShortSlotted || holeShape == HoleShapeType.LongSlotted)
+            {
+                d_0_override = boltSection.Diameter + 1.0;
+                double e_3 = e_1 - 0.5 * d_0;
+                double p_3 = p_1 - d_0;
+                e_1_override = e_3 + 0.5 * d_0_override;
+                p_1_override = p_3 + d_0_override;
+            }
+            return Math.Min(Math.Min(e_1_override / d_0_override, p_1_override / d_0_override - 0.5), Math.Min(3.0 * boltSection.BoltMaterial.Fu / PlateMaterialFu, 3.0));
+        }
+
+        /// <summary>
+        /// EN1999-1-1:2023 - Table 10.3. In footer point a).
+        /// </summary>
+        /// <param name="holeShape"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        protected override double CalculateBearingCoeff_kh(in HoleShapeType holeShape)
+        {
+            if (holeShape == HoleShapeType.ShortSlotted)
+                return 0.8;
+            else if (holeShape == HoleShapeType.LongSlotted)
+                return 0.65;
+            else if (holeShape == HoleShapeType.OversizeRound)
+                return 0.8;
+            else
+                return 1.0;
         }
 
         /// <summary>

@@ -32,8 +32,7 @@ namespace ConcreteTests
             var sectionCheckerOptions = new SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
             var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(concreteSectionRectangular, sectionCheckerOptions, new StandardEN1992p11(), concreteSectionRectangular.Centroid);
 
-            GPC.Checkers.Concrete.Results.StressAnalysisResult[] slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray(),
-                sectionCheckerOptions);
+            GPC.Checkers.Concrete.Results.StressAnalysisResult[] slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray());
 
             Action ac0 = new Action(() =>
                 {
@@ -49,11 +48,12 @@ namespace ConcreteTests
         public void FailureDomainTest()
         {
             var section = GetRectangularSection4Rebars();
-            SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, new SectionCheckerModelCode2010.SectionOptionsModelCode2010(), new StandardEN1992p11(), section.Centroid);
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
+            SectionSolverModelCode2010 solver = new SectionSolverModelCode2010(section, sectionOptions, new StandardEN1992p11(), section.Centroid);
 
             Action ac0 = new Action(() =>
             {
-                solver.GetPlasticFailureDomainResult(new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64));
+                solver.GetPlasticFailureDomainResult();
             });
 
             var bb0 = MeasureTime.FunctionExecutionTime(10, ac0, true); ;

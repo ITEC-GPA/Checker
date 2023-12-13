@@ -1,13 +1,10 @@
 ﻿using GPC.Checkers.Concrete.Attributes;
-using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
-using GPC.Geometry.Meshes;
 using GPC.Model.Results;
 using GPC.Model.Standards;
 using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
@@ -67,9 +64,9 @@ namespace GPC.Checkers.Concrete.Checkers
                     FailureDomainResult failureDomainResult = null;
 
                     if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
-                        failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
+                        failureDomainResult = _solver.GetPlasticFailureDomainResult();
                     else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
-                        failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
+                        failureDomainResult = _solver.GetElasticFailureDomainResult();
 
                     if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -95,9 +92,9 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     FailureDomainResult2d failureDomainResult = null;
                     if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
-                        failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions, teta);
+                        failureDomainResult = _solver.GetPlasticFailureDomainResult2d(teta);
                     else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
-                        failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions, teta);
+                        failureDomainResult = _solver.GetElasticFailureDomainResult2d(teta);
 
                     if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -126,7 +123,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     try
                     {
-                        return _solver.GetLinearStressAnalysisResult(forces, SectionCheckerOptions.PsiCoefficientRebar, SectionCheckerOptions.PsiCoefficientTendon, SectionCheckerOptions);
+                        return _solver.GetLinearStressAnalysisResult(forces, SectionCheckerOptions.PsiCoefficientRebar, SectionCheckerOptions.PsiCoefficientTendon);
                     }
                     catch (Exception)
                     {
@@ -140,7 +137,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     try
                     {
-                        return _solver.GetStressAnalysisResult(forces, SectionCheckerOptions);
+                        return _solver.GetStressAnalysisResult(forces);
                     }
                     catch (Exception)
                     {
@@ -169,7 +166,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     try
                     {
-                        return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions);
+                        return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults);
                     }
                     catch (Exception)
                     {
@@ -209,9 +206,9 @@ namespace GPC.Checkers.Concrete.Checkers
         {
             FailureDomainResult failureDomainResult;
             if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
-                failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
+                failureDomainResult = _solver.GetPlasticFailureDomainResult();
             else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
-                failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
+                failureDomainResult = _solver.GetElasticFailureDomainResult();
             else
                 failureDomainResult = null;
 
@@ -229,9 +226,9 @@ namespace GPC.Checkers.Concrete.Checkers
         {
             FailureDomainResult2d failureDomainResult;
             if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Plastic)
-                failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions);
+                failureDomainResult = _solver.GetPlasticFailureDomainResult2d();
             else if (SectionCheckerOptions.FailureDomainType == SectionSolver.FailureDomainTypes.Elastic)
-                failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions);
+                failureDomainResult = _solver.GetElasticFailureDomainResult2d();
             else
                 failureDomainResult = null;
 
@@ -251,7 +248,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 return null;
 
             if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.NonLinear)
-                return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions);
+                return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults);
             else if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.Linear)
                 return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions.PsiCoefficientRebar, SectionCheckerOptions.PsiCoefficientTendon, SectionCheckerOptions);
             else
@@ -265,11 +262,16 @@ namespace GPC.Checkers.Concrete.Checkers
         public StressAnalysisResult GetTensionAnalysisResult(ResultBeamForces forces)
         {
             if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.NonLinear)
-                return _solver.GetStressAnalysisResult(forces, SectionCheckerOptions);
+                return _solver.GetStressAnalysisResult(forces);
             else if (SectionCheckerOptions.StressAnalysisType == SectionSolver.StressAnalysisTypes.Linear)
-                return _solver.GetLinearStressAnalysisResult(forces, SectionCheckerOptions.PsiCoefficientRebar, SectionCheckerOptions.PsiCoefficientTendon, SectionCheckerOptions);
+                return _solver.GetLinearStressAnalysisResult(forces, SectionCheckerOptions.PsiCoefficientRebar, SectionCheckerOptions.PsiCoefficientTendon);
             else
                 return null;
+        }
+
+        public void SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes domainPointStrategyTypes)
+        {
+            _solver.SetDomainPointStrategy(domainPointStrategyTypes);
         }
 
         #endregion
@@ -290,7 +292,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptions);
+                    return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon);
                 }
                 catch (Exception)
                 {
@@ -312,7 +314,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions);
+                    return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults);
                 }
                 catch (Exception)
                 {
@@ -356,7 +358,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    return _solver.GetStressAnalysisResult(forces, SectionCheckerOptions);
+                    return _solver.GetStressAnalysisResult(forces);
                 }
                 catch (Exception)
                 {
@@ -375,7 +377,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
+                    var failureDomainResult = _solver.GetPlasticFailureDomainResult();
 
                     if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -399,7 +401,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions, teta);
+                    var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(teta);
 
                     if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -423,7 +425,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
+                    var failureDomainResult = _solver.GetElasticFailureDomainResult();
 
                     if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -447,7 +449,7 @@ namespace GPC.Checkers.Concrete.Checkers
             {
                 try
                 {
-                    var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions, teta);
+                    var failureDomainResult = _solver.GetElasticFailureDomainResult2d(teta);
 
                     if (_checkerAttributes.ULSResults != null && failureDomainResult != null)
                         failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -475,39 +477,12 @@ namespace GPC.Checkers.Concrete.Checkers
         }
 
         /// <summary>
-        /// Calculate the plastic domain point for input force
-        /// </summary>
-        /// <returns>The failure domain point</returns>
-        internal FailureDomain.FailureDomainPoint CalculatePlasticFailureDomainPoint(ResultBeamForces force)
-        {
-            return _solver.CalculatePlasticDomainPoint(new ForceTuple(force));
-        }
-
-        /// <summary>
-        /// Calculate the elastic domain point for input force
-        /// </summary>
-        /// <returns>The failure domain point</returns>
-        internal FailureDomain.FailureDomainPoint CalculateElasticFailureDomainPoint(ResultBeamForces force)
-        {
-            return _solver.CalculateElasticDomainPoint(new ForceTuple(force));
-        }
-
-        /// <summary>
-        /// Calculate the domain point for input force with intersection method
-        /// </summary>
-        /// <returns>The failure domain point</returns>
-        internal FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
-        {
-            return _solver.CalculateDomainPoint(force, domainMesh, vertexToDomainPoint);
-        }
-
-        /// <summary>
         /// Calculate the domain points for input forces with intersection method
         /// </summary>
         /// <returns>The failure domain points</returns>
-        internal FailureDomain.FailureDomainPoint[] CalculateFailureDomainPoint(ResultBeamForces[] forces, Mesh domainMesh, Dictionary<MeshVertex, FailureDomain.FailureDomainPoint> vertexToDomainPoint)
+        internal FailureDomain.FailureDomainPoint[] CalculateFailureDomainPoint(ResultBeamForces[] forces)
         {
-            return _solver.CalculateDomainPoint(forces, domainMesh, vertexToDomainPoint, SectionCheckerOptions);
+            return _solver.CalculateDomainPoint(forces);
         }
 
         /// <summary>
@@ -516,7 +491,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The failure domain results</returns>
         internal FailureDomainResult GetPlasticFailureDomainResult()
         {
-            var failureDomainResult = _solver.GetPlasticFailureDomainResult(SectionCheckerOptions);
+            var failureDomainResult = _solver.GetPlasticFailureDomainResult();
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -530,7 +505,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The failure domain results</returns>
         internal FailureDomainResult GetElasticFailureDomainResult()
         {
-            var failureDomainResult = _solver.GetElasticFailureDomainResult(SectionCheckerOptions);
+            var failureDomainResult = _solver.GetElasticFailureDomainResult();
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -544,7 +519,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The failure domain results</returns>
         internal FailureDomainResult2d GetPlasticFailureDomainResult2d()
         {
-            var failureDomainResult = _solver.GetPlasticFailureDomainResult2d(SectionCheckerOptions);
+            var failureDomainResult = _solver.GetPlasticFailureDomainResult2d();
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -558,7 +533,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The failure domain results</returns>
         internal FailureDomainResult2d GetElasticFailureDomainResult2d()
         {
-            var failureDomainResult = _solver.GetElasticFailureDomainResult2d(SectionCheckerOptions);
+            var failureDomainResult = _solver.GetElasticFailureDomainResult2d();
 
             if (_checkerAttributes.ULSResults != null)
                 failureDomainResult.AddForces(_checkerAttributes.ULSResults);
@@ -575,7 +550,7 @@ namespace GPC.Checkers.Concrete.Checkers
             if (_checkerAttributes.SLSResults is null)
                 return null;
 
-            return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions);
+            return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults);
         }
 
         /// <summary>
@@ -584,7 +559,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The stress analysis results</returns>
         internal StressAnalysisResult GetStressAnalysisResult(ResultBeamForces forces)
         {
-            return _solver.GetStressAnalysisResult(forces, SectionCheckerOptions);
+            return _solver.GetStressAnalysisResult(forces);
         }
 
         /// <summary>
@@ -605,7 +580,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The stress analysis results</returns>
         internal StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces forces, double psi, double psiTendon = 0)
         {
-            return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon, SectionCheckerOptions);
+            return _solver.GetLinearStressAnalysisResult(forces, psi, psiTendon);
         }
 
         #endregion
@@ -631,6 +606,8 @@ namespace GPC.Checkers.Concrete.Checkers
 
             public int TetaDiscretization { get; set; }
 
+            public SectionSolver.DomainPointStrategyTypes DomainPointStrategy { get; set; }
+
             public SectionOptions()
             {
                 ForceReferenceCoordinateSystem = CoordinateSystem.Global;
@@ -647,6 +624,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 PsiCoefficientTendon = psiCoefficientTendon;
                 ConsiderTensileConcrete = considerTensileConcrete;
                 TetaDiscretization = tetaDiscretization;
+                DomainPointStrategy = SectionSolver.DomainPointStrategyTypes.Iterative;
             }
 
             protected SectionOptions(SerializationInfo info, StreamingContext context)
@@ -659,6 +637,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 PsiCoefficientTendon = info.GetDouble("PsiCoefficientTendon");
                 ConsiderTensileConcrete = info.GetBoolean("ConsiderTensileConcrete");
                 TetaDiscretization = info.GetInt16("TetaDiscretization");
+                DomainPointStrategy = (SectionSolver.DomainPointStrategyTypes)info.GetValue("DomainPointStrategy", typeof(SectionSolver.DomainPointStrategyTypes));
             }
 
             public override bool Equals(object obj)
@@ -701,6 +680,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 info.AddValue("PsiCoefficientTendon", PsiCoefficientTendon);
                 info.AddValue("ConsiderTensileConcrete", ConsiderTensileConcrete);
                 info.AddValue("TetaDiscretization", TetaDiscretization);
+                info.AddValue("DomainPointStrategy", DomainPointStrategy);
             }
 
             public static bool operator ==(SectionOptions left, SectionOptions right)

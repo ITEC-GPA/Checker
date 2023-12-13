@@ -20,7 +20,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using static GPC.Checkers.Concrete.Checkers.SectionCheckerACI318;
 using static GPC.Checkers.Concrete.Checkers.SectionCheckerModelCode2010;
 
 namespace ConcreteTests
@@ -873,12 +872,7 @@ namespace ConcreteTests
                     else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantNMy)
                         testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, force.M2, force.CoordinateSystem);
 
-                    if (failureDomainTypes == SectionSolver.FailureDomainTypes.Plastic)
-                        failureDomainPoints[j] = solver.CalculatePlasticDomainPoint(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-                            options.FailureAnalysisType);
-                    else
-                        failureDomainPoints[j] = solver.CalculateElasticDomainPoint(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-                            options.FailureAnalysisType);
+                    failureDomainPoints[j] = solver.CalculateDomainPoint(testForces[j], options.FailureAnalysisType);
                 }
             }
             catch (Exception e)
@@ -962,7 +956,7 @@ namespace ConcreteTests
                 for (j = 0; j < factor.Length; j++)
                 {
                     testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-                    failureDomainPoints[j] = solver.CalculatePlasticDomainPoint(testForces[j].ConvertToForceTuple(coordinateSystem), failureAnalysisTypes);
+                    failureDomainPoints[j] = solver.CalculateDomainPoint(testForces[j], failureAnalysisTypes);
                 }
             }
             catch (Exception e)
@@ -1291,7 +1285,7 @@ namespace ConcreteTests
             failureDomain.Domain.AxialForceSubdivision = 100;
             Mesh mesh = failureDomain.Domain.GetMesh(out _);
 
-            for (int i = 1; i <= mesh.VerticesCount; i++)
+            for (int i = 0; i < mesh.VerticesCount; i++)
             {
                 double d = new Point3d(mesh.Vertices[i].Point.X / 1000000, mesh.Vertices[i].Point.Y / 1000000,
                     mesh.Vertices[i].Point.Z / 1000).DistanceTo(new Point3d(expForce.Mx / 1000000, expForce.My / 1000000, expForce.N / 1000));

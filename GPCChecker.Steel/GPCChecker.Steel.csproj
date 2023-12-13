@@ -7,8 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GPCGeometry" Version="2.0.0.6" />
-    <PackageReference Include="GPCModel" Version="1.0.5.2" />
+    <PackageReference Include="GPCGeometry" Version="2.0.1.1" />
+    <PackageReference Include="GPCUtilities" Version="2.0.0.5" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' Or '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Reference Include="GPCModel">
+      <HintPath>..\..\GPCModel\GPCModel\bin\$(Configuration)\netstandard2.0\GPCModel.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
