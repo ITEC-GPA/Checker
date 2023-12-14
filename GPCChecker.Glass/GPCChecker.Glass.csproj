@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GPCGeometry" Version="2.0.1.2" />
+    <PackageReference Include="GPCGeometry" Version="2.0.1.5" />
     <PackageReference Include="GPCModel" Version="1.1.0" />
     <PackageReference Include="GPCUtilities" Version="2.0.0.5" />
   </ItemGroup>
