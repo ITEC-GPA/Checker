@@ -51,6 +51,8 @@
     <Reference Include="GPCGeometry, Version=2.0.1.2, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\GPCGeometry\GPCGeometry\bin\$(Configuration)\netstandard2.0\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=2.0.1.6, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCGeometry.2.0.1.6\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
     <Reference Include="GPCModel, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

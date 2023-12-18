@@ -44,6 +44,8 @@
     </Reference>
     <Reference Include="GPCGeometry">
       <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\netstandard2.0\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry, Version=2.0.1.6, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPCGeometry.2.0.1.6\lib\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
     <Reference Include="GPCModel">
       <HintPath>..\..\GPCModel\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
