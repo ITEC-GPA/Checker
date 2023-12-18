@@ -6,7 +6,6 @@ using GPC.Geometry.Meshes;
 using GPC.Model.Results;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace GPC.Checker.SectionSolvers
 {
@@ -98,7 +97,7 @@ namespace GPC.Checker.SectionSolvers
             // The origin of the ray rayOrigin will also determine the ratio and must be internal to the domain.
             if (failureAnalysisType != SectionSolver.FailureAnalysisTypes.ConstantEccentricity || Point3d.Origin.DistanceTo(rayOrigin) > _failureAnalysisIntersectionTolerance)
             {
-                double rayOriginWorkingRatioOrigin = workingRatioSearch(Point3d.Origin, rayOrigin, out _);
+                double rayOriginWorkingRatioOrigin = workingRatioSearch(Point3d.Origin, rayOrigin, out _, out _);
                 // If the origin point of the ray is outside then enforce the use of ConstantEccentricity.
                 if (rayOriginWorkingRatioOrigin >= 1.0)
                     rayOrigin = Point3d.Origin;
@@ -106,110 +105,63 @@ namespace GPC.Checker.SectionSolvers
 
             // Now the working ratio search.
             var forceP = new Point3d(targetLocalForces.M1, targetLocalForces.M2, targetLocalForces.N);
-            workingRatio = workingRatioSearch(rayOrigin, forceP, out KeyValuePair<Point3d, MeshBase> intersection);
-
-            // If a solution has been found assigns the deformation plane.
-            if (workingRatio != -1 && intersection.Value != null)
+            // New method for intersection finder.
             {
-                forceTuple = new ForceTuple(intersection.Key.Z, intersection.Key.X, intersection.Key.Y);
-                var forcePoint = new Point3d(intersection.Key);
+                workingRatio = workingRatioSearch(rayOrigin, forceP, out Point3d intersectionPoint, out MeshFace intersectionFace);
 
-                if (intersection.Value is MeshVertex intersectionVertex)
+                // If a solution has been found assigns the deformation plane.
+                if (workingRatio != -1 && intersectionFace != null)
                 {
-                    if (_vertexToDomainPoint.TryGetValue(intersectionVertex, out var failDomainPoint))
+                    forceTuple = new ForceTuple(intersectionPoint.Z, intersectionPoint.X, intersectionPoint.Y);
+                    workingRatio = rayOrigin.DistanceTo(forceP) / rayOrigin.DistanceTo(intersectionPoint);
                     {
-                        _failureIndex = failDomainPoint.FailureIndex;
-                        immersione = failDomainPoint.Immersione;
-                        strainPlane = failDomainPoint.StrainPlane;
+                        // Calculates linear interpolation weights.
+                        var vA = _domainMesh.Vertices[intersectionFace.A];
+                        var vB = _domainMesh.Vertices[intersectionFace.B];
+                        var vC = _domainMesh.Vertices[intersectionFace.C];
+                        double areaA = new Vector3d((vB.Point - intersectionPoint) ^ (vC.Point - intersectionPoint)).Length;
+                        double areaB = new Vector3d((vC.Point - intersectionPoint) ^ (vA.Point - intersectionPoint)).Length;
+                        double areaC = new Vector3d((vA.Point - intersectionPoint) ^ (vB.Point - intersectionPoint)).Length;
+                        double areaTOT = areaA + areaB + areaC;
+                        double weightA = areaA / areaTOT;
+                        double weightB = areaB / areaTOT;
+                        double weightC = areaC / areaTOT;
+
+                        // Make interpolation.
+                        var failA = _vertexToDomainPoint[vA];
+                        var failB = _vertexToDomainPoint[vB];
+                        var failC = _vertexToDomainPoint[vC];
+
+                        // FailureIndex
+                        _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, Math.Min((int)failB.FailureIndex, (int)failC.FailureIndex));
+
+                        // Theta
+                        var thetaA = failA.StrainPlane.Teta;
+                        var thetaB = failB.StrainPlane.Teta;
+                        var thetaC = failC.StrainPlane.Teta;
+                        // Make them close together.
+                        if (Math.Abs(thetaA - thetaB) > Math.PI)
+                        {
+                            if (thetaA < thetaB)
+                                thetaA += 2.0 * Math.PI;
+                            else
+                                thetaB += 2.0 * Math.PI;
+                        }
+                        if (Math.Abs(thetaA - thetaC) > Math.PI)
+                        {
+                            thetaC += 2.0 * Math.PI;
+                        }
+                        double theta = thetaA * weightA + thetaB * weightB + thetaC * weightC;
+
+                        // Immersione
+                        var immA = _solver.GetImmersione(failA, _failureIndex);
+                        var immB = _solver.GetImmersione(failB, _failureIndex);
+                        var immC = _solver.GetImmersione(failC, _failureIndex);
+                        immersione = immA * weightA + immB * weightB + immC * weightC;
+
+                        // StrainPlane
+                        strainPlane = _solver.BuildPlane(theta, _solver.SectionOption.FailureDomainType, _failureIndex, immersione);
                     }
-                }
-                else if (intersection.Value is MeshEdge intersectionEdge)
-                {
-                    // Calculates linear interpolation weights.
-                    var vA = _domainMesh.Vertices[intersectionEdge.A];
-                    var vB = _domainMesh.Vertices[intersectionEdge.B];
-                    double distB = vB.Point.DistanceTo(forcePoint);
-                    double distA = vA.Point.DistanceTo(forcePoint);
-                    double weightA = distB / (distA + distB);
-                    double weightB = distA / (distA + distB);
-
-                    var failA = _vertexToDomainPoint[vA];
-                    var failB = _vertexToDomainPoint[vB];
-
-                    // Make interpolation.
-
-                    // FailureIndex
-                    _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, (int)failB.FailureIndex);
-
-                    // Theta
-                    var thetaA = failA.StrainPlane.Teta;
-                    var thetaB = failB.StrainPlane.Teta;
-                    // Make them close together.
-                    if (Math.Abs(thetaA - thetaB) > Math.PI)
-                    {
-                        if (thetaA < thetaB)
-                            thetaA += 2.0 * Math.PI;
-                        else
-                            thetaB += 2.0 * Math.PI;
-                    }
-                    double theta = thetaA * weightA + thetaB * weightB;
-
-                    // Immersione
-                    var immA = _solver.GetImmersione(failA, _failureIndex);
-                    var immB = _solver.GetImmersione(failB, _failureIndex);
-                    immersione = immA * weightA + immB * weightB;
-
-                    // StrainPlane
-                    strainPlane = _solver.BuildPlane(theta, _solver.SectionOption.FailureDomainType, _failureIndex, immersione);
-                }
-                else if (intersection.Value is MeshFace intersectionFace)
-                {
-                    // Calculates linear interpolation weights.
-                    var vA = _domainMesh.Vertices[intersectionFace.A];
-                    var vB = _domainMesh.Vertices[intersectionFace.B];
-                    var vC = _domainMesh.Vertices[intersectionFace.C];
-                    double areaA = new Vector3d((vB.Point - forcePoint) ^ (vC.Point - forcePoint)).Length;
-                    double areaB = new Vector3d((vC.Point - forcePoint) ^ (vA.Point - forcePoint)).Length;
-                    double areaC = new Vector3d((vA.Point - forcePoint) ^ (vB.Point - forcePoint)).Length;
-                    double areaTOT = areaA + areaB + areaC;
-                    double weightA = areaA / areaTOT;
-                    double weightB = areaB / areaTOT;
-                    double weightC = areaC / areaTOT;
-
-                    // Make interpolation.
-                    var failA = _vertexToDomainPoint[vA];
-                    var failB = _vertexToDomainPoint[vB];
-                    var failC = _vertexToDomainPoint[vC];
-
-                    // FailureIndex
-                    _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, Math.Min((int)failB.FailureIndex, (int)failC.FailureIndex));
-
-                    // Theta
-                    var thetaA = failA.StrainPlane.Teta;
-                    var thetaB = failB.StrainPlane.Teta;
-                    var thetaC = failC.StrainPlane.Teta;
-                    // Make them close together.
-                    if (Math.Abs(thetaA - thetaB) > Math.PI)
-                    {
-                        if (thetaA < thetaB)
-                            thetaA += 2.0 * Math.PI;
-                        else
-                            thetaB += 2.0 * Math.PI;
-                    }
-                    if (Math.Abs(thetaA - thetaC) > Math.PI)
-                    {
-                        thetaC += 2.0 * Math.PI;
-                    }
-                    double theta = thetaA * weightA + thetaB * weightB + thetaC * weightC;
-
-                    // Immersione
-                    var immA = _solver.GetImmersione(failA, _failureIndex);
-                    var immB = _solver.GetImmersione(failB, _failureIndex);
-                    var immC = _solver.GetImmersione(failC, _failureIndex);
-                    immersione = immA * weightA + immB * weightB + immC * weightC;
-
-                    // StrainPlane
-                    strainPlane = _solver.BuildPlane(theta, _solver.SectionOption.FailureDomainType, _failureIndex, immersione);
                 }
                 else
                     return null;
@@ -219,7 +171,7 @@ namespace GPC.Checker.SectionSolvers
 
 
             // Internal utility.
-            double workingRatioSearch(Point3d pointOrigin, Point3d pointToSearch, out KeyValuePair<Point3d, MeshBase> meshIntersection)
+            double workingRatioSearch(Point3d pointOrigin, Point3d pointToSearch, out Point3d intersectionPoint, out MeshFace intersectionFace)
             {
                 Point3d targetPoint;
                 bool isRatioZero = pointOrigin.DistanceTo(pointToSearch) < _failureAnalysisIntersectionTolerance;
@@ -249,21 +201,12 @@ namespace GPC.Checker.SectionSolvers
                             break;
                     }
                 }
-                Line3d semiRay = new Line3d(pointOrigin, targetPoint);
-                var intersOnDomain = _domainMesh.GetIntersectionWihtSemiInfiniteRay(semiRay, true, _failureAnalysisIntersectionTolerance);
-                if (intersOnDomain.Count == 0)
+                var semiRay = new Ray3d(pointOrigin, targetPoint);
+                if (!_domainMesh.PickFace(semiRay, out intersectionFace, out intersectionPoint))
                     return -1;
-
-                // Find the key with the smallest distance and get the corresponding pair from the dictionary.
-                var closestEntryOnDomain = intersOnDomain.OrderBy(pair => pair.Key.DistanceTo(pointOrigin)).FirstOrDefault();
-
-                if (closestEntryOnDomain.Key is null)
-                    return -1;
-
-                meshIntersection = closestEntryOnDomain;
 
                 if (!isRatioZero)
-                    return pointOrigin.DistanceTo(pointToSearch) / pointOrigin.DistanceTo(closestEntryOnDomain.Key);
+                    return pointOrigin.DistanceTo(pointToSearch) / pointOrigin.DistanceTo(intersectionPoint);
                 else
                     return 0.0;
             }

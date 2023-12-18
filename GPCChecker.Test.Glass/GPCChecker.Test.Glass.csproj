@@ -39,17 +39,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DelaunayMesh, Version=2.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DelaunayMesh.2.0.0.1\lib\netstandard2.0\DelaunayMesh.dll</HintPath>
+    <Reference Include="DelaunayMesh, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DelaunayMesh.2.0.0.2\lib\netstandard2.0\DelaunayMesh.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=2.0.1.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCGeometry.2.0.1.2\lib\netstandard2.0\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry">
+      <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModel.1.1.0\lib\netstandard2.0\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel">
+      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModelData, Version=0.0.1.10, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModelData.0.0.1.10\lib\netstandard2.0\GPCModelData.dll</HintPath>
+    <Reference Include="GPCModelData">
+      <HintPath>..\..\GPCModel\GPCModelData\bin\Debug\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
     <Reference Include="GPCUtilities, Version=2.0.0.5, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCUtilities.2.0.0.5\lib\netstandard2.0\GPCUtilities.dll</HintPath>

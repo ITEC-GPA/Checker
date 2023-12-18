@@ -3329,6 +3329,79 @@ namespace ConcreteTests
             CollectionAssert.AreEqual(max_y_strian_sequence_result, max_y_strian_sequence);
         }
 
+        /// <summary>
+        /// Tests the sequence of deformation planes in a composite section, ACI materials.
+        /// Concrete is between four L sections.
+        /// </summary>
+        [TestMethod]
+        public void Performance01()
+        {
+            var section = GetRectangularSection4Rebars(400, 400, 14, 40, ConcreteMaterialACI318Data.Fc4000, SteelMaterialACI318Data.Grade60);
+
+            var sectionL = new SectionL(100, 10, 100, 10, "L100x10");
+            var steelSectionL = new SteelSection(sectionL, SteelMaterialAISC360Data.A501);
+
+            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 0.0, new Vector2d(0.0, 0.0), InsertionPointType.BottomLeft));
+            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 90.0.ToRadians(), new Vector2d(400.0, 0.0), InsertionPointType.BottomLeft));
+            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 180.0.ToRadians(), new Vector2d(400.0, 400.0), InsertionPointType.BottomLeft));
+            section.SteelSections.Add(new SteelSectionPosition(steelSectionL, Point2d.Origin, 270.0.ToRadians(), new Vector2d(0.0, 400.0), InsertionPointType.BottomLeft));
+            var cs = GetLocalCoordinateSystem(section);
+
+            int lengthN = 50;
+            int lengthM = 50;
+            int stepN = lengthN - 1;
+            int stepM = lengthM;
+            double minN = -3675.0 * 1000;
+            double maxN = 1680.0 * 1000;
+            double minM = 0.0;
+            double maxM = Math.PI;
+            double deltaN = (maxN - minN) / stepN;
+            double deltaM = (maxM - minM) / stepM;
+
+            List<ResultBeamForces> forces = new List<ResultBeamForces>();
+            double M = 200.0 * 1000000;
+            for (int i = 0; i < lengthN; i++)
+            {
+                for (int j = 0; j < lengthM; j++)
+                {
+                    double alpha = minM + j * deltaM;
+                    forces.Add(new ResultBeamForces(minN + i * deltaN, 0, 0, 0, M * Math.Cos(alpha), M * Math.Sin(alpha), cs));
+                }
+            }
+            // Stopwatch
+            var stopwatch = new Stopwatch();
+
+            var tetaDiscretizations = new int[] { 32, 64, 128 };
+
+            for (int t = 0; t < tetaDiscretizations.Length; t++)
+            {
+                // Code, solver and checker.
+                var standard = new StandardNTC2018Concrete();
+                var standardSteel = new StandardEN1993p11();
+                var failureMode = SectionSolver.FailureAnalysisTypes.ConstantN;
+                var domainType = SectionSolver.FailureDomainTypes.Plastic;
+
+                var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
+                var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, failureMode, domainType, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, tetaDiscretizations[t]);
+                var sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, false, -1, standardSteel);
+                sectionChecker.SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes.Intersection);
+
+                stopwatch.Reset();
+                stopwatch.Start(); // *** timer ***
+
+                foreach (var appliedForce in forces)
+                {
+                    var resDomFail = sectionChecker.CalculateFailureDomainPoint(appliedForce);
+                    //var workRatio = resDomFail.CalculateWorkingRatio(failureMode, appliedForce, 1000000, 1000);
+
+                    //Console.WriteLine($"{workRatio}\t{resDomFail.StrainPlane.StrainReferencePoint}\t{resDomFail.StrainPlane.Chi}\t{resDomFail.StrainPlane.Teta}");
+                }
+                stopwatch.Stop(); // *** timer ***
+                var elapsedTimeIntersect = stopwatch.Elapsed;
+                Console.WriteLine(elapsedTimeIntersect.ToString());
+            }
+        }
+
         private static void CalculateStrainPlanesMultiDirection(ReinforcedConcreteSection section,
             out Dictionary<double, List<StrainPlane>> planes,
             out Dictionary<double, List<string>> min_y_strian_sequence,
