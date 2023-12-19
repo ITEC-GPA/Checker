@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GPCGeometry" Version="2.0.1.8" />
-    <PackageReference Include="GPCModel" Version="1.1.0.1" />
+    <PackageReference Include="GPCGeometry" Version="2.0.1.9" />
+    <PackageReference Include="GPCModel" Version="1.1.0.2" />
     <PackageReference Include="GPCUtilities" Version="2.0.0.5" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
   </ItemGroup>
