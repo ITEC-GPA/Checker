@@ -46,6 +46,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
+    <DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DelaunayMesh, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
