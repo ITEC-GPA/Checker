@@ -38,6 +38,15 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugLocalLibs|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugLocalLibs\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="DelaunayMesh, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\DelaunayMesh.2.0.0.2\lib\netstandard2.0\DelaunayMesh.dll</HintPath>
@@ -79,6 +88,20 @@
     </Reference>
     <Reference Include="UnsafeEx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\UnsafeEx.1.0.0\lib\netstandard2.0\UnsafeEx.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)' == 'DebugLocalLibs' ">
+    <Reference Include="DelaunayMesh">
+      <HintPath>..\..\GPCGeometry\DelaunayMesh\bin\Debug\netstandard2.0\GPCGeometry.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCGeometry">
+      <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\netstandard2.0\GPCGeometry.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCModel">
+      <HintPath>..\..\GPCModel\GPCModel\bin\DebugLocalLibs\netstandard2.0\GPCModel.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCModelData">
+      <HintPath>..\..\GPCModel\GPCModelData\bin\DebugLocalLibs\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

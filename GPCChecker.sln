@@ -20,30 +20,42 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		DebugLocalLibs|Any CPU = DebugLocalLibs|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{BD7C1D49-F230-4290-9A04-A4CDFB537BCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BD7C1D49-F230-4290-9A04-A4CDFB537BCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD7C1D49-F230-4290-9A04-A4CDFB537BCD}.DebugLocalLibs|Any CPU.ActiveCfg = DebugLocalLibs|Any CPU
+		{BD7C1D49-F230-4290-9A04-A4CDFB537BCD}.DebugLocalLibs|Any CPU.Build.0 = DebugLocalLibs|Any CPU
 		{BD7C1D49-F230-4290-9A04-A4CDFB537BCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD7C1D49-F230-4290-9A04-A4CDFB537BCD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EDFF3D15-BBE0-4791-A528-D3D285C0F6DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EDFF3D15-BBE0-4791-A528-D3D285C0F6DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDFF3D15-BBE0-4791-A528-D3D285C0F6DE}.DebugLocalLibs|Any CPU.ActiveCfg = DebugLocalLibs|Any CPU
+		{EDFF3D15-BBE0-4791-A528-D3D285C0F6DE}.DebugLocalLibs|Any CPU.Build.0 = DebugLocalLibs|Any CPU
 		{EDFF3D15-BBE0-4791-A528-D3D285C0F6DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDFF3D15-BBE0-4791-A528-D3D285C0F6DE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{991FF6E5-69FC-4079-A78F-3CAB2C9E0CEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{991FF6E5-69FC-4079-A78F-3CAB2C9E0CEA}.DebugLocalLibs|Any CPU.ActiveCfg = DebugLocalLibs|Any CPU
 		{991FF6E5-69FC-4079-A78F-3CAB2C9E0CEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE309B08-CBBD-441C-B15D-BD6FC0D8D831}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DE309B08-CBBD-441C-B15D-BD6FC0D8D831}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE309B08-CBBD-441C-B15D-BD6FC0D8D831}.DebugLocalLibs|Any CPU.ActiveCfg = DebugLocalLibs|Any CPU
+		{DE309B08-CBBD-441C-B15D-BD6FC0D8D831}.DebugLocalLibs|Any CPU.Build.0 = DebugLocalLibs|Any CPU
 		{DE309B08-CBBD-441C-B15D-BD6FC0D8D831}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE309B08-CBBD-441C-B15D-BD6FC0D8D831}.Release|Any CPU.Build.0 = Release|Any CPU
 		{37CB9BD4-E771-4A77-B396-ED30BC113704}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37CB9BD4-E771-4A77-B396-ED30BC113704}.DebugLocalLibs|Any CPU.ActiveCfg = DebugLocalLibs|Any CPU
 		{37CB9BD4-E771-4A77-B396-ED30BC113704}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}.DebugLocalLibs|Any CPU.ActiveCfg = DebugLocalLibs|Any CPU
+		{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}.DebugLocalLibs|Any CPU.Build.0 = DebugLocalLibs|Any CPU
 		{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}.Release|Any CPU.Build.0 = Release|Any CPU
 		{44F7BBE4-A6E5-4DBA-89CB-7FBEA8ABCAEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44F7BBE4-A6E5-4DBA-89CB-7FBEA8ABCAEF}.DebugLocalLibs|Any CPU.ActiveCfg = DebugLocalLibs|Any CPU
 		{44F7BBE4-A6E5-4DBA-89CB-7FBEA8ABCAEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
