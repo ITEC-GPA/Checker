@@ -147,11 +147,14 @@ namespace GPC.Checkers.Steel.Checkers
                         CurRes.Shearkh = CalculateShearCoeff_kh(holeType);
                         CurRes.ShearResistance = CalculateShearResistance_FvRd(SollBolt.Key.BoltDef, CurRes.ShearAlphaV, CurRes.Shearkh);
                         CurRes.ShearRatio = GetWorkingRatio(CurRes.SollShear, CurRes.ShearResistance);
-                        CurRes.ShearForceCompliantToHole = holeDir;
                         // Special case with a special value.
-                        if ((holeType == EN1993BoltChecker.HoleShapeType.ShortSlotted || holeType == EN1993BoltChecker.HoleShapeType.LongSlotted) && 
-                            !CurRes.ShearForceCompliantToHole)
+                        if ((holeType == EN1993BoltChecker.HoleShapeType.ShortSlotted || holeType == EN1993BoltChecker.HoleShapeType.LongSlotted) && !holeDir)
+                        {
                             CurRes.ShearRatio = double.PositiveInfinity;
+                            CurRes.ShearForceCompliantToHole = false;
+                        }
+                        else
+                            CurRes.ShearForceCompliantToHole = true;
                     }
 
                     // ****** Bearing. ******
