@@ -49,8 +49,8 @@
     <DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DelaunayMesh, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DelaunayMesh.2.0.0.2\lib\netstandard2.0\DelaunayMesh.dll</HintPath>
+    <Reference Include="DelaunayMesh, Version=2.0.0.3, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DelaunayMesh.2.0.0.3\lib\netstandard2.0\DelaunayMesh.dll</HintPath>
     </Reference>
     <Reference Include="GPCModel, Version=1.1.0.2, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GPCModel.1.1.0.2\lib\netstandard2.0\GPCModel.dll</HintPath>
