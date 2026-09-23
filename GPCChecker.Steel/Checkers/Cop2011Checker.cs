@@ -708,7 +708,7 @@ namespace GPC.Checkers.Steel.Checkers
                         return CalculateShearReductionDueToTorsion(resultBeamForces, section) * GetShearBucklingReduction(section) * GetShearAreaYaxis(section);
                 }
             if (section.SectionShape is SectionC sectionC)
-                if (section.SectionType == Model.Sections.Section.SectionTypes.Rolled)
+                if (section.SectionType == GPC.Model.Sections.Section.SectionTypes.Rolled)
                 {
                     if (sectionC.HeightWeb / sectionC.ThicknessWeb > 70.0 * Epsilon)
                         return CalculateShearReductionDueToTorsion(resultBeamForces, section) * GetShearBucklingReduction(section) * GetShearAreaYaxis(section);
@@ -882,7 +882,7 @@ namespace GPC.Checkers.Steel.Checkers
         {
             if (section.SectionShape is SectionH sech && section.SectionType == Section.SectionTypes.Rolled)
                 return (1.0 / 4.0) * sech.Height * Math.Pow(sech.ThicknessWeb, 2);
-            if (section.SectionShape is SectionH secH && section.SectionType == Model.Sections.Section.SectionTypes.Welded)
+            if (section.SectionShape is SectionH secH && section.SectionType == Section.SectionTypes.Welded)
                 return (1.0 / 4.0) * secH.HeightWeb * Math.Pow(secH.ThicknessWeb, 2);
             if (section.SectionShape is SectionC secC && section.SectionType == Section.SectionTypes.Rolled)
                 return (1.0 / 4.0) * secC.ThicknessWeb * Math.Pow(secC.Height, 2);

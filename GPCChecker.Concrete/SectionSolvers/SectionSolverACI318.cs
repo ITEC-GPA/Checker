@@ -144,7 +144,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     StandardACI318.PhiDeformationTransitionIncrement)
                     return StandardACI318.PhiT;
                 else
-                    return Utilities.Maths.Interpolation.GetLinearInterpolation(
+                    return GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(
                         designYeldingStrain,
                         designYeldingStrain + StandardACI318.PhiDeformationTransitionIncrement,
                         StandardACI318.PhiCSpiral, StandardACI318.PhiT,
@@ -158,7 +158,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     StandardACI318.PhiDeformationTransitionIncrement)
                     return StandardACI318.PhiT;
                 else
-                    return Utilities.Maths.Interpolation.GetLinearInterpolation(
+                    return GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(
                         designYeldingStrain,
                         designYeldingStrain + StandardACI318.PhiDeformationTransitionIncrement,
                         StandardACI318.PhiCTied, StandardACI318.PhiT, strain);

@@ -83,7 +83,7 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 for (int j = 0; j < beamResult[k].Results.Count; j++)
                 {
-                    Model.Results.ResultLocations.ResultLocation result = beamResult[k].Results[j];
+                    GPC.Model.Results.ResultLocations.ResultLocation result = beamResult[k].Results[j];
                 }
             }
 

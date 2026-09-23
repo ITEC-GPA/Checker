@@ -4,29 +4,32 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>GPC.Checker</RootNamespace>
-    <Configurations>Debug;Release;DebugLocalLibs</Configurations>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
-  
-  <ItemGroup Condition=" '$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release' ">
-    <PackageReference Include="GPCGeometry" Version="2.0.1.9" />
-    <PackageReference Include="GPCModel" Version="1.1.0.2" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)' == 'DebugLocalLibs' ">
-    <Reference Include="GPCGeometry">
-      <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\netstandard2.0\GPCGeometry.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCModel">
-      <HintPath>..\..\GPCModel\GPCModel\bin\Debug\netstandard2.0\GPCModel.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GPCUtilities" Version="2.0.0.5" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
   </ItemGroup>
 
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Condition="'$(Configuration)' == 'DebugLocalLibs'" Command="nuget.exe restore &quot;$(ProjectDir)..\..\GPCGeometry\GPCGeometry.sln&quot;&#xD;&#xA;call &quot;C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe&quot; &quot;$(ProjectDir)..\..\..\GPCConverters\GPCConverters.sln&quot; /p:Configuration=$(ConfigurationName) /l:FileLogger,Microsoft.Build.Engine;logfile=BuildFromDependantProject.log" />
-  </Target>
+  <ItemGroup>
+    <Reference Include="DelaunayMesh">
+      <HintPath>..\..\Geometry\DelaunayMesh\bin\Release\netstandard2.0\DelaunayMesh.dll</HintPath>
+    </Reference>
+    <Reference Include="GMsh.Net">
+      <HintPath>..\..\Gmsh.Net\src\GMsh.Net\bin\Release\netstandard2.0\GMsh.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCGeometry">
+      <HintPath>..\..\Geometry\GPCGeometry\bin\Release\netstandard2.0\GPCGeometry.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCModel">
+      <HintPath>..\..\Model\Model\bin\Release\netstandard2.0\GPCModel.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCUtilities">
+      <HintPath>..\..\Utilities\GPCUtilities\bin\Release\netstandard2.0\GPCUtilities.dll</HintPath>
+    </Reference>
+    <Reference Include="UnsafeEx">
+      <HintPath>..\..\Gmsh.Net\src\GMsh.Net\bin\Release\netstandard2.0\UnsafeEx.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
 </Project>

@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using GPC.Model;
 
 namespace GPC.Checkers.Concrete.Results
 {
@@ -196,7 +197,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <returns>The corresponding domain point</returns>
         /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
         /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
-        internal FailureDomain.FailureDomainForce2d AddForce(ResultBeamForces forces)
+        public FailureDomain.FailureDomainForce2d AddForce(ResultBeamForces forces)
         {
             if (forces is null || forces.Id == -1)
                 throw new ArgumentNullException(nameof(forces));
@@ -217,7 +218,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <returns>The corresponding points in the domain</returns>
         /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
         /// <exception cref="ArgumentException">Thrown when forces contains items with Id == -1</exception>
-        internal FailureDomain.FailureDomainForce2d[] AddForces(ResultBeamForces[] forces)
+        public FailureDomain.FailureDomainForce2d[] AddForces(ResultBeamForces[] forces)
         {
             if (forces is null)
                 throw new ArgumentNullException(nameof(forces));
@@ -243,7 +244,7 @@ namespace GPC.Checkers.Concrete.Results
         /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
         /// <exception cref="ArgumentException">Thrown when forces.Id == -1</exception>
         /// <exception cref="KeyNotFoundException">Thrown when did not found a force with the given id</exception>
-        internal FailureDomain.FailureDomainForce2d UpdateForce(int id, ResultBeamForces forces)
+        public FailureDomain.FailureDomainForce2d UpdateForce(int id, ResultBeamForces forces)
         {
             if (forces is null)
             {

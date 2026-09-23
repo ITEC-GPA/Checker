@@ -262,7 +262,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public Standard StandardStructuralSteel => _standardStructuralSteel;
 
-        internal Point2d IntegrationReferencePoint => _integrationReferencePoint;
+        public Point2d IntegrationReferencePoint => _integrationReferencePoint;
 
         public bool ConsiderTensileConcrete { get => _considerTensileConcrete; internal set => _considerTensileConcrete = value; }
 
@@ -833,8 +833,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         {
                             if (returnValue[i - 1].N > limitCompression && returnValue[i].N < limitCompression)
                             {
-                                double mx = Utilities.Maths.Interpolation.GetLinearInterpolation(returnValue[i - 1].N, returnValue[i].N, returnValue[i - 1].Mx, returnValue[i].Mx, limitCompression);
-                                double my = Utilities.Maths.Interpolation.GetLinearInterpolation(returnValue[i - 1].N, returnValue[i].N, returnValue[i - 1].My, returnValue[i].My, limitCompression);
+                                double mx = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(returnValue[i - 1].N, returnValue[i].N, returnValue[i - 1].Mx, returnValue[i].Mx, limitCompression);
+                                double my = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(returnValue[i - 1].N, returnValue[i].N, returnValue[i - 1].My, returnValue[i].My, limitCompression);
                                 returnValue[i] = new ForceTuple(limitCompression, mx, my);
                             }
                             if (returnValue[i].N < limitCompression)

@@ -13,7 +13,6 @@ using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using Section = GPC.Model.Sections.Section;
 
 namespace SteelTests
 {
@@ -581,7 +580,7 @@ namespace SteelTests
             double expMbRd = 101.8 * 1.05; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
 
             UnitsSystem units = new UnitsSystem(GPC.Utilities.Units.UnitsConvert.LengthUnits.m, GPC.Utilities.Units.UnitsConvert.ForceUnits.kN,
-                GPC.Utilities.Units.UnitsConvert.MassUnits.kg, GPC.Utilities.Units.UnitsConvert.PressureUnits.kPa, GPC.Utilities.Units.UnitsConvert.TemperatureUnits.C);
+                GPC.Utilities.Units.UnitsConvert.MassUnits.kg, GPC.Utilities.Units.UnitsConvert.PressureUnits.kPa, GPC  .Utilities.Units.UnitsConvert.TemperatureUnits.C);
 
             Assert.IsTrue((Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity, units) - expMbRd) / expMbRd * 100) < 1);
         }

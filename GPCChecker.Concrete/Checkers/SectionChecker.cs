@@ -1,12 +1,12 @@
 ﻿using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
-using GPC.Geometry;
 using GPC.Model.Results;
 using GPC.Model.Standards;
 using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using GPC.Geometry;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
@@ -26,6 +26,8 @@ namespace GPC.Checkers.Concrete.Checkers
         public SectionOptions SectionCheckerOptions => (SectionOptions)_options;
 
         public SectionSolver SectionSolver => _solver;
+
+        public SectionCheckerAttribute SectionCheckerAttribute => _checkerAttributes;
 
         #endregion
 

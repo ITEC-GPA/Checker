@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static GPC.Checkers.Concrete.Checkers.SectionCheckerModelCode2010;
 
 namespace ConcreteTests
 {
@@ -29,7 +28,7 @@ namespace ConcreteTests
             }
 
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(concreteSectionRectangular, forces.ToArray(), null);
-            var sectionCheckerOptions = new SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
+            var sectionCheckerOptions = new GPC.Checkers.Concrete.Checkers.SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(concreteSectionRectangular), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
             var sectionSolverModelCode2010Test = new SectionSolverModelCode2010(concreteSectionRectangular, sectionCheckerOptions, new StandardEN1992p11(), concreteSectionRectangular.Centroid);
 
             GPC.Checkers.Concrete.Results.StressAnalysisResult[] slsResult = sectionSolverModelCode2010Test.GetStressAnalysisResults(forces.ToArray());

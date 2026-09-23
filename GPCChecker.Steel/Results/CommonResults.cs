@@ -3,10 +3,11 @@ using GPC.Model.LoadCases;
 using GPC.Model.Standards;
 using System;
 using System.Runtime.Serialization;
+using GPC.Model;
 
 namespace GPC.Checkers.Results
 {
-	public abstract class CommonResults : Model.ModelObject, ISerializable
+	public abstract class CommonResults : ModelObject, ISerializable
 	{
 		#region Variables
 

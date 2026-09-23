@@ -421,13 +421,13 @@ namespace GPC.Checkers.Concrete.Results
 
                     if (forces.N > vB.NRd && forces.N < vA.NRd)
                     {
-                        double mx = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, vA.MxRd, vB.MxRd, forces.N);
-                        double my = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, vA.MyRd, vB.MyRd, forces.N);
+                        double mx = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, vA.MxRd, vB.MxRd, forces.N);
+                        double my = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, vA.MyRd, vB.MyRd, forces.N);
 
                         // FailureIndex
                         SectionSolver.FailureZones _failureIndex = (SectionSolver.FailureZones)Math.Min((int)vA.FailureIndex, (int)vB.FailureIndex);
 
-                        double weightA = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, 0, 1, forces.N);
+                        double weightA = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, 0, 1, forces.N);
                         double weightB = 1 - weightA;
 
                         // Theta
@@ -526,24 +526,24 @@ namespace GPC.Checkers.Concrete.Results
             for (int i = 0; i < subdivision / 2.0; i++)
             {
                 forceTuples[i] = new ForceTuple(
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.Mx * 2, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.My * 2, i));
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i),
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.Mx * 2, i),
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, forces.My * 2, i));
 
                 forceTuples[subdivision / 2 + i] = new ForceTuple(
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.Mx * 2, 0.0, i),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.My * 2, 0.0, i));
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i),
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.Mx * 2, 0.0, i),
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, forces.My * 2, 0.0, i));
 
                 forceTuples[2 * subdivision - 1 - i] = new ForceTuple(
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i + 1),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.Mx * 2, i + 1),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.My * 2, i + 1));
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMax, nMin / 2.0, i + 1),
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.Mx * 2, i + 1),
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, 0.0, -forces.My * 2, i + 1));
 
                 forceTuples[subdivision / 2 + subdivision - 1 - i] = new ForceTuple(
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i + 1),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.Mx * 2, 0.0, i + 1),
-                    Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.My * 2, 0.0, i + 1));
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, nMin / 2.0, nMin, i + 1),
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.Mx * 2, 0.0, i + 1),
+                    GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(0, subdivision / 2.0, -forces.My * 2, 0.0, i + 1));
             }
 
             return forceTuples;

@@ -266,7 +266,7 @@ namespace GPC.Checkers.Steel.Checkers
                 }
             }
 
-            _boltResultMax = BuildENCommonBoltResults(null, new LoadCase("Envelope", Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight), null);
+            _boltResultMax = BuildENCommonBoltResults(null, new LoadCase("Envelope", GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight), null);
             if (!ENCommonBoltResults.CalcMaxResult(_boltResults.Cast<ENCommonBoltResults>().ToList(), (ENCommonBoltResults)_boltResultMax))
                 _boltResultMax = null;
             _boltDistancesWarning = ENCommonBoltResults.GetDistancesWarnings(_boltResults);

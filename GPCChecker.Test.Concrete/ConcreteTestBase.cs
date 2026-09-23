@@ -12,7 +12,6 @@ using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
-using GPC.TestUtilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -20,12 +19,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using static GPC.Checkers.Concrete.Checkers.SectionCheckerModelCode2010;
 
 namespace ConcreteTests
 {
     [TestClass]
-    public abstract class ConcreteTestBase : UnitTestBase
+    public abstract class ConcreteTestBase
     {
         #region Section Construction Methods
 
@@ -723,7 +721,7 @@ namespace ConcreteTests
         protected bool TensionAnalysisCommonAssertModelCode(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
             StandardModelCode2010 standard)
         {
-            var solver = new SectionSolverModelCode2010(section, new SectionOptionsModelCode2010(), standard, section.Centroid);
+            var solver = new SectionSolverModelCode2010(section, new GPC.Checkers.Concrete.Checkers.SectionCheckerModelCode2010.SectionOptionsModelCode2010(), standard, section.Centroid);
             var adimExternalForces = solver.ConvertToAdimensionalForces(new ForceTuple(forces.N, forces.M1, forces.M2));
 
             List<string> log = result.GetLog();
@@ -939,7 +937,7 @@ namespace ConcreteTests
             if (factor == null)
                 factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
 
-            var options = new SectionOptionsModelCode2010()
+            var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010()
             {
                 ForceReferenceCoordinateSystem = coordinateSystem,
                 FailureAnalysisType = failureAnalysisTypes,

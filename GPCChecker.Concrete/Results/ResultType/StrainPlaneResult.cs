@@ -71,8 +71,9 @@ namespace GPC.Checker.Results.ResultType
 		public bool LinearAnalysis { get => _linearAnalysis; internal set => _linearAnalysis = value; }
 		public double PsiR { get => _psiR; internal set => _psiR = value; }
 		public double PsiT { get => _psiT; internal set => _psiT = value; }
+		public ResultBeamForces ResultBeamForce { get => _force; }
 		public StrainPlane StrainPlane { get => _strainPlane; internal set => _strainPlane = value; }
-		public SectionSolver SectionSolver { get => _sectionSolver; internal set => _sectionSolver = value; }
+        public SectionSolver SectionSolver { get => _sectionSolver; internal set => _sectionSolver = value; }
 
 		internal StrainPlaneResult(IConcreteSection section, ResultBeamForces force, StrainPlane strainPlane, SectionSolver solver, Standard standard,
 			int id = IDUNASSIGNED, Standard standardStructuralSteel = null)

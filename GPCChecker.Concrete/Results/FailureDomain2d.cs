@@ -109,7 +109,7 @@ namespace GPC.Checkers.Concrete.Results
                                 // FailureIndex
                                 SectionSolver.FailureZones _failureIndex = (SectionSolver.FailureZones)Math.Min((int)vA.FailureIndex, (int)vB.FailureIndex);
 
-                                double weightA = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.MxRd, vB.MxRd, 0, 1, forceTuple.Mx);
+                                double weightA = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(vA.MxRd, vB.MxRd, 0, 1, forceTuple.Mx);
                                 double weightB = 1 - weightA;
 
                                 // Theta
@@ -146,9 +146,9 @@ namespace GPC.Checkers.Concrete.Results
 
                                 double weightA;
                                 if (Math.Abs(vA.MxRd) - Math.Abs(vB.MxRd) > Math.Abs(vA.MyRd) - Math.Abs(vB.MyRd))
-                                    weightA = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.MxRd, vB.MxRd, 0, 1, forceTuple.Mx);
+                                    weightA = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(vA.MxRd, vB.MxRd, 0, 1, forceTuple.Mx);
                                 else
-                                    weightA = Utilities.Maths.Interpolation.GetLinearInterpolation(vA.MyRd, vB.MyRd, 0, 1, forceTuple.Mx);
+                                    weightA = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(vA.MyRd, vB.MyRd, 0, 1, forceTuple.Mx);
 
                                 double weightB = 1 - weightA;
 

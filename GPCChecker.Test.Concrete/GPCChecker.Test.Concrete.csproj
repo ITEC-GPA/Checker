@@ -49,29 +49,25 @@
     <DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DelaunayMesh, Version=2.0.0.3, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DelaunayMesh.2.0.0.3\lib\netstandard2.0\DelaunayMesh.dll</HintPath>
-    </Reference>
-    <Reference Include="GMesh, Version=1.0.1.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GMesh.1.0.1.2\lib\net472\GMesh.dll</HintPath>
+    <Reference Include="DelaunayMesh, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Geometry\DelaunayMesh\bin\Release\netstandard2.0\DelaunayMesh.dll</HintPath>
     </Reference>
     <Reference Include="GMsh.Net, Version=1.0.495.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GMsh.Net.1.0.495.1\lib\netstandard2.0\GMsh.Net.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Gmsh.Net\src\GMsh.Net\bin\Release\netstandard2.0\GMsh.Net.dll</HintPath>
     </Reference>
-    <Reference Include="GPCGeometry, Version=2.0.1.9, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCGeometry.2.0.1.9\lib\netstandard2.0\GPCGeometry.dll</HintPath>
+    <Reference Include="GPCGeometry">
+      <HintPath>..\..\Geometry\GPCGeometry\bin\Release\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=1.1.0.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModel.1.1.0.2\lib\netstandard2.0\GPCModel.dll</HintPath>
+    <Reference Include="GPCModel">
+      <HintPath>..\..\Model\Model\bin\Release\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModelData, Version=0.0.1.10, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModelData.0.0.1.10\lib\netstandard2.0\GPCModelData.dll</HintPath>
+    <Reference Include="GPCModelData">
+      <HintPath>..\..\Model\ModelData\bin\Release\netstandard2.0\GPCModelData.dll</HintPath>
     </Reference>
-    <Reference Include="GPCTestUtilities, Version=1.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCTestUtilities.1.0.0.8\lib\net472\GPCTestUtilities.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCUtilities, Version=2.0.0.5, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCUtilities.2.0.0.5\lib\netstandard2.0\GPCUtilities.dll</HintPath>
+    <Reference Include="GPCUtilities">
+      <HintPath>..\..\Utilities\GPCUtilities\bin\Release\netstandard2.0\GPCUtilities.dll</HintPath>
     </Reference>
     <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.5.0.0\lib\net461\MathNet.Numerics.dll</HintPath>
@@ -88,21 +84,8 @@
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="UnsafeEx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\UnsafeEx.1.0.0\lib\netstandard2.0\UnsafeEx.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)' == 'DebugLocalLibs' ">
-    <Reference Include="DelaunayMesh">
-      <HintPath>..\..\GPCGeometry\DelaunayMesh\bin\Debug\netstandard2.0\DelaunayMesh.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCGeometry">
-      <HintPath>..\..\GPCGeometry\GPCGeometry\bin\Debug\netstandard2.0\GPCGeometry.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCModel">
-      <HintPath>..\..\GPCModel\GPCModel\bin\DebugLocalLibs\netstandard2.0\GPCModel.dll</HintPath>
-    </Reference>
-    <Reference Include="GPCModelData">
-      <HintPath>..\..\GPCModel\GPCModelData\bin\DebugLocalLibs\netstandard2.0\GPCModelData.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Gmsh.Net\src\GMsh.Net\bin\Release\netstandard2.0\UnsafeEx.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -143,8 +126,6 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.3.1.1\build\net462\MSTest.TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.3.1.1\build\net462\MSTest.TestAdapter.props'))" />
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.3.1.1\build\net462\MSTest.TestAdapter.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.3.1.1\build\net462\MSTest.TestAdapter.targets'))" />
-    <Error Condition="!Exists('..\packages\GMsh.Net.1.0.495.1\build\GMsh.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GMsh.Net.1.0.495.1\build\GMsh.Net.targets'))" />
   </Target>
   <Import Project="..\packages\MSTest.TestAdapter.3.1.1\build\net462\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.3.1.1\build\net462\MSTest.TestAdapter.targets')" />
-  <Import Project="..\packages\GMsh.Net.1.0.495.1\build\GMsh.Net.targets" Condition="Exists('..\packages\GMsh.Net.1.0.495.1\build\GMsh.Net.targets')" />
 </Project>

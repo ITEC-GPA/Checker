@@ -7,6 +7,7 @@ using GPC.Model.Standards;
 using GPC.Checkers.Steel.Checkers;
 using GPC.Model.LoadCases;
 using GPC.Checkers.Steel.Results;
+using GPC.Model;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Sections;
 using GPC.Model.Combinations;
@@ -19,7 +20,7 @@ namespace GPC.Checkers.Steel.Checkers
     /// </summary>
     
     [Serializable]
-    public abstract class Checker : Model.ModelObjectId, ISerializable
+    public abstract class Checker : ModelObjectId, ISerializable
     {
         #region Variables
 
@@ -40,7 +41,7 @@ namespace GPC.Checkers.Steel.Checkers
         #region Constructor
 
         public Checker(Options options, Standard standard, string name = "")
-            : this(options, standard, Model.ModelObjectId.IDUNASSIGNED, name)
+            : this(options, standard, IDUNASSIGNED, name)
         {
             _errorLog = new List<string>();
         }
