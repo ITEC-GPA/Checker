@@ -2269,7 +2269,9 @@ namespace ConcreteTests
                 var domainMx_Max = new Point3d(MxMax, 0.0, 0.0);
                 var domainMy_Max = new Point3d(0.0, MyMax, 0.0);
 
-                double relativeError = 0.00000001;
+                // The points are on the plane of the face within 1.3e-5 (relative): 1e-8 was never checked, because Polygon3d.IsPointInside
+                // skipped the plane with a large tolerance (RemoveAlignedPoints used it as an angle and removed the vertices of the face)
+                double relativeError = 1e-4;
                 double absoluteError = Math.Sqrt(NMax * NMax + MxMax * MxMax + MyMax * MyMax) * relativeError;
 
                 var domainFacePoint = new Point3d[]
