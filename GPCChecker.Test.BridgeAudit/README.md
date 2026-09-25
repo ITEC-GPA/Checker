@@ -1,0 +1,87 @@
+# Audit delle sezioni miste da ponte
+
+Suite aggiunta il 25/09/2026. Il solo costruttore Model con H nullo è stato corretto
+su richiesta dell'utente; i solver Checker e ANTHEA non sono modificati.
+Tutti i nuovi test di calcolo e il [rapporto con i rilievi](../docs/audit-sezioni-miste-ponte.md)
+sono nel repository Checker. Il risultato aggiornato è nell'
+[approfondimento del solver](../docs/approfondimento-solver-lineare-ponte.md).
+
+## Due esecuzioni complementari
+
+- `GPCChecker.Test.Concrete/BridgeElasticStagesTests.cs` e
+  `BridgeLinearSolverAuditTests.cs`: 86 casi delle API native,
+  integrati anche nel progetto storico .NET Framework 4.7.2. Il file è collegato,
+  senza duplicazioni, nel presente progetto.
+- `BridgeModuleStagesTests.cs`: 65 casi delle fasi e delle larghezze efficaci del
+  modulo ANTHEA. Il riferimento a `../../ANTHEA/X.Core/X.Core.csproj` permette di
+  provare il codice effettivo senza copiarlo o spostarlo durante l'audit.
+
+Il runner .NET 8 usa le DLL `../../ANTHEA/lib/Checker`, ossia il gruppo distribuito
+con l'app. Richiede i repository Checker e ANTHEA affiancati. Il progetto storico
+usa invece i riferimenti già presenti nel suo `.csproj`; non sostituire DLL
+singole per far coincidere due ambienti. I test nativi registrano percorso e
+SHA-256 delle librerie caricate nel TRX.
+
+## Esecuzione da questa cartella
+
+```powershell
+dotnet test GPCChecker.Test.BridgeAudit.csproj -c Release --logger trx --results-directory ../TestResults/BridgeAuditSnapshot
+```
+
+Esito aggiornato sulle DLL ANTHEA: **151 test, 136 passati, 15 falliti, nessuno ignorato**.
+Undici fallimenti sono marcati `KnownBug` (tre difetti Checker e il metadato ANTHEA
+a carico nullo). Quattro sono `ConstructorRegression`: la correzione è nel sorgente
+Model, mentre questo runner usa le vecchie DLL ANTHEA, volutamente non sostituite.
+I test contengono il comportamento atteso,
+senza `Ignore` e senza trasformare l'eccezione errata in un test verde.
+Per rieseguire solo i difetti:
+
+```powershell
+dotnet test GPCChecker.Test.BridgeAudit.csproj -c Release --filter TestCategory=KnownBug
+```
+
+Per il controllo dei casi attualmente corretti sulle DLL ANTHEA, escludendo
+esplicitamente i difetti aperti e la correzione non ancora distribuita
+(non equivale a una suite completa verde):
+
+```powershell
+dotnet test GPCChecker.Test.BridgeAudit.csproj -c Release --filter 'TestCategory!=KnownBug&TestCategory!=ConstructorRegression'
+```
+
+Progetto storico, dalla radice Checker, con MSBuild e VSTest di Visual Studio 2022.
+Compilare prima Model per includere il costruttore corretto:
+
+```powershell
+dotnet build ../Model/Model/GPCModel.csproj -c Release
+& 'C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe' GPCChecker.Test.Concrete/GPCChecker.Test.Concrete.csproj /t:Build /p:Configuration=Release /v:minimal /nologo
+& 'C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/Extensions/TestPlatform/vstest.console.exe' GPCChecker.Test.Concrete/bin/Release/GPCChecker.Test.Concrete.dll /Platform:x64 '/TestCaseFilter:TestCategory=Bridge|TestCategory=BridgeStages' /Logger:trx /ResultsDirectory:TestResults/BridgeSourceAudit
+```
+
+Esito sorgente: **102 casi, 92 passati e 10 falliti**. Sono 86 casi nativi e 16
+Bridge preesistenti. I quattro casi del profilo nullo passano; i dieci fallimenti
+riproducono i tre nuovi difetti del solver non corretti.
+Non sommare le due esecuzioni come test distinti: gli 86 casi nativi sono condivisi.
+
+## Criteri dei test
+
+Unità interne N, mm, MPa; nell'adattatore ANTHEA gli ingressi sono kN e kNm.
+Gli oracoli ricavano area, baricentro, inerzia e tensioni da rettangoli e aree
+concentrate, mantenendo distinti Es ed Ea e sottraendo il CLS sostituito dalle barre.
+Il confronto con Checker usa l'integrazione delle pareti sulla linea media,
+non l'inerzia geometrica completa dei rettangoli. Le tolleranze native sono
+relative 1E-5, con termine assoluto 1E-7; le proprietà geometriche usano 1E-10.
+Il benchmark JRC usa le tolleranze coerenti con i valori pubblicati arrotondati.
+
+`ApiCharacterization` e `ApproximationCharacterization` documentano scelte
+esistenti, con valori scritti nel TRX: non ne attestano la validità per ogni
+applicazione. Le prove di classe 4 includono coefficienti tabulati, un esempio
+indipendente JRC, inversione dei bordi, zona tesa, convergenza ed equilibrio.
+Non costituiscono validazione completa di un ponte, né verifiche di connettori,
+fatica, taglio, instabilità globale o redistribuzione nel tempo.
+
+
+## Taglio e connessione da norma
+
+`BridgeShearConnectionTests.cs` aggiunge 44 casi derivati da NTC/EC: coefficienti di instabilità, pioli, irrigidimenti, interazione M–V nel campo N=0/fy≤355, scorrimento NTC/EC, fasi e completezza del report. La suite ordinaria ora passa 220 test; i casi KnownBug e ConstructorRegression mantengono i filtri già documentati.
+
+I metodi nuovi sono in `GPCChecker.Steel/CompositeBridges`. Formule, fonti primarie, limiti e due difetti preesistenti a taglio sono descritti in [revisione normativa ANTHEA](../../ANTHEA/supporto/docs/taglio-pioli-fonti-e-metodo.md). Non è stata modificata l’implementazione preesistente dei checker.
