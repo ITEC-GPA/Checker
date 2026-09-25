@@ -5,6 +5,7 @@ using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Bolt;
 using GPC.Model.Standards;
+using GPC.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -95,11 +96,35 @@ namespace GPC.Checkers.Steel.Checkers
                 // ****** Required forces.
                 // Calculate all shear forces for each bolt.
                 var SollAllBolts = _plateWithBolts.BoltGrid.CalculateShearForcesElastic(SolForce.ResBeamForces);
-                // Calculate uniform tension forces for each bolt.
-                var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N / SollAllBolts.Count() : 0;
-                if (SollN > 1) // Positive for tension.
-                    foreach (var SollBolt in SollAllBolts)
-                        SollBolt.Value.N = SollN;
+                // Calculate tension forces for each bolt.
+                switch (OptionsENCommon.TensionDistributionType)
+                {
+                    case TensionDistributionTypes.Uniform:
+                        {
+                            var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N / SollAllBolts.Count() : 0;
+                            if (SollN > 1) // Positive for tension.
+                                foreach (var SollBolt in SollAllBolts)
+                                    SollBolt.Value.N = SollN;
+                            break;
+                        }
+                    case TensionDistributionTypes.SimpleAssign:
+                        {
+                            var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N : 0;
+                            if (SollN > 1) // Positive for tension.
+                                foreach (var SollBolt in SollAllBolts)
+                                    SollBolt.Value.N = SollN;
+                            break;
+                        }
+                    case TensionDistributionTypes.MethodN1:
+                        {
+                            _plateWithBolts.CalculateTensionForcesElastic(SolForce.ResBeamForces, _plateWithBolts.PlateMaterial.E, SollAllBolts, out _);
+                            // Bolts cannot be compressed.
+                            foreach (var SollBolt in SollAllBolts)
+                                if (SollBolt.Value.N < 0)
+                                    SollBolt.Value.N = 0;
+                            break;
+                        }
+                }
 
                 foreach (var SollBolt in SollAllBolts)
                 {
@@ -114,11 +139,22 @@ namespace GPC.Checkers.Steel.Checkers
                     // var SollShearAngle = CurRes.SollShearIsNull ? 0 : Math.Atan2(SollBolt.Value.V2, SollBolt.Value.V1) + Math.PI;
 
                     // ****** Shear. ******
+                    var holeType = CalculateHoleType(SollBolt.Key);
+                    var holeDir = CalculateIsSlottedPerpendicular(SollBolt.Key.Hole, SollBolt.Value);
                     if (CurRes.ShearIsActive)
                     {
                         CurRes.ShearAlphaV = CalculateAlphaV(SollBolt.Key.BoltDef.BoltMaterial);
-                        CurRes.ShearResistance = CalculateShearResistance_FvRd(SollBolt.Key.BoltDef, CurRes.ShearAlphaV);
+                        CurRes.Shearkh = CalculateShearCoeff_kh(holeType);
+                        CurRes.ShearResistance = CalculateShearResistance_FvRd(SollBolt.Key.BoltDef, CurRes.ShearAlphaV, CurRes.Shearkh);
                         CurRes.ShearRatio = GetWorkingRatio(CurRes.SollShear, CurRes.ShearResistance);
+                        // Special case with a special value.
+                        if ((holeType == EN1993BoltChecker.HoleShapeType.ShortSlotted || holeType == EN1993BoltChecker.HoleShapeType.LongSlotted) && !holeDir)
+                        {
+                            CurRes.ShearRatio = double.PositiveInfinity;
+                            CurRes.ShearForceCompliantToHole = false;
+                        }
+                        else
+                            CurRes.ShearForceCompliantToHole = true;
                     }
 
                     // ****** Bearing. ******
@@ -137,16 +173,15 @@ namespace GPC.Checkers.Steel.Checkers
                     {
                         var AlphaD = CalculateCoeffParallel_AlphaD(CurRes.BearingE1, CurRes.BearingP1, SollBolt.Key);
                         CurRes.Bearingk1 = CalculateCoeffPerpendicular_k1(CurRes.BearingE2, CurRes.BearingP2, SollBolt.Key);
-                        CurRes.BearingAlphaB = CalculateCoeffParallel_AlphaB(AlphaD, SollBolt.Key.BoltDef, CurRes.BearingE1, CurRes.BearingP1, SollBolt.Key.Hole.Diameter);
-                        CurRes.BearingResistance = CalculateBearingResistance_FbRd(CurRes.Bearingk1, CurRes.BearingAlphaB, SollBolt.Key.BoltDef, _plateWithBolts.Thickness);
+                        CurRes.BearingAlphaB = CalculateCoeffParallel_AlphaB(AlphaD, SollBolt.Key.BoltDef, CurRes.BearingE1, CurRes.BearingP1, SollBolt.Key.Hole.Diameter, holeType);
+                        CurRes.Bearingkh = CalculateBearingCoeff_kh(holeType);
+                        CurRes.BearingResistance = CalculateBearingResistance_FbRd(CurRes.Bearingk1, CurRes.BearingAlphaB, SollBolt.Key.BoltDef, _plateWithBolts.Thickness, CurRes.Bearingkh);
                         CurRes.BearingRatio = GetWorkingRatio(CurRes.SollShear, CurRes.BearingResistance);
                     }
 
                     // ****** Slip. ******
                     if (CurRes.SlipIsActive)
                     {
-                        var holeType = CalculateHoleType(SollBolt.Key);
-                        var holeDir = CalculateIsSlottedPerpendicular(SollBolt.Key.Hole, SollBolt.Value);
                         CurRes.SlipKs = Calculate_ks(holeType, holeDir);
                         CurRes.SlipMu = CalculateSlipFactor_Mu();
                         CurRes.SlipFpc = CalculateSlipPreloading(SollBolt.Key.BoltDef);
@@ -157,8 +192,6 @@ namespace GPC.Checkers.Steel.Checkers
                     // ****** SlipSer. ******
                     if (CurRes.SlipSerIsActive)
                     {
-                        var holeType = CalculateHoleType(SollBolt.Key);
-                        var holeDir = CalculateIsSlottedPerpendicular(SollBolt.Key.Hole, SollBolt.Value);
                         CurRes.SlipSerKs = Calculate_ks(holeType, holeDir);
                         CurRes.SlipSerMu = CalculateSlipFactor_Mu();
                         CurRes.SlipSerFpc = CalculateSlipPreloading(SollBolt.Key.BoltDef);
@@ -233,7 +266,7 @@ namespace GPC.Checkers.Steel.Checkers
                 }
             }
 
-            _boltResultMax = BuildENCommonBoltResults(null, new LoadCase("Envelope", Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight), null);
+            _boltResultMax = BuildENCommonBoltResults(null, new LoadCase("Envelope", GPC.Model.LoadCases.LoadCase.LoadCaseTypes.SelfWeight), null);
             if (!ENCommonBoltResults.CalcMaxResult(_boltResults.Cast<ENCommonBoltResults>().ToList(), (ENCommonBoltResults)_boltResultMax))
                 _boltResultMax = null;
             _boltDistancesWarning = ENCommonBoltResults.GetDistancesWarnings(_boltResults);
@@ -328,6 +361,14 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         /// <summary>
+        /// Shear resistance reduction coefficient according to hole type, normal, slotted or oversize.<br/>
+        /// This coefficient has no name in the Eurocides.
+        /// </summary>
+        /// <param name="holeShape"></param>
+        /// <returns></returns>
+        protected abstract double CalculateShearCoeff_kh(in EN1993BoltChecker.HoleShapeType holeShape);
+
+        /// <summary>
         /// Calculate shear resistance per shear plane.<br/>
         /// UNI EN 1993-1-8:2005 - Table 3.4.<br/>
         /// UNI EN 1999-1-1:2023 - Table 10.3.<br/>
@@ -335,11 +376,11 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         /// <param name="boltSection"></param>
         /// <returns>F_v,Rd</returns>
-        protected double CalculateShearResistance_FvRd(in BoltSection boltSection, in double alpha_v)
+        protected double CalculateShearResistance_FvRd(in BoltSection boltSection, in double alpha_v, in double kh)
         {
             double f_ub = boltSection.BoltMaterial.Fu;
             double area = boltSection.CalculateResistantArea(OptionsENCommon.ShearPlaneThroughThreadedPortion);
-            return alpha_v * f_ub * area * OptionsENCommon.NumShearPlane / EnGammaM2;
+            return kh * alpha_v * f_ub * area * OptionsENCommon.NumShearPlane / EnGammaM2;
         }
 
         /// <summary>
@@ -387,7 +428,14 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="p_1">Used by EN1999.</param>
         /// <param name="d_0">Hole diameter. Used by EN1999.</param>
         /// <returns>α_b</returns>
-        protected abstract double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in double e_1, in double p_1, in double d_0);
+        protected abstract double CalculateCoeffParallel_AlphaB(in double alpha_d, in BoltSection boltSection, in double e_1, in double p_1, in double d_0, in EN1993BoltChecker.HoleShapeType holeShape);
+
+        /// <summary>
+        /// Bearing resistance reduction coefficient according to hole type, normal, slotted or oversize.
+        /// </summary>
+        /// <param name="holeShape"></param>
+        /// <returns></returns>
+        protected abstract double CalculateBearingCoeff_kh(in EN1993BoltChecker.HoleShapeType holeShape);
 
         /// <summary>
         /// Calculate bearing resistance.<br/>
@@ -399,9 +447,9 @@ namespace GPC.Checkers.Steel.Checkers
         /// <param name="boltSection"></param>
         /// <param name="plateWithBolts"></param>
         /// <returns>F_b,Rd</returns>
-        protected double CalculateBearingResistance_FbRd(in double k_1, in double alpha_b, in BoltSection boltSection, in double plateWithBoltsThickness)
+        protected double CalculateBearingResistance_FbRd(in double k_1, in double alpha_b, in BoltSection boltSection, in double plateWithBoltsThickness, in double kh)
         {
-            return OptionsENCommon.NumBearingPlate * k_1 * alpha_b * PlateMaterialFu * boltSection.Diameter * plateWithBoltsThickness / EnGammaM2;
+            return kh * OptionsENCommon.NumBearingPlate * k_1 * alpha_b * PlateMaterialFu * boltSection.Diameter * plateWithBoltsThickness / EnGammaM2;
         }
 
         /// <summary>
@@ -579,12 +627,19 @@ namespace GPC.Checkers.Steel.Checkers
             }
         }
 
+        /// <summary>
+        /// True if the force is orthogonal to the hole.
+        /// Incrementata la precisione richiesta, ammesso 1° di non ortogonalità.
+        /// </summary>
+        /// <param name="hole"></param>
+        /// <param name="resultBeamForces"></param>
+        /// <returns></returns>
         protected bool CalculateIsSlottedPerpendicular(in Hole hole, in ResultBeamForces resultBeamForces)
         {
             Vector3d v1 = new Vector3d(Math.Cos(hole.Rotation), Math.Sin(hole.Rotation), 0.0);
             Vector3d v2 = new Vector3d(resultBeamForces.V1, resultBeamForces.V2, 0.0);
             v2.Unitize();
-            return v1.CrossProduct(v2).Length > Math.Sin(Math.PI * 0.25);
+            return v1.CrossProduct(v2).Length > Math.Sin(89.0.ToRadians());
         }
 
         /// <summary>

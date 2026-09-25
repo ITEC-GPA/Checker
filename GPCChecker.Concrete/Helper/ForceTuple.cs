@@ -17,19 +17,19 @@ namespace GPC.Checkers.Concrete.Helper
     {
         #region Variables
 
-        private readonly double _N;
-        private readonly double _Mx;
-        private readonly double _My;
+        private double _N;
+        private double _Mx;
+        private double _My;
 
         #endregion
 
         #region Properties
 
-        public double N => _N;
+        public double N { get => _N; set => _N = value; }   
 
-        public double Mx => _Mx;
+        public double Mx { get => _Mx; set => _Mx = value; }
 
-        public double My => _My;
+        public double My { get => _My; set => _My = value; }
 
         #endregion
 
@@ -47,6 +47,13 @@ namespace GPC.Checkers.Concrete.Helper
             _N = N;
             _Mx = Mx;
             _My = My;
+        }
+
+        internal ForceTuple(ResultBeamForces rbf)
+        {
+            _N = rbf.N;
+            _Mx = rbf.M1;
+            _My = rbf.M2;
         }
 
 		#endregion

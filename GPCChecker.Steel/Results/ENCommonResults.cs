@@ -60,6 +60,18 @@ namespace GPC.Checkers.Steel.Results
         public double ShearAlphaV { get; internal set; }
 
         /// <summary>
+        /// Resistance reduction according to hole type, normal, slotted or oversize.
+        /// </summary>
+        public double Shearkh { get; internal set; }
+
+        /// <summary>
+        /// True if the shear strength conforms to the hole.<br/>
+        /// That is, if it can be taken up by the shear strength.<br/>
+        /// In general it can be false only for slot hole with force not perpendicular to the slot.
+        /// </summary>
+        public bool ShearForceCompliantToHole { get; internal set; }
+
+        /// <summary>
         /// Desgin bearing resistance per bolt F_b,Rd.
         /// </summary>
         public bool BearingIsActive { get; internal set; }
@@ -79,6 +91,11 @@ namespace GPC.Checkers.Steel.Results
         public double Bearingk1 { get; internal set; }
 
         public double BearingAlphaB { get; internal set; }
+
+        /// <summary>
+        /// Resistance reduction according to hole type, normal, slotted or oversize.
+        /// </summary>
+        public double Bearingkh { get; internal set; }
 
         /// <summary>
         /// Design Slip resistance F_s,Rd.
@@ -312,6 +329,8 @@ namespace GPC.Checkers.Steel.Results
             ShearResistance = Double.NaN;
             ShearRatio = Double.NaN;
             ShearAlphaV = Double.NaN;
+            Shearkh = Double.NaN;
+            ShearForceCompliantToHole = true;
 
             // BearingIsActive = true; --> Setted in SetActiveChecks().
             BearingResistance = Double.NaN;
@@ -322,6 +341,7 @@ namespace GPC.Checkers.Steel.Results
             BearingP2 = Double.NaN;
             Bearingk1 = Double.NaN;
             BearingAlphaB = Double.NaN;
+            Bearingkh = Double.NaN;
 
             // SlipIsActive = true; --> Setted in SetActiveChecks().
             SlipResistance = Double.NaN;
@@ -553,6 +573,8 @@ namespace GPC.Checkers.Steel.Results
                 maxResult.ShearResistance = itemMaxShear.ShearResistance;
                 maxResult.ShearRatio = itemMaxShear.ShearRatio;
                 maxResult.ShearAlphaV = itemMaxShear.ShearAlphaV;
+                maxResult.Shearkh = itemMaxShear.Shearkh;
+                maxResult.ShearForceCompliantToHole = itemMaxShear.ShearForceCompliantToHole;
             }
 
             // Bearing.
@@ -572,6 +594,7 @@ namespace GPC.Checkers.Steel.Results
                 maxResult.BearingE2 = itemMaxBearing.BearingE2;
                 maxResult.BearingP2 = itemMaxBearing.BearingP2;
                 maxResult.Bearingk1 = itemMaxBearing.Bearingk1;
+                maxResult.Bearingkh = itemMaxBearing.Bearingkh;
                 maxResult.BearingAlphaB = itemMaxBearing.BearingAlphaB;
             }
 

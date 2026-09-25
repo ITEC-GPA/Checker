@@ -1,8 +1,10 @@
 ﻿using GPC.Checker.Results.ResultType;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
+using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
+using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;
 using System.Collections.Generic;
@@ -31,7 +33,7 @@ namespace GPC.Checkers.Concrete.Results
 
         public StrainPlane StrainPlane => _strainPlane;
 
-        internal SectionSolver SectionSolver => _sectionSolver;
+        public SectionSolver SectionSolver => _sectionSolver;
 
         public bool LinearElasticAnalysis => _linearElasticAnalysis;
 
@@ -86,14 +88,24 @@ namespace GPC.Checkers.Concrete.Results
             return _sectionSolver.CalculateStressRebar(rebar, StrainPlane.GetStrain(rebar.Position));
         }
 
-        public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension()
-        {
-            return _section.Rebars.Select(i => (i, _sectionSolver.CalculateStressRebar(i, StrainPlane.GetStrain(i.Position)))).ToArray();
-        }
-
         public virtual double GetRebarTension(double phi, ReinforcedConcreteRebar rebar)
         {
             return _sectionSolver.CalculateElasticSigmaS(phi, rebar, StrainPlane.GetStrain(rebar.Position));
+        }
+
+        public virtual double GetRebarTension(SteelMaterial steelMaterial, Point2d position, double epsilonP)
+        {
+            return _sectionSolver.CalculateStressRebar(steelMaterial, StrainPlane.GetStrain(position), epsilonP);
+        }
+
+        public virtual double GetRebarTension(double phi, SteelMaterial steelMaterial, Point2d position, double epsilonP)
+        {
+            return _sectionSolver.CalculateElasticSigmaS(phi, steelMaterial, StrainPlane.GetStrain(position), epsilonP);
+        }
+
+        public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension()
+        {
+            return _section.Rebars.Select(i => (i, _sectionSolver.CalculateStressRebar(i, StrainPlane.GetStrain(i.Position)))).ToArray();
         }
 
         public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension(double phi)
@@ -131,6 +143,20 @@ namespace GPC.Checkers.Concrete.Results
             }
         }
 
+        public virtual bool GetRebarTension(SteelMaterial steelMaterial, Point2d position, double epsilonP, out double tension)
+        {
+            try
+            {
+                tension = GetRebarTension(steelMaterial, position, epsilonP);
+                return true;
+            }
+            catch (Exception)
+            {
+                tension = double.NaN;
+                return false;
+            }
+        }
+
         public virtual bool GetRebarsTension(out (ReinforcedConcreteRebar rebar, double tension)[] rebarTensionAssociation)
         {
             try
@@ -150,6 +176,20 @@ namespace GPC.Checkers.Concrete.Results
             try
             {
                 tension = GetRebarTension(phi, rebar);
+                return true;
+            }
+            catch (Exception)
+            {
+                tension = double.NaN;
+                return false;
+            }
+        }
+
+        public virtual bool GetRebarTension(double phi, SteelMaterial steelMaterial, Point2d position, double epsilonP, out double tension)
+        {
+            try
+            {
+                tension = GetRebarTension(phi, steelMaterial, position, epsilonP);
                 return true;
             }
             catch (Exception)
@@ -234,6 +274,60 @@ namespace GPC.Checkers.Concrete.Results
         public double GetRebarStrain(ReinforcedConcreteRebar rebar)
         {
             return StrainPlane.GetStrain(rebar.Position);
+        }
+
+        public virtual (ReinforcedConcreteRebar rebar, double tension, double workingRatio)[] SteelServiceabilityCharacteristicCheck()
+        {
+            (ReinforcedConcreteRebar i, double)[] array = _section.Rebars.Select(i => (i, _sectionSolver.CalculateStressRebar(i, StrainPlane.GetStrain(i.Position)))).ToArray();
+            (ReinforcedConcreteRebar rebar, double tension, double workingRatio)[] outArray = new (ReinforcedConcreteRebar rebar, double tension, double workingRatio)[array.Length];
+            for (int i = 0; i < array.Length; i++)
+            {
+                ReinforcedConcreteRebar rebar = array[i].i;
+                double tension = array[i].Item2;
+                double flim;
+                if(rebar.EpsilonP != 0)
+                    flim = rebar.RebarMaterial.GetServiceabilityCharacteristicStressPrestress((StandardModelCode2010)_standard);
+                else
+                    flim = rebar.RebarMaterial.GetServiceabilityCharacteristicStress((StandardModelCode2010)_standard);
+                outArray[i] = (rebar, tension, Math.Abs(tension / flim));
+            }
+            return outArray;
+        }
+
+        public virtual (ReinforcedConcreteRebar rebar, double tension, double workingRatio)[] SteelServiceabilityCharacteristicCheck(double phi)
+        {
+            (ReinforcedConcreteRebar rebar, double tension)[] array = _section.Rebars.Select(i => (i, GetRebarTension(phi, i))).ToArray();
+            (ReinforcedConcreteRebar rebar, double tension, double workingRatio)[] outArray = new (ReinforcedConcreteRebar rebar, double tension, double workingRatio)[array.Length];
+            for (int i = 0; i < array.Length; i++)
+            {
+                ReinforcedConcreteRebar rebar = array[i].rebar;
+                double tension = array[i].tension;
+                double flim;
+                if (rebar.EpsilonP != 0)
+                    flim = rebar.RebarMaterial.GetServiceabilityCharacteristicStressPrestress((StandardModelCode2010)_standard);
+                else
+                    flim = rebar.RebarMaterial.GetServiceabilityCharacteristicStress((StandardModelCode2010)_standard);
+                outArray[i] = (rebar, tension, Math.Abs(tension / flim));
+            }
+            return outArray;
+        }
+
+        public virtual (ReinforcedConcreteRebar rebar, double tension, double workingRatio)[] SteelServiceabilityCharacteristicCheck(double phi, double phiTendon)
+        {
+            (ReinforcedConcreteRebar rebar, double tension)[] array = GetRebarsTension(phi, phiTendon);
+            (ReinforcedConcreteRebar rebar, double tension, double workingRatio)[] outArray = new (ReinforcedConcreteRebar rebar, double tension, double workingRatio)[array.Length];
+            for (int i = 0; i < array.Length; i++)
+            {
+                ReinforcedConcreteRebar rebar = array[i].rebar;
+                double tension = array[i].tension;
+                double flim;
+                if (rebar.EpsilonP != 0)
+                    flim = rebar.RebarMaterial.GetServiceabilityCharacteristicStressPrestress((StandardModelCode2010)_standard);
+                else
+                    flim = rebar.RebarMaterial.GetServiceabilityCharacteristicStress((StandardModelCode2010)_standard);
+                outArray[i] = (rebar, tension, Math.Abs(tension / flim));
+            }
+            return outArray;
         }
 
         #endregion
@@ -339,6 +433,55 @@ namespace GPC.Checkers.Concrete.Results
             return _strainPlane.GetStrain(point);
         }
 
+        public double GetVerticeStrain(Point2d point, double phi)
+        {
+            return _strainPlane.GetStrain(point) * (1 + phi);
+        }
+
+        public virtual (Point2d point, double tension, double workingRatio)[] ConcreteServiceabilityQuasiPermanentCheck(double psi)
+        {
+            var verticesTension = GetConcreteVerticesTension(psi);
+            var flim = ((ConcreteMaterialEuropeanCommon)_sectionSolver.ConcreteMaterial).GetConcreteServiceabilityQuasiPermanentStress((StandardModelCode2010)_standard);
+            var serviceabilityCheck = new (Point2d point, double tension, double workingRatio)[verticesTension.Length];
+            for(int i = 0; i < verticesTension.Length; i++)            
+                serviceabilityCheck[i] = (verticesTension[i].point, verticesTension[i].tension, Math.Abs(verticesTension[i].tension / flim));
+            return serviceabilityCheck;
+        }
+
+        public virtual (Point2d point, double tension, double workingRatio)[] ConcreteServiceabilityQuasiPermanentCheck()
+        {
+            var verticesTension = GetConcreteVerticesTension();
+            var flim = ((ConcreteMaterialEuropeanCommon)_sectionSolver.ConcreteMaterial).GetConcreteServiceabilityQuasiPermanentStress((StandardModelCode2010)_standard);
+            var serviceabilityCheck = new (Point2d point, double tension, double workingRatio)[verticesTension.Length];
+            for (int i = 0; i < verticesTension.Length; i++)
+                serviceabilityCheck[i] = (verticesTension[i].point, verticesTension[i].tension, Math.Abs(verticesTension[i].tension / flim));
+            return serviceabilityCheck;
+        }
+
+        public virtual (Point2d point, double tension, double workingRatio)[] ConcreteServiceabilityCharacteristicCheck(double psi)
+        {
+            var verticesTension = GetConcreteVerticesTension(psi);
+            var flim = ((ConcreteMaterialEuropeanCommon)_sectionSolver.ConcreteMaterial).GetConcreteServiceabilityCharacteristicStress((StandardModelCode2010)_standard);
+            var serviceabilityCheck = new (Point2d point, double tension, double workingRatio)[verticesTension.Length];
+            for (int i = 0; i < verticesTension.Length; i++)
+                serviceabilityCheck[i] = (verticesTension[i].point, verticesTension[i].tension, Math.Abs(verticesTension[i].tension / flim));
+            return serviceabilityCheck;
+        }
+
+        public virtual (Point2d point, double tension, double workingRatio)[] ConcreteServiceabilityCharacteristicCheck()
+        {
+            var verticesTension = GetConcreteVerticesTension();
+            var flim = ((ConcreteMaterialEuropeanCommon)_sectionSolver.ConcreteMaterial).GetConcreteServiceabilityCharacteristicStress((StandardModelCode2010)_standard);
+            var serviceabilityCheck = new (Point2d point, double tension, double workingRatio)[verticesTension.Length];
+            for (int i = 0; i < verticesTension.Length; i++)
+                serviceabilityCheck[i] = (verticesTension[i].point, verticesTension[i].tension, Math.Abs(verticesTension[i].tension / flim));
+            return serviceabilityCheck;
+        }
+
+        #endregion
+
+        #region Steel sections
+
         public virtual (Point2d point, double tension)[] GetStructuralSteelVerticesTension(double? phi = null)
         {
             var structSteelTension = new List<(Point2d point, double tension)>();
@@ -351,11 +494,58 @@ namespace GPC.Checkers.Concrete.Results
                     if (phi.HasValue)
                         structSteelTension.Add((globalVertex, _sectionSolver.CalculateElasticSigmaS(phi.Value, steelSection.Section, strain)));
                     else
-
                         structSteelTension.Add((globalVertex, _sectionSolver.CalculateStressStructuralSteel(steelSection.Section, strain)));
                 }
             }
             return structSteelTension.ToArray();
+        }
+
+        /// <summary>
+        /// Return the tension at a point that is assumed to belong to the section being passed.
+        /// </summary>
+        /// <param name="steelSectionPosition">Section to which the point belongs.</param>
+        /// <param name="point">Point at which tension is required.</param>
+        /// <param name="phi"></param>
+        /// <returns></returns>
+        public bool GetStructuralSteelTension(in SteelSectionPosition steelSectionPosition, in Point2d point, out double tension, in double? phi = null)
+        {
+            try
+            {
+                double strain = StrainPlane.GetStrain(point);
+                if (phi.HasValue)
+                    tension = _sectionSolver.CalculateElasticSigmaS(phi.Value, steelSectionPosition.Section, strain);
+                else
+                    tension = _sectionSolver.CalculateStressStructuralSteel(steelSectionPosition.Section, strain);
+                return true;
+            }
+            catch
+            {
+                tension = 0.0;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Linear elastic material ccnstituve law.
+        /// </summary>
+        /// <param name="phi"></param>
+        /// <returns></returns>
+        public (Point2d point, double strain)[] GetStructuralSteelVerticesStrain(double? phi = null)
+        {
+            var structSteelStrain = new List<(Point2d point, double strain)>();
+            foreach (var steelSection in _section.SteelSections)
+            {
+                foreach (var localVertex in steelSection.Section.Shape.Fill)
+                {
+                    var globalVertex = steelSection.PositionToGlobal(localVertex);
+                    double strain = StrainPlane.GetStrain(globalVertex);
+                    if (phi.HasValue)
+                        strain *= 1 + phi.Value;
+
+                    structSteelStrain.Add((globalVertex, strain));
+                }
+            }
+            return structSteelStrain.ToArray();
         }
 
         #endregion

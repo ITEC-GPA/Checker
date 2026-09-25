@@ -4,11 +4,25 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>GPC.Checker</RootNamespace>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
-
+  
   <ItemGroup>
-    <PackageReference Include="GPCGeometry" Version="2.0.0.4" />
-    <PackageReference Include="GPCModel" Version="1.0.3" />
+    <Reference Include="DelaunayMesh">
+      <HintPath>..\..\Geometry\DelaunayMesh\bin\Release\netstandard2.0\DelaunayMesh.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCGeometry">
+      <HintPath>..\..\Geometry\GPCGeometry\bin\Release\netstandard2.0\GPCGeometry.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCUtilities">
+      <HintPath>..\..\Utilities\GPCUtilities\bin\Release\netstandard2.0\GPCUtilities.dll</HintPath>
+    </Reference>
+	    <Reference Include="GPCModel">
+      <HintPath>..\..\Model\Model\bin\Release\netstandard2.0\GPCModel.dll</HintPath>
+    </Reference>
+    <Reference Include="UnsafeEx">
+      <HintPath>..\..\Gmsh.Net\src\GMsh.Net\bin\Release\netstandard2.0\UnsafeEx.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

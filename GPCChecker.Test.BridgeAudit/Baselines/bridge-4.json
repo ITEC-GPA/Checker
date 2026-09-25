@@ -1,0 +1,2297 @@
+{
+  "Method": "Sezione composta N–Mx · larghezze efficaci EN 1993-1-5:2006 · v1",
+  "Scope": "Analisi elastica N–Mx con connessione completa, sezione simmetrica e anima senza irrigidimenti longitudinali. b_eff della soletta è un dato di ingresso. Le fasi sono incrementi di carico già combinati; per ogni situazione la sezione efficace è comune ai contributi sommati. Il ritiro uniforme assegnato al CLS produce effetti primari locali. Non è un'analisi evolutiva con redistribuzione viscosa. Taglio e pioli hanno controlli locali dedicati. Irrigidimenti, appoggi, saldature continue, soletta trasversale e fatica dei pioli hanno verifiche opzionali con campo dichiarato. Torsione e instabilità globale del ponte restano escluse.",
+  "Input": {
+    "versione_mista": 1,
+    "nome": "Sezione composta da ponte",
+    "normativa": "NTC 2018 / EN 1994-2:2005",
+    "gamma_m0": "1.05",
+    "gamma_c": "1.5",
+    "alpha_cc": "0.85",
+    "gamma_s": "1.15",
+    "stato": "SLU",
+    "classe4": true,
+    "classe_cls": "C35/45",
+    "acciaio": "S355",
+    "armatura": "B450C",
+    "fy_override": false,
+    "fy": "355",
+    "b_cls": "3000",
+    "h_cls": "250",
+    "h_web": "1800",
+    "t_web": "14",
+    "b_top": "500",
+    "t_top": "25",
+    "b_bottom": "700",
+    "t_bottom": "30",
+    "plate2": false,
+    "b_bottom2": "500",
+    "t_bottom2": "20",
+    "rebars_top": true,
+    "d_top": "16",
+    "pitch_top": "150",
+    "cover_top": "45",
+    "rebars_bottom": true,
+    "d_bottom": "16",
+    "pitch_bottom": "150",
+    "cover_bottom": "45",
+    "y_ref": "0",
+    "fasi": [
+      {
+        "nome": "G1 · getto e carpenteria",
+        "tipo": "Solo acciaio",
+        "attiva": true,
+        "N": 0,
+        "Mx": 1500,
+        "V": 0,
+        "q_conn": 0,
+        "epsilon_cs": 0,
+        "modo": "Da φ",
+        "phi": 0,
+        "psi": 1,
+        "n": "18",
+        "riferimento_N": "Baricentro omogeneizzato lordo"
+      },
+      {
+        "nome": "Ritiro soletta",
+        "tipo": "Ritiro",
+        "attiva": true,
+        "N": 0,
+        "Mx": 0,
+        "V": 0,
+        "q_conn": 0,
+        "epsilon_cs": -250,
+        "modo": "Da φ",
+        "phi": 2,
+        "psi": 0.55,
+        "n": "18",
+        "riferimento_N": "Baricentro omogeneizzato lordo"
+      },
+      {
+        "nome": "G2 · permanenti portati",
+        "tipo": "Composta",
+        "attiva": true,
+        "N": 0,
+        "Mx": 2000,
+        "V": 0,
+        "q_conn": 0,
+        "epsilon_cs": 0,
+        "modo": "Da φ",
+        "phi": 2,
+        "psi": 1.1,
+        "n": "18",
+        "riferimento_N": "Baricentro omogeneizzato lordo"
+      },
+      {
+        "nome": "Q · variabili",
+        "tipo": "Composta",
+        "attiva": true,
+        "N": 0,
+        "Mx": 3000,
+        "V": 0,
+        "q_conn": 0,
+        "epsilon_cs": 0,
+        "modo": "Da φ",
+        "phi": 0,
+        "psi": 1,
+        "n": "18",
+        "riferimento_N": "Baricentro omogeneizzato lordo"
+      },
+      {
+        "nome": "Ritiro soletta",
+        "tipo": "Ritiro",
+        "attiva": true,
+        "N": 0,
+        "Mx": 0,
+        "V": 0,
+        "q_conn": 0,
+        "epsilon_cs": -100,
+        "modo": "Da φ",
+        "phi": 2,
+        "psi": 0.55,
+        "n": "18",
+        "riferimento_N": "Baricentro omogeneizzato lordo"
+      }
+    ],
+    "gamma_m1": 1.1,
+    "eta_taglio": 1.2,
+    "irrigidimenti": false,
+    "a_irr": 3000,
+    "b_irr": 150,
+    "t_irr": 15,
+    "N_irr": 0,
+    "pioli": false,
+    "n_pioli": 2,
+    "d_pioli": 22,
+    "h_pioli": 150,
+    "passo_pioli": 200,
+    "passo_trasv_pioli": 150,
+    "fu_pioli": 450,
+    "gamma_v": 1.25,
+    "d_testa_pioli": 35,
+    "t_testa_pioli": 12,
+    "pioli_fatica": true,
+    "copriferro_pioli": 35,
+    "lati_irr": "Bilaterali simmetrici",
+    "pannelli_uguali": true,
+    "a_irr_dx": 3000,
+    "b_irr_dx": 150,
+    "t_irr_dx": 15,
+    "x_irr": 0,
+    "betaL_irr": 1,
+    "saldature_irr": false,
+    "aw_irr": 6,
+    "appoggio": false,
+    "pos_app": "Appoggio interno",
+    "lati_app": "Bilaterali simmetrici",
+    "b_app": 180,
+    "t_app": 25,
+    "b_app_dx": 180,
+    "t_app_dx": 25,
+    "a_app_sx": 3000,
+    "a_app_dx": 3000,
+    "c_app": 150,
+    "R_app": "",
+    "x_app": 0,
+    "z_app": 0,
+    "betaL_app": 1,
+    "s_app": 300,
+    "B_app": 400,
+    "terminale_rigido": false,
+    "e_term": 300,
+    "saldature_app": true,
+    "aw_app": 8,
+    "gamma_m2": 1.25,
+    "armatura_trasv": false,
+    "d_trasv_sup": 16,
+    "s_trasv_sup": 150,
+    "d_trasv_inf": 16,
+    "s_trasv_inf": 150,
+    "cot_trasv": 1,
+    "quota_q_sx": 0.5,
+    "As_m_trasv": 0,
+    "l_anc_trasv": 700,
+    "buona_aderenza_trasv": true,
+    "bordo_cls_sx": 500,
+    "bordo_cls_dx": 500,
+    "forcine_bordo": false,
+    "d_forcine": 12,
+    "fatica_pioli": false,
+    "q_fat_min": "",
+    "q_fat_max": "",
+    "lambda_v": 1,
+    "phi_fat": 1,
+    "flangia_fat_tesa": false,
+    "dsigma_fat": "",
+    "gamma_ff": 1,
+    "gamma_mf_pioli": 1.25,
+    "gamma_mf_flangia": 1.35
+  },
+  "Geometry": {
+    "Width": 3000,
+    "SlabHeight": 250,
+    "WebHeight": 1800,
+    "WebThickness": 14,
+    "TopWidth": 500,
+    "TopThickness": 25,
+    "Bottom1Width": 700,
+    "Bottom1Thickness": 30,
+    "Bottom2Width": 0,
+    "Bottom2Thickness": 0,
+    "BottomEquivalentWidth": 700,
+    "BottomEquivalentThickness": 30,
+    "Height": 1855,
+    "BottomArea": 21000,
+    "BottomRealCentroid": -1840,
+    "BottomRealInertia": 1575000,
+    "SteelArea": 58700,
+    "SteelInertia": 33757370920.28676,
+    "SteelCentroid": -1058.028109028961,
+    "Bars": [
+      {
+        "Id": "B1",
+        "X": 75,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B2",
+        "X": 225,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B3",
+        "X": 375,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B4",
+        "X": 525,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B5",
+        "X": 675,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B6",
+        "X": 825,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B7",
+        "X": 975,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B8",
+        "X": 1125,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B9",
+        "X": 1275,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B10",
+        "X": 1425,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B11",
+        "X": 1575,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B12",
+        "X": 1725,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B13",
+        "X": 1875,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B14",
+        "X": 2025,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B15",
+        "X": 2175,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B16",
+        "X": 2325,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B17",
+        "X": 2475,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B18",
+        "X": 2625,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B19",
+        "X": 2775,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B20",
+        "X": 2925,
+        "Y": 205,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B21",
+        "X": 75,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B22",
+        "X": 225,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B23",
+        "X": 375,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B24",
+        "X": 525,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B25",
+        "X": 675,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B26",
+        "X": 825,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B27",
+        "X": 975,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B28",
+        "X": 1125,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B29",
+        "X": 1275,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B30",
+        "X": 1425,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B31",
+        "X": 1575,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B32",
+        "X": 1725,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B33",
+        "X": 1875,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B34",
+        "X": 2025,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B35",
+        "X": 2175,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B36",
+        "X": 2325,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B37",
+        "X": 2475,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B38",
+        "X": 2625,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B39",
+        "X": 2775,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      },
+      {
+        "Id": "B40",
+        "X": 2925,
+        "Y": 45,
+        "Diameter": 16,
+        "Area": 201.06192982974676
+      }
+    ]
+  },
+  "Materials": {
+    "Concrete": "C35/45",
+    "Fck": 35,
+    "Ec": 34077.14619918933,
+    "Steel": "S355",
+    "Fy": 355,
+    "Ea": 210000,
+    "Rebar": "B450C",
+    "Fys": 450,
+    "Es": 200000
+  },
+  "Stages": [
+    {
+      "Name": "G1 · getto e carpenteria",
+      "Iterations": 24,
+      "Residual": 6.873680680049195E-08,
+      "Effective": {
+        "WebTop": 284.75415446833915,
+        "WebBottom": 1138.8681619262802,
+        "TopWidth": 500,
+        "BottomWidth": 700,
+        "Web": {
+          "Width": 1800,
+          "Thickness": 14,
+          "Psi": -0.6540116608419105,
+          "KSigma": 16.106944996313775,
+          "Lambda": 1.3864358732084854,
+          "Rho": 0.6541481720625532,
+          "CompressedWidth": 1088.2631861759546,
+          "EffectiveAtStart": 284.7541495839883,
+          "EffectiveAtEnd": 1138.868038200028,
+          "StartStress": -51.205632525434844,
+          "EndStress": 33.489080772420195
+        },
+        "Top": {
+          "Width": 243,
+          "Thickness": 25,
+          "Psi": 1,
+          "KSigma": 0.43,
+          "Lambda": 0.6414959848926287,
+          "Rho": 1,
+          "CompressedWidth": 243,
+          "EffectiveAtStart": 243,
+          "EffectiveAtEnd": 0,
+          "StartStress": -52.38194798790505,
+          "EndStress": -52.38194798790505
+        },
+        "Bottom": {
+          "Width": 343,
+          "Thickness": 30,
+          "Psi": 1,
+          "KSigma": 0.43,
+          "Lambda": 0.7545717517769946,
+          "Rho": 1,
+          "CompressedWidth": 0,
+          "EffectiveAtStart": 343,
+          "EffectiveAtEnd": 0,
+          "StartStress": 33.489080772420195,
+          "EndStress": 33.489080772420195
+        }
+      },
+      "EffectiveSteel": {
+        "Area": 53430.712429524676,
+        "Centroid": -1113.2631861759546,
+        "Inertia": 31879203492.957333
+      },
+      "Contributions": [
+        {
+          "Name": "G1 · getto e carpenteria",
+          "Kind": "Solo acciaio",
+          "N": 0,
+          "Mx": 1500,
+          "N0": 0,
+          "HomogenizationN": 0,
+          "Phi": 0,
+          "EffectivePhi": 0,
+          "Area": 53430.712429524676,
+          "Centroid": -1113.2631861759546,
+          "Inertia": 31879203492.957333,
+          "UniformStress": 0,
+          "StressSlope": -0.04705261849880835,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 0,
+          "WBottom": 42979130.73587812,
+          "WTop": 28635819.354147516,
+          "SolverInertia": 31879203492.957333,
+          "EquilibriumResidual": 0,
+          "LoadY": -1058.028109028961,
+          "LoadReference": "Baricentro omogeneizzato lordo",
+          "V": 0,
+          "ShrinkageStrain": 0,
+          "ConcreteStressOffset": 0,
+          "EquivalentN": 0,
+          "EquivalentMomentAtInterface": 0,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": false,
+          "HasConcrete": false,
+          "MomentAtInterface": 1500,
+          "NeutralAxis": -1113.2631861759546
+        }
+      ],
+      "Points": [
+        {
+          "Name": "Soletta · estradosso",
+          "Material": "CLS",
+          "Y": 250,
+          "Stress": 0,
+          "Limit": 19.833333333333332,
+          "Utilization": null,
+          "Active": false,
+          "Contributions": [
+            0
+          ]
+        },
+        {
+          "Name": "Soletta · intradosso",
+          "Material": "CLS",
+          "Y": 0,
+          "Stress": 0,
+          "Limit": 19.833333333333332,
+          "Utilization": null,
+          "Active": false,
+          "Contributions": [
+            0
+          ]
+        },
+        {
+          "Name": "Armatura · y=205",
+          "Material": "Armatura",
+          "Y": 205,
+          "Stress": 0,
+          "Limit": 391.304347826087,
+          "Utilization": null,
+          "Active": false,
+          "Contributions": [
+            0
+          ]
+        },
+        {
+          "Name": "Armatura · y=45",
+          "Material": "Armatura",
+          "Y": 45,
+          "Stress": 0,
+          "Limit": 391.304347826087,
+          "Utilization": null,
+          "Active": false,
+          "Contributions": [
+            0
+          ]
+        },
+        {
+          "Name": "Acciaio · estradosso",
+          "Material": "Acciaio",
+          "Y": 0,
+          "Stress": -52.38194798790505,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.15493252221774734,
+          "Active": true,
+          "Contributions": [
+            -52.38194798790505
+          ]
+        },
+        {
+          "Name": "Anima · sommità",
+          "Material": "Acciaio",
+          "Y": -25,
+          "Stress": -51.205632525434844,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.15145327930058194,
+          "Active": true,
+          "Contributions": [
+            -51.205632525434844
+          ]
+        },
+        {
+          "Name": "Anima · piede",
+          "Material": "Acciaio",
+          "Y": -1825,
+          "Stress": 33.489080772420195,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.09905221073532734,
+          "Active": true,
+          "Contributions": [
+            33.489080772420195
+          ]
+        },
+        {
+          "Name": "Acciaio · intradosso",
+          "Material": "Acciaio",
+          "Y": -1855,
+          "Stress": 34.900659327384446,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.10322730223592583,
+          "Active": true,
+          "Contributions": [
+            34.900659327384446
+          ]
+        }
+      ],
+      "Warnings": [
+        "EN 1993-1-5 §5.1: per questa anima snella sono necessari irrigidimenti trasversali agli appoggi, da dimensionare separatamente. L’opzione del pannello riguarda quelli intermedi."
+      ],
+      "Shear": {
+        "V": 0,
+        "Web": {
+          "KTau": 5.34,
+          "TauCritical": 61.31245697030012,
+          "Slenderness": 1.8283507021322156,
+          "Chi": 0.45396104753429256,
+          "Area": 25200,
+          "PlasticResistance": 4919024.293495612,
+          "BucklingResistance": 2131543.356525451,
+          "Resistance": 2131543.356525451
+        },
+        "TauAverage": 0,
+        "TauMaximum": 0,
+        "EquivalentStressEnvelope": 51.205632525434844,
+        "UsesStiffeners": false,
+        "Stiffener": null,
+        "Checks": [
+          {
+            "Name": "Anima · resistenza a taglio",
+            "Demand": 0,
+            "Resistance": 2131.543356525451,
+            "Unit": "kN",
+            "Ratio": 0,
+            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Status": "Entro limite"
+          },
+          {
+            "Name": "Anima · tensione equivalente elastica (inviluppo)",
+            "Demand": 51.205632525434844,
+            "Resistance": 338.0952380952381,
+            "Unit": "MPa",
+            "Ratio": 0.15145327930058194,
+            "Note": "√(max|σ|² + 3 max|τ|²); τ sulla sezione lorda omogeneizzata",
+            "Status": "Entro limite"
+          }
+        ],
+        "Details": [],
+        "RigidEndPost": false
+      },
+      "Studs": {
+        "Enabled": false,
+        "Resistance": null,
+        "Flow": 0,
+        "ForcePerStud": 0,
+        "ResistancePerStud": 0,
+        "ResistancePerLength": 0,
+        "Contributions": [
+          {
+            "Phase": "G1 · getto e carpenteria",
+            "Kind": "Solo acciaio",
+            "V": 0,
+            "StaticMoment": 0,
+            "Inertia": 0,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "Nessuno scorrimento da V"
+          }
+        ],
+        "Checks": [],
+        "Details": null
+      },
+      "MaxUtilization": 0.15493252221774734,
+      "SteelNeutralAxis": -1113.2631861759546
+    },
+    {
+      "Name": "Ritiro soletta",
+      "Iterations": 23,
+      "Residual": 8.389667401489634E-08,
+      "Effective": {
+        "WebTop": 289.3223713413189,
+        "WebBottom": 975.261391591067,
+        "TopWidth": 500,
+        "BottomWidth": 700,
+        "Web": {
+          "Width": 1800,
+          "Thickness": 14,
+          "Psi": -0.43002153310269614,
+          "KSigma": 12.323338558370851,
+          "Lambda": 1.5850471470021976,
+          "Rho": 0.5746350137414657,
+          "CompressedWidth": 1258.7223047575844,
+          "EffectiveAtStart": 289.3223635564256,
+          "EffectiveAtEnd": 975.2612405770537,
+          "StartStress": -86.88062497667684,
+          "EndStress": 37.36053954939097
+        },
+        "Top": {
+          "Width": 243,
+          "Thickness": 25,
+          "Psi": 1,
+          "KSigma": 0.43,
+          "Lambda": 0.6414959848926287,
+          "Rho": 1,
+          "CompressedWidth": 243,
+          "EffectiveAtStart": 243,
+          "EffectiveAtEnd": 0,
+          "StartStress": -88.60619670620557,
+          "EndStress": -88.60619670620557
+        },
+        "Bottom": {
+          "Width": 343,
+          "Thickness": 30,
+          "Psi": 1,
+          "KSigma": 0.43,
+          "Lambda": 0.7545717517769946,
+          "Rho": 1,
+          "CompressedWidth": 0,
+          "EffectiveAtStart": 343,
+          "EffectiveAtEnd": 0,
+          "StartStress": 37.36053954939097,
+          "EndStress": 37.36053954939097
+        }
+      },
+      "EffectiveSteel": {
+        "Area": 51204.1726810534,
+        "Centroid": -1127.7098511719616,
+        "Inertia": 31631319755.380337
+      },
+      "Contributions": [
+        {
+          "Name": "G1 · getto e carpenteria",
+          "Kind": "Solo acciaio",
+          "N": 0,
+          "Mx": 1500,
+          "N0": 0,
+          "HomogenizationN": 0,
+          "Phi": 0,
+          "EffectivePhi": 0,
+          "Area": 51204.1726810534,
+          "Centroid": -1127.7098511719616,
+          "Inertia": 31631319755.380337,
+          "UniformStress": 0,
+          "StressSlope": -0.047421353633050896,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 0,
+          "WBottom": 43492022.82796119,
+          "WTop": 28049165.06006203,
+          "SolverInertia": 31631319755.380337,
+          "EquilibriumResidual": 0,
+          "LoadY": -1058.028109028961,
+          "LoadReference": "Baricentro omogeneizzato lordo",
+          "V": 0,
+          "ShrinkageStrain": 0,
+          "ConcreteStressOffset": 0,
+          "EquivalentN": 0,
+          "EquivalentMomentAtInterface": 0,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": false,
+          "HasConcrete": false,
+          "MomentAtInterface": 1500,
+          "NeutralAxis": -1127.7098511719616
+        },
+        {
+          "Name": "Ritiro soletta",
+          "Kind": "Ritiro",
+          "N": 0,
+          "Mx": 0,
+          "N0": 6.162487867161709,
+          "HomogenizationN": 12.94122452103959,
+          "Phi": 2,
+          "EffectivePhi": 1.1,
+          "Area": 116196.54320127056,
+          "Centroid": -427.0299466014101,
+          "Inertia": 76922713148.26965,
+          "UniformStress": -25.904175027291004,
+          "StressSlope": -0.02160151554809789,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 8042.477193189877,
+          "WBottom": 53868575.86067191,
+          "WTop": 180134235.925307,
+          "SolverInertia": 76920374497.959,
+          "EquilibriumResidual": 4.641180032600929E-15,
+          "LoadY": 125,
+          "LoadReference": "Ritiro · CLS netto",
+          "V": 0,
+          "ShrinkageStrain": -0.00025,
+          "ConcreteStressOffset": 4.056803118951111,
+          "EquivalentN": -3009.975592651907,
+          "EquivalentMomentAtInterface": 376.24694908148837,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": true,
+          "HasConcrete": true,
+          "MomentAtInterface": 0,
+          "NeutralAxis": -1626.2131691680313
+        }
+      ],
+      "Points": [
+        {
+          "Name": "Soletta · estradosso",
+          "Material": "CLS",
+          "Y": 250,
+          "Stress": 0.9250246787086196,
+          "Limit": 19.833333333333332,
+          "Utilization": null,
+          "Active": true,
+          "Contributions": [
+            0,
+            0.9250246787086196
+          ]
+        },
+        {
+          "Name": "Soletta · intradosso",
+          "Material": "CLS",
+          "Y": 0,
+          "Stress": 1.3423251341828784,
+          "Limit": 19.833333333333332,
+          "Utilization": null,
+          "Active": true,
+          "Contributions": [
+            0,
+            1.3423251341828784
+          ]
+        },
+        {
+          "Name": "Armatura · y=205",
+          "Material": "Armatura",
+          "Y": 205,
+          "Stress": -37.67331404349033,
+          "Limit": 391.304347826087,
+          "Utilization": 0.09627624700003083,
+          "Active": true,
+          "Contributions": [
+            0,
+            -37.67331404349033
+          ]
+        },
+        {
+          "Name": "Armatura · y=45",
+          "Material": "Armatura",
+          "Y": 45,
+          "Stress": -34.381654531399214,
+          "Limit": 391.304347826087,
+          "Utilization": 0.08786422824690909,
+          "Active": true,
+          "Contributions": [
+            0,
+            -34.381654531399214
+          ]
+        },
+        {
+          "Name": "Acciaio · estradosso",
+          "Material": "Acciaio",
+          "Y": 0,
+          "Stress": -88.60619670620557,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.2620746663141292,
+          "Active": true,
+          "Contributions": [
+            -53.477527647900786,
+            -35.12866905830478
+          ]
+        },
+        {
+          "Name": "Anima · sommità",
+          "Material": "Acciaio",
+          "Y": -25,
+          "Stress": -86.88062497667684,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.25697086260707236,
+          "Active": true,
+          "Contributions": [
+            -52.29199380707452,
+            -34.58863116960233
+          ]
+        },
+        {
+          "Name": "Anima · piede",
+          "Material": "Acciaio",
+          "Y": -1825,
+          "Stress": 37.36053954939097,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.11050300430101556,
+          "Active": true,
+          "Contributions": [
+            33.066442732417094,
+            4.294096816973877
+          ]
+        },
+        {
+          "Name": "Acciaio · intradosso",
+          "Material": "Acciaio",
+          "Y": -1855,
+          "Stress": 39.43122562482544,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.1166275687494837,
+          "Active": true,
+          "Contributions": [
+            34.48908334140862,
+            4.942142283416814
+          ]
+        }
+      ],
+      "Warnings": [
+        "CLS teso nel modello non fessurato: valutare una situazione con soletta esclusa; non è attestata la verifica del CLS in trazione.",
+        "Ritiro uniforme imposto al solo CLS: effetti primari autoequilibrati. Eventuali azioni secondarie da vincoli esterni vanno inserite come fasi N–Mx separate.",
+        "EN 1993-1-5 §5.1: per questa anima snella sono necessari irrigidimenti trasversali agli appoggi, da dimensionare separatamente. L’opzione del pannello riguarda quelli intermedi."
+      ],
+      "Shear": {
+        "V": 0,
+        "Web": {
+          "KTau": 5.34,
+          "TauCritical": 61.31245697030012,
+          "Slenderness": 1.8283507021322156,
+          "Chi": 0.45396104753429256,
+          "Area": 25200,
+          "PlasticResistance": 4919024.293495612,
+          "BucklingResistance": 2131543.356525451,
+          "Resistance": 2131543.356525451
+        },
+        "TauAverage": 0,
+        "TauMaximum": 0,
+        "EquivalentStressEnvelope": 86.88062497667684,
+        "UsesStiffeners": false,
+        "Stiffener": null,
+        "Checks": [
+          {
+            "Name": "Anima · resistenza a taglio",
+            "Demand": 0,
+            "Resistance": 2131.543356525451,
+            "Unit": "kN",
+            "Ratio": 0,
+            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Status": "Entro limite"
+          },
+          {
+            "Name": "Anima · tensione equivalente elastica (inviluppo)",
+            "Demand": 86.88062497667684,
+            "Resistance": 338.0952380952381,
+            "Unit": "MPa",
+            "Ratio": 0.25697086260707236,
+            "Note": "√(max|σ|² + 3 max|τ|²); τ sulla sezione lorda omogeneizzata",
+            "Status": "Entro limite"
+          }
+        ],
+        "Details": [],
+        "RigidEndPost": false
+      },
+      "Studs": {
+        "Enabled": false,
+        "Resistance": null,
+        "Flow": 0,
+        "ForcePerStud": 0,
+        "ResistancePerStud": 0,
+        "ResistancePerLength": 0,
+        "Contributions": [
+          {
+            "Phase": "G1 · getto e carpenteria",
+            "Kind": "Solo acciaio",
+            "V": 0,
+            "StaticMoment": 0,
+            "Inertia": 0,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "Nessuno scorrimento da V"
+          },
+          {
+            "Phase": "Ritiro soletta",
+            "Kind": "Ritiro",
+            "V": 0,
+            "StaticMoment": 0,
+            "Inertia": 0,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "Nessuno scorrimento da V"
+          }
+        ],
+        "Checks": [],
+        "Details": null
+      },
+      "MaxUtilization": 0.2620746663141292,
+      "SteelNeutralAxis": -1283.7223047575844
+    },
+    {
+      "Name": "G2 · permanenti portati",
+      "Iterations": 23,
+      "Residual": 6.037934124631445E-08,
+      "Effective": {
+        "WebTop": 284.3028360595339,
+        "WebBottom": 1201.75466980644,
+        "TopWidth": 500,
+        "BottomWidth": 700,
+        "Web": {
+          "Width": 1800,
+          "Thickness": 14,
+          "Psi": -0.7566122543420456,
+          "KSigma": 18.167770451264467,
+          "Lambda": 1.3054359180245294,
+          "Rho": 0.6936247508940054,
+          "CompressedWidth": 1024.6996715129974,
+          "EffectiveAtStart": 284.30282175774886,
+          "EffectiveAtEnd": 1201.7545611236258,
+          "StartStress": -99.72169653863732,
+          "EndStress": 75.45065762491174
+        },
+        "Top": {
+          "Width": 243,
+          "Thickness": 25,
+          "Psi": 1,
+          "KSigma": 0.43,
+          "Lambda": 0.6414959848926287,
+          "Rho": 1,
+          "CompressedWidth": 243,
+          "EffectiveAtStart": 243,
+          "EffectiveAtEnd": 0,
+          "StartStress": -102.15464590201994,
+          "EndStress": -102.15464590201994
+        },
+        "Bottom": {
+          "Width": 343,
+          "Thickness": 30,
+          "Psi": 1,
+          "KSigma": 0.43,
+          "Lambda": 0.7545717517769946,
+          "Rho": 1,
+          "CompressedWidth": 0,
+          "EffectiveAtStart": 343,
+          "EffectiveAtEnd": 0,
+          "StartStress": 75.45065762491174,
+          "EndStress": 75.45065762491174
+        }
+      },
+      "EffectiveSteel": {
+        "Area": 54304.80508212364,
+        "Centroid": -1105.9221081575083,
+        "Inertia": 32057627658.576683
+      },
+      "Contributions": [
+        {
+          "Name": "G1 · getto e carpenteria",
+          "Kind": "Solo acciaio",
+          "N": 0,
+          "Mx": 1500,
+          "N0": 0,
+          "HomogenizationN": 0,
+          "Phi": 0,
+          "EffectivePhi": 0,
+          "Area": 54304.80508212364,
+          "Centroid": -1105.9221081575083,
+          "Inertia": 32057627658.576683,
+          "UniformStress": 0,
+          "StressSlope": -0.04679073623212074,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 0,
+          "WBottom": 42796120.413759895,
+          "WTop": 28987238.27122457,
+          "SolverInertia": 32057627658.576683,
+          "EquilibriumResidual": 0,
+          "LoadY": -1058.028109028961,
+          "LoadReference": "Baricentro omogeneizzato lordo",
+          "V": 0,
+          "ShrinkageStrain": 0,
+          "ConcreteStressOffset": 0,
+          "EquivalentN": 0,
+          "EquivalentMomentAtInterface": 0,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": false,
+          "HasConcrete": false,
+          "MomentAtInterface": 1500,
+          "NeutralAxis": -1105.9221081575083
+        },
+        {
+          "Name": "Ritiro soletta",
+          "Kind": "Ritiro",
+          "N": 0,
+          "Mx": 0,
+          "N0": 6.162487867161709,
+          "HomogenizationN": 12.94122452103959,
+          "Phi": 2,
+          "EffectivePhi": 1.1,
+          "Area": 119297.17560234078,
+          "Centroid": -435.3232835753623,
+          "Inertia": 77230797668.97733,
+          "UniformStress": -25.23090406335517,
+          "StressSlope": -0.021838573875321714,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 8042.477193189877,
+          "WBottom": 54400270.69224465,
+          "WTop": 177410215.77038455,
+          "SolverInertia": 77228459018.66667,
+          "EquilibriumResidual": 3.867650027167441E-15,
+          "LoadY": 125,
+          "LoadReference": "Ritiro · CLS netto",
+          "V": 0,
+          "ShrinkageStrain": -0.00025,
+          "ConcreteStressOffset": 4.056803118951111,
+          "EquivalentN": -3009.975592651907,
+          "EquivalentMomentAtInterface": 376.24694908148837,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": true,
+          "HasConcrete": true,
+          "MomentAtInterface": 0,
+          "NeutralAxis": -1590.659900673189
+        },
+        {
+          "Name": "G2 · permanenti portati",
+          "Kind": "Composta",
+          "N": 0,
+          "Mx": 2000,
+          "N0": 6.162487867161709,
+          "HomogenizationN": 19.719961174917472,
+          "Phi": 2,
+          "EffectivePhi": 2.2,
+          "Area": 99589.00207902472,
+          "Centroid": -546.2085045467984,
+          "Inertia": 69716287972.97723,
+          "UniformStress": 2.1316282072803006E-14,
+          "StressSlope": -0.028688664427862588,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 8042.477193189877,
+          "WBottom": 53267681.07462086,
+          "WTop": 127636767.63111264,
+          "SolverInertia": 69713945904.62646,
+          "EquilibriumResidual": 2.980232238769531E-15,
+          "LoadY": -542.8298434335127,
+          "LoadReference": "Baricentro omogeneizzato lordo",
+          "V": 0,
+          "ShrinkageStrain": 0,
+          "ConcreteStressOffset": 0,
+          "EquivalentN": 0,
+          "EquivalentMomentAtInterface": 0,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": false,
+          "HasConcrete": true,
+          "MomentAtInterface": 2000,
+          "NeutralAxis": -546.2085045467976
+        }
+      ],
+      "Points": [
+        {
+          "Name": "Soletta · estradosso",
+          "Material": "CLS",
+          "Y": 250,
+          "Stress": -0.20767384091774388,
+          "Limit": 19.833333333333332,
+          "Utilization": 0.010470949962239188,
+          "Active": true,
+          "Contributions": [
+            0,
+            0.9506529123117273,
+            -1.1583267532294712
+          ]
+        },
+        {
+          "Name": "Soletta · intradosso",
+          "Material": "CLS",
+          "Y": 0,
+          "Stress": 0.5779069563243061,
+          "Limit": 19.833333333333332,
+          "Utilization": null,
+          "Active": true,
+          "Contributions": [
+            0,
+            1.3725328866491062,
+            -0.7946259303248001
+          ]
+        },
+        {
+          "Name": "Armatura · y=205",
+          "Material": "Armatura",
+          "Y": 205,
+          "Stress": -57.87220961724178,
+          "Limit": 391.304347826087,
+          "Utilization": 0.14789564679961786,
+          "Active": true,
+          "Contributions": [
+            0,
+            -37.34728704362314,
+            -20.524922573618635
+          ]
+        },
+        {
+          "Name": "Armatura · y=45",
+          "Material": "Armatura",
+          "Y": 45,
+          "Stress": -50.1728209234232,
+          "Limit": 391.304347826087,
+          "Utilization": 0.12821943124874818,
+          "Active": true,
+          "Contributions": [
+            0,
+            -34.01950435785982,
+            -16.15331656556338
+          ]
+        },
+        {
+          "Name": "Acciaio · estradosso",
+          "Material": "Acciaio",
+          "Y": 0,
+          "Stress": -102.15464590201994,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.3021475442172421,
+          "Active": true,
+          "Contributions": [
+            -51.74690965606887,
+            -34.73774375136334,
+            -15.669992494587735
+          ]
+        },
+        {
+          "Name": "Anima · sommità",
+          "Material": "Acciaio",
+          "Y": -25,
+          "Stress": -99.72169653863732,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.29495149680442023,
+          "Active": true,
+          "Contributions": [
+            -50.57714125026585,
+            -34.1917794044803,
+            -14.952775883891169
+          ]
+        },
+        {
+          "Name": "Anima · piede",
+          "Material": "Acciaio",
+          "Y": -1825,
+          "Stress": 75.45065762491174,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.22316391691875306,
+          "Active": true,
+          "Contributions": [
+            33.64618396755147,
+            5.117653571098785,
+            36.68682008626149
+          ]
+        },
+        {
+          "Name": "Acciaio · intradosso",
+          "Material": "Acciaio",
+          "Y": -1855,
+          "Stress": 78.37019686097089,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.23179917381413928,
+          "Active": true,
+          "Contributions": [
+            35.0499060545151,
+            5.772810787358434,
+            37.547480019097364
+          ]
+        }
+      ],
+      "Warnings": [
+        "CLS teso nel modello non fessurato: valutare una situazione con soletta esclusa; non è attestata la verifica del CLS in trazione.",
+        "Ritiro uniforme imposto al solo CLS: effetti primari autoequilibrati. Eventuali azioni secondarie da vincoli esterni vanno inserite come fasi N–Mx separate.",
+        "EN 1993-1-5 §5.1: per questa anima snella sono necessari irrigidimenti trasversali agli appoggi, da dimensionare separatamente. L’opzione del pannello riguarda quelli intermedi."
+      ],
+      "Shear": {
+        "V": 0,
+        "Web": {
+          "KTau": 5.34,
+          "TauCritical": 61.31245697030012,
+          "Slenderness": 1.8283507021322156,
+          "Chi": 0.45396104753429256,
+          "Area": 25200,
+          "PlasticResistance": 4919024.293495612,
+          "BucklingResistance": 2131543.356525451,
+          "Resistance": 2131543.356525451
+        },
+        "TauAverage": 0,
+        "TauMaximum": 0,
+        "EquivalentStressEnvelope": 99.72169653863732,
+        "UsesStiffeners": false,
+        "Stiffener": null,
+        "Checks": [
+          {
+            "Name": "Anima · resistenza a taglio",
+            "Demand": 0,
+            "Resistance": 2131.543356525451,
+            "Unit": "kN",
+            "Ratio": 0,
+            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Status": "Entro limite"
+          },
+          {
+            "Name": "Anima · tensione equivalente elastica (inviluppo)",
+            "Demand": 99.72169653863732,
+            "Resistance": 338.0952380952381,
+            "Unit": "MPa",
+            "Ratio": 0.29495149680442023,
+            "Note": "√(max|σ|² + 3 max|τ|²); τ sulla sezione lorda omogeneizzata",
+            "Status": "Entro limite"
+          }
+        ],
+        "Details": [],
+        "RigidEndPost": false
+      },
+      "Studs": {
+        "Enabled": false,
+        "Resistance": null,
+        "Flow": 0,
+        "ForcePerStud": 0,
+        "ResistancePerStud": 0,
+        "ResistancePerLength": 0,
+        "Contributions": [
+          {
+            "Phase": "G1 · getto e carpenteria",
+            "Kind": "Solo acciaio",
+            "V": 0,
+            "StaticMoment": 0,
+            "Inertia": 0,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "Nessuno scorrimento da V"
+          },
+          {
+            "Phase": "Ritiro soletta",
+            "Kind": "Ritiro",
+            "V": 0,
+            "StaticMoment": 0,
+            "Inertia": 0,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "Nessuno scorrimento da V"
+          },
+          {
+            "Phase": "G2 · permanenti portati",
+            "Kind": "Composta",
+            "V": 0,
+            "StaticMoment": 30395138.1458926,
+            "Inertia": 69716287972.97723,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "NTC: proprietà della fase tensionale"
+          }
+        ],
+        "Checks": [],
+        "Details": null
+      },
+      "MaxUtilization": 0.3021475442172421,
+      "SteelNeutralAxis": -1049.6996715129972
+    },
+    {
+      "Name": "Q · variabili",
+      "Iterations": 20,
+      "Residual": 8.957782126925748E-08,
+      "Effective": {
+        "WebTop": 286.3034874310857,
+        "WebBottom": 1428.5653381880645,
+        "TopWidth": 500,
+        "BottomWidth": 700,
+        "Web": {
+          "Width": 1800,
+          "Thickness": 14,
+          "Psi": -1.2475001833012431,
+          "KSigma": 30.206517302155948,
+          "Lambda": 1.012409115868711,
+          "Rho": 0.893703858463951,
+          "CompressedWidth": 800.8898123229819,
+          "EffectiveAtStart": 286.30332619100744,
+          "EffectiveAtEnd": 1428.5651769635292,
+          "StartStress": -103.22477687763748,
+          "EndStress": 128.77292807608268
+        },
+        "Top": {
+          "Width": 243,
+          "Thickness": 25,
+          "Psi": 1,
+          "KSigma": 0.43,
+          "Lambda": 0.6414959848926287,
+          "Rho": 1,
+          "CompressedWidth": 243,
+          "EffectiveAtStart": 243,
+          "EffectiveAtEnd": 0,
+          "StartStress": -106.44696722421693,
+          "EndStress": -106.44696722421693
+        },
+        "Bottom": {
+          "Width": 343,
+          "Thickness": 30,
+          "Psi": 1,
+          "KSigma": 0.43,
+          "Lambda": 0.7545717517769946,
+          "Rho": 1,
+          "CompressedWidth": 0,
+          "EffectiveAtStart": 343,
+          "EffectiveAtEnd": 0,
+          "StartStress": 128.77292807608268,
+          "EndStress": 128.77292807608268
+        }
+      },
+      "EffectiveSteel": {
+        "Area": 57508.16355866811,
+        "Centroid": -1072.6215570851434,
+        "Inertia": 33153443562.19079
+      },
+      "Contributions": [
+        {
+          "Name": "G1 · getto e carpenteria",
+          "Kind": "Solo acciaio",
+          "N": 0,
+          "Mx": 1500,
+          "N0": 0,
+          "HomogenizationN": 0,
+          "Phi": 0,
+          "EffectivePhi": 0,
+          "Area": 57508.16355866811,
+          "Centroid": -1072.6215570851434,
+          "Inertia": 33153443562.19079,
+          "UniformStress": 0,
+          "StressSlope": -0.04524416889564517,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 0,
+          "WBottom": 42375200.7259724,
+          "WTop": 30908798.48833684,
+          "SolverInertia": 33153443562.19079,
+          "EquilibriumResidual": 0,
+          "LoadY": -1058.028109028961,
+          "LoadReference": "Baricentro omogeneizzato lordo",
+          "V": 0,
+          "ShrinkageStrain": 0,
+          "ConcreteStressOffset": 0,
+          "EquivalentN": 0,
+          "EquivalentMomentAtInterface": 0,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": false,
+          "HasConcrete": false,
+          "MomentAtInterface": 1500,
+          "NeutralAxis": -1072.6215570851434
+        },
+        {
+          "Name": "Ritiro soletta",
+          "Kind": "Ritiro",
+          "N": 0,
+          "Mx": 0,
+          "N0": 6.162487867161709,
+          "HomogenizationN": 12.94122452103959,
+          "Phi": 2,
+          "EffectivePhi": 1.1,
+          "Area": 122500.53407888525,
+          "Centroid": -437.2262539842303,
+          "Inertia": 77262036220.80017,
+          "UniformStress": -24.57112220191317,
+          "StressSlope": -0.021903882040136873,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 8042.477193189877,
+          "WBottom": 54495321.58281396,
+          "WTop": 176709507.9875666,
+          "SolverInertia": 77259697570.48952,
+          "EquilibriumResidual": 3.712944026080743E-15,
+          "LoadY": 125,
+          "LoadReference": "Ritiro · CLS netto",
+          "V": 0,
+          "ShrinkageStrain": -0.00025,
+          "ConcreteStressOffset": 4.056803118951111,
+          "EquivalentN": -3009.975592651907,
+          "EquivalentMomentAtInterface": 376.24694908148837,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": true,
+          "HasConcrete": true,
+          "MomentAtInterface": 0,
+          "NeutralAxis": -1558.9964569504818
+        },
+        {
+          "Name": "G2 · permanenti portati",
+          "Kind": "Composta",
+          "N": 0,
+          "Mx": 2000,
+          "N0": 6.162487867161709,
+          "HomogenizationN": 19.719961174917472,
+          "Phi": 2,
+          "EffectivePhi": 2.2,
+          "Area": 102792.36055556919,
+          "Centroid": -545.0207682165901,
+          "Inertia": 69735514129.44711,
+          "UniformStress": 1.4210854715202004E-14,
+          "StressSlope": -0.028680754666483628,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 8042.477193189877,
+          "WBottom": 53234060.8442387,
+          "WTop": 127950196.02213463,
+          "SolverInertia": 69733172061.09634,
+          "EquilibriumResidual": 2.6226043701171873E-15,
+          "LoadY": -542.8298434335127,
+          "LoadReference": "Baricentro omogeneizzato lordo",
+          "V": 0,
+          "ShrinkageStrain": 0,
+          "ConcreteStressOffset": 0,
+          "EquivalentN": 0,
+          "EquivalentMomentAtInterface": 0,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": false,
+          "HasConcrete": true,
+          "MomentAtInterface": 2000,
+          "NeutralAxis": -545.0207682165897
+        },
+        {
+          "Name": "Q · variabili",
+          "Kind": "Composta",
+          "N": 0,
+          "Mx": 3000,
+          "N0": 6.162487867161709,
+          "HomogenizationN": 6.162487867161709,
+          "Phi": 0,
+          "EffectivePhi": 0,
+          "Area": 185566.68935349665,
+          "Centroid": -246.14967468670554,
+          "Inertia": 90749700585.8844,
+          "UniformStress": 3.552713678800501E-14,
+          "StressSlope": -0.0330588082609122,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 8042.477193189877,
+          "WBottom": 56406552.65318888,
+          "WTop": 368676906.4447834,
+          "SolverInertia": 90747372873.30211,
+          "EquilibriumResidual": 4.6258449644311675E-15,
+          "LoadY": -246.83710732590805,
+          "LoadReference": "Baricentro omogeneizzato lordo",
+          "V": 0,
+          "ShrinkageStrain": 0,
+          "ConcreteStressOffset": 0,
+          "EquivalentN": 0,
+          "EquivalentMomentAtInterface": 0,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": false,
+          "HasConcrete": true,
+          "MomentAtInterface": 3000,
+          "NeutralAxis": -246.14967468670446
+        }
+      ],
+      "Points": [
+        {
+          "Name": "Soletta · estradosso",
+          "Material": "CLS",
+          "Y": 250,
+          "Stress": -2.8229298500457727,
+          "Limit": 19.833333333333332,
+          "Utilization": 0.14233259748129948,
+          "Active": true,
+          "Contributions": [
+            0,
+            0.9949564645136659,
+            -1.1562799442517044,
+            -2.661606370307734
+          ]
+        },
+        {
+          "Name": "Soletta · intradosso",
+          "Material": "CLS",
+          "Y": 0,
+          "Stress": -0.695056933946255,
+          "Limit": 19.833333333333332,
+          "Utilization": 0.0350448874258616,
+          "Active": true,
+          "Contributions": [
+            0,
+            1.4180980691687348,
+            -0.7926793974240095,
+            -1.3204756056909803
+          ]
+        },
+        {
+          "Name": "Armatura · y=205",
+          "Material": "Armatura",
+          "Y": 205,
+          "Stress": -71.4895262406581,
+          "Limit": 391.304347826087,
+          "Utilization": 0.18269545594834843,
+          "Active": true,
+          "Contributions": [
+            0,
+            -36.7984479164407,
+            -20.486820617131034,
+            -14.204257707086358
+          ]
+        },
+        {
+          "Name": "Armatura · y=45",
+          "Material": "Armatura",
+          "Y": 45,
+          "Stress": -58.74385843608168,
+          "Limit": 391.304347826087,
+          "Utilization": 0.15012319378109762,
+          "Active": true,
+          "Contributions": [
+            0,
+            -33.4607135103246,
+            -16.116419906047817,
+            -9.166725019709261
+          ]
+        },
+        {
+          "Name": "Acciaio · estradosso",
+          "Material": "Acciaio",
+          "Y": 0,
+          "Stress": -106.44696722421693,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.3148431424941628,
+          "Active": true,
+          "Contributions": [
+            -48.52987088987014,
+            -34.148074494034674,
+            -15.631606941358445,
+            -8.137414898953676
+          ]
+        },
+        {
+          "Name": "Anima · sommità",
+          "Material": "Acciaio",
+          "Y": -25,
+          "Stress": -103.22477687763748,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.30531272034230805,
+          "Active": true,
+          "Contributions": [
+            -47.39876666747901,
+            -33.60047744303125,
+            -14.914588074696354,
+            -7.31094469243087
+          ]
+        },
+        {
+          "Name": "Anima · piede",
+          "Material": "Acciaio",
+          "Y": -1825,
+          "Stress": 128.77292807608268,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.3808776745912305,
+          "Active": true,
+          "Contributions": [
+            34.0407373446823,
+            5.826510229215113,
+            36.71077032497418,
+            52.194910177211085
+          ]
+        },
+        {
+          "Name": "Acciaio · intradosso",
+          "Material": "Acciaio",
+          "Y": -1855,
+          "Stress": 132.639556491978,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.39231418117345607,
+          "Active": true,
+          "Contributions": [
+            35.398062411551656,
+            6.4836266904192215,
+            37.57119296496869,
+            53.18667442503845
+          ]
+        }
+      ],
+      "Warnings": [
+        "Ritiro uniforme imposto al solo CLS: effetti primari autoequilibrati. Eventuali azioni secondarie da vincoli esterni vanno inserite come fasi N–Mx separate.",
+        "EN 1993-1-5 §5.1: per questa anima snella sono necessari irrigidimenti trasversali agli appoggi, da dimensionare separatamente. L’opzione del pannello riguarda quelli intermedi."
+      ],
+      "Shear": {
+        "V": 0,
+        "Web": {
+          "KTau": 5.34,
+          "TauCritical": 61.31245697030012,
+          "Slenderness": 1.8283507021322156,
+          "Chi": 0.45396104753429256,
+          "Area": 25200,
+          "PlasticResistance": 4919024.293495612,
+          "BucklingResistance": 2131543.356525451,
+          "Resistance": 2131543.356525451
+        },
+        "TauAverage": 0,
+        "TauMaximum": 0,
+        "EquivalentStressEnvelope": 128.77292807608268,
+        "UsesStiffeners": false,
+        "Stiffener": null,
+        "Checks": [
+          {
+            "Name": "Anima · resistenza a taglio",
+            "Demand": 0,
+            "Resistance": 2131.543356525451,
+            "Unit": "kN",
+            "Ratio": 0,
+            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Status": "Entro limite"
+          },
+          {
+            "Name": "Anima · tensione equivalente elastica (inviluppo)",
+            "Demand": 128.77292807608268,
+            "Resistance": 338.0952380952381,
+            "Unit": "MPa",
+            "Ratio": 0.3808776745912305,
+            "Note": "√(max|σ|² + 3 max|τ|²); τ sulla sezione lorda omogeneizzata",
+            "Status": "Entro limite"
+          }
+        ],
+        "Details": [],
+        "RigidEndPost": false
+      },
+      "Studs": {
+        "Enabled": false,
+        "Resistance": null,
+        "Flow": 0,
+        "ForcePerStud": 0,
+        "ResistancePerStud": 0,
+        "ResistancePerLength": 0,
+        "Contributions": [
+          {
+            "Phase": "G1 · getto e carpenteria",
+            "Kind": "Solo acciaio",
+            "V": 0,
+            "StaticMoment": 0,
+            "Inertia": 0,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "Nessuno scorrimento da V"
+          },
+          {
+            "Phase": "Ritiro soletta",
+            "Kind": "Ritiro",
+            "V": 0,
+            "StaticMoment": 0,
+            "Inertia": 0,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "Nessuno scorrimento da V"
+          },
+          {
+            "Phase": "G2 · permanenti portati",
+            "Kind": "Composta",
+            "V": 0,
+            "StaticMoment": 30341352.459935077,
+            "Inertia": 69735514129.44711,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "NTC: proprietà della fase tensionale"
+          },
+          {
+            "Phase": "Q · variabili",
+            "Kind": "Composta",
+            "V": 0,
+            "StaticMoment": 47528880.18960971,
+            "Inertia": 90749700585.8844,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "NTC: proprietà della fase tensionale"
+          }
+        ],
+        "Checks": [],
+        "Details": null
+      },
+      "MaxUtilization": 0.39231418117345607,
+      "SteelNeutralAxis": -825.8898123229819
+    },
+    {
+      "Name": "Ritiro soletta",
+      "Iterations": 21,
+      "Residual": 8.085809011188555E-08,
+      "Effective": {
+        "WebTop": 285.93008447722025,
+        "WebBottom": 1376.449869748078,
+        "TopWidth": 500,
+        "BottomWidth": 700,
+        "Web": {
+          "Width": 1800,
+          "Thickness": 14,
+          "Psi": -1.1115724513202947,
+          "KSigma": 26.663254538705296,
+          "Lambda": 1.077580677882046,
+          "Rho": 0.8385582461842879,
+          "CompressedWidth": 852.4452944413633,
+          "EffectiveAtStart": 285.93001242991943,
+          "EffectiveAtEnd": 1376.4497242035159,
+          "StartStress": -117.72472793988835,
+          "EndStress": 130.8595644171565
+        },
+        "Top": {
+          "Width": 243,
+          "Thickness": 25,
+          "Psi": 1,
+          "KSigma": 0.43,
+          "Lambda": 0.6414959848926287,
+          "Rho": 1,
+          "CompressedWidth": 243,
+          "EffectiveAtStart": 243,
+          "EffectiveAtEnd": 0,
+          "StartStress": -121.1772875559584,
+          "EndStress": -121.1772875559584
+        },
+        "Bottom": {
+          "Width": 343,
+          "Thickness": 30,
+          "Psi": 1,
+          "KSigma": 0.43,
+          "Lambda": 0.7545717517769946,
+          "Rho": 1,
+          "CompressedWidth": 0,
+          "EffectiveAtStart": 343,
+          "EffectiveAtEnd": 0,
+          "StartStress": 130.8595644171565,
+          "EndStress": 130.8595644171565
+        }
+      },
+      "EffectiveSteel": {
+        "Area": 56773.31935915418,
+        "Centroid": -1081.046744833176,
+        "Inertia": 32837831467.075283
+      },
+      "Contributions": [
+        {
+          "Name": "G1 · getto e carpenteria",
+          "Kind": "Solo acciaio",
+          "N": 0,
+          "Mx": 1500,
+          "N0": 0,
+          "HomogenizationN": 0,
+          "Phi": 0,
+          "EffectivePhi": 0,
+          "Area": 56773.31935915418,
+          "Centroid": -1081.046744833176,
+          "Inertia": 32837831467.075283,
+          "UniformStress": 0,
+          "StressSlope": -0.04567902120771796,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 0,
+          "WBottom": 42428701.27860262,
+          "WTop": 30375958.878764972,
+          "SolverInertia": 32837831467.075283,
+          "EquilibriumResidual": 0,
+          "LoadY": -1058.028109028961,
+          "LoadReference": "Baricentro omogeneizzato lordo",
+          "V": 0,
+          "ShrinkageStrain": 0,
+          "ConcreteStressOffset": 0,
+          "EquivalentN": 0,
+          "EquivalentMomentAtInterface": 0,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": false,
+          "HasConcrete": false,
+          "MomentAtInterface": 1500,
+          "NeutralAxis": -1081.046744833176
+        },
+        {
+          "Name": "Ritiro soletta",
+          "Kind": "Ritiro",
+          "N": 0,
+          "Mx": 0,
+          "N0": 6.162487867161709,
+          "HomogenizationN": 12.94122452103959,
+          "Phi": 2,
+          "EffectivePhi": 1.1,
+          "Area": 121765.68987937132,
+          "Centroid": -437.31995297126923,
+          "Inertia": 77261628485.54681,
+          "UniformStress": -24.71940655560508,
+          "StressSlope": -0.021907648094025692,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 8042.477193189877,
+          "WBottom": 54498635.74469919,
+          "WTop": 176670714.33766183,
+          "SolverInertia": 77259289835.23616,
+          "EquilibriumResidual": 2.634044218027194E-16,
+          "LoadY": 125,
+          "LoadReference": "Ritiro · CLS netto",
+          "V": 0,
+          "ShrinkageStrain": -0.00025,
+          "ConcreteStressOffset": 4.056803118951111,
+          "EquivalentN": -3009.975592651907,
+          "EquivalentMomentAtInterface": 376.24694908148837,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": true,
+          "HasConcrete": true,
+          "MomentAtInterface": 0,
+          "NeutralAxis": -1565.6659282905537
+        },
+        {
+          "Name": "G2 · permanenti portati",
+          "Kind": "Composta",
+          "N": 0,
+          "Mx": 2000,
+          "N0": 6.162487867161709,
+          "HomogenizationN": 19.719961174917472,
+          "Phi": 2,
+          "EffectivePhi": 2.2,
+          "Area": 102057.51635605526,
+          "Centroid": -545.9087135493445,
+          "Inertia": 69724028633.9338,
+          "UniformStress": 1.4210854715202004E-14,
+          "StressSlope": -0.02868547934678422,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 8042.477193189877,
+          "WBottom": 53261395.408854075,
+          "WTop": 127721039.98964925,
+          "SolverInertia": 69721686565.58304,
+          "EquilibriumResidual": 2.503395080566406E-15,
+          "LoadY": -542.8298434335127,
+          "LoadReference": "Baricentro omogeneizzato lordo",
+          "V": 0,
+          "ShrinkageStrain": 0,
+          "ConcreteStressOffset": 0,
+          "EquivalentN": 0,
+          "EquivalentMomentAtInterface": 0,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": false,
+          "HasConcrete": true,
+          "MomentAtInterface": 2000,
+          "NeutralAxis": -545.908713549344
+        },
+        {
+          "Name": "Q · variabili",
+          "Kind": "Composta",
+          "N": 0,
+          "Mx": 3000,
+          "N0": 6.162487867161709,
+          "HomogenizationN": 6.162487867161709,
+          "Phi": 0,
+          "EffectivePhi": 0,
+          "Area": 184831.84515398272,
+          "Centroid": -245.45173113669395,
+          "Inertia": 90726734639.62247,
+          "UniformStress": 2.842170943040401E-14,
+          "StressSlope": -0.03306717675666455,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 8042.477193189877,
+          "WBottom": 56367824.68393783,
+          "WTop": 369631675.5211478,
+          "SolverInertia": 90724406927.04018,
+          "EquilibriumResidual": 3.6860212925104335E-15,
+          "LoadY": -246.83710732590805,
+          "LoadReference": "Baricentro omogeneizzato lordo",
+          "V": 0,
+          "ShrinkageStrain": 0,
+          "ConcreteStressOffset": 0,
+          "EquivalentN": 0,
+          "EquivalentMomentAtInterface": 0,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": false,
+          "HasConcrete": true,
+          "MomentAtInterface": 3000,
+          "NeutralAxis": -245.4517311366931
+        },
+        {
+          "Name": "Ritiro soletta",
+          "Kind": "Ritiro",
+          "N": 0,
+          "Mx": 0,
+          "N0": 6.162487867161709,
+          "HomogenizationN": 12.94122452103959,
+          "Phi": 2,
+          "EffectivePhi": 1.1,
+          "Area": 121765.68987937132,
+          "Centroid": -437.31995297126923,
+          "Inertia": 77261628485.54681,
+          "UniformStress": -9.887762622242036,
+          "StressSlope": -0.008763059237610274,
+          "RebarRatio": 0.9523809523809523,
+          "RebarArea": 8042.477193189877,
+          "WBottom": 54498635.74469919,
+          "WTop": 176670714.33766183,
+          "SolverInertia": 77259289835.23616,
+          "EquilibriumResidual": 3.867650027167441E-16,
+          "LoadY": 125,
+          "LoadReference": "Ritiro · CLS netto",
+          "V": 0,
+          "ShrinkageStrain": -9.999999999999999E-05,
+          "ConcreteStressOffset": 1.622721247580444,
+          "EquivalentN": -1203.9902370607626,
+          "EquivalentMomentAtInterface": 150.49877963259533,
+          "ConnectionFlowExtra": 0,
+          "IsShrinkage": true,
+          "HasConcrete": true,
+          "MomentAtInterface": 0,
+          "NeutralAxis": -1565.6659282905543
+        }
+      ],
+      "Points": [
+        {
+          "Name": "Soletta · estradosso",
+          "Material": "CLS",
+          "Y": 250,
+          "Stress": -2.439901726477243,
+          "Limit": 19.833333333333332,
+          "Utilization": 0.12302025511649967,
+          "Active": true,
+          "Contributions": [
+            0,
+            0.983139560403516,
+            -1.1577620646375766,
+            -2.6585350464045887,
+            0.39325582416140614
+          ]
+        },
+        {
+          "Name": "Soletta · intradosso",
+          "Material": "CLS",
+          "Y": 0,
+          "Stress": -0.14227092367736427,
+          "Limit": 19.833333333333332,
+          "Utilization": 0.007173323882892316,
+          "Active": true,
+          "Contributions": [
+            0,
+            1.4063539181022158,
+            -0.7941016206293208,
+            -1.3170647883911448,
+            0.5625415672408856
+          ]
+        },
+        {
+          "Name": "Armatura · y=205",
+          "Material": "Armatura",
+          "Y": 205,
+          "Stress": -86.42182845369683,
+          "Limit": 391.304347826087,
+          "Utilization": 0.2208557838261141,
+          "Active": true,
+          "Contributions": [
+            0,
+            -36.943929570543595,
+            -20.514453708419058,
+            -14.185873346516729,
+            -14.77757182821744
+          ]
+        },
+        {
+          "Name": "Armatura · y=45",
+          "Material": "Armatura",
+          "Y": 45,
+          "Stress": -72.33826831120773,
+          "Limit": 391.304347826087,
+          "Utilization": 0.1848644634619753,
+          "Active": true,
+          "Contributions": [
+            0,
+            -33.605621289549205,
+            -16.143333046051943,
+            -9.147065459786894,
+            -13.442248515819685
+          ]
+        },
+        {
+          "Name": "Acciaio · estradosso",
+          "Material": "Acciaio",
+          "Y": 0,
+          "Stress": -121.1772875559584,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.358411695588046,
+          "Active": true,
+          "Contributions": [
+            -49.38115718376911,
+            -34.30005818979551,
+            -15.65965312774925,
+            -8.116395778726334,
+            -13.720023275918207
+          ]
+        },
+        {
+          "Name": "Anima · sommità",
+          "Material": "Acciaio",
+          "Y": -25,
+          "Stress": -117.72472793988835,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.3481998995405149,
+          "Active": true,
+          "Contributions": [
+            -48.23918165357617,
+            -33.75236698744487,
+            -14.942516144079644,
+            -7.28971635980972,
+            -13.500946794977951
+          ]
+        },
+        {
+          "Name": "Anima · piede",
+          "Material": "Acciaio",
+          "Y": -1825,
+          "Stress": 130.8595644171565,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.3870494158817305,
+          "Active": true,
+          "Contributions": [
+            33.98305652031616,
+            5.681399581801376,
+            36.69134668013195,
+            52.23120180218646,
+            2.2725598327205425
+          ]
+        },
+        {
+          "Name": "Acciaio · intradosso",
+          "Material": "Acciaio",
+          "Y": -1855,
+          "Stress": 135.00263595644057,
+          "Limit": 338.0952380952381,
+          "Utilization": 0.3993035711387679,
+          "Active": true,
+          "Contributions": [
+            35.3534271565477,
+            6.338629024622147,
+            37.551911060535474,
+            53.2232171048864,
+            2.5354516098488507
+          ]
+        }
+      ],
+      "Warnings": [
+        "Ritiro uniforme imposto al solo CLS: effetti primari autoequilibrati. Eventuali azioni secondarie da vincoli esterni vanno inserite come fasi N–Mx separate.",
+        "EN 1993-1-5 §5.1: per questa anima snella sono necessari irrigidimenti trasversali agli appoggi, da dimensionare separatamente. L’opzione del pannello riguarda quelli intermedi."
+      ],
+      "Shear": {
+        "V": 0,
+        "Web": {
+          "KTau": 5.34,
+          "TauCritical": 61.31245697030012,
+          "Slenderness": 1.8283507021322156,
+          "Chi": 0.45396104753429256,
+          "Area": 25200,
+          "PlasticResistance": 4919024.293495612,
+          "BucklingResistance": 2131543.356525451,
+          "Resistance": 2131543.356525451
+        },
+        "TauAverage": 0,
+        "TauMaximum": 0,
+        "EquivalentStressEnvelope": 130.8595644171565,
+        "UsesStiffeners": false,
+        "Stiffener": null,
+        "Checks": [
+          {
+            "Name": "Anima · resistenza a taglio",
+            "Demand": 0,
+            "Resistance": 2131.543356525451,
+            "Unit": "kN",
+            "Ratio": 0,
+            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Status": "Entro limite"
+          },
+          {
+            "Name": "Anima · tensione equivalente elastica (inviluppo)",
+            "Demand": 130.8595644171565,
+            "Resistance": 338.0952380952381,
+            "Unit": "MPa",
+            "Ratio": 0.3870494158817305,
+            "Note": "√(max|σ|² + 3 max|τ|²); τ sulla sezione lorda omogeneizzata",
+            "Status": "Entro limite"
+          }
+        ],
+        "Details": [],
+        "RigidEndPost": false
+      },
+      "Studs": {
+        "Enabled": false,
+        "Resistance": null,
+        "Flow": 0,
+        "ForcePerStud": 0,
+        "ResistancePerStud": 0,
+        "ResistancePerLength": 0,
+        "Contributions": [
+          {
+            "Phase": "G1 · getto e carpenteria",
+            "Kind": "Solo acciaio",
+            "V": 0,
+            "StaticMoment": 0,
+            "Inertia": 0,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "Nessuno scorrimento da V"
+          },
+          {
+            "Phase": "Ritiro soletta",
+            "Kind": "Ritiro",
+            "V": 0,
+            "StaticMoment": 0,
+            "Inertia": 0,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "Nessuno scorrimento da V"
+          },
+          {
+            "Phase": "G2 · permanenti portati",
+            "Kind": "Composta",
+            "V": 0,
+            "StaticMoment": 30381562.351306006,
+            "Inertia": 69724028633.9338,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "NTC: proprietà della fase tensionale"
+          },
+          {
+            "Phase": "Q · variabili",
+            "Kind": "Composta",
+            "V": 0,
+            "StaticMoment": 47439502.56750721,
+            "Inertia": 90726734639.62247,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "NTC: proprietà della fase tensionale"
+          },
+          {
+            "Phase": "Ritiro soletta",
+            "Kind": "Ritiro",
+            "V": 0,
+            "StaticMoment": 0,
+            "Inertia": 0,
+            "Flow": 0,
+            "AdditionalFlow": 0,
+            "Basis": "Nessuno scorrimento da V"
+          }
+        ],
+        "Checks": [],
+        "Details": null
+      },
+      "MaxUtilization": 0.3993035711387679,
+      "SteelNeutralAxis": -877.4452944413632
+    }
+  ]
+}

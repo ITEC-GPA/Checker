@@ -12,19 +12,18 @@ using GPC.Model.Results;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
 using GPC.Model.Standards;
-using GPC.TestUtilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using static GPC.Checkers.Concrete.Results.FailureDomain;
 
 namespace ConcreteTests
 {
     [TestClass]
-    public abstract class ConcreteTestBase : UnitTestBase
+    public abstract class ConcreteTestBase
     {
         #region Section Construction Methods
 
@@ -457,7 +456,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             if (sectionOptions == null)
-                sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+                sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, considerTensileConcrete, 64);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }
@@ -466,7 +465,7 @@ namespace ConcreteTests
             bool considerTensileConcrete = false, StandardEN1993p11 standardStructuralSteel = null)
         {
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, considerTensileConcrete, 64);
             var sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard,
                 considerTensileConcrete, -1, standardStructuralSteel);
             return sectionChecker;
@@ -477,7 +476,7 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             SectionCheckerModelCode2010.SectionOptionsModelCode2010 sectionOptions =
-                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section));
+                new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, considerTensileConcrete, 64);
             SectionCheckerModelCode2010 sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard,
                 considerTensileConcrete, -1, standardStructuralSteel);
             return sectionChecker;
@@ -485,10 +484,10 @@ namespace ConcreteTests
 
         protected SectionCheckerACI318 GetSectionCheckerACI318(IConcreteSection section, ResultBeamForces[] forcesSLS,
             ResultBeamForces[] forcesULS, StandardACI318 standard,
-            SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerTensileConcrete = false)
+            SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions, bool considerTensileConcrete = false, bool haveSpiral = false, StandardAISC standardAISC = null)
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
-            SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
+            SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete, haveSpiral, 1, standardAISC);
             return sectionChecker;
         }
 
@@ -497,7 +496,8 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, forcesSLS, forcesULS);
             SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions =
-                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity,
+                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, considerTensileConcrete, 64);
             SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }
@@ -506,7 +506,8 @@ namespace ConcreteTests
         {
             SectionCheckerAttribute sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
             SectionCheckerACI318.SectionOptionsStandardACI318 sectionOptions =
-                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section));
+                new SectionCheckerACI318.SectionOptionsStandardACI318(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity,
+                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, considerTensileConcrete, 64);
             SectionCheckerACI318 sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, considerTensileConcrete);
             return sectionChecker;
         }
@@ -685,7 +686,7 @@ namespace ConcreteTests
 
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(b, h, rebarDiameter, h / 10, concreteMaterial, rebarMaterial);
             SectionCheckerModelCode2010 sectionChecker = GetSectionCheckerModelCode2010(section, standard);
-            sectionChecker.SectionSolver.SetTetaDiscretization(32);
+            sectionChecker.SectionSolver.TetaDiscretization = 32;
             return (sectionChecker.GetPlasticFailureDomainResult(), section);
         }
 
@@ -720,8 +721,8 @@ namespace ConcreteTests
         protected bool TensionAnalysisCommonAssertModelCode(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
             StandardModelCode2010 standard)
         {
-            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard);
-            var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
+            var solver = new SectionSolverModelCode2010(section, new GPC.Checkers.Concrete.Checkers.SectionCheckerModelCode2010.SectionOptionsModelCode2010(), standard, section.Centroid);
+            var adimExternalForces = solver.ConvertToAdimensionalForces(new ForceTuple(forces.N, forces.M1, forces.M2));
 
             List<string> log = result.GetLog();
             foreach (string s in log)
@@ -744,9 +745,9 @@ namespace ConcreteTests
                 for (int i = 0; i < concreteTensions.Length; i++)
                     Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
 
-                ForceTuple calculatedForces = solver.CalculateSectionForceResultant(result.StrainPlane);
+                ForceTuple calculatedForces = solver.CalculateForceResultantForDomain(result.StrainPlane);
 
-                var adimForces = solver.ConvertToAdimForces(calculatedForces);
+                var adimForces = solver.ConvertToAdimensionalForces(calculatedForces);
                 double tolerance = 1e-5;
 
                 if (Math.Abs(adimForces.N - adimExternalForces.N) > tolerance ||
@@ -766,8 +767,8 @@ namespace ConcreteTests
         protected bool TensionAnalysisCommonAssertACI(StressAnalysisResult result, IConcreteSection section, ResultBeamForces forces,
             StandardACI318 standard, bool haveSpiral)
         {
-            SectionSolverACI318Test solver = new SectionSolverACI318Test(section, standard, haveSpiral);
-            var adimExternalForces = solver.ConvertToAdimForces(new ForceTuple(forces.N, forces.M1, forces.M2));
+            var solver = new SectionSolverACI318(section, new SectionCheckerACI318.SectionOptionsStandardACI318(), standard, haveSpiral, section.Centroid);
+            var adimExternalForces = solver.ConvertToAdimensionalForces(new ForceTuple(forces.N, forces.M1, forces.M2));
 
             List<string> log = result.GetLog();
             foreach (string s in log)
@@ -790,9 +791,9 @@ namespace ConcreteTests
                 for (int i = 0; i < concreteTensions.Length; i++)
                     Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
 
-                ForceTuple calculatedForces = solver.CalculateSectionForceResultantForTension(result.StrainPlane);
+                ForceTuple calculatedForces = solver.CalculateForceResultantForTension(result.StrainPlane);
 
-                var adimForces = solver.ConvertToAdimForces(calculatedForces);
+                var adimForces = solver.ConvertToAdimensionalForces(calculatedForces);
                 double tolerance = 1e-5;
 
                 if (Math.Abs(adimForces.N - adimExternalForces.N) > tolerance ||
@@ -849,7 +850,7 @@ namespace ConcreteTests
             if (factor == null)
                 factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
 
-            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard, standardStructuralSteel: standardStructuralSteel);
+            var solver = new SectionSolverModelCode2010(section, options, standard, section.Centroid, standardStructuralSteel: standardStructuralSteel);
             FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
             ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
             int j = 0;
@@ -869,12 +870,7 @@ namespace ConcreteTests
                     else if (options.FailureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantNMy)
                         testForces[j] = new ResultBeamForces(force.N, 0, 0, 0, factor[j] * force.M1, force.M2, force.CoordinateSystem);
 
-                    if (failureDomainTypes == SectionSolver.FailureDomainTypes.Plastic)
-                        failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-                            options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
-                    else
-                        failureDomainPoints[j] = solver.CalculateElasticDomainPoint(testForces[j].ConvertToForceTuple(options.ForceReferenceCoordinateSystem),
-                            options.ForceReferenceCoordinateSystem, options.FailureAnalysisType);
+                    failureDomainPoints[j] = solver.CalculateDomainPoint(testForces[j], options.FailureAnalysisType);
                 }
             }
             catch (Exception e)
@@ -891,7 +887,7 @@ namespace ConcreteTests
 
                 if (failureDomainPoints[i] != null && failureDomainPoints[0] != null)
                 {
-                    ForceTuple adimForces = solver.ConvertToAdimForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
+                    ForceTuple adimForces = solver.ConvertToAdimensionalForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
                         failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X,
                         failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y));
 
@@ -941,7 +937,14 @@ namespace ConcreteTests
             if (factor == null)
                 factor = new double[] { 0.75, 1.0, 1.25, 2.0, 3.0 };
 
-            SectionSolverModelCode2010Test solver = new SectionSolverModelCode2010Test(section, standard, considerTensioleConcrete);
+            var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010()
+            {
+                ForceReferenceCoordinateSystem = coordinateSystem,
+                FailureAnalysisType = failureAnalysisTypes,
+                ConsiderTensileConcrete = true
+            };
+
+            var solver = new SectionSolverModelCode2010(section, options, standard, section.Centroid, considerTensioleConcrete);
             FailureDomain.FailureDomainPoint[] failureDomainPoints = new FailureDomain.FailureDomainPoint[factor.Length];
             ResultBeamForces[] testForces = new ResultBeamForces[factor.Length];
             int j = 0;
@@ -951,7 +954,7 @@ namespace ConcreteTests
                 for (j = 0; j < factor.Length; j++)
                 {
                     testForces[j] = new ResultBeamForces(factor[j] * force.N, 0, 0, 0, factor[j] * force.M1, factor[j] * force.M2, force.CoordinateSystem);
-                    failureDomainPoints[j] = solver.CalculatePlasticDomainPointTest(testForces[j].ConvertToForceTuple(coordinateSystem), coordinateSystem, failureAnalysisTypes);
+                    failureDomainPoints[j] = solver.CalculateDomainPoint(testForces[j], failureAnalysisTypes);
                 }
             }
             catch (Exception e)
@@ -968,7 +971,7 @@ namespace ConcreteTests
 
                 if (failureDomainPoints[i] != null)
                 {
-                    ForceTuple adimForces = solver.ConvertToAdimForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
+                    ForceTuple adimForces = solver.ConvertToAdimensionalForces(new ForceTuple(failureDomainPoints[0].Point.Z - failureDomainPoints[i].Point.Z,
                         failureDomainPoints[0].Point.X - failureDomainPoints[i].Point.X,
                         failureDomainPoints[0].Point.Y - failureDomainPoints[i].Point.Y));
 
@@ -1073,7 +1076,31 @@ namespace ConcreteTests
 
 
             // valore per campo di deformazione 6 (epsilon 0.2% costante)
-            double pureCompressionClsStress = ((ConcreteMaterialEuropeanCommon)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC;
+            double pureCompressionClsStress;
+            double maxStrain;
+            // possibile riduzione della tensione nel calcestruzzo dovuto all'acciaio usando il campo elastico
+            if (failureDomain.FailureDomainAnalysisTypes == SectionSolver.FailureDomainTypes.Elastic)
+            {
+                NRdMin = failureDomain.DomainPoints[0].Last().Point;
+
+                // usa le deformazioni di calcolo, dividendo per i gamma, in modo da mantenere costante il modulo E
+                var maxStrainInRebars = section.GetRebars().Select(r => r.RebarMaterial.StrainYCompression / standard.GammaS).Max();
+                double maxStrainInSteelSections;
+                if (section.SteelSections.Count > 0)
+                    maxStrainInSteelSections = section.SteelSections.Select(ss => ss.Section.SteelMaterial.StrainYCompression / standardStructuralSteel.GammaM0).Max();
+                else
+                    maxStrainInSteelSections = double.MinValue;
+                var strainInConcrete = section.ConcreteMaterial.StrainYCompression;
+
+                maxStrain = Math.Max(Math.Max(maxStrainInRebars, maxStrainInSteelSections), strainInConcrete);
+                pureCompressionClsStress = section.ConcreteMaterial.GetStress(maxStrain) * standard.AlphaCC / standard.GammaC;
+            }
+            else
+            {
+                maxStrain = -0.002;
+                pureCompressionClsStress = ((ConcreteMaterialEuropeanCommon)section.ConcreteMaterial).Fck * standard.AlphaCC / standard.GammaC;
+            }
+
             double clsArea = section.Shape.GetArea();
             var centerId = GetLocalCoordinateSystem(section).Origin;
             double pureCompressionAxialForce = clsArea * pureCompressionClsStress;
@@ -1082,18 +1109,18 @@ namespace ConcreteTests
 
             foreach (ReinforcedConcreteRebar rebar in section.GetRebars())
             {
-                var rebarsFyd = rebar.RebarMaterial.Fyk / standard.GammaS + pureCompressionClsStress;
-                pureCompressionAxialForce -= rebar.Area * rebarsFyd;
-                pureCompressionMomentX += rebar.Area * rebarsFyd * (rebar.Position.Y - centerId.Y);
-                pureCompressionMomentY -= rebar.Area * rebarsFyd * (rebar.Position.X - centerId.X);
+                double rebarsFydMinusConcrete = rebar.RebarMaterial.CalculateDesignStress(standard, maxStrain) - pureCompressionClsStress;
+                pureCompressionAxialForce += rebar.Area * rebarsFydMinusConcrete;
+                pureCompressionMomentX -= rebar.Area * rebarsFydMinusConcrete * (rebar.Position.Y - centerId.Y);
+                pureCompressionMomentY += rebar.Area * rebarsFydMinusConcrete * (rebar.Position.X - centerId.X);
             }
             foreach (var steelSection in section.SteelSections)
             {
-                var steelMatFyd = steelSection.Section.SteelMaterial.Fyk / standardStructuralSteel.GammaM0;
-                pureCompressionAxialForce -= steelSection.Section.Area * steelMatFyd;
+                var steelMatFyd = steelSection.Section.SteelMaterial.GetStress(maxStrain) / standardStructuralSteel.GammaM0;
+                pureCompressionAxialForce += steelSection.Section.Area * steelMatFyd;
                 var steelSectionGlobalPosition = steelSection.PositionToGlobal(steelSection.Section.Centroid);
-                pureCompressionMomentX += steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.Y - centerId.Y);
-                pureCompressionMomentY -= steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.X - centerId.X);
+                pureCompressionMomentX -= steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.Y - centerId.Y);
+                pureCompressionMomentY += steelSection.Section.Area * steelMatFyd * (steelSectionGlobalPosition.X - centerId.X);
             }
 
             if (Math.Abs(NRdMin.Z) > errorAbsoluteN && Math.Abs(pureCompressionAxialForce) > errorAbsoluteN)
@@ -1253,10 +1280,10 @@ namespace ConcreteTests
             double distance = double.MaxValue;
             Point3d nearestPoint = new Point3d();
 
-            failureDomain.Domain.SetAxialForceSubdivision(100);
+            failureDomain.Domain.AxialForceSubdivision = 100;
             Mesh mesh = failureDomain.Domain.GetMesh(out _);
 
-            for (int i = 1; i <= mesh.VerticesCount; i++)
+            for (int i = 0; i < mesh.VerticesCount; i++)
             {
                 double d = new Point3d(mesh.Vertices[i].Point.X / 1000000, mesh.Vertices[i].Point.Y / 1000000,
                     mesh.Vertices[i].Point.Z / 1000).DistanceTo(new Point3d(expForce.Mx / 1000000, expForce.My / 1000000, expForce.N / 1000));
@@ -1696,110 +1723,5 @@ namespace ConcreteTests
         }
 
         #endregion
-
-        internal class SectionSolverModelCode2010Test : SectionSolverModelCode2010
-        {
-            internal SectionSolverModelCode2010Test(IConcreteSection section, StandardModelCode2010 standard,
-                bool considerTensileConcrete = false, int id = -1, StandardEN1993p11 standardStructuralSteel = null)
-                : base(section, standard, considerTensileConcrete, id, standardStructuralSteel)
-            {
-            }
-
-            internal ForceTuple CalculateSectionForceResultant(StrainPlane strainPlane)
-            {
-                return base.CalculateForceResultantForDomain(strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
-            }
-
-            internal ForceTuple CalculateLinearSectionForceResultant(double psi, double? psiTendon, StrainPlane strainPlane)
-            {
-                return base.CalculateForceResultant(psi, psiTendon, strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
-            }
-
-            internal double CalculateSigmaConcrete(double strain)
-            {
-                return base.CalculateSigmaC(strain);
-            }
-
-            internal double GetDesignUltimateStrainRebars(ReinforcedConcreteRebar rebar, double strain)
-            {
-                return base.CalculateStressRebar(rebar, strain);
-            }
-
-            internal ForceTuple ConvertToAdimForces(ForceTuple force)
-            {
-                return base.ConvertToAdimensionalForces(force);
-            }
-
-            internal override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
-            {
-                return base.CalculateStressRebar(rebar, strain);
-            }
-
-            internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
-                FailureAnalysisTypes failureAnalysisType = FailureAnalysisTypes.ConstantEccentricity)
-            {
-                return base.CalculatePlasticDomainPoint(targetLocalForces, coordinateSystem, failureAnalysisType);
-            }
-
-            internal ForceTuple IntegrateSectionStressTest(StrainPlane strainPlane)
-            {
-                return base.IntegrateSectionStress(strainPlane);
-            }
-        }
-
-        internal class SectionSolverACI318Test : SectionSolverACI318
-        {
-            internal SectionSolverACI318Test(IConcreteSection section, StandardACI318 standard, bool haveSpiral,
-                bool considerTensileConcrete = false, int id = -1, StandardEN1993p11 standardStructuralSteel = null)
-                : base(section, standard, haveSpiral, considerTensileConcrete, id, standardStructuralSteel)
-            {
-            }
-
-            internal ForceTuple CalculateSectionForceResultantForTension(StrainPlane strainPlane)
-            {
-                return base.CalculateForceResultantForTension(strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
-            }
-
-            internal ForceTuple CalculateSectionForceResultant(StrainPlane strainPlane)
-            {
-                return base.CalculateForceResultantForDomain(strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
-            }
-
-            internal ForceTuple CalculateLinearSectionForceResultant(double psi, double? psiTendon, StrainPlane strainPlane)
-            {
-                return base.CalculateForceResultant(psi, psiTendon, strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
-            }
-
-            internal double CalculateSigmaConcrete(double strain)
-            {
-                return base.CalculateSigmaC(strain);
-            }
-
-            internal double GetDesignUltimateStrainRebars(ReinforcedConcreteRebar rebar, double strain)
-            {
-                return base.CalculateStressRebar(rebar, strain);
-            }
-
-            internal ForceTuple ConvertToAdimForces(ForceTuple force)
-            {
-                return base.ConvertToAdimensionalForces(force);
-            }
-
-            internal override double CalculateStressRebar(ReinforcedConcreteRebar rebar, double strain)
-            {
-                return base.CalculateStressRebar(rebar, strain);
-            }
-
-            internal FailureDomain.FailureDomainPoint CalculatePlasticDomainPointTest(ForceTuple targetLocalForces, CoordinateSystem coordinateSystem,
-                FailureAnalysisTypes failureAnalysisType = FailureAnalysisTypes.ConstantEccentricity)
-            {
-                return base.CalculatePlasticDomainPoint(targetLocalForces, coordinateSystem, failureAnalysisType);
-            }
-
-            internal ForceTuple IntegrateSectionStressTest(StrainPlane strainPlane)
-            {
-                return base.IntegrateSectionStress(strainPlane);
-            }
-        }
     }
 }

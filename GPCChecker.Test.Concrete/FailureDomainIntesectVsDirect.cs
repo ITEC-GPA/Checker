@@ -1,9 +1,9 @@
 ﻿using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
-using GPC.Geometry.Meshes;
 using GPC.Model.Data.Concrete;
 using GPC.Model.Data.Steel;
 using GPC.Model.Materials;
@@ -13,8 +13,8 @@ using GPC.Utilities.Maths;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using static GPC.Checkers.Concrete.Results.FailureDomain;
 
 namespace ConcreteTests
 {
@@ -34,11 +34,11 @@ namespace ConcreteTests
         /// <param name="maxDirectDomPointError"></param>
         private static void CompareDirectAndIntersectmethods(SectionChecker sectionChecker, ResultBeamForces[] forces, List<double> referenceWorkingRatio, double maxIntersectWRError, double maxDirectWRError, List<ForceTuple> referenceForces/*, double maxIntersectDomPointError, double maxDirectDomPointError*/)
         {
-            var intersectDomPoint = new List<FailureDomainPoint>();
+            var intersectDomPoint = new List<FailureDomain.FailureDomainPoint>();
             var intersectWR = new List<double>();
             var intersectDomForces = new List<ForceTuple>();
 
-            var directDomPoint = new List<FailureDomainPoint>();
+            var directDomPoint = new List<FailureDomain.FailureDomainPoint>();
             var directWR = new List<double>();
             var directDomForces = new List<ForceTuple>();
 
@@ -47,34 +47,48 @@ namespace ConcreteTests
             // Calculate domain mesh for intersect method.
             //sectionChecker.SectionSolver.SetTetaDiscretization(64);
             var plasticDomainResult = sectionChecker.GetPlasticFailureDomainResult();
-            var plastiDomainMesh = plasticDomainResult.Domain.GetMesh(plasticDomainResult.Domain, out Dictionary<MeshVertex, FailureDomainPoint> vertexToDomainPoint);
             // Get point of section.
             var secLines = sectionChecker.SectionSolver.ConcreteSection.SectionShape.Shape.Fill.Explode();
             var secPoints = secLines.Select(l => l.Start).ToArray();
             // Solver
-            var solverTestModelCode = sectionChecker.SectionSolver as SectionSolverModelCode2010Test;
-            var solverTestACI = sectionChecker.SectionSolver as SectionSolverACI318Test;
+            var solverTestModelCode = sectionChecker.SectionSolver as SectionSolverModelCode2010;
+            var solverTestACI = sectionChecker.SectionSolver as SectionSolverACI318;
+
+            // Timer
+            var stopwatch = new Stopwatch();
+            stopwatch.Reset();
+            stopwatch.Start(); // *** timer ***
 
             foreach (var appliedForce in forces)
             {
                 // ***** Intersect method - ratio
-                var failIntersect = new FailureDomainPoint(plastiDomainMesh, appliedForce, vertexToDomainPoint, sectionChecker, SectionSolver.FailureDomainTypes.Plastic, 10);
+                sectionChecker.SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes.Intersection);
+                var failIntersect = sectionChecker.SectionSolver.CalculateDomainPoint(appliedForce);
                 intersectDomPoint.Add(failIntersect);
                 intersectWR.Add(failIntersect.WorkingRatio);
                 if (solverTestACI is null)
-                    intersectDomForces.Add(solverTestModelCode.CalculateSectionForceResultant(failIntersect.StrainPlane));
+                    intersectDomForces.Add(solverTestModelCode.CalculateForceResultantForDomain(failIntersect.StrainPlane));
                 else
-                    intersectDomForces.Add(solverTestACI.CalculateSectionForceResultant(failIntersect.StrainPlane));
+                    intersectDomForces.Add(solverTestACI.CalculateForceResultantForDomain(failIntersect.StrainPlane));
 
                 var epsIntersect = new List<double>();
                 foreach (var p in secPoints)
                     epsIntersect.Add(failIntersect.StrainPlane.GetStrain(p));
+            }
 
+            stopwatch.Stop(); // *** timer ***
+            var elapsedTimeIntersect = stopwatch.Elapsed;
+            stopwatch.Reset();
+            stopwatch.Start(); // *** timer ***
+
+            foreach (var appliedForce in forces)
+            {
                 // ***** Direct/iterative method - ratio
-                FailureDomainPoint failDirect;
+                sectionChecker.SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes.Iterative);
+                FailureDomain.FailureDomainPoint failDirect;
                 try
                 {
-                    failDirect = sectionChecker.CalculatePlasticFailureDomainPoint(appliedForce);
+                    failDirect = sectionChecker.CalculateFailureDomainPoint(appliedForce);
                 }
                 catch
                 {
@@ -86,9 +100,9 @@ namespace ConcreteTests
                 if (failDirect != null)
                 {
                     if (solverTestACI is null)
-                        directDomForces.Add(solverTestModelCode.CalculateSectionForceResultant(failDirect.StrainPlane));
+                        directDomForces.Add(solverTestModelCode.CalculateForceResultantForDomain(failDirect.StrainPlane));
                     else
-                        directDomForces.Add(solverTestACI.CalculateSectionForceResultant(failDirect.StrainPlane));
+                        directDomForces.Add(solverTestACI.CalculateForceResultantForDomain(failDirect.StrainPlane));
                 }
                 else
                     directDomForces.Add(new ForceTuple());
@@ -106,6 +120,10 @@ namespace ConcreteTests
                 //    Assert.AreEqual(epsIntersect[i], epsDirect[i], 5e-4);
                 //}
             }
+
+            stopwatch.Stop(); // *** timer ***
+            var elapsedTimeIntersectIterative = stopwatch.Elapsed;
+
             var intersectWRrelativeError = intersectWR.Select((val, index) => Error.CalcRelativeError(val, referenceWorkingRatio[index])).ToArray();
             var directWRrelativeError = directWR.Select((val, index) => Error.CalcRelativeError(val, referenceWorkingRatio[index])).ToArray();
 
@@ -148,15 +166,15 @@ namespace ConcreteTests
             var section = GetRectangularSection4Rebars(300, 500, 20, 50, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
             var standard = new StandardNTC2018Concrete();
             cs = GetLocalCoordinateSystem(section);
-            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, ratioMode);
+            var sectionOptions = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(cs, ratioMode, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             // Code, solver and checker.
             bool considerTensileConcrete = false;
             int id = -1;
             StandardEN1993p11 standardStructuralSteel = null;
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var solver = new SectionSolverModelCode2010Test(section, standard, considerTensileConcrete, id, standardStructuralSteel);
-            sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, solver, id, standardStructuralSteel);
+            var solver = new SectionSolverModelCode2010(section, sectionOptions, standard, section.Centroid, considerTensileConcrete, id, standardStructuralSteel);
+            sectionChecker = new SectionCheckerModelCode2010(sectionCheckerAttribute, sectionOptions, standard, solver, id);
             sectionChecker.SectionCheckerOptionsModelCode2010.FailureAnalysisType = ratioMode;
 
             // External forces
@@ -187,15 +205,15 @@ namespace ConcreteTests
                 new SteelMaterialACI318("Grade 60", 200000, 420, 420, 0.10, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar));
             var standard = new StandardACI318p19();
             cs = GetLocalCoordinateSystem(section);
-            var sectionOptions = new SectionCheckerACI318.SectionOptionsStandardACI318(cs, ratioMode);
+            var sectionOptions = new SectionCheckerACI318.SectionOptionsStandardACI318(cs, ratioMode, SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
 
             // Code, solver and checker.
             bool considerTensileConcrete = false;
             int id = -1;
             StandardEN1993p11 standardStructuralSteel = null;
             var sectionCheckerAttribute = new SectionCheckerAttribute(section, null, null);
-            var solver = new SectionSolverACI318Test(section, standard, considerTensileConcrete, false, id, standardStructuralSteel);
-            sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, solver, id, standardStructuralSteel);
+            var solver = new SectionSolverACI318(section, sectionOptions, standard, considerTensileConcrete, section.Centroid, false, id, standardStructuralSteel);
+            sectionChecker = new SectionCheckerACI318(sectionCheckerAttribute, sectionOptions, standard, solver, id);
             sectionChecker.SectionCheckerOptionsACI318.FailureAnalysisType = ratioMode;
 
             // External forces, Mx My N

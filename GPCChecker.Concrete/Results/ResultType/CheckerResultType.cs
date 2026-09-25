@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using GPC.Checkers.Concrete.SectionSolvers;
-using GPC.Model;
-using GPC.Model.Results;
+﻿using GPC.Model;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Concrete.Results
 {
@@ -18,10 +13,12 @@ namespace GPC.Checkers.Concrete.Results
         #region Variables
 
         protected readonly IConcreteSection _section;
+        /// <summary>
+        /// Standard for concrete section and rebars.
+        /// </summary>
         protected readonly Standard _standard;
         /// <summary>
         /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
-        /// Must be StandardEN1993p11, currently the only one implemented.
         /// </summary>
         protected readonly Standard _standardStructuralSteel;
 
@@ -31,11 +28,13 @@ namespace GPC.Checkers.Concrete.Results
 
         public IConcreteSection ConcreteSection => _section;
 
+        /// <summary>
+        /// <inheritdoc cref="_standard"/>
+        /// </summary>
         public Standard Standard => _standard;
 
         /// <summary>
-        /// Standard for steel structural sections, like for example IPE300 inside reinforced concrete.
-        /// Must be StandardEN1993p11, currently the only one implemented.
+        /// <inheritdoc cref="_standardStructuralSteel"/>
         /// </summary>
         public Standard StandardStructuralSteel => _standardStructuralSteel;
 
@@ -56,7 +55,7 @@ namespace GPC.Checkers.Concrete.Results
         {
             _section = (IConcreteSection)info.GetValue("ConcreteSection", typeof(IConcreteSection));
             _standard = (Standard)info.GetValue("Standard", typeof(Standard));
-            _standardStructuralSteel = (StandardEN1993p11)info.GetValue("StandardStructuralSteel", typeof(StandardEN1993p11));
+            _standardStructuralSteel = (Standard)info.GetValue("StandardStructuralSteel", typeof(Standard));
         }
 
         #endregion
@@ -91,6 +90,6 @@ namespace GPC.Checkers.Concrete.Results
             info.AddValue("StandardStructuralSteel", _standardStructuralSteel);
         }
 
-		#endregion
-	}
+        #endregion
+    }
 }

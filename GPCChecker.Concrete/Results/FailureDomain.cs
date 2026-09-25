@@ -1,4 +1,3 @@
-using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
@@ -28,12 +27,14 @@ namespace GPC.Checkers.Concrete.Results
 
         public FailureDomainPoint[][] DomainPoints => _domainPoints;
 
-        public SectionSolver.FailureDomainTypes FailureDomainAnalysisTypes => _analysisType;
+        public SectionSolver.FailureDomainTypes FailureDomainAnalysisTypes { get => _analysisType; set => _analysisType = value; }
 
         /// <summary>
         /// In 3d domain force use of linear interpolation instead of quadratic.
         /// </summary>
         public bool ForceLinearInterpolation { get; set; }
+
+        public int AxialForceSubdivision { get => _axialForceSubdivision; set => _axialForceSubdivision = value; }
 
         #endregion
 
@@ -79,12 +80,12 @@ namespace GPC.Checkers.Concrete.Results
         {
             Mesh mesh = new Mesh();
 
-            int progressVertexId = 1;
-            int progressEdgeId = 1;
-            int progressPlateId = 1;
+            int progressVertexId = 0;
+            int progressEdgeId = 0;
+            int progressPlateId = 0;
 
             var pointVertexAssociation = new Dictionary<Point3d, MeshVertex>();
-            var pointIdAssociation = new Dictionary<MeshVertex, int>();
+            var pointIdAssociation = new Dictionary<Point3d, int>();
             vertexToDomainPoint = new Dictionary<MeshVertex, FailureDomainPoint>();
 
             FailureDomainPoint[][] domainPoint = failureDomain.DomainPoints;
@@ -93,38 +94,35 @@ namespace GPC.Checkers.Concrete.Results
             {
                 for (int j = 0; j < domainPoint[i].Length; j++)
                 {
-                    bool commonPoint = false;
                     int vertexId = -1;
 
                     MeshVertex mv = new MeshVertex(domainPoint[i][j].Point);
 
                     if (pointVertexAssociation.ContainsKey(domainPoint[i][j].Point))
                     {
-                        vertexId = pointIdAssociation[mv];
-                        commonPoint = true;
+                        vertexId = pointIdAssociation[mv.Point];
                     }
-
-                    if (!commonPoint)
+                    else
                     {
-                        if (!pointIdAssociation.ContainsKey(mv))
+                        if (!pointIdAssociation.ContainsKey(mv.Point))
                         {
-                            vertexId = mesh.Vertices.Build(mv, progressVertexId++);
+                            vertexId = mesh.Vertices.Add(mv, progressVertexId++);
                         }
                         else
                         {
-                            vertexId = pointIdAssociation[mv];
+                            vertexId = pointIdAssociation[mv.Point];
                         }
 
-                        pointIdAssociation.Add(mv, vertexId);
+                        pointIdAssociation.Add(mv.Point, vertexId);
                         pointVertexAssociation.Add(domainPoint[i][j].Point, mv);
-                        vertexToDomainPoint.Add(mv, domainPoint[i][j]);
+                        if (!vertexToDomainPoint.ContainsKey(mv))
+                            vertexToDomainPoint.Add(mv, domainPoint[i][j]);
                     }
 
                     if (vertexId == -1)
                     {
                         throw new NotSupportedException("Vertex id not assigned");
                     }
-
                 }
             }
 
@@ -141,62 +139,62 @@ namespace GPC.Checkers.Concrete.Results
                     {
                         int vA = -1, vB = -1, vC = -1;
                         if (pointVertexAssociation.TryGetValue(domainPoint[i1][j].Point, out MeshVertex meshVertexA))
-                            vA = pointIdAssociation[meshVertexA];
+                            vA = pointIdAssociation[meshVertexA.Point];
                         if (pointVertexAssociation.TryGetValue(domainPoint[i1][j + 1].Point, out MeshVertex meshVertexB))
-                            vB = pointIdAssociation[meshVertexB];
+                            vB = pointIdAssociation[meshVertexB.Point];
                         if (pointVertexAssociation.TryGetValue(domainPoint[i2][j + 1].Point, out MeshVertex meshVertexC))
-                            vC = pointIdAssociation[meshVertexC];
+                            vC = pointIdAssociation[meshVertexC.Point];
 
                         if (vA != -1 && vB != -1 && vC != -1)
-                            mesh.Faces.Build(new MeshFace(vA, vB, vC), progressPlateId++);
+                            mesh.Faces.Add(new MeshFace(vA, vB, vC), progressPlateId++);
 
                         // only left side
                         if (vA != -1 && vB != -1)
-                            mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
+                            mesh.Edges.Add(new MeshEdge(vA, vB), progressEdgeId++);
                     }
                     else if (j == domainPoint[i].Length - 2) // pole
                     {
                         int vA = -1, vB = -1, vC = -1;
                         if (pointVertexAssociation.TryGetValue(domainPoint[i1][j].Point, out MeshVertex meshVertexA))
-                            vA = pointIdAssociation[meshVertexA];
+                            vA = pointIdAssociation[meshVertexA.Point];
                         if (pointVertexAssociation.TryGetValue(domainPoint[i1][j + 1].Point, out MeshVertex meshVertexB))
-                            vB = pointIdAssociation[meshVertexB];
+                            vB = pointIdAssociation[meshVertexB.Point];
                         if (pointVertexAssociation.TryGetValue(domainPoint[i2][j].Point, out MeshVertex meshVertexC))
-                            vC = pointIdAssociation[meshVertexC];
+                            vC = pointIdAssociation[meshVertexC.Point];
 
                         if (vA != -1 && vB != -1 && vC != -1)
-                            mesh.Faces.Build(new MeshFace(vA, vB, vC), progressPlateId++);
+                            mesh.Faces.Add(new MeshFace(vA, vB, vC), progressPlateId++);
 
                         // upper and left side
                         if (vC != -1 && vA != -1)
-                            mesh.Edges.Build(new MeshEdge(vC, vA), progressEdgeId++);
+                            mesh.Edges.Add(new MeshEdge(vC, vA), progressEdgeId++);
                         if (vA != -1 && vB != -1)
-                            mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
+                            mesh.Edges.Add(new MeshEdge(vA, vB), progressEdgeId++);
                     }
                     else
                     {
                         int vA = -1, vB = -1, vC = -1, vD = -1;
                         if (pointVertexAssociation.TryGetValue(domainPoint[i1][j].Point, out MeshVertex meshVertexA))
-                            vA = pointIdAssociation[meshVertexA];
+                            vA = pointIdAssociation[meshVertexA.Point];
                         if (pointVertexAssociation.TryGetValue(domainPoint[i1][j + 1].Point, out MeshVertex meshVertexB))
-                            vB = pointIdAssociation[meshVertexB];
+                            vB = pointIdAssociation[meshVertexB.Point];
                         if (pointVertexAssociation.TryGetValue(domainPoint[i2][j].Point, out MeshVertex meshVertexC))
-                            vC = pointIdAssociation[meshVertexC];
+                            vC = pointIdAssociation[meshVertexC.Point];
                         if (pointVertexAssociation.TryGetValue(domainPoint[i2][j + 1].Point, out MeshVertex meshVertexD))
-                            vD = pointIdAssociation[meshVertexD];
+                            vD = pointIdAssociation[meshVertexD.Point];
 
                         if (vA != -1 && vB != -1 && vD != -1)
-                            mesh.Faces.Build(new MeshFace(vA, vB, vD), progressPlateId++);
+                            mesh.Faces.Add(new MeshFace(vA, vB, vD), progressPlateId++);
                         if (vA != -1 && vD != -1 && vC != -1)
-                            mesh.Faces.Build(new MeshFace(vA, vD, vC), progressPlateId++);
+                            mesh.Faces.Add(new MeshFace(vA, vD, vC), progressPlateId++);
 
                         // upper, middle and left side
                         if (vC != -1 && vA != -1)
-                            mesh.Edges.Build(new MeshEdge(vC, vA), progressEdgeId++);
+                            mesh.Edges.Add(new MeshEdge(vC, vA), progressEdgeId++);
                         if (vA != -1 && vD != -1)
-                            mesh.Edges.Build(new MeshEdge(vA, vD), progressEdgeId++);
+                            mesh.Edges.Add(new MeshEdge(vA, vD), progressEdgeId++);
                         if (vA != -1 && vB != -1)
-                            mesh.Edges.Build(new MeshEdge(vA, vB), progressEdgeId++);
+                            mesh.Edges.Add(new MeshEdge(vA, vB), progressEdgeId++);
                     }
                 }
             }
@@ -402,20 +400,6 @@ namespace GPC.Checkers.Concrete.Results
 
         #endregion
 
-        #region Setter
-
-        public void SetFailureDomainType(SectionSolver.FailureDomainTypes failureDomainType)
-        {
-            _analysisType = failureDomainType;
-        }
-
-        public void SetAxialForceSubdivision(int subdivision)
-        {
-            _axialForceSubdivision = subdivision;
-        }
-
-        #endregion
-
         #region Nested Class
 
         #region FailureDomainPoint
@@ -482,7 +466,7 @@ namespace GPC.Checkers.Concrete.Results
                 _workingRatio = -1;
             }
 
-            internal FailureDomainPoint(SerializationInfo info, StreamingContext context)
+            private FailureDomainPoint(SerializationInfo info, StreamingContext context)
             {
                 _forceTuple = (ForceTuple)info.GetValue("ForceTuple", typeof(ForceTuple));
                 _strainPlane = (StrainPlane)info.GetValue("StrainPlane", typeof(StrainPlane));
@@ -491,249 +475,12 @@ namespace GPC.Checkers.Concrete.Results
                 _workingRatio = -1;
             }
 
-            /// <summary>
-            /// Given a solicitation finds the point on the strength domain and work rate based on the search method of approaching the surface.
-            /// The calculation of the strain plane is by interpolation and is much less accurate than the iterative/direct method.
-            /// This method is good for always finding an working ratio, which is always in favor of safety.
-            /// If the starting mesh does not have too many elements then it is also a very performing method.
-            /// </summary>
-            /// <param name="domainMesh">Complete domain in mesh form.</param>
-            /// <param name="failureAnalysisType">Method of approaching the surface.</param>
-            /// <param name="resultBeamForce"></param>
-            public FailureDomainPoint(Mesh domainMesh, ResultBeamForces resultBeamForce,
-                in Dictionary<MeshVertex, FailureDomainPoint> vertexToDomainPoint, SectionChecker sectionChecker,
-                SectionSolver.FailureDomainTypes failureDomainType, double lenghtTolerance = GeometryBase.Tolerance)
-            {
-                _workingRatio = -1;
-
-                Point3d rayOrigin = null; // Must be inside the mesh volume.
-                var sectionSolver = sectionChecker.SectionSolver;
-                var failureAnalysisType = sectionChecker.SectionCheckerOptions.FailureAnalysisType;
-
-                switch (failureAnalysisType)
-                {
-                    case SectionSolver.FailureAnalysisTypes.ConstantEccentricity:
-                        rayOrigin = Point3d.Origin;
-                        break;
-
-                    case SectionSolver.FailureAnalysisTypes.ConstantN:
-                        rayOrigin = new Point3d(0.0, 0.0, resultBeamForce.N);
-                        break;
-
-                    case SectionSolver.FailureAnalysisTypes.ConstantMxMy:
-                        rayOrigin = new Point3d(resultBeamForce.M1, resultBeamForce.M2, 0.0);
-                        break;
-
-                    case SectionSolver.FailureAnalysisTypes.ConstantNMx:
-                        rayOrigin = new Point3d(resultBeamForce.M1, 0.0, resultBeamForce.N);
-                        break;
-
-                    case SectionSolver.FailureAnalysisTypes.ConstantNMy:
-                        rayOrigin = new Point3d(0.0, resultBeamForce.M2, resultBeamForce.N);
-                        break;
-                }
-
-                // For some surface approach methods there may not be an intersection, for these cases we need to do a control
-                // specifically to change the actual surface approach method used.
-                // The origin of the ray rayOrigin will also determine the ratio and must be internal to the domain.
-                if (failureAnalysisType != SectionSolver.FailureAnalysisTypes.ConstantEccentricity || Point3d.Origin.DistanceTo(rayOrigin) > lenghtTolerance)
-                {
-                    double rayOriginWorkingRatioOrigin = workingRatioSearch(Point3d.Origin, rayOrigin, out _);
-                    // If the origin point of the ray is outside then enforce the use of ConstantEccentricity.
-                    if (rayOriginWorkingRatioOrigin >= 1.0)
-                        rayOrigin = Point3d.Origin;
-                }
-
-                // Now the working ratio search.
-                var forcePoint = new Point3d(resultBeamForce.M1, resultBeamForce.M2, resultBeamForce.N);
-                _workingRatio = workingRatioSearch(rayOrigin, forcePoint, out KeyValuePair<Point3d, MeshBase> intersection);
-
-                // If a solution has been found assigns the deformation plane.
-                if (_workingRatio != -1 && intersection.Value != null)
-                {
-                    _forceTuple = new ForceTuple(intersection.Key.Z, intersection.Key.X, intersection.Key.Y);
-
-                    if (intersection.Value is MeshVertex intersectionVertex)
-                    {
-                        var failDomainPoint = vertexToDomainPoint[intersectionVertex];
-                        _failureIndex = failDomainPoint.FailureIndex;
-                        _immersione = failDomainPoint.Immersione;
-                        _strainPlane = failDomainPoint.StrainPlane;
-                        return;
-                    }
-                    else if (intersection.Value is MeshEdge intersectionEdge)
-                    {
-                        // Calculates linear interpolation weights.
-                        var vA = domainMesh.Vertices[intersectionEdge.A];
-                        var vB = domainMesh.Vertices[intersectionEdge.B];
-                        double distB = vB.Point.DistanceTo(forcePoint);
-                        double distA = vA.Point.DistanceTo(forcePoint);
-                        double weightA = distB / (distA + distB);
-                        double weightB = distA / (distA + distB);
-
-                        // Get failure domain points.
-                        var failA = vertexToDomainPoint[vA];
-                        var failB = vertexToDomainPoint[vB];
-
-                        // Make interpolation.
-                        if (failA != null && failB != null)
-                        {
-                            // FailureIndex
-                            _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, (int)failB.FailureIndex);
-
-                            // Theta
-                            var thetaA = failA.StrainPlane.Teta;
-                            var thetaB = failB.StrainPlane.Teta;
-                            // Make them close together.
-                            if (Math.Abs(thetaA - thetaB) > Math.PI)
-                            {
-                                if (thetaA < thetaB)
-                                    thetaA += 2.0 * Math.PI;
-                                else
-                                    thetaB += 2.0 * Math.PI;
-                            }
-                            double theta = thetaA * weightA + thetaB * weightB;
-
-                            // Immersione
-                            var immA = GetImmersione(failA);
-                            var immB = GetImmersione(failB);
-                            _immersione = immA * weightA + immB * weightB;
-
-                            // StrainPlane
-                            _strainPlane = BuildPlane(theta);
-                        }
-                    }
-                    else if (intersection.Value is MeshFace intersectionFace)
-                    {
-                        // Calculates linear interpolation weights.
-                        var vA = domainMesh.Vertices[intersectionFace.A];
-                        var vB = domainMesh.Vertices[intersectionFace.B];
-                        var vC = domainMesh.Vertices[intersectionFace.C];
-                        double areaA = new Vector3d((vB.Point - forcePoint) ^ (vC.Point - forcePoint)).Length;
-                        double areaB = new Vector3d((vC.Point - forcePoint) ^ (vA.Point - forcePoint)).Length;
-                        double areaC = new Vector3d((vA.Point - forcePoint) ^ (vB.Point - forcePoint)).Length;
-                        double areaTOT = areaA + areaB + areaC;
-                        double weightA = areaA / areaTOT;
-                        double weightB = areaB / areaTOT;
-                        double weightC = areaC / areaTOT;
-
-                        // Get failure domain points.
-                        var failA = vertexToDomainPoint[vA];
-                        var failB = vertexToDomainPoint[vB];
-                        var failC = vertexToDomainPoint[vC];
-
-                        // Make interpolation.
-                        if (failA != null && failB != null && failC != null)
-                        {
-                            // FailureIndex
-                            _failureIndex = (SectionSolver.FailureZones)Math.Min((int)failA.FailureIndex, Math.Min((int)failB.FailureIndex, (int)failC.FailureIndex));
-
-                            // Theta
-                            var thetaA = failA.StrainPlane.Teta;
-                            var thetaB = failB.StrainPlane.Teta;
-                            var thetaC = failC.StrainPlane.Teta;
-                            // Make them close together.
-                            if (Math.Abs(thetaA - thetaB) > Math.PI)
-                            {
-                                if (thetaA < thetaB)
-                                    thetaA += 2.0 * Math.PI;
-                                else
-                                    thetaB += 2.0 * Math.PI;
-                            }
-                            if (Math.Abs(thetaA - thetaC) > Math.PI)
-                            {
-                                thetaC += 2.0 * Math.PI;
-                            }
-                            double theta = thetaA * weightA + thetaB * weightB + thetaC * weightC;
-
-                            // Immersione
-                            var immA = GetImmersione(failA);
-                            var immB = GetImmersione(failB);
-                            var immC = GetImmersione(failC);
-                            _immersione = immA * weightA + immB * weightB + immC * weightC;
-
-                            // StrainPlane
-                            _strainPlane = BuildPlane(theta);
-                        }
-                    }
-                }
-
-                // Internal utility.
-                double workingRatioSearch(Point3d pointOrigin, Point3d pointToSearch, out KeyValuePair<Point3d, MeshBase> meshIntersection)
-                {
-                    Point3d targetPoint;
-                    bool isRatioZero = pointOrigin.DistanceTo(pointToSearch) < lenghtTolerance;
-
-                    if (!isRatioZero)
-                    {
-                        targetPoint = pointToSearch;
-                    }
-                    else
-                    {
-                        // This is a special case with ratio=0.
-                        switch (failureAnalysisType)
-                        {
-                            case SectionSolver.FailureAnalysisTypes.ConstantNMx:
-                                targetPoint = pointOrigin + new Point3d(0.0, 1000000.0, 0.0);
-                                break;
-
-                            case SectionSolver.FailureAnalysisTypes.ConstantN:
-                            case SectionSolver.FailureAnalysisTypes.ConstantNMy:
-                                targetPoint = pointOrigin + new Point3d(1000000.0, 0.0, 0.0);
-                                break;
-
-                            case SectionSolver.FailureAnalysisTypes.ConstantEccentricity:
-                            case SectionSolver.FailureAnalysisTypes.ConstantMxMy:
-                            default:
-                                targetPoint = pointOrigin + new Point3d(0.0, 0.0, 1000.0);
-                                break;
-                        }
-                    }
-                    Line3d semiRay = new Line3d(pointOrigin, targetPoint);
-                    var intersOnDomain = domainMesh.GetIntersectionWihtSemiInfiniteRay(semiRay, true, lenghtTolerance);
-                    if (intersOnDomain.Count == 0)
-                        return -1;
-
-                    // Find the key with the smallest distance and get the corresponding pair from the dictionary.
-                    var closestEntryOnDomain = intersOnDomain.OrderBy(pair => pair.Key.DistanceTo(pointOrigin)).FirstOrDefault();
-
-                    if (closestEntryOnDomain.Key is null)
-                        return -1;
-
-                    meshIntersection = closestEntryOnDomain;
-
-                    if (!isRatioZero)
-                        return pointOrigin.DistanceTo(pointToSearch) / pointOrigin.DistanceTo(closestEntryOnDomain.Key);
-                    else
-                        return 0.0;
-                }
-
-                // Internal utility.
-                double GetImmersione(FailureDomainPoint fail)
-                {
-                    return fail.Immersione != 0.0 || fail.FailureIndex <= _failureIndex ? fail.Immersione : 1.0;
-                }
-
-                // Internal utility. Build StrainPlane.
-                StrainPlane BuildPlane(double theta)
-                {
-                    var distances = sectionSolver.CalculateMaxMinSectionDistances(theta);
-                    var p1 = sectionSolver.GetP1(distances, failureDomainType, _failureIndex);
-                    var p2 = sectionSolver.GetP2(distances, failureDomainType);
-                    var p3 = sectionSolver.GetP3(distances, failureDomainType);
-                    var p4 = sectionSolver.GetP4(distances, failureDomainType);
-                    var p5 = sectionSolver.GetP5(distances, failureDomainType);
-                    var p6 = sectionSolver.GetP6(distances, failureDomainType);
-                    return sectionSolver.CalculateStrainPlane(theta, _failureIndex, _immersione, p1, p2, p3, p4, p5, p6);
-                }
-            }
-
             #endregion
 
             /// <summary>
             /// Calculate the working ratio for the force <paramref name="resultBeamForce"/> 
             /// </summary>
-            /// <param name="resultBeamForce"></param>
+            /// <param name="resultBeamForce">Force at the domain integration reference point, here the force is not further transformed.</param>
             /// <param name="SCALE_M">Factor for moments units scale</param>
             /// <param name="SCALE_N">Factor for axial force units scale</param>
             /// <returns>-1 if the procedure is failed, the working ratio otherwise</returns>
@@ -860,7 +607,7 @@ namespace GPC.Checkers.Concrete.Results
                 _failureDomainPoint = failureDomainPoint ?? throw new ArgumentNullException(nameof(failureDomainPoint));
             }
 
-            internal FailureDomainForce(SerializationInfo info, StreamingContext context)
+            protected FailureDomainForce(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             {
                 _failureDomainPoint = (FailureDomainPoint)info.GetValue("FailureDomainPoint", typeof(FailureDomainPoint));
@@ -967,7 +714,7 @@ namespace GPC.Checkers.Concrete.Results
 
             }
 
-            internal FailureDomainForce2d(SerializationInfo info, StreamingContext context)
+            private FailureDomainForce2d(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             {
                 _point2d = (Point2d)info.GetValue("Point2d", typeof(Point2d));

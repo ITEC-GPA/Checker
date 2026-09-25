@@ -38,19 +38,32 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugLocalLibs|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugLocalLibs\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GPCGeometry, Version=2.0.0.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCGeometry.2.0.0.4\lib\netstandard2.0\GPCGeometry.dll</HintPath>
+    <Reference Include="DelaunayMesh, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Geometry\DelaunayMesh\bin\Release\netstandard2.0\DelaunayMesh.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModel, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModel.1.0.3\lib\netstandard2.0\GPCModel.dll</HintPath>
+    <Reference Include="GPCGeometry">
+      <HintPath>..\..\Geometry\GPCGeometry\bin\Release\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
-    <Reference Include="GPCModelData, Version=0.0.1.7, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCModelData.0.0.1.7\lib\netstandard2.0\GPCModelData.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="GPCModel">
+      <HintPath>..\..\Model\Model\bin\Release\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="GPCUtilities, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GPCUtilities.2.0.0.2\lib\netstandard2.0\GPCUtilities.dll</HintPath>
+    <Reference Include="GPCModelData">
+      <HintPath>..\..\Model\ModelData\bin\Release\netstandard2.0\GPCModelData.dll</HintPath>
+    </Reference>
+    <Reference Include="GPCUtilities">
+      <HintPath>..\..\Utilities\GPCUtilities\bin\Release\netstandard2.0\GPCUtilities.dll</HintPath>
     </Reference>
     <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.5.0.0\lib\net461\MathNet.Numerics.dll</HintPath>
@@ -65,6 +78,9 @@
     <Reference Include="System.Core" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="UnsafeEx">
+      <HintPath>..\..\Gmsh.Net\src\GMsh.Net\bin\Release\netstandard2.0\UnsafeEx.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -87,9 +103,6 @@
       <Project>{edff3d15-bbe0-4791-a528-d3d285c0f6de}</Project>
       <Name>GPCChecker.Steel</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Bolt\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

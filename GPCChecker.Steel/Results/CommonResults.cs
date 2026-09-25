@@ -1,17 +1,13 @@
-﻿using GPC.Checkers.Steel.Checkers;
-using GPC.Checkers.Steel.Results;
+using GPC.Checkers.Steel.Checkers;
 using GPC.Model.LoadCases;
-using GPC.Model.Results;
-using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text;
+using GPC.Model;
 
 namespace GPC.Checkers.Results
 {
-	public abstract class CommonResults : Model.ModelObject, ISerializable
+	public abstract class CommonResults : ModelObject, ISerializable
 	{
 		#region Variables
 
@@ -38,10 +34,15 @@ namespace GPC.Checkers.Results
 		/// </summary>
 		public Checker.Options Options => _options;
 
+		/// <summary>
+		/// The max working ratio 
+		/// </summary>
+		public double WorkingRatio => GetMaxWorkingRatio();
+
 		#endregion
 
 		internal CommonResults(ILoadCase Case, Standard standard, Checker.Options checkerOptions, string name = "")
-			:base(name)
+			: base(name)
 		{
 			_case = Case ?? throw new ArgumentNullException(nameof(Case));
 			_standard = standard ?? throw new ArgumentNullException(nameof(standard));

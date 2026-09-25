@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using GPC.Model;
+﻿using GPC.Model;
 using GPC.Model.Standards;
+using System;
+using System.Runtime.Serialization;
 
 namespace GPC.Checkers.Concrete.Checkers
 {
@@ -29,7 +25,7 @@ namespace GPC.Checkers.Concrete.Checkers
 
         #region Constructor
 
-        public Checker(Standard standard, Options options, int id) 
+        public Checker(Standard standard, Options options, int id)
             : base(id)
         {
             _standard = standard ?? throw new ArgumentNullException(nameof(standard));
@@ -57,6 +53,5 @@ namespace GPC.Checkers.Concrete.Checkers
         {
 
         }
-
     }
 }
