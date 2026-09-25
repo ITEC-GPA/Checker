@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.Test.Concrete", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.Test.Steel", "GPCChecker.Test.Steel\GPCChecker.Test.Steel.csproj", "{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.CompositeBridge", "GPCChecker.CompositeBridge\GPCChecker.CompositeBridge.csproj", "{E9767C2D-2297-4ECC-94E6-21B7D1E1827E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPCChecker.Test.CompositeBridge", "GPCChecker.Test.CompositeBridge\GPCChecker.Test.CompositeBridge.csproj", "{A868D5A7-7804-4AFC-AC4F-D27BDFDF7C9D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9767C2D-2297-4ECC-94E6-21B7D1E1827E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9767C2D-2297-4ECC-94E6-21B7D1E1827E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9767C2D-2297-4ECC-94E6-21B7D1E1827E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9767C2D-2297-4ECC-94E6-21B7D1E1827E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A868D5A7-7804-4AFC-AC4F-D27BDFDF7C9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A868D5A7-7804-4AFC-AC4F-D27BDFDF7C9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A868D5A7-7804-4AFC-AC4F-D27BDFDF7C9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A868D5A7-7804-4AFC-AC4F-D27BDFDF7C9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

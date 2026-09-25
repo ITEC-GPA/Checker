@@ -1,6 +1,6 @@
 using System;
 
-namespace GPC.Checkers.Steel.CompositeBridges
+namespace GPC.Checkers.CompositeBridge
 {
     /// <summary>Pure mm/N/MPa calculations for EN 1993-1-5:2006 and EN 1994-2:2005.
     /// No UI, archive or load combination dependencies. Flange contribution to shear is omitted.</summary>

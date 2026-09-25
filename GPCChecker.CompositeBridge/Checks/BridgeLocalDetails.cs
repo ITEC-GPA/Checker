@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GPC.Checkers.Steel.CompositeBridges
+namespace GPC.Checkers.CompositeBridge
 {
     /// <summary>Local bridge details, mm/N/MPa. Independent of the construction-stage solver.</summary>
     public static class BridgeLocalDetails
@@ -25,6 +25,7 @@ namespace GPC.Checkers.Steel.CompositeBridges
         {
             Positive(hw, "hw"); Positive(tw, "tw"); Positive(span, "span"); Positive(fy, "fy");
             Positive(young, "E"); Positive(gammaM1, "gammaM1"); Positive(leftPanel, "aL"); Positive(rightPanel, "aR");
+            if (span < hw) throw new ArgumentException("Stiffener span must be at least the clear web height.");
             Nonnegative(availableLeft, "availableLeft"); Nonnegative(availableRight, "availableRight");
             Nonnegative(compression, "Nst"); Nonnegative(webCompression, "web compression");
             if (lengthFactor < .75 || lengthFactor > 2 || double.IsNaN(lengthFactor)) throw new ArgumentException("0.75 <= length factor <= 2 required.");
@@ -94,6 +95,16 @@ namespace GPC.Checkers.Steel.CompositeBridges
 
         public static double WeldStrength(double fu, double beta, double gammaM2)
         { Positive(fu, "fu"); Positive(beta, "betaW"); Positive(gammaM2, "gammaM2"); return fu / (Math.Sqrt(3) * beta * gammaM2); }
+
+        /// <summary>Straight tension bar, alpha1...alpha5=1. EC2 8.4; additional NTC 4.1.6.1.4 floor.</summary>
+        public static double AnchorageLength(double diameter, double stress, double fctk05, double gammaC, bool goodBond, bool ntc)
+        {
+            Positive(diameter, "diameter"); Nonnegative(stress, "stress"); Positive(fctk05, "fctk05"); Positive(gammaC, "gammaC");
+            double eta2 = Math.Min(1, (132 - diameter) / 100);
+            if (eta2 <= 0) throw new ArgumentException("Bar diameter outside bond model.");
+            double fbd = 2.25 * (goodBond ? 1 : .7) * eta2 * fctk05 / gammaC;
+            return Math.Max(diameter * stress / (4 * fbd), Math.Max((ntc ? 20 : 10) * diameter, ntc ? 150 : 100));
+        }
 
         /// <summary>EC2 6.2.4/EC4 6.6.6: one potential surface, demand N/mm and crossing steel mm2/mm.
         /// No concrete cohesion is credited. Required steel also includes transverse bending and minimum reinforcement.</summary>

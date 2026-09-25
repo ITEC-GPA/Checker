@@ -9,6 +9,7 @@
     <BridgeLibraryDir Condition="'$(BridgeLibraryDir)' == ''">$(MSBuildThisFileDirectory)..\..\ANTHEA\lib\Checker</BridgeLibraryDir>
   </PropertyGroup>
   <ItemGroup>
+    <None Update="Baselines/*.json" CopyToOutputDirectory="PreserveNewest" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.6.4" />
     <PackageReference Include="MSTest.TestFramework" Version="3.6.4" />
@@ -16,6 +17,7 @@
     <Compile Include="..\GPCChecker.Test.Concrete\BridgeElasticStagesTests.cs" Link="BridgeElasticStagesTests.cs" />
     <Compile Include="..\GPCChecker.Test.Concrete\BridgeLinearSolverAuditTests.cs" Link="BridgeLinearSolverAuditTests.cs" />
     <Reference Include="GPCChecker.Concrete"><HintPath>$(BridgeLibraryDir)\GPCChecker.Concrete.dll</HintPath></Reference>
+    <Reference Include="GPCChecker.CompositeBridge"><HintPath>$(BridgeLibraryDir)\GPCChecker.CompositeBridge.dll</HintPath></Reference>
     <Reference Include="GPCModel"><HintPath>$(BridgeLibraryDir)\GPCModel.dll</HintPath></Reference>
     <Reference Include="GPCModelData"><HintPath>$(BridgeLibraryDir)\GPCModelData.dll</HintPath></Reference>
     <Reference Include="GPCGeometry"><HintPath>$(BridgeLibraryDir)\GPCGeometry.dll</HintPath></Reference>

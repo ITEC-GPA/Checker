@@ -1,5 +1,5 @@
 using System.Text.Json.Nodes;
-using GPC.Checkers.Steel.CompositeBridges;
+using GPC.Checkers.CompositeBridge;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using X.Core;
 
@@ -152,12 +152,12 @@ public class BridgeShearConnectionTests
         Assert.IsTrue(valid.UsesStiffeners); Assert.IsTrue(valid.Web.Resistance > bare.Web.Resistance);
     }
     [TestMethod]
-    public void HighShearReportsInteractionAndDoesNotApproveUnsupportedAxialCase()
+    public void HighShearReportsPlasticOrConservativeElasticInteraction()
     {
         var d = Data(); d.Array("fasi")[2]!["V"] = 2500;
         var r = BridgeSection.Calculate(d).Stages.Last(); Assert.IsTrue(r.Shear!.Checks.Any(c => c.Name.StartsWith("Interazione M–V") && c.Ratio.HasValue));
         d.Array("fasi")[2]!["N"] = -100;
-        r = BridgeSection.Calculate(d).Stages.Last(); Assert.IsTrue(r.Shear!.Checks.Any(c => c.Name.StartsWith("Interazione N–M–V") && c.Ratio is null));
+        r = BridgeSection.Calculate(d).Stages.Last(); Assert.IsTrue(r.Shear!.Checks.Any(c => c.Name.StartsWith("Interazione N–M–V") && c.Ratio is not null));
     }
     [TestMethod]
     public void DisabledAccessoriesIgnoreInvalidGeometryAndInputsRemainUnchanged()

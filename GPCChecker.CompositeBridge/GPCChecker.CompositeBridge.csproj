@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>GPC.Checkers.CompositeBridge</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+  </ItemGroup>
+  <!-- Normal Checker checkout: existing libraries are built by the solution. -->
+  <ItemGroup Condition="'$(BridgeLibraryDir)' == ''">
+    <ProjectReference Include="../GPCChecker.Concrete/GPCChecker.Concrete.csproj" />
+    <Reference Include="GPCModel"><HintPath>../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>
+    <Reference Include="GPCGeometry"><HintPath>../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
+    <Reference Include="GPCUtilities"><HintPath>../../Utilities/GPCUtilities/bin/Release/netstandard2.0/GPCUtilities.dll</HintPath></Reference>
+  </ItemGroup>
+  <!-- Explicit dependency snapshot for application regression/distribution. No dependency on ANTHEA. -->
+  <ItemGroup Condition="'$(BridgeLibraryDir)' != ''">
+    <Reference Include="GPCChecker.Concrete"><HintPath>$(BridgeLibraryDir)/GPCChecker.Concrete.dll</HintPath></Reference>
+    <Reference Include="GPCModel"><HintPath>$(BridgeLibraryDir)/GPCModel.dll</HintPath></Reference>
+    <Reference Include="GPCGeometry"><HintPath>$(BridgeLibraryDir)/GPCGeometry.dll</HintPath></Reference>
+    <Reference Include="GPCUtilities"><HintPath>$(BridgeLibraryDir)/GPCUtilities.dll</HintPath></Reference>
+    <Reference Include="DelaunayMesh"><HintPath>$(BridgeLibraryDir)/DelaunayMesh.dll</HintPath></Reference>
+    <Reference Include="GMsh.Net"><HintPath>$(BridgeLibraryDir)/GMsh.Net.dll</HintPath></Reference>
+    <Reference Include="UnsafeEx"><HintPath>$(BridgeLibraryDir)/UnsafeEx.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

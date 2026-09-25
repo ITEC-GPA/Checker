@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GPC.Checkers.Steel.CompositeBridges
+namespace GPC.Checkers.CompositeBridge
 {
     /// <summary>Plastic reference capacities only for EC4-2 6.2.2.4(3) / EC3-1-5 7.1.
     /// They do not replace the elastic effective-section resistance check for class 4.</summary>
@@ -93,6 +93,16 @@ namespace GPC.Checkers.Steel.CompositeBridges
             // EC3-1-5 7.1: interaction term only when both thresholds are exceeded.
             return eta3 <= .5 || Math.Abs(moment) <= flangeMoment ? eta1
                 : eta1 + (1 - flangeMoment / plasticMoment) * Math.Pow(2 * eta3 - 1, 2);
+        }
+        /// <summary>Conservative EC3-1-5 7.1 envelope: no flange reserve, elastic normal-stress
+        /// utilization instead of a plastic reference. Also covers the fully compressed web branch.
+        /// The caller includes all materials and the effective-section elastic checks.</summary>
+        public static double ElasticInteraction(double elasticNormalUtilization, double shear, double webResistance)
+        {
+            if (!Finite(elasticNormalUtilization) || elasticNormalUtilization < 0 || !Finite(shear) || !Finite(webResistance) || webResistance <= 0)
+                throw new ArgumentException("Invalid elastic interaction inputs.");
+            double eta = Math.Abs(shear) / webResistance;
+            return elasticNormalUtilization + (eta <= .5 ? 0 : Math.Pow(2 * eta - 1, 2));
         }
     }
     public sealed class AxialMomentBounds

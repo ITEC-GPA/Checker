@@ -1,5 +1,28 @@
 # Audit delle sezioni miste da ponte
 
+## Migrazione in CompositeBridge — stato attuale
+
+Il motore è ora in [GPCChecker.CompositeBridge](../GPCChecker.CompositeBridge/README.md).
+I riferimenti alle vecchie posizioni ANTHEA/Steel nelle sezioni storiche sottostanti
+descrivono le precedenti esecuzioni. Questo progetto verifica l'adattatore archivio
+ANTHEA e la DLL distribuita; la suite `GPCChecker.Test.CompositeBridge` chiama
+direttamente la libreria senza dipendere dall'app.
+
+- Suite ordinaria: **267 superati**, inclusi 8 confronti di risultati completi
+  acquisiti prima della migrazione (`Baselines/bridge-*.json`).
+- Audit completo sulle DLL distribuite: **282 casi, 267 superati, 5 falliti,
+  10 ignorati**. I cinque fallimenti sono i quattro costruttori con H nullo
+  nelle DLL Model precedenti alla correzione e il metadato di inerzia a carico
+  nullo. Gli attributi `Ignore` dei dieci casi nativi erano già presenti e non
+  sono stati cambiati durante la migrazione. Non è una suite completa verde.
+- Nuova suite autonoma: **28 superati**, sia sulle dipendenze distribuite sia
+  sulle build sorgenti. Include più anime/pannelli, proprietà del rettangolo cavo,
+  riferimenti di N, φ/n, ritiro, armature opzionali e annullamento.
+
+Il filtro ordinario resta `TestCategory!=KnownBug&TestCategory!=ConstructorRegression`.
+Le istantanee congelano il comportamento precedente, comprese le limitazioni;
+non sostituiscono gli oracoli indipendenti dei test meccanici.
+
 Suite aggiunta il 25/09/2026. Il solo costruttore Model con H nullo è stato corretto
 su richiesta dell'utente; i solver Checker e ANTHEA non sono modificati.
 Tutti i nuovi test di calcolo e il [rapporto con i rilievi](../docs/audit-sezioni-miste-ponte.md)
@@ -85,3 +108,15 @@ fatica, taglio, instabilità globale o redistribuzione nel tempo.
 `BridgeShearConnectionTests.cs` aggiunge 44 casi derivati da NTC/EC: coefficienti di instabilità, pioli, irrigidimenti, interazione M–V nel campo N=0/fy≤355, scorrimento NTC/EC, fasi e completezza del report. La suite ordinaria ora passa 220 test; i casi KnownBug e ConstructorRegression mantengono i filtri già documentati.
 
 I metodi nuovi sono in `GPCChecker.Steel/CompositeBridges`. Formule, fonti primarie, limiti e due difetti preesistenti a taglio sono descritti in [revisione normativa ANTHEA](../../ANTHEA/supporto/docs/taglio-pioli-fonti-e-metodo.md). Non è stata modificata l’implementazione preesistente dei checker.
+
+## Irrigidimenti, appoggi e connessione
+
+`BridgeLocalDetailsTests.cs` aggiunge 39 casi: geometria asimmetrica, eccentricità,
+secondo ordine, instabilità, pannelli, terminali, saldature, armatura trasversale,
+ancoraggi NTC/EC, fatica e inviluppo elastico N–M–V. Sono inclusi oracoli indipendenti,
+invarianza delle fasi, dati opzionali e comportamento del report.
+
+La suite ordinaria aggiornata passa **259 test**, mantenendo le esclusioni esplicite
+`KnownBug` e `ConstructorRegression` già illustrate. Non è una dichiarazione di
+correzione dei difetti storici. Metodi e campo:
+[dettagli locali ANTHEA](../../ANTHEA/supporto/docs/irrigidimenti-appoggi-connessione.md).
