@@ -36,7 +36,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <summary>
         /// Design compressive strength for accidental design
         /// </summary>
-        public double FcdAccidental => CalculateFcd();
+        public double FcdAccidental => CalculateFcdAccidental();
 
         /// <summary>
         /// Design tensile strength for accidental design

@@ -950,8 +950,7 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        //[Ignore("The search for the domain point does not converge.")]
-        //[TestCategory("Convergence problem.")]
+        ////[TestCategory("Convergence problem.")]
         public void RectangularSectionTest26()
         {
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(300, 500, 18, 50, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
@@ -1057,7 +1056,6 @@ namespace ConcreteTests
 
 
         [TestMethod]
-        [Ignore("With CompressionStressStrainDiagrams.StressBlock, it does not converge.")]
         public void RectangularSectionTest31()
         {
             ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 25, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
@@ -1077,7 +1075,6 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        [Ignore("With CompressionStressStrainDiagrams.StressBlock, it does not converge.")]
         public void RectangularSectionTest32()
         {
             ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
@@ -1128,7 +1125,6 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        [Ignore("With CompressionStressStrainDiagrams.StressBlock, it does not converge.")]
         public void RectangularSectionTest34()
         {
             ConcreteMaterialEN1992 concreteMaterial = new ConcreteMaterialEN1992("", 45, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);

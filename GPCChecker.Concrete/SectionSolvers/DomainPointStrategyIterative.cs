@@ -319,6 +319,10 @@ namespace GPC.Checker.SectionSolvers
                     else
                     {
                         _solver.Log.Add("Fail to calculate point on domain");
+                        // the closest point is chosen by an angle that, with a constant axial force, measures only the direction of the moments:
+                        // it is accepted only if it also has the required axial force (before it could be returned with any N)
+                        if (!HasTheConstantAxialForce(closestPoint, targetLocalForces, failureAnalysisType))
+                            return null;
                         if (failureIndex == SectionSolver.FailureZones.F2A || failureIndex == SectionSolver.FailureZones.F2B)
                         {
                             if (angle < 100 * _solver.FailureAnalysisAngularTolerance)
@@ -365,6 +369,25 @@ namespace GPC.Checker.SectionSolvers
             }
 
             return new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane, eta);
+        }
+
+        /// <summary>
+        /// Tell if a point has the axial force of the target when the analysis keeps it constant (ConstantN, ConstantNMx, ConstantNMy), within
+        /// 10 times the distance tolerance of the adimensional forces
+        /// </summary>
+        /// <param name="point">The point (null: false)</param>
+        /// <param name="target">The target forces in the local system</param>
+        /// <param name="failureAnalysisType">The type of analysis</param>
+        /// <returns>True if the analysis does not keep the axial force constant or the point has it</returns>
+        private bool HasTheConstantAxialForce(FailureDomain.FailureDomainPoint point, ForceTuple target, SectionSolver.FailureAnalysisTypes failureAnalysisType)
+        {
+            if (point == null)
+                return false;
+            if (failureAnalysisType != SectionSolver.FailureAnalysisTypes.ConstantN && failureAnalysisType != SectionSolver.FailureAnalysisTypes.ConstantNMx &&
+                failureAnalysisType != SectionSolver.FailureAnalysisTypes.ConstantNMy)
+                return true;
+            ForceTuple difference = _solver.ConvertToAdimensionalForces(new ForceTuple(point.NRd - target.N, 0, 0));
+            return Math.Abs(difference.N) < 10 * _solver.FailureAnalysisDistanceTolerance;
         }
 
         protected (double deltaTeta, double deltaEta, Vector3d distanceToTarget) CalculateIncrement(ForceTuple iterationPoint,
