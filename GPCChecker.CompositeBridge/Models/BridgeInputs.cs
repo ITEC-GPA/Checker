@@ -96,6 +96,10 @@ public sealed record BridgeAnalysisOptions
     public bool BottomFlangeBuckling { get; init; } = true;
     /// <summary>Local buckling of the web as an internal plate; false keeps it fully effective. Used only with Class4.</summary>
     public bool WebBuckling { get; init; } = true;
+    /// <summary>Effective-width iteration: each situation starts from the converged geometry of the previous one and the relaxation factor
+    /// follows the Aitken formula (true, default); false: every situation from the gross geometry with the fixed relaxation 0.55.
+    /// The two converge to the same geometry within the tolerance.</summary>
+    public bool AcceleratedIteration { get; init; } = true;
     public double CommonLoadY { get; init; }
     public double GammaM1 { get; init; } = 1.1;
     public double GammaM2 { get; init; } = 1.25;

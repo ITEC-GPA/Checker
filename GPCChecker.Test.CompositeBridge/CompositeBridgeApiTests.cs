@@ -93,6 +93,46 @@ public class CompositeBridgeApiTests
     }
 
     [TestMethod]
+    public void AcceleratedIterationGivesTheSameResultsWithFewerIterations()
+    {
+        // warm start + Aitken against gross start + fixed relaxation: the same fixed point within the tolerance of convergence
+        var d = Input() with { Phases = Enumerable.Range(0, 6).Select(i => new BridgePhase { Name = "P" + i, Kind = i == 0 ? BridgePhaseKind.SteelOnly : BridgePhaseKind.Composite, MomentKNm = 800 + 150 * i, Phi = i % 3 }).ToArray() };
+        var fast = HBridgeSection.Calculate(d);
+        var plain = HBridgeSection.Calculate(d with { Options = d.Options with { AcceleratedIteration = false } });
+        for (int s = 0; s < fast.Stages.Count; s++)
+            for (int p = 0; p < fast.Stages[s].Points.Count; p++)
+                Assert.AreEqual(plain.Stages[s].Points[p].Stress, fast.Stages[s].Points[p].Stress, 1e-6 * Math.Max(1, Math.Abs(plain.Stages[s].Points[p].Stress)));
+        Assert.IsTrue(fast.Stages.Sum(s => s.Iterations) * 2 < plain.Stages.Sum(s => s.Iterations), $"{fast.Stages.Sum(s => s.Iterations)} / {plain.Stages.Sum(s => s.Iterations)}");
+        Assert.IsTrue(fast.Stages.All(s => s.Residual < 1e-7));
+    }
+
+    [TestMethod]
+    public void AitkenRelaxationSolvesAScalarFixedPoint()
+    {
+        // x = 1 + 0.9 x - 0.05 x²: x* = 10 (sqrt(0.21) - 0.1), F'(x*) = 0.54, so the fixed relaxation 0.55 contracts only by 0.75 per
+        // iteration; Aitken (a secant on the residual) converges in a few iterations
+        IReadOnlyList<CumulativeSituation<double, double>> Run(bool aitken) => CumulativePhaseAnalysis.Analyze(new[] { 1 }, () => 0d,
+            (x, _) => x, c => 1 + .9 * c[0] - .05 * c[0] * c[0], (x, y) => Math.Abs(x - y), (x, y, f) => x + f * (y - x), _ => "x",
+            tolerance: 1e-12, coordinates: aitken ? x => new[] { x } : null).ToArray();
+        var fast = Run(true).Single(); var plain = Run(false).Single();
+        double exact = 10 * (Math.Sqrt(.21) - .1);
+        Assert.AreEqual(exact, fast.State, 1e-10); Assert.AreEqual(exact, plain.State, 1e-10);
+        Assert.IsTrue(fast.Iterations < plain.Iterations / 2, $"{fast.Iterations} / {plain.Iterations}");
+    }
+
+    [TestMethod]
+    public void WarmStartBeginsFromThePreviousSituation()
+    {
+        // two identical increments: the second situation starts from the first converged geometry and needs one or few iterations
+        var p = new BridgePhase { Kind = BridgePhaseKind.SteelOnly, MomentKNm = 1500 };
+        var d = Input() with { Phases = [p, p with { MomentKNm = 1e-6 }] };
+        var r = HBridgeSection.Calculate(d);
+        Assert.IsTrue(r.Stages[1].Iterations <= 2, r.Stages[1].Iterations.ToString());
+        var cold = HBridgeSection.Calculate(d with { Options = d.Options with { AcceleratedIteration = false } });
+        Assert.IsTrue(cold.Stages[1].Iterations > 5, cold.Stages[1].Iterations.ToString());
+    }
+
+    [TestMethod]
     public void CancellationIsHonouredByLibrary()
     {
         Assert.ThrowsException<OperationCanceledException>(() => HBridgeSection.Calculate(Input(), new CancellationToken(true)));
