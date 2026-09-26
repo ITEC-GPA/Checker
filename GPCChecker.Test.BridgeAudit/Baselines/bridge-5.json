@@ -146,6 +146,9 @@
     "bordo_cls_dx": 500,
     "forcine_bordo": false,
     "d_forcine": 12,
+    "instabilita_sup": true,
+    "instabilita_inf": true,
+    "instabilita_anima": true,
     "fatica_pioli": false,
     "q_fat_min": "",
     "q_fat_max": "",
@@ -519,7 +522,9 @@
           "EffectiveAtEnd": 0,
           "StartStress": 33.489080772420195,
           "EndStress": 33.489080772420195
-        }
+        },
+        "SecondBottomWidth": 0,
+        "SecondBottom": null
       },
       "EffectiveSteel": {
         "Area": 53430.712429524676,
@@ -670,7 +675,8 @@
           "Slenderness": 1.8283507021322156,
           "Chi": 0.45396104753429256,
           "Area": 25200,
-          "PlasticResistance": 4919024.293495612,
+          "ShearArea": 30240,
+          "PlasticResistance": 5902829.152194735,
           "BucklingResistance": 2131543.356525451,
           "Resistance": 2131543.356525451
         },
@@ -686,7 +692,7 @@
             "Resistance": 2131.543356525451,
             "Unit": "kN",
             "Ratio": 0,
-            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Note": "min(Vpl,Rd; Vbw,Rd), Av = η·hw·tw (EN 1993-1-1 §6.2.6(3)); flange omesse; montante terminale non rigido",
             "Status": "Entro limite"
           },
           {
@@ -730,7 +736,7 @@
     {
       "Name": "G2 · permanenti portati",
       "Iterations": 23,
-      "Residual": 6.001971731469288E-08,
+      "Residual": 6.001971706205546E-08,
       "Effective": {
         "WebTop": 285.944200105286,
         "WebBottom": 1379.6949063013951,
@@ -774,7 +780,9 @@
           "EffectiveAtEnd": 0,
           "StartStress": 70.6797087664209,
           "EndStress": 70.6797087664209
-        }
+        },
+        "SecondBottomWidth": 0,
+        "SecondBottom": null
       },
       "EffectiveSteel": {
         "Area": 56818.947489693535,
@@ -967,7 +975,8 @@
           "Slenderness": 1.8283507021322156,
           "Chi": 0.45396104753429256,
           "Area": 25200,
-          "PlasticResistance": 4919024.293495612,
+          "ShearArea": 30240,
+          "PlasticResistance": 5902829.152194735,
           "BucklingResistance": 2131543.356525451,
           "Resistance": 2131543.356525451
         },
@@ -983,7 +992,7 @@
             "Resistance": 2131.543356525451,
             "Unit": "kN",
             "Ratio": 0,
-            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Note": "min(Vpl,Rd; Vbw,Rd), Av = η·hw·tw (EN 1993-1-1 §6.2.6(3)); flange omesse; montante terminale non rigido",
             "Status": "Entro limite"
           },
           {
@@ -1152,7 +1161,7 @@
     {
       "Name": "Q · variabili",
       "Iterations": 23,
-      "Residual": 5.3713012625343656E-08,
+      "Residual": 5.371301237270624E-08,
       "Effective": {
         "WebTop": 285.8451415044218,
         "WebBottom": 1345.0052350505734,
@@ -1196,7 +1205,9 @@
           "EffectiveAtEnd": 0,
           "StartStress": 132.87182723412218,
           "EndStress": 132.87182723412218
-        }
+        },
+        "SecondBottomWidth": 0,
+        "SecondBottom": null
       },
       "EffectiveSteel": {
         "Area": 56331.90527176994,
@@ -1430,7 +1441,8 @@
           "Slenderness": 1.8283507021322156,
           "Chi": 0.45396104753429256,
           "Area": 25200,
-          "PlasticResistance": 4919024.293495612,
+          "ShearArea": 30240,
+          "PlasticResistance": 5902829.152194735,
           "BucklingResistance": 2131543.356525451,
           "Resistance": 2131543.356525451
         },
@@ -1446,7 +1458,7 @@
             "Resistance": 2131.543356525451,
             "Unit": "kN",
             "Ratio": 0.23457181786582623,
-            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Note": "min(Vpl,Rd; Vbw,Rd), Av = η·hw·tw (EN 1993-1-1 §6.2.6(3)); flange omesse; montante terminale non rigido",
             "Status": "Entro limite"
           },
           {

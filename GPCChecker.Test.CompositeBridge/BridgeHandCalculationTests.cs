@@ -570,6 +570,85 @@ public class BridgeHandCalculationTests
 
     #endregion
 
+    #region Shear area by standard, local buckling options, two bottom plates
+
+    [TestMethod]
+    public void PlasticShearAreaDependsOnTheStandard()
+    {
+        // EN 1993-1-1 6.2.6(3)d welded sections: Av = eta hw tw; NTC 2018 4.2.4.1.2.4: Av = hw tw
+        var ntc = BridgeShearConnection.Web(500, 20, Fy, Ea, 1.05, 1.1, 1.2);
+        var ec = BridgeShearConnection.Web(500, 20, Fy, Ea, 1.05, 1.1, 1.2, etaInShearArea: true);
+        Rel(500 * 20 * Fy / (Math.Sqrt(3) * 1.05), ntc.PlasticResistance); Rel(1.2 * 500 * 20 * Fy / (Math.Sqrt(3) * 1.05), ec.PlasticResistance);
+        Rel(Math.Min(ec.PlasticResistance, ec.BucklingResistance), ec.Resistance); Rel(1.2 * 500 * 20, ec.ShearArea);
+        var d = Input(new BridgePhase { MomentKNm = 1000, ShearKN = 1000 });
+        double RdSection(BridgeStandard standard) => HBridgeSection.Calculate(d with { Options = d.Options with { Standard = standard } }).Stages[0].Shear!.Web.PlasticResistance;
+        Rel(1.2 * RdSection(BridgeStandard.Ntc2018), RdSection(BridgeStandard.Eurocode4));
+    }
+
+    [TestMethod]
+    public void LocalBucklingCanBeExcludedPartByPart()
+    {
+        var d = Input(new BridgePhase { Kind = BridgePhaseKind.SteelOnly, MomentKNm = 4000 });
+        HBridgeAnalysisResult Run(bool web, bool top, bool bottom) =>
+            HBridgeSection.Calculate(d with { Options = d.Options with { Class4 = true, WebBuckling = web, TopFlangeBuckling = top, BottomFlangeBuckling = bottom } });
+        var reduced = Run(true, true, true).Stages[0].Effective;
+        Assert.IsTrue(reduced.WebTop + reduced.WebBottom < 1800, "the slender web is reduced");
+        var noWeb = Run(false, true, true).Stages[0];
+        Rel(1800, noWeb.Effective.WebTop + noWeb.Effective.WebBottom); Rel(1, noWeb.Effective.Web.Rho);
+        Assert.IsTrue(noWeb.Warnings.Any(w => w.Contains("anima")));
+        // with every part excluded the section is the gross one: the same stresses as without class 4
+        var none = Run(false, false, false).Stages[0].Contributions[0];
+        var gross = HBridgeSection.Calculate(d).Stages[0].Contributions[0];
+        Rel(gross.SteelStress(-1855), none.SteelStress(-1855), 1e-9); Rel(gross.SteelStress(0), none.SteelStress(0), 1e-9);
+    }
+
+    private static HBridgeInput TwoPlates(params BridgePhase[] phases)
+    {
+        var d = Input(phases);
+        return d with { Geometry = d.Geometry with { SecondBottomEnabled = true, SecondBottomWidth = 500, SecondBottomThickness = 20 } };
+    }
+
+    [TestMethod]
+    public void TwoBottomPlatesFollowNavierOnTheRealPlates()
+    {
+        // web 1800 x 14, top 500 x 25, plate 1 700 x 30, plate 2 500 x 20: H = 1875 (before, the equivalent rectangle 620 x 50)
+        (double Bottom, double Top, double Width)[] parts = [(-25, 0, 500), (-1825, -25, 14), (-1855, -1825, 700), (-1875, -1855, 500)];
+        double a = parts.Sum(p => (p.Top - p.Bottom) * p.Width), y = parts.Sum(p => (p.Top - p.Bottom) * p.Width * (p.Top + p.Bottom) / 2) / a;
+        double i = parts.Sum(p => p.Width * Math.Pow(p.Top - p.Bottom, 3) / 12 + (p.Top - p.Bottom) * p.Width * Math.Pow((p.Top + p.Bottom) / 2 - y, 2));
+        var r = HBridgeSection.Calculate(TwoPlates(new BridgePhase { Kind = BridgePhaseKind.SteelOnly, MomentKNm = 1500 }));
+        var c = r.Stages[0].Contributions[0];
+        Rel(1875, r.Geometry.Height); Rel(a, r.Geometry.SteelArea); Rel(y, r.Geometry.SteelCentroid); Rel(i, r.Geometry.SteelInertia);
+        Rel(a, c.Area); Rel(y, c.Centroid); Rel(i, c.Inertia);
+        foreach (double fibre in new[] { 0, -1855, -1875d }) Rel(-1500e6 * (fibre - y) / i, c.SteelStress(fibre));
+    }
+
+    [TestMethod]
+    public void TwoBottomPlatesAreSeparateOutstands()
+    {
+        // compressed bottom flange: each plate is an outstand of its own thickness from the web, table 4.2 (k = 0.43)
+        var d = TwoPlates(new BridgePhase());
+        d = d with { Geometry = d.Geometry with { BottomWidth = 1000, BottomThickness = 20 } };
+        var g = HBridgeSection.Geometry(d);
+        var e = HBridgeSection.EffectiveWidths(g, _ => -200, Fy);
+        double Rho(double c, double t) { double l = c / t / (28.4 * Epsilon * Math.Sqrt(.43)); return l <= .748 ? 1 : (l - .188) / (l * l); }
+        Rel(14 + 2 * Rho(493, 20) * 493, e.BottomWidth); Rel(14 + 2 * Rho(243, 20) * 243, e.SecondBottomWidth);
+        Assert.IsTrue(Rho(493, 20) < 1);
+        var excluded = HBridgeSection.EffectiveWidths(g, _ => -200, Fy, new BridgeAnalysisOptions { BottomFlangeBuckling = false });
+        Rel(1000, excluded.BottomWidth); Rel(500, excluded.SecondBottomWidth);
+    }
+
+    [TestMethod]
+    public void TwoBottomPlatesInTheHistoryMethod()
+    {
+        var d = TwoPlates(new BridgePhase { Kind = BridgePhaseKind.SteelOnly, MomentKNm = 1500 }, new BridgePhase { MomentKNm = 3000 });
+        var cumulative = HBridgeSection.Calculate(d).Stages[1].Contributions;
+        var history = HBridgeHistoryAnalysis.Calculate(d, new HBridgeHistoryOptions { WebLayers = 400, FlangeLayers = 8, ConcreteLayers = 64 }).Stages;
+        Rel(cumulative.Sum(c => c.SteelStress(-1875)), Ea * history[1].TotalPlane.At(-1875), 5e-4);
+        Rel(cumulative.Sum(c => c.SteelStress(0)), Ea * history[1].TotalPlane.At(0), 5e-4);
+    }
+
+    #endregion
+
     #region History
 
     [TestMethod]

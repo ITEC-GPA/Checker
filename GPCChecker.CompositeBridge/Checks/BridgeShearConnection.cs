@@ -9,8 +9,20 @@ namespace GPC.Checkers.CompositeBridge
         private static void Positive(double x, string name)
         { if (double.IsNaN(x) || double.IsInfinity(x) || x <= 0) throw new ArgumentException(name + ": positive finite value required."); }
 
+        /// <summary>Shear resistance of the web: min(Vpl,Rd; Vbw,Rd), EN 1993-1-5 5.2-5.3, flanges omitted</summary>
+        /// <param name="height">The clear height of the web hw, mm</param>
+        /// <param name="thickness">The thickness of the web tw, mm</param>
+        /// <param name="fy">The yield strength, MPa</param>
+        /// <param name="young">The elastic modulus, MPa</param>
+        /// <param name="gammaM0">The partial factor of the plastic resistance</param>
+        /// <param name="gammaM1">The partial factor of the buckling resistance</param>
+        /// <param name="eta">The factor eta of EN 1993-1-5 5.1(2), between 1 and 1.2</param>
+        /// <param name="panelLength">The distance a of the transverse stiffeners; 0 without stiffeners</param>
+        /// <param name="rigidEndPost">True for a rigid end post (table 5.1)</param>
+        /// <param name="etaInShearArea">True for EN 1993-1-1 6.2.6(3)d, welded sections: Av = eta hw tw; false for NTC 2018 §4.2.4.1.2.4:
+        /// Av = hw tw (the conservative value, also admitted by EC3 with eta = 1)</param>
         public static WebShearResistance Web(double height, double thickness, double fy, double young,
-            double gammaM0, double gammaM1, double eta, double panelLength = 0, bool rigidEndPost = false)
+            double gammaM0, double gammaM1, double eta, double panelLength = 0, bool rigidEndPost = false, bool etaInShearArea = false)
         {
             Positive(height, "hw"); Positive(thickness, "tw"); Positive(fy, "fy"); Positive(young, "E");
             Positive(gammaM0, "gammaM0"); Positive(gammaM1, "gammaM1"); Positive(eta, "eta");
@@ -23,10 +35,10 @@ namespace GPC.Checkers.CompositeBridge
             double lambda = Math.Sqrt(fy / (Math.Sqrt(3) * tauCr));
             double chi = lambda < .83 / eta ? eta : rigidEndPost && lambda >= 1.08 ? 1.37 / (.7 + lambda) : .83 / lambda;
             double area = height * thickness;
-            double plastic = area * fy / (Math.Sqrt(3) * gammaM0);
+            double plastic = (etaInShearArea ? eta : 1) * area * fy / (Math.Sqrt(3) * gammaM0);
             double buckling = chi * area * fy / (Math.Sqrt(3) * gammaM1);
             return new WebShearResistance { KTau = kt, TauCritical = tauCr, Slenderness = lambda, Chi = chi,
-                Area = area, PlasticResistance = plastic, BucklingResistance = buckling, Resistance = Math.Min(plastic, buckling) };
+                Area = area, ShearArea = (etaInShearArea ? eta : 1) * area, PlasticResistance = plastic, BucklingResistance = buckling, Resistance = Math.Min(plastic, buckling) };
         }
 
         /// <summary>Symmetric double-sided flat intermediate stiffener. Effective web strip
@@ -100,6 +112,8 @@ namespace GPC.Checkers.CompositeBridge
         public double Slenderness { get; set; }
         public double Chi { get; set; }
         public double Area { get; set; }
+        /// <summary>The shear area of the plastic resistance: hw tw (NTC) or eta hw tw (EC3)</summary>
+        public double ShearArea { get; set; }
         public double PlasticResistance { get; set; }
         public double BucklingResistance { get; set; }
         public double Resistance { get; set; }

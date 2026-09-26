@@ -126,10 +126,20 @@ public class BridgeModuleStagesTests
     [DataRow(false)] [DataRow(true)]
     public void TwoEqualWidthBottomPlatesAreExactlyEquivalent(bool effective)
     {
+        // CompositeBridge 1.1 models the real plates: the steel section is exactly the one plate of the total thickness (same area, centroid
+        // and inertia). The stresses of the composite phase differ by the line integration of Checker (each plate is a line at its mid-plane,
+        // so two plates keep part of the own inertia that one line loses: about 1e-4). With class 4 each plate is an outstand of its own
+        // thickness (conservative): the two plates are reduced at least as much as the single thick plate.
         var d=Input(Phase("Solo acciaio",0,-1000),Phase("Composta",0,2000,2.2));d["classe4"]=effective;
         d["plate2"]=true;d["b_bottom2"]=700;d["t_bottom2"]=20;var a=BridgeSection.Calculate(d);
         d["plate2"]=false;d["t_bottom"]=50;var b=BridgeSection.Calculate(d);
-        for(int i=0;i<a.Stages.Last().Points.Count;i++) Near(a.Stages.Last().Points[i].Stress,b.Stages.Last().Points[i].Stress,"equal-width plates");
+        Near(a.Geometry.SteelArea,b.Geometry.SteelArea,"steel area");Near(a.Geometry.SteelCentroid,b.Geometry.SteelCentroid,"steel centroid");Near(a.Geometry.SteelInertia,b.Geometry.SteelInertia,"steel inertia");
+        if(!effective)
+        {
+            for(int i=0;i<a.Stages[0].Points.Count;i++) Near(a.Stages[0].Points[i].Stress,b.Stages[0].Points[i].Stress,"steel only phase");
+            for(int i=0;i<a.Stages.Last().Points.Count;i++) Near(a.Stages.Last().Points[i].Stress,b.Stages.Last().Points[i].Stress,"equal-width plates",2e-4);
+        }
+        else Assert.IsTrue(a.Stages.Last().Effective.BottomWidth<=b.Stages.Last().Effective.BottomWidth+1e-9,"separate outstands are not less reduced");
     }
     [DataTestMethod,TestCategory("ApproximationCharacterization")]
     [DataRow(500d,20d)] [DataRow(200d,60d)]

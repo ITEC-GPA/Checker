@@ -23,7 +23,7 @@ public static partial class HBridgeSection
     public static double GrossPhaseCentroid(HBridgeInput data, BridgePhase phase)
     {
         var g = Geometry(data);
-        if (HasConcrete(phase.KindName)) return NativeSection(data).GetHomogeneizedMechanicalProperties(Homogenization(data, phase).PhiEffective).centroidH.Y;
+        if (HasConcrete(phase.KindName)) return NativeSection(data, g).GetHomogeneizedMechanicalProperties(Homogenization(data, phase).PhiEffective).centroidH.Y;
         if (phase.KindName == "Solo acciaio") return g.SteelCentroid;
         if (phase.KindName != "Soletta esclusa") throw new ArgumentException("Tipo di fase sconosciuto.");
         var m = Materials(data); double ratio = m.Rebar.ElasticModulusTension / m.Steel.ElasticModulusTension;
@@ -57,8 +57,9 @@ public static partial class HBridgeSection
         var top = Bar("top"); var bottom = Bar("bottom");
         if (top is not null && bottom is not null && tc - d.TopRebars.AxisDistance - d.BottomRebars.AxisDistance < (top.Diameter + bottom.Diameter) / 2)
             throw new ArgumentException("Le file di armature devono avere assi distinti e distanza almeno pari alla somma dei raggi.");
-        var shape = new SectionH(h, tw, bt, tt, bb, tb, "H saldato · piattabanda equivalente");
-        var section = new ReinforcedConcreteSection(b, tc, mat.Concrete, top!, d.TopRebars.Pitch, d.TopRebars.AxisDistance,
+        // two bottom plates: the exact section of the four plates (before, the equivalent rectangle with the same area and thickness)
+        var shape = SteelShape(h, tw, bt, tt, b1, t1, b2, t2);
+        var section = ReinforcedConcreteSection.CreateBridgeSection(b, tc, mat.Concrete, top!, d.TopRebars.Pitch, d.TopRebars.AxisDistance,
             bottom!, d.BottomRebars.Pitch, shape, mat.Steel, d.BottomRebars.AxisDistance);
         var bars = section.Rebars.Select((r, i) => new BridgeBar("B" + (i + 1), r.Position.X, r.Position.Y, r.RebarSection.Diameter, r.Area)).ToArray();
         for (int i = 0; i < bars.Length; i++) for (int j = 0; j < i; j++)
@@ -70,14 +71,19 @@ public static partial class HBridgeSection
         double ib = b1 * Math.Pow(t1, 3) / 12 + b1 * t1 * Math.Pow(y1 - yb, 2) + b2 * Math.Pow(t2, 3) / 12 + b2 * t2 * Math.Pow(y2 - yb, 2);
         return new(b, tc, hw, tw, bt, tt, b1, t1, b2, t2, bb, tb, h, ab, yb, ib, shape.Area, shape.Jxx, shape.Centroid.Y - h, bars);
     }
-    public static ReinforcedConcreteSection NativeSection(HBridgeInput d)
+    public static ReinforcedConcreteSection NativeSection(HBridgeInput d) => NativeSection(d, Geometry(d));
+    /// <summary>The native section on an already calculated geometry (avoids building the geometry twice)</summary>
+    private static ReinforcedConcreteSection NativeSection(HBridgeInput d, BridgeGeometry g)
     {
-        var g = Geometry(d); var m = Materials(d);
-        return new ReinforcedConcreteSection(g.Width, g.SlabHeight, m.Concrete,
+        var m = Materials(d);
+        return ReinforcedConcreteSection.CreateBridgeSection(g.Width, g.SlabHeight, m.Concrete,
             d.TopRebars.Enabled ? new RebarSectionCircular(d.TopRebars.Diameter, m.Rebar) : null!, d.TopRebars.Pitch, d.TopRebars.AxisDistance,
             d.BottomRebars.Enabled ? new RebarSectionCircular(d.BottomRebars.Diameter, m.Rebar) : null!, d.BottomRebars.Pitch,
-            new SectionH(g.Height, g.WebThickness, g.TopWidth, g.TopThickness, g.BottomEquivalentWidth, g.BottomEquivalentThickness, "H"), m.Steel, d.BottomRebars.AxisDistance);
+            SteelShape(g.Height, g.WebThickness, g.TopWidth, g.TopThickness, g.Bottom1Width, g.Bottom1Thickness, g.Bottom2Width, g.Bottom2Thickness), m.Steel, d.BottomRebars.AxisDistance);
     }
+    /// <summary>The welded steel section: an H with one bottom plate, or with two (<see cref="SectionHDoubleBottomFlange"/>)</summary>
+    private static Section SteelShape(double h, double tw, double bt, double tt, double b1, double t1, double b2, double t2) =>
+        t2 > 0 ? new SectionHDoubleBottomFlange(h, tw, bt, tt, b1, t1, b2, t2, "H saldato · due piastre inferiori") : new SectionH(h, tw, bt, tt, b1, t1, "H saldato");
     public static (double N0, double N, double PhiEffective, double Phi) Homogenization(HBridgeInput data, BridgePhase phase) =>
         CompositeHomogenization.Calculate(data.Materials, phase);
 }

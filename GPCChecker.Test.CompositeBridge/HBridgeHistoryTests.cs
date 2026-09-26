@@ -112,11 +112,14 @@ public class HBridgeHistoryTests
     {
         Assert.ThrowsException<NotSupportedException>(() => HBridgeHistoryAnalysis.Calculate(Input(true), Mesh() with { MaterialMode = HistoryMaterialMode.Nonlinear }));
     }
-    [TestMethod] public void TwoBottomPlatesKeepTheExistingEquivalentRectangleConvention()
+    [TestMethod] public void TwoBottomPlatesAreTheRealPlates()
     {
+        // before, one equivalent rectangle of area 31000 at y = -1850; now plate 1 (700 x 30 below the web) and plate 2 (500 x 20 below it)
         var d = Input(); d = d with { Geometry = d.Geometry with { SecondBottomEnabled = true, SecondBottomWidth = 500, SecondBottomThickness = 20 } };
-        var section = HBridgeHistoryAnalysis.CreateSection(d, Mesh()); var bottom = section.Components.Single(c => c.Id == HBridgeHistoryAnalysis.Bottom).Fibers;
-        Near(700d * 30 + 500 * 20, bottom.Sum(f => f.Area));
-        Near(-1850, bottom.Sum(f => f.Area * f.Y) / bottom.Sum(f => f.Area));
+        var section = HBridgeHistoryAnalysis.CreateSection(d, Mesh());
+        var first = section.Components.Single(c => c.Id == HBridgeHistoryAnalysis.Bottom).Fibers;
+        var second = section.Components.Single(c => c.Id == HBridgeHistoryAnalysis.Bottom2).Fibers;
+        Near(700d * 30, first.Sum(f => f.Area)); Near(-1825 - 15, first.Sum(f => f.Area * f.Y) / first.Sum(f => f.Area));
+        Near(500d * 20, second.Sum(f => f.Area)); Near(-1875 + 10, second.Sum(f => f.Area * f.Y) / second.Sum(f => f.Area));
     }
 }

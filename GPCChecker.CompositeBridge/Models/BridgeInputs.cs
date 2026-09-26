@@ -90,6 +90,12 @@ public sealed record BridgeAnalysisOptions
     public double GammaS { get; init; } = 1.15;
     public double AlphaCC { get; init; } = .85;
     public bool Class4 { get; init; } = true;
+    /// <summary>Local buckling (EN 1993-1-5 4.4) of the top flange outstands; false keeps them fully effective. Used only with Class4.</summary>
+    public bool TopFlangeBuckling { get; init; } = true;
+    /// <summary>Local buckling of the bottom flange outstands (both plates); false keeps them fully effective. Used only with Class4.</summary>
+    public bool BottomFlangeBuckling { get; init; } = true;
+    /// <summary>Local buckling of the web as an internal plate; false keeps it fully effective. Used only with Class4.</summary>
+    public bool WebBuckling { get; init; } = true;
     public double CommonLoadY { get; init; }
     public double GammaM1 { get; init; } = 1.1;
     public double GammaM2 { get; init; } = 1.25;

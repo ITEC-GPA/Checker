@@ -146,6 +146,9 @@
     "bordo_cls_dx": 500,
     "forcine_bordo": false,
     "d_forcine": 12,
+    "instabilita_sup": true,
+    "instabilita_inf": true,
+    "instabilita_anima": true,
     "fatica_pioli": false,
     "q_fat_min": "",
     "q_fat_max": "",
@@ -238,7 +241,9 @@
           "EffectiveAtEnd": 0,
           "StartStress": 0,
           "EndStress": 0
-        }
+        },
+        "SecondBottomWidth": 0,
+        "SecondBottom": null
       },
       "EffectiveSteel": {
         "Area": 58700,
@@ -366,6 +371,7 @@
           "Slenderness": 1.8283507021322156,
           "Chi": 0.45396104753429256,
           "Area": 25200,
+          "ShearArea": 25200,
           "PlasticResistance": 4919024.293495612,
           "BucklingResistance": 2131543.356525451,
           "Resistance": 2131543.356525451
@@ -382,7 +388,7 @@
             "Resistance": 2131.543356525451,
             "Unit": "kN",
             "Ratio": 0,
-            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Note": "min(Vpl,Rd; Vbw,Rd), Av = hw·tw (NTC §4.2.4.1.2.4); flange omesse; montante terminale non rigido",
             "Status": "Entro limite"
           },
           {
@@ -470,7 +476,9 @@
           "EffectiveAtEnd": 0,
           "StartStress": 0,
           "EndStress": 0
-        }
+        },
+        "SecondBottomWidth": 0,
+        "SecondBottom": null
       },
       "EffectiveSteel": {
         "Area": 58700,
@@ -637,6 +645,7 @@
           "Slenderness": 1.8283507021322156,
           "Chi": 0.45396104753429256,
           "Area": 25200,
+          "ShearArea": 25200,
           "PlasticResistance": 4919024.293495612,
           "BucklingResistance": 2131543.356525451,
           "Resistance": 2131543.356525451
@@ -653,7 +662,7 @@
             "Resistance": 2131.543356525451,
             "Unit": "kN",
             "Ratio": 0,
-            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Note": "min(Vpl,Rd; Vbw,Rd), Av = hw·tw (NTC §4.2.4.1.2.4); flange omesse; montante terminale non rigido",
             "Status": "Entro limite"
           },
           {
@@ -751,7 +760,9 @@
           "EffectiveAtEnd": 0,
           "StartStress": 0,
           "EndStress": 0
-        }
+        },
+        "SecondBottomWidth": 0,
+        "SecondBottom": null
       },
       "EffectiveSteel": {
         "Area": 58700,
@@ -957,6 +968,7 @@
           "Slenderness": 1.8283507021322156,
           "Chi": 0.45396104753429256,
           "Area": 25200,
+          "ShearArea": 25200,
           "PlasticResistance": 4919024.293495612,
           "BucklingResistance": 2131543.356525451,
           "Resistance": 2131543.356525451
@@ -973,7 +985,7 @@
             "Resistance": 2131.543356525451,
             "Unit": "kN",
             "Ratio": 0,
-            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Note": "min(Vpl,Rd; Vbw,Rd), Av = hw·tw (NTC §4.2.4.1.2.4); flange omesse; montante terminale non rigido",
             "Status": "Entro limite"
           },
           {

@@ -20,9 +20,6 @@
 	    <Reference Include="GPCModel">
       <HintPath>..\..\Model\Model\bin\Release\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
-    <Reference Include="UnsafeEx">
-      <HintPath>..\..\Gmsh.Net\src\GMsh.Net\bin\Release\netstandard2.0\UnsafeEx.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>

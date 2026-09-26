@@ -22,7 +22,8 @@ public static partial class HBridgeSection
     {
         double gm0 = BridgeNumbers.Require(d.Options.GammaM0, "gamma_m0", strict: true), gm1 = BridgeNumbers.Require(d.Options.GammaM1, "gamma_m1", strict: true), eta = BridgeNumbers.Require(d.Options.ShearEta, "eta_taglio", strict: true);
         double span = g.WebHeight + (g.TopThickness + g.BottomEquivalentThickness) / 2;
-        var web = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta);
+        bool euroCode = !d.Options.StandardName.StartsWith("NTC"); // Av = eta hw tw (EC3 6.2.6(3)d) or hw tw (NTC 4.2.4.1.2.4)
+        var web = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, etaInShearArea: euroCode);
         bool ultimate = d.Options.LimitStateName == "SLU";
         usesIntermediate = false; usesRigidEnd = false;
         // removedPanel: the web panel with the stiffener removed, for Nst (EN 1993-1-5 §9.3.3(3)). Before, the longer adjacent panel
@@ -81,7 +82,7 @@ public static partial class HBridgeSection
             double aL = BridgeNumbers.Require(d.Intermediate.LeftPanel, "a_irr", strict: true), aR = d.Intermediate.EqualPanels ? aL : BridgeNumbers.Require(d.Intermediate.RightPanel, "a_irr_dx", strict: true);
             usesIntermediate = Element(BridgeStiffenerRole.Intermediate, "Intermedio", aL, aR, aL + aR, aL / 2, aR / 2, BridgeNumbers.Require(d.Intermediate.ExternalCompressionKN, "N_irr") * 1000,
                 BridgeNumbers.Require(d.Intermediate.LoadX, "x_irr", double.NegativeInfinity), 0, true, out _);
-            if (usesIntermediate) web = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, Math.Max(aL, aR));
+            if (usesIntermediate) web = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, Math.Max(aL, aR), etaInShearArea: euroCode);
             else warnings.Add("Irrigidimento intermedio non idoneo: escluso il beneficio dei pannelli a taglio.");
         }
         if (d.Support.Enabled)
@@ -134,7 +135,7 @@ public static partial class HBridgeSection
                 {
                     // No credit for a shorter main panel unless intermediate supports are independently suitable.
                     double adoptedPanel = usesIntermediate ? Math.Max(d.Intermediate.LeftPanel, d.Intermediate.EqualPanels ? d.Intermediate.LeftPanel : d.Intermediate.RightPanel) : 0;
-                    web = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, adoptedPanel, true);
+                    web = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, adoptedPanel, true, euroCode);
                 }
                 else warnings.Add("Montante terminale non qualificato come rigido: resta adottata la curva non rigida a taglio.");
             }

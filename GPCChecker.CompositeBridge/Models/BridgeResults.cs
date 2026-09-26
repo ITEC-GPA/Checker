@@ -8,19 +8,27 @@ public sealed record BridgeGeometry(double Width, double SlabHeight, double WebH
 public sealed record BridgeMaterialValues(string Concrete, double Fck, double Ec, string Steel, double Fy, double Ea, string Rebar, double Fys, double Es);
 public sealed record BridgePlate(double Width, double Thickness, double Psi, double KSigma, double Lambda, double Rho, double CompressedWidth,
     double EffectiveAtStart, double EffectiveAtEnd, double StartStress, double EndStress);
-public sealed record BridgeEffective(double WebTop, double WebBottom, double TopWidth, double BottomWidth, BridgePlate Web, BridgePlate Top, BridgePlate Bottom)
+/// <summary>Effective steel geometry. With two bottom plates BottomWidth/Bottom are the first plate (welded to the web) and
+/// SecondBottomWidth/SecondBottom the second one; with one plate SecondBottom is null.</summary>
+public sealed record BridgeEffective(double WebTop, double WebBottom, double TopWidth, double BottomWidth, BridgePlate Web, BridgePlate Top, BridgePlate Bottom,
+    double SecondBottomWidth = 0, BridgePlate? SecondBottom = null)
 {
     public static BridgeEffective Full(BridgeGeometry g)
     {
         var plate = new BridgePlate(g.WebHeight, g.WebThickness, 0, 0, 0, 1, 0, g.WebHeight / 2, g.WebHeight / 2, 0, 0);
-        return new(g.WebHeight / 2, g.WebHeight / 2, g.TopWidth, g.BottomEquivalentWidth, plate,
-            plate with { Width = (g.TopWidth - g.WebThickness) / 2, Thickness = g.TopThickness, EffectiveAtStart = (g.TopWidth - g.WebThickness) / 2, EffectiveAtEnd = 0 },
-            plate with { Width = (g.BottomEquivalentWidth - g.WebThickness) / 2, Thickness = g.BottomEquivalentThickness, EffectiveAtStart = (g.BottomEquivalentWidth - g.WebThickness) / 2, EffectiveAtEnd = 0 });
+        BridgePlate Outstand(double width, double thickness) =>
+            plate with { Width = (width - g.WebThickness) / 2, Thickness = thickness, EffectiveAtStart = (width - g.WebThickness) / 2, EffectiveAtEnd = 0 };
+        bool two = g.Bottom2Thickness > 0;
+        return new(g.WebHeight / 2, g.WebHeight / 2, g.TopWidth, two ? g.Bottom1Width : g.BottomEquivalentWidth, plate,
+            Outstand(g.TopWidth, g.TopThickness), two ? Outstand(g.Bottom1Width, g.Bottom1Thickness) : Outstand(g.BottomEquivalentWidth, g.BottomEquivalentThickness),
+            two ? g.Bottom2Width : 0, two ? Outstand(g.Bottom2Width, g.Bottom2Thickness) : null);
     }
     public double Distance(BridgeEffective b, BridgeGeometry g) => new[] { Math.Abs(WebTop - b.WebTop) / g.WebHeight, Math.Abs(WebBottom - b.WebBottom) / g.WebHeight,
-        Math.Abs(TopWidth - b.TopWidth) / g.TopWidth, Math.Abs(BottomWidth - b.BottomWidth) / g.BottomEquivalentWidth }.Max();
+        Math.Abs(TopWidth - b.TopWidth) / g.TopWidth, Math.Abs(BottomWidth - b.BottomWidth) / (g.Bottom2Thickness > 0 ? g.Bottom1Width : g.BottomEquivalentWidth),
+        g.Bottom2Thickness > 0 ? Math.Abs(SecondBottomWidth - b.SecondBottomWidth) / g.Bottom2Width : 0 }.Max();
     public BridgeEffective Relax(BridgeEffective b, double f) => this with { WebTop = WebTop * (1 - f) + b.WebTop * f, WebBottom = WebBottom * (1 - f) + b.WebBottom * f,
-        TopWidth = TopWidth * (1 - f) + b.TopWidth * f, BottomWidth = BottomWidth * (1 - f) + b.BottomWidth * f };
+        TopWidth = TopWidth * (1 - f) + b.TopWidth * f, BottomWidth = BottomWidth * (1 - f) + b.BottomWidth * f,
+        SecondBottomWidth = SecondBottomWidth * (1 - f) + b.SecondBottomWidth * f };
 }
 public sealed record BridgeContribution(string Name, string Kind, double N, double Mx, double N0, double HomogenizationN, double Phi, double EffectivePhi,
     double Area, double Centroid, double Inertia, double UniformStress, double StressSlope, double RebarRatio, double RebarArea, double WBottom, double? WTop, double SolverInertia, double EquilibriumResidual,

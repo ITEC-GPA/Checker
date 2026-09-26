@@ -36,9 +36,13 @@ public static partial class HBridgeSection
             _ => null
         }, new BridgePhaseIdentity());
         var stages = new List<BridgeStage>();
+        // The effective-width iterations use the transformed-section field with the Checker integration inertia, which is the Checker linear
+        // field to machine precision (relative differences 1e-15); the converged situation is solved again with the Checker solver, which
+        // gives the reported stresses and the equilibrium audit. Before, every iteration built a Checker solver for every composite phase
+        // (about 2 ms each: 63 solutions and 115 ms for three phases, now 3 solutions).
         var situations = CumulativePhaseAnalysis.Analyze(phases, () => BridgeEffective.Full(g),
-            (effective, phase) => Solve(data, g, effective, phase, applicationPoints[phase]),
-            contributions => data.Options.Class4 ? EffectiveWidths(g, y => contributions.Sum(c => c.SteelStress(y)), mat.Steel.Fyk) : BridgeEffective.Full(g),
+            (effective, phase) => Solve(data, g, effective, phase, applicationPoints[phase], nativeSolver: !data.Options.Class4),
+            contributions => data.Options.Class4 ? EffectiveWidths(g, y => contributions.Sum(c => c.SteelStress(y)), mat.Steel.Fyk, data.Options) : BridgeEffective.Full(g),
             (current, next) => current.Distance(next, g), (current, next, factor) => current.Relax(next, factor),
             phase => phase.Name, cancellation);
         foreach (var situation in situations)
@@ -47,16 +51,18 @@ public static partial class HBridgeSection
             double error = situation.Residual;
             var included = phases.Take(end + 1).ToArray();
             var effective = situation.State;
-            var contributions = situation.Contributions.ToList();
+            // gross section: the only iteration already used the Checker solver
+            var contributions = data.Options.Class4 ? included.Select(p => Solve(data, g, effective, p, applicationPoints[p])).ToList() : situation.Contributions.ToList();
             // Keep properties and stresses on the same converged geometry. Diagnostic plate data are recomputed on those stresses.
-            var diagnostics = data.Options.Class4 ? EffectiveWidths(g, y => contributions.Sum(c => c.SteelStress(y)), mat.Steel.Fyk) : BridgeEffective.Full(g);
-            effective = effective with { Web = diagnostics.Web, Top = diagnostics.Top, Bottom = diagnostics.Bottom };
+            var diagnostics = data.Options.Class4 ? EffectiveWidths(g, y => contributions.Sum(c => c.SteelStress(y)), mat.Steel.Fyk, data.Options) : BridgeEffective.Full(g);
+            effective = effective with { Web = diagnostics.Web, Top = diagnostics.Top, Bottom = diagnostics.Bottom, SecondBottom = diagnostics.SecondBottom };
             var points = StressPoints(g, contributions, data, Math.Abs(mat.Concrete.Fck), mat.Steel.Fyk, mat.Rebar.Fyk);
             var warnings = new List<string>();
             if (points.Any(p => p.Material == "CLS" && p.Stress > 1e-6)) warnings.Add("CLS teso nel modello non fessurato: valutare una situazione con soletta esclusa; non è attestata la verifica del CLS in trazione.");
             if (!data.Options.Class4) warnings.Add("Sezione lorda: riduzioni locali disattivate. Risultato di confronto, non verifica di classe 4.");
             if (contributions.Any(c => c.IsShrinkage)) warnings.Add("Ritiro uniforme imposto al solo CLS: effetti primari autoequilibrati. Eventuali azioni secondarie da vincoli esterni vanno inserite come fasi N–Mx separate.");
-            if (g.Bottom2Thickness > 0) warnings.Add("Due piastre inferiori sostituite nel calcolo dal rettangolo equivalente ad area e spessore totali uguali. Baricentro e inerzia delle piastre reali sono riportati per confronto.");
+            if (data.Options.Class4) warnings.AddRange(LocalBucklingWarnings(data.Options));
+            if (g.Bottom2Thickness > 0) warnings.Add("Due piastre inferiori modellate con la geometria reale. Instabilità locale: ciascuna piastra come sbalzo dall'anima con il proprio spessore, senza il beneficio dell'accoppiamento (a favore di sicurezza).");
             var effectiveParts = SteelPieces(g, effective, mat.Steel);
             double effectiveArea = effectiveParts.Sum(p => p.Section.Area);
             double effectiveCentroid = effectiveParts.Sum(p => p.Section.Area * p.PositionToGlobal(p.Section.Centroid).Y) / effectiveArea;
@@ -71,12 +77,30 @@ public static partial class HBridgeSection
             new(mat.Concrete.Name, Math.Abs(mat.Concrete.Fck), mat.Concrete.ElasticModulusCompression, mat.Steel.Name, mat.Steel.Fyk, mat.Steel.ElasticModulusTension,
                 mat.Rebar.Name, mat.Rebar.Fyk, mat.Rebar.ElasticModulusTension), stages);
     }
+    /// <summary>The warnings for the parts whose local buckling is excluded by the options</summary>
+    public static IEnumerable<string> LocalBucklingWarnings(BridgeAnalysisOptions options)
+    {
+        var parts = new List<string>();
+        if (!options.TopFlangeBuckling) parts.Add("piattabanda superiore");
+        if (!options.BottomFlangeBuckling) parts.Add("piattabanda inferiore");
+        if (!options.WebBuckling) parts.Add("anima");
+        if (parts.Count > 0)
+            yield return "Instabilità locale esclusa per: " + string.Join(", ", parts) + " (interamente efficaci, ρ = 1). Giustificare l'esclusione, ad esempio con classe 1–3 o con il vincolo della soletta connessa.";
+    }
     private static double Number(BridgePhase p, string k) => BridgeNumbers.Require(k switch {
         "N" => p.ForceKN, "Mx" => p.MomentKNm, "V" => p.ShearKN, "q_conn" => p.AdditionalConnectionFlow,
         "epsilon_cs" => p.ShrinkageMicrostrain, _ => throw new ArgumentException(k) }, k, double.NegativeInfinity);
-    private static BridgeContribution Solve(HBridgeInput d, BridgeGeometry g, BridgeEffective e, BridgePhase p, double? applicationPoint)
+    /// <summary>The stress field of one load increment on the effective geometry e</summary>
+    /// <param name="d">The input</param>
+    /// <param name="g">The geometry</param>
+    /// <param name="e">The effective steel geometry</param>
+    /// <param name="p">The phase</param>
+    /// <param name="applicationPoint">y of the axial force; null: the effective centroid</param>
+    /// <param name="nativeSolver">False: the transformed-section field with the Checker integration inertia instead of the Checker solver
+    /// (the same field to machine precision, used for the effective-width iterations)</param>
+    private static BridgeContribution Solve(HBridgeInput d, BridgeGeometry g, BridgeEffective e, BridgePhase p, double? applicationPoint, bool nativeSolver = true)
     {
-        if (p.KindName == ShrinkageKind) return SolveShrinkage(d, g, e, p);
+        if (p.KindName == ShrinkageKind) return SolveShrinkage(d, g, e, p, nativeSolver);
         var mat = Materials(d); string kind = p.KindName;
         var homo = kind == "Composta" ? Homogenization(d, p) : (0d, 0d, 0d, 0d);
         double n = homo.Item2, area, cy, inertia;
@@ -84,7 +108,7 @@ public static partial class HBridgeSection
         var steel = SteelPieces(g, e, mat.Steel);
         if (kind == "Composta")
         {
-            var section = composite = NativeSection(d); section.SteelSections.Clear();
+            var section = composite = NativeSection(d, g); section.SteelSections.Clear();
             foreach (var part in steel) section.AddSteelSection(part);
             // Native Model transforms into concrete; divide by n to report in structural steel.
             var props = section.GetHomogeneizedMechanicalProperties(homo.Item3);
@@ -109,9 +133,12 @@ public static partial class HBridgeSection
         {
             // Independent equilibrium audit of Checker's line-wall / point-rebar integration. The integration inertia is a property of the
             // section: before, it was corrected only for a loaded phase (an unloaded composite phase reported the Model inertia)
-            solverInertia -= e.TopWidth * Math.Pow(g.TopThickness, 3) / 12 + e.BottomWidth * Math.Pow(g.BottomEquivalentThickness, 3) / 12
+            solverInertia -= e.TopWidth * Math.Pow(g.TopThickness, 3) / 12
+                + (g.Bottom2Thickness > 0 ? e.BottomWidth * Math.Pow(g.Bottom1Thickness, 3) / 12 + e.SecondBottomWidth * Math.Pow(g.Bottom2Thickness, 3) / 12
+                    : e.BottomWidth * Math.Pow(g.BottomEquivalentThickness, 3) / 12)
                 + g.Bars.Sum(b => Math.PI * Math.Pow(b.Diameter, 4) / 64) * (mat.Rebar.ElasticModulusTension / mat.Steel.ElasticModulusTension - 1 / n);
-            if (force != 0 || moment != 0)
+            if (!nativeSolver) slope = -mg / solverInertia;
+            else if (force != 0 || moment != 0)
             {
                 var field = CompositeLinearStressSolver.Solve(composite, force, moment, g.Width / 2, yref, homo.Item3, d.Options.Standard);
                 slope = field.Slope;
@@ -128,7 +155,7 @@ public static partial class HBridgeSection
             kind == "Solo acciaio" ? 0 : g.Bars.Sum(b => b.Area), inertia / Math.Abs(-g.Height - cy), Math.Abs(cy) < 1e-9 ? null : inertia / Math.Abs(cy), solverInertia, equilibrium, yref, LoadReference(p), Number(p, "V"),
             ConnectionFlowExtra: kind != "Solo acciaio" ? Number(p, "q_conn") : 0);
     }
-    private static BridgeContribution SolveShrinkage(HBridgeInput d, BridgeGeometry g, BridgeEffective effective, BridgePhase phase)
+    private static BridgeContribution SolveShrinkage(HBridgeInput d, BridgeGeometry g, BridgeEffective effective, BridgePhase phase, bool nativeSolver = true)
     {
         // Input in microstrain: contraction is negative. Bars do not receive an eigenstrain.
         double strain = Number(phase, "epsilon_cs") * 1e-6;
@@ -137,7 +164,7 @@ public static partial class HBridgeSection
         double yc = (g.Width * g.SlabHeight * g.SlabHeight / 2 - g.Bars.Sum(b => b.Area * b.Y)) / ac;
         double equivalentForce = ec * ac * strain;
         var fictitious = phase with { Kind = BridgePhaseKind.Composite, ForceKN = equivalentForce / 1000, MomentKNm = 0, ShearKN = 0 };
-        var response = Solve(d, g, effective, fictitious, yc);
+        var response = Solve(d, g, effective, fictitious, yc, nativeSolver);
         // The equivalent force solves compatibility. Removing the free-strain stress in
         // concrete restores zero external N and M; omitting this term is NOT shrinkage.
         return response with { Kind = ShrinkageKind, N = 0, Mx = 0, V = 0, ShrinkageStrain = strain,
@@ -159,7 +186,13 @@ public static partial class HBridgeSection
         Add(e.TopWidth, g.TopThickness, -g.TopThickness);
         Add(g.WebThickness, e.WebTop, -g.TopThickness - e.WebTop, true);
         Add(g.WebThickness, e.WebBottom, -g.TopThickness - g.WebHeight, true);
-        Add(e.BottomWidth, g.BottomEquivalentThickness, -g.Height);
+        if (g.Bottom2Thickness > 0)
+        {
+            // the two real bottom plates (before, the equivalent rectangle with the same area and total thickness)
+            Add(e.BottomWidth, g.Bottom1Thickness, -g.TopThickness - g.WebHeight - g.Bottom1Thickness);
+            Add(e.SecondBottomWidth, g.Bottom2Thickness, -g.Height);
+        }
+        else Add(e.BottomWidth, g.BottomEquivalentThickness, -g.Height);
         return pieces;
     }
     private static List<BridgeStressPoint> StressPoints(BridgeGeometry g, List<BridgeContribution> c, HBridgeInput d, double fck, double fy, double fys)

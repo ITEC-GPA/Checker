@@ -36,7 +36,7 @@ public static partial class HBridgeSection
             checks, detailValues, warnings, out stiffened, out bool rigidEnd);
         TransverseStiffenerResistance? stiffener = null;
         checks.Insert(0, new("Anima · resistenza a taglio", Math.Abs(v), web.Resistance / 1000, "kN", ultimate ? Math.Abs(v) * 1000 / web.Resistance : null,
-            ultimate ? "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale " + (rigidEnd ? "rigido verificato" : "non rigido") : "Resistenza SLU di confronto: assegnare la combinazione SLU per l’esito"));
+            ultimate ? "min(Vpl,Rd; Vbw,Rd), Av = " + (ntc ? "hw·tw (NTC §4.2.4.1.2.4)" : "η·hw·tw (EN 1993-1-1 §6.2.6(3))") + "; flange omesse; montante terminale " + (rigidEnd ? "rigido verificato" : "non rigido") : "Resistenza SLU di confronto: assegnare la combinazione SLU per l’esito"));
         if (!d.Support.Enabled && g.WebHeight / g.WebThickness > 72 * Math.Sqrt(235 / fy) / eta)
             warnings.Add("EN 1993-1-5 §5.1: per questa anima snella sono necessari irrigidimenti trasversali agli appoggi, da dimensionare separatamente. L’opzione del pannello riguarda quelli intermedi.");
 
@@ -69,12 +69,13 @@ public static partial class HBridgeSection
             }
             flows.Add(new(c.Name, c.Kind, c.V, s, inertia, q, c.ConnectionFlowExtra, basis));
         }
+        var steelParts = SteelPartProperties(g); // real plates, as the gross phase properties
         double Tau(double y)
         {
             double total = 0;
             foreach (var (c, p, n) in shearData)
             {
-                double firstMoment = SteelPartProperties(g, true).Sum(part => {
+                double firstMoment = steelParts.Sum(part => {
                     double low = Math.Max(y, part.Bottom), height = Math.Max(0, part.Top - low);
                     return part.Width * height * ((part.Top + low) / 2 - p.Y); });
                 if (c.HasConcrete) firstMoment += g.Width * g.SlabHeight / n * (g.SlabHeight / 2 - p.Y);
@@ -97,9 +98,13 @@ public static partial class HBridgeSection
             if (Math.Abs(axial) < 1e-9 && fy <= 355 && !fullyCompressedWeb)
             {
                 double fyd = fy / gm0;
-                var flanges = new List<BridgeBendingShear.Block> {
-                    new(-g.TopThickness, 0, effective.TopWidth, fyd, fyd),
-                    new(-g.Height, bottom, effective.BottomWidth, fyd, fyd) };
+                var flanges = new List<BridgeBendingShear.Block> { new(-g.TopThickness, 0, effective.TopWidth, fyd, fyd) };
+                if (g.Bottom2Thickness > 0)
+                {
+                    flanges.Add(new(bottom - g.Bottom1Thickness, bottom, effective.BottomWidth, fyd, fyd));
+                    flanges.Add(new(-g.Height, bottom - g.Bottom1Thickness, effective.SecondBottomWidth, fyd, fyd));
+                }
+                else flanges.Add(new(-g.Height, bottom, effective.BottomWidth, fyd, fyd));
                 if (contributions.Any(c => c.Kind != "Solo acciaio"))
                     flanges.Add(new(0, g.SlabHeight, g.Width, .85 * BridgeNumbers.Require(d.Options.AlphaCC, "alpha_cc", strict: true) * m.Fck / BridgeNumbers.Require(d.Options.GammaC, "gamma_c", strict: true), 0));
                 var full = flanges.Append(new BridgeBendingShear.Block(bottom, top, g.WebThickness, fyd, fyd));

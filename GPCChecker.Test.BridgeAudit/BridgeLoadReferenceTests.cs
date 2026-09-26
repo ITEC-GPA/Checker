@@ -16,12 +16,14 @@ public class BridgeLoadReferenceTests
     static double IndependentCentroid(JsonObject d, string kind)
     {
         var g = BridgeSection.Geometry(d); var materials = BridgeSection.Materials(d);
+        // the real bottom plates (CompositeBridge 1.1: no more equivalent rectangle)
         var parts = new List<(double A, double Y)>
         {
             (g.TopWidth * g.TopThickness, -g.TopThickness / 2),
             (g.WebThickness * g.WebHeight, -g.TopThickness - g.WebHeight / 2),
-            (g.BottomEquivalentWidth * g.BottomEquivalentThickness, -g.Height + g.BottomEquivalentThickness / 2)
+            (g.Bottom1Width * g.Bottom1Thickness, -g.TopThickness - g.WebHeight - g.Bottom1Thickness / 2)
         };
+        if (g.Bottom2Thickness > 0) parts.Add((g.Bottom2Width * g.Bottom2Thickness, -g.Height + g.Bottom2Thickness / 2));
         double ratio = materials.Rebar.ElasticModulusTension / materials.Steel.ElasticModulusTension;
         double n = materials.Steel.ElasticModulusTension / materials.Concrete.ElasticModulusCompression * (1 + 1.1 * 2);
         if (kind == "Composta") parts.Add((g.Width * g.SlabHeight / n, g.SlabHeight / 2));
