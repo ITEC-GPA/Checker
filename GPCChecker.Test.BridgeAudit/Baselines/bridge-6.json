@@ -671,20 +671,20 @@
           },
           {
             "Name": "Intermedio · stabilità e pressoflessione II ordine",
-            "Demand": 0.0018188096523234214,
+            "Demand": 13.42878100934508,
             "Resistance": 322.7272727272727,
             "Unit": "MPa",
-            "Ratio": 5.63574821846694E-06,
+            "Ratio": 0.04161030735290025,
             "Note": "EN 1993-1-1 §§5.2.2(7)a, 5.3.4: imperfezione equivalente Lcr/200, eccentricità effettive, due piani; nessuna riserva plastica",
             "Status": "Entro limite"
           },
           {
             "Name": "Intermedio · freccia fuori piano",
-            "Demand": 3.205527942680269E-05,
-            "Resistance": 6.091666666666667,
+            "Demand": 0.021093173801977217,
+            "Resistance": 6,
             "Unit": "mm",
-            "Ratio": 5.2621525734833416E-06,
-            "Note": "EN 1993-1-5 §9.2.1",
+            "Ratio": 0.0035155289669962027,
+            "Note": "EN 1993-1-5 §9.2.1: w ≤ b/300, b = hw",
             "Status": "Entro limite"
           },
           {
@@ -725,20 +725,20 @@
           },
           {
             "Name": "Appoggio · stabilità e pressoflessione II ordine",
-            "Demand": 61.057868696971525,
+            "Demand": 61.05786897050288,
             "Resistance": 322.7272727272727,
             "Unit": "MPa",
-            "Ratio": 0.189193395962447,
+            "Ratio": 0.18919339681000893,
             "Note": "EN 1993-1-1 §§5.2.2(7)a, 5.3.4: imperfezione equivalente Lcr/200, eccentricità effettive, due piani; nessuna riserva plastica",
             "Status": "Entro limite"
           },
           {
             "Name": "Appoggio · freccia fuori piano",
-            "Demand": 0.045351684043723105,
-            "Resistance": 6.091666666666667,
+            "Demand": 0.044669446818002015,
+            "Resistance": 6,
             "Unit": "mm",
-            "Ratio": 0.0074448728936344355,
-            "Note": "EN 1993-1-5 §9.2.1",
+            "Ratio": 0.007444907803000336,
+            "Note": "EN 1993-1-5 §9.2.1: w ≤ b/300, b = hw",
             "Status": "Entro limite"
           },
           {
@@ -770,19 +770,19 @@
           },
           {
             "Name": "Appoggio · saldature verticali all’anima",
-            "Demand": 9.303477279843232,
+            "Demand": 9.303477289241313,
             "Resistance": 204.29269845149287,
             "Unit": "MPa",
-            "Ratio": 0.04553994024437562,
+            "Ratio": 0.04553994029037863,
             "Note": "Cordoni continui su entrambi i bordi di ogni piatto; risultante cautelativa, EN 1993-1-8 §4.5.3.3; βw=1",
             "Status": "Entro limite"
           },
           {
             "Name": "Appoggio · saldature alle flange",
-            "Demand": 95.40291983901801,
+            "Demand": 95.40292026641075,
             "Resistance": 204.29269845149287,
             "Unit": "MPa",
-            "Ratio": 0.46699133430689116,
+            "Ratio": 0.4669913363989519,
             "Note": "",
             "Status": "Entro limite"
           },
@@ -833,10 +833,10 @@
           },
           {
             "Name": "Appoggio · contatto piatti/flangia",
-            "Demand": 80.3396547656458,
+            "Demand": 80.33965503917716,
             "Resistance": 338.0952380952381,
             "Unit": "MPa",
-            "Ratio": 0.23762433099698055,
+            "Ratio": 0.23762433180601697,
             "Note": "Piatti a contatto con la flangia inferiore; impronta interamente sottostante. Non comprende piastra di ripartizione o apparecchio d’appoggio.",
             "Status": "Entro limite"
           },
@@ -878,20 +878,20 @@
           },
           {
             "Name": "Seconda coppia terminale · stabilità e pressoflessione II ordine",
-            "Demand": 61.05784545997851,
+            "Demand": 61.05786987506315,
             "Resistance": 322.7272727272727,
             "Unit": "MPa",
-            "Ratio": 0.1891933239604968,
+            "Ratio": 0.18919339961287174,
             "Note": "EN 1993-1-1 §§5.2.2(7)a, 5.3.4: imperfezione equivalente Lcr/200, eccentricità effettive, due piani; nessuna riserva plastica",
             "Status": "Entro limite"
           },
           {
             "Name": "Seconda coppia terminale · freccia fuori piano",
-            "Demand": 0.012417642279200222,
-            "Resistance": 6.091666666666667,
+            "Demand": 0.012417845919494973,
+            "Resistance": 6,
             "Unit": "mm",
-            "Ratio": 0.0020384638488427174,
-            "Note": "EN 1993-1-5 §9.2.1",
+            "Ratio": 0.0020696409865824956,
+            "Note": "EN 1993-1-5 §9.2.1: w ≤ b/300, b = hw",
             "Status": "Entro limite"
           },
           {
@@ -923,19 +923,19 @@
           },
           {
             "Name": "Seconda coppia terminale · saldature verticali all’anima",
-            "Demand": 9.303476481458983,
+            "Demand": 9.303477320320491,
             "Resistance": 204.29269845149287,
             "Unit": "MPa",
-            "Ratio": 0.045539936336334574,
+            "Ratio": 0.04553994044250927,
             "Note": "Cordoni continui su entrambi i bordi di ogni piatto; risultante cautelativa, EN 1993-1-8 §4.5.3.3; βw=1",
             "Status": "Entro limite"
           },
           {
             "Name": "Seconda coppia terminale · saldature alle flange",
-            "Demand": 95.40288353121642,
+            "Demand": 95.40292167978617,
             "Resistance": 204.29269845149287,
             "Unit": "MPa",
-            "Ratio": 0.4669911565824699,
+            "Ratio": 0.4669913433173364,
             "Note": "",
             "Status": "Entro limite"
           },
@@ -959,10 +959,10 @@
           },
           {
             "Name": "Terminale · reazione e ancoraggio combinati",
-            "Demand": 0.502793395962447,
+            "Demand": 0.5027933996128717,
             "Resistance": 1,
             "Unit": "—",
-            "Ratio": 0.502793395962447,
+            "Ratio": 0.5027933996128717,
             "Note": "Inviluppo cautelativo: utilizzo elastico della coppia + area richiesta dal §9.3.1 / area disponibile; R intera su ciascuna coppia",
             "Status": "Entro limite"
           },
@@ -1018,7 +1018,7 @@
           },
           {
             "Name": "Intermedio · Nst",
-            "Value": 0,
+            "Value": 100.69436172728845,
             "Unit": "kN"
           },
           {
@@ -1028,12 +1028,12 @@
           },
           {
             "Name": "Intermedio · M II ordine fuori piano",
-            "Value": 0.0009282026185955838,
+            "Value": 1.4167980748811513,
             "Unit": "kNm"
           },
           {
             "Name": "Intermedio · M II ordine nel piano",
-            "Value": 0,
+            "Value": 0.9232736160579201,
             "Unit": "kNm"
           },
           {
@@ -1078,7 +1078,7 @@
           },
           {
             "Name": "Appoggio · M II ordine fuori piano",
-            "Value": 4.603698873531358,
+            "Value": 4.6036990330559275,
             "Unit": "kNm"
           },
           {
@@ -1128,7 +1128,7 @@
           },
           {
             "Name": "Seconda coppia terminale · M II ordine fuori piano",
-            "Value": 4.6036853216251075,
+            "Value": 4.603699560599049,
             "Unit": "kNm"
           },
           {

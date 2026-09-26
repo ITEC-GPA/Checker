@@ -61,13 +61,15 @@ namespace GPC.Checkers.CompositeBridge
             double length = lengthFactor * span, k = Math.PI / length;
             // Use at least the physical span for deviation loads; length factors < 1 apply only to compression buckling.
             double kd = Math.PI / Math.Max(span, length);
-            double sm = webCompression / span * (1 / leftPanel + 1 / rightPanel);
+            // EN 1993-1-5 §9.2.1(4)-(6): sigma_m = N/b (1/a1 + 1/a2), w0 = min(a1, a2, b)/300 and w <= b/300 with b the width of the
+            // plate, i.e. the clear web height (before, the span between the flange centrelines: slightly smaller sigma_m, larger limits)
+            double sm = webCompression / hw * (1 / leftPanel + 1 / rightPanel);
             double ncrX = young * iz * k * k, ncrZ = young * ix * k * k;
             double qRatio = sm / (young * iz * Math.Pow(kd, 4));
             double ratioX = compression / ncrX + qRatio, ratioZ = compression / ncrZ;
             bool stable = ratioX < 1 && ratioZ < 1;
             double bow = length / 200; // elastic equivalent imperfection for curve c
-            double panelBow = Math.Min(span, Math.Min(leftPanel, rightPanel)) / 300;
+            double panelBow = Math.Min(hw, Math.Min(leftPanel, rightPanel)) / 300;
             double mx = 0, mz = 0, deflection = 0;
             if (stable)
             {
@@ -88,7 +90,7 @@ namespace GPC.Checkers.CompositeBridge
                 CriticalOut = ncrX, CriticalIn = ncrZ, MomentOut = mx, MomentIn = mz,
                 Eccentricity = loadX - xg, Stress = stress, Stable = stable,
                 StressRatio = stable ? stress * gammaM1 / fy : (double?)null,
-                Deflection = deflection, DeflectionRatio = stable ? deflection / (span / 300) : (double?)null,
+                Deflection = deflection, DeflectionRatio = stable ? deflection / (hw / 300) : (double?)null,
                 RigidityRatio = Math.Max(required(leftPanel), required(rightPanel)) / iz,
                 LocalRatio = local, TorsionRatio = torsion, PlateCount = plates.Count, MaxThickness = maxThickness };
         }

@@ -25,11 +25,13 @@ public static partial class HBridgeSection
         var web = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta);
         bool ultimate = d.Options.LimitStateName == "SLU";
         usesIntermediate = false; usesRigidEnd = false;
-        bool Element(BridgeStiffenerRole suffix, string name, double aL, double aR, double availL, double availR, double extra,
+        // removedPanel: the web panel with the stiffener removed, for Nst (EN 1993-1-5 §9.3.3(3)). Before, the longer adjacent panel
+        // max(aL, aR) was used instead of aL + aR: higher tau_cr, lower Nst (unsafe)
+        bool Element(BridgeStiffenerRole suffix, string name, double aL, double aR, double removedPanel, double availL, double availR, double extra,
             double x, double z, bool stiffness, out StiffenerDetail result)
         {
             var p = StiffenerPlates(d, suffix);
-            var candidate = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, Math.Max(aL, aR));
+            var candidate = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, removedPanel);
             double nst = Math.Max(0, Math.Abs(v) * 1000 - candidate.TauCritical * g.WebHeight * g.WebThickness / gm1) + extra;
             result = BridgeLocalDetails.Stiffener(g.WebHeight, g.WebThickness, span, aL, aR, availL, availR,
                 p.LeftWidth, p.LeftThickness, p.RightWidth, p.RightThickness, m.Fy, m.Ea, gm1, nst, webCompression,
@@ -40,7 +42,7 @@ public static partial class HBridgeSection
             if (stiffness) Check("rigidezza pannelli", st.RigidityRatio, 1, "—", st.RigidityRatio, "EN 1993-1-5 §9.3.3; controllo di entrambi i pannelli");
             Check("stabilità e pressoflessione II ordine", st.Stress, m.Fy / gm1, "MPa", st.StressRatio,
                 "EN 1993-1-1 §§5.2.2(7)a, 5.3.4: imperfezione equivalente Lcr/200, eccentricità effettive, due piani; nessuna riserva plastica");
-            Check("freccia fuori piano", st.Deflection, span / 300, "mm", st.DeflectionRatio, "EN 1993-1-5 §9.2.1");
+            Check("freccia fuori piano", st.Deflection, g.WebHeight / 300, "mm", st.DeflectionRatio, "EN 1993-1-5 §9.2.1: w ≤ b/300, b = hw");
             Check("rigidezza torsionale", st.TorsionRatio, 1, "—", st.TorsionRatio);
             Check("piatti entro classe 3", st.LocalRatio, 1, "—", st.LocalRatio, "Sbalzi uniformemente compressi c/t ≤ 14ε; nessuna riduzione automatica dei piatti snelli");
             double available = (Math.Min(g.TopWidth, g.Bottom1Width) - g.WebThickness) / 2;
@@ -77,7 +79,7 @@ public static partial class HBridgeSection
         if (d.Intermediate.Enabled)
         {
             double aL = BridgeNumbers.Require(d.Intermediate.LeftPanel, "a_irr", strict: true), aR = d.Intermediate.EqualPanels ? aL : BridgeNumbers.Require(d.Intermediate.RightPanel, "a_irr_dx", strict: true);
-            usesIntermediate = Element(BridgeStiffenerRole.Intermediate, "Intermedio", aL, aR, aL / 2, aR / 2, BridgeNumbers.Require(d.Intermediate.ExternalCompressionKN, "N_irr") * 1000,
+            usesIntermediate = Element(BridgeStiffenerRole.Intermediate, "Intermedio", aL, aR, aL + aR, aL / 2, aR / 2, BridgeNumbers.Require(d.Intermediate.ExternalCompressionKN, "N_irr") * 1000,
                 BridgeNumbers.Require(d.Intermediate.LoadX, "x_irr", double.NegativeInfinity), 0, true, out _);
             if (usesIntermediate) web = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, Math.Max(aL, aR));
             else warnings.Add("Irrigidimento intermedio non idoneo: escluso il beneficio dei pannelli a taglio.");
@@ -98,7 +100,11 @@ public static partial class HBridgeSection
             }
             double x = BridgeNumbers.Require(d.Support.LoadX, "x_app", double.NegativeInfinity), z = BridgeNumbers.Require(d.Support.LoadZ, "z_app", double.NegativeInfinity);
             double panel = location == SupportLocations[1] ? aR : location == SupportLocations[2] ? aL : Math.Max(aL, aR);
-            bool member = Element(BridgeStiffenerRole.Support, "Appoggio", panel, panel, left, right, reaction, x, z, false, out var st);
+            // Internal support: the actual adjacent panels (before, the longer one on both sides, which reduced the deviation forces);
+            // end support: its only panel on both sides (conservative)
+            StiffenerDetail st;
+            bool member = end ? Element(BridgeStiffenerRole.Support, "Appoggio", panel, panel, panel, left, right, reaction, x, z, false, out st)
+                : Element(BridgeStiffenerRole.Support, "Appoggio", aL, aR, aL + aR, left, right, reaction, x, z, false, out st);
             double width = BridgeNumbers.Require(d.Support.FootprintWidth, "B_app", strict: true), length = BridgeNumbers.Require(d.Support.FootprintLength, "s_app", strict: true);
             var p = StiffenerPlates(d, BridgeStiffenerRole.Support);
             double footprint = 2 * Math.Max(Math.Abs(-g.WebThickness / 2 - p.LeftWidth - x), Math.Abs(g.WebThickness / 2 + p.RightWidth - x));
@@ -119,7 +125,7 @@ public static partial class HBridgeSection
                 checks.Add(new("Terminale · area di ciascuna coppia", requiredArea, st.PlateArea, "mm²", ultimate ? requiredArea / st.PlateArea : null, "A ≥ 4 hw tw²/e"));
                 checks.Add(new("Terminale · distanza e > 0,1 hw", .1 * g.WebHeight, e, "mm", e > .1 * g.WebHeight ? .1 * g.WebHeight / e : 2));
                 checks.Add(new("Terminale · e entro il pannello", e, panel, "mm", e < panel ? e / panel : 2));
-                bool second = Element(BridgeStiffenerRole.Support, "Seconda coppia terminale", e, panel, e / 2, panel / 2, reaction, x, 0, false, out var secondSt);
+                bool second = Element(BridgeStiffenerRole.Support, "Seconda coppia terminale", e, panel, e + panel, e / 2, panel / 2, reaction, x, 0, false, out var secondSt);
                 double? combined = st.StressRatio is {} sr && secondSt.StressRatio is {} sr2 ? requiredArea / st.PlateArea + Math.Max(sr, sr2) : null;
                 checks.Add(new("Terminale · reazione e ancoraggio combinati", combined ?? 0, 1, "—", ultimate ? combined : null,
                     "Inviluppo cautelativo: utilizzo elastico della coppia + area richiesta dal §9.3.1 / area disponibile; R intera su ciascuna coppia"));
