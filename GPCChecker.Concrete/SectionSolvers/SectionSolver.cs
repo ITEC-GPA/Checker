@@ -649,7 +649,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         internal FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces force, FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
-            return _calculateDomainPointStrategy.CalculateDomainPoint(force, failureAnalysisTypeOverride);
+            return CalculateDomainPointWithFallback(force, failureAnalysisTypeOverride);
         }
 
         public FailureDomain.FailureDomainPoint[] CalculateDomainPoint(ResultBeamForces[] force)
@@ -658,11 +658,50 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             Parallel.For(0, force.Length, (i) =>
             {
-                result[i] = _calculateDomainPointStrategy.CalculateDomainPoint(force[i]);
+                result[i] = CalculateDomainPointWithFallback(force[i], null);
             });
 
             return result;
         }
+
+        /// <summary>
+        /// The domain point with the selected strategy. When the iterative strategy does not converge (null or exception, e.g. with the stress block,
+        /// whose stresses are zero on part of the diagram) the point is calculated with the intersection strategy
+        /// </summary>
+        /// <param name="force">The force</param>
+        /// <param name="failureAnalysisTypeOverride">The type of analysis (null: the one of the options)</param>
+        /// <returns>The point; null if no strategy finds it</returns>
+        private FailureDomain.FailureDomainPoint CalculateDomainPointWithFallback(ResultBeamForces force, FailureAnalysisTypes? failureAnalysisTypeOverride)
+        {
+            IDomainPointStrategy strategy = _calculateDomainPointStrategy;
+            if (!(strategy is DomainPointStrategyIterative))
+                return strategy.CalculateDomainPoint(force, failureAnalysisTypeOverride);
+
+            try
+            {
+                FailureDomain.FailureDomainPoint point = strategy.CalculateDomainPoint(force, failureAnalysisTypeOverride);
+                if (point != null)
+                    return point;
+            }
+            catch (Exception e)
+            {
+                _log.Add($"Iterative strategy: {e.Message}");
+            }
+
+            _log.Add("Iterative strategy failed: intersection strategy used");
+            lock (_fallbackStrategyLock)
+            {
+                if (_fallbackDomainPointStrategy == null)
+                    _fallbackDomainPointStrategy = new DomainPointStrategyIntersection(this);
+            }
+            return _fallbackDomainPointStrategy.CalculateDomainPoint(force, failureAnalysisTypeOverride);
+        }
+
+        [NonSerialized]
+        private IDomainPointStrategy _fallbackDomainPointStrategy;
+
+        [NonSerialized]
+        private readonly object _fallbackStrategyLock = new object();
 
         #endregion
 

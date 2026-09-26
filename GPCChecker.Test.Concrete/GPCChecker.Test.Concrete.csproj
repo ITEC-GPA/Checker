@@ -90,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConcreteTestBase.cs" />
+    <Compile Include="ConcreteControlTests.cs" />
     <Compile Include="BridgeElasticStagesTests.cs" />
     <Compile Include="BridgeLinearSolverAuditTests.cs" />
     <Compile Include="FailureDomainCheckFRCTest.cs" />
