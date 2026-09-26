@@ -239,17 +239,18 @@ public class BridgeModuleStagesTests
         TestContext.WriteLine("G1 top steel initial={0:R}, final={1:R}; G1 bottom initial={2:R}, final={3:R}",initial.SteelStress(0),final.SteelStress(0),initial.SteelStress(-r.Geometry.Height),final.SteelStress(-r.Geometry.Height));
         Assert.IsTrue(Math.Abs(initial.SteelStress(0)-final.SteelStress(0))>1e-3,"This test records the common-effective-section approximation, not construction-history conservation.");
     }
-    [TestMethod,TestCategory("KnownBug")]
+    [TestMethod]
     public void ZeroCompositeActionShouldReportSameIntegrationInertiaAsNonzeroAction()
     {
-        // Desired metadata contract: section integration inertia cannot depend on whether M equals zero.
+        // Metadata contract: section integration inertia cannot depend on whether M equals zero. Fixed in CompositeBridge 1.0.1.0
+        // (before, the unloaded phase reported the Model inertia, larger by the own inertia of the flanges and of the bars).
         var zero=BridgeSection.Calculate(Input(Phase("Composta",0,0,2.2)));var a=zero.Stages[0].Contributions[0];
         var b=BridgeSection.Calculate(Input(Phase("Composta",0,1000,2.2))).Stages[0].Contributions[0];
         var g=zero.Geometry;
         double flangeOwnInertia=(g.TopWidth*Math.Pow(g.TopThickness,3)+g.BottomEquivalentWidth*Math.Pow(g.BottomEquivalentThickness,3))/12;
         double rebarOwnInertia=g.Bars.Sum(bar=>Math.PI*Math.Pow(bar.Diameter,4)/64)*(zero.Materials.Es/zero.Materials.Ea-1/b.HomogenizationN);
         Near(a.Inertia,b.Inertia,"geometric inertia is already load-independent");
-        Near(a.SolverInertia-b.SolverInertia,flangeOwnInertia+rebarOwnInertia,"difference is exactly the skipped own-inertia correction");
+        Near(a.Inertia-a.SolverInertia,flangeOwnInertia+rebarOwnInertia,"integration inertia without the own inertia of flanges and bars");
         TestContext.WriteLine("I reported for zero load={0:R}; for nonzero load={1:R}; difference={2:R}",a.SolverInertia,b.SolverInertia,a.SolverInertia-b.SolverInertia);
         Near(a.SolverInertia,b.SolverInertia,"integration inertia independent of load");
     }

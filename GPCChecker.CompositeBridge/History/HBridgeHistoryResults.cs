@@ -84,7 +84,8 @@ public static class HBridgeHistoryResults
             var c = new BridgeContribution(s.Name, p.KindName, ap.DeltaN / 1000, ap.DeltaM / 1e6, h.N0, h.N, h.Phi, h.PhiEffective,
                 area, cy, inertia, values.Ea * s.IncrementPlane.At(cy), -values.Ea * s.IncrementPlane.Curvature, values.Es / values.Ea,
                 active.Where(f => f.ComponentId == HBridgeHistoryAnalysis.Rebars).Sum(f => f.EffectiveArea), inertia / Math.Abs(-g.Height - cy),
-                Math.Abs(g.SlabHeight - cy) < 1e-12 ? null : inertia / Math.Abs(g.SlabHeight - cy), inertia,
+                // top modulus at y = 0, the top of the steel, as in the cumulative method (before, at the top of the slab)
+                Math.Abs(cy) < 1e-9 ? null : inertia / Math.Abs(cy), inertia,
                 Math.Max(Math.Abs(s.ForceResidual) / Math.Max(1, Math.Abs(s.N)), Math.Abs(s.MomentResidual) / Math.Max(1, Math.Abs(s.MomentAtOrigin))),
                 s.IncrementApplicationY, p.ReferenceName, ap.DeltaV / 1000, p.Kind == BridgePhaseKind.Shrinkage ? p.ShrinkageMicrostrain * 1e-6 : 0);
             c.HistoryProfile = new HistoryStressProfile(s.Fibers, f => (f.Active ? f.Stress : 0) - (previous.TryGetValue(f.Fiber.Id, out double v) ? v : 0));

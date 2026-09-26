@@ -105,14 +105,18 @@ public static partial class HBridgeSection
         double force = Number(p, "N") * 1000, moment = Number(p, "Mx") * 1e6;
         double mg = moment + force * (cy - yref), uniform = force / area, slope = -mg / inertia;
         double solverInertia = inertia;
-        if (composite is not null && (force != 0 || moment != 0))
+        if (composite is not null)
         {
-            var field = CompositeLinearStressSolver.Solve(composite, force, moment, g.Width / 2, yref, homo.Item3, d.Options.Standard);
-            slope = field.Slope;
-            uniform = field.Stress(cy);
-            // Independent equilibrium audit of Checker's line-wall / point-rebar integration.
+            // Independent equilibrium audit of Checker's line-wall / point-rebar integration. The integration inertia is a property of the
+            // section: before, it was corrected only for a loaded phase (an unloaded composite phase reported the Model inertia)
             solverInertia -= e.TopWidth * Math.Pow(g.TopThickness, 3) / 12 + e.BottomWidth * Math.Pow(g.BottomEquivalentThickness, 3) / 12
                 + g.Bars.Sum(b => Math.PI * Math.Pow(b.Diameter, 4) / 64) * (mat.Rebar.ElasticModulusTension / mat.Steel.ElasticModulusTension - 1 / n);
+            if (force != 0 || moment != 0)
+            {
+                var field = CompositeLinearStressSolver.Solve(composite, force, moment, g.Width / 2, yref, homo.Item3, d.Options.Standard);
+                slope = field.Slope;
+                uniform = field.Stress(cy);
+            }
         }
         double calculatedN = uniform * area, calculatedM = -slope * solverInertia - calculatedN * (cy - yref);
         double span = g.Height + g.SlabHeight;

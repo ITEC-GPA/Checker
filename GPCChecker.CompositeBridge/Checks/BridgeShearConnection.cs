@@ -44,7 +44,8 @@ namespace GPC.Checkers.CompositeBridge
             if (span == 0) span = hw;
             Positive(span, "stiffener span");
             if (span < hw) throw new ArgumentException("Stiffener span cannot be smaller than the clear web height.");
-            var panel = Web(hw, tw, fy, young, 1, gammaM1, 1.2, a);
+            // EN 1993-1-5 §9.3.3(3): lambda_w of the panel with the stiffener removed, 2a (before a: higher tau_cr, lower Nst)
+            var panel = Web(hw, tw, fy, young, 1, gammaM1, 1.2, 2 * a);
             double eps = Math.Sqrt(235 / fy), webWidth = 2 * Math.Min(15 * eps * tw, a / 2);
             double area = 2 * b * t + webWidth * tw;
             double edge = b + tw / 2;
@@ -62,8 +63,9 @@ namespace GPC.Checkers.CompositeBridge
             double torsionRatio = 5.3 * fy * ip / (young * it);
             // EN 1993-1-5 9.2.1: use sigma_cr,c/sigma_cr,p = 1, the conservative upper bound.
             // Adjacent panels have the same assigned length; compression integrates the gross web.
-            double sigmaM = webCompression / span * (2 / a);
-            double initial = Math.Min(span, a) / 300, k = Math.PI / span;
+            // EN 1993-1-5 §9.2.1: sigma_m = N/b (1/a1 + 1/a2), w0 = min(a, b)/300, w <= b/300, with b = hw (before, the span)
+            double sigmaM = webCompression / hw * (2 / a);
+            double initial = Math.Min(hw, a) / 300, k = Math.PI / span;
             double destabilizing = sigmaM + axial * k * k;
             double stiffness = young * inertia * Math.Pow(k, 4);
             bool stable = stiffness > destabilizing;
@@ -74,7 +76,7 @@ namespace GPC.Checkers.CompositeBridge
                 AxialForce = axial, BucklingResistance = nbRd, Lambda = lambda, Chi = chi,
                 TorsionalRatio = torsionRatio, InitialDeflection = initial, AdditionalDeflection = deflection,
                 Stress = maxStress, Stable = stable, RigidityRatio = required / inertia,
-                BucklingRatio = axial / nbRd, DeflectionRatio = stable ? deflection / (span / 300) : (double?)null,
+                BucklingRatio = axial / nbRd, DeflectionRatio = stable ? deflection / (hw / 300) : (double?)null,
                 StressRatio = stable ? maxStress / (fy / gammaM1) : (double?)null };
         }
 
