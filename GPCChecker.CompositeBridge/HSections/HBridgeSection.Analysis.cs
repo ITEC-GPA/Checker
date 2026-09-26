@@ -44,7 +44,8 @@ public static partial class HBridgeSection
             (effective, phase) => Solve(data, g, effective, phase, applicationPoints[phase], nativeSolver: !data.Options.Class4),
             contributions => data.Options.Class4 ? EffectiveWidths(g, y => contributions.Sum(c => c.SteelStress(y)), mat.Steel.Fyk, data.Options) : BridgeEffective.Full(g),
             (current, next) => current.Distance(next, g), (current, next, factor) => current.Relax(next, factor),
-            phase => phase.Name, cancellation);
+            phase => phase.Name, cancellation,
+            coordinates: data.Options.AcceleratedIteration ? e => e.Coordinates(g) : null, warmStart: data.Options.AcceleratedIteration);
         foreach (var situation in situations)
         {
             int end = situation.PhaseIndex, iter = situation.Iterations;

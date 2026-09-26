@@ -26,6 +26,9 @@ public sealed record BridgeEffective(double WebTop, double WebBottom, double Top
     public double Distance(BridgeEffective b, BridgeGeometry g) => new[] { Math.Abs(WebTop - b.WebTop) / g.WebHeight, Math.Abs(WebBottom - b.WebBottom) / g.WebHeight,
         Math.Abs(TopWidth - b.TopWidth) / g.TopWidth, Math.Abs(BottomWidth - b.BottomWidth) / (g.Bottom2Thickness > 0 ? g.Bottom1Width : g.BottomEquivalentWidth),
         g.Bottom2Thickness > 0 ? Math.Abs(SecondBottomWidth - b.SecondBottomWidth) / g.Bottom2Width : 0 }.Max();
+    /// <summary>Dimensionless coordinates (the effective lengths over the gross ones), as in <see cref="Distance"/></summary>
+    public double[] Coordinates(BridgeGeometry g) => new[] { WebTop / g.WebHeight, WebBottom / g.WebHeight, TopWidth / g.TopWidth,
+        BottomWidth / (g.Bottom2Thickness > 0 ? g.Bottom1Width : g.BottomEquivalentWidth), g.Bottom2Thickness > 0 ? SecondBottomWidth / g.Bottom2Width : 0 };
     public BridgeEffective Relax(BridgeEffective b, double f) => this with { WebTop = WebTop * (1 - f) + b.WebTop * f, WebBottom = WebBottom * (1 - f) + b.WebBottom * f,
         TopWidth = TopWidth * (1 - f) + b.TopWidth * f, BottomWidth = BottomWidth * (1 - f) + b.BottomWidth * f,
         SecondBottomWidth = SecondBottomWidth * (1 - f) + b.SecondBottomWidth * f };
