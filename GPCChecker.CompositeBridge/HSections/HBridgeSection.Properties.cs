@@ -24,7 +24,7 @@ public static partial class HBridgeSection
         var g = Geometry(data); var m = Materials(data); string kind = phase.KindName;
         if (slabOnly || HasConcrete(kind))
         {
-            var section = NativeSection(data); if (slabOnly) section.SteelSections.Clear();
+            var section = NativeSection(data, g); if (slabOnly) section.SteelSections.Clear();
             var h = Homogenization(data, phase);
             // Model returns zeros for a concrete-only section without bars or structural steel.
             if (slabOnly && g.Bars.Length == 0) return RectangleProperties("Soletta omogeneizzata al CLS", g.Width, g.SlabHeight, 0, g.Width / 2);
@@ -32,7 +32,7 @@ public static partial class HBridgeSection
             return new(slabOnly ? "Soletta omogeneizzata al CLS" : "Sezione omogeneizzata all’acciaio", props.areaH / factor, props.centroidH.X, props.centroidH.Y,
                 props.JxxH / factor, props.JyyH / factor, g.SlabHeight, slabOnly ? 0 : -g.Height, g.Width);
         }
-        var pieces = SteelPartProperties(g, true);
+        var pieces = SteelPartProperties(g); // the real bottom plates (before, the equivalent rectangle)
         if (kind == "Soletta esclusa")
             pieces.AddRange(g.Bars.Select(b => new BridgeSectionProperties(b.Id, b.Area * m.Rebar.ElasticModulusTension / m.Steel.ElasticModulusTension,
                 b.X, b.Y, Math.PI * Math.Pow(b.Diameter, 4) / 64 * m.Rebar.ElasticModulusTension / m.Steel.ElasticModulusTension,

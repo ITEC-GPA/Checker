@@ -75,8 +75,10 @@ public static class HBridgeHistoryResults
                 var web = s.Panels.Single(x => x.Name == HBridgeHistoryAnalysis.Web).Reduction;
                 var top = s.Panels.Single(x => x.Name == HBridgeHistoryAnalysis.Top).Reduction;
                 var bottom = s.Panels.Single(x => x.Name == HBridgeHistoryAnalysis.Bottom).Reduction;
+                var second = s.Panels.SingleOrDefault(x => x.Name == HBridgeHistoryAnalysis.Bottom2)?.Reduction;
                 eff = new(web.EffectiveAtStart, web.EffectiveAtEnd, g.WebThickness + 2 * top.EffectiveAtStart,
-                    g.WebThickness + 2 * bottom.EffectiveAtStart, web, top, bottom);
+                    g.WebThickness + 2 * bottom.EffectiveAtStart, web, top, bottom,
+                    second is null ? 0 : g.WebThickness + 2 * second.EffectiveAtStart, second);
             }
             var h = p.Kind is BridgePhaseKind.Composite or BridgePhaseKind.Shrinkage ? CompositeHomogenization.Calculate(m,
                 o.InstantaneousConcrete ? p with { Phi = 0, HomogenizationSource = BridgeHomogenizationSource.Phi } : p) : (N0: 0d, N: 0d, PhiEffective: 0d, Phi: 0d);
@@ -123,6 +125,8 @@ public static class HBridgeHistoryResults
             if (o.InstantaneousConcrete) warnings.Add("Analisi istantanea esplicita: φ=0 nel calcolo; i φ/n dell’archivio restano memorizzati per il metodo lineare.");
             else warnings.Add("φ/n modifica il modulo dei nuovi incrementi; non viene integrata una legge di viscosità dipendente dall’età.");
             if (!data.Options.Class4 && !nonlinear) warnings.Add("Riduzioni di classe 4 disattivate: sezione lorda.");
+            if (data.Options.Class4 && !nonlinear) warnings.AddRange(HBridgeSection.LocalBucklingWarnings(data.Options));
+            if (g.Bottom2Thickness > 0) warnings.Add("Due piastre inferiori modellate con la geometria reale; instabilità locale: ciascuna piastra come sbalzo dall'anima con il proprio spessore (a favore di sicurezza).");
             var stage = new BridgeStage(s.Name, s.NewtonIterations, s.EffectiveResidual, eff, steelProperties, contributions.ToList(), points, warnings);
             stage.HistoryView = new(s, nonlinear, profile, area, cy, inertia);
             stages.Add(stage);

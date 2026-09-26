@@ -146,6 +146,9 @@
     "bordo_cls_dx": 500,
     "forcine_bordo": false,
     "d_forcine": 12,
+    "instabilita_sup": true,
+    "instabilita_inf": true,
+    "instabilita_anima": true,
     "fatica_pioli": false,
     "q_fat_min": "",
     "q_fat_max": "",
@@ -519,7 +522,9 @@
           "EffectiveAtEnd": 0,
           "StartStress": 33.489080772420195,
           "EndStress": 33.489080772420195
-        }
+        },
+        "SecondBottomWidth": 0,
+        "SecondBottom": null
       },
       "EffectiveSteel": {
         "Area": 53430.712429524676,
@@ -670,6 +675,7 @@
           "Slenderness": 1.8283507021322156,
           "Chi": 0.45396104753429256,
           "Area": 25200,
+          "ShearArea": 25200,
           "PlasticResistance": 4919024.293495612,
           "BucklingResistance": 2131543.356525451,
           "Resistance": 2131543.356525451
@@ -686,7 +692,7 @@
             "Resistance": 2131.543356525451,
             "Unit": "kN",
             "Ratio": 0,
-            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Note": "min(Vpl,Rd; Vbw,Rd), Av = hw·tw (NTC §4.2.4.1.2.4); flange omesse; montante terminale non rigido",
             "Status": "Entro limite"
           },
           {
@@ -730,7 +736,7 @@
     {
       "Name": "G2 · permanenti portati",
       "Iterations": 23,
-      "Residual": 6.001971731469288E-08,
+      "Residual": 6.001971706205546E-08,
       "Effective": {
         "WebTop": 285.944200105286,
         "WebBottom": 1379.6949063013951,
@@ -774,7 +780,9 @@
           "EffectiveAtEnd": 0,
           "StartStress": 70.6797087664209,
           "EndStress": 70.6797087664209
-        }
+        },
+        "SecondBottomWidth": 0,
+        "SecondBottom": null
       },
       "EffectiveSteel": {
         "Area": 56818.947489693535,
@@ -966,6 +974,7 @@
           "Slenderness": 1.8283507021322156,
           "Chi": 0.45396104753429256,
           "Area": 25200,
+          "ShearArea": 25200,
           "PlasticResistance": 4919024.293495612,
           "BucklingResistance": 2131543.356525451,
           "Resistance": 2131543.356525451
@@ -982,7 +991,7 @@
             "Resistance": 2131.543356525451,
             "Unit": "kN",
             "Ratio": 0,
-            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Note": "min(Vpl,Rd; Vbw,Rd), Av = hw·tw (NTC §4.2.4.1.2.4); flange omesse; montante terminale non rigido",
             "Status": "Entro limite"
           },
           {
@@ -1038,22 +1047,22 @@
       "Iterations": 20,
       "Residual": 9.210722118445523E-08,
       "Effective": {
-        "WebTop": 256.52998869306117,
-        "WebBottom": 1543.4700113069389,
+        "WebTop": 256.52998869306134,
+        "WebBottom": 1543.4700113069384,
         "TopWidth": 500,
         "BottomWidth": 700,
         "Web": {
           "Width": 1800,
           "Thickness": 14,
-          "Psi": -1.8066912137560402,
+          "Psi": -1.80669121375604,
           "KSigma": 47.107543104864625,
           "Lambda": 0.8107018194016964,
           "Rho": 1,
           "CompressedWidth": 641.3245572501576,
           "EffectiveAtStart": 256.52982290006304,
           "EffectiveAtEnd": 1543.470177099937,
-          "StartStress": -68.07727197796876,
-          "EndStress": 122.99460913907645
+          "StartStress": -68.07727197796878,
+          "EndStress": 122.99460913907646
         },
         "Top": {
           "Width": 243,
@@ -1065,8 +1074,8 @@
           "CompressedWidth": 243,
           "EffectiveAtStart": 243,
           "EffectiveAtEnd": 0,
-          "StartStress": -70.7310481045944,
-          "EndStress": -70.7310481045944
+          "StartStress": -70.73104810459441,
+          "EndStress": -70.73104810459441
         },
         "Bottom": {
           "Width": 343,
@@ -1078,14 +1087,16 @@
           "CompressedWidth": 0,
           "EffectiveAtStart": 343,
           "EffectiveAtEnd": 0,
-          "StartStress": 122.99460913907645,
-          "EndStress": 122.99460913907645
-        }
+          "StartStress": 122.99460913907646,
+          "EndStress": 122.99460913907646
+        },
+        "SecondBottomWidth": 0,
+        "SecondBottom": null
       },
       "EffectiveSteel": {
         "Area": 58700,
         "Centroid": -1058.028109028961,
-        "Inertia": 33757370920.286774
+        "Inertia": 33757370920.286766
       },
       "Contributions": [
         {
@@ -1099,14 +1110,14 @@
           "EffectivePhi": 0,
           "Area": 58700,
           "Centroid": -1058.028109028961,
-          "Inertia": 33757370920.286774,
+          "Inertia": 33757370920.286766,
           "UniformStress": 0,
-          "StressSlope": -0.044434740002177196,
+          "StressSlope": -0.04443474000217721,
           "RebarRatio": 0.9523809523809523,
           "RebarArea": 0,
-          "WBottom": 42357040.82255201,
-          "WTop": 31905930.12814062,
-          "SolverInertia": 33757370920.286774,
+          "WBottom": 42357040.822552,
+          "WTop": 31905930.128140613,
+          "SolverInertia": 33757370920.286766,
           "EquilibriumResidual": 0,
           "LoadY": -1058.028109028961,
           "LoadReference": "Baricentro omogeneizzato lordo",
@@ -1249,12 +1260,12 @@
           "Name": "Acciaio · estradosso",
           "Material": "Acciaio",
           "Y": 0,
-          "Stress": -70.7310481045944,
+          "Stress": -70.73104810459441,
           "Limit": 338.0952380952381,
-          "Utilization": 0.2092045084783778,
+          "Utilization": 0.20920450847837785,
           "Active": true,
           "Contributions": [
-            -47.013203939697064,
+            -47.01320393969708,
             -15.559003708382187,
             -8.158840456515142
           ]
@@ -1263,12 +1274,12 @@
           "Name": "Anima · sommità",
           "Material": "Acciaio",
           "Y": -25,
-          "Stress": -68.07727197796876,
+          "Stress": -68.07727197796878,
           "Limit": 338.0952380952381,
-          "Utilization": 0.20135531148413296,
+          "Utilization": 0.20135531148413302,
           "Active": true,
           "Contributions": [
-            -45.902335439642634,
+            -45.90233543964265,
             -14.842434607742463,
             -7.3325019305836685
           ]
@@ -1277,12 +1288,12 @@
           "Name": "Anima · piede",
           "Material": "Acciaio",
           "Y": -1825,
-          "Stress": 122.99460913907645,
+          "Stress": 122.99460913907646,
           "Limit": 338.0952380952381,
-          "Utilization": 0.36378687210149374,
+          "Utilization": 0.3637868721014938,
           "Active": true,
           "Contributions": [
-            34.08019656427632,
+            34.08019656427633,
             36.75054063831776,
             52.163871936482366
           ]
@@ -1296,7 +1307,7 @@
           "Utilization": 0.3732059084945875,
           "Active": true,
           "Contributions": [
-            35.413238764341635,
+            35.41323876434164,
             37.610423559085426,
             53.15547816760013
           ]
@@ -1313,13 +1324,14 @@
           "Slenderness": 1.8283507021322156,
           "Chi": 0.45396104753429256,
           "Area": 25200,
+          "ShearArea": 25200,
           "PlasticResistance": 4919024.293495612,
           "BucklingResistance": 2131543.356525451,
           "Resistance": 2131543.356525451
         },
         "TauAverage": 0,
         "TauMaximum": 0,
-        "EquivalentStressEnvelope": 122.99460913907645,
+        "EquivalentStressEnvelope": 122.99460913907646,
         "UsesStiffeners": false,
         "Stiffener": null,
         "Checks": [
@@ -1329,15 +1341,15 @@
             "Resistance": 2131.543356525451,
             "Unit": "kN",
             "Ratio": 0,
-            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale non rigido",
+            "Note": "min(Vpl,Rd; Vbw,Rd), Av = hw·tw (NTC §4.2.4.1.2.4); flange omesse; montante terminale non rigido",
             "Status": "Entro limite"
           },
           {
             "Name": "Anima · tensione equivalente elastica (inviluppo)",
-            "Demand": 122.99460913907645,
+            "Demand": 122.99460913907646,
             "Resistance": 338.0952380952381,
             "Unit": "MPa",
-            "Ratio": 0.36378687210149374,
+            "Ratio": 0.3637868721014938,
             "Note": "√(max|σ|² + 3 max|τ|²); τ sulla sezione lorda omogeneizzata",
             "Status": "Entro limite"
           }
@@ -1388,7 +1400,7 @@
         "Details": null
       },
       "MaxUtilization": 0.3732059084945875,
-      "SteelNeutralAxis": -666.3245572501576
+      "SteelNeutralAxis": -666.3245572501578
     }
   ]
 }

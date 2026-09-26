@@ -116,6 +116,9 @@
     "bordo_cls_dx": 500,
     "forcine_bordo": false,
     "d_forcine": 12,
+    "instabilita_sup": true,
+    "instabilita_inf": true,
+    "instabilita_anima": true,
     "fatica_pioli": true,
     "q_fat_min": -100,
     "q_fat_max": 400,
@@ -445,9 +448,9 @@
     {
       "Name": "Dettagli",
       "Iterations": 21,
-      "Residual": 5.559281842772003E-08,
+      "Residual": 5.5592818423772564E-08,
       "Effective": {
-        "WebTop": 36.94023336762484,
+        "WebTop": 36.94023336762487,
         "WebBottom": 1763.0597666323752,
         "TopWidth": 500,
         "BottomWidth": 700,
@@ -489,7 +492,9 @@
           "EffectiveAtEnd": 0,
           "StartStress": 35.30717202698746,
           "EndStress": 35.30717202698746
-        }
+        },
+        "SecondBottomWidth": 0,
+        "SecondBottom": null
       },
       "EffectiveSteel": {
         "Area": 58700,
@@ -641,6 +646,7 @@
           "Slenderness": 1.6226142454259038,
           "Chi": 0.5898525778432826,
           "Area": 25200,
+          "ShearArea": 25200,
           "PlasticResistance": 4919024.293495612,
           "BucklingResistance": 2769612.834537931,
           "Resistance": 2769612.834537931
@@ -657,7 +663,7 @@
             "Resistance": 2769.6128345379307,
             "Unit": "kN",
             "Ratio": 0.5776980739139795,
-            "Note": "min(Vpl,Rd; Vbw,Rd); flange omesse; montante terminale rigido verificato",
+            "Note": "min(Vpl,Rd; Vbw,Rd), Av = hw·tw (NTC §4.2.4.1.2.4); flange omesse; montante terminale rigido verificato",
             "Status": "Entro limite"
           },
           {

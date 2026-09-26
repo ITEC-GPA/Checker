@@ -20,7 +20,7 @@ public sealed record HBridgeHistoryOptions
 public static class HBridgeHistoryAnalysis
 {
     public const string Concrete = "Concrete", Rebars = "Rebars";
-    public const string Top = "Steel.Top", Web = "Steel.Web", Bottom = "Steel.Bottom";
+    public const string Top = "Steel.Top", Web = "Steel.Web", Bottom = "Steel.Bottom", Bottom2 = "Steel.Bottom2";
     public static HistoryAnalysisResult Calculate(HBridgeInput input, HBridgeHistoryOptions? options = null, CancellationToken cancellation = default) =>
         Calculate(input, input.Phases, options, cancellation);
     public static HistoryAnalysisResult Calculate(HBridgeInput input, IEnumerable<BridgePhase> phases,
@@ -46,14 +46,20 @@ public static class HBridgeHistoryAnalysis
             throw new NotSupportedException("Le larghezze efficaci automatiche sono disponibili per i legami lineari. Il non lineare richiede Class4=false oppure un modello efficace dedicato nell'API generica.");
         var components = new List<HistoryComponent> {
             new(Top, steel, Rectangle(Top, g.Width / 2, -g.TopThickness, g.TopWidth, g.TopThickness, o.FlangeLayers), true),
-            new(Web, steel, Rectangle(Web, g.Width / 2, -g.TopThickness - g.WebHeight, g.WebThickness, g.WebHeight, o.WebLayers), true),
-            new(Bottom, steel, Rectangle(Bottom, g.Width / 2, -g.Height, g.BottomEquivalentWidth, g.BottomEquivalentThickness, o.FlangeLayers), true),
-            new(Concrete, concrete, ConcreteFibers(g, o.ConcreteLayers)) };
+            new(Web, steel, Rectangle(Web, g.Width / 2, -g.TopThickness - g.WebHeight, g.WebThickness, g.WebHeight, o.WebLayers), true) };
+        if (g.Bottom2Thickness > 0)
+        {
+            // the two real bottom plates (before, the equivalent rectangle)
+            components.Add(new(Bottom, steel, Rectangle(Bottom, g.Width / 2, -g.TopThickness - g.WebHeight - g.Bottom1Thickness, g.Bottom1Width, g.Bottom1Thickness, o.FlangeLayers), true));
+            components.Add(new(Bottom2, steel, Rectangle(Bottom2, g.Width / 2, -g.Height, g.Bottom2Width, g.Bottom2Thickness, o.FlangeLayers), true));
+        }
+        else components.Add(new(Bottom, steel, Rectangle(Bottom, g.Width / 2, -g.Height, g.BottomEquivalentWidth, g.BottomEquivalentThickness, o.FlangeLayers), true));
+        components.Add(new(Concrete, concrete, ConcreteFibers(g, o.ConcreteLayers)));
         if (g.Bars.Length > 0)
             components.Add(new(Rebars, rebar, Array.AsReadOnly(g.Bars.SelectMany(b => new[] {
                 new HistoryFiber(b.Id + ".0", b.X, b.Y - b.Diameter / 4, b.Area / 2),
                 new HistoryFiber(b.Id + ".1", b.X, b.Y + b.Diameter / 4, b.Area / 2) }).ToArray())));
-        return new(Array.AsReadOnly(components.ToArray()), input.Options.Class4 ? new HEffectiveModel(g, m.Steel.Fyk) : null);
+        return new(Array.AsReadOnly(components.ToArray()), input.Options.Class4 ? new HEffectiveModel(g, m.Steel.Fyk, input.Options) : null);
     }
 
     /// <summary>Maps any length phase sequence. Each shrinkage is a new increment, with its own phi/n.</summary>
@@ -142,29 +148,30 @@ public static class HBridgeHistoryAnalysis
 
     private sealed class HEffectiveModel : IHistoryEffectiveAreaModel
     {
-        private readonly BridgeGeometry g; private readonly double fy;
-        internal HEffectiveModel(BridgeGeometry geometry, double yield) { g = geometry; fy = yield; }
+        private readonly BridgeGeometry g; private readonly double fy; private readonly BridgeAnalysisOptions options;
+        internal HEffectiveModel(BridgeGeometry geometry, double yield, BridgeAnalysisOptions analysisOptions) { g = geometry; fy = yield; options = analysisOptions; }
         public HistoryEffectiveAreaResponse Evaluate(IReadOnlyList<HistoryFiberResult> trial)
         {
             var steel = trial.Where(p => p.ComponentId == Web).OrderBy(p => p.Fiber.Y).ToArray();
             var low = steel.First(); var high = steel.Last();
             double slope = (high.Stress - low.Stress) / (high.Fiber.Y - low.Fiber.Y);
             double Sigma(double y) => low.Stress + slope * (y - low.Fiber.Y);
+            // the same reductions and options of the cumulative method, on the linear steel stress field of the web
+            var e = HBridgeSection.EffectiveWidths(g, Sigma, fy, options);
             double top = -g.TopThickness, bottom = top - g.WebHeight;
-            var web = EffectivePlateReduction.InternalPlate(g.WebHeight, g.WebThickness, Sigma(top), Sigma(bottom), fy);
-            var upper = EffectivePlateReduction.Outstand((g.TopWidth - g.WebThickness) / 2, g.TopThickness, Math.Min(Sigma(0), Sigma(top)), fy);
-            var lower = EffectivePlateReduction.Outstand((g.BottomEquivalentWidth - g.WebThickness) / 2, g.BottomEquivalentThickness, Math.Min(Sigma(bottom), Sigma(-g.Height)), fy);
             double Factor(HistoryFiberResult p)
             {
-                if (p.ComponentId == Top) return (g.WebThickness + 2 * upper.EffectiveAtStart) / g.TopWidth;
-                if (p.ComponentId == Bottom) return (g.WebThickness + 2 * lower.EffectiveAtStart) / g.BottomEquivalentWidth;
+                if (p.ComponentId == Top) return e.TopWidth / g.TopWidth;
+                if (p.ComponentId == Bottom) return e.BottomWidth / (g.Bottom2Thickness > 0 ? g.Bottom1Width : g.BottomEquivalentWidth);
+                if (p.ComponentId == Bottom2) return e.SecondBottomWidth / g.Bottom2Width;
                 if (p.ComponentId != Web) return 1;
                 double lo = p.Fiber.StripBottom, hi = p.Fiber.StripTop;
                 double Overlap(double a, double b) => Math.Max(0, Math.Min(hi, b) - Math.Max(lo, a));
-                return BridgeNumbers.Clamp((Overlap(top - web.EffectiveAtStart, top) + Overlap(bottom, bottom + web.EffectiveAtEnd)) / (hi - lo), 0, 1);
+                return BridgeNumbers.Clamp((Overlap(top - e.WebTop, top) + Overlap(bottom, bottom + e.WebBottom)) / (hi - lo), 0, 1);
             }
-            return new(Array.AsReadOnly(trial.Select(Factor).ToArray()), Array.AsReadOnly(new[] {
-                new HistoryPanelResult(Web, web), new HistoryPanelResult(Top, upper), new HistoryPanelResult(Bottom, lower) }));
+            var panels = new List<HistoryPanelResult> { new(Web, e.Web), new(Top, e.Top), new(Bottom, e.Bottom) };
+            if (e.SecondBottom is not null) panels.Add(new(Bottom2, e.SecondBottom));
+            return new(Array.AsReadOnly(trial.Select(Factor).ToArray()), Array.AsReadOnly(panels.ToArray()));
         }
     }
 }
