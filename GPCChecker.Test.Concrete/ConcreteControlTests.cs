@@ -300,7 +300,8 @@ namespace ConcreteTests
             double mRd = aS * fyd * (d - 0.4 * x);
             FailureDomain.FailureDomainPoint p = Checker(section, new StandardEN1992p11(), false, failureAnalysis: SectionSolver.FailureAnalysisTypes.ConstantN)
                 .CalculateFailureDomainPoint(Force(section, 0, 100), SectionSolver.FailureAnalysisTypes.ConstantN);
-            // the iterative strategy does not converge with the stress block (zero stress on part of the diagram): the solver uses the intersection one
+            // the iterative strategy does not converge with the stress block (the forces integrated on the Gauss points change by steps): the
+            // solver uses the bisection strategy on the same failure surface
             Rel(mRd, p.MxRd, 5e-3);
             Assert.AreEqual(0, p.NRd, 1e-3 * aS * fyd);
             FailureDomain.FailureDomainPoint eccentric = Checker(section, new StandardEN1992p11(), false).CalculateFailureDomainPoint(Force(section, -200, 100));
@@ -368,8 +369,11 @@ namespace ConcreteTests
             double ds = Checker(section, new StandardDSEN1992p11(), false).CalculateFailureDomainPoint(Force(section, -1000, 0)).NRd;
             double aS = 4 * Math.PI * 81;
             Rel(-0.15 * 25 / 1.5 * (B * H - aS), en - din, 1e-2);
-            // DS: γc = 1.4 and γs = 1.2
-            Rel(-(25 / 1.4 * (B * H - aS) + 450 / 1.2 * aS), ds, 2e-3);
+            // DS (DK NA:2024 table 2.1Na NA): γc = 1.45 and γs = 1.2
+            Rel(-(25 / 1.45 * (B * H - aS) + 450 / 1.2 * aS), ds, 2e-3);
+            // UNI (Italian annex): αcc = 0.85 as DIN
+            double uni = Checker(section, new StandardUNIEN1992p11(), false).CalculateFailureDomainPoint(Force(section, -1000, 0)).NRd;
+            Rel(din, uni, 1e-9);
         }
 
         /// <summary>Every non abstract concrete standard of Model (Model Code 2010 family and ACI 318 family)</summary>
@@ -441,6 +445,93 @@ namespace ConcreteTests
             Assert.AreEqual(0, p.NRd, 1e-3 * aS * fy);
         }
 
+        #endregion
+
+        #region Solver corrections (September 2026)
+
+        [DataTestMethod]
+        [DataRow(30.0)]
+        [DataRow(90.0)]
+        [DataRow(180.0)]
+        public void DomainPointDoesNotDependOnTheOrientationOfTheForceAxes(double degrees)
+        {
+            // the solver integrates in the axes -X, -Y: with other force axes the force is converted into them and the point back
+            var section = Rect(B, H, FourCorners);
+            var standard = new StandardEN1992p11();
+            CoordinateSystem axes = GetLocalCoordinateSystem(section);
+            double a = degrees * Math.PI / 180, c = Math.Cos(a), s = Math.Sin(a);
+            var rotated = new CoordinateSystem(axes.Origin, new Vector3d(-c, -s, 0), new Vector3d(s, -c, 0));
+            var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(rotated, SectionSolver.FailureAnalysisTypes.ConstantEccentricity,
+                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
+            var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), options, standard, false);
+            ResultBeamForces force = Force(section, -600, 80, -30);
+            foreach (var type in new[] { SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureAnalysisTypes.ConstantN })
+            {
+                FailureDomain.FailureDomainPoint reference = Checker(section, standard, false).CalculateFailureDomainPoint(force, type);
+                FailureDomain.FailureDomainPoint point = checker.CalculateFailureDomainPoint(force.ToCoordinateSystem(rotated), type);
+                ResultBeamForces back = new ResultBeamForces(point.NRd, 0, 0, 0, point.MxRd, point.MyRd, rotated).ToCoordinateSystem(axes);
+                Rel(reference.NRd, back.N, 1e-6, type.ToString());
+                Rel(reference.MxRd, back.M1, 1e-6, type.ToString());
+                Rel(reference.MyRd, back.M2, 1e-6, type.ToString());
+            }
+        }
+
+        [TestMethod]
+        public void StressAnalysisDoesNotDependOnTheOrientationOfTheForceAxes()
+        {
+            var section = Rect(B, H, FourCorners);
+            CoordinateSystem axes = GetLocalCoordinateSystem(section);
+            var rotated = new CoordinateSystem(axes.Origin, new Vector3d(1, 0, 0), new Vector3d(0, 1, 0));
+            var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(rotated, SectionSolver.FailureAnalysisTypes.ConstantEccentricity,
+                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
+            var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), options, new StandardEN1992p11(), false);
+            ResultBeamForces force = Force(section, -300, 60, 20);
+            StressAnalysisResult reference = Checker(section, new StandardEN1992p11(), false).SectionSolver.GetStressAnalysisResult(force);
+            StressAnalysisResult result = checker.SectionSolver.GetStressAnalysisResult(force.ToCoordinateSystem(rotated));
+            foreach (Point2d p in section.Shape.GetPoints2d())
+                Assert.AreEqual(reference.StrainPlane.GetStrain(p), result.StrainPlane.GetStrain(p), 1e-9);
+        }
+
+        [TestMethod]
+        public void StructuralSteelUsesTheDesignYieldStrength()
+        {
+            // uniform tension of a slab on a steel H without rebars and without concrete in tension: N = A fy / γM0
+            var profile = new GPC.Model.Sections.SectionH(400, 10, 200, 15, 200, 15, "H");
+            var section = new ReinforcedConcreteSection(1000, 200, ConcreteMaterialEN1992Data.C30_37, null, 200, 40, null, 200, profile,
+                SteelMaterialEN1993Data.S355, 40, 0);
+            double area = section.SteelSections.Single().Section.Area;
+            foreach (var steelStandard in new StandardEN1993p11[] { new StandardEN1993p11(), new StandardNTC2018Steel() })
+            {
+                var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section), SectionSolver.FailureAnalysisTypes.ConstantEccentricity,
+                    SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
+                var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), options, new StandardNTC2018Concrete(), false, -1, steelStandard);
+                FailureDomainResult domain = checker.GetPlasticFailureDomainResult();
+                double tension = domain.Domain.DomainPoints.SelectMany(p => p).Max(p => p.NRd);
+                // before, the characteristic curve: A fy also with γM0 = 1.05
+                Rel(area * 355 / steelStandard.GammaM0, tension, 1e-6, steelStandard.Name);
+            }
+        }
+
+        [TestMethod]
+        public void BiaxialStressBlockPointHasTheForcesOfItsStrainPlane()
+        {
+            // the iterative strategy does not converge with the stress block: the bisection strategy returns a point of the failure surface whose
+            // forces are those of its strain plane (the intersection strategy interpolated a discretized domain and returned the nearest plane)
+            var concrete = new ConcreteMaterialEN1992("C25/30", 25, ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock);
+            var section = Rect(B, H, FourCorners, concrete);
+            SectionCheckerModelCode2010 checker = Checker(section, new StandardEN1992p11(), false, failureAnalysis: SectionSolver.FailureAnalysisTypes.ConstantN);
+            ResultBeamForces force = Force(section, -800, 120, -60);
+            FailureDomain.FailureDomainPoint p = checker.CalculateFailureDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantN);
+            Assert.IsNotNull(p);
+            // constant N and direction of the moments
+            Assert.AreEqual(-800e3, p.NRd, 1e-3 * B * H * 25 / 1.5);
+            Assert.AreEqual(Math.Atan2(-60, 120), Math.Atan2(p.MyRd, p.MxRd), 1e-3);
+            var forces = checker.SectionSolver.CalculateForceResultantForDomain(p.StrainPlane);
+            // the forces of the plane, within one step of the integration on the Gauss points
+            Assert.AreEqual(p.NRd, forces.N, 1e-3 * B * H * 25 / 1.5);
+            Rel(p.MxRd, forces.Mx, 5e-3);
+            Rel(p.MyRd, forces.My, 5e-3);
+        }
         #endregion
     }
 }

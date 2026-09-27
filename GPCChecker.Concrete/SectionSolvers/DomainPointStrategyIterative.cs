@@ -28,7 +28,7 @@ namespace GPC.Checker.SectionSolvers
 
         public FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces force, SectionSolver.FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
-            var targetLocalForces = new ForceTuple(force.ToCoordinateSystemWithEccentricity(_solver.SectionOption.ForceReferenceCoordinateSystem));
+            var targetLocalForces = new ForceTuple(force.ToCoordinateSystemWithEccentricity(_solver.SolverAxes));
             var failureAnalysisType = failureAnalysisTypeOverride is null ? _solver.SectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
             switch (failureAnalysisType)
             {
@@ -253,7 +253,7 @@ namespace GPC.Checker.SectionSolvers
                 {
                     FailureDomain.FailureDomainPoint pointBuffer = CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
                     FailureDomain.FailureDomainForce failureDomainForce = new FailureDomain.FailureDomainForce(
-                        new ResultBeamForces(targetLocalForces.N, 0, 0, 0, targetLocalForces.Mx, targetLocalForces.My, _solver.SectionOption.ForceReferenceCoordinateSystem), pointBuffer);
+                        new ResultBeamForces(targetLocalForces.N, 0, 0, 0, targetLocalForces.Mx, targetLocalForces.My, _solver.SolverAxes), pointBuffer);
 
                     double wr = failureDomainForce.CalculateWorkingRatio(failureAnalysisType, SectionSolver.FROM_KNM_TO_NM, SectionSolver.FROM_KN_TO_N);
                     if (wr > 1)

@@ -1,5 +1,14 @@
 # Analisi del solver lineare delle sezioni miste
 
+> **Aggiornamento 27 settembre 2026 (Checker.Concrete 0.0.13.0).** B03, B04 e B05 sono corretti.
+> - B03: le forze sono convertite negli assi −X, −Y del solutore (`SectionSolver.SolverAxes`) e i punti del dominio riportati negli assi
+>   dell'utente.
+> - B04: il CLS sostituito dal profilo inglobato è sottratto con `CalculateElasticSigmaC`.
+> - B05: `GetNeutralAxis` trasla l'asse relativo del punto di riferimento.
+>
+> Nella stessa revisione l'integrazione non lineare del profilo usa la tensione di progetto (fy/γM0) invece della curva caratteristica.
+> I test corrispondenti non sono più ignorati. Il testo seguente descrive lo stato del 25 settembre.
+
 25 settembre 2026, approfondimento successivo al [primo audit](audit-sezioni-miste-ponte.md).
 Unica correzione di produzione autorizzata e applicata: il costruttore Model con
 profilo H nullo. Il solver Checker, i suoi risultati e il calcolo ANTHEA restano

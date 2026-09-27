@@ -1,5 +1,24 @@
 # Audit delle sezioni miste da ponte
 
+## Stato al 27 settembre 2026 (Checker.Concrete 0.0.13.0)
+
+I tre difetti del solutore descritti nelle sezioni storiche sono corretti e i test
+relativi non hanno più `Ignore` né la categoria `KnownBug`:
+
+- **Assi di riferimento delle forze ruotati.** Il solutore integra negli assi −X, −Y
+  (Mx = −Σσ(y − y0), My = Σσ(x − x0)). Prima confrontava queste risultanti con le
+  componenti negli assi scelti dall'utente. Ora le forze sono convertite negli assi
+  del solutore e i punti del dominio sono riportati negli assi dell'utente.
+  Con gli assi −X, −Y (ANTHEA, CompositeBridge, PileChecker) i risultati non cambiano.
+- **Profilo inglobato nel calcestruzzo, analisi lineare.** Il calcestruzzo spostato
+  dal profilo era sottratto con la tensione di progetto del diagramma non lineare.
+  Ora è sottratto con quella lineare Ec·ε, come per le barre.
+- **`StrainPlane.GetNeutralAxis`.** L'asse restituito non considerava il punto di
+  riferimento del piano, quindi non stava su ε = 0. Ora ci sta. In più, con ε0 = 0
+  la vecchia costruzione per intercette dava una direzione NaN; ora non più.
+
+Esito: **302 superati, nessuno ignorato**, con le DLL ANTHEA aggiornate.
+
 ## Migrazione in CompositeBridge — stato attuale
 
 Il motore è ora in [GPCChecker.CompositeBridge](../GPCChecker.CompositeBridge/README.md).

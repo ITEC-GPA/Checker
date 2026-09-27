@@ -3706,8 +3706,13 @@ namespace ConcreteTests
             ResultBeamForces[] forces = new ResultBeamForces[]
             {
                 new ResultBeamForces(0, 0, 0, 0, 1000000000, 0, GetLocalCoordinateSystem(section), 1),
-                new ResultBeamForces(0, 0, 0, 0, 1000000000, 0, new CoordinateSystem(new Point3d(600,-402.6/2.0, 0), Vector3d.XAxis, Vector3d.YAxis, "centroidSteel"), 1),
-                new ResultBeamForces(0, 0, 0, 0, 1000000000, 0, new CoordinateSystem(new Point3d(0, 0, 0), Vector3d.XAxis, Vector3d.YAxis, "generic"), 1),
+                // the same force with other origins: with N = 0 the resistance does not change. The axes are those of the solver (-X, -Y): before,
+                // the axes X, Y were used here, with the moment of the opposite sign, and the test passed because the intersection strategy did not
+                // convert the force into the axes of the solver
+                new ResultBeamForces(0, 0, 0, 0, 1000000000, 0, new CoordinateSystem(new Point3d(600,-402.6/2.0, 0), new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0), "centroidSteel"), 1),
+                new ResultBeamForces(0, 0, 0, 0, 1000000000, 0, new CoordinateSystem(new Point3d(0, 0, 0), new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0), "generic"), 1),
+                // the moment of the opposite sign (axes X, Y): hogging
+                new ResultBeamForces(0, 0, 0, 0, 1000000000, 0, new CoordinateSystem(new Point3d(0, 0, 0), Vector3d.XAxis, Vector3d.YAxis, "opposite"), 1),
             };
 
             SectionCheckerACI318 sectionChecker = GetSectionCheckerACI318(section, null, null, standard,
@@ -3728,6 +3733,8 @@ namespace ConcreteTests
 
             Assert.IsTrue(Math.Abs(domainPoint2.MxRd - domainPoint.MxRd) < 1);
             Assert.IsTrue(Math.Abs(domainPoint3.MxRd - domainPoint.MxRd) < 1);
+            var opposite = sectionChecker.SectionSolver.CalculateDomainPoint(forces[3]);
+            Assert.IsTrue(opposite.MxRd < 0 && Math.Abs(opposite.MxRd) < domainPoint.MxRd, "hogging resistance, smaller than the sagging one");
 
             var slsResult = sectionChecker.GetStressAnalysisResult(new ResultBeamForces(0, 0, 0, 0, domainPoint.MxRd, 0, GetLocalCoordinateSystem(section), 1));
             var res = slsResult.CalculateStrainPlaneResult();

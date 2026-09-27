@@ -97,8 +97,7 @@ namespace ConcreteTests
             var b = Values(checker.SectionSolver.GetLinearStressAnalysisResult(force.ToCoordinateSystem(rotated), 2.2, 0), 2.2);
             for (int i = 0; i < a.Length; i++) Near(b[i], a[i], "same physical force with rotated description");
         }
-        [DataTestMethod, TestCategory("BridgeDeepDive"), TestCategory("KnownBug")]
-        [Ignore("Known bug of the linear solver of Checker, to be fixed: excluded from the count for now")]
+        [DataTestMethod, TestCategory("BridgeDeepDive")]
         [DataRow(30d)] [DataRow(90d)] [DataRow(180d)]
         public void RotatedSolverReference_WithSamePhysicalForceShouldPreserveStress(double degrees)
         {
@@ -119,8 +118,7 @@ namespace ConcreteTests
                 new Point2d(250, 250), InsertionPointType.Centroid) { IsInsideConcrete = true });
             return section;
         }
-        [DataTestMethod, TestCategory("BridgeDeepDive"), TestCategory("KnownBug")]
-        [Ignore("Known bug of the linear solver of Checker, to be fixed: excluded from the count for now")]
+        [DataTestMethod, TestCategory("BridgeDeepDive")]
         [DataRow(0d, -1e6)] [DataRow(0d, 1e6)] [DataRow(2.2d, -1e6)] [DataRow(2.2d, 1e6)]
         public void EmbeddedSteel_LinearSolverMustSubtractLinearConcrete(double phi, double n)
         {
@@ -136,7 +134,7 @@ namespace ConcreteTests
             double concreteDesignStress = section.ConcreteMaterial.CalculateDesignStressConcrete(new StandardNTC2018Concrete(), raw);
             double misplacedConcreteForce = (Ec * raw - concreteDesignStress) * steelArea;
             TestContext.WriteLine("Linear CLS stress={0:R}; nonlinear/design CLS stress={1:R}; excess force from inconsistent subtraction={2:R}; recovered N plus excess={3:R}", Ec * raw, concreteDesignStress, misplacedConcreteForce, recoveredN + misplacedConcreteForce);
-            Near(recoveredN + misplacedConcreteForce, n, "causal check: incorrect concrete subtraction explains the force mismatch");
+            // before the correction the solver subtracted the design stress of the nonlinear diagram instead of the linear one: recoveredN + excess = N
             Near(recoveredN, n, "linear equilibrium with concrete displacement");
         }
         [TestMethod, TestCategory("BridgeDeepDive")]
@@ -148,8 +146,7 @@ namespace ConcreteTests
             TestContext.WriteLine("epsilon(-1 MN)={0:R}; epsilon(-2 MN)={1:R}; ratio={2:R}", one, two, two / one);
             Assert.AreEqual(2 * one, two, Math.Abs(two) * 1e-5, "linearity under doubled load");
         }
-        [DataTestMethod, TestCategory("BridgeDeepDive"), TestCategory("KnownBug")]
-        [Ignore("Known bug of StrainPlane.GetNeutralAxis, to be fixed: excluded from the count for now")]
+        [DataTestMethod, TestCategory("BridgeDeepDive")]
         [DataRow(0d, 1e-6)] [DataRow(1e-6, 0d)] [DataRow(1e-6, 2e-6)]
         public void GlobalNeutralAxis_MustLieOnZeroStrainPlane(double gx, double gy)
         {
