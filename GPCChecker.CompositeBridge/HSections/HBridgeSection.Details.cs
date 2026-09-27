@@ -94,7 +94,9 @@ public static partial class HBridgeSection
             bool end = location != SupportLocations[0];
             double aL = location == SupportLocations[1] ? BridgeNumbers.Require(d.Support.RightPanel, "a_app_dx", strict: true) : BridgeNumbers.Require(d.Support.LeftPanel, "a_app_sx", strict: true);
             double aR = location == SupportLocations[2] ? aL : BridgeNumbers.Require(d.Support.RightPanel, "a_app_dx", strict: true);
-            double c = end ? BridgeNumbers.Require(d.Support.EndDistance, "c_app") : 0, reaction = BridgeNumbers.Require(d.Support.ReactionKN, "R_app") * 1000 / g.WebCount;
+            // box with torsion: the couple of the bearings T / e_b adds to half the reaction on one web
+            double couple = BearingTorsionForce(d, g);
+            double c = end ? BridgeNumbers.Require(d.Support.EndDistance, "c_app") : 0, reaction = BridgeNumbers.Require(d.Support.ReactionKN, "R_app") * 1000 / g.WebCount + couple;
             double left = location == SupportLocations[1] ? c : aL / 2, right = location == SupportLocations[2] ? c : aR / 2;
             if (end && d.Support.RigidEndPost)
             {
@@ -141,15 +143,19 @@ public static partial class HBridgeSection
                 }
                 else warnings.Add("Montante terminale non qualificato come rigido: resta adottata la curva non rigida a taglio.");
             }
-            if (g.WebCount > 1) warnings.Add("Cassoncino: la reazione d'appoggio è ripartita in parti uguali sulle due anime; irrigidimenti d'appoggio per ciascuna anima.");
+            if (g.WebCount > 1) warnings.Add("Cassoncino: la reazione d'appoggio è ripartita in parti uguali sulle due anime" +
+                (couple == 0 ? "" : $", più la coppia T/e_b = {BridgeNumericFormat.Number(couple / 1000)} kN della torsione sull'anima più caricata") + "; irrigidimenti d'appoggio per ciascuna anima.");
             warnings.Add("Appoggio: R è l’inviluppo SLU assegnato, indipendente dalle fasi. Piatti continui senza intagli, vincolati lateralmente alle flange. Apparecchio d’appoggio e flessione della piastra di ripartizione esclusi.");
         }
         return web;
     }
 
+    // torsionFlow (box): the torsional flow of the slab. The a–a surface inside the cell of each top flange and the b–b surfaces add it; with
+    // the same fraction for both flanges, the left surface is the internal one of the right flange and vice versa
     private static void CheckSlabAndFatigue(HBridgeInput d, BridgeGeometry g, BridgeMaterialValues m, double flow,
-        List<BridgeLocalCheck> checks, List<BridgeDetailValue> details, List<string> warnings)
+        List<BridgeLocalCheck> checks, List<BridgeDetailValue> details, List<string> warnings, double torsionFlow = 0)
     {
+        double qt = Math.Abs(torsionFlow);
         bool ultimate = d.Options.LimitStateName == "SLU";
         double fyd = m.Fys / BridgeNumbers.Require(d.Options.GammaS, "gamma_s", strict: true), fcd = BridgeNumbers.Require(d.Options.AlphaCC, "alpha_cc", strict: true) * m.Fck / BridgeNumbers.Require(d.Options.GammaC, "gamma_c", strict: true);
         if (d.Transverse.Enabled)
@@ -168,10 +174,11 @@ public static partial class HBridgeSection
                 checks.Add(new(name + " · puntone CLS", q, r.StrutResistance, "kN/m", ultimate ? r.StrutRatio : null));
                 details.AddRange(new[] { new BridgeDetailValue(name + " · superficie", length, "mm"), new(name + " · qEd", q, "kN/m"), new(name + " · As minimo", r.MinimumSteel * 1000, "mm²/m") });
             }
-            Surface("Soletta a–a sinistra", Math.Abs(flow) * fraction, g.SlabHeight, at + ab);
-            Surface("Soletta a–a destra", Math.Abs(flow) * (1 - fraction), g.SlabHeight, at + ab);
+            Surface("Soletta a–a sinistra", Math.Abs(flow) * fraction + qt, g.SlabHeight, at + ab);
+            Surface("Soletta a–a destra", Math.Abs(flow) * (1 - fraction) + qt, g.SlabHeight, at + ab);
+            if (qt > 0) details.Add(new("Soletta · flusso torsionale sommato (a–a interne, b–b)", qt, "kN/m"));
             int studs = (int)d.Studs.CountPerRow;
-            for (int n = 1; n <= studs; n++) Surface($"Soletta b–b · gruppo {n}", Math.Abs(flow) * n / studs,
+            for (int n = 1; n <= studs; n++) Surface($"Soletta b–b · gruppo {n}", (Math.Abs(flow) + qt) * n / studs,
                 2 * d.Studs.Height + (n - 1) * d.Studs.TransversePitch + d.Studs.HeadDiameter, 2 * ab);
             double fctm = m.Fck <= 50 ? .3 * Math.Pow(m.Fck, 2d / 3) : 2.12 * Math.Log(1 + (m.Fck + 8) / 10);
             foreach (string side in new[] { "sup", "inf" })

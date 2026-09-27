@@ -18,7 +18,7 @@ public static partial class HBridgeSection
     public static readonly string[] LoadReferences = [GrossLoadReference, EffectiveLoadReference, CommonLoadReference];
     public const string Scope = "Analisi elastica N–Mx con connessione completa, sezione simmetrica e anima senza irrigidimenti longitudinali. " +
         "b_eff della soletta è un dato di ingresso. Le fasi sono incrementi di carico già combinati; per ogni situazione la sezione efficace è comune ai contributi sommati. " +
-        "Il ritiro uniforme assegnato al CLS produce effetti primari locali. Non è un'analisi evolutiva con redistribuzione viscosa. Taglio e pioli hanno controlli locali dedicati. Irrigidimenti, appoggi, saldature continue, soletta trasversale e fatica dei pioli hanno verifiche opzionali con campo dichiarato. Torsione e instabilità globale del ponte restano escluse.";
+        "Il ritiro uniforme assegnato al CLS produce effetti primari locali. Non è un'analisi evolutiva con redistribuzione viscosa. Taglio e pioli hanno controlli locali dedicati. Irrigidimenti, appoggi, saldature continue, soletta trasversale e fatica dei pioli hanno verifiche opzionali con campo dichiarato. La torsione è verificata solo per il cassoncino (cella chiusa, distorsione e diaframmi, opzionali); l'instabilità globale del ponte resta esclusa.";
     public static string LoadReference(BridgePhase phase) => phase.ReferenceName;
     public static double GrossPhaseCentroid(HBridgeInput data, BridgePhase phase)
     {
@@ -32,7 +32,12 @@ public static partial class HBridgeSection
     /// <summary>The hypotheses of the inclined web and of the box girder, for the warnings of the results</summary>
     /// <param name="g">The geometry</param>
     /// <returns>The warnings (none for the H)</returns>
-    public static IEnumerable<string> SectionTypeWarnings(BridgeGeometry g)
+    public static IEnumerable<string> SectionTypeWarnings(BridgeGeometry g) => SectionTypeWarnings(g, false);
+    /// <summary>The hypotheses of the inclined web and of the box girder, for the warnings of the results</summary>
+    /// <param name="g">The geometry</param>
+    /// <param name="torsion">True: the box with the torsion checks</param>
+    /// <returns>The warnings (none for the H)</returns>
+    public static IEnumerable<string> SectionTypeWarnings(BridgeGeometry g, bool torsion)
     {
         string angle = (Math.Abs(g.WebAngle) * 180 / Math.PI).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
         if (g.SectionType == BridgeSteelSectionType.InclinedWebH)
@@ -41,8 +46,9 @@ public static partial class HBridgeSection
                 "(V/cos α nel piano della lamiera), irrigidimenti e saldature sulla lamiera reale lunga hw/cos α.";
         if (g.SectionType == BridgeSteelSectionType.Box)
             yield return $"Cassoncino con due anime{(g.WebAngle == 0 ? "" : $" inclinate di {angle}°")} e due piattabande superiori: flessione retta, taglio ripartito in parti uguali " +
-                "sulle anime (V/(2 cos α) nel piano di ciascuna), fondo come lamiera interna tra le anime (kσ interno) più gli sbalzi esterni. Torsione e distorsione della cella " +
-                "chiusa dalla soletta, diaframmi, irrigidimenti longitudinali del fondo e instabilità del fondo compresso come piastra irrigidita non sono verificati.";
+                "sulle anime (V/(2 cos α) nel piano di ciascuna), fondo come lamiera interna tra le anime (kσ interno) più gli sbalzi esterni. " + (torsion
+                ? "Torsione della cella chiusa, distorsione e diaframmi verificati con le opzioni del cassoncino; irrigidimenti longitudinali del fondo e instabilità del fondo compresso come piastra irrigidita non sono verificati."
+                : "Torsione e distorsione della cella chiusa dalla soletta, diaframmi, irrigidimenti longitudinali del fondo e instabilità del fondo compresso come piastra irrigidita non sono verificati.");
     }
     private static void ValidateShape(HBridgeInput input)
     {

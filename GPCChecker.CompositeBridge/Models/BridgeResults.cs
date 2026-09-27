@@ -113,7 +113,7 @@ public sealed record BridgeContribution(string Name, string Kind, double N, doub
 public sealed record BridgeStressPoint(string Name, string Material, double Y, double Stress, double Limit, double? Utilization, bool Active, double[] Contributions);
 public sealed record BridgeSteelProperties(double Area, double Centroid, double Inertia);
 public sealed record BridgeStage(string Name, int Iterations, double Residual, BridgeEffective Effective, BridgeSteelProperties EffectiveSteel, List<BridgeContribution> Contributions,
-    List<BridgeStressPoint> Points, List<string> Warnings, BridgeShearResult? Shear = null, BridgeStudResult? Studs = null)
+    List<BridgeStressPoint> Points, List<string> Warnings, BridgeShearResult? Shear = null, BridgeStudResult? Studs = null, BridgeTorsionResult? Torsion = null)
 {
     internal History.HistoryStageView? HistoryView;
     public History.HistoryStageView? GetHistory() => HistoryView;

@@ -139,6 +139,8 @@ public static class HBridgeHistoryResults
             if (!data.Options.Class4 && !nonlinear) warnings.Add("Riduzioni di classe 4 disattivate: sezione lorda.");
             if (data.Options.Class4 && !nonlinear) warnings.AddRange(HBridgeSection.LocalBucklingWarnings(data.Options));
             warnings.AddRange(HBridgeSection.SectionTypeWarnings(g));
+            if (data.Phases.Any(p => p.Active && p.TorsionKNm != 0))
+                warnings.Add("Metodo con storico: momenti torcenti, distorsione e diaframmi del cassoncino non considerati; le verifiche a torsione sono del metodo cumulativo.");
             if (g.Bottom2Thickness > 0) warnings.Add("Due piastre inferiori modellate con la geometria reale; instabilità locale: ciascuna piastra come sbalzo dall'anima con il proprio spessore (a favore di sicurezza).");
             var stage = new BridgeStage(s.Name, s.NewtonIterations, s.EffectiveResidual, eff, steelProperties, contributions.ToList(), points, warnings);
             stage.HistoryView = new(s, nonlinear, profile, area, cy, inertia);

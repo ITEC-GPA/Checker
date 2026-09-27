@@ -28,6 +28,8 @@ public sealed record HBridgeInput
     public BridgeStudOptions Studs { get; init; } = new();
     public BridgeTransverseReinforcement Transverse { get; init; } = new();
     public BridgeFatigueOptions Fatigue { get; init; } = new();
+    /// <summary>Box girder: torsion, distortion and diaphragms</summary>
+    public BridgeBoxOptions Box { get; init; } = new();
     public BridgeStiffener Stiffener(BridgeStiffenerRole role) => role == BridgeStiffenerRole.Intermediate ? Intermediate : Support;
     public HBridgeInput Snapshot() => this with { Phases = Phases.Select(p => p with { }).ToArray() };
 }
@@ -43,6 +45,8 @@ public sealed record BridgePhase
     public double MomentKNm { get; init; }
     public double ShearKN { get; init; }
     public double AdditionalConnectionFlow { get; init; }
+    /// <summary>Box girder: the torque increment of the phase at the section [kNm]; it must be 0 for the other sections</summary>
+    public double TorsionKNm { get; init; }
     public double ShrinkageMicrostrain { get; init; }
     public double Phi { get; init; }
     public double PsiL { get; init; } = 1;
@@ -176,6 +180,42 @@ public sealed record BridgeTransverseReinforcement
     public double RightConcreteEdge { get; init; }
     public bool EdgeUBar { get; init; }
     public double UBarDiameter { get; init; }
+}
+/// <summary>The type of the intermediate diaphragms of a box girder</summary>
+public enum BridgeDiaphragmKind { Plate, CrossBracing }
+/// <summary>
+/// Box girder: torsion of the closed cell, distortion and diaphragms (mm, kN, kNm). The torques of the phases give the St. Venant shear flows;
+/// the distortion is analysed on the span with the torques of the eccentric loads (envelopes independent of the phases, as the support reaction)
+/// </summary>
+public sealed record BridgeBoxOptions
+{
+    /// <summary>Torsion and distortion checks of the box; required for torques other than 0</summary>
+    public bool Enabled { get; init; }
+    /// <summary>The equivalent thickness t* of the top horizontal bracing of the steel box, for the steel phases (0: open section)</summary>
+    public double BracingThickness { get; init; }
+    /// <summary>The span for the distortion analysis (0: distortion not analysed)</summary>
+    public double SpanLength { get; init; }
+    /// <summary>The spacing of the intermediate diaphragms (0: none); it is also the length of the panels of the bottom flange for shear buckling</summary>
+    public double DiaphragmSpacing { get; init; }
+    public BridgeDiaphragmKind DiaphragmKind { get; init; }
+    /// <summary>The thickness of the plate diaphragms</summary>
+    public double DiaphragmThickness { get; init; }
+    /// <summary>The area of each diagonal of the cross-bracing</summary>
+    public double BracingArea { get; init; }
+    /// <summary>The minimum radius of gyration of each diagonal</summary>
+    public double BracingRadius { get; init; }
+    /// <summary>The buckling length of the compressed diagonal over its length</summary>
+    public double BracingBucklingFactor { get; init; } = 1;
+    /// <summary>The distributed torque of the eccentric loads on the whole span, for the distortion [kNm/m]</summary>
+    public double DistributedTorque { get; init; }
+    /// <summary>The concentrated torque of the eccentric loads in the most unfavourable position, for the distortion [kNm]</summary>
+    public double ConcentratedTorque { get; init; }
+    /// <summary>The thickness of the plate diaphragm at the support (0: not checked)</summary>
+    public double SupportDiaphragmThickness { get; init; }
+    /// <summary>The torque transferred by the support diaphragm to the bearings [kNm]</summary>
+    public double SupportTorqueKNm { get; init; }
+    /// <summary>The transverse distance between the two bearings of the box</summary>
+    public double BearingSpacing { get; init; }
 }
 public sealed record BridgeFatigueOptions
 {

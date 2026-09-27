@@ -81,11 +81,43 @@ var result = HBridgeSection.Calculate(input, cancellationToken);
 - `HSections/`: costruzione del profilo ad H, sostituzione delle due piastre
   inferiori, assemblaggio delle zone efficaci, ritiro e controlli specifici.
 
-Un adattatore a cassone dovrà definire pannelli/connessioni, riduzioni e proprietà
-del proprio stato. Le prove includono proprietà di quattro piastre e tensioni
-N–Mx di una sezione composta con due anime, ma **non costituiscono un modulo
-cassone completo**. Flussi in celle chiuse, torsione, distorsione, irrigidimenti
-longitudinali e relative interazioni richiedono modelli dedicati.
+- `Box/BoxDistortion`: torsione e distorsione di una cella singola, senza dipendenze
+  dalla sezione ad H.
+  - `BoxCell`: cella di Bredt, A0, J = 4A0²/Σ(ℓ/t), q = T/(2A0).
+  - `BoxDistortion.Mode`: modo distorsivo con scorrimento nullo delle pareti (Σℓ·V = 0),
+    ingobbamento ortogonale a N, Mx e My, I_Dw, rigidezza a telaio K con nodi rigidi,
+    momenti d'angolo e carico generalizzato di un torcente applicato come coppia verticale
+    alla sommità delle anime. Normalizzazione: media dei valori assoluti delle variazioni
+    degli angoli (γ del rettangolo).
+  - `PlateDiaphragmStiffness`/`PlateDiaphragmStresses` (piastra con i bordi mossi dalle
+    pareti, mesh di elementi piani) e `BracingStiffness`/`BracingForces` (diagonali a X).
+  - `Envelope` e `BeamOnFoundation`: trave su suolo elastico con elementi di Hermite, molle
+    dei diaframmi, carico distribuito e carico concentrato mobile.
+
+## Cassoncino: torsione, distorsione e diaframmi (1.4)
+
+`BridgeSteelSectionType.Box` con `HBridgeInput.Box.Enabled` attiva i controlli; i torcenti
+delle fasi sono `BridgePhase.TorsionKNm` (kNm) e devono essere nulli per H e anima inclinata,
+che restano in flessione retta. `BridgeStage.Torsion` contiene flussi per fase, distorsione,
+controlli e valori.
+
+- Fasi composte: cella chiusa dalla soletta al piano medio (anime prolungate); J con hc/nG,
+  nG = n(1+νc)/(1+νa), dimezzata con soletta esclusa (EN 1994-2 §§5.4.2.2(11), 5.4.2.3(6)).
+  Fasi di solo acciaio: cella chiusa dal controvento superiore di spessore equivalente t*.
+- q entra nel taglio dell'anima più caricata (EN 1993-1-1 §6.2.7(9)), nell'inviluppo elastico,
+  nel fondo (tensione equivalente, imbozzamento, EN 1993-1-5 §7.1(5)), nei pioli di una
+  piattabanda, nelle superfici a–a interne e b–b e nell'armatura longitudinale della soletta
+  (EN 1992-1-1 §6.3.2(3)).
+- Distorsione sulla campata appoggiata con diaframmi d'estremità rigidi: σdw, momenti
+  trasversali ai nodi, forze nei diaframmi; σdw oltre il 10% della flessione entra nel
+  fondo (EN 1993-2 §6.2.7(3)). Diaframma d'appoggio a taglio e coppia T/e_b degli apparecchi.
+- Esclusi: accoppiamento della distorsione con l'ingobbamento torsionale, torsione non
+  uniforme del cassone aperto, aste del controvento, irrigidimenti longitudinali del fondo.
+
+Test (`BoxTorsionTests`): rettangolo in forma chiusa (I_Dw = t(b+h)b²h²/96,
+K = 24/(b/Dh + h/Dv), K_D = G t b h e 2EA b²h²/L³, carico T/2), trapezio con modello a
+telaio indipendente e contro Yoo et al. (SSRC 2015), Hetényi per la trave infinita e
+appoggiata, flussi e verifiche calcolati a mano, H invariata.
 
 ## Metodo mantenuto e limiti noti
 

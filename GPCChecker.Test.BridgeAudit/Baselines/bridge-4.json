@@ -1,6 +1,6 @@
 {
   "Method": "Sezione composta N–Mx · larghezze efficaci EN 1993-1-5:2006 · v1",
-  "Scope": "Analisi elastica N–Mx con connessione completa, sezione simmetrica e anima senza irrigidimenti longitudinali. b_eff della soletta è un dato di ingresso. Le fasi sono incrementi di carico già combinati; per ogni situazione la sezione efficace è comune ai contributi sommati. Il ritiro uniforme assegnato al CLS produce effetti primari locali. Non è un'analisi evolutiva con redistribuzione viscosa. Taglio e pioli hanno controlli locali dedicati. Irrigidimenti, appoggi, saldature continue, soletta trasversale e fatica dei pioli hanno verifiche opzionali con campo dichiarato. Torsione e instabilità globale del ponte restano escluse.",
+  "Scope": "Analisi elastica N–Mx con connessione completa, sezione simmetrica e anima senza irrigidimenti longitudinali. b_eff della soletta è un dato di ingresso. Le fasi sono incrementi di carico già combinati; per ogni situazione la sezione efficace è comune ai contributi sommati. Il ritiro uniforme assegnato al CLS produce effetti primari locali. Non è un'analisi evolutiva con redistribuzione viscosa. Taglio e pioli hanno controlli locali dedicati. Irrigidimenti, appoggi, saldature continue, soletta trasversale e fatica dei pioli hanno verifiche opzionali con campo dichiarato. La torsione è verificata solo per il cassoncino (cella chiusa, distorsione e diaframmi, opzionali); l'instabilità globale del ponte resta esclusa.",
   "Input": {
     "versione_mista": 1,
     "nome": "Sezione composta da ponte",
@@ -47,6 +47,7 @@
         "N": 0,
         "Mx": 1500,
         "V": 0,
+        "T": 0,
         "q_conn": 0,
         "epsilon_cs": 0,
         "modo": "Da φ",
@@ -62,6 +63,7 @@
         "N": 0,
         "Mx": 0,
         "V": 0,
+        "T": 0,
         "q_conn": 0,
         "epsilon_cs": -250,
         "modo": "Da φ",
@@ -77,6 +79,7 @@
         "N": 0,
         "Mx": 2000,
         "V": 0,
+        "T": 0,
         "q_conn": 0,
         "epsilon_cs": 0,
         "modo": "Da φ",
@@ -92,6 +95,7 @@
         "N": 0,
         "Mx": 3000,
         "V": 0,
+        "T": 0,
         "q_conn": 0,
         "epsilon_cs": 0,
         "modo": "Da φ",
@@ -107,6 +111,7 @@
         "N": 0,
         "Mx": 0,
         "V": 0,
+        "T": 0,
         "q_conn": 0,
         "epsilon_cs": -100,
         "modo": "Da φ",
@@ -191,7 +196,21 @@
     "dsigma_fat": "",
     "gamma_ff": 1,
     "gamma_mf_pioli": 1.25,
-    "gamma_mf_flangia": 1.35
+    "gamma_mf_flangia": 1.35,
+    "torsione_cassoncino": false,
+    "t_controvento": 0,
+    "L_campata": 0,
+    "passo_diaframmi": 0,
+    "tipo_diaframma": "Piastra",
+    "t_diaframma": 12,
+    "A_diagonale": 3000,
+    "i_diagonale": 30,
+    "beta_diagonale": 1,
+    "m_t_dist": 0,
+    "T_c_dist": 0,
+    "T_app": 0,
+    "e_appoggi": "",
+    "t_diaframma_app": 0
   },
   "Geometry": {
     "Width": 3000,
@@ -778,6 +797,7 @@
         "Checks": [],
         "Details": null
       },
+      "Torsion": null,
       "MaxUtilization": 0.15493252370753724,
       "SteelNeutralAxis": -1113.2631916396617
     },
@@ -1090,6 +1110,7 @@
         "Checks": [],
         "Details": null
       },
+      "Torsion": null,
       "MaxUtilization": 0.26207466990735345,
       "SteelNeutralAxis": -1283.7223192749757
     },
@@ -1453,6 +1474,7 @@
         "Checks": [],
         "Details": null
       },
+      "Torsion": null,
       "MaxUtilization": 0.3021475518780101,
       "SteelNeutralAxis": -1049.6996885887852
     },
@@ -1866,6 +1888,7 @@
         "Checks": [],
         "Details": null
       },
+      "Torsion": null,
       "MaxUtilization": 0.3923141773037132,
       "SteelNeutralAxis": -825.8898602243165
     },
@@ -2330,6 +2353,7 @@
         "Checks": [],
         "Details": null
       },
+      "Torsion": null,
       "MaxUtilization": 0.3993035704158532,
       "SteelNeutralAxis": -877.4453028469038
     }
