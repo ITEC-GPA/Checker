@@ -8,6 +8,8 @@ public enum BridgeStandard { Ntc2018, Eurocode4 }
 public enum BridgeLimitState { Ultimate, Rare, QuasiPermanent }
 public enum BridgeStiffenerLayout { Symmetric, LeftOnly, RightOnly, Unequal }
 public enum BridgeSupportLocation { Internal, LeftEnd, RightEnd }
+/// <summary>The steel section of the girder: H with vertical web, H with inclined web, box girder open at the top (two webs, two top flanges)</summary>
+public enum BridgeSteelSectionType { H, InclinedWebH, Box }
 public enum BridgeStiffenerRole { Intermediate, Support }
 
 /// <summary>Materials owned by Model. No catalog lookup, JSON, WPF or ANTHEA dependency.</summary>
@@ -75,6 +77,15 @@ public sealed record HSectionDimensions
     public double SecondBottomWidth { get; init; }
     public double SecondBottomThickness { get; init; }
     public bool SecondBottomEnabled { get; init; }
+    /// <summary>The type of the steel section. With <see cref="BridgeSteelSectionType.Box"/> TopWidth is the width of each of the two top flanges
+    /// and BottomWidth the width of the whole bottom flange; the second bottom plate is only for the H</summary>
+    public BridgeSteelSectionType SectionType { get; init; }
+    /// <summary>Inclined web H: horizontal offset of the end of the web at the bottom flange respect to the end at the top flange (positive to the
+    /// right). Box: inward offset of each web at the bottom flange (the spacing of the webs at the bottom is WebSpacing - 2 WebOffset; negative:
+    /// the box is wider at the bottom). The webs are plates of thickness WebThickness normal to their plane; WebHeight is the vertical height</summary>
+    public double WebOffset { get; init; }
+    /// <summary>Box: distance between the axes of the two webs at the top flanges</summary>
+    public double WebSpacing { get; init; }
 }
 public sealed record BridgeRebarRow
 {

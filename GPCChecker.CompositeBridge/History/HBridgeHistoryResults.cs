@@ -5,20 +5,33 @@ namespace GPC.Checkers.CompositeBridge.History;
 public sealed class HistoryStressProfile
 {
     private readonly Dictionary<string, (double Y, double Stress)[]> samples;
+    private readonly Dictionary<string, (double Bottom, double Top)> bounds;
     internal HistoryStressProfile(IEnumerable<HistoryFiberResult> fibers, Func<HistoryFiberResult, double> value)
     {
-        samples = fibers.GroupBy(f => f.ComponentId).ToDictionary(g => g.Key,
+        var list = fibers.ToList();
+        samples = list.GroupBy(f => f.ComponentId).ToDictionary(g => g.Key,
             g => g.GroupBy(f => f.Fiber.Y).OrderBy(p => p.Key).Select(p => (p.Key, p.Average(value))).ToArray());
+        // the extent of the strips of each component (NaN when the fibers have no strip, e.g. the bars)
+        bounds = list.GroupBy(f => f.ComponentId).ToDictionary(g => g.Key, g => (g.Min(f => f.Fiber.StripBottom), g.Max(f => f.Fiber.StripTop)));
     }
+    /// <summary>
+    /// The stress at the level y: linear between the samples of the fibers; beyond the outermost samples, linear extrapolation up to the faces of the
+    /// strips of the component (before, the stress of the outermost fiber, inside the plate: the stresses at the faces of the flanges and at the
+    /// ends of the web were underestimated), constant beyond them
+    /// </summary>
     public double Stress(string material, double y)
     {
         string key = material == "CLS" ? HBridgeHistoryAnalysis.Concrete : material == "Armatura" ? HBridgeHistoryAnalysis.Rebars :
             samples.Where(s => s.Key.StartsWith("Steel.")).OrderBy(s => Distance(s.Value, y)).Select(s => s.Key).FirstOrDefault() ?? "";
         if (!samples.TryGetValue(key, out var a) || a.Length == 0) return 0;
-        if (y <= a[0].Y) return a[0].Stress;
+        var (bottom, top) = bounds[key];
+        double Line(int i, int j, double at) => a[i].Stress + (a[j].Stress - a[i].Stress) * (at - a[i].Y) / (a[j].Y - a[i].Y);
+        if (y <= a[0].Y)
+            return a.Length > 1 && !double.IsNaN(bottom) ? Line(0, 1, Math.Max(y, bottom)) : a[0].Stress;
         for (int i = 1; i < a.Length; i++) if (y <= a[i].Y)
-            return a[i - 1].Stress + (a[i].Stress - a[i - 1].Stress) * (y - a[i - 1].Y) / (a[i].Y - a[i - 1].Y);
-        return a[a.Length - 1].Stress;
+            return Line(i - 1, i, y);
+        int last = a.Length - 1;
+        return a.Length > 1 && !double.IsNaN(top) ? Line(last - 1, last, Math.Min(y, top)) : a[last].Stress;
     }
     private static double Distance((double Y, double Stress)[] a, double y) => y < a[0].Y ? a[0].Y - y : y > a[a.Length - 1].Y ? y - a[a.Length - 1].Y : 0;
 }
@@ -76,9 +89,8 @@ public static class HBridgeHistoryResults
                 var top = s.Panels.Single(x => x.Name == HBridgeHistoryAnalysis.Top).Reduction;
                 var bottom = s.Panels.Single(x => x.Name == HBridgeHistoryAnalysis.Bottom).Reduction;
                 var second = s.Panels.SingleOrDefault(x => x.Name == HBridgeHistoryAnalysis.Bottom2)?.Reduction;
-                eff = new(web.EffectiveAtStart, web.EffectiveAtEnd, g.WebThickness + 2 * top.EffectiveAtStart,
-                    g.WebThickness + 2 * bottom.EffectiveAtStart, web, top, bottom,
-                    second is null ? 0 : g.WebThickness + 2 * second.EffectiveAtStart, second);
+                var outstand = s.Panels.SingleOrDefault(x => x.Name == HBridgeHistoryAnalysis.BottomOutstand)?.Reduction;
+                eff = HBridgeSection.AssembleEffective(g, web, top, bottom, second, outstand);
             }
             var h = p.Kind is BridgePhaseKind.Composite or BridgePhaseKind.Shrinkage ? CompositeHomogenization.Calculate(m,
                 o.InstantaneousConcrete ? p with { Phi = 0, HomogenizationSource = BridgeHomogenizationSource.Phi } : p) : (N0: 0d, N: 0d, PhiEffective: 0d, Phi: 0d);
@@ -126,6 +138,7 @@ public static class HBridgeHistoryResults
             else warnings.Add("φ/n modifica il modulo dei nuovi incrementi; non viene integrata una legge di viscosità dipendente dall’età.");
             if (!data.Options.Class4 && !nonlinear) warnings.Add("Riduzioni di classe 4 disattivate: sezione lorda.");
             if (data.Options.Class4 && !nonlinear) warnings.AddRange(HBridgeSection.LocalBucklingWarnings(data.Options));
+            warnings.AddRange(HBridgeSection.SectionTypeWarnings(g));
             if (g.Bottom2Thickness > 0) warnings.Add("Due piastre inferiori modellate con la geometria reale; instabilità locale: ciascuna piastra come sbalzo dall'anima con il proprio spessore (a favore di sicurezza).");
             var stage = new BridgeStage(s.Name, s.NewtonIterations, s.EffectiveResidual, eff, steelProperties, contributions.ToList(), points, warnings);
             stage.HistoryView = new(s, nonlinear, profile, area, cy, inertia);
