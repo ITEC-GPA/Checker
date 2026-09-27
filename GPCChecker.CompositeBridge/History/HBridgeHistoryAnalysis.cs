@@ -21,6 +21,8 @@ public static class HBridgeHistoryAnalysis
 {
     public const string Concrete = "Concrete", Rebars = "Rebars";
     public const string Top = "Steel.Top", Web = "Steel.Web", Bottom = "Steel.Bottom", Bottom2 = "Steel.Bottom2";
+    /// <summary>The panel of the outstands of the bottom flange of the box beyond the webs (only a panel of the reductions, not a component)</summary>
+    public const string BottomOutstand = "Steel.BottomOutstand";
     public static HistoryAnalysisResult Calculate(HBridgeInput input, HBridgeHistoryOptions? options = null, CancellationToken cancellation = default) =>
         Calculate(input, input.Phases, options, cancellation);
     public static HistoryAnalysisResult Calculate(HBridgeInput input, IEnumerable<BridgePhase> phases,
@@ -171,6 +173,7 @@ public static class HBridgeHistoryAnalysis
             }
             var panels = new List<HistoryPanelResult> { new(Web, e.Web), new(Top, e.Top), new(Bottom, e.Bottom) };
             if (e.SecondBottom is not null) panels.Add(new(Bottom2, e.SecondBottom));
+            if (e.BottomOutstand is not null) panels.Add(new(BottomOutstand, e.BottomOutstand));
             return new(Array.AsReadOnly(trial.Select(Factor).ToArray()), Array.AsReadOnly(panels.ToArray()));
         }
     }

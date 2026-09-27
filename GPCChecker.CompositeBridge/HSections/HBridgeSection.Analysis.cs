@@ -63,6 +63,7 @@ public static partial class HBridgeSection
             if (!data.Options.Class4) warnings.Add("Sezione lorda: riduzioni locali disattivate. Risultato di confronto, non verifica di classe 4.");
             if (contributions.Any(c => c.IsShrinkage)) warnings.Add("Ritiro uniforme imposto al solo CLS: effetti primari autoequilibrati. Eventuali azioni secondarie da vincoli esterni vanno inserite come fasi N–Mx separate.");
             if (data.Options.Class4) warnings.AddRange(LocalBucklingWarnings(data.Options));
+            warnings.AddRange(SectionTypeWarnings(g));
             if (g.Bottom2Thickness > 0) warnings.Add("Due piastre inferiori modellate con la geometria reale. Instabilità locale: ciascuna piastra come sbalzo dall'anima con il proprio spessore, senza il beneficio dell'accoppiamento (a favore di sicurezza).");
             var effectiveParts = SteelPieces(g, effective, mat.Steel);
             double effectiveArea = effectiveParts.Sum(p => p.Section.Area);

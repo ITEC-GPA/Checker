@@ -21,9 +21,10 @@ public static partial class HBridgeSection
         out bool usesIntermediate, out bool usesRigidEnd)
     {
         double gm0 = BridgeNumbers.Require(d.Options.GammaM0, "gamma_m0", strict: true), gm1 = BridgeNumbers.Require(d.Options.GammaM1, "gamma_m1", strict: true), eta = BridgeNumbers.Require(d.Options.ShearEta, "eta_taglio", strict: true);
-        double span = g.WebHeight + (g.TopThickness + g.BottomEquivalentThickness) / 2;
+        // the web plates along their plane (inclined webs: length hw / cos α)
+        double span = g.PlateLength + (g.TopThickness + g.BottomEquivalentThickness) / (2 * Math.Cos(g.WebAngle));
         bool euroCode = !d.Options.StandardName.StartsWith("NTC"); // Av = eta hw tw (EC3 6.2.6(3)d) or hw tw (NTC 4.2.4.1.2.4)
-        var web = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, etaInShearArea: euroCode);
+        var web = BridgeShearConnection.Web(g.PlateLength, g.PlateThickness, m.Fy, m.Ea, gm0, gm1, eta, etaInShearArea: euroCode);
         bool ultimate = d.Options.LimitStateName == "SLU";
         usesIntermediate = false; usesRigidEnd = false;
         // removedPanel: the web panel with the stiffener removed, for Nst (EN 1993-1-5 §9.3.3(3)). Before, the longer adjacent panel
@@ -32,9 +33,9 @@ public static partial class HBridgeSection
             double x, double z, bool stiffness, out StiffenerDetail result)
         {
             var p = StiffenerPlates(d, suffix);
-            var candidate = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, removedPanel);
-            double nst = Math.Max(0, Math.Abs(v) * 1000 - candidate.TauCritical * g.WebHeight * g.WebThickness / gm1) + extra;
-            result = BridgeLocalDetails.Stiffener(g.WebHeight, g.WebThickness, span, aL, aR, availL, availR,
+            var candidate = BridgeShearConnection.Web(g.PlateLength, g.PlateThickness, m.Fy, m.Ea, gm0, gm1, eta, removedPanel);
+            double nst = Math.Max(0, Math.Abs(v) * 1000 - candidate.TauCritical * g.PlateLength * g.PlateThickness / gm1) + extra;
+            result = BridgeLocalDetails.Stiffener(g.PlateLength, g.PlateThickness, span, aL, aR, availL, availR,
                 p.LeftWidth, p.LeftThickness, p.RightWidth, p.RightThickness, m.Fy, m.Ea, gm1, nst, webCompression,
                 nst > 0 ? extra * x / nst : 0, nst > 0 ? extra * z / nst : 0, BridgeNumbers.Require(d.Stiffener(suffix).LengthFactor, "betaL_" + suffix, strict: true));
             var st = result; int start = checks.Count;
@@ -43,10 +44,11 @@ public static partial class HBridgeSection
             if (stiffness) Check("rigidezza pannelli", st.RigidityRatio, 1, "—", st.RigidityRatio, "EN 1993-1-5 §9.3.3; controllo di entrambi i pannelli");
             Check("stabilità e pressoflessione II ordine", st.Stress, m.Fy / gm1, "MPa", st.StressRatio,
                 "EN 1993-1-1 §§5.2.2(7)a, 5.3.4: imperfezione equivalente Lcr/200, eccentricità effettive, due piani; nessuna riserva plastica");
-            Check("freccia fuori piano", st.Deflection, g.WebHeight / 300, "mm", st.DeflectionRatio, "EN 1993-1-5 §9.2.1: w ≤ b/300, b = hw");
+            Check("freccia fuori piano", st.Deflection, g.PlateLength / 300, "mm", st.DeflectionRatio, "EN 1993-1-5 §9.2.1: w ≤ b/300, b = hw");
             Check("rigidezza torsionale", st.TorsionRatio, 1, "—", st.TorsionRatio);
             Check("piatti entro classe 3", st.LocalRatio, 1, "—", st.LocalRatio, "Sbalzi uniformemente compressi c/t ≤ 14ε; nessuna riduzione automatica dei piatti snelli");
-            double available = (Math.Min(g.TopWidth, g.Bottom1Width) - g.WebThickness) / 2;
+            // box: the stiffeners are inside the box, between the webs
+            double available = (Math.Min(g.TopFlangeWidth, g.SectionType == BridgeSteelSectionType.Box ? g.WebSpacingBottom : g.Bottom1Width) - g.WebHorizontalThickness) / 2;
             Check("ingombro tra piattabande", Math.Max(p.LeftWidth, p.RightWidth), available, "mm", Math.Max(p.LeftWidth, p.RightWidth) / available);
             details.AddRange(new[] { new BridgeDetailValue(name + " · A con anima", st.Area, "mm²"), new(name + " · striscia anima", st.WebStrip, "mm"),
                 new(name + " · xG", st.CentroidX, "mm"), new(name + " · eccentricità x−xG", st.Eccentricity, "mm"),
@@ -58,7 +60,7 @@ public static partial class HBridgeSection
                 double throat = BridgeNumbers.Require(d.Stiffener(suffix).WeldThroat, "aw_" + suffix, strict: true);
                 // betaW=1 covers all offered grades; fu is the parent steel from Model.
                 double fw = BridgeLocalDetails.WeldStrength(Materials(d).Steel.Fu, 1, BridgeNumbers.Require(d.Options.GammaM2, "gamma_m2", strict: true));
-                double length = g.WebHeight - 2 * throat;
+                double length = g.PlateLength - 2 * throat;
                 fw *= BridgeNumbers.Clamp(1.2 - .2 * length / (150 * throat), .6, 1); // conservative long-joint reduction
                 double direct = nst / (2 * st.PlateCount * throat * Math.Max(1, length));
                 double bending = 6 * (st.MomentOut + st.MomentIn) / (2 * st.PlateCount * throat * Math.Pow(Math.Max(1, length), 2));
@@ -82,7 +84,7 @@ public static partial class HBridgeSection
             double aL = BridgeNumbers.Require(d.Intermediate.LeftPanel, "a_irr", strict: true), aR = d.Intermediate.EqualPanels ? aL : BridgeNumbers.Require(d.Intermediate.RightPanel, "a_irr_dx", strict: true);
             usesIntermediate = Element(BridgeStiffenerRole.Intermediate, "Intermedio", aL, aR, aL + aR, aL / 2, aR / 2, BridgeNumbers.Require(d.Intermediate.ExternalCompressionKN, "N_irr") * 1000,
                 BridgeNumbers.Require(d.Intermediate.LoadX, "x_irr", double.NegativeInfinity), 0, true, out _);
-            if (usesIntermediate) web = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, Math.Max(aL, aR), etaInShearArea: euroCode);
+            if (usesIntermediate) web = BridgeShearConnection.Web(g.PlateLength, g.PlateThickness, m.Fy, m.Ea, gm0, gm1, eta, Math.Max(aL, aR), etaInShearArea: euroCode);
             else warnings.Add("Irrigidimento intermedio non idoneo: escluso il beneficio dei pannelli a taglio.");
         }
         if (d.Support.Enabled)
@@ -92,7 +94,7 @@ public static partial class HBridgeSection
             bool end = location != SupportLocations[0];
             double aL = location == SupportLocations[1] ? BridgeNumbers.Require(d.Support.RightPanel, "a_app_dx", strict: true) : BridgeNumbers.Require(d.Support.LeftPanel, "a_app_sx", strict: true);
             double aR = location == SupportLocations[2] ? aL : BridgeNumbers.Require(d.Support.RightPanel, "a_app_dx", strict: true);
-            double c = end ? BridgeNumbers.Require(d.Support.EndDistance, "c_app") : 0, reaction = BridgeNumbers.Require(d.Support.ReactionKN, "R_app") * 1000;
+            double c = end ? BridgeNumbers.Require(d.Support.EndDistance, "c_app") : 0, reaction = BridgeNumbers.Require(d.Support.ReactionKN, "R_app") * 1000 / g.WebCount;
             double left = location == SupportLocations[1] ? c : aL / 2, right = location == SupportLocations[2] ? c : aR / 2;
             if (end && d.Support.RigidEndPost)
             {
@@ -108,7 +110,7 @@ public static partial class HBridgeSection
                 : Element(BridgeStiffenerRole.Support, "Appoggio", aL, aR, aL + aR, left, right, reaction, x, z, false, out st);
             double width = BridgeNumbers.Require(d.Support.FootprintWidth, "B_app", strict: true), length = BridgeNumbers.Require(d.Support.FootprintLength, "s_app", strict: true);
             var p = StiffenerPlates(d, BridgeStiffenerRole.Support);
-            double footprint = 2 * Math.Max(Math.Abs(-g.WebThickness / 2 - p.LeftWidth - x), Math.Abs(g.WebThickness / 2 + p.RightWidth - x));
+            double footprint = 2 * Math.Max(Math.Abs(-g.WebHorizontalThickness / 2 - p.LeftWidth - x), Math.Abs(g.WebHorizontalThickness / 2 + p.RightWidth - x));
             void Bearing(string name, double demand, double resistance) => checks.Add(new("Appoggio · " + name, demand, resistance, "mm", ultimate ? demand / resistance : null));
             Bearing("impronta trasversale sotto i piatti", footprint, width);
             Bearing("impronta longitudinale", st.MaxThickness + 2 * Math.Abs(z), length);
@@ -120,25 +122,26 @@ public static partial class HBridgeSection
                 && (!end || length / 2 + Math.Abs(z) <= c);
             if (end && d.Support.RigidEndPost)
             {
-                double e = BridgeNumbers.Require(d.Support.EndPostSpacing, "e_term", strict: true), requiredArea = 4 * g.WebHeight * g.WebThickness * g.WebThickness / e;
+                double e = BridgeNumbers.Require(d.Support.EndPostSpacing, "e_term", strict: true), requiredArea = 4 * g.PlateLength * g.PlateThickness * g.PlateThickness / e;
                 bool symmetric = d.Support.LayoutName == StiffenerSides[0];
                 checks.Add(new("Terminale · due coppie bilaterali simmetriche", symmetric ? 1 : 0, 1, "—", symmetric ? 0 : 2, "Seconda coppia identica verso l’interno, distanza e; EN 1993-1-5 §9.3.1"));
                 checks.Add(new("Terminale · area di ciascuna coppia", requiredArea, st.PlateArea, "mm²", ultimate ? requiredArea / st.PlateArea : null, "A ≥ 4 hw tw²/e"));
-                checks.Add(new("Terminale · distanza e > 0,1 hw", .1 * g.WebHeight, e, "mm", e > .1 * g.WebHeight ? .1 * g.WebHeight / e : 2));
+                checks.Add(new("Terminale · distanza e > 0,1 hw", .1 * g.PlateLength, e, "mm", e > .1 * g.PlateLength ? .1 * g.PlateLength / e : 2));
                 checks.Add(new("Terminale · e entro il pannello", e, panel, "mm", e < panel ? e / panel : 2));
                 bool second = Element(BridgeStiffenerRole.Support, "Seconda coppia terminale", e, panel, e + panel, e / 2, panel / 2, reaction, x, 0, false, out var secondSt);
                 double? combined = st.StressRatio is {} sr && secondSt.StressRatio is {} sr2 ? requiredArea / st.PlateArea + Math.Max(sr, sr2) : null;
                 checks.Add(new("Terminale · reazione e ancoraggio combinati", combined ?? 0, 1, "—", ultimate ? combined : null,
                     "Inviluppo cautelativo: utilizzo elastico della coppia + area richiesta dal §9.3.1 / area disponibile; R intera su ciascuna coppia"));
-                usesRigidEnd = member && second && symmetric && combined <= 1 && e > .1 * g.WebHeight && e < panel && d.Support.CheckWelds;
+                usesRigidEnd = member && second && symmetric && combined <= 1 && e > .1 * g.PlateLength && e < panel && d.Support.CheckWelds;
                 if (usesRigidEnd)
                 {
                     // No credit for a shorter main panel unless intermediate supports are independently suitable.
                     double adoptedPanel = usesIntermediate ? Math.Max(d.Intermediate.LeftPanel, d.Intermediate.EqualPanels ? d.Intermediate.LeftPanel : d.Intermediate.RightPanel) : 0;
-                    web = BridgeShearConnection.Web(g.WebHeight, g.WebThickness, m.Fy, m.Ea, gm0, gm1, eta, adoptedPanel, true, euroCode);
+                    web = BridgeShearConnection.Web(g.PlateLength, g.PlateThickness, m.Fy, m.Ea, gm0, gm1, eta, adoptedPanel, true, euroCode);
                 }
                 else warnings.Add("Montante terminale non qualificato come rigido: resta adottata la curva non rigida a taglio.");
             }
+            if (g.WebCount > 1) warnings.Add("Cassoncino: la reazione d'appoggio è ripartita in parti uguali sulle due anime; irrigidimenti d'appoggio per ciascuna anima.");
             warnings.Add("Appoggio: R è l’inviluppo SLU assegnato, indipendente dalle fasi. Piatti continui senza intagli, vincolati lateralmente alle flange. Apparecchio d’appoggio e flessione della piastra di ripartizione esclusi.");
         }
         return web;

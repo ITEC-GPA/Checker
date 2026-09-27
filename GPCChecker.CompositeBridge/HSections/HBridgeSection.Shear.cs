@@ -14,12 +14,19 @@ public sealed record BridgeStudResult(bool Enabled, HeadedStudResistance? Resist
 
 public static partial class HBridgeSection
 {
+    /// <summary>The resistance of the webs from the one of a plate in its plane: forces and areas times n cos α (nothing changes for the H)</summary>
+    private static WebShearResistance ScaleWeb(WebShearResistance w, double factor) => factor == 1 ? w : new()
+    {
+        KTau = w.KTau, TauCritical = w.TauCritical, Slenderness = w.Slenderness, Chi = w.Chi, Area = w.Area * factor, ShearArea = w.ShearArea * factor,
+        PlasticResistance = w.PlasticResistance * factor, BucklingResistance = w.BucklingResistance * factor, Resistance = w.Resistance * factor
+    };
+
     private static (BridgeShearResult Shear, BridgeStudResult Studs) CalculateShear(HBridgeInput source, BridgeGeometry g,
         BridgeMaterialValues m, BridgeEffective effective, List<BridgeContribution> contributions, BridgePhase[] phases, List<string> warnings)
     {
         var d = source;
         double fy = m.Fy, ea = m.Ea, gm0 = BridgeNumbers.Require(d.Options.GammaM0, "gamma_m0", strict: true), gm1 = BridgeNumbers.Require(d.Options.GammaM1, "gamma_m1", strict: true);
-        double eta = BridgeNumbers.Require(d.Options.ShearEta, "eta_taglio", strict: true), v = contributions.Sum(c => c.V), av = g.WebHeight * g.WebThickness;
+        double eta = BridgeNumbers.Require(d.Options.ShearEta, "eta_taglio", strict: true), v = contributions.Sum(c => c.V), av = g.WebHeight * g.WebCount * g.PlateThickness;
         bool ultimate = d.Options.LimitStateName == "SLU", stiffened = d.Intermediate.Enabled, ntc = d.Options.StandardName.StartsWith("NTC");
         double bottom = -g.TopThickness - g.WebHeight, top = -g.TopThickness;
         double Sigma(double y) => contributions.Sum(c => c.SteelStress(y));
@@ -32,12 +39,14 @@ public static partial class HBridgeSection
         }
         var checks = new List<BridgeLocalCheck>();
         var detailValues = new List<BridgeDetailValue>();
-        var web = CheckStiffenerDetails(d, g, m, v, CompressionIntegral(bottom, top) * g.WebThickness,
-            checks, detailValues, warnings, out stiffened, out bool rigidEnd);
+        // each web carries V / (n cos α) in its plane; the resistance of one plate is brought back to the total vertical one
+        double webShare = g.WebCount * Math.Cos(g.WebAngle);
+        var web = ScaleWeb(CheckStiffenerDetails(d, g, m, v / webShare, CompressionIntegral(bottom, top) * g.WebHorizontalThickness,
+            checks, detailValues, warnings, out stiffened, out bool rigidEnd), webShare);
         TransverseStiffenerResistance? stiffener = null;
         checks.Insert(0, new("Anima · resistenza a taglio", Math.Abs(v), web.Resistance / 1000, "kN", ultimate ? Math.Abs(v) * 1000 / web.Resistance : null,
             ultimate ? "min(Vpl,Rd; Vbw,Rd), Av = " + (ntc ? "hw·tw (NTC §4.2.4.1.2.4)" : "η·hw·tw (EN 1993-1-1 §6.2.6(3))") + "; flange omesse; montante terminale " + (rigidEnd ? "rigido verificato" : "non rigido") : "Resistenza SLU di confronto: assegnare la combinazione SLU per l’esito"));
-        if (!d.Support.Enabled && g.WebHeight / g.WebThickness > 72 * Math.Sqrt(235 / fy) / eta)
+        if (!d.Support.Enabled && g.PlateLength / g.PlateThickness > 72 * Math.Sqrt(235 / fy) / eta)
             warnings.Add("EN 1993-1-5 §5.1: per questa anima snella sono necessari irrigidimenti trasversali agli appoggi, da dimensionare separatamente. L’opzione del pannello riguarda quelli intermedi.");
 
         var shearData = new List<(BridgeContribution C, BridgeSectionProperties P, double N)>();
@@ -80,7 +89,7 @@ public static partial class HBridgeSection
                     return part.Width * height * ((part.Top + low) / 2 - p.Y); });
                 if (c.HasConcrete) firstMoment += g.Width * g.SlabHeight / n * (g.SlabHeight / 2 - p.Y);
                 if (c.Kind != "Solo acciaio") firstMoment += g.Bars.Sum(b => b.Area * (m.Es / ea - (c.HasConcrete ? 1 / n : 0)) * (b.Y - p.Y));
-                total += c.V * 1000 * firstMoment / (p.Ix * g.WebThickness);
+                total += c.V * 1000 * firstMoment / (p.Ix * g.WebCount * g.PlateThickness);
             }
             return total;
         }
@@ -143,9 +152,9 @@ public static partial class HBridgeSection
         double diameter = BridgeNumbers.Require(d.Studs.Diameter, "d_pioli", strict: true), heightStud = BridgeNumbers.Require(d.Studs.Height, "h_pioli", strict: true), pitch = BridgeNumbers.Require(d.Studs.LongitudinalPitch, "passo_pioli", strict: true);
         double transversePitch = rows > 1 ? BridgeNumbers.Require(d.Studs.TransversePitch, "passo_trasv_pioli", strict: true) : 0;
         var stud = BridgeShearConnection.Stud(diameter, heightStud, BridgeNumbers.Require(d.Studs.Fu, "fu_pioli", strict: true), m.Fck, m.Ec, BridgeNumbers.Require(d.Studs.GammaV, "gamma_v", strict: true));
-        double prd = stud.Resistance * (ultimate ? 1 : .75), ped = Math.Abs(totalFlow) * pitch / rows;
+        double prd = stud.Resistance * (ultimate ? 1 : .75), ped = Math.Abs(totalFlow) * pitch / (rows * g.TopFlangeCount);
         bool validCombination = ultimate || d.Options.LimitStateName == "SLE rara";
-        double edgeClear = (g.TopWidth - (rows - 1) * transversePitch - diameter) / 2;
+        double edgeClear = (g.TopFlangeWidth - (rows - 1) * transversePitch - diameter) / 2;
         double edgeMin = ntc ? 20 : 25;
         double cover = g.SlabHeight - heightStud;
         double requiredCover = Math.Max(ntc ? 20 : 0, BridgeNumbers.Require(d.Studs.RequiredCover, "copriferro_pioli"));
@@ -168,7 +177,10 @@ public static partial class HBridgeSection
         }
         if (contributions.Any(c => c.IsShrinkage)) warnings.Add("Pioli: il ritiro uniforme non genera un gradiente longitudinale nel tratto uniforme. Assegnare Δq aggiuntivo per effetti di estremità/vincolo ricavati dal modello globale.");
         var connectionDetails = new List<BridgeDetailValue>();
-        CheckSlabAndFatigue(d, g, m, totalFlow, studChecks, connectionDetails, warnings);
-        return (shear, new(true, stud, totalFlow, ped / 1000, prd / 1000, rows * prd / pitch, flows, studChecks, connectionDetails));
+        // box: the connection is on the two top flanges, each with its rows of studs and its surfaces of the slab
+        CheckSlabAndFatigue(d, g, m, totalFlow / g.TopFlangeCount, studChecks, connectionDetails, warnings);
+        if (g.SectionType == BridgeSteelSectionType.Box)
+            warnings.Add("Cassoncino: pioli e superfici della soletta per ciascuna delle due piattabande superiori, con metà del flusso di scorrimento; la fatica dei pioli usa i flussi assegnati per piattabanda.");
+        return (shear, new(true, stud, totalFlow, ped / 1000, prd / 1000, rows * g.TopFlangeCount * prd / pitch, flows, studChecks, connectionDetails));
     }
 }

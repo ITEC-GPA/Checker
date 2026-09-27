@@ -29,6 +29,21 @@ public static partial class HBridgeSection
         var m = Materials(data); double ratio = m.Rebar.ElasticModulusTension / m.Steel.ElasticModulusTension;
         return (g.SteelArea * g.SteelCentroid + g.Bars.Sum(b => b.Area * ratio * b.Y)) / (g.SteelArea + g.Bars.Sum(b => b.Area * ratio));
     }
+    /// <summary>The hypotheses of the inclined web and of the box girder, for the warnings of the results</summary>
+    /// <param name="g">The geometry</param>
+    /// <returns>The warnings (none for the H)</returns>
+    public static IEnumerable<string> SectionTypeWarnings(BridgeGeometry g)
+    {
+        string angle = (Math.Abs(g.WebAngle) * 180 / Math.PI).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+        if (g.SectionType == BridgeSteelSectionType.InclinedWebH)
+            yield return $"Anima inclinata di {angle}° dalla verticale: flessione retta attorno all'asse orizzontale (sezione vincolata lateralmente da soletta e controventi; " +
+                "il prodotto d'inerzia della sola carpenteria non è considerato). Per N–Mx l'anima è verticale equivalente di spessore tw/cos α; instabilità locale, taglio " +
+                "(V/cos α nel piano della lamiera), irrigidimenti e saldature sulla lamiera reale lunga hw/cos α.";
+        if (g.SectionType == BridgeSteelSectionType.Box)
+            yield return $"Cassoncino con due anime{(g.WebAngle == 0 ? "" : $" inclinate di {angle}°")} e due piattabande superiori: flessione retta, taglio ripartito in parti uguali " +
+                "sulle anime (V/(2 cos α) nel piano di ciascuna), fondo come lamiera interna tra le anime (kσ interno) più gli sbalzi esterni. Torsione e distorsione della cella " +
+                "chiusa dalla soletta, diaframmi, irrigidimenti longitudinali del fondo e instabilità del fondo compresso come piastra irrigidita non sono verificati.";
+    }
     private static void ValidateShape(HBridgeInput input)
     {
         if (input.Phases.Length is < 1 or > 20) throw new ArgumentException("Da 1 a 20 fasi richieste.");
@@ -41,8 +56,23 @@ public static partial class HBridgeSection
         
         double b = BridgeNumbers.Require(d.Geometry.SlabWidth, "b_cls", strict: true), tc = BridgeNumbers.Require(d.Geometry.SlabHeight, "h_cls", strict: true), hw = BridgeNumbers.Require(d.Geometry.WebHeight, "h_web", strict: true), tw = BridgeNumbers.Require(d.Geometry.WebThickness, "t_web", strict: true), bt = BridgeNumbers.Require(d.Geometry.TopWidth, "b_top", strict: true), tt = BridgeNumbers.Require(d.Geometry.TopThickness, "t_top", strict: true), b1 = BridgeNumbers.Require(d.Geometry.BottomWidth, "b_bottom", strict: true), t1 = BridgeNumbers.Require(d.Geometry.BottomThickness, "t_bottom", strict: true);
         double b2 = d.Geometry.SecondBottomEnabled ? BridgeNumbers.Require(d.Geometry.SecondBottomWidth, "b_bottom2", strict: true) : 0, t2 = d.Geometry.SecondBottomEnabled ? BridgeNumbers.Require(d.Geometry.SecondBottomThickness, "t_bottom2", strict: true) : 0;
-        if (Math.Min(bt, b1) <= tw || b2 > b1 || b2 != 0 && b2 <= tw || hw <= tw)
+        var type = d.Geometry.SectionType;
+        if (!Enum.IsDefined(typeof(BridgeSteelSectionType), type)) throw new ArgumentException("Tipo di sezione in acciaio sconosciuto.");
+        if (type != BridgeSteelSectionType.H && d.Geometry.SecondBottomEnabled)
+            throw new ArgumentException("La seconda piastra inferiore è disponibile solo per la sezione ad H.");
+        // real plates: webs of thickness tw normal to their plane, inclined by the offset; the analysis uses the equivalent H
+        double offset = type == BridgeSteelSectionType.H ? 0 : BridgeNumbers.Require(d.Geometry.WebOffset, "offset_anima", double.NegativeInfinity);
+        int webs = type == BridgeSteelSectionType.Box ? 2 : 1;
+        double spacingTop = type == BridgeSteelSectionType.Box ? BridgeNumbers.Require(d.Geometry.WebSpacing, "interasse_anime", strict: true) : 0;
+        double spacingBottom = type == BridgeSteelSectionType.Box ? spacingTop - 2 * offset : 0;
+        double angle = Math.Atan2(offset, hw), webLength = type == BridgeSteelSectionType.H ? hw : Math.Sqrt(hw * hw + offset * offset);
+        double twh = type == BridgeSteelSectionType.H ? tw : tw * webLength / hw;
+        if (Math.Abs(angle) > Math.PI / 4)
+            throw new ArgumentException("Anime inclinate al più di 45° dalla verticale.");
+        if (Math.Min(bt, b1) <= twh || b2 > b1 || b2 != 0 && b2 <= tw || hw <= tw)
             throw new ArgumentException("Controllare anima e piattabande: b > tw; la seconda piastra inferiore deve essere contenuta nella prima.");
+        if (type == BridgeSteelSectionType.Box && (spacingTop < bt || spacingBottom - twh <= 0 || b1 < spacingBottom + twh - 1e-9))
+            throw new ArgumentException("Cassoncino: le piattabande superiori non devono sovrapporsi, le anime devono appoggiare sul fondo ed essere separate.");
         var mat = Materials(d);
         double tb = t1 + t2, bb = (b1 * t1 + b2 * t2) / tb, h = hw + tt + tb;
         IRebarSection? Bar(string side)
@@ -57,10 +87,19 @@ public static partial class HBridgeSection
         var top = Bar("top"); var bottom = Bar("bottom");
         if (top is not null && bottom is not null && tc - d.TopRebars.AxisDistance - d.BottomRebars.AxisDistance < (top.Diameter + bottom.Diameter) / 2)
             throw new ArgumentException("Le file di armature devono avere assi distinti e distanza almeno pari alla somma dei raggi.");
-        // two bottom plates: the exact section of the four plates (before, the equivalent rectangle with the same area and thickness)
-        var shape = SteelShape(h, tw, bt, tt, b1, t1, b2, t2);
+        // two bottom plates: the exact section of the four plates (before, the equivalent rectangle with the same area and thickness).
+        // Inclined web and box: the real section gives area and moments about the horizontal axis; the composite section uses the equivalent H
+        // (webs of total horizontal width, top flanges of total width), that has the same properties about the horizontal axis
+        int tops = type == BridgeSteelSectionType.Box ? 2 : 1;
+        Section shape = type switch
+        {
+            BridgeSteelSectionType.InclinedWebH => new SectionHInclinedWeb(h, tw, bt, tt, b1, t1, offset, "H saldato · anima inclinata"),
+            BridgeSteelSectionType.Box => new SectionSteelBox(h, tw, bt, tt, b1, t1, spacingTop, spacingBottom, "Cassoncino"),
+            _ => SteelShape(h, tw, bt, tt, b1, t1, b2, t2)
+        };
+        var equivalent = type == BridgeSteelSectionType.H ? shape : SteelShape(h, webs * twh, tops * bt, tt, b1, t1, 0, 0);
         var section = ReinforcedConcreteSection.CreateBridgeSection(b, tc, mat.Concrete, top!, d.TopRebars.Pitch, d.TopRebars.AxisDistance,
-            bottom!, d.BottomRebars.Pitch, shape, mat.Steel, d.BottomRebars.AxisDistance);
+            bottom!, d.BottomRebars.Pitch, equivalent, mat.Steel, d.BottomRebars.AxisDistance);
         var bars = section.Rebars.Select((r, i) => new BridgeBar("B" + (i + 1), r.Position.X, r.Position.Y, r.RebarSection.Diameter, r.Area)).ToArray();
         for (int i = 0; i < bars.Length; i++) for (int j = 0; j < i; j++)
             if (BridgeNumbers.Hypot(bars[i].X - bars[j].X, bars[i].Y - bars[j].Y) < (bars[i].Diameter + bars[j].Diameter) / 2 - 1e-8)
@@ -69,7 +108,8 @@ public static partial class HBridgeSection
         double y1 = -tt - hw - t1 / 2, y2 = -h + t2 / 2;
         double ab = b1 * t1 + b2 * t2, yb = (b1 * t1 * y1 + b2 * t2 * y2) / ab;
         double ib = b1 * Math.Pow(t1, 3) / 12 + b1 * t1 * Math.Pow(y1 - yb, 2) + b2 * Math.Pow(t2, 3) / 12 + b2 * t2 * Math.Pow(y2 - yb, 2);
-        return new(b, tc, hw, tw, bt, tt, b1, t1, b2, t2, bb, tb, h, ab, yb, ib, shape.Area, shape.Jxx, shape.Centroid.Y - h, bars);
+        return new(b, tc, hw, webs * twh, tops * bt, tt, b1, t1, b2, t2, bb, tb, h, ab, yb, ib, shape.Area, shape.Jxx, shape.Centroid.Y - h, bars,
+            type, webs, tw, webLength, angle, tops, spacingTop, spacingBottom);
     }
     public static ReinforcedConcreteSection NativeSection(HBridgeInput d) => NativeSection(d, Geometry(d));
     /// <summary>The native section on an already calculated geometry (avoids building the geometry twice)</summary>

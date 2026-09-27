@@ -16,6 +16,9 @@
     "armatura": "B450C",
     "fy_override": false,
     "fy": "355",
+    "sezione": "H saldato",
+    "offset_anima": "0",
+    "interasse_anime": "1800",
     "b_cls": "3000",
     "h_cls": "250",
     "h_web": "1800",
@@ -461,7 +464,21 @@
         "Diameter": 16,
         "Area": 201.06192982974676
       }
-    ]
+    ],
+    "SectionType": 0,
+    "WebCount": 1,
+    "WebPlateThickness": 8,
+    "WebLength": 1800,
+    "WebAngle": 0,
+    "TopFlangeCount": 1,
+    "WebSpacingTop": 0,
+    "WebSpacingBottom": 0,
+    "PlateThickness": 8,
+    "PlateLength": 1800,
+    "WebHorizontalThickness": 8,
+    "TopFlangeWidth": 500,
+    "BottomInternalWidth": 0,
+    "BottomOutstandWidth": 306
   },
   "Materials": {
     "Concrete": "C35/45",
@@ -536,7 +553,8 @@
           "EffectiveAtEnd": 0,
           "StartStress": 25.590996398201252,
           "EndStress": 25.590996398201252
-        }
+        },
+        "BottomOutstand": null
       },
       "EffectiveSteel": {
         "Area": 51139.26380950967,
@@ -807,7 +825,8 @@
           "EffectiveAtEnd": 0,
           "StartStress": 55.792743162032075,
           "EndStress": 55.792743162032075
-        }
+        },
+        "BottomOutstand": null
       },
       "EffectiveSteel": {
         "Area": 52994.827826502275,
@@ -1129,7 +1148,8 @@
           "EffectiveAtEnd": 0,
           "StartStress": 99.32648569986442,
           "EndStress": 99.32648569986442
-        }
+        },
+        "BottomOutstand": null
       },
       "EffectiveSteel": {
         "Area": 54861.52818979331,
