@@ -107,37 +107,33 @@ namespace GPC.Checkers.Concrete.Results
             return _strainReferencePoint + ChiX * (x - _referencePoint.X) + ChiY * (y - _referencePoint.Y);
         }
 
+        /// <summary>
+        /// The neutral axis in coordinates relative to <see cref="ReferencePoint"/> (see <see cref="GetConstantStrainAxis(double)"/>)
+        /// </summary>
+        /// <returns>The line; null if the plane has no curvature</returns>
         public Line2d GetNeutralAxisRespectReferencePoint()
         {
-            if (_chiX == 0 && _chiY == 0)
-                return null;
-            else if (_chiY == 0 && _chiX != 0)
-                return new Line2d(new Point2d(-StrainReferencePoint / _chiX, 100.0), new Point2d(-StrainReferencePoint / _chiX, -100.0));
-            else if (_chiX == 0 && _chiY != 0)
-                return new Line2d(new Point2d(100.0, -StrainReferencePoint / _chiY), new Point2d(-100.0, -StrainReferencePoint / _chiY));
-            else
-            {
-                Line2d line = new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY), new Point2d(-StrainReferencePoint / _chiX, 0.0));
-                Vector2d vector = line.ToVector();
-                vector.Unitize();
-
-                return new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY), new Point2d(0.0 + vector.X, -StrainReferencePoint / _chiY + vector.Y));
-            }
+            return GetConstantStrainAxis(0.0);
         }
 
+        /// <summary>
+        /// The neutral axis in global coordinates: the points with zero strain
+        /// </summary>
+        /// <remarks>Before, the reference point was not considered (only a part of it in the general case): the line was not on the zero strain</remarks>
+        /// <returns>The line; null if the plane has no curvature</returns>
         public Line2d GetNeutralAxis()
         {
-            if (_chiX == 0 && _chiY == 0)
-                return null;
-            else if (_chiY == 0 && _chiX != 0)
-                return new Line2d(new Point2d(-StrainReferencePoint / _chiX, 100.0), new Point2d(-StrainReferencePoint / _chiX, -100.0));
-            else if (_chiX == 0 && _chiY != 0)
-                return new Line2d(new Point2d(100.0, -StrainReferencePoint / _chiY), new Point2d(-100.0, -StrainReferencePoint / _chiY));
-            else
-                return new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY + _chiX / _chiY * _referencePoint.X),
-                    new Point2d(-StrainReferencePoint / _chiX + _chiY / _chiX * _referencePoint.Y, 0.0));
+            Line2d line = GetConstantStrainAxis(0.0);
+            line?.Move(_referencePoint.X, _referencePoint.Y);
+            return line;
         }
 
+        /// <summary>
+        /// The line with the given strain, in coordinates relative to <see cref="ReferencePoint"/>: from the intersection with the relative Y axis
+        /// (or a point of the vertical or horizontal line) along the unit direction of the line
+        /// </summary>
+        /// <param name="strain">The strain</param>
+        /// <returns>The line; null if the plane has no curvature</returns>
         public Line2d GetConstantStrainAxis(double strain)
         {
             if (_chiX == 0 && _chiY == 0)
@@ -148,8 +144,11 @@ namespace GPC.Checkers.Concrete.Results
                 return new Line2d(new Point2d(100.0, (strain - StrainReferencePoint) / _chiY), new Point2d(-100.0, (strain - StrainReferencePoint) / _chiY));
             else
             {
-                Line2d line = new Line2d(new Point2d(0.0, -StrainReferencePoint / _chiY), new Point2d(-StrainReferencePoint / _chiX, 0.0));
-                Vector2d vector = line.ToVector();
+                // the direction of the lines of constant strain, (-chiY, chiX) with the sign of the previous construction from the two intercepts
+                // of the neutral axis; that construction had no direction when the neutral axis passes through the reference point (NaN)
+                Vector2d vector = new Vector2d(-_chiY, _chiX);
+                if (StrainReferencePoint / (_chiX * _chiY) < 0)
+                    vector = new Vector2d(_chiY, -_chiX);
                 vector.Unitize();
 
                 return new Line2d(new Point2d(0.0, (strain - StrainReferencePoint) / _chiY), new Point2d(0.0 + vector.X, (strain - StrainReferencePoint) / _chiY + vector.Y));

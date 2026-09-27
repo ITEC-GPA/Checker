@@ -606,7 +606,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Parallel.For(0, force.Length, (i) =>
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
-                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(_sectionOption.ForceReferenceCoordinateSystem),
+                    CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(SolverAxes),
                     _sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id,
                     _standardStructuralSteel);
             });
@@ -617,7 +617,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public virtual StressAnalysisResult GetStressAnalysisResult(ResultBeamForces force)
         {
             return new StressAnalysisResult(ConcreteSection, force,
-                    CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(_sectionOption.ForceReferenceCoordinateSystem),
+                    CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(SolverAxes),
                     _sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id,
                     _standardStructuralSteel);
         }
@@ -629,7 +629,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             Parallel.For(0, force.Length, (i) =>
             {
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
-                    CalculateStrainPlaneLinearStressAnalysis(force[i].ConvertToForceTuple(sectionOption.ForceReferenceCoordinateSystem),
+                    CalculateStrainPlaneLinearStressAnalysis(force[i].ConvertToForceTuple(GetSolverAxes(sectionOption)),
                     sectionOption.ForceReferenceCoordinateSystem, psi, psiTendon,
                     _stressAnalysisTolerance), this, _standard, true, psi, psiTendon, Id,
                     _standardStructuralSteel);
@@ -641,7 +641,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         public virtual StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces force, double psi, double? psiTendon)
         {
             return new StressAnalysisResult(ConcreteSection, force,
-                CalculateStrainPlaneLinearStressAnalysis(force.ConvertToForceTuple(_sectionOption.ForceReferenceCoordinateSystem),
+                CalculateStrainPlaneLinearStressAnalysis(force.ConvertToForceTuple(SolverAxes),
                 _sectionOption.ForceReferenceCoordinateSystem, psi, psiTendon,
                 _stressAnalysisTolerance), this, _standard, true, psi, psiTendon, Id,
                 _standardStructuralSteel);
@@ -665,13 +665,21 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <summary>
-        /// The domain point with the selected strategy. When the iterative strategy does not converge (null or exception, e.g. with the stress block,
-        /// whose stresses are zero on part of the diagram) the point is calculated with the intersection strategy
+        /// The domain point with the selected strategy. When the iterative strategy does not converge (null or exception: stress block, whose
+        /// stresses are zero on part of the diagram, strongly biaxial sections) the point is searched with the bisection strategy on the same
+        /// failure surface and, if it is not found either (e.g. constant Mx-My), with the intersection strategy, which interpolates a
+        /// discretized domain and lies inside it
         /// </summary>
         /// <param name="force">The force</param>
         /// <param name="failureAnalysisTypeOverride">The type of analysis (null: the one of the options)</param>
         /// <returns>The point; null if no strategy finds it</returns>
         private FailureDomain.FailureDomainPoint CalculateDomainPointWithFallback(ResultBeamForces force, FailureAnalysisTypes? failureAnalysisTypeOverride)
+        {
+            return ToForceReferenceAxes(CalculateDomainPointInSolverAxes(force, failureAnalysisTypeOverride));
+        }
+
+        /// <inheritdoc cref="CalculateDomainPointWithFallback(ResultBeamForces, FailureAnalysisTypes?)"/>
+        private FailureDomain.FailureDomainPoint CalculateDomainPointInSolverAxes(ResultBeamForces force, FailureAnalysisTypes? failureAnalysisTypeOverride)
         {
             IDomainPointStrategy strategy = _calculateDomainPointStrategy;
             if (!(strategy is DomainPointStrategyIterative))
@@ -688,13 +696,70 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 _log.Add($"Iterative strategy: {e.Message}");
             }
 
-            _log.Add("Iterative strategy failed: intersection strategy used");
+            try
+            {
+                FailureDomain.FailureDomainPoint point = new DomainPointStrategyBisection(this).CalculateDomainPoint(force, failureAnalysisTypeOverride);
+                if (point != null)
+                {
+                    _log.Add("Iterative strategy failed: bisection strategy used");
+                    return point;
+                }
+            }
+            catch (Exception e)
+            {
+                _log.Add($"Bisection strategy: {e.Message}");
+            }
+
+            _log.Add("Iterative and bisection strategies failed: intersection strategy used");
             lock (_fallbackStrategyLock)
             {
                 if (_fallbackDomainPointStrategy == null)
                     _fallbackDomainPointStrategy = new DomainPointStrategyIntersection(this);
             }
             return _fallbackDomainPointStrategy.CalculateDomainPoint(force, failureAnalysisTypeOverride);
+        }
+
+        /// <summary>
+        /// The axes of the resultants integrated by the solver: the origin of the force reference system with the axes -X, -Y of the section
+        /// (Mx = -Σσ (y - y0), My = Σσ (x - x0), N along Z). The forces are converted into these axes before the analyses and the points of the
+        /// domain back into the force reference axes, so that any orientation of the latter can be used (before, the components in the force
+        /// reference axes were compared with the resultants in these axes). The 3D failure domain is expressed in these axes
+        /// </summary>
+        internal CoordinateSystem SolverAxes => GetSolverAxes(_sectionOption);
+
+        /// <summary>
+        /// The solver axes for the options (see <see cref="SolverAxes"/>): the force reference system itself when it already has the axes -X, -Y
+        /// </summary>
+        /// <param name="sectionOption">The options</param>
+        /// <returns>The axes</returns>
+        internal static CoordinateSystem GetSolverAxes(SectionChecker.SectionOptions sectionOption)
+        {
+            CoordinateSystem forceAxes = sectionOption.ForceReferenceCoordinateSystem;
+            if (HasTheSolverAxes(forceAxes))
+                return forceAxes;
+            return new CoordinateSystem(forceAxes.Origin, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
+        }
+
+        /// <summary>True if the coordinate system has the axes -X, -Y (and Z) of the solver</summary>
+        private static bool HasTheSolverAxes(CoordinateSystem coordinateSystem)
+        {
+            const double tolerance = 1e-12;
+            return Math.Abs(coordinateSystem.V1.X + 1) < tolerance && Math.Abs(coordinateSystem.V1.Y) < tolerance && Math.Abs(coordinateSystem.V1.Z) < tolerance &&
+                Math.Abs(coordinateSystem.V2.X) < tolerance && Math.Abs(coordinateSystem.V2.Y + 1) < tolerance && Math.Abs(coordinateSystem.V2.Z) < tolerance;
+        }
+
+        /// <summary>
+        /// The point of the domain with the forces in the force reference axes (the strategies work in the <see cref="SolverAxes"/>)
+        /// </summary>
+        /// <param name="point">The point in the solver axes (null: null)</param>
+        /// <returns>The same point if the force reference axes are the solver axes, otherwise a new point with the rotated forces</returns>
+        private FailureDomain.FailureDomainPoint ToForceReferenceAxes(FailureDomain.FailureDomainPoint point)
+        {
+            CoordinateSystem forceAxes = _sectionOption.ForceReferenceCoordinateSystem;
+            if (point == null || HasTheSolverAxes(forceAxes))
+                return point;
+            ResultBeamForces forces = new ResultBeamForces(point.NRd, 0, 0, 0, point.MxRd, point.MyRd, SolverAxes).ToCoordinateSystem(forceAxes);
+            return new FailureDomain.FailureDomainPoint(new ForceTuple(forces.N, forces.M1, forces.M2), point.FailureIndex, point.StrainPlane, point.Immersione);
         }
 
         [NonSerialized]
@@ -1185,7 +1250,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     {
                         var strain = strainPlane.GetStrain(x, y);
                         double sigmaC = _steelSectionsThinWallsBreaked[i][j].IsInsideConcrete ? CalculateSigmaC(strain) : 0.0;
-                        return steelSection.Section.SteelMaterial.GetStress(strain) - sigmaC;
+                        // design stress of the steel, as the rebars and the concrete (before, the characteristic curve: fy instead of fy / γM0)
+                        double sigmaS = _standardStructuralSteel == null ? steelSection.Section.SteelMaterial.GetStress(strain) : CalculateStressStructuralSteel(steelSection.Section, strain);
+                        return sigmaS - sigmaC;
                     }
                     double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
                     double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
@@ -1242,7 +1309,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     double stressFunctionN(double x, double y)
                     {
                         var strain = strainPlane.GetStrain(x, y);
-                        double sigmaC = _steelSectionsThinWallsBreaked[i][j].IsInsideConcrete ? CalculateSigmaC(strain) : 0.0;
+                        // the displaced concrete with the linear stress, as for the rebars (before, the design stress of the nonlinear diagram)
+                        double sigmaC = _steelSectionsThinWallsBreaked[i][j].IsInsideConcrete ? CalculateElasticSigmaC(strain) : 0.0;
                         return CalculateElasticSigmaS(psi, steelSection.Section, strain) - sigmaC;
                     }
                     double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);

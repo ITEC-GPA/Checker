@@ -60,6 +60,9 @@ namespace GPC.Checker.SectionSolvers
         {
             CalculateDomainMesh();
             var failureAnalysisType = failureAnalysisTypeOverride is null ? _solver.SectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
+            // the domain is in the solver axes: the force is converted into them, with the transport moment when its origin is another one
+            // (before, the components were used as they were given)
+            targetLocalForces = targetLocalForces.ToCoordinateSystemWithEccentricity(_solver.SolverAxes);
 
             double workingRatio = -1;
             SectionSolver.FailureZones _failureIndex = SectionSolver.FailureZones.F1;
