@@ -28,6 +28,7 @@ public static partial class HBridgeSection
             else { Number(p, "N"); Number(p, "Mx"); Number(p, "V"); }
             if (!LoadReferences.Contains(LoadReference(p))) throw new ArgumentException("Riferimento di N sconosciuto.");
         }
+        ValidateTorsion(data, g, phases);
         // null means follow the effective centroid inside Solve; fixed points are resolved once.
         var applicationPoints = phases.ToDictionary(p => p, p => p.KindName == ShrinkageKind ? null : LoadReference(p) switch
         {
@@ -63,7 +64,7 @@ public static partial class HBridgeSection
             if (!data.Options.Class4) warnings.Add("Sezione lorda: riduzioni locali disattivate. Risultato di confronto, non verifica di classe 4.");
             if (contributions.Any(c => c.IsShrinkage)) warnings.Add("Ritiro uniforme imposto al solo CLS: effetti primari autoequilibrati. Eventuali azioni secondarie da vincoli esterni vanno inserite come fasi N–Mx separate.");
             if (data.Options.Class4) warnings.AddRange(LocalBucklingWarnings(data.Options));
-            warnings.AddRange(SectionTypeWarnings(g));
+            warnings.AddRange(SectionTypeWarnings(g, data.Box.Enabled));
             if (g.Bottom2Thickness > 0) warnings.Add("Due piastre inferiori modellate con la geometria reale. Instabilità locale: ciascuna piastra come sbalzo dall'anima con il proprio spessore, senza il beneficio dell'accoppiamento (a favore di sicurezza).");
             var effectiveParts = SteelPieces(g, effective, mat.Steel);
             double effectiveArea = effectiveParts.Sum(p => p.Section.Area);
@@ -72,8 +73,9 @@ public static partial class HBridgeSection
                 + p.Section.Area * Math.Pow(p.PositionToGlobal(p.Section.Centroid).Y - effectiveCentroid, 2));
             var materialValues = new BridgeMaterialValues(mat.Concrete.Name, Math.Abs(mat.Concrete.Fck), mat.Concrete.ElasticModulusCompression,
                 mat.Steel.Name, mat.Steel.Fyk, mat.Steel.ElasticModulusTension, mat.Rebar.Name, mat.Rebar.Fyk, mat.Rebar.ElasticModulusTension);
-            var accessory = CalculateShear(data, g, materialValues, effective, contributions, included, warnings);
-            stages.Add(new(phases[end].Name, iter, error, effective, new(effectiveArea, effectiveCentroid, effectiveInertia), contributions, points, warnings, accessory.Shear, accessory.Studs));
+            var accessory = CalculateShear(data, g, materialValues, effective, contributions, included, warnings, TorsionFlows(data, g, materialValues, included));
+            stages.Add(new(phases[end].Name, iter, error, effective, new(effectiveArea, effectiveCentroid, effectiveInertia), contributions, points, warnings,
+                accessory.Shear, accessory.Studs, accessory.Torsion));
         }
         return new(Method, Scope, data, g,
             new(mat.Concrete.Name, Math.Abs(mat.Concrete.Fck), mat.Concrete.ElasticModulusCompression, mat.Steel.Name, mat.Steel.Fyk, mat.Steel.ElasticModulusTension,

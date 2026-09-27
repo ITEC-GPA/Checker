@@ -1,5 +1,12 @@
 # Audit delle sezioni miste da ponte
 
+## Aggiornamento 28 settembre 2026 (CompositeBridge 1.4.0.0)
+
+Le otto baseline sono state riacquisite dopo l'introduzione della torsione del cassoncino.
+Rispetto alle precedenti cambiano soltanto il testo del campo di validità (`Scope`), le nuove
+chiavi di ingresso del cassoncino (tutte inattive) con `T = 0` nelle fasi e il campo
+`Torsion` nullo delle situazioni: nessun valore numerico diverso. Esito: **302 superati**.
+
 ## Stato al 27 settembre 2026 (Checker.Concrete 0.0.13.0)
 
 I tre difetti del solutore descritti nelle sezioni storiche sono corretti e i test
