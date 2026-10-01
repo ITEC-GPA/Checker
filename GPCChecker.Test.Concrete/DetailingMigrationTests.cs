@@ -175,6 +175,38 @@ namespace ConcreteTests
             Assert.IsNotNull(Check(dsBeam, "LinkSpacing:Bottom").Passed, "9.2.2(6) unchanged");
         }
 
+        /// <summary>Durability additions to cmin (uneven surface, abrasion) and the nominal cover against ground (EN 4.4.1.2(11)-(13), 4.4.1.3(4)).</summary>
+        [TestMethod]
+        public void CoverAdditionsAndGroundCoverAreApplied()
+        {
+            var beam = (ReinforcedConcreteSection)Archive().BeamProperties["R300x500"]; var geometry = CrackSectionGeometry.From(beam);
+            MemberDetailingInput Beam(double cover, double addition, double ground) => new MemberDetailingInput(MemberDetailingKind.Beam, geometry, 150000, 30, Fctm(30), 450, 391.3,
+                300, 300, 300, 0, true, 8, 200, 2, 20, cover, 15, 10, false, true, true, addition, ground);
+            DetailingCheck Check(MemberDetailingResult res, string key) => res.Checks.Single(x => x.Key == key);
+            var plain = MemberDetailingCalculator.Calculate(DetailingProfile.EN1992p11, Beam(30, 0, 0));
+            Assert.AreEqual(25, Check(plain, "NominalCover").Limit.Value, 1e-12, "max(10; 15; 8) + 10");
+            Assert.AreEqual("max(10; cmin,dur; cmin,b) + Δcdev", Check(plain, "NominalCover").Explanation);
+            // Rough surface + XM2: +15 mm on cmin → 40 mm > 30 mm; the bar margins drop by the same 15 mm.
+            var added = MemberDetailingCalculator.Calculate(DetailingProfile.EN1992p11, Beam(30, 15, 0));
+            Assert.AreEqual(40, Check(added, "NominalCover").Limit.Value, 1e-12); Assert.AreEqual(false, Check(added, "NominalCover").Passed);
+            Assert.AreEqual(Check(plain, "BarCoverMargin").Actual.Value - 15, Check(added, "BarCoverMargin").Actual.Value, 1e-9);
+            StringAssert.Contains(Check(added, "NominalCover").Explanation, "surface and abrasion");
+            // Against prepared ground: cnom ≥ 40 mm governs over 25 mm; directly against soil 75 mm also governs the bar covers.
+            var prepared = MemberDetailingCalculator.Calculate(DetailingProfile.EN1992p11, Beam(40, 0, 40));
+            Assert.AreEqual(40, Check(prepared, "NominalCover").Limit.Value, 1e-12); Assert.AreEqual(true, Check(prepared, "NominalCover").Passed);
+            var soil = MemberDetailingCalculator.Calculate(DetailingProfile.EN1992p11, Beam(40, 0, 75));
+            Assert.AreEqual(75, Check(soil, "NominalCover").Limit.Value, 1e-12); Assert.AreEqual(false, soil.Passed);
+            Assert.AreEqual(geometry.Bars.Min(x => geometry.BarCover(x)) - 75, Check(soil, "BarCoverMargin").Actual.Value, 1e-9);
+            // cmin + additions + Δcdev larger than the ground value: the ground does not govern.
+            Assert.AreEqual(50, Check(MemberDetailingCalculator.Calculate(DetailingProfile.EN1992p11, Beam(50, 25, 40)), "NominalCover").Limit.Value, 1e-12);
+            Assert.ThrowsException<ArgumentException>(() => MemberDetailingCalculator.Calculate(DetailingProfile.EN1992p11, Beam(30, -5, 0)));
+            Assert.ThrowsException<ArgumentException>(() => MemberDetailingCalculator.Calculate(DetailingProfile.EN1992p11, Beam(30, 0, double.NaN)));
+            // Without cmin,dur the additions are not used: the cover checks stay pending.
+            var pending = MemberDetailingCalculator.Calculate(DetailingProfile.EN1992p11, new MemberDetailingInput(MemberDetailingKind.Beam, geometry, 150000, 30, Fctm(30), 450, 391.3,
+                300, 300, 300, 0, true, 8, 200, 2, 20, 30, null, 10, false, true, true, 15, 75));
+            Assert.IsNull(Check(pending, "NominalCover").Passed); Assert.IsFalse(pending.Checks.Any(x => x.Key == "BarCoverMargin"));
+        }
+
         private sealed class CustomAnnex : StandardEN1992p11 { }
 
         [TestMethod]

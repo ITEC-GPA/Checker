@@ -243,3 +243,20 @@ REGISTRO
               ReinforcedConcreteSection.DetailingData.
             - Ancoraggi e M-curvatura disponibili come API.
             - Casi congelati e riprodotti: 450 ancoraggi, 144 dettagli, 5 curve.
+2026-10-01  4G: riscontro delle fonti, casi di copertura ed esempi del c.a.; PASSO 4 chiuso (bilancio in
+            Model/CHECKER_PASSO_4.txt).
+2026-10-01  M: materiali e durabilità trasferiti in GPCChecker.Concrete/Durability.
+            - Classi di esposizione con EN 206 F.1, gruppi NTC, UNI 11104 e classi indicative dell'Appendice E
+              (EN, DM 31/07/2012, DK NA E.1(2)).
+            - Copriferri: NTC 2018 / Circolare e CNR-DT 200, EN 1992-1-1 e UNI (4.3N, 4.4N), DS (DK NA Tabel 4.4N NA,
+              senza classi strutturali, solo 50 anni). DIN, NS, MC2010, CNR-DT 204: non supportati.
+            - Dati in Model: ReinforcedConcreteSection.DurabilityData. In ModelChecker la verifica dei dettagli d'asta
+              ricava cmin,dur, le maggiorazioni e il controllo della classe minima di resistenza.
+            - ModelData: superficie e A5 degli acciai storici D.M. 1996 (SteelMaterialDM1996Data.HistoricRebars),
+              solo documentazione; εu dei materiali invariato. Es resta 206000 MPa (il foglio ANTHEA usava 200000).
+            - Casi congelati e riprodotti (harness CheckerMigration.Capture, DurabilityCapture): 588 copriferri EC2,
+              1932 NTC, 505 rifiuti, 23 requisiti UNI 11104.
+            - Fonti: EN 206-1 F.1, EN 1992-1-1 4.4N ed E.1N, NTC Tab. 4.1.III, Circolare Tab. C4.1.IV, DK NA
+              verificati sul testo; UNI 11104 solo da fonte secondaria (ATECAP 2020, valori di ANTHEA, a favore di
+              sicurezza rispetto all'edizione 2004); prospetto E.1N del DM letto per corrispondenza delle celle unite.
+            - Restano in ANTHEA: composizione della miscela (MixAutomation), cataloghi e diagrammi di presentazione.

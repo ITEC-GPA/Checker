@@ -43,11 +43,17 @@ namespace GPC.Checkers.Concrete.Detailing
         /// max(b; h) of beams and slabs.
         /// </summary>
         public bool EndZonesConfirmed { get; }
+        /// <summary>Additions to cmin, mm: uneven surface (+5) and abrasion k1-k3 (EN 4.4.1.2(11)-(13)).</summary>
+        public double CoverAddition { get; }
+        /// <summary>Minimum nominal cover for concrete cast against prepared ground (40) or directly against soil (75), mm; 0 = formwork.</summary>
+        public double GroundCover { get; }
 
         public MemberDetailingInput(MemberDetailingKind kind, CrackSectionGeometry geometry, double concreteArea, double fck, double fctm, double fyk, double fyd,
             double topWidth, double bottomWidth, double webWidth, double compression, bool hasLinks, double linkDiameter, double linkSpacing, int linkLegs, double aggregate,
-            double nominalCover, double? minimumDurabilityCover, double coverDeviation, bool lapZone, bool compressionBarsRestrained, bool endZonesConfirmed)
+            double nominalCover, double? minimumDurabilityCover, double coverDeviation, bool lapZone, bool compressionBarsRestrained, bool endZonesConfirmed,
+            double coverAddition = 0, double groundCover = 0)
         {
+            CoverAddition = coverAddition; GroundCover = groundCover;
             Geometry = geometry ?? throw new ArgumentNullException(nameof(geometry));
             if (geometry.Bars.Count == 0) throw new ArgumentException("Detailing: the section has no bars.");
             Kind = kind; ConcreteArea = concreteArea; Fck = fck; Fctm = fctm; Fyk = fyk; Fyd = fyd; TopWidth = topWidth; BottomWidth = bottomWidth; WebWidth = webWidth;
@@ -97,7 +103,7 @@ namespace GPC.Checkers.Concrete.Detailing
         public static MemberDetailingResult Calculate(DetailingProfile profile, MemberDetailingInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
-            if (new[] { p.Compression, p.LinkDiameter, p.LinkSpacing, p.Aggregate, p.CoverDeviation }.Any(v => double.IsNaN(v) || double.IsInfinity(v) || v < 0)
+            if (new[] { p.Compression, p.LinkDiameter, p.LinkSpacing, p.Aggregate, p.CoverDeviation, p.CoverAddition, p.GroundCover }.Any(v => double.IsNaN(v) || double.IsInfinity(v) || v < 0)
                 || new[] { p.ConcreteArea, p.Fck, p.Fctm, p.Fyk, p.Fyd, p.TopWidth, p.BottomWidth, p.WebWidth }.Any(v => double.IsNaN(v) || double.IsInfinity(v) || v <= 0)
                 || p.LinkLegs < 0 || double.IsNaN(p.NominalCover) || p.NominalCover < 0)
                 throw new ArgumentException("Detailing: numerical data must be finite and non negative.");
@@ -119,11 +125,11 @@ namespace GPC.Checkers.Concrete.Detailing
             if (p.MinimumDurabilityCover.HasValue && p.MinimumDurabilityCover.Value >= 0)
             {
                 double cdur = p.MinimumDurabilityCover.Value;
-                Min("NominalCover", p.NominalCover, Math.Max(10, Math.Max(cdur, (p.HasLinks ? p.LinkDiameter : maxPhi) + (p.Aggregate > 32 ? 5 : 0))) + p.CoverDeviation, "mm",
-                    ntc ? ".3 / EC2 §4.4" : "§4.4.1", "max(10; cmin,dur; cmin,b) + Δcdev");
+                double Required(double bond) => Math.Max(Math.Max(10, Math.Max(cdur, bond + (p.Aggregate > 32 ? 5 : 0))) + p.CoverAddition + p.CoverDeviation, p.GroundCover);
+                string extra = (p.CoverAddition > 0 ? " + surface and abrasion" : "") + (p.GroundCover > 0 ? ", not less than the cover against ground" : "");
+                Min("NominalCover", p.NominalCover, Required(p.HasLinks ? p.LinkDiameter : maxPhi), "mm", ntc ? ".3 / EC2 §4.4" : "§4.4.1", "max(10; cmin,dur; cmin,b)" + extra + " + Δcdev");
                 double margin = double.PositiveInfinity;
-                foreach (var bar in bars)
-                    margin = Math.Min(margin, g.BarCover(bar) - (Math.Max(10, Math.Max(cdur, bar.Diameter + (p.Aggregate > 32 ? 5 : 0))) + p.CoverDeviation));
+                foreach (var bar in bars) margin = Math.Min(margin, g.BarCover(bar) - Required(bar.Diameter));
                 Min("BarCoverMargin", margin, 0, "mm", ntc ? ".3 / EC2 §4.4" : "§4.4.1", "minimum (geometric cover of the bar − required cover), outline and holes");
             }
             else Pending("NominalCover", ntc ? ".3" : "§4.4.1", "cmin,dur of the durability design is required.");

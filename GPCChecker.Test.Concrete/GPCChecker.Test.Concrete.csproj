@@ -109,6 +109,9 @@
     <Compile Include="TorsionMigrationTests.cs" />
     <Compile Include="CrackMigrationTests.cs" />
     <Compile Include="DetailingMigrationTests.cs" />
+    <Compile Include="DurabilityMigrationTests.cs" />
+    <Compile Include="DurabilityEdgeCaseTests.cs" />
+    <Compile Include="DurabilityExamplesTests.cs" />
     <Compile Include="StressAnalysisPSCTest.cs" />
     <Compile Include="StressAnalysisRCTest.cs" />
     <Compile Include="ValidationTestFailureDomain.cs" />
@@ -150,6 +153,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\curvature-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\durability-legacy.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\detailing-sections.xml">

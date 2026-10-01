@@ -16,6 +16,7 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 | `GPC.Checkers.Concrete.Cracking` | Fessurazione di sezione: `SectionCrackCheck`, `CrackRequirements`, `CrackWidthCalculator`, `CrackSectionGeometry`, `CrackProfiles` | `Ntc2018Checks.Cracking`, `ConcreteCodeChecks` (requisiti, wk, hc,eff), `ConcreteTensionCracking`, `ConcreteInnerCracking`, `TensionBarSpacing`, `SectionRegions` |
 | `GPC.Checkers.Concrete.Detailing` | Aderenza, ancoraggi e sovrapposizioni (`AnchorageCalculator`), dettagli 1D di travi e pilastri (`MemberDetailingCalculator`), `DetailingProfiles` | `ConcreteBond`, `ConcreteAnchorageCalculator`, `ConcreteDetailingCalculator` |
 | `GPC.Checkers.Concrete.Response` | Curva momento-curvatura a N costante (`MomentCurvatureAnalysis`): risposta numerica, non verifica | `MomentCurvatureCalculator`, `ConcreteCurvatureAnalysis` |
+| `GPC.Checkers.Concrete.Durability` | Classi di esposizione e loro requisiti (`ExposureClasses`), copriferri per norma (`CoverRequirements`, `DurabilityProfiles`), classi minime di resistenza | `Materiali.Durability`, `NtcCover`, `MinimumConcrete`, `MaterialCover` |
 
 ### Taglio
 
@@ -143,3 +144,30 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
   - 1e-7 sulle deformazioni dei punti con acciaio elastico;
   - 1e-3 sulle deformazioni dei punti con acciaio snervato. Con i materiali plastici la traslazione del piano è
     definita solo entro la tolleranza su N del solutore; momento, N e curvatura coincidono a 1e-7.
+- I dettagli accettano anche le maggiorazioni di durabilità: superficie irregolare e abrasione sommate a cmin
+  (`CoverAddition`) e il copriferro minimo dei getti contro terreno (`GroundCover`, 40 o 75 mm).
+
+### Durabilità e copriferri
+
+- **Classi di esposizione** (`ExposureClasses`): le 18 classi di EN 206 con
+  - i valori del prospetto F.1 di UNI EN 206-1 (a/c, classe minima, cemento, aria), verificati sul testo;
+  - il gruppo ambientale NTC (Tab. 4.1.III, verificata);
+  - i requisiti UNI 11104 di ANTHEA (classe minima, a/c, cemento, aria per XF2-XF4). Fonte secondaria (ATECAP
+    2020): XC3, XD1, XF4 e XA1 danno C30/37 dove UNI 11104:2004 dava C28/35, a favore di sicurezza;
+  - le classi indicative dell'Appendice E: EN 1992-1-1 prospetto E.1N, DM 31/07/2012 (XC1 C25/30, XF2 C30/37),
+    DK NA Tabel E.1(2) (12/30/35/40 MPa per gruppi). XF4 non è nel prospetto E.1N.
+  Le combinazioni agiscono insieme; X0 non si combina.
+- **Copriferri** (`CoverRequirements.Calculate`), profili per tipo esatto:
+  - NTC 2018 e CNR-DT 200: tabella C4.1.IV della Circolare (verificata), con +10 mm per 100 anni, +5 mm sotto Cmin,
+    −5 mm con controllo di qualità. Cmin è un dato (la classe pertinente all'esposizione);
+  - EN 1992-1-1 e UNI (valori raccomandati, DM 31/07/2012): prospetto 4.4N con le classi strutturali S1-S6 del
+    prospetto 4.3N;
+  - DS: Tabel 4.4N NA senza classi strutturali, Δcdev ≥ 5 mm, solo 50 anni;
+  - DIN, NS, Model Code 2010, CNR-DT 204: non supportati; ACI e AASHTO: implementazione futura.
+  cmin = max(10; cmin,b; cmin,dur) + superficie + abrasione; cnom = max(cmin + Δcdev; getto contro terreno).
+- **Classe minima di resistenza** (`ExposureClasses.MinimumStrength`): UNI 11104 per NTC e CNR-DT 200, Appendice E
+  (informativa) per EN e UNI, DK NA E.1(2) per DS.
+- **Casi legacy congelati e riprodotti** (`DurabilityMigrationTests`, `Fixtures/durability-legacy.csv`): 588
+  copriferri EC2, 1932 NTC, 505 rifiuti e 23 requisiti UNI 11104 su 24 combinazioni, 7 resistenze e 6 insiemi di
+  opzioni. Casi limite in `DurabilityEdgeCaseTests`, cinque esempi in `DurabilityExamplesTests`.
+- Restano in ANTHEA la composizione della miscela (`MixAutomation`) e la presentazione dei diagrammi.
