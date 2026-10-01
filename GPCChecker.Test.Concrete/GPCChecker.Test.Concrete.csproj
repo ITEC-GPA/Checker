@@ -104,6 +104,7 @@
     <Compile Include="PerformanceTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SectionIntegrationTest.cs" />
+    <Compile Include="ShearMigrationTests.cs" />
     <Compile Include="StressAnalysisPSCTest.cs" />
     <Compile Include="StressAnalysisRCTest.cs" />
     <Compile Include="ValidationTestFailureDomain.cs" />
@@ -114,6 +115,9 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="Fixtures\shear-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GPCChecker.Concrete\GPCChecker.Concrete.csproj">
