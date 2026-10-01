@@ -99,11 +99,28 @@ Sequenza proposta:
 Ponte e BridgeConcept non si spostano.
 
 ======================================================================================
-M1 — PROPOSTA DI ORGANIZZAZIONE (PUNTO DI ARRESTO: SERVE L'ACCORDO DELL'UTENTE)
+M1 — ORGANIZZAZIONE
 ======================================================================================
 
-Finché manca l'accordo non vengono creati progetti né classi Standard e non cambiano API
-pubbliche per G, F, W e M. Proseguono M2 e il PASSO 4 del c.a.
+DECISIONI DELL'UTENTE (1 ottobre 2026), ATTUATE
+
+1. Progetto GPCChecker.Geotechnics (netstandard2.0) con test GPCChecker.Test.Geotechnics (net8.0), aggiunti alla
+   soluzione. README in GPCChecker.Geotechnics/README.md.
+2. Tipi del terreno in Model, come preferito dall'utente: GPC.Model.Geotechnics.Soil, SoilLayer e SoilProfile.
+   Valutazione: è coerente con materiali e norme, che stanno già in Model, e permette al modello FEM di usarli
+   (molle, pali); la libreria contiene solo i metodi.
+3. Norme: nuove classi in GPC.Model.Standards:
+   - StandardGeotechnical (insiemi A/M, γR per verifica e situazione, combinazioni, ξ dei pali);
+   - StandardNTC2018Geotechnics;
+   - StandardEN1997p1 (approccio ed esecuzione dei pali espliciti; EN 1998-5 non ancora definita).
+4. Unità N e mm ovunque, con conversione nell'interfaccia: pesi di volume N/mm³, tensioni MPa, angoli rad (come le
+   unità normalizzate "N,mm,rad" di Model). Valutazione: è la scelta giusta per i passaggi verso Model e Concrete
+   (muri, pali) e la precisione double basta (18 kN/m³ = 1,8·10⁻⁵ N/mm³). Il rischio è negli abachi e nelle formule
+   empiriche con costanti dimensionali (Bustamante-Doix in kPa e MPa, Nq, Broms). Lo coprono le costanti
+   SoilUnits, la conversione nei test di confronto con i casi legacy e i calcoli a mano.
+5. Norme americane (ACI, AASHTO): trascurate per ora, implementazione futura.
+
+PROPOSTA ORIGINARIA (per memoria)
 
 1. Collocazione della geotecnica (G, F, W)
    a) [PROPOSTA] Nuovo progetto GPCChecker.Geotechnics (netstandard2.0, namespace
@@ -196,3 +213,7 @@ REGISTRO
             GPCChecker.Test.Concrete/Fixtures/shear-legacy.csv, tutti riprodotti.
             Versioni: Concrete 0.0.14.0, Steel 1.1.0.5, CompositeBridge 1.4.0.2, Model 1.6.0.0.
             ANTHEA/lib/Checker non aggiornato.
+2026-10-01  4A completata: tutte le norme non americane per pressoflessione, tensioni SLE e taglio
+            (CNR-DT 204, CNR-DT 200, CS-TR34 non applicabile); 2016 stati SLE legacy congelati e riprodotti.
+            M1 attuata: GPCChecker.Geotechnics 0.1.0.0, terreni e norme geotecniche in Model (1.6.0.0, non
+            ancora distribuito).
