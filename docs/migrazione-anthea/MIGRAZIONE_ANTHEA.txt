@@ -227,3 +227,11 @@ REGISTRO
               combinati (nota nel registro di PASSO 4 e avviso in ogni risultato DS).
             - L'utente chiede di seguire l'ordine previsto (sequenza proposta sopra): c.a. 4E-4G, materiali M,
               geotecnica G, pali F, muri W. Pali e muri non vengono anticipati.
+2026-10-01  4E: fessurazione trasferita in GPCChecker.Concrete/Cracking.
+            - Catena completa di ANTHEA: requisiti, wk per norma, hc,eff, regioni efficaci, interassi, sezioni
+              interamente tese, superfici interne delle sezioni cave.
+            - SpacingCalculator globale sostituito da un metodo della geometria.
+            - Casi congelati e riprodotti: 936 stati SLE, 1400 aperture, 1596 requisiti.
+            - Collegata in ModelChecker come Serviceability/CrackWidth con i dati
+              ReinforcedConcreteSection.CrackData.
+            - Saltati con nota: fessurazione FRC (CNR-DT 204) e c.a.p.

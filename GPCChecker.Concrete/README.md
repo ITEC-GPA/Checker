@@ -13,6 +13,7 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 | `GPC.Checkers.Concrete.Shear` | Taglio di sezione in una direzione: `SectionShearCalculator`, `SectionShearInput`, `SectionShearResult`, `ShearProfiles` | `ConcreteCodeChecks.Shear`, `Ntc2018Checks.Shear` |
 | `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck` | `CheckerSection.DescribeStress` |
 | `GPC.Checkers.Concrete.Torsion` | Torsione con interazione del taglio nelle due direzioni: `SectionTorsionCalculator`, `SectionTorsionInput`, `TorsionGeometry`, `TorsionProfiles` | `ConcreteTorsionCalculator`, `ConcreteShearAnalysis.Torsion` |
+| `GPC.Checkers.Concrete.Cracking` | Fessurazione di sezione: `SectionCrackCheck`, `CrackRequirements`, `CrackWidthCalculator`, `CrackSectionGeometry`, `CrackProfiles` | `Ntc2018Checks.Cracking`, `ConcreteCodeChecks` (requisiti, wk, hc,eff), `ConcreteTensionCracking`, `ConcreteInnerCracking`, `TensionBarSpacing`, `SectionRegions` |
 
 ### Taglio
 
@@ -73,3 +74,39 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
   (10 contorni), verificati da `TorsionMigrationTests` insieme a calcoli a mano per le altre norme.
 - Le formule delle norme diverse da NTC (MC2010, annessi DIN e NS, interazione quadratica) vanno riscontrate sul
   testo. Le fonti estratte e verificate sono NTC 2018 §4.1.2.3.6, DM 31/07/2012 6.2.2(6) e DK NA 5.6.1(3)P e 6.3.2(6).
+
+### Fessurazione
+
+- **Requisito** (`CrackRequirements.For`), per norma, combinazione SLE, classe di esposizione e sensibilità delle
+  armature:
+  - NTC 2018 e UNI: Tab. 4.1.IV, con decompressione o formazione delle fessure per le armature sensibili in ambiente
+    aggressivo;
+  - famiglia Eurocodice: solo la quasi permanente (NS: la frequente per XD3/XS3), con le tabelle EN 7.1N (anche
+    DIN), DK NA 7.1 NA e NS NA;
+  - wlim di progetto facoltativo; Model Code 2010 lo richiede.
+- **Apertura wk** (`CrackWidthCalculator`):
+  - NTC: 1,7 Δsm (εsm − εcm) della Circolare;
+  - Eurocodice: sr,max (εsm − εcm), con le varianti DS (k3), DIN (kt, limite σs Ø/(3,6 fct)) e MC2010 (sr e βmin).
+  - Con MC2010 e DIN solo barre ad aderenza migliorata.
+- **Verifica di sezione** (`SectionCrackCheck.Evaluate`). Riceve lo stato tensionale nativo: analisi lineare senza
+  cls teso, e per decompressione e formazione la sezione non fessurata.
+  - Sezione parzialmente compressa: zona tesa efficace oltre hc,eff lungo il gradiente di deformazione. hc,eff è
+    quello di ciascuna norma (DIN NCI 7.3.2(3), DS fascia con baricentro sulle barre).
+  - Sezione interamente tesa: facce ±x e ±y, o fasce radiali per i cerchi, verificate indipendentemente. DS aggiunge
+    il sistema grossolano.
+  - Sezioni cave: pareti o anello interno verificati a parte. Una superficie interna tesa senza armatura lascia la
+    verifica senza esito.
+  - Restituisce tutte le regioni (`CrackRegion`) e quella governante.
+- **Geometria** (`CrackSectionGeometry.From`): contorno, fori e barre ordinarie della sezione di Model. Il cerchio è
+  riconosciuto dai vertici equidistanti; gli anelli concentrici vanno confermati. L'interasse automatico vale per
+  file allineate o anelli, altrimenti va assegnato.
+- **Non supportati:**
+  - CS-TR34: non applicabile;
+  - CNR-DT 204: modello FRC non implementato;
+  - CNR-DT 200: membratura NTC;
+  - precompressione;
+  - superfici interne di fori non rettangolari o non circolari.
+- **Casi legacy congelati e riprodotti** (`CrackMigrationTests`):
+  - `Fixtures/crack-legacy.csv`: 936 stati su 6 sezioni (`crack-sections.xml`), con 1104 regioni confrontate;
+  - `Fixtures/crack-scalar-legacy.csv`: 1400 aperture e 1596 requisiti.
+- Ac,eff si ottiene ritagliando il poligono invece che tagliando la mesh di ANTHEA: risultato identico entro 1e-9.
