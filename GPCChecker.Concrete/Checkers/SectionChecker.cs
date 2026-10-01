@@ -168,7 +168,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     try
                     {
-                        return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults);
+                        return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions.PsiCoefficientRebar, SectionCheckerOptions.PsiCoefficientTendon, SectionCheckerOptions);
                     }
                     catch (Exception)
                     {
@@ -182,7 +182,7 @@ namespace GPC.Checkers.Concrete.Checkers
                 {
                     try
                     {
-                        return _solver.GetLinearStressAnalysisResults(_checkerAttributes.SLSResults, SectionCheckerOptions.PsiCoefficientRebar, SectionCheckerOptions.PsiCoefficientTendon, SectionCheckerOptions);
+                        return _solver.GetStressAnalysisResults(_checkerAttributes.SLSResults);
                     }
                     catch (Exception)
                     {

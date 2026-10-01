@@ -60,6 +60,43 @@ namespace ConcreteTests
         private static void Rel(double expected, double actual, double tolerance, string message = "") =>
             Assert.AreEqual(expected, actual, Math.Abs(expected) * tolerance + 1e-9, message);
 
+        [DataTestMethod]
+        [DataRow(SectionSolver.StressAnalysisTypes.Linear)]
+        [DataRow(SectionSolver.StressAnalysisTypes.NonLinear)]
+        public async System.Threading.Tasks.Task BulkAsyncStressAnalysisUsesRequestedConstitutiveModel(SectionSolver.StressAnalysisTypes analysis)
+        {
+            var section = Rect(B, H, FourCorners);
+            double psi = Psi(15, section);
+            var forces = new[] { Force(section, -300, 0), Force(section, -600, 0) };
+            var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section),
+                SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic,
+                analysis, psi, 0, true, 64);
+            var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, forces, null),
+                options, new StandardEN1992p11(), true);
+
+            var results = await checker.GetTensionAnalysisResultAsync();
+            Assert.IsNotNull(results);
+            Assert.AreEqual(forces.Length, results.Length);
+            for (int i = 0; i < results.Length; i++)
+            {
+                var actual = results[i];
+                Assert.IsNotNull(actual);
+                Assert.AreEqual(analysis == SectionSolver.StressAnalysisTypes.Linear, actual.LinearElasticAnalysis);
+                var expected = checker.GetTensionAnalysisResult(forces[i]);
+                foreach (Point2d point in section.Shape.GetPoints2d())
+                {
+                    double stress = actual.LinearElasticAnalysis ? actual.GetConcreteTension(psi, point) : actual.GetConcreteTension(point);
+                    double reference = expected.LinearElasticAnalysis ? expected.GetConcreteTension(psi, point) : expected.GetConcreteTension(point);
+                    Rel(reference, stress, 1e-6, "Bulk/single result " + i);
+                    if (actual.LinearElasticAnalysis)
+                        Rel(forces[i].N / (B * H + 14 * 4 * Math.PI * 81), stress, 1e-6, "Homogenized axial stress");
+                }
+                foreach (var bar in section.GetRebars())
+                    Rel(expected.LinearElasticAnalysis ? expected.GetRebarTension(psi, bar) : expected.GetRebarTension(bar),
+                        actual.LinearElasticAnalysis ? actual.GetRebarTension(psi, bar) : actual.GetRebarTension(bar), 1e-6);
+            }
+        }
+
         #region Linear analysis
 
         [TestMethod]
