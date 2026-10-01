@@ -136,7 +136,7 @@ namespace GPC.Checkers.Concrete.Shear
                 Add("εx", epsilon, "−", "max[0; (|M|/z + |V| + N(1/2 + Δe/z))/(2 Es Asl)]");
             }
             SectionShearResult Result(double rs, double rc, double rd, double adopted) => new SectionShearResult { VRsd = rs, VRcd = rc, VRd = rd,
-                Ratio = rd > 0 ? Math.Abs(p.V) / rd : p.V == 0 ? 0 : (double?)null, CotTheta = adopted, Details = details.AsReadOnly() };
+                Ratio = rd > 0 ? Math.Abs(p.V) / rd : p.V == 0 ? 0 : (double?)null, CotTheta = adopted, LongitudinalStrain = epsilon, Details = details.AsReadOnly() };
             if (p.Asw == 0)
             {
                 if (mc)
@@ -164,8 +164,7 @@ namespace GPC.Checkers.Concrete.Shear
             double minCot = 1, maxCot = mc ? 1 / Math.Tan(20 * Math.PI / 180) : 2.5;
             if (ns && -sigma >= .7 * (fck <= 50 ? .3 * Math.Pow(fck, 2d / 3) : 2.12 * Math.Log(1 + (fck + 8) / 10))) maxCot = 1.25;
             double acw = 1; // EC2 6.2.3: recommended value for non-prestressed structures.
-            double nu = ds ? Math.Max(.45, .7 - fck / 200) : .6 * (1 - fck / 250);
-            if (profile == ShearProfile.UniEN1992p11) nu = fck <= 70 ? .5 : .6 * (1 - fck / 250); // DM 31/07/2012 §6.2.3(3); αcw = 1 without prestress.
+            double nu = StrutEfficiency(profile, fck);
             if (din)
             {
                 nu = .75 * Math.Min(1, 1.1 - fck / 500);
@@ -207,8 +206,20 @@ namespace GPC.Checkers.Concrete.Shear
             return Result(capacity.Steel, capacity.Concrete, Math.Min(capacity.Steel, capacity.Concrete), cot);
         }
 
+        /// <summary>
+        /// Strength reduction ν of the cracked concrete strut (6.2.2(6) and 6.2.3(3) with ν1 = ν) of the Eurocode profiles:
+        /// recommended 0.6 (1 − fck/250); DS (DK NA 5.6.1(3)P) 0.7 − fck/200 ≥ 0.45; UNI (DM 31/07/2012) 0.5 up to C70/85.
+        /// DIN replaces it in the shear strut (0.75 ν2) and in torsion. fck already capped by NS.
+        /// </summary>
+        internal static double StrutEfficiency(ShearProfile profile, double fck)
+        {
+            if (profile == ShearProfile.DsEN1992p11) return Math.Max(.45, .7 - fck / 200);
+            if (profile == ShearProfile.UniEN1992p11 && fck <= 70) return .5;
+            return .6 * (1 - fck / 250);
+        }
+
         // netstandard2.0 has no Math.Cbrt; the difference is at the level of the last bits.
-        private static double Cbrt(double x) => x == 0 ? 0 : Math.Pow(x, 1.0 / 3.0);
+        internal static double Cbrt(double x) => x == 0 ? 0 : Math.Pow(x, 1.0 / 3.0);
         private static bool Finite(double x) => !double.IsNaN(x) && !double.IsInfinity(x);
     }
 }

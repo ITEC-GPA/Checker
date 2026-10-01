@@ -62,6 +62,10 @@ namespace GPC.Checkers.Concrete.Shear
             Aggregate = aggregate; AxialEccentricity = axialEccentricity;
             ResidualTensileStrength = residualTensileStrength; MatrixTensileStrength = matrixTensileStrength;
         }
+
+        /// <summary>Same input with another shear force and cot θ (torsion: common strut inclination, DIN range demand).</summary>
+        internal SectionShearInput With(double v, double? cotTheta) => new SectionShearInput(Standard, N, v, M, Area, Bw, D, Asl, Fck, Fcd, Fyd, GammaC, Es,
+            Asw, Spacing, AlphaDegrees, cotTheta, LeverFactor, Aggregate, AxialEccentricity, ResidualTensileStrength, MatrixTensileStrength);
     }
 
     public enum ShearVerdict { Satisfied, NotSatisfied, NotEvaluated }
@@ -89,6 +93,8 @@ namespace GPC.Checkers.Concrete.Shear
         public double Demand { get; internal set; }
         public double? Ratio { get; internal set; }
         public double CotTheta { get; internal set; }
+        /// <summary>Longitudinal strain εx at mid-depth of Model Code 2010 level II; 0 for the other profiles.</summary>
+        public double LongitudinalStrain { get; internal set; }
         public ShearVerdict Verdict { get; internal set; }
         public string Status { get; internal set; }
         public string Model { get; internal set; }

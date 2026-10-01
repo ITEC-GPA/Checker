@@ -106,6 +106,7 @@
     <Compile Include="SectionIntegrationTest.cs" />
     <Compile Include="ServiceabilityMigrationTests.cs" />
     <Compile Include="ShearMigrationTests.cs" />
+    <Compile Include="TorsionMigrationTests.cs" />
     <Compile Include="StressAnalysisPSCTest.cs" />
     <Compile Include="StressAnalysisRCTest.cs" />
     <Compile Include="ValidationTestFailureDomain.cs" />
@@ -123,6 +124,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\stress-sections.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\torsion-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\torsion-geometry-legacy.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

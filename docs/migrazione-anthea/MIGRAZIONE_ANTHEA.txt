@@ -217,3 +217,13 @@ REGISTRO
             (CNR-DT 204, CNR-DT 200, CS-TR34 non applicabile); 2016 stati SLE legacy congelati e riprodotti.
             M1 attuata: GPCChecker.Geotechnics 0.1.0.0, terreni e norme geotecniche in Model (1.6.0.0, non
             ancora distribuito).
+2026-10-01  4D: torsione con interazione del taglio trasferita in GPCChecker.Concrete/Torsion
+            (ConcreteTorsionCalculator di ANTHEA, 986 casi NTC e 10 contorni congelati e riprodotti).
+            - Tutte le norme non americane con lo stesso traliccio e le regole di bielle e interazione di
+              ciascuna; CS-TR34 non applicabile, CNR-DT 204 non supportata.
+            - Dati in Model: ReinforcedConcreteSection.TorsionData.
+            - Attività Torsion in ModelChecker con il cot θ comune (ShearCotTheta).
+            - Saltata su indicazione dell'utente perché troppo complessa: la regola DK NA 6.3.2(6) per V, T, N, M
+              combinati (nota nel registro di PASSO 4 e avviso in ogni risultato DS).
+            - L'utente chiede di seguire l'ordine previsto (sequenza proposta sopra): c.a. 4E-4G, materiali M,
+              geotecnica G, pali F, muri W. Pali e muri non vengono anticipati.
