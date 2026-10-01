@@ -14,6 +14,8 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 | `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck` | `CheckerSection.DescribeStress` |
 | `GPC.Checkers.Concrete.Torsion` | Torsione con interazione del taglio nelle due direzioni: `SectionTorsionCalculator`, `SectionTorsionInput`, `TorsionGeometry`, `TorsionProfiles` | `ConcreteTorsionCalculator`, `ConcreteShearAnalysis.Torsion` |
 | `GPC.Checkers.Concrete.Cracking` | Fessurazione di sezione: `SectionCrackCheck`, `CrackRequirements`, `CrackWidthCalculator`, `CrackSectionGeometry`, `CrackProfiles` | `Ntc2018Checks.Cracking`, `ConcreteCodeChecks` (requisiti, wk, hc,eff), `ConcreteTensionCracking`, `ConcreteInnerCracking`, `TensionBarSpacing`, `SectionRegions` |
+| `GPC.Checkers.Concrete.Detailing` | Aderenza, ancoraggi e sovrapposizioni (`AnchorageCalculator`), dettagli 1D di travi e pilastri (`MemberDetailingCalculator`), `DetailingProfiles` | `ConcreteBond`, `ConcreteAnchorageCalculator`, `ConcreteDetailingCalculator` |
+| `GPC.Checkers.Concrete.Response` | Curva momento-curvatura a N costante (`MomentCurvatureAnalysis`): risposta numerica, non verifica | `MomentCurvatureCalculator`, `ConcreteCurvatureAnalysis` |
 
 ### Taglio
 
@@ -110,3 +112,34 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
   - `Fixtures/crack-legacy.csv`: 936 stati su 6 sezioni (`crack-sections.xml`), con 1104 regioni confrontate;
   - `Fixtures/crack-scalar-legacy.csv`: 1400 aperture e 1596 requisiti.
 - Ac,eff si ottiene ritagliando il poligono invece che tagliando la mesh di ANTHEA: risultato identico entro 1e-9.
+
+### Aderenza, ancoraggi e dettagli
+
+- **Profili** per tipo esatto:
+  - NTC 2018 (trasferito da ANTHEA) e CNR-DT 200 (membratura NTC);
+  - EN 1992-1-1 con i valori raccomandati;
+  - UNI con DM 31/07/2012: st,max ≤ 300 mm; per i pilastri Ømin 12, As,min 0,003 Ac, passo staffe ≤ min(12 Ømin; b; 250);
+  - DS con DK NA: capitolo 9 invariato, tranne As,min e ρw,min delle travi, che restano non implementati;
+  - DIN, NS e Model Code 2010: non supportati (regole nazionali o modello di aderenza non disponibili);
+  - CS-TR34: non applicabile.
+- **Ancoraggi e sovrapposizioni** (`AnchorageCalculator`): barre rettilinee ad aderenza migliorata, α1…α5 = 1.
+  - fbd = 2,25 η1 η2 αct fctk,0,05/γc.
+  - NTC: lbd = max(lb,rqd; 20Ø; 150), l0 = max(α6 lb,rqd; 0,3 α6 lb,rqd; 20Ø; 200), interferro ≤ 4Ø.
+  - Eurocodice: lb,min e l0,min (8.6, 8.11); la sovrapposizione si allunga dell'interferro oltre min(4Ø; 50 mm).
+- **Dettagli 1D** (`MemberDetailingCalculator`), per travi e pilastri:
+  - interferro;
+  - copriferro nominale e margine di ogni barra (cmin,dur è un dato del progetto di durabilità);
+  - armatura longitudinale minima e massima, staffe minime e passi.
+  Le regole di piastre e pareti restano alle verifiche plate. Ogni controllo in sospeso indica se mancano dati o
+  conferme oppure se la regola non è implementata.
+- **M-curvatura** (`MomentCurvatureAnalysis`): ramo a momento crescente con N costante. Usa il punto limite del
+  dominio di rottura nativo e le analisi non lineari, e raffina il primo snervamento per bisezione. È una risposta,
+  non un esito normativo.
+- **Casi legacy congelati e riprodotti** (`DetailingMigrationTests`):
+  - `Fixtures/anchorage-legacy.csv`: 445 ancoraggi, 5 rifiuti, 18 resistenze di aderenza;
+  - `Fixtures/detailing-legacy.csv`: 144 travi e pilastri NTC su `detailing-sections.xml`;
+  - `Fixtures/curvature-legacy.csv`: 5 curve.
+  Tolleranza delle curve:
+  - 1e-7 sulle deformazioni dei punti con acciaio elastico;
+  - 1e-3 sulle deformazioni dei punti con acciaio snervato. Con i materiali plastici la traslazione del piano è
+    definita solo entro la tolleranza su N del solutore; momento, N e curvatura coincidono a 1e-7.

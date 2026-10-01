@@ -235,3 +235,11 @@ REGISTRO
             - Collegata in ModelChecker come Serviceability/CrackWidth con i dati
               ReinforcedConcreteSection.CrackData.
             - Saltati con nota: fessurazione FRC (CNR-DT 204) e c.a.p.
+2026-10-01  4F: aderenza, ancoraggi e sovrapposizioni, dettagli 1D di travi e pilastri, M-curvatura trasferiti in
+            GPCChecker.Concrete/Detailing e /Response.
+            - Norme: NTC e CNR-DT 200 da ANTHEA; EN raccomandati; UNI e DS dagli annessi estratti.
+            - Non supportati, con il motivo: DIN, NS, MC2010.
+            - Dettagli collegati in ModelChecker come attività d'asta (IPhysicalMemberVerifier) con
+              ReinforcedConcreteSection.DetailingData.
+            - Ancoraggi e M-curvatura disponibili come API.
+            - Casi congelati e riprodotti: 450 ancoraggi, 144 dettagli, 5 curve.

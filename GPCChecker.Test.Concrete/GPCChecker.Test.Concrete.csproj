@@ -108,6 +108,7 @@
     <Compile Include="ShearMigrationTests.cs" />
     <Compile Include="TorsionMigrationTests.cs" />
     <Compile Include="CrackMigrationTests.cs" />
+    <Compile Include="DetailingMigrationTests.cs" />
     <Compile Include="StressAnalysisPSCTest.cs" />
     <Compile Include="StressAnalysisRCTest.cs" />
     <Compile Include="ValidationTestFailureDomain.cs" />
@@ -140,6 +141,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\crack-sections.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\anchorage-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\detailing-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\curvature-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\detailing-sections.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
