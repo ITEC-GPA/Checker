@@ -83,7 +83,7 @@ namespace ConcreteTests
                 Assert.IsNotNull(actual);
                 Assert.AreEqual(analysis == SectionSolver.StressAnalysisTypes.Linear, actual.LinearElasticAnalysis);
                 var expected = checker.GetTensionAnalysisResult(forces[i]);
-                foreach (Point2d point in section.Shape.GetPoints2d())
+                foreach (Point2d point in section.ConcreteShape.GetPoints2d())
                 {
                     double stress = actual.LinearElasticAnalysis ? actual.GetConcreteTension(psi, point) : actual.GetConcreteTension(point);
                     double reference = expected.LinearElasticAnalysis ? expected.GetConcreteTension(psi, point) : expected.GetConcreteTension(point);
@@ -106,7 +106,7 @@ namespace ConcreteTests
             double n = 15, psi = Psi(n, section), aBars = 4 * Math.PI * 81;
             StressAnalysisResult r = Checker(section, new StandardEN1992p11(), true).SectionSolver.GetLinearStressAnalysisResult(Force(section, -900, 0), psi, 0);
             double sigmaC = -900e3 / (B * H + (n - 1) * aBars);
-            foreach (Point2d p in section.Shape.GetPoints2d())
+            foreach (Point2d p in section.ConcreteShape.GetPoints2d())
                 Rel(sigmaC, r.GetConcreteTension(psi, p), 1e-6);
             foreach (ReinforcedConcreteRebar bar in section.GetRebars())
                 Rel(n * sigmaC, r.GetRebarTension(psi, bar), 1e-6);
@@ -120,7 +120,7 @@ namespace ConcreteTests
             StressAnalysisResult r = Checker(section, new StandardEN1992p11(), false).SectionSolver.GetLinearStressAnalysisResult(Force(section, 200, 0), psi, 0);
             foreach (ReinforcedConcreteRebar bar in section.GetRebars())
                 Rel(200e3 / aBars, r.GetRebarTension(psi, bar), 1e-6);
-            foreach (Point2d p in section.Shape.GetPoints2d())
+            foreach (Point2d p in section.ConcreteShape.GetPoints2d())
                 Assert.AreEqual(0, r.GetConcreteTension(psi, p), 1e-9);
         }
 
@@ -135,7 +135,7 @@ namespace ConcreteTests
                 .GetLinearStressAnalysisResult(Force(section, 0, 60, -25), psi, 0);
             // σ = -M1 (y - yc) / Jxx + M2 (x - xc) / Jyy
             Func<double, double, double> sigma = (x, y) => -60e6 * (y - H / 2) / jxx + -25e6 * (x - B / 2) / jyy;
-            foreach (Point2d p in section.Shape.GetPoints2d())
+            foreach (Point2d p in section.ConcreteShape.GetPoints2d())
                 Rel(sigma(p.X, p.Y), r.GetConcreteTension(psi, p), 1e-6, $"vertex {p}");
             foreach (ReinforcedConcreteRebar bar in section.GetRebars())
                 Rel(n * sigma(bar.Position.X, bar.Position.Y), r.GetRebarTension(psi, bar), 1e-6);
@@ -154,7 +154,7 @@ namespace ConcreteTests
             StressAnalysisResult b = solver.GetLinearStressAnalysisResult(Force(section, 100, -15, 20), psi, 0);
             StressAnalysisResult sum = solver.GetLinearStressAnalysisResult(Force(section, -200, 25, 30), psi, 0);
             StressAnalysisResult twice = solver.GetLinearStressAnalysisResult(Force(section, -600, 80, 20), psi, 0);
-            foreach (Point2d p in section.Shape.GetPoints2d())
+            foreach (Point2d p in section.ConcreteShape.GetPoints2d())
             {
                 Rel(a.GetConcreteTension(psi, p) + b.GetConcreteTension(psi, p), sum.GetConcreteTension(psi, p), 1e-6);
                 Rel(2 * a.GetConcreteTension(psi, p), twice.GetConcreteTension(psi, p), 1e-6);
@@ -279,7 +279,7 @@ namespace ConcreteTests
                 if (resultant(mid) < nEd) lo = mid; else hi = mid;
             }
             StressAnalysisResult r = Checker(section, standard, false).SectionSolver.GetStressAnalysisResult(Force(section, -1800, 0));
-            foreach (Point2d p in section.Shape.GetPoints2d())
+            foreach (Point2d p in section.ConcreteShape.GetPoints2d())
                 Rel((lo + hi) / 2, r.StrainPlane.GetStrain(p), 5e-3, $"strain at {p}");
         }
 
@@ -525,7 +525,7 @@ namespace ConcreteTests
             ResultBeamForces force = Force(section, -300, 60, 20);
             StressAnalysisResult reference = Checker(section, new StandardEN1992p11(), false).SectionSolver.GetStressAnalysisResult(force);
             StressAnalysisResult result = checker.SectionSolver.GetStressAnalysisResult(force.ToCoordinateSystem(rotated));
-            foreach (Point2d p in section.Shape.GetPoints2d())
+            foreach (Point2d p in section.ConcreteShape.GetPoints2d())
                 Assert.AreEqual(reference.StrainPlane.GetStrain(p), result.StrainPlane.GetStrain(p), 1e-9);
         }
 

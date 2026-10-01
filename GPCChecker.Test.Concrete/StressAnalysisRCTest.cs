@@ -426,10 +426,10 @@ namespace ConcreteTests
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
 {
-                (section.Shape.Fill[0], -4.341),
-                (section.Shape.Fill[1], 0.0),
-                (section.Shape.Fill[2], 0.0),
-                (section.Shape.Fill[3], -4.341),
+                (section.ConcreteShape.Fill[0], -4.341),
+                (section.ConcreteShape.Fill[1], 0.0),
+                (section.ConcreteShape.Fill[2], 0.0),
+                (section.ConcreteShape.Fill[3], -4.341),
 };
 
             (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
@@ -469,10 +469,10 @@ namespace ConcreteTests
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
 {
-                (section.Shape.Fill[0], -3.988),
-                (section.Shape.Fill[1], -3.988),
-                (section.Shape.Fill[2], 0.0),
-                (section.Shape.Fill[3], 0.0),
+                (section.ConcreteShape.Fill[0], -3.988),
+                (section.ConcreteShape.Fill[1], -3.988),
+                (section.ConcreteShape.Fill[2], 0.0),
+                (section.ConcreteShape.Fill[3], 0.0),
 };
 
             (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
@@ -516,10 +516,10 @@ namespace ConcreteTests
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
 {
-                (section.Shape.Fill[0], -10.15),
-                (section.Shape.Fill[1], 0.0),
-                (section.Shape.Fill[2], 0.0),
-                (section.Shape.Fill[3], 0.0),
+                (section.ConcreteShape.Fill[0], -10.15),
+                (section.ConcreteShape.Fill[1], 0.0),
+                (section.ConcreteShape.Fill[2], 0.0),
+                (section.ConcreteShape.Fill[3], 0.0),
 };
 
             (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
@@ -560,10 +560,10 @@ namespace ConcreteTests
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
 {
-                (section.Shape.Fill[0], -6.274),
-                (section.Shape.Fill[1], 0.0),
-                (section.Shape.Fill[2], 0.0),
-                (section.Shape.Fill[3], 0.0),
+                (section.ConcreteShape.Fill[0], -6.274),
+                (section.ConcreteShape.Fill[1], 0.0),
+                (section.ConcreteShape.Fill[2], 0.0),
+                (section.ConcreteShape.Fill[3], 0.0),
 };
 
             (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
@@ -602,10 +602,10 @@ namespace ConcreteTests
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
 {
-                (section.Shape.Fill[0], 0.0),
-                (section.Shape.Fill[1], 0.0),
-                (section.Shape.Fill[2], -9.534),
-                (section.Shape.Fill[3], -9.534),
+                (section.ConcreteShape.Fill[0], 0.0),
+                (section.ConcreteShape.Fill[1], 0.0),
+                (section.ConcreteShape.Fill[2], -9.534),
+                (section.ConcreteShape.Fill[3], -9.534),
 };
 
             (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
@@ -1083,12 +1083,12 @@ namespace ConcreteTests
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
             {
-                (section.Shape.Fill[0], 0.0),
-                (section.Shape.Fill[1], 0),
-                (section.Shape.Fill[2], -3.036),
-                (section.Shape.Fill[3], 0),
-                (section.Shape.Fill[4], -7.861),
-                (section.Shape.Fill[5], -4.189),
+                (section.ConcreteShape.Fill[0], 0.0),
+                (section.ConcreteShape.Fill[1], 0),
+                (section.ConcreteShape.Fill[2], -3.036),
+                (section.ConcreteShape.Fill[3], 0),
+                (section.ConcreteShape.Fill[4], -7.861),
+                (section.ConcreteShape.Fill[5], -4.189),
             };
 
             (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
@@ -1107,7 +1107,7 @@ namespace ConcreteTests
             for (int i = 0; i < concreteTensions.Length; i++)
                 Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
 
-            for (int i = 0; i < section.Shape.Fill.Count; i++)
+            for (int i = 0; i < section.ConcreteShape.Fill.Count; i++)
                 if (concreteTensions[i].tension != 0)
                     Assert.IsTrue(Math.Abs((concreteTensions[i].tension - expConcreteTensions[i].tension) / concreteTensions[i].tension) < tolerance);
 
@@ -1161,14 +1161,14 @@ namespace ConcreteTests
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
             {
-                (section.Shape.Fill[0], 0.0),
-                (section.Shape.Fill[1], 0.0),
-                (section.Shape.Fill[2], 0.0),
-                (section.Shape.Fill[3], 0.0),
-                (section.Shape.Fill[4], -1.375),
-                (section.Shape.Fill[5], -1.375),
-                (section.Shape.Fill[6], 0.0),
-                (section.Shape.Fill[7], 0.0),
+                (section.ConcreteShape.Fill[0], 0.0),
+                (section.ConcreteShape.Fill[1], 0.0),
+                (section.ConcreteShape.Fill[2], 0.0),
+                (section.ConcreteShape.Fill[3], 0.0),
+                (section.ConcreteShape.Fill[4], -1.375),
+                (section.ConcreteShape.Fill[5], -1.375),
+                (section.ConcreteShape.Fill[6], 0.0),
+                (section.ConcreteShape.Fill[7], 0.0),
             };
 
             (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
@@ -1186,7 +1186,7 @@ namespace ConcreteTests
             for (int i = 0; i < concreteTensions.Length; i++)
                 Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
 
-            for (int i = 0; i < section.Shape.Fill.Count; i++)
+            for (int i = 0; i < section.ConcreteShape.Fill.Count; i++)
                 if (concreteTensions[i].tension != 0)
                     Assert.IsTrue(Math.Abs((concreteTensions[i].tension - expConcreteTensions[i].tension) / concreteTensions[i].tension) < tolerance);
 
@@ -1240,14 +1240,14 @@ namespace ConcreteTests
 
             (Point2d point, double tension)[] expConcreteTensions = new (Point2d point, double tension)[]
             {
-                (section.Shape.Fill[0], 0.0),
-                (section.Shape.Fill[1], 0.0),
-                (section.Shape.Fill[2], 0.0),
-                (section.Shape.Fill[3], 0.0),
-                (section.Shape.Fill[4], -6.686),
-                (section.Shape.Fill[5], -6.686),
-                (section.Shape.Fill[6], 0.0),
-                (section.Shape.Fill[7], 0.0),
+                (section.ConcreteShape.Fill[0], 0.0),
+                (section.ConcreteShape.Fill[1], 0.0),
+                (section.ConcreteShape.Fill[2], 0.0),
+                (section.ConcreteShape.Fill[3], 0.0),
+                (section.ConcreteShape.Fill[4], -6.686),
+                (section.ConcreteShape.Fill[5], -6.686),
+                (section.ConcreteShape.Fill[6], 0.0),
+                (section.ConcreteShape.Fill[7], 0.0),
             };
 
             (ReinforcedConcreteRebar rebar, double tension)[] expRebarTensions = new (ReinforcedConcreteRebar rebar, double tension)[]
@@ -1265,7 +1265,7 @@ namespace ConcreteTests
             for (int i = 0; i < concreteTensions.Length; i++)
                 Console.WriteLine($"Vertices {i}: {concreteTensions[i].point}. Tension = {Math.Round(concreteTensions[i].tension, 2)}");
 
-            for (int i = 0; i < section.Shape.Fill.Count; i++)
+            for (int i = 0; i < section.ConcreteShape.Fill.Count; i++)
                 if (concreteTensions[i].tension != 0)
                     Assert.IsTrue(Math.Abs((concreteTensions[i].tension - expConcreteTensions[i].tension) / concreteTensions[i].tension) < tolerance);
 

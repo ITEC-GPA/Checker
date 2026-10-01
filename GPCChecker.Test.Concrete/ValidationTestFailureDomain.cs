@@ -503,7 +503,7 @@ namespace ConcreteTests
 
             Console.WriteLine(Math.Round(tensionResultFRC.GetRebarsTension().Select(i => i.tension).Max(), 2));
             Console.WriteLine(Math.Round(tensionResultFRC.GetConcreteVerticesTension().Select(i => i.tension).Min(), 2));
-            Console.WriteLine(Math.Round(tensionResultFRC.StrainPlane.GetStrain(section.Shape.Fill[0]), 6));
+            Console.WriteLine(Math.Round(tensionResultFRC.StrainPlane.GetStrain(section.ConcreteShape.Fill[0]), 6));
 
             Console.WriteLine(concreteMaterial.Name + " h/w = " + Math.Round(height, 2));
             Console.WriteLine(Math.Round(height, 2));
@@ -515,7 +515,7 @@ namespace ConcreteTests
 
             Console.WriteLine(Math.Round(tensionResult.GetRebarsTension().Select(i => i.tension).Max(), 2));
             Console.WriteLine(Math.Round(tensionResult.GetConcreteVerticesTension().Select(i => i.tension).Min(), 2));
-            Console.WriteLine(Math.Round(tensionResult.StrainPlane.GetStrain(section.Shape.Fill[0]), 6));
+            Console.WriteLine(Math.Round(tensionResult.StrainPlane.GetStrain(section.ConcreteShape.Fill[0]), 6));
         }
 
         [TestMethod]
