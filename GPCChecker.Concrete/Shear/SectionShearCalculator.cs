@@ -26,7 +26,11 @@ namespace GPC.Checkers.Concrete.Shear
             double fck = p.Fck, fcd = p.Fcd;
             // NS: strength classes above C60/75 are used with the C60 value in the shear formulas.
             if (profile == ShearProfile.NsEN1992p11 && fck > 60) { fcd = fcd * 60 / fck; fck = 60; }
-            var result = profile == ShearProfile.Ntc2018 ? Ntc(p) : Eurocode(p, profile, fck, fcd);
+            SectionShearResult result;
+            if (profile == ShearProfile.Ntc2018) result = Ntc(p);
+            else if (profile == ShearProfile.CnrDT200) result = FrpStrengthened(p);
+            else if (profile == ShearProfile.CnrDT204) result = FibreReinforced(p);
+            else result = Eurocode(p, profile, fck, fcd);
             result.Profile = profile; result.Demand = Math.Abs(p.V); result.WithShearReinforcement = p.Asw > 0;
             result.Reference = ShearProfiles.Reference(profile); result.Model = ShearProfiles.Model(profile);
             if (result.Status == null) // a method that declines the case sets its own NotEvaluated status
@@ -72,6 +76,47 @@ namespace GPC.Checkers.Concrete.Shear
             Add("αc", ac, "−", "1 + σcp/fcd; 1.25; 2.5(1 − σcp/fcd)"); Add("ν fcd", .5 * fcd, "MPa", "0.5 fcd");
             Add("cot θ", cot, "−", p.CotTheta.HasValue ? "Assigned" : "√(ν fcd bw αc / (Asw/s fyd sin α) − 1) within [1; 2.5]");
             return new SectionShearResult { VRsd = rsd, VRcd = rcd, VRd = rd, Ratio = rd > 0 ? Math.Abs(p.V) / rd : (double?)null, CotTheta = cot, Details = details.AsReadOnly() };
+        }
+
+        /// <summary>
+        /// CNR-DT 200 R1/2013: VRd = min(VRd,s + VRd,f; VRd,c) with VRd,s and VRd,c of NTC 2018. Sections carry no FRP data, so
+        /// VRd,f = 0 and the resistance is the one of the reinforced concrete member; the detail states it.
+        /// </summary>
+        private static SectionShearResult FrpStrengthened(SectionShearInput p)
+        {
+            var result = Ntc(p);
+            var details = result.Details.ToList();
+            details.Add(new ShearCalculationDetail("VRd,f", 0, "N", "No FRP shear strengthening in the section"));
+            result.Details = details.AsReadOnly();
+            return result;
+        }
+
+        /// <summary>
+        /// CNR-DT 204/2006 (and fib MC2010 7.7-5) for fibre-reinforced members without shear reinforcement:
+        /// VRd,F = [0.18/γc · k · (100 ρl (1 + 7.5 fFtuk/fctk) fck)^(1/3) + 0.15 σcp] bw d ≥ (vmin + 0.15 σcp) bw d,
+        /// σcp = −N/Ac ≤ 0.2 fcd (compression positive). With fFtuk = 0 it coincides with EC2 6.2.2.
+        /// Fibres combined with shear reinforcement are not implemented.
+        /// </summary>
+        private static SectionShearResult FibreReinforced(SectionShearInput p)
+        {
+            if (p.Asw > 0) throw new NotSupportedException("CNR-DT 204: fibres combined with shear reinforcement are not implemented.");
+            if (!Finite(p.ResidualTensileStrength) || p.ResidualTensileStrength < 0 || !Finite(p.MatrixTensileStrength) || p.MatrixTensileStrength <= 0)
+                throw new ArgumentException("CNR-DT 204: fFtuk ≥ 0 and the matrix fctk > 0 are required.");
+            var details = new List<ShearCalculationDetail>();
+            void Add(string symbol, double value, string unit, string expression) => details.Add(new ShearCalculationDetail(symbol, value, unit, expression));
+            double sigma = Math.Min(-p.N / p.Area, .2 * p.Fcd);
+            double k = Math.Min(2, 1 + Math.Sqrt(200 / p.D)), rho = Math.Min(.02, p.Asl / (p.Bw * p.D));
+            double fibres = 1 + 7.5 * p.ResidualTensileStrength / p.MatrixTensileStrength;
+            double vmin = .035 * Math.Pow(k, 1.5) * Math.Sqrt(p.Fck);
+            double resistance = (.18 / p.GammaC * k * Cbrt(100 * rho * fibres * p.Fck) + .15 * sigma) * p.Bw * p.D;
+            double floor = (vmin + .15 * sigma) * p.Bw * p.D;
+            double rd = Math.Max(0, Math.Max(resistance, floor));
+            Add("σcp", sigma, "MPa", "min(−N/Ac; 0.2 fcd), compression positive"); Add("k", k, "−", "min[2; 1 + √(200/d)]");
+            Add("ρl", rho, "−", "min[0.02; Asl/(bw d)]"); Add("fFtuk", p.ResidualTensileStrength, "MPa", "ultimate residual strength of the FRC");
+            Add("fctk", p.MatrixTensileStrength, "MPa", "matrix tensile strength (5%)"); Add("1 + 7.5 fFtuk/fctk", fibres, "−", "fibre term");
+            Add("vmin", vmin, "MPa", "0.035 k^1.5 √fck"); Add("VRd,F", resistance, "N", "fibre-reinforced concrete"); Add("VRd,F,min", floor, "N", "(vmin + 0.15 σcp) bw d");
+            return new SectionShearResult { VRsd = 0, VRcd = rd, VRd = rd, Ratio = rd > 0 ? Math.Abs(p.V) / rd : p.V == 0 ? 0 : (double?)null, CotTheta = 0,
+                Details = details.AsReadOnly() };
         }
 
         /// <summary>Eurocode 2 first generation with the implemented national annexes, and Model Code 2010 level II.</summary>

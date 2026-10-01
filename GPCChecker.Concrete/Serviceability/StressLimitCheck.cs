@@ -62,6 +62,14 @@ namespace GPC.Checkers.Concrete.Serviceability
     {
         public const string MethodId = "Concrete.ServiceabilityStressLimits";
 
+        /// <summary>
+        /// Reason why the standard does not require serviceability stress limits; null otherwise. The other MC2010-based classes
+        /// (MC2010, EN 1992-1-1 and annexes, NTC 2018, CNR-DT 204, CNR-DT 200) use the coefficients of the class.
+        /// </summary>
+        public static string NotApplicableReason(Standard standard)
+            => standard != null && standard.GetType() == typeof(StandardCSTR34)
+                ? "CS-TR34 (ground-supported floor slabs) does not set serviceability stress limits for the section." : null;
+
         public static StressLimitResult Evaluate(StressAnalysisResult result, ServiceabilityCombination combination, double concreteLimitFactor = 1)
         {
             if (result == null) throw new ArgumentNullException(nameof(result));

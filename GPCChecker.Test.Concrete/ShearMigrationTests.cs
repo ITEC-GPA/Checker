@@ -111,12 +111,62 @@ namespace ConcreteTests
         [TestMethod]
         public void ProfilesAreResolvedByExactTypeWithoutFallback()
         {
-            Assert.IsFalse(ShearProfiles.TryResolve(new StandardCNR200(), out _), "CNR 200 derives from NTC 2018 but is not NTC");
-            Assert.IsFalse(ShearProfiles.TryResolve(new StandardCNR204(), out _));
-            Assert.IsFalse(ShearProfiles.TryResolve(new StandardCSTR34(), out _));
-            Assert.ThrowsException<NotSupportedException>(() => SectionShearCalculator.Calculate(
-                new SectionShearInput(new StandardCNR204(), 0, 1000, 0, 150000, 300, 460, 1256, 30, 17, 391.3, 1.5, 200000, 0, 1)));
-            Assert.AreEqual(ShearProfile.DinEN1992p11, ShearProfiles.Resolve(new StandardDINEN1992p11()));
+            // CNR-DT 200 derives from NTC 2018 but has its own profile; CS-TR34 does not define beam shear; American standards are future work.
+            var expected = new List<Tuple<Standard, ShearProfile?>>
+            {
+                Tuple.Create<Standard, ShearProfile?>(new StandardNTC2018Concrete(), ShearProfile.Ntc2018),
+                Tuple.Create<Standard, ShearProfile?>(new StandardModelCode2010(), ShearProfile.ModelCode2010),
+                Tuple.Create<Standard, ShearProfile?>(new StandardEN1992p11(), ShearProfile.EN1992p11),
+                Tuple.Create<Standard, ShearProfile?>(new StandardUNIEN1992p11(), ShearProfile.UniEN1992p11),
+                Tuple.Create<Standard, ShearProfile?>(new StandardDINEN1992p11(), ShearProfile.DinEN1992p11),
+                Tuple.Create<Standard, ShearProfile?>(new StandardDSEN1992p11(), ShearProfile.DsEN1992p11),
+                Tuple.Create<Standard, ShearProfile?>(new StandardNSEN1992p11(), ShearProfile.NsEN1992p11),
+                Tuple.Create<Standard, ShearProfile?>(new StandardCNR204(), ShearProfile.CnrDT204),
+                Tuple.Create<Standard, ShearProfile?>(new StandardCNR200(), ShearProfile.CnrDT200),
+                Tuple.Create<Standard, ShearProfile?>(new StandardCSTR34(), null)
+            };
+            foreach (var pair in expected)
+            {
+                string name = pair.Item1.GetType().Name;
+                Assert.AreEqual(pair.Item2.HasValue, ShearProfiles.TryResolve(pair.Item1, out var profile), name);
+                if (pair.Item2.HasValue) Assert.AreEqual(pair.Item2.Value, profile, name);
+                Assert.AreEqual(!pair.Item2.HasValue, ShearProfiles.NotApplicableReason(pair.Item1) != null, name);
+            }
+            var tr34 = Assert.ThrowsException<NotSupportedException>(() => SectionShearCalculator.Calculate(
+                new SectionShearInput(new StandardCSTR34(), 0, 1000, 0, 150000, 300, 460, 1256, 30, 17, 391.3, 1.5, 200000, 0, 1)));
+            StringAssert.Contains(tr34.Message, "CS-TR34");
+            var aci = Assert.ThrowsException<NotSupportedException>(() => ShearProfiles.Resolve(new StandardACI318p19()));
+            StringAssert.Contains(aci.Message, "future implementation");
+        }
+
+        // CNR-DT 204, no shear reinforcement: bw = 300, d = 460, Asl = 1256 mm², fck = 30, γc = 1.5, fFtuk = 1.5 MPa, fctk = 2.028 MPa.
+        // Fibre term 1 + 7.5·1.5/2.028 = 6.548; (100·0.009101·6.548·30)^(1/3) = 5.632; VRd,F = 0.12·1.6594·5.632·300·460 = 154.8 kN.
+        // With fFtuk = 0 the formula is the EC2 one (82.76 kN); fibres combined with stirrups are not implemented.
+        [TestMethod]
+        public void FibreReinforcedConcreteWithoutStirrupsMatchesHandCalculation()
+        {
+            var frc = SectionShearCalculator.Calculate(new SectionShearInput(new StandardCNR204(), 0, 100000, 0, 150000, 300, 460, 1256, 30, 17, 391.3, 1.5, 200000, 0, 1,
+                residualTensileStrength: 1.5, matrixTensileStrength: 2.028));
+            Assert.AreEqual(154.8, frc.VRd / 1000, .3); Assert.AreEqual(ShearProfile.CnrDT204, frc.Profile); Assert.AreEqual(ShearVerdict.Satisfied, frc.Verdict);
+            var plain = SectionShearCalculator.Calculate(new SectionShearInput(new StandardCNR204(), 0, 100000, 0, 150000, 300, 460, 1256, 30, 17, 391.3, 1.5, 200000, 0, 1,
+                matrixTensileStrength: 2.028));
+            var ec2 = SectionShearCalculator.Calculate(new SectionShearInput(new StandardEN1992p11(), 0, 100000, 0, 150000, 300, 460, 1256, 30, 17, 391.3, 1.5, 200000, 0, 1));
+            Assert.AreEqual(ec2.VRd, plain.VRd, 1e-9 * ec2.VRd);
+            Assert.ThrowsException<NotSupportedException>(() => SectionShearCalculator.Calculate(new SectionShearInput(new StandardCNR204(), 0, 100000, 0, 150000, 300, 460, 1256,
+                30, 17, 391.3, 1.5, 200000, 100.53, 150, residualTensileStrength: 1.5, matrixTensileStrength: 2.028)));
+            Assert.ThrowsException<ArgumentException>(() => SectionShearCalculator.Calculate(new SectionShearInput(new StandardCNR204(), 0, 100000, 0, 150000, 300, 460, 1256,
+                30, 17, 391.3, 1.5, 200000, 0, 1, residualTensileStrength: 1.5)));
+        }
+
+        // CNR-DT 200: no FRP data in the section, VRd,f = 0 and the NTC resistance of the member, stated in the details.
+        [TestMethod]
+        public void FrpStandardWithoutFrpGivesTheNtcResistanceAndStatesIt()
+        {
+            var ntc = SectionShearCalculator.Calculate(new SectionShearInput(new StandardNTC2018Concrete(), -300000, 200000, 0, 150000, 300, 460, 1256, 30, 17, 391.3, 1.5, 200000, 100.53, 150));
+            var frp = SectionShearCalculator.Calculate(new SectionShearInput(new StandardCNR200(), -300000, 200000, 0, 150000, 300, 460, 1256, 30, 17, 391.3, 1.5, 200000, 100.53, 150));
+            Assert.AreEqual(ntc.VRd, frp.VRd); Assert.AreEqual(ntc.CotTheta, frp.CotTheta); Assert.AreEqual(ShearProfile.CnrDT200, frp.Profile);
+            Assert.AreEqual(0, frp.Details.Single(d => d.Symbol == "VRd,f").Value);
+            StringAssert.Contains(frp.Reference, "CNR-DT 200");
         }
 
         [TestMethod]

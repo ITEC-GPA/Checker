@@ -46,15 +46,21 @@ namespace GPC.Checkers.Concrete.Shear
         public double Aggregate { get; }
         /// <summary>Axial-force eccentricity Δe of Model Code 2010, mm.</summary>
         public double AxialEccentricity { get; }
+        /// <summary>Characteristic ultimate residual tensile strength fFtuk of fibre-reinforced concrete, MPa (CNR-DT 204); 0 for plain concrete.</summary>
+        public double ResidualTensileStrength { get; }
+        /// <summary>Characteristic tensile strength fctk (5% fractile) of the concrete matrix, MPa (CNR-DT 204).</summary>
+        public double MatrixTensileStrength { get; }
 
         public SectionShearInput(Standard standard, double n, double v, double m, double area, double bw, double d, double asl,
             double fck, double fcd, double fyd, double gammaC, double es, double asw, double spacing,
-            double alphaDegrees = 90, double? cotTheta = null, double leverFactor = .9, double aggregate = 20, double axialEccentricity = 0)
+            double alphaDegrees = 90, double? cotTheta = null, double leverFactor = .9, double aggregate = 20, double axialEccentricity = 0,
+            double residualTensileStrength = 0, double matrixTensileStrength = 0)
         {
             Standard = standard ?? throw new ArgumentNullException(nameof(standard));
             N = n; V = v; M = m; Area = area; Bw = bw; D = d; Asl = asl; Fck = fck; Fcd = fcd; Fyd = fyd; GammaC = gammaC; Es = es;
             Asw = asw; Spacing = spacing; AlphaDegrees = alphaDegrees; CotTheta = cotTheta; LeverFactor = leverFactor;
             Aggregate = aggregate; AxialEccentricity = axialEccentricity;
+            ResidualTensileStrength = residualTensileStrength; MatrixTensileStrength = matrixTensileStrength;
         }
     }
 

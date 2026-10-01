@@ -16,9 +16,12 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 ### Taglio
 
 - Profili scelti dal tipo esatto della classe Standard: NTC 2018, Model Code 2010 livello II, EN 1992-1-1 e annessi
-  UNI, DIN, DS, NS (prima generazione).
-- Le altre classi, anche se derivate da queste (per esempio `StandardCNR200`), danno `NotSupportedException`:
-  nessun ripiego su NTC.
+  UNI, DIN, DS, NS (prima generazione), CNR-DT 204 (FRC senza armatura a taglio, con fFtuk), CNR-DT 200 (NTC più
+  contributo FRP, nullo perché le sezioni non hanno dati FRP).
+- CS-TR34 non definisce il taglio di trave (`ShearProfiles.NotApplicableReason`).
+- ACI 318 e AASHTO: implementazione futura.
+- Le altre classi, anche se derivate da quelle elencate, danno `NotSupportedException`: nessun ripiego su un'altra
+  norma.
 - Resistenze di progetto, γc e geometria resistente (bw, d, Asl, z/d) sono dati espliciti del chiamante.
 - Escluse la precompressione e le riduzioni favorevoli vicino agli appoggi.
 - Una resistenza nulla con domanda non nulla è `NotSatisfied`. NTC con trazione e senza staffe è `NotEvaluated`,
@@ -33,4 +36,7 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 - Quasi permanente: σc ≤ k2·fck.
 - Frequente: nessun limite.
 - I coefficienti vengono dalla classe Standard. Il fattore sul limite del calcestruzzo (getti sottili) è esplicito.
+- CS-TR34 non fissa limiti tensionali di sezione (`StressLimitCheck.NotApplicableReason`).
+- Casi legacy congelati: `Fixtures/stress-legacy.csv` (2016 stati) e `Fixtures/stress-sections.xml`
+  (`ServiceabilityMigrationTests`).
 - Trefoli con predeformazione nulla: `NotSupportedException`.
