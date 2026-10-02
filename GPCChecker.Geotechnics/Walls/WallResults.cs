@@ -113,8 +113,12 @@ namespace GPC.Checkers.Geotechnics.Walls
         public string SeismicBearingError { get; internal set; } = "";
     }
 
-    /// <summary>Kind of a geotechnical check of the wall.</summary>
-    public enum WallCheckKind { Sliding, Overturning, Bearing, Contact }
+    /// <summary>
+    /// Kind of a geotechnical check of the wall: equilibrium (sliding, overturning, bearing, contact), serviceability (final oedometric settlement,
+    /// rotation from the differential settlements, elastic displacement of the stem, decoupled head displacement, Newmark permanent sliding) and
+    /// global stability (Bishop).
+    /// </summary>
+    public enum WallCheckKind { Sliding, Overturning, Bearing, Contact, Settlement, Rotation, StemDisplacement, HeadDisplacement, Newmark, GlobalStability }
 
     /// <summary>Outcome of a check.</summary>
     public enum WallCheckStatus { Satisfied, NotSatisfied, ZeroResistance, Unavailable, ContactInCompression, LossOfEquilibrium }

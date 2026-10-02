@@ -360,3 +360,13 @@ REGISTRO
               norma, l'opzione modelFactorOnInertia (ShallowFoundationSeismic, WallSeismicBearing) riproduce ANTHEA; le fixture
               G e W la usano. Effetto, esempio 4 dei muri: η della portanza sismica 0,760 (EN) invece di 0,791 (ANTHEA).
               Tab. F.2 di γRd: 1,00 sabbia mediamente densa/densa, 1,15 sciolta asciutta, 1,50 sciolta satura, 1,00/1,15 argille.
+2026-10-02  W3: esercizio e stabilità globale dei muri (Walls/WallServiceability, Walls/WallGlobalStability), sui nuclei di G.
+            - Cedimenti e rotazione delle combinazioni SLE, spostamenti dalle curvature (fornite da W2; nei test quelle legacy),
+              Newmark; profilo globale proposto dal muro, combinazioni A2+M2+R2, eccezionali e SLV (βs 0,38), carichi del pendio,
+              verifiche.
+            - Riprodotti dalle fixture già congelate: 6 documenti di esercizio (18 casi, 12 accelerogrammi, 75 verifiche), 380
+              righe globali di 102 documenti, 3 analisi globali (8 combinazioni; 1 documento non confermato è un vincolo
+              d'interfaccia), la proposta del profilo di 4 documenti.
+            - Difetto legacy (anche di G): SlopeGeometry.Divisions poteva perdere l'ultimo concio dell'arco per arrotondamento
+              (L + (R − L)·n/n > R). Corretto con estremi esatti; 2 combinazioni non drenate dei muri lo mostravano (F 3,630 su 34
+              conci, ritrovato dal port togliendo l'ultimo; arco completo F più alto). Le fixture di G restano riprodotte.

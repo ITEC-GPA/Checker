@@ -190,6 +190,62 @@ internal static class WallsFixture
         }).ToArray();
     }
 
+    /// <summary>Options of the serviceability of a document (kPa → MPa, kN/m² → MPa); null when nothing is requested.</summary>
+    public static WallServiceOptions? Service(JsonObject d)
+    {
+        var s = d["serviceability"]; if (s == null) return null;
+        bool settlement = Bool(s["settlement"]), displacement = Bool(s["displacement"]);
+        var histories = s["histories"]?.AsArray().Where(h => Bool(h!["enabled"])).Select(h => new WallAccelerogram(Str(h!["name"]), Str(h["state"]), Bool(h["compatible"]),
+            Num(h["yield_g"]) ?? double.NaN, Num(h["scale"]) ?? double.NaN, Num(h["limit_mm"]) ?? double.NaN,
+            h["samples"]!.AsArray().Select(p => new GPC.Checkers.Geotechnics.Seismic.AccelerogramSample(Num(p!["t"]) ?? double.NaN, Num(p["a_g"]) ?? double.NaN)))).ToArray() ?? new WallAccelerogram[0];
+        if (!settlement && !displacement && histories.Length == 0) return null;
+        var settlementOptions = settlement ? new WallSettlementOptions(s["layers"]!.AsArray().Select(l => new GPC.Checkers.Geotechnics.Foundations.SettlementLayer(Str(l!["name"]), D(l, "thickness") * M, D(l, "modulus") * KPa)),
+            (Num(s["removed_pressure"]) ?? double.NaN) * KPa, Num(s["settlement_limit"]) ?? 25, Num(s["rotation_limit"]) ?? .002, Bool(s["rigid_base"])) : null;
+        (double, double)? displacementOptions = displacement ? (Num(s["head_limit"]) ?? double.NaN, (Num(s["horizontal_stiffness"]) ?? double.NaN) * KPa) : null;
+        return new WallServiceOptions(settlementOptions, displacementOptions, histories);
+    }
+
+    /// <summary>The curvatures of the stem of a legacy combination (Y above the slab in m, 1/m), null for a gravity wall with assigned strengths.</summary>
+    public static IReadOnlyList<WallCurvaturePoint>? Curvatures(JsonObject d, JsonObject legacyCase)
+        => Str(d["family"]) == "gravity" && Str(d["gravity_design"]?["type"]) == "Resistenze assegnate" ? null
+            : legacyCase["Curvatures"]!.AsArray().Select(p => new WallCurvaturePoint(Req(p!["Y"], "Y") * M, Req(p["Curvature"], "κ") / M)).ToArray();
+
+    static GPC.Checkers.Geotechnics.Slopes.SlopeLayer[] GlobalLayers(JsonArray layers, bool undrained) => layers.Select(l =>
+    {
+        double? cu = Num(l!["cu"]); if (cu is <= 0) cu = null;
+        var soil = new Soil(Str(l["name"]) is { Length: > 0 } n ? n : "Strato", D(l, "gamma") * KN3, D(l, "gamma_sat") * KN3, D(l, "phi") * Deg, (Num(l["c"]) ?? 0) * KPa, "ANTHEA fixture",
+            undrainedShearStrength: cu * KPa);
+        return new GPC.Checkers.Geotechnics.Slopes.SlopeLayer(soil, D(l, "bottom") * M);
+    }).ToArray();
+
+    static GPC.Checkers.Geotechnics.Slopes.SlopePoint[] Points(JsonNode? points) => points?.AsArray().Select(p => new GPC.Checkers.Geotechnics.Slopes.SlopePoint(D(p, "x") * M, D(p, "y") * M)).ToArray()
+        ?? new GPC.Checkers.Geotechnics.Slopes.SlopePoint[0];
+
+    /// <summary>The global profile of a document (points and bottoms in m, kPa).</summary>
+    public static WallGlobalProfile GlobalProfile(JsonObject d)
+    {
+        var g = d["global_stability"]!; bool undrained = Str(g["condition"]) == "Non drenata"; bool two = Str(g["soil_mode"]) == "Due colonne";
+        int I(string key) => (int)D(g, key);
+        var search = new GPC.Checkers.Geotechnics.Slopes.SlopeSearch(D(g, "exit_min") * M, D(g, "exit_max") * M, D(g, "entry_min") * M, D(g, "entry_max") * M, D(g, "depth_min") * M, D(g, "depth_max") * M,
+            I("grid"), I("slices"), I("refinements"));
+        return new WallGlobalProfile(Points(g["valley"]), Points(g["uphill"]), GlobalLayers(g["layers"]!.AsArray(), undrained), search, two ? GlobalLayers(g["valley_layers"]!.AsArray(), undrained) : null,
+            two ? D(g, "soil_split_x") * M : 0, Bool(g["water_enabled"]) ? Points(g["water"]) : null, undrained);
+    }
+
+    /// <summary>The seismic coefficients of the global stability of a document, null without the seismic action.</summary>
+    public static WallGlobalSeismic? GlobalSeismic(JsonObject d)
+    {
+        var g = d["global_stability"]!; if (!Bool(g["seismic"])) return null;
+        return Str(g["seismic_source"]) == "Da sito · βs=0,38" ? WallGlobalSeismic.FromSite(Site(d["seismic"]!)) : WallGlobalSeismic.Assigned(D(g, "kh"), D(g, "kv"));
+    }
+
+    public static WallCheckKind? ServiceKind(string name) => name switch
+    {
+        "Cedimento edometrico finale" or "Cedimenti" => WallCheckKind.Settlement, "Rotazione da cedimenti differenziali" => WallCheckKind.Rotation,
+        "Spostamento elastico fusto · base fissa" => WallCheckKind.StemDisplacement, "Spostamento totale in testa · stima disaccoppiata" or "Spostamento totale in testa" => WallCheckKind.HeadDisplacement,
+        "Spostamento Newmark" => WallCheckKind.Newmark, _ => name.StartsWith("Scorrimento permanente Newmark") ? WallCheckKind.Newmark : null
+    };
+
     public static WallMember Member(string name) => name switch { "Fusto" => WallMember.Stem, "Valle" => WallMember.Toe, "Monte" => WallMember.Heel, _ => throw new ArgumentException(name) };
 
     public static WallCheckKind? CheckKind(string name) => name switch

@@ -80,7 +80,8 @@ namespace GPC.Checkers.Geotechnics.Slopes
         /// </summary>
         public static double[] Divisions(SlopeSection section, SlipCircle circle, int count)
         {
-            var x = Enumerable.Range(0, count + 1).Select(i => circle.Left + (circle.Right - circle.Left) * i / count)
+            // The two ends of the arc are given exactly: Left + (Right − Left)·n/n can exceed Right by one ulp, and ANTHEA then lost the last slice.
+            var x = Enumerable.Range(1, count - 1).Select(i => circle.Left + (circle.Right - circle.Left) * i / count).Concat(new[] { circle.Left, circle.Right })
                 .Concat(section.Surface.Select(p => p.X)).Concat(section.Water.Select(p => p.X))
                 .Concat(section.Bodies.SelectMany(b => b.Polygon.Select(p => p.X)))
                 .Concat(section.Columns.SelectMany(l => l).SelectMany(s => Crossings(circle, s.Bottom)))

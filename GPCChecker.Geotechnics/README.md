@@ -189,8 +189,22 @@ Differenze intenzionali: quote in mm (i tagli coincidenti sono unificati entro 1
 ANTHEA include la forza secondo l'arrotondamento di ht − z in metri (36 tagli: il port la include alla quota e la esclude
 1e-4 mm sopra); 35 momenti NaN di ANTHEA (colonna di valle con falda) sono finiti nel port.
 
-Prossime fasi: W2 verifiche strutturali (gravità e c.a. con Concrete), W3 esercizio, portanza sismica dal documento e
-stabilità globale, W4 dettagli delle armature.
+**W3 — esercizio e stabilità globale.**
+- `Walls.WallServiceability`: cedimenti edometrici sotto il contatto della base in ogni combinazione SLE (piede, centro,
+  tallone; convergenza 40/80 suddivisioni; tensione residua al fondo ≤ 10% del netto o base rigida), rotazione, spostamento
+  elastico del fusto dalle curvature e spostamento della testa disaccoppiato u = u_fusto + H/k − θ H, scorrimento di
+  Newmark con accelerogrammi SLD/SLV confermati (non con Wood).
+- `Walls.WallGlobalStability`: profilo (proposto dal muro con `Propose`, da confermare), combinazioni A2+M2+R2 dalle
+  ordinarie (G1 1, le altre × 1,3/1,5, M2, γR 1,1), eccezionali, SLV con βs 0,38 e γR 1,2; muro come corpo rigido, azioni
+  come carichi del pendio; verifiche con γR/F solo se il risultato è un verdetto.
+- Casi legacy riprodotti (`WallsServiceGlobalMigrationTests`): 6 documenti di esercizio (18 casi, 12 accelerogrammi, 75
+  verifiche), 380 combinazioni globali di 102 documenti, 3 documenti di stabilità globale (8 combinazioni).
+- Difetto legacy corretto anche nei pendii (G): `Divisions` calcolava l'estremo destro dell'arco come L + (R − L)·n/n,
+  che può superare R di un ulp ed essere scartato con l'ultimo concio (2 combinazioni non drenate: F legacy 3,630 su 34
+  conci, il test lo ritrova togliendo l'ultimo concio). Ora gli estremi sono esatti; le fixture di G restano riprodotte.
+
+Prossime fasi: W2 verifiche strutturali (gravità e c.a. con Concrete, comprese le curvature per gli spostamenti), W4
+dettagli delle armature.
 
 ## Migrazione (prossime famiglie)
 
