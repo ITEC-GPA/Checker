@@ -120,7 +120,8 @@ namespace GPC.Checkers.Concrete.Cracking
     /// <summary>
     /// Section crack check transferred from ANTHEA (Ntc2018Checks.Cracking, ConcreteTensionCracking, ConcreteInnerCracking, commit fe4652c), without the
     /// global spacing calculator. Partially compressed sections: effective area beyond hc,eff along the strain gradient, governing bar stress, k2 from
-    /// the bar stresses (0.5 for the Eurocode family). Entirely tensile sections: independent faces (±x, ±y or radial for circles), never summed;
+    /// the bar stresses (0.5 for the Eurocode family); neutral axis within the cover of the reinforced tensile edge: wk = 0; tensile bars outside Ac,eff: upper bound
+    /// of EC2 7.3.4(4) with sr,max from (h − x). Entirely tensile sections: independent faces (±x, ±y or radial for circles), never summed;
     /// DS adds the coarse system with the whole section (DK NA 7.3.4(1)). Hollow sections: inner walls or ring checked independently.
     /// Fixtures: GPCChecker.Test.Concrete/Fixtures/crack-legacy.csv.
     /// </summary>
@@ -179,7 +180,17 @@ namespace GPC.Checkers.Concrete.Cracking
             double tensileDepth = strains.Max() / gradient;
             Add("h", height, "mm", "projected height along the strain gradient"); Add("h − x", tensileDepth, "mm", "εc,max / |∇ε|");
             var tensile = Enumerable.Range(0, g.Bars.Count).Where(i => plane.GetStrain(g.Bars[i].X, g.Bars[i].Y) > 0).ToArray();
-            if (tensile.Length == 0) return Stop(CrackOutcome.NoTensileReinforcement, "No tensile reinforcement");
+            if (tensile.Length == 0)
+            {
+                // Neutral axis within the cover of the tensile edge: the reinforcement of that face (closer than h/2, upper bound of hc,eff) is compressed,
+                // σs ≤ 0 and wk = 0 (limit of EC2 7.3.4 for σs → 0). Without bars on that side the tensile zone is unreinforced: no verdict.
+                double nearest = g.Bars.Count == 0 ? double.PositiveInfinity : top - g.Bars.Max(b => Q(b.X, b.Y));
+                if (!(nearest < height / 2)) return Stop(CrackOutcome.NoTensileReinforcement, "No tensile reinforcement");
+                Add("h − d,min", nearest, "mm", "Qmax − Q of the bar nearest to the tensile edge > h − x");
+                result.Width = 0; result.Ratio = 0; result.Passed = true;
+                Stop(CrackOutcome.Evaluated, "Neutral axis within the cover: no tensile bar, wk = 0");
+                return Inner(result, p, profile);
+            }
             double centroid = tensile.Sum(i => Q(g.Bars[i].X, g.Bars[i].Y) * g.Bars[i].Area) / tensile.Sum(i => g.Bars[i].Area);
             double coverToCenter = top - centroid;
             double hc = g.EffectiveDepth(profile, qx, qy, top, height, coverToCenter, tensileDepth, false, p.NominalCover);
@@ -190,7 +201,19 @@ namespace GPC.Checkers.Concrete.Cracking
             var region = g.Region("TensileZone", qx, qy, level, effective);
             double aceff = region.Area;
             Add("Ac,eff", aceff, "mm2", "concrete beyond Q = Qmax − hc,eff"); Add("As,eff", region.SteelArea, "mm2", effective.Length + " tensile bars");
-            if (aceff <= 0 || effective.Length == 0) return Stop(CrackOutcome.NoEffectiveArea, "No effective reinforcement or area");
+            double wlim = req.Limit.Value;
+            if (effective.Length == 0)
+            {
+                // Tensile bars deeper than hc,eff (neutral axis close to the bars): no bonded bar in Ac,eff, upper bound of EC2 7.3.4(4) with the tensile bars.
+                double sigmaT = tensile.Max(i => stresses[i]), phiT = tensile.Sum(i => g.Bars[i].Diameter * g.Bars[i].Diameter) / tensile.Sum(i => g.Bars[i].Diameter);
+                Add("Øeq", phiT, "mm", "ΣØ²/ΣØ of the tensile bars"); Add("σs", sigmaT, "MPa", "maximum stress of the tensile bars, none in Ac,eff");
+                double bound = CrackWidthCalculator.UnbondedUpperBound(profile, sigmaT, p.Es, p.Fctm, phiT, tensileDepth, p.ShortTerm, p.RibbedBars, details);
+                result.Width = bound; result.Ratio = bound / wlim; result.Passed = bound <= wlim; result.EffectiveArea = aceff; result.EffectiveSteel = 0;
+                result.GoverningRegion = region.Key; result.Regions = new[] { region.WithWidth(bound) };
+                Stop(CrackOutcome.Evaluated, "No bar in Ac,eff: upper bound with sr,max from (h − x)" + (bound <= wlim ? ", crack width within the limit" : ", crack width beyond the limit"));
+                return Inner(result, p, profile);
+            }
+            if (aceff <= 0) return Stop(CrackOutcome.NoEffectiveArea, "No effective reinforcement or area");
             double steel = effective.Sum(i => g.Bars[i].Area), phi = effective.Sum(i => g.Bars[i].Diameter * g.Bars[i].Diameter) / effective.Sum(i => g.Bars[i].Diameter);
             double sigma = effective.Max(i => stresses[i]);
             double c = p.CoverOverride ?? p.NominalCover;
@@ -200,7 +223,6 @@ namespace GPC.Checkers.Concrete.Cracking
             if (!(spacing > 0)) return Stop(CrackOutcome.SpacingUndetermined, "Automatic spacing not determined: assign the maximum spacing");
             Add("s", spacing.Value, "mm", p.SpacingOverride.HasValue ? "assigned maximum spacing" : "maximum spacing of the effective tensile bars");
             double width = CrackWidthCalculator.Width(profile, new CrackWidthInput(sigma, p.Es, p.Ecm, p.Fctm, steel / aceff, phi, c, spacing.Value, tensileDepth, p.ShortTerm, p.RibbedBars, k2), details);
-            double wlim = req.Limit.Value;
             result.Width = width; result.Ratio = width / wlim; result.Passed = width <= wlim; result.BarSpacing = spacing;
             result.SpacingSource = p.SpacingOverride.HasValue ? "Manual" : "Automatic"; result.GoverningRegion = region.Key;
             result.Regions = new[] { region.WithWidth(width) };

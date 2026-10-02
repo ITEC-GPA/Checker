@@ -1,6 +1,7 @@
 using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Cracking;
+using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Checkers.Concrete.Serviceability;
 using GPC.Geometry;
@@ -90,7 +91,7 @@ namespace ConcreteTests
                 checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), options, standard, tension);
                 checkers[key] = checker; return checker;
             }
-            int widths = 0, verdicts = 0, regions = 0, errors = 0;
+            int widths = 0, verdicts = 0, regions = 0, errors = 0, coverOnly = 0, unbonded = 0;
             foreach (var row in rows)
             {
                 var c = row.Split(';'); string id = "state " + c[0] + " " + c[1] + " " + c[2] + " " + c[17] + " " + c[18];
@@ -119,6 +120,28 @@ namespace ConcreteTests
                 }
                 var r = SectionCrackCheck.Evaluate(input);
                 string status = c[30];
+                if (status.StartsWith("Nessuna armatura tesa"))
+                {
+                    // Neutral axis within the cover: no verdict in ANTHEA, wk = 0 now (the captured sections have bars on every face).
+                    Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, id + " " + r.Status);
+                    Assert.IsTrue(r.Width == 0 && r.Ratio == 0 && r.Passed == true && r.Regions.Count == 0, id + " " + r.Status);
+                    coverOnly++; continue;
+                }
+                if (status.StartsWith("Armatura/area efficace assente"))
+                {
+                    // Tensile bars outside Ac,eff: no verdict in ANTHEA, upper bound of EC2 7.3.4(4) now, from h − x and σs of the legacy trace.
+                    var trace = c[36].Split('|').Select(e => e.Split('=')).ToLookup(e => e[0], e => D(e[1]));
+                    double depth = trace["h − x"].Single(), sigma = trace.Where(t => t.Key.EndsWith(" · σs")).SelectMany(t => t).Max();
+                    var profile = Profile(c[2]);
+                    Assert.AreNotEqual(CrackProfile.DinEN1992p11, profile, id);
+                    double beta = profile == CrackProfile.ModelCode2010 ? (c[20] == "Breve" ? .4 : .6) : .6;
+                    double bound = (CrackProfiles.IsNtc(profile) ? 1.7 * .75 : 1.3) * depth * beta * sigma / section.Rebars.First().RebarMaterial.E;
+                    Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, id + " " + r.Status);
+                    Close(bound, r.Width.Value, id + " wk bound"); Close(trace["Ac,eff"].Single(), r.EffectiveArea.Value, id + " Ac,eff");
+                    Assert.AreEqual(bound <= r.Limit.Value, r.Passed, id);
+                    Assert.IsTrue(r.Regions.Count == 1 && r.Regions[0].Key == "TensileZone" && r.Regions[0].BarIndices.Count == 0, id);
+                    unbonded++; continue;
+                }
                 var width = N(c[26]);
                 Assert.AreEqual(width.HasValue, r.Width.HasValue, id + " width defined: " + status + " / " + r.Status);
                 if (width.HasValue) { Close(width.Value, r.Width.Value, id + " wk"); widths++; }
@@ -152,8 +175,51 @@ namespace ConcreteTests
                     regions++;
                 }
             }
-            // 362 widths (fully compressed included), 347 verdicts, 1104 regions with area, steel, width and bars, 10 legacy errors.
-            Assert.AreEqual(362, widths); Assert.AreEqual(347, verdicts); Assert.AreEqual(1104, regions); Assert.AreEqual(10, errors);
+            // 362 widths (fully compressed included), 347 verdicts, 1104 regions with area, steel, width and bars, 10 legacy errors, 22 neutral axes in the cover,
+            // 8 tensile zones without bars in Ac,eff.
+            Assert.AreEqual(362, widths); Assert.AreEqual(347, verdicts); Assert.AreEqual(1104, regions); Assert.AreEqual(10, errors); Assert.AreEqual(22, coverOnly);
+            Assert.AreEqual(8, unbonded);
+        }
+
+        /// <summary>Partially compressed 300×500, bars Ø20 at 50 mm from the edges: neutral axis 20 mm from the bottom edge, inside the cover.</summary>
+        [TestMethod]
+        public void NeutralAxisWithinTheCoverGivesZeroWidth()
+        {
+            var outline = new[] { new Point2d(-150, -250), new Point2d(150, -250), new Point2d(150, 250), new Point2d(-150, 250) };
+            CrackBar Bar(double x, double y) => new CrackBar(x, y, 20, 314.16);
+            // ε = −1e-5 (y + 230): tension below y = −230, bars at y = ±200 compressed.
+            var plane = new StrainPlane(0, -1e-5, new Point2d(0, -230), 0);
+            SectionCrackResult Evaluate(CrackBar[] bars) => SectionCrackCheck.Evaluate(new SectionCrackInput(ServiceabilityMigrationTests.Standard("EN 1992-1-1"),
+                ServiceabilityCombination.QuasiPermanent, "XC3", false, null, new CrackSectionGeometry(outline, null, bars, CrackBarLayout.Rows), plane,
+                bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false, 200000, 33000, 2.9, false, true, 40));
+            var r = Evaluate(new[] { Bar(-100, -200), Bar(100, -200), Bar(-100, 200), Bar(100, 200) });
+            Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, r.Status);
+            Assert.AreEqual(CrackVerdict.Satisfied, r.Verdict);
+            Assert.AreEqual(0, r.Width.Value); Assert.AreEqual(0, r.Ratio.Value);
+            // Bars only at the compressed top: the tensile bottom is unreinforced, no verdict.
+            var top = Evaluate(new[] { Bar(-100, 200), Bar(100, 200) });
+            Assert.AreEqual(CrackOutcome.NoTensileReinforcement, top.Outcome, top.Status);
+            Assert.IsNull(top.Width);
+        }
+
+        /// <summary>
+        /// Same section, neutral axis at y = −150: h − x = 100 mm, hc,eff = min[2.5·50; 100/3; 250] = 33.3 mm above the bottom bars (σs = 100 MPa).
+        /// EC2 7.3.4(4): wk = 1.3 (h − x) · 0.6 σs/Es = 130 · 3e-4 = 0.039 mm; NTC: 1.7 · 0.75 · 100 · 3e-4 = 0.03825 mm.
+        /// </summary>
+        [TestMethod]
+        public void TensileBarsOutsideEffectiveAreaGiveUpperBound()
+        {
+            var outline = new[] { new Point2d(-150, -250), new Point2d(150, -250), new Point2d(150, 250), new Point2d(-150, 250) };
+            var bars = new[] { new CrackBar(-100, -200, 20, 314.16), new CrackBar(100, -200, 20, 314.16), new CrackBar(-100, 200, 20, 314.16), new CrackBar(100, 200, 20, 314.16) };
+            var plane = new StrainPlane(0, -1e-5, new Point2d(0, -150), 0);
+            SectionCrackResult Evaluate(string standard, string exposure) => SectionCrackCheck.Evaluate(new SectionCrackInput(ServiceabilityMigrationTests.Standard(standard),
+                ServiceabilityCombination.QuasiPermanent, exposure, false, null, new CrackSectionGeometry(outline, null, bars, CrackBarLayout.Rows), plane,
+                bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false, 200000, 33000, 2.9, false, true, 40));
+            var r = Evaluate("EN 1992-1-1", "XC3");
+            Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, r.Status);
+            Assert.AreEqual(.039, r.Width.Value, 1e-12); Assert.AreEqual(CrackVerdict.Satisfied, r.Verdict);
+            Assert.AreEqual(300 * 100 / 3.0, r.EffectiveArea.Value, 1e-6); Assert.AreEqual(0, r.EffectiveSteel.Value);
+            Assert.AreEqual(1.7 * .75 * 100 * 3e-4, Evaluate("NTC 2018", "XC1").Width.Value, 1e-12);
         }
 
         private static CrackProfile Profile(string name) => CrackProfiles.Resolve(ServiceabilityMigrationTests.Standard(name));
