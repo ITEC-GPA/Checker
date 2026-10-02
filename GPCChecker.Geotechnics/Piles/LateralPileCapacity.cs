@@ -76,6 +76,22 @@ namespace GPC.Checkers.Geotechnics.Piles
             };
         }
 
+        /// <summary>
+        /// Model of the verticals before the capacity, from their limit diagrams only: "Omogeneo" or "Multistrato sperimentale" with Broms,
+        /// "Diagramma stratificato · terreno omogeneo/multistrato" with the stratified method. The data are checked as in <see cref="Calculate"/>
+        /// (mixed sequences need the stratified method).
+        /// </summary>
+        public static string ModelName(IReadOnlyList<LateralPileSurvey> surveys, double length, double diameter, LateralPileMethod method)
+        {
+            if (surveys == null) throw new ArgumentNullException(nameof(surveys));
+            if (!Positive(length) || !Positive(diameter)) throw new ArgumentException("Lateral pile: positive diameter, length and step, non negative eccentricity and action.");
+            if (method != LateralPileMethod.Broms && method != LateralPileMethod.Stratified) throw new ArgumentOutOfRangeException(nameof(method));
+            if (surveys.Count == 0) throw new ArgumentException("At least one investigated vertical is required.");
+            bool distributed = method == LateralPileMethod.Stratified, uniform = true;
+            foreach (var survey in surveys) uniform &= new Ground(survey ?? throw new ArgumentNullException(nameof(surveys)), length, diameter, 1e-8, distributed).Uniform;
+            return ModelName(uniform, distributed);
+        }
+
         private static string ModelName(bool uniform, bool distributed) => distributed
             ? "Diagramma stratificato · " + (uniform ? "terreno omogeneo" : "terreno multistrato")
             : uniform ? "Omogeneo" : "Multistrato sperimentale";

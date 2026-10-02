@@ -395,3 +395,21 @@ REGISTRO
             - Test ANTHEA: RetainingWall.Checks 303 controlli (53 nuovi sull'adattatore: unità, conversioni esatte, nomi e unità
               delle verifiche, versione 1, errori dei dati di esercizio e Newmark, sisma dal sito, stabilità globale),
               GlobalStability.Checks 61; i controlli dei metodi chiamano direttamente la libreria in mm.
+2026-10-02  M4 (F): ANTHEA usa GPCChecker.Geotechnics per pali e micropali.
+            - Calcolo.cs (portanza assiale di pali e micropali), Nq.cs, Micropali.cs (Bustamante-Doix, CHS, inclinazione),
+              PaloOrizzontale*.cs e MicropaloOrizzontale.cs sono adattatori: lettura e controllo del foglio con i messaggi di
+              ANTHEA, AxialPileCapacity, BearingCapacityFactors, BustamanteDoix, MicropileTube e LateralPileCapacity per il calcolo,
+              risultati nel formato del foglio. ξ3, ξ4 e γR = 1,3 da StandardNTC2018Geotechnics di Model; K, μ e α(cu) dalla
+              libreria; tubi CHS dai cataloghi di ModelData; proprietà del CHS da SectionCHS di Model.
+            - Nuovo LateralPileCapacity.ModelName (modello delle verticali prima del calcolo, usato dall'anteprima dell'interfaccia),
+              con 2 test (stessi nomi della capacità; dati non validi).
+            - Equivalenza (cattura PilesCapture rieseguita sugli adattatori e confrontata con quella congelata): Nq, Bustamante-Doix,
+              pesi e sezioni CHS, pali verticali e orizzontali identici entro 1e-14 relativo, messaggi d'errore compresi. Differenze
+              solo di testo: riferimento "Pacini" (equilibrio implementato nella libreria) e avviso sui fattori ("γR" invece di
+              "γR = 1,3", "verifiche strutturali" invece di "NTC/EC2").
+            - Regola dei terreni di Model applicata ai fogli: γ > 0, γsat ≥ γ dove la falda lo usa, cu > 0 dove serve il calcolo non
+              drenato. I 6 casi di regressione "alfa_*_0" (cu = 0 sotto falda) ora sono errori attesi; nei controlli SaturatedWeight e
+              HorizontalStratified un γsat esplicito minore di γ sotto falda è rifiutato, non sostituito.
+            - Suite ANTHEA: regressione 464 casi (942.254 valori, scarto relativo massimo 2,6e-14), software, micropalo, orizzontale,
+              coesione, γsat, CalculationLibrary, RetainingWall, GlobalStability superate. "bridge" fallisce per modifiche non
+              committate di un'altra sessione su BridgeSection (sullo stato committato con le DLL nuove passa).

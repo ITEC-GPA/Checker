@@ -208,4 +208,55 @@ public class PileOptionsTests
         Assert.AreEqual(16, celsius);
         Assert.IsNotNull(SectionCatalogs.EN10219CircularHollow.Find("CHS 76.1 x 6.3"));
     }
+
+    // ---------------------------------------------------------------- Model of the transverse capacity before the calculation
+
+    private static Soil Clay(double cu) => new("Clay", 18 * KN3, 20 * KN3, 0, 0, "test", undrainedShearStrength: cu * KPa);
+    private static LateralPileSurvey Lateral(double? water, params (Soil Soil, double Thickness, SoilBehaviour Kind)[] layers)
+        => new(Profile(water, layers.Select(l => (l.Soil, l.Thickness)).ToArray()), layers.Select(l => l.Kind));
+
+    [TestMethod]
+    public void TheModelBeforeTheCalculationIsTheOneOfTheCapacity()
+    {
+        var sand = (Sand(30), 20.0, SoilBehaviour.Granular); var dense = (Sand(36), 20.0, SoilBehaviour.Granular); var clay = (Clay(50), 20.0, SoilBehaviour.Cohesive);
+        var cases = new (LateralPileSurvey[] Surveys, LateralPileMethod Method, string Name)[]
+        {
+            (new[] { Lateral(null, sand) }, LateralPileMethod.Broms, "Omogeneo"),
+            (new[] { Lateral(null, (Sand(30), 4.0, SoilBehaviour.Granular), (Sand(30), 16.0, SoilBehaviour.Granular)) }, LateralPileMethod.Broms, "Omogeneo"),
+            (new[] { Lateral(null, (Sand(30), 4.0, SoilBehaviour.Granular), (Sand(36), 16.0, SoilBehaviour.Granular)) }, LateralPileMethod.Broms, "Multistrato sperimentale"),
+            // a water table inside the pile changes the effective weight: not uniform
+            (new[] { Lateral(3, sand) }, LateralPileMethod.Broms, "Multistrato sperimentale"),
+            // one uniform vertical and one layered: the pile is layered
+            (new[] { Lateral(null, sand), Lateral(null, (Sand(30), 4.0, SoilBehaviour.Granular), (Sand(36), 16.0, SoilBehaviour.Granular)) }, LateralPileMethod.Broms, "Multistrato sperimentale"),
+            (new[] { Lateral(null, clay) }, LateralPileMethod.Broms, "Omogeneo"),
+            (new[] { Lateral(null, dense) }, LateralPileMethod.Stratified, "Diagramma stratificato · terreno omogeneo"),
+            (new[] { Lateral(null, (Clay(50), 4.0, SoilBehaviour.Cohesive), (Sand(30), 16.0, SoilBehaviour.Granular)) }, LateralPileMethod.Stratified, "Diagramma stratificato · terreno multistrato")
+        };
+        foreach (var (surveys, method, name) in cases)
+        {
+            Assert.AreEqual(name, LateralPileCapacity.ModelName(surveys, 10000, 600, method), name);
+            var pile = new LateralPile(600, 10000, 0, false, 500e6, "test", method, 100e3);
+            Assert.AreEqual(name, LateralPileCapacity.Calculate(pile, surveys, LateralPileFactors.FromStandard(Ntc, surveys.Length), LateralGroupEfficiency.Manual(1)).ModelName, name + " capacity");
+        }
+    }
+
+    [TestMethod]
+    public void TheModelBeforeTheCalculationChecksTheData()
+    {
+        var mixed = new[] { Lateral(null, (Clay(50), 4.0, SoilBehaviour.Cohesive), (Sand(30), 16.0, SoilBehaviour.Granular)) };
+        Throws(() => LateralPileCapacity.ModelName(mixed, 10000, 600, LateralPileMethod.Broms), "mixed sequence with Broms");
+        Throws(() => LateralPileCapacity.ModelName(new[] { Lateral(null, (Sand(30), 5.0, SoilBehaviour.Granular)) }, 10000, 600, LateralPileMethod.Broms), "layers shorter than the pile");
+        Throws(() => LateralPileCapacity.ModelName(new LateralPileSurvey[0], 10000, 600, LateralPileMethod.Broms), "no vertical");
+        Throws(() => LateralPileCapacity.ModelName(mixed, 0, 600, LateralPileMethod.Stratified), "zero length");
+        Throws(() => LateralPileCapacity.ModelName(mixed, 10000, double.NaN, LateralPileMethod.Stratified), "NaN diameter");
+        Throws(() => LateralPileCapacity.ModelName(mixed, 10000, 600, (LateralPileMethod)7), "unknown method");
+        Throws(() => LateralPileCapacity.ModelName(new[] { Lateral(null, (Clay(50), 20.0, SoilBehaviour.Cohesive)) }, 800, 600, LateralPileMethod.Broms), "clay with L ≤ 1.5 D");
+        Assert.ThrowsException<ArgumentNullException>(() => LateralPileCapacity.ModelName(null!, 10000, 600, LateralPileMethod.Broms));
+    }
+
+    private static void Throws(Action action, string what)
+    {
+        try { action(); } catch (ArgumentException) { return; }
+        Assert.Fail("Accepted: " + what);
+    }
 }

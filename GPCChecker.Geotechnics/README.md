@@ -102,7 +102,7 @@ Nc, terreno e α di Bustamante-Doix.
 | `Piles.BearingCapacityFactors` | Nq (D ≤ 0,80 m) e Nq* (D > 0,80 m), versione NQ-2026-09-09 |
 | `Piles.BustamanteDoix` | Tab. 13.12-13.13 e abachi 13.16-13.19 di Viggiani; tratti iniettati di un micropalo |
 | `Piles.MicropileTube` | Peso del micropalo (acciaio e malta); classe del CHS; momento resistente con interazione N-M lineare |
-| `Piles.LateralPileCapacity` | Capacità trasversale: Broms ed estensione stratificata; diagrammi, diagnostica delle tensioni; verifica con ξ, γR ed efficienza (manuale o Reese e Van Impe) |
+| `Piles.LateralPileCapacity` | Capacità trasversale: Broms ed estensione stratificata; diagrammi, diagnostica delle tensioni; verifica con ξ, γR ed efficienza (manuale o Reese e Van Impe); `ModelName` dà il modello delle verticali prima del calcolo (anteprima dell'interfaccia) |
 | `Piles.AxialPileCapacity` | Portanza verticale di pali e micropali lungo la profondità, con più verticali indagate, curve di progetto, azioni con il peso, efficienza di gruppo (Converse-Labarre, Feld, assegnata) |
 
 **Nq.** Equazioni, non tabelle di valori:
