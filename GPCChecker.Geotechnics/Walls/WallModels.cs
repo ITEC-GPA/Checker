@@ -166,10 +166,13 @@ namespace GPC.Checkers.Geotechnics.Walls
         public double? GroundKh { get; }
         public double? GroundKv { get; }
         public double ModelFactor { get; }
+        /// <summary>γRd also on the soil inertia F̄, as ANTHEA (EN 1998-5 (F.7) has F̄ without γRd: false by default).</summary>
+        public bool ModelFactorOnInertia { get; }
         /// <summary>From the site: the maximum acceleration of the site (amax/g) with av/g = 0.5 ah/g.</summary>
-        public static WallSeismicBearing FromSite(double modelFactor = 1.15) => new WallSeismicBearing(null, null, modelFactor);
-        public static WallSeismicBearing Assigned(double groundKh, double groundKv, double modelFactor = 1.15) => new WallSeismicBearing(groundKh, groundKv, modelFactor);
-        private WallSeismicBearing(double? kh, double? kv, double modelFactor) { GroundKh = kh; GroundKv = kv; ModelFactor = modelFactor; }
+        public static WallSeismicBearing FromSite(double modelFactor = 1.15, bool modelFactorOnInertia = false) => new WallSeismicBearing(null, null, modelFactor, modelFactorOnInertia);
+        public static WallSeismicBearing Assigned(double groundKh, double groundKv, double modelFactor = 1.15, bool modelFactorOnInertia = false)
+            => new WallSeismicBearing(groundKh, groundKv, modelFactor, modelFactorOnInertia);
+        private WallSeismicBearing(double? kh, double? kv, double modelFactor, bool onInertia) { GroundKh = kh; GroundKv = kv; ModelFactor = modelFactor; ModelFactorOnInertia = onInertia; }
     }
 
     /// <summary>

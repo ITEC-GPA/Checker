@@ -256,7 +256,7 @@ public class GeneralGeotechnicsMigrationTests
         foreach (var c in Rows("geotechnics-seismic-bearing.csv").Select(r => r.Split(';')))
         {
             string id = string.Join(" ", c.Take(10));
-            SeismicBearingResult Run() => ShallowFoundationSeismic.Calculate(D(c[0]) * M, D(c[1]) * KN3, D(c[2]) * Deg, D(c[3]), D(c[4]), D(c[5]) * M, D(c[6]), D(c[7]), D(c[8]), D(c[9]));
+            SeismicBearingResult Run() => ShallowFoundationSeismic.Calculate(D(c[0]) * M, D(c[1]) * KN3, D(c[2]) * Deg, D(c[3]), D(c[4]), D(c[5]) * M, D(c[6]), D(c[7]), D(c[8]), D(c[9]), modelFactorOnInertia: true);
             if (c[10].StartsWith("error")) { Assert.ThrowsException<ArgumentException>(Run, id); errors++; continue; }
             var r = Run();
             Close(D(c[11]), r.Capacity, id + " capacity", 1e-9, 1e-9);

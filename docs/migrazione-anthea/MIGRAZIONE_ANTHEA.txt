@@ -352,3 +352,11 @@ REGISTRO
             - Restano per W2-W4: verifiche strutturali (gravità, c.a. con Concrete), esercizio (cedimenti, spostamenti,
               Newmark), stabilità globale del muro, dettagli delle armature. DesignReinforcement e SectionExport restano in
               ANTHEA (progetto e interfaccia).
+2026-10-02  Riscontro delle fonti rimaste aperte in G e F:
+            - Viggiani, Fondazioni, Tab. 13.2 (K e μ per tipo di palo) e 13.3 (α(cu)): uguali ad ANTHEA, salvo 1 − 0,011 (cu − 25)
+              dei pali battuti, che ANTHEA scrive 0,0111 (continuo a 70 kPa, ≤ 0,9% a favore di sicurezza): mantenuto.
+            - EN 1998-5:2004 Annesso F (copia pubblica del testo, SHA256 1E6A080A…F2B8): (F.1)-(F.8) e Tab. F.1 coincidono; la
+              (F.7) non ha γRd in F̄, che ANTHEA moltiplicava per γRd. Correzione esplicita: per difetto la libreria segue la
+              norma, l'opzione modelFactorOnInertia (ShallowFoundationSeismic, WallSeismicBearing) riproduce ANTHEA; le fixture
+              G e W la usano. Effetto, esempio 4 dei muri: η della portanza sismica 0,760 (EN) invece di 0,791 (ANTHEA).
+              Tab. F.2 di γRd: 1,00 sabbia mediamente densa/densa, 1,15 sciolta asciutta, 1,50 sciolta satura, 1,00/1,15 argille.

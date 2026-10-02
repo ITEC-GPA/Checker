@@ -300,7 +300,7 @@ namespace GPC.Checkers.Geotechnics.Walls
                     kh = b.GroundKh.Value; vertical = b.GroundKv!.Value;
                 }
                 if (!(b.ModelFactor >= 1 && b.ModelFactor <= 2)) throw new ArgumentException("model_factor: inserire un valore finito fra 1 e 2.");
-                return ShallowFoundationSeismic.Calculate(width, gamma, phi, n, v, n * eccentricity, kh, vertical * (kv < 0 ? -1 : 1), b.ModelFactor, r);
+                return ShallowFoundationSeismic.Calculate(width, gamma, phi, n, v, n * eccentricity, kh, vertical * (kv < 0 ? -1 : 1), b.ModelFactor, r, b.ModelFactorOnInertia);
             }
             catch (ArgumentException ex) { error = ex.Message; return null; }
         }

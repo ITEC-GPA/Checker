@@ -62,8 +62,10 @@ fondazioni, pali e micropali, spinte ed equilibrio dei muri. Organizzazione deci
   `SoilProfile` di Model; un Eoed mancante è un dato mancante, mai un valore assunto.
 - **Newmark.** Blocco rigido in una sola direzione, con g = 9,81 m/s² come nel legacy. All'arresto la velocità è posta
   a zero: nel legacy restava un residuo di ±1e-17 che poteva aggiungere un punto finale fittizio.
-- **Annesso F.** Coefficienti dei terreni incoerenti. Nmax = ½ γ (1 − kv) B² Nγ con Nγ = 2 (Nq − 1) tan φ'. γRd
-  moltiplica anche F̄. Un γR nazionale aggiuntivo è esplicito.
+- **Annesso F.** Coefficienti dei terreni incoerenti. Nmax = ½ γ (1 − kv) B² Nγ con Nγ = 2 (Nq − 1) tan φ'. Verificato
+  sul testo di EN 1998-5:2004 (F.1-F.8, Tab. F.1, Tab. F.2 di γRd): la (F.7) dà F̄ = ag S/(g tan φ'd) senza γRd, che
+  ANTHEA applicava anche a F̄. Per difetto la libreria segue la norma; `modelFactorOnInertia: true` riproduce ANTHEA (più
+  cautelativo per γRd > 1). Un γR nazionale aggiuntivo è esplicito.
 - **Unità.** Le forze per unità di lunghezza hanno lo stesso valore numerico (1 kN/m = 1 N/mm). Le tolleranze
   geometriche del legacy, in metri, sono riportate in mm.
 - **Differenza intenzionale.** I cerchi della griglia costruiti esattamente ai limiti di profondità non vengono più
@@ -141,7 +143,9 @@ L'estensione stratificata con reazioni distribuite (G. Pacini) è un modello spe
 - Base: A σ'v Nq; nei coesivi sotto falda in condizioni non drenate A (Nc cu + σv).
 - Micropali: fusto di Bustamante-Doix lungo l'asse, quota di punta 0-15%.
 - Curve di progetto: min(media/ξ3; minimo/ξ4) con γb, γs, γst ed ηg.
-- Da riscontrare (fonte non disponibile): la tabella K-μ per tipo di palo e la legge α(cu).
+- K e μ per tipo di palo e α(cu): Viggiani, Fondazioni, Tab. 13.2 e 13.3, verificate sulla scansione. Unica differenza:
+  per i pali battuti il libro stampa α = 1 − 0,011 (cu − 25), ANTHEA 0,0111 (continuo a 70 kPa, al più 0,9% più basso, a
+  favore di sicurezza), mantenuto.
 
 **Tab. 6.4.II NTC.** I coefficienti dei pali dipendono dall'esecuzione: γb vale 1,15 per i pali infissi, 1,35 per i
 trivellati e 1,30 per quelli a elica continua. `StandardNTC2018Geotechnics.PileExecution` li seleziona; il valore

@@ -101,12 +101,15 @@ public class WallExamplesTests
             Close(EarthPressure.ActiveHorizontal(32 * Deg, 0, c.Combination.Kh, c.Combination.Kv), c.PressureDetails[0].Ke, "Ke", 1e-14);
             Assert.IsTrue(theta < 32 * Deg);
             Assert.IsNotNull(c.SeismicBearing, "Annex F with the ground acceleration amax/g");
-            Close(.22125, c.SeismicBearing!.SoilInertia / (1.15 / Math.Tan(34 * Deg)), "F̄ = γRd amax/g / tan φ", 1e-12);
+            Close(.22125, c.SeismicBearing!.SoilInertia * Math.Tan(34 * Deg), "F̄ = amax/g / tan φ (EN 1998-5 F.7)", 1e-12);
         }
         var worst = Worst(r, WallCheckKind.Bearing);
         TestContext.WriteLine($"Es.4: Ss={site.Ss:0.000} amax/g={site.AmaxG:0.0000} kh={seismic.Kh:0.0000} kv=±{seismic.Kv:0.0000}; Ke/K={general[0].PressureDetails[0].Ke / general[0].PressureDetails[0].K:0.000}; " +
             $"portanza sismica η={worst.Ratio:0.000} ({worst.Combination}); ribaltamento SLV η={Worst(r, WallCheckKind.Overturning).Ratio:0.000}");
-        Close(.79114, worst.Ratio!.Value, "reported", 1e-4);
+        Close(.76031, worst.Ratio!.Value, "reported (EN 1998-5, F̄ without γRd)", 1e-4);
+        // With γRd = 1.15 also on F̄, as ANTHEA: more conservative.
+        var legacy = Cantilever(seismic: WallSeismic.FromSite(WallSeismicMethod.MononobeOkabe, site, WallSeismicBearing.FromSite(1.15, true)));
+        Close(.79114, Worst(RetainingWallAnalysis.Calculate(legacy, WallCombinations.Generate(legacy)), WallCheckKind.Bearing).Ratio!.Value, "reported (ANTHEA)", 1e-4);
     }
 
     [TestMethod]

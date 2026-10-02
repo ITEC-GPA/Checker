@@ -210,7 +210,12 @@ public class FoundationSeismicEdgeCaseTests
         // A tiny vertical load with a horizontal force fails as well: the domain closes at N̄ → 0.
         Assert.AreEqual(SeismicBearingStatus.NotSatisfied, ShallowFoundationSeismic.Calculate(b, gamma, phi, .5, 60, 0, .1, 0, 1, 1).Status);
         // γRd multiplies F̄; when 1 − 0.96 F̄ ≤ 0 the soil can no longer carry its own inertia.
-        Close(1.15 * .1 / Math.Tan(phi), ShallowFoundationSeismic.Calculate(b, gamma, phi, 500, 60, 0, .1, 0, 1.15, 1).SoilInertia, "γRd F̄", 1e-12);
+        // EN 1998-5 (F.7): F̄ = ag S/(g tan φ'd) without γRd; ANTHEA multiplied it by γRd (option kept for the legacy results).
+        Close(.1 / Math.Tan(phi), ShallowFoundationSeismic.Calculate(b, gamma, phi, 500, 60, 0, .1, 0, 1.15, 1).SoilInertia, "F̄ of EN", 1e-12);
+        Close(1.15 * .1 / Math.Tan(phi), ShallowFoundationSeismic.Calculate(b, gamma, phi, 500, 60, 0, .1, 0, 1.15, 1, modelFactorOnInertia: true).SoilInertia, "γRd F̄ of ANTHEA", 1e-12);
+        Assert.IsTrue(ShallowFoundationSeismic.Calculate(b, gamma, phi, 500, 60, 0, .1, 0, 1.15, 1).Capacity > ShallowFoundationSeismic.Calculate(b, gamma, phi, 500, 60, 0, .1, 0, 1.15, 1, true).Capacity,
+            "the legacy option is more conservative");
+        Assert.AreEqual(ShallowFoundationSeismic.Calculate(b, gamma, phi, 500, 60, 0, .1, 0, 1, 1).Capacity, ShallowFoundationSeismic.Calculate(b, gamma, phi, 500, 60, 0, .1, 0, 1, 1, true).Capacity, "same with γRd = 1");
         double kh = Math.Tan(phi) / .96;
         var exhausted = ShallowFoundationSeismic.Calculate(b, gamma, phi, 500, 60, 0, kh * 1.0001, 0, 1, 1);
         Assert.AreEqual(SeismicBearingStatus.DomainExhausted, exhausted.Status); Assert.AreEqual(0, exhausted.Capacity); Assert.IsNull(exhausted.Ratio); Assert.IsNull(exhausted.Interaction);

@@ -33,7 +33,8 @@ namespace GPC.Checkers.Geotechnics.Foundations
     /// Seismic bearing capacity of a strip footing on dry cohesionless soil, EN 1998-5:2004 Annex F with the coefficients of purely cohesionless
     /// soils (a = c = 0.92, b = d = 1.25, e = 0.41, f = 0.32, m = 0.96, k = 1, k' = 0.39, cT = 1.14, cM = c'M = 1.01, β = 2.90, γ = 2.80) and
     /// Nmax = ½ ρ g (1 ∓ av/g) B² Nγ. The capacity is searched along the ray of the design loads N, V, M; the eccentricity is already in M, so no
-    /// effective width or inclination factors are applied again. Transferred from ANTHEA (Anthea.Calculations.Geotechnics.ShallowFoundationSeismic,
+    /// effective width or inclination factors are applied again. Checked on the text of EN 1998-5:2004 Annex F (F.1-F.8, Tab. F.1); the soil inertia
+    /// F̄ of (F.7) has no γRd, which ANTHEA applied also to it (option <c>modelFactorOnInertia</c>). Transferred from ANTHEA (Anthea.Calculations.Geotechnics.ShallowFoundationSeismic,
     /// commit fe4652c). Units per unit length: mm, N/mm³, rad, N/mm, N·mm/mm.
     /// </summary>
     public static class ShallowFoundationSeismic
@@ -48,8 +49,12 @@ namespace GPC.Checkers.Geotechnics.Foundations
         /// <param name="groundKv">Vertical acceleration ratio, |kv| &lt; 1.</param>
         /// <param name="modelFactor">γRd ≥ 1.</param>
         /// <param name="resistanceFactor">Additional resistance factor of the national approach (for example NTC γR), ≥ 1.</param>
+        /// <param name="modelFactorOnInertia">
+        /// False (EN 1998-5 (F.7)): F̄ = ag S/(g tan φ'd), γRd only on N̄, V̄, M̄ (F.2). True: F̄ also multiplied by γRd, as ANTHEA (more conservative
+        /// for γRd &gt; 1; kept to reproduce the legacy results).
+        /// </param>
         public static SeismicBearingResult Calculate(double width, double unitWeight, double frictionAngle, double axial, double shear, double moment,
-            double groundKh, double groundKv, double modelFactor, double resistanceFactor)
+            double groundKh, double groundKv, double modelFactor, double resistanceFactor, bool modelFactorOnInertia = false)
         {
             if (new[] { width, unitWeight, frictionAngle, axial, shear, moment, groundKh, groundKv, modelFactor, resistanceFactor }.Any(x => double.IsNaN(x) || double.IsInfinity(x))
                 || width <= 0 || unitWeight <= 0 || frictionAngle <= 0 || frictionAngle > 45 * SoilUnits.Degree || axial <= 0 || groundKh < 0 || Math.Abs(groundKv) >= 1
@@ -59,7 +64,7 @@ namespace GPC.Checkers.Geotechnics.Foundations
             double nq = Math.Exp(Math.PI * tan) * Math.Pow(Math.Tan(Math.PI / 4 + frictionAngle / 2), 2);
             double ng = 2 * (nq - 1) * tan;
             double nmax = .5 * unitWeight * (1 - groundKv) * width * width * ng;
-            double f = modelFactor * groundKh / tan;
+            double f = (modelFactorOnInertia ? modelFactor : 1) * groundKh / tan;
             double cap = 1 - .96 * f;
             double factor = modelFactor * resistanceFactor / nmax;
             double nn = axial * factor, vv = Math.Abs(shear) * factor, mm = Math.Abs(moment) * factor / width;

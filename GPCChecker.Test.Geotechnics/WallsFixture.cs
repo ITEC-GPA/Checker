@@ -16,6 +16,8 @@ namespace GeotechnicsTests;
 internal static class WallsFixture
 {
     public const double KNm = 1000; // 1 kNm/m = 1000 N·mm/mm
+    /// <summary>The adapter of the legacy documents keeps γRd on the soil inertia of Annex F, as ANTHEA (see ShallowFoundationSeismic).</summary>
+    public const bool LegacyInertia = true;
 
     public static IEnumerable<JsonObject> GzipLines(string file)
     {
@@ -149,8 +151,8 @@ internal static class WallsFixture
             var method = Str(sd["method"]) switch { "" or "Mononobe–Okabe" => WallSeismicMethod.MononobeOkabe, "Wood semplificato" => WallSeismicMethod.Wood, _ => throw new ArgumentException("Metodo sismico non riconosciuto.") };
             var b = d["bearing_seismic"];
             // ANTHEA completes the missing keys: source from the site, model factor 1.15.
-            var bearing = b == null || Str(b["source"]) is "" or "Da sito" ? WallSeismicBearing.FromSite(Num(b?["model_factor"]) ?? 1.15)
-                : Str(b["source"]) == "Assegnata" ? WallSeismicBearing.Assigned(Num(b["ground_kh"]) ?? double.NaN, Num(b["ground_kv"]) ?? double.NaN, Num(b["model_factor"]) ?? 1.15)
+            var bearing = b == null || Str(b["source"]) is "" or "Da sito" ? WallSeismicBearing.FromSite(Num(b?["model_factor"]) ?? 1.15, LegacyInertia)
+                : Str(b["source"]) == "Assegnata" ? WallSeismicBearing.Assigned(Num(b["ground_kh"]) ?? double.NaN, Num(b["ground_kv"]) ?? double.NaN, Num(b["model_factor"]) ?? 1.15, LegacyInertia)
                 : throw new ArgumentException("Selezionare l’origine dell’accelerazione per la portanza sismica.");
             string source = Str(sd["source"]);
             seismic = source is "" or "kh e kv assegnati" ? WallSeismic.Assigned(method, D(sd, "kh"), D(sd, "kv"), bearing)

@@ -16,7 +16,10 @@ namespace GPC.Checkers.Geotechnics.Piles
     /// </summary>
     public static class AxialPileCapacity
     {
-        /// <summary>K for loose and dense soil and the rule of μ, by installation (ANTHEA table).</summary>
+        /// <summary>
+        /// K for loose and dense soil and the rule of μ, by installation: C. Viggiani, Fondazioni, Tab. 13.2 (checked on the scan; bored piles 0.5
+        /// loose and 0.4 dense as printed).
+        /// </summary>
         public static (double Loose, double Dense, string Mu) ShaftCoefficients(PileInstallation installation)
         {
             switch (installation)
@@ -42,7 +45,8 @@ namespace GPC.Checkers.Geotechnics.Piles
 
         /// <summary>
         /// Adhesion factor α of the undrained shaft (cu in MPa, the rule in kPa): driven piles 1 up to 25 kPa, 1 − 0.0111 (cu − 25) up to 70 kPa, then 0.5;
-        /// other piles 0.7, 0.7 − 0.008 (cu − 25), 0.35.
+        /// other piles 0.7, 0.7 − 0.008 (cu − 25), 0.35. Viggiani, Fondazioni, Tab. 13.3 (checked on the scan) prints 0.011 for the driven piles:
+        /// ANTHEA uses 0.0111, continuous at 70 kPa (0.5005 instead of 0.505), lower by at most 0.9% (safe side), kept.
         /// </summary>
         public static double Alpha(PileInstallation installation, double undrainedShearStrength)
         {
