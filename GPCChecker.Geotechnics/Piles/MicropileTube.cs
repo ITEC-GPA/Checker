@@ -1,3 +1,4 @@
+using GPC.Model.Geotechnics;
 using GPC.Model.Materials;
 using GPC.Model.Sections;
 using GPC.Model.Standards;
@@ -35,19 +36,22 @@ namespace GPC.Checkers.Geotechnics.Piles
     }
 
     /// <summary>
-    /// The steel tube (CHS) of a micropile: a Model <see cref="SectionCHS"/> (from the ModelData catalogues EN 10210-2/EN 10219-2 or by D and t), the
-    /// Model steel and the γM0 of the Model steel standard. Transferred from ANTHEA (Chs.Peso, GeometriaMicropalo.Coseno, MicropaloOrizzontale,
+    /// The steel tube (CHS) of a micropile: a Model <see cref="SectionCHS"/> (from the ModelData catalogues EN 10210-2, Celsius EN 10210 and
+    /// EN 10219-2, or by D and t), the Model steel (density and fyk) and the γM0 of the Model steel standard. Transferred from ANTHEA (Chs.Peso, GeometriaMicropalo.Coseno, MicropaloOrizzontale,
     /// commit fe4652c).
     /// </summary>
     public static class MicropileTube
     {
-        /// <summary>Unit weight of the steel as the legacy calculation, 7850 kg/m³ · 9.81 m/s², N/mm³ (the density of the Model materials has no defined unit).</summary>
-        public const double SteelUnitWeight = 7850 * 9.81 * 1e-9;
-
-        /// <summary>Weight per unit length: steel tube and grout filling the borehole of diameter D (mm); the tube must be smaller than the borehole.</summary>
-        public static MicropileWeight Weight(SectionCHS tube, double drillDiameter, double groutUnitWeight, double steelUnitWeight = SteelUnitWeight)
+        /// <summary>
+        /// Weight per unit length: steel tube and grout filling the borehole of diameter D (mm); the tube must be smaller than the borehole. The unit
+        /// weight of the steel is the one of the Model material, ρ (t/mm³) · <see cref="SoilUnits.Gravity"/> (7850 kg/m³ · 9.81 m/s² for the steels of
+        /// Model, as the legacy calculation); grout γ in N/mm³.
+        /// </summary>
+        public static MicropileWeight Weight(SectionCHS tube, Material material, double drillDiameter, double groutUnitWeight)
         {
             if (tube == null) throw new ArgumentNullException(nameof(tube));
+            if (material == null) throw new ArgumentNullException(nameof(material));
+            double steelUnitWeight = material.GetUnitWeight(SoilUnits.Gravity);
             if (!Positive(drillDiameter)) throw new ArgumentException("Invalid drilling diameter.");
             if (!Positive(groutUnitWeight) || !Positive(steelUnitWeight)) throw new ArgumentException("Invalid unit weight of the grout or of the steel.");
             if (tube.Diameter >= drillDiameter) throw new ArgumentException("The outer diameter of the CHS must be smaller than the drilling diameter.");

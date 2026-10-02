@@ -1,4 +1,5 @@
 using GPC.Model.Geotechnics;
+using GPC.Model.Materials;
 using GPC.Model.Sections;
 
 namespace GPC.Checkers.Geotechnics.Piles
@@ -54,7 +55,8 @@ namespace GPC.Checkers.Geotechnics.Piles
 
     /// <summary>
     /// Pile for the axial capacity: installation, diameter and length (mm), unit weight of the pile (N/mm³; 25 kN/m³ as ANTHEA), buoyancy below the
-    /// water table, design actions in compression and tension at the head (N; null when not given).
+    /// water table, design actions in compression and tension at the head (N; null when not given) and the friction angle of the base factor Nq
+    /// (the one of the layer as ANTHEA, or reduced by Kishida: see <see cref="BearingCapacityFactors.Kishida"/> for the rule of the installation).
     /// </summary>
     public sealed class AxialPile
     {
@@ -65,17 +67,20 @@ namespace GPC.Checkers.Geotechnics.Piles
         public bool Buoyancy { get; }
         public double? CompressionAction { get; }
         public double? TensionAction { get; }
+        public NqFrictionAngle BaseFrictionAngle { get; }
         public AxialPile(PileInstallation installation, double diameter, double length, double unitWeight = 25 * SoilUnits.KiloNewtonPerCubicMetre, bool buoyancy = false,
-            double? compressionAction = null, double? tensionAction = null)
+            double? compressionAction = null, double? tensionAction = null, NqFrictionAngle baseFrictionAngle = NqFrictionAngle.Layer)
         {
             Installation = installation; Diameter = diameter; Length = length; UnitWeight = unitWeight; Buoyancy = buoyancy; CompressionAction = compressionAction; TensionAction = tensionAction;
+            BaseFrictionAngle = Enum.IsDefined(typeof(NqFrictionAngle), baseFrictionAngle) ? baseFrictionAngle : throw new ArgumentOutOfRangeException(nameof(baseFrictionAngle));
         }
     }
 
     /// <summary>
     /// Grouted micropile (Bustamante-Doix): drilling diameter D and length along the axis (mm), inclination θ from the vertical (rad), injection and
     /// pressure (MPa, taken as pl), start of the grouted length along the axis (mm), base share of the shaft resistance (0-15%, null = no base), the
-    /// Model <see cref="SectionCHS"/> of the tube, unit weight of the grout (N/mm³) and the design actions along the axis (N).
+    /// Model <see cref="SectionCHS"/> of the tube and its Model material (density for the weight), unit weight of the grout (N/mm³) and the design
+    /// actions along the axis (N).
     /// </summary>
     public sealed class Micropile
     {
@@ -87,14 +92,16 @@ namespace GPC.Checkers.Geotechnics.Piles
         public double GroutStart { get; }
         public double? BaseShare { get; }
         public SectionCHS Tube { get; }
+        public Material TubeMaterial { get; }
         public double GroutUnitWeight { get; }
         public double? CompressionAction { get; }
         public double? TensionAction { get; }
         public Micropile(double diameter, double length, double inclination, MicropileInjection injection, double pressure, double groutStart, double? baseShare, SectionCHS tube,
-            double groutUnitWeight = 25 * SoilUnits.KiloNewtonPerCubicMetre, double? compressionAction = null, double? tensionAction = null)
+            Material tubeMaterial, double groutUnitWeight = 25 * SoilUnits.KiloNewtonPerCubicMetre, double? compressionAction = null, double? tensionAction = null)
         {
             Diameter = diameter; Length = length; Inclination = inclination; Injection = injection; Pressure = pressure; GroutStart = groutStart; BaseShare = baseShare;
-            Tube = tube ?? throw new ArgumentNullException(nameof(tube)); GroutUnitWeight = groutUnitWeight; CompressionAction = compressionAction; TensionAction = tensionAction;
+            Tube = tube ?? throw new ArgumentNullException(nameof(tube)); TubeMaterial = tubeMaterial ?? throw new ArgumentNullException(nameof(tubeMaterial));
+            GroutUnitWeight = groutUnitWeight; CompressionAction = compressionAction; TensionAction = tensionAction;
         }
     }
 

@@ -8,7 +8,8 @@ namespace GPC.Checkers.Geotechnics.Piles
     /// adapter. Units: mm, N, MPa, N/mm³.
     /// <para>
     /// Piles: shaft τ = c' + K μ σ'v,mean (drained; K by installation and density, μ = tan 20°, tan(3φ'/4) or tan φ'), undrained τ = α(cu) cu below
-    /// the water table and the drained τ above it; base A σ'v Nq (Nq of <see cref="BearingCapacityFactors"/> with z/D) and, undrained below the water
+    /// the water table and the drained τ above it; base A σ'v Nq (Nq of <see cref="BearingCapacityFactors"/> with z/D and φ' of the layer or reduced by
+    /// Kishida, <see cref="AxialPile.BaseFrictionAngle"/>; the shaft keeps the φ' of the layer) and, undrained below the water
     /// table, A (Nc cu + σv). Micropiles: Bustamante-Doix shaft along the axis and a base share of 0-15%. Design curves: mean/ξ3 and minimum/ξ4 of
     /// the verticals with γb, γs (γst in tension) and the group efficiency; actions with the factored weight of the pile.
     /// </para>
@@ -128,7 +129,7 @@ namespace GPC.Checkers.Geotechnics.Piles
                     if (bottom >= z) break;
                 }
                 double phi = tip.Soil.FrictionAngle;
-                var nq = z > 0 ? BearingCapacityFactors.Nq(phi, z / d, d > BearingCapacityFactors.LargeDiameter) : null;
+                var nq = z > 0 ? BearingCapacityFactors.Nq(phi, z / d, d > BearingCapacityFactors.LargeDiameter, pile.BaseFrictionAngle) : null;
                 double bd = area * effective * (nq?.Nq ?? 0), bu = bd; double? nc = null;
                 if (tip.Layer.Behaviour == SoilBehaviour.Cohesive)
                 {
@@ -150,7 +151,13 @@ namespace GPC.Checkers.Geotechnics.Piles
             var result = Assemble(depths, z => strata.Select(s => Resistances(s, z)).ToArray(), Weight, new[] { AxialCondition.Drained, AxialCondition.Undrained },
                 (s, c) => c == AxialCondition.Drained ? (s.DrainedShaft, s.DrainedBase) : (s.UndrainedShaft, s.UndrainedBase), false, 0, pile.CompressionAction, pile.TensionAction, factors, efficiency);
             warnings.Add("Ipotesi progettuale 2026-09-15: nella verifica non drenata la porzione sopra falda è drenata; senza falda le due verifiche coincidono.");
-            warnings.Add("Nq: Parametrizzata " + BearingCapacityFactors.Version + "; " + (d > BearingCapacityFactors.LargeDiameter ? "Nq* per D > 0,80 m." : "Nq per D ≤ 0,80 m.") + " φ non ridotto.");
+            string rule = pile.BaseFrictionAngle == NqFrictionAngle.Layer ? " φ non ridotto."
+                : pile.BaseFrictionAngle == NqFrictionAngle.KishidaDriven ? " φ' alla punta ridotto secondo Kishida (1967) per pali battuti: φ' = (φ'1 + 40°)/2 (Viggiani, Fondazioni, §13.1.2)."
+                : " φ' alla punta ridotto secondo Kishida (1967) per pali trivellati: φ' = φ'1 − 3° (Viggiani, Fondazioni, §13.1.2).";
+            warnings.Add("Nq: Parametrizzata " + BearingCapacityFactors.Version + "; " + (d > BearingCapacityFactors.LargeDiameter ? "Nq* per D > 0,80 m." : "Nq per D ≤ 0,80 m.") + rule);
+            if (pile.BaseFrictionAngle != NqFrictionAngle.Layer && pile.BaseFrictionAngle != BearingCapacityFactors.Kishida(pileInstallation))
+                warnings.Add("ATTENZIONE Nq: la regola di Kishida scelta (" + (pile.BaseFrictionAngle == NqFrictionAngle.KishidaDriven ? "pali battuti" : "pali trivellati") +
+                    ") non corrisponde alla tecnologia del palo.");
             var traces = result.Depths.SelectMany(x => x.Surveys).Select(s => s.Nq).Where(n => n != null).ToArray();
             if (traces.Any(t => t!.FrictionAngleClipped)) warnings.Add("ATTENZIONE Nq: φ fuori dal tratto visibile di almeno una curva; adottato il bordo. Vedere le φ adottate nel dettaglio export.");
             if (traces.Any(t => t!.SlendernessClipped)) warnings.Add("ATTENZIONE Nq: alcune quote hanno z/D fuori dall'intervallo " + (d > BearingCapacityFactors.LargeDiameter ? "4–32" : "5–50") + "; adottata la curva di bordo, senza estrapolare.");
@@ -170,7 +177,7 @@ namespace GPC.Checkers.Geotechnics.Piles
             if (!Positive(d) || !Positive(l)) throw new ArgumentException("Micropile: positive diameter and length are required.");
             if (!Positive(pile.Pressure)) throw new ArgumentException("Micropile: positive injection pressure is required.");
             if (!Finite(pile.CompressionAction) || !Finite(pile.TensionAction)) throw new ArgumentException("Micropile: finite actions are required.");
-            var weight = MicropileTube.Weight(pile.Tube, d, pile.GroutUnitWeight);
+            var weight = MicropileTube.Weight(pile.Tube, pile.TubeMaterial, d, pile.GroutUnitWeight);
             if (double.IsNaN(sb) || double.IsInfinity(sb) || sb < 0) throw new ArgumentException("Invalid start of the grouted length.");
             if (sb >= l) throw new ArgumentException("The grouted length must start before the tip.");
             if (double.IsNaN(pct) || pct < 0 || pct > 15) throw new ArgumentException("The base contribution must lie between 0% and 15% of the shaft resistance.");

@@ -313,3 +313,23 @@ REGISTRO
               SectionCHS(D, t).
             - Il peso dell'acciaio usa 7850 kg/m³ esplicito: la densità dei materiali di Model ha unità non definita
               (predefinito 0,00785).
+2026-10-02  F, integrazioni chieste dall'utente:
+            - φ ridotto per Nq (opzione NqFrictionAngle, predefinito φ dello strato come ANTHEA): Kishida (1967) da
+              Viggiani, Fondazioni, §13.1.2 p. 376, verificato sulla scansione: battuti φ' = (φ'1 + 40°)/2, trivellati
+              φ' = φ'1 − 3° (elica continua tra i trivellati, Viggiani §12.3.4). Solo la punta; il fusto resta con φ'1.
+              AxialPile.BaseFrictionAngle, avviso se la regola non è quella della tecnologia. Le curve dei pali medi
+              coincidono con la fig. 13.6 di Viggiani (Berezantzev et al., 1961).
+            - Tubolari: nuovo catalogo ModelData EN10210_CircularHollowCelsius (Tata Steel, foglio delle proprietà
+              Celsius CHS del 01/07/2020 e brochure Celsius, 175 profili: 89 anche nelle tabelle della norma, 86 del
+              produttore, di cui 7 della sola brochure con proprietà calcolate). Tutti i 64 tubi di ANTHEA sono in
+              ModelData: 48 in EN10210_CircularHollow, 16 nel Celsius (i 15 mancanti e 76.1 x 6.3, prima solo a freddo).
+            - Densità uniformata in Model: t/mm³ (massa delle unità di Model su mm³), costanti SteelDensity 7,85e-9,
+              ConcreteDensity 2,5e-9, AluminiumDensity 2,7e-9, Material.GetUnitWeight(g); SoilUnits.Gravity 9810 mm/s².
+              Materiale versione 5: i file precedenti con densità > 1e-6 (i vecchi predefiniti in g/mm³) sono convertiti.
+              Corretti i costruttori da tabelle di acciaio, alluminio e FRP che scambiavano densità e dilatazione
+              termica, e quello di AluminiumMaterialEN1999 che scambiava Poisson e spessore massimo.
+            - MicropileTube.Weight e Micropile prendono il materiale del tubo: peso = ρ · 9810 · A, uguale al legacy
+              (7850 · 9,81) per gli acciai di Model; tutte le fixture restano riprodotte.
+            - Bustamante-Doix resta in Checker (tabelle e abachi come dati del metodo, terreni di Model); i tubi
+              commerciali sono quelli di EN 10210/10219 (Fondazione Promozione Acciaio, Micropali 2020: dalle NTC 2008
+              non più i tubi petroliferi UNI EN ISO 11960), ora completi in ModelData.

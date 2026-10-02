@@ -10,6 +10,11 @@ namespace GPC.Checkers.Geotechnics.Piles
     {
         /// <summary>"Nq" for diameters up to 0.80 m, "Nq*" above.</summary>
         public string Factor { get; }
+        /// <summary>Rule of the friction angle of the base factor.</summary>
+        public NqFrictionAngle Rule { get; }
+        /// <summary>Friction angle φ'1 of the layer (undisturbed soil), degrees.</summary>
+        public double SoilFrictionAngleDegrees { get; }
+        /// <summary>Friction angle φ' of the base factor (the one of the layer or reduced by <see cref="Rule"/>), degrees, before the clipping to the curves.</summary>
         public double FrictionAngleDegrees { get; }
         public double Slenderness { get; }
         public double AdoptedSlenderness { get; }
@@ -25,12 +30,19 @@ namespace GPC.Checkers.Geotechnics.Piles
         public bool FrictionAngleClipped { get; }
         /// <summary>z/D outside the curves: the border curve is used (warning, no extrapolation).</summary>
         public bool SlendernessClipped { get; }
-        internal NqResult(string factor, double phi, double ratio, double adopted, double r1, double r2, double p1, double p2, double n1, double n2, double t, double nq, bool phiClipped, bool ratioClipped)
+        internal NqResult(string factor, NqFrictionAngle rule, double soilPhi, double phi, double ratio, double adopted, double r1, double r2, double p1, double p2, double n1, double n2,
+            double t, double nq, bool phiClipped, bool ratioClipped)
         {
-            Factor = factor; FrictionAngleDegrees = phi; Slenderness = ratio; AdoptedSlenderness = adopted; Ratio1 = r1; Ratio2 = r2; FrictionAngle1 = p1; FrictionAngle2 = p2;
-            Value1 = n1; Value2 = n2; Weight = t; Nq = nq; FrictionAngleClipped = phiClipped; SlendernessClipped = ratioClipped;
+            Factor = factor; Rule = rule; SoilFrictionAngleDegrees = soilPhi; FrictionAngleDegrees = phi; Slenderness = ratio; AdoptedSlenderness = adopted; Ratio1 = r1; Ratio2 = r2;
+            FrictionAngle1 = p1; FrictionAngle2 = p2; Value1 = n1; Value2 = n2; Weight = t; Nq = nq; FrictionAngleClipped = phiClipped; SlendernessClipped = ratioClipped;
         }
     }
+
+    /// <summary>
+    /// Friction angle of the base factor: the one φ'1 of the layer (undisturbed soil, as ANTHEA) or the one suggested by Kishida (1967) for the
+    /// effect of the installation (C. Viggiani, Fondazioni, §13.1.2 p. 376): driven piles φ' = (φ'1 + 40°)/2, bored piles φ' = φ'1 − 3°.
+    /// </summary>
+    public enum NqFrictionAngle { Layer, KishidaDriven, KishidaBored }
 
     /// <summary>
     /// Base bearing factors Nq (D ≤ 0.80 m) and Nq* (D &gt; 0.80 m) of the curves given by the user on 09/09/2026, parametrised version
@@ -38,7 +50,8 @@ namespace GPC.Checkers.Geotechnics.Piles
     /// Equations, not tables: up to 0.80 m Nq = 10^(1 + (φ − φ10)/(φ100 − φ10)) with the anchors φ10, φ100 given by the user for L/D = 5, 10, 20, 50
     /// (straight lines of the semi-logarithmic figure); above 0.80 m piecewise cubics in u = φ − 34°, C2 at 34° and 38°, fitted to the figure for
     /// L/D = 4 and 32. Between the curves the ratio z/D is interpolated logarithmically (geometric on Nq, arithmetic on Nq*); outside the visible
-    /// ranges the border is used. φ is not reduced.
+    /// ranges the border is used. φ is the one of the layer, or reduced for the installation by the option <see cref="NqFrictionAngle"/> (Kishida).
+    /// The medium curves are the ones of Berezantzev et al. (1961), as in Viggiani, Fondazioni, fig. 13.6.
     /// </summary>
     public static class BearingCapacityFactors
     {
@@ -63,15 +76,45 @@ namespace GPC.Checkers.Geotechnics.Piles
             return ((c[3] * u + c[2]) * u + c[1]) * u + c[0] + c[4] * Math.Pow(Math.Max(u, 0), 3) + c[5] * Math.Pow(Math.Max(u - 4, 0), 3);
         }
 
+        /// <summary>The rule of Kishida for the installation: driven piles (steel, precast or cast in place) or bored piles (also continuous flight auger).</summary>
+        public static NqFrictionAngle Kishida(PileInstallation installation)
+        {
+            switch (installation)
+            {
+                case PileInstallation.Bored: case PileInstallation.ContinuousFlightAuger: return NqFrictionAngle.KishidaBored;
+                case PileInstallation.DrivenSteelSection: case PileInstallation.DrivenClosedSteelTube: case PileInstallation.DrivenPrecastConcrete: case PileInstallation.DrivenCastInPlace:
+                    return NqFrictionAngle.KishidaDriven;
+                default: throw new ArgumentOutOfRangeException(nameof(installation));
+            }
+        }
+
         /// <summary>
-        /// Nq or Nq* for the friction angle (rad; converted to degrees and rounded to 1e-10° so that the bounds of the curves are compared on the
-        /// values of the figure) and the slenderness z/D &gt; 0.
+        /// Friction angle of the base factor in degrees from the one of the layer φ'1 (degrees): φ'1, (φ'1 + 40°)/2 (driven) or max(φ'1 − 3°, 0)
+        /// (bored). The rules of Kishida require 0 ≤ φ'1 &lt; 90°.
         /// </summary>
-        public static NqResult Nq(double frictionAngle, double slenderness, bool largeDiameter)
+        public static double BaseFrictionAngleDegrees(double soilFrictionAngleDegrees, NqFrictionAngle rule)
+        {
+            if (rule != NqFrictionAngle.Layer && !(soilFrictionAngleDegrees >= 0 && soilFrictionAngleDegrees < 90))
+                throw new ArgumentException("Nq: the rule of Kishida requires 0 ≤ φ'1 < 90°.");
+            switch (rule)
+            {
+                case NqFrictionAngle.Layer: return soilFrictionAngleDegrees;
+                case NqFrictionAngle.KishidaDriven: return (soilFrictionAngleDegrees + 40) / 2;
+                case NqFrictionAngle.KishidaBored: return Math.Max(soilFrictionAngleDegrees - 3, 0);
+                default: throw new ArgumentOutOfRangeException(nameof(rule));
+            }
+        }
+
+        /// <summary>
+        /// Nq or Nq* for the friction angle of the layer (rad; converted to degrees, reduced by the rule and rounded to 1e-10° so that the bounds of
+        /// the curves are compared on the values of the figure) and the slenderness z/D &gt; 0.
+        /// </summary>
+        public static NqResult Nq(double frictionAngle, double slenderness, bool largeDiameter, NqFrictionAngle rule = NqFrictionAngle.Layer)
         {
             if (double.IsNaN(frictionAngle) || double.IsInfinity(frictionAngle) || double.IsNaN(slenderness) || double.IsInfinity(slenderness) || slenderness <= 0)
                 throw new ArgumentException("Nq: finite φ and positive finite z/D are required.");
-            double phi = Math.Round(frictionAngle / SoilUnits.Degree, 10);
+            double soil = Math.Round(frictionAngle / SoilUnits.Degree, 10);
+            double phi = rule == NqFrictionAngle.Layer ? soil : Math.Round(BaseFrictionAngleDegrees(frictionAngle / SoilUnits.Degree, rule), 10);
             var rr = largeDiameter ? LargeRatios : MediumRatios;
             double r = Clamp(slenderness, rr[0], rr[rr.Count - 1]);
             int i = -1, j;
@@ -82,7 +125,7 @@ namespace GPC.Checkers.Geotechnics.Piles
             double p2 = Clamp(phi, largeDiameter ? 26 : Medium[j].Low, largeDiameter ? 42 : Medium[j].High);
             double n1 = Curve(p1, i, largeDiameter), n2 = Curve(p2, j, largeDiameter), t = i == j ? 0 : Math.Log(r / rr[i]) / Math.Log(rr[j] / rr[i]);
             double nq = i == j ? n1 : largeDiameter ? n1 + t * (n2 - n1) : Math.Exp(Math.Log(n1) + t * (Math.Log(n2) - Math.Log(n1)));
-            return new NqResult(largeDiameter ? "Nq*" : "Nq", phi, slenderness, r, rr[i], rr[j], p1, p2, n1, n2, t, nq, p1 != phi || p2 != phi, r != slenderness);
+            return new NqResult(largeDiameter ? "Nq*" : "Nq", rule, soil, phi, slenderness, r, rr[i], rr[j], p1, p2, n1, n2, t, nq, p1 != phi || p2 != phi, r != slenderness);
         }
 
         internal static double Clamp(double value, double low, double high) => value < low ? low : value > high ? high : value;

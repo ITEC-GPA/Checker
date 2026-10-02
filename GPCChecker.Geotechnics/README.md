@@ -86,8 +86,10 @@ fondazioni, pali e micropali, spinte ed equilibrio dei muri. Organizzazione deci
 
 Tutti i dati vengono da Model:
 - terreni e stratigrafie: `Soil`, `SoilProfile` (testa del palo al piano campagna, falda del profilo);
-- tubolari dei micropali: `SectionCHS`, dai cataloghi EN 10210-2 / EN 10219-2 di ModelData o da D e t;
-- acciaio: `SteelMaterial`, con γM0 della norma acciaio `StandardEN1993p11` (NTC 1,05, EN 1,00);
+- tubolari dei micropali: `SectionCHS`, dai cataloghi di ModelData (EN 10210-2, gamma Celsius EN 10210, EN 10219-2: ci
+  sono tutti i 64 tubi del catalogo di ANTHEA) o da D e t;
+- acciaio: `SteelMaterial`, con γM0 della norma acciaio `StandardEN1993p11` (NTC 1,05, EN 1,00); il peso del tubo usa la
+  densità del materiale (t/mm³) per `SoilUnits.Gravity` = 9810 mm/s² (7850 kg/m³ · 9,81 m/s² per gli acciai di Model);
 - coefficienti: ξ3, ξ4, γb, γs, γst, γT e γG dalle norme geotecniche di Model (`FromStandard`).
 
 I parametri propri del metodo stanno nella libreria: comportamento granulare o coesivo dello strato, addensamento per K,
@@ -106,14 +108,26 @@ Nc, terreno e α di Bustamante-Doix.
   ancoraggi φ10 e φ100 dati per L/D = 5, 10, 20, 50;
 - D > 0,80 m: cubiche a tratti in u = φ − 34° (continuità C2 a 34° e 38°) adattate alla figura per L/D = 4 e 32;
 - tra le curve z/D è interpolato in scala logaritmica, con media geometrica di Nq e aritmetica di Nq*;
-- fuori dal tratto visibile si usa il bordo, segnalato; φ non è ridotto.
+- fuori dal tratto visibile si usa il bordo, segnalato.
 
-Le fonti (immagini, digitalizzazione, punti di controllo) sono in `ANTHEA/supporto/documentazione/riferimenti_nq`.
+Le fonti (immagini, digitalizzazione, punti di controllo) sono in `ANTHEA/supporto/documentazione/riferimenti_nq`. Le curve
+dei pali medi sono quelle di Berezantzev et al. (1961), fig. 13.6 di Viggiani, Fondazioni (stessi assi e curve).
+
+**φ ridotto (opzione).** `NqFrictionAngle` sceglie l'angolo di Nq: quello dello strato (predefinito, come ANTHEA) o quello
+suggerito da Kishida (1967) per l'effetto dell'installazione (Viggiani, Fondazioni, §13.1.2 p. 376):
+- pali battuti: φ' = (φ'1 + 40°)/2 (aumenta sotto 40°, riduce sopra);
+- pali trivellati, anche a elica continua: φ' = φ'1 − 3°, non sotto 0.
+
+`BearingCapacityFactors.Kishida(installazione)` dà la regola della tecnologia; `AxialPile.BaseFrictionAngle` la applica
+solo alla punta (il fusto resta con φ' dello strato), con avviso se la regola scelta non è quella della tecnologia. φ'
+ridotto fuori dal tratto visibile delle curve usa il bordo, segnalato. `NqResult` riporta φ'1 e φ' adottato.
 
 **Bustamante-Doix.**
 - Formula: Rs = Σ π α D L s; pl = pressione d'iniezione (ipotesi progettuale di ANTHEA).
 - Tabelle 13.12 e 13.13 di Viggiani verificate sulle pagine scansionate.
 - Abachi digitalizzati, senza estrapolazione; le curve R sono il limite inferiore.
+- Tabelle e abachi stanno qui, in Checker, come dati del metodo; terreno di Bustamante-Doix e α per strato sono
+  parametri del metodo (`MicropileSurvey`), i terreni restano i `Soil` di Model.
 
 **Broms.** Viggiani pp. 400-415, verificato con le formule chiuse nei test:
 - testa impedita, palo corto: 9 cu D (L − 1,5 D) e 1,5 γ D L² Kp;
@@ -142,7 +156,8 @@ harness ANTHEA 2663c96):
 - 37 pali e micropali verticali con le curve a tutte le quote, 10 rifiuti.
 
 Gli input non esprimibili con i tipi (nomi sconosciuti, strati disattivati nel modello orizzontale) sono elencati nei test.
-Casi limite in `PileEdgeCaseTests`, cinque esempi in `PileExamplesTests`.
+Casi limite in `PileEdgeCaseTests`, cinque esempi in `PileExamplesTests`; φ ridotto, peso del tubo dal materiale e tubi di
+ANTHEA nei cataloghi di ModelData in `PileOptionsTests`.
 
 ## Migrazione (prossime famiglie)
 

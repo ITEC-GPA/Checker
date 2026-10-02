@@ -47,7 +47,7 @@ public class PileExamplesTests
         var tube = (SectionCHS)SectionMappings.CreateSection("CHS 139.7 x 8");
         var survey = new MicropileSurvey(Profile(null, (new Soil("Sabbia media", 18 * KN3, 20 * KN3, 32 * Deg, 0, "example"), 3), (new Soil("Ghiaia sabbiosa", 19 * KN3, 21 * KN3, 36 * Deg, 0, "example"), 20)),
             new[] { (BustamanteDoixSoil.MediumSand, 1.4, true), (BustamanteDoixSoil.SandyGravel, 1.6, true) });
-        var pile = new Micropile(250, 10 * M, 0, MicropileInjection.IGU, 2, 0, null, tube, compressionAction: 450e3);
+        var pile = new Micropile(250, 10 * M, 0, MicropileInjection.IGU, 2, 0, null, tube, TubeSteel, compressionAction: 450e3);
         var r = AxialPileCapacity.Calculate(pile, new[] { survey }, PileResistanceFactors.FromStandard(Ntc, 1), PileGroupEfficiency.None());
         var tip = r.Depths.Last().Surveys[0];
         double shaft = Math.PI * 250 * (1.4 * 3 * M * .20 + 1.6 * 7 * M * .20);

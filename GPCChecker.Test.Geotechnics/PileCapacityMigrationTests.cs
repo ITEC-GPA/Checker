@@ -219,7 +219,7 @@ public class PileCapacityMigrationTests
         var surveys = data["stratigrafie"]!.AsArray().Select(s => new MicropileSurvey(Profile(s!.AsArray(), null,
             (l, i) => new Soil(Str(l["terreno"]), 18 * KN3, 20 * KN3, 0, 0, "BD layer")), s.AsArray().Select(l => (BdSoils[Str(l!["terreno"])], Req(l["alpha"], "α"), Bool(l["laterale_attiva"], true))))).ToArray();
         var pile = new Micropile(d, Req(g["lunghezza"], "L") * M, (Num(g["inclinazione"]) ?? 0) * Deg, Enum.Parse<MicropileInjection>(Str(g["tipo_iniezione"])), Req(g["pressione_iniezione"], "p"),
-            (Num(g["inizio_aderenza"]) ?? 0) * M, Bool(g["considera_punta"]) ? Req(g["percentuale_punta"], "%") : null, new SectionCHS(cd, ct), (Num(g["peso_specifico_palo"]) ?? 25) * KN3,
+            (Num(g["inizio_aderenza"]) ?? 0) * M, Bool(g["considera_punta"]) ? Req(g["percentuale_punta"], "%") : null, new SectionCHS(cd, ct), TubeSteel, (Num(g["peso_specifico_palo"]) ?? 25) * KN3,
             Num(g["azione_compressione"]) * 1000, Num(g["azione_trazione"]) * 1000);
         return AxialPileCapacity.Calculate(pile, surveys, Factors(g), Efficiency(data["efficienza"], d));
     }

@@ -12,6 +12,8 @@ namespace GeotechnicsTests;
 internal static class GeotechnicsFixture
 {
     public const double M = SoilUnits.Metre, KPa = SoilUnits.KiloPascal, KN3 = SoilUnits.KiloNewtonPerCubicMetre, Deg = SoilUnits.Degree;
+    /// <summary>Steel of the micropile tubes: density of the Model steels, 7.85e-9 t/mm³ (7850 kg/m³ as the legacy calculation).</summary>
+    public static readonly GPC.Model.Materials.SteelMaterial TubeSteel = new("S355", 210000, 355, 510);
     public static string Folder => Path.Combine(AppContext.BaseDirectory, "Fixtures");
     public static string[] Rows(string file) => File.ReadAllLines(Path.Combine(Folder, file)).Where(l => l.Length > 0 && !l.StartsWith("#")).ToArray();
     public static double D(string s) => double.Parse(s, CultureInfo.InvariantCulture);

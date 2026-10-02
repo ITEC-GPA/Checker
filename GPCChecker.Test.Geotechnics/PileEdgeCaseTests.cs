@@ -126,12 +126,12 @@ public class PileEdgeCaseTests
     public void TubeWeightClassesAndResistingMoment()
     {
         var tube = new SectionCHS(139.7, 8);
-        var w = MicropileTube.Weight(tube, 240, 25 * KN3);
+        var w = MicropileTube.Weight(tube, TubeSteel, 240, 25 * KN3);
         Close(tube.Area, w.SteelArea, "steel area = Model SectionCHS", 1e-12); Close(Math.PI * 240 * 240 / 4 - tube.Area, w.GroutArea, "grout", 1e-12);
         Close(77.0085 * KN3 * w.SteelArea + 25 * KN3 * w.GroutArea, w.Total, "q = 77.0085 As + 25 Ac (kN/m³)", 1e-12);
-        Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(tube, 139.7, 25 * KN3), "tube as wide as the borehole");
+        Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(tube, TubeSteel, 139.7, 25 * KN3), "tube as wide as the borehole");
         foreach (var (d, g) in new[] { (0.0, 25.0), (-240.0, 25.0), (double.NaN, 25.0), (240.0, 0.0), (240.0, double.NaN) })
-            Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(tube, d, g * KN3));
+            Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(tube, TubeSteel, d, g * KN3));
         Assert.AreEqual(1, MicropileTube.AxisCosine(0)); Assert.ThrowsException<ArgumentException>(() => MicropileTube.AxisCosine(Math.PI / 2)); Assert.ThrowsException<ArgumentException>(() => MicropileTube.AxisCosine(-1e-9));
         // Classes: D/t/(235/fy) ≤ 50, 70, 90.
         foreach (var (t, cls) in new[] { (2.0, 1), (1.99, 2), (100.0 / 70, 2), (1.42, 3), (100.0 / 90, 3), (1.1, 4) }) Assert.AreEqual(cls, MicropileTube.SectionClass(new SectionCHS(100, t), 235), "t " + t);
@@ -365,7 +365,7 @@ public class PileEdgeCaseTests
         var profile = Profile(null, (Sand(), 3), (Sand(), 20));
         MicropileSurvey S() => new(profile, new[] { (BustamanteDoixSoil.MediumSand, 1.4, true), (BustamanteDoixSoil.SandyGravel, 1.6, true) });
         Micropile P(double theta = 0, double start = 0, double? share = null, double pressure = 2, double length = 10 * M, double d = 250, string tube = "CHS 139.7 x 8")
-            => new(d, length, theta * Deg, MicropileInjection.IGU, pressure, start, share, (SectionCHS)SectionMappings.CreateSection(tube));
+            => new(d, length, theta * Deg, MicropileInjection.IGU, pressure, start, share, (SectionCHS)SectionMappings.CreateSection(tube), TubeSteel);
         var f = PileResistanceFactors.FromStandard(Ntc, 1);
         var r = AxialPileCapacity.Calculate(P(share: 10), new[] { S() }, f, PileGroupEfficiency.None());
         var tip = r.Depths.Last(); var s = tip.Surveys[0];
@@ -374,7 +374,7 @@ public class PileEdgeCaseTests
         Close(Math.PI * 250 * (1.4 * 3 * M * s1 + 1.6 * 7 * M * s2), s.Shaft, "Σ π α D L s", 1e-12); Close(.1 * s.Shaft, s.Base, "base 10%", 1e-15);
         Close((s.Shaft / 1.15 + s.Base / 1.35) / 1.7, r.Curves[(AxialCondition.Drained, true)].Design.Last().Value, "design", 1e-12);
         Assert.AreEqual(1, r.Curves.Keys.Count(k => k.Compression), "one condition only");
-        var w = MicropileTube.Weight(P().Tube, 250, 25 * KN3); Close(w.Total * 10 * M, tip.Weight, "weight along the axis", 1e-12);
+        var w = MicropileTube.Weight(P().Tube, TubeSteel, 250, 25 * KN3); Close(w.Total * 10 * M, tip.Weight, "weight along the axis", 1e-12);
         // Inclined 20°: the layers along the axis are longer, the weight is projected.
         var inclined = AxialPileCapacity.Calculate(P(theta: 20), new[] { S() }, f, PileGroupEfficiency.None());
         Close(w.Total * 10 * M * Math.Cos(20 * Deg), inclined.Depths.Last().Weight, "projected weight", 1e-12);

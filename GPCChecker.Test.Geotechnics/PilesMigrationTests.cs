@@ -108,10 +108,10 @@ public class PilesMigrationTests
             if (Str(line["kind"]) == "weight")
             {
                 string profile = Str(line["profile"]); double? drill = Num(line["diameter"]); double gamma = Req(line["gamma"], "γ");
-                if (line["D"] == null) { if (profile.Contains("999")) skipped++; else Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(new SectionCHS(139.7, 8), (drill ?? double.NaN) * M, gamma * KN3)); weights++; continue; }
+                if (line["D"] == null) { if (profile.Contains("999")) skipped++; else Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(new SectionCHS(139.7, 8), TubeSteel, (drill ?? double.NaN) * M, gamma * KN3)); weights++; continue; }
                 var tube = new SectionCHS(Req(line["D"], "D"), Req(line["t"], "t")); string id = profile + " D=" + drill + " γ=" + gamma;
-                if (IsError(r)) { Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(tube, drill!.Value * M, gamma * KN3), id); weights++; continue; }
-                var w = MicropileTube.Weight(tube, drill!.Value * M, gamma * KN3);
+                if (IsError(r)) { Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(tube, TubeSteel, drill!.Value * M, gamma * KN3), id); weights++; continue; }
+                var w = MicropileTube.Weight(tube, TubeSteel, drill!.Value * M, gamma * KN3);
                 Close(Req(r!["area_acciaio"], "As") * M * M, w.SteelArea, id + " As", 1e-12); Close(Req(r["area_cls"], "Ac") * M * M, w.GroutArea, id + " Ac", 1e-12);
                 Close(Req(r["q_acciaio"], "qs"), w.Steel, id + " qs", 1e-12); Close(Req(r["q_cls"], "qc"), w.Grout, id + " qc", 1e-12); Close(Req(r["q_totale"], "q"), w.Total, id + " q", 1e-12);
                 weights++; continue;
