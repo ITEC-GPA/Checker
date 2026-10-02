@@ -260,3 +260,22 @@ REGISTRO
               verificati sul testo; UNI 11104 solo da fonte secondaria (ATECAP 2020, valori di ANTHEA, a favore di
               sicurezza rispetto all'edizione 2004); prospetto E.1N del DM letto per corrispondenza delle celle unite.
             - Restano in ANTHEA: composizione della miscela (MixAutomation), cataloghi e diagrammi di presentazione.
+2026-10-02  G: geotecnica generale trasferita in GPCChecker.Geotechnics (Slopes, Foundations, Seismic), unità di Model.
+            - Bishop, geometria e ricerca dei pendii con i terreni di Model; SlopeFactors.FromCombination dalle norme
+              geotecniche di Model.
+            - Cedimento edometrico sotto striscia; Newmark; EN 1998-5 Annesso F.
+            - Casi congelati (harness dadea50) e riprodotti: Bishop 414, geometria 72, conci di 6 cerchi, 15 ricerche,
+              121 tensioni, 36 cedimenti, 50 Newmark, 3900 portanze sismiche.
+            - Differenze intenzionali:
+              - tolleranza di 1e-9 mm sul filtro di profondità (il legacy scarta per arrotondamento parte dei cerchi ai
+                limiti: 9 su 24 in S2/Q2N, per cui la ricerca S2 esplora un altro insieme e trova minimi uguali o
+                inferiori);
+              - velocità nulla all'arresto del blocco di Newmark;
+              - controlli aggiunti su corpi, carichi, γw e fattori dei carichi;
+              - RefinedFactor separa la non convergenza dal controllo senza soluzione (stesso stato del legacy).
+            - Fonti NTC 2018 verificate sul testo: Tab. 6.2.I, 6.2.II, 6.8.I (R2: γR 1,1), §7.11.4 (fattori 1, γR 1,2,
+              βs 0,38/0,47, kv = ±kh/2), Tab. 7.11.II e 7.11.III. Il coefficiente su qu (1,6) di Model viene dalla
+              NTC 2008: nella Tab. 6.2.II del 2018 non c'è più.
+            - Da riscontrare (testo non disponibile): EN 1998-5 Annesso F (coefficienti dei terreni incoerenti e γRd
+              applicato anche a F̄ come nel legacy).
+            - Nessuna attività in ModelChecker: il contratto per le opere geotecniche resta per M5.

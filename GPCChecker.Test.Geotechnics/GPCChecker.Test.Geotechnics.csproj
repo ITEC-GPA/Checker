@@ -15,4 +15,8 @@
     <Reference Include="GPCGeometry"><HintPath>../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
     <Reference Include="GPCUtilities"><HintPath>../../Utilities/GPCUtilities/bin/Release/netstandard2.0/GPCUtilities.dll</HintPath></Reference>
   </ItemGroup>
+  <!-- Legacy outputs of ANTHEA (harness supporto/test/CheckerMigration.Capture), reproduced by the migration tests. -->
+  <ItemGroup>
+    <None Update="Fixtures\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
