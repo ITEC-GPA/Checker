@@ -159,9 +159,38 @@ Gli input non esprimibili con i tipi (nomi sconosciuti, strati disattivati nel m
 Casi limite in `PileEdgeCaseTests`, cinque esempi in `PileExamplesTests`; φ ridotto, peso del tubo dal materiale e tubi di
 ANTHEA nei cataloghi di ModelData in `PileOptionsTests`.
 
+## Muri di sostegno (trasferiti da ANTHEA, commit fe4652c) — fase W1
+
+Dati di Model: terreni `Soil` e due colonne `SoilProfile` (a monte con il piano campagna in testa al muro, a valle alla quota
+Dv; granulari, c' = 0, falda come dato del muro `WallWater`), terreno di posa `Soil`. Origine al piede di valle sul piano di posa.
+
+| Tipo | Funzione |
+| --- | --- |
+| `Walls.EarthPressure` | Rankine, Coulomb/Mononobe-Okabe (componente orizzontale, attrito del paramento), Jaky (Wood), φd = atan(tan φ/γM) |
+| `Walls.WallInterface` | attrito del paramento e della base: assegnato o k·atan(tan φcv/γM), k = 1, 2/3, 0 |
+| `Walls.WallContact` | contatto senza trazione (trapezio nel terzo medio, triangolo 3x altrimenti), integrazione delle pressioni |
+| `Walls.WallCombinations` | preset NTC A1+M1+R3 (SLE, SLU con ogni fattore, valle, acqua, permanenti, variabili principali), sisma assegnato o SLV generale e ribaltamento, eccezionali |
+| `Walls.RetainingWallAnalysis` | equilibrio per metro: spinte, sottospinta, pesi, terreno a valle e passiva limitata, scorrimento, ribaltamento, portanza EN 1997-1 Annesso D e sismica EN 1998-5 Annesso F, sollecitazioni di fusto, mensola a valle e a monte, verifiche geotecniche |
+| `Seismic.NtcSiteAmplification` | amax = Ss St ag (NTC Tab. 3.2.IV, 3.2.V), con Ss o St assegnati |
+
+Fonti NTC 2018 verificate sul testo: Tab. 6.5.I (γR 1,4 portanza, 1,1 scorrimento, 1,15 ribaltamento sulle azioni
+stabilizzanti), §7.11.6.2.1 (kh = βm amax/g, kv = ±0,5 kh, βm 0,38 allo SLV, 1 per muri non liberi di spostarsi, +50% e ≤ 1
+per il ribaltamento), Tab. 7.11.III (1,2, 1,0, 1,0), Tab. 3.2.IV (Ss) e 3.2.V (St). La NTC indica di non contare in generale
+la passiva a valle nello scorrimento: in `WallValley` è un'opzione, spenta per difetto, con la frazione mobilitata.
+
+Casi legacy congelati e riprodotti (`WallsMigrationTests`, harness ANTHEA cbed972, `Fixtures/walls-*`): 798 valori delle
+leggi, 110 generazioni di combinazioni (2380 righe), 88 muri completi (149.922 sezioni, 8332 verifiche) e 14 documenti
+rifiutati; 8 documenti rifiutati da ANTHEA per motivi fuori da W1 (strutturali o d'interfaccia) sono elencati nel test.
+Differenze intenzionali: quote in mm (i tagli coincidenti sono unificati entro 1e-6 mm); alla quota di un carico concentrato
+ANTHEA include la forza secondo l'arrotondamento di ht − z in metri (36 tagli: il port la include alla quota e la esclude
+1e-4 mm sopra); 35 momenti NaN di ANTHEA (colonna di valle con falda) sono finiti nel port.
+
+Prossime fasi: W2 verifiche strutturali (gravità e c.a. con Concrete), W3 esercizio, portanza sismica dal documento e
+stabilità globale, W4 dettagli delle armature.
+
 ## Migrazione (prossime famiglie)
 
-1. Muri di sostegno: spinte, equilibrio, sismica, stabilità globale; le sezioni c.a. passano a Concrete.
+1. Muri di sostegno: W2-W4 (strutture, esercizio, stabilità globale, armature).
 
 Ogni famiglia segue lo stesso schema:
 - casi legacy congelati con l'harness `ANTHEA/supporto/test/CheckerMigration.Capture`;

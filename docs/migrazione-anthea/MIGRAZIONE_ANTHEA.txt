@@ -333,3 +333,22 @@ REGISTRO
             - Bustamante-Doix resta in Checker (tabelle e abachi come dati del metodo, terreni di Model); i tubi
               commerciali sono quelli di EN 10210/10219 (Fondazione Promozione Acciaio, Micropali 2020: dalle NTC 2008
               non più i tubi petroliferi UNI EN ISO 11960), ora completi in ModelData.
+2026-10-02  W1: muri di sostegno, nucleo geotecnico trasferito in GPCChecker.Geotechnics/Walls (+ Seismic/NtcSiteAmplification).
+            - Spinte (Rankine, Coulomb, Mononobe-Okabe, Wood), interfacce, colonna di valle e passiva limitata, acqua,
+              equilibrio, contatto, scorrimento, ribaltamento, portanza Annesso D e sismica Annesso F, sollecitazioni di
+              fusto e mensole, verifiche geotecniche, generatore delle combinazioni NTC, sisma dal sito.
+            - Dati di Model: Soil e SoilProfile (due colonne), terreno di posa; acqua come dato del muro.
+            - Casi congelati (harness cbed972, WallCapture) e riprodotti: 798 valori delle leggi, 2380 righe di combinazioni,
+              88 muri (149.922 sezioni, 8332 verifiche), 14 rifiuti. Fuori da W1: 8 documenti rifiutati per regole strutturali
+              o d'interfaccia (esposizione, armature, tipologie future, estensioni, versione, firma della matrice, lunghezza
+              efficace della gravità, H > 15 m che è un limite di interfaccia).
+            - Differenze intenzionali: quote in mm con tagli coincidenti unificati entro 1e-6 mm; ai carichi concentrati
+              l'inclusione non dipende più dall'arrotondamento in metri (36 tagli); difetto legacy: 35 momenti NaN del fusto
+              (colonna di valle con falda), finiti nel port; i documenti versione 1 sono letti come versione 2 (azioni
+              correlate del gruppo legacy, come Upgrade di ANTHEA).
+            - Fonti NTC 2018 verificate sul testo: Tab. 6.5.I, §7.11.6.2.1 (βm, kv, amax, ribaltamento), Tab. 7.11.III,
+              Tab. 3.2.IV, 3.2.V. Nota: la NTC sconsiglia in generale la passiva a valle nello scorrimento (opzione spenta per
+              difetto).
+            - Restano per W2-W4: verifiche strutturali (gravità, c.a. con Concrete), esercizio (cedimenti, spostamenti,
+              Newmark), stabilità globale del muro, dettagli delle armature. DesignReinforcement e SectionExport restano in
+              ANTHEA (progetto e interfaccia).
