@@ -370,3 +370,28 @@ REGISTRO
             - Difetto legacy (anche di G): SlopeGeometry.Divisions poteva perdere l'ultimo concio dell'arco per arrotondamento
               (L + (R − L)·n/n > R). Corretto con estremi esatti; 2 combinazioni non drenate dei muri lo mostravano (F 3,630 su 34
               conci, ritrovato dal port togliendo l'ultimo; arco completo F più alto). Le fixture di G restano riprodotte.
+2026-10-02  M4 (G e W lato geotecnico): ANTHEA usa GPCChecker.Geotechnics per i muri di sostegno.
+            - lib/Checker di ANTHEA aggiornata (Model c07e99ac, Checker 79268a9e, nuova GPCChecker.Geotechnics.dll). Con le sole
+              DLL nuove e il codice ANTHEA precedente: regressione numerica, software, benchmark CA e cattura dei muri identici.
+            - ANTHEA X.Calculations/RetainingWall.Library.cs: adattatore del documento (m, kN/m, kPa, kN/m³, gradi) verso
+              WallInput (mm, N/mm, MPa, N/mm³, rad) e dei risultati verso i record di ANTHEA. Calculate, GenerateCombinations,
+              GenerateGlobalCombinations, CalculateGlobal, DeriveSeismic, esercizio e Newmark chiamano la libreria; Ka, SeismicKa,
+              ActiveHorizontal, InterfaceDelta, ContactLaw, Pressure, Integrate, ValleyBands, FrontSoilMass e IntegrateCurvature
+              sono deleghe nelle unità del documento. ANTHEA mantiene la lettura e la validazione del documento, le proposte del
+              profilo globale (riempimento delle tabelle), i testi delle relazioni e le verifiche strutturali (W2, W4).
+              Portanza sismica con γRd anche su F̄ (RetainingWall.ModelFactorOnSoilInertia = true), come prima.
+            - I nuclei X.Calculations/Geotechnics (BishopSolver, SlopeGeometry, SlopeStability, FoundationSettlement, NewmarkSliding,
+              ShallowFoundationSeismic) non sono più compilati; l'eliminazione dei file attende la conferma dell'utente.
+            - Equivalenza (cattura WallCapture rieseguita sull'adattatore e confrontata con quella congelata): leggi identiche
+              (un messaggio: quota del sito "fra 0 e l'altezza del rilievo"); forze, pressioni, contatti, resistenze e verifiche
+              geotecniche identiche entro 1e-10 relativo. Differenze, tutte già dichiarate per W1-W3: documenti versione 1 con 21
+              sezioni su mensole (prima solo la radice) e quindi più verifiche strutturali; 35 momenti NaN ora finiti (10 curve di
+              curvatura con un punto in più); stabilità globale non drenata con l'ultimo concio (documento 83); ricerca globale con
+              meno cerchi provati (931 → 784: in mm i nodi delle griglie di raffinamento coincidono esattamente e sono unificati)
+              e stesso cerchio critico. Le verifiche strutturali (solutore non lineare GPCChecker.Concrete) variano entro 1e-6
+              relativo per la sensibilità iterativa a sollecitazioni diverse di 1e-15: nessun esito cambiato.
+            - GenerateCombinations richiede ora un muro valido (costruisce WallInput): 3 documenti con dati errati (spessore in
+              testa maggiore del piede, altezza libera, γsat < γ) danno l'errore dei dati invece di una matrice.
+            - Test ANTHEA: RetainingWall.Checks 303 controlli (53 nuovi sull'adattatore: unità, conversioni esatte, nomi e unità
+              delle verifiche, versione 1, errori dei dati di esercizio e Newmark, sisma dal sito, stabilità globale),
+              GlobalStability.Checks 61; i controlli dei metodi chiamano direttamente la libreria in mm.
