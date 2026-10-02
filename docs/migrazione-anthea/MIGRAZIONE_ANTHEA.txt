@@ -279,3 +279,37 @@ REGISTRO
             - Da riscontrare (testo non disponibile): EN 1998-5 Annesso F (coefficienti dei terreni incoerenti e γRd
               applicato anche a F̄ come nel legacy).
             - Nessuna attività in ModelChecker: il contratto per le opere geotecniche resta per M5.
+2026-10-02  DECISIONE DELL'UTENTE: "Calcolo.cs rimane in ANTHEA come previsto però il calcolo di qualsiasi cosa verrà
+            spostato dentro le librerie e tolto da ANTHEA; dentro ANTHEA non ci dovrà più essere nessun calcolo, se non il
+            minimo". I file di ANTHEA restano adattatori (JSON -> input tipizzati -> librerie -> presentazione). Il motore di
+            Calcolo.cs (portanza verticale) entra quindi nella fase F. Il passaggio di ANTHEA alle librerie, con la
+            rimozione dei nuclei legacy, segue la prova di equivalenza di ogni famiglia.
+2026-10-02  F: pali e micropali trasferiti in GPCChecker.Geotechnics/Piles, con soli tipi di Model:
+            - terreni Soil e SoilProfile; tubolari SectionCHS (cataloghi EN 10210-2/10219-2 di ModelData); acciaio
+              SteelMaterial con γM0 di StandardEN1993p11; coefficienti dalle norme geotecniche di Model;
+            - nuclei: Nq (NQ-2026-09-09); Bustamante-Doix; tubolare CHS (peso, classe, momento resistente); Broms con
+              estensione stratificata e diagnostica; verifica trasversale con ξ, γR ed efficienza; portanza verticale di
+              pali e micropali (motore di Calcolo).
+            Casi congelati (harness 2663c96) e riprodotti:
+            - Nq: 805 casi e 566 valori delle curve;
+            - Bustamante-Doix: 1766 righe;
+            - CHS: 388 pesi e 121 sezioni;
+            - pali orizzontali: 126 calcoli e 12 rifiuti;
+            - pali e micropali verticali: 37 calcoli e 10 rifiuti.
+            Gli input non esprimibili con i tipi sono esclusi con il motivo nei test.
+            Riscontro fonti:
+            - Viggiani Tab. 13.12, 13.13 ed eq. 13.21 verificate sulle pagine scansionate; abachi 13.16-13.19
+              sovrapposti alla scansione (R al limite inferiore);
+            - NTC Tab. 6.4.II, 6.4.IV, 6.4.VI verificate;
+            - curve Nq dalle figure dell'utente (equazioni, non tabelle);
+            - da riscontrare: tabella K-μ e legge α(cu) di ANTHEA.
+            Model:
+            - StandardNTC2018Geotechnics.PileExecution: coefficienti della Tab. 6.4.II per pali infissi (γb 1,15),
+              trivellati (1,35) ed elica continua (1,30), con trivellati come predefinito. ANTHEA usava 1,35 per ogni palo:
+              a favore di sicurezza per infissi ed elica.
+            Catalogo dei tubolari:
+            - dei 64 profili del catalogo ANTHEA, 49 sono nei cataloghi di ModelData;
+            - 15 no (spessori 3,6, 14,2 e 17,5 e altri; fonte dichiarata in ANTHEA: Tata Steel Celsius). Si usano con
+              SectionCHS(D, t).
+            - Il peso dell'acciaio usa 7850 kg/m³ esplicito: la densità dei materiali di Model ha unità non definita
+              (predefinito 0,00785).

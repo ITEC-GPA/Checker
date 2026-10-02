@@ -82,10 +82,71 @@ fondazioni, pali e micropali, spinte ed equilibrio dei muri. Organizzazione deci
 - **Test aggiuntivi.** Casi limite e dati rifiutati in `SlopeEdgeCaseTests` e `FoundationSeismicEdgeCaseTests`, cinque
   esempi in `GeneralGeotechnicsExamplesTests`.
 
+## Pali e micropali (trasferiti da ANTHEA, commit fe4652c)
+
+Tutti i dati vengono da Model:
+- terreni e stratigrafie: `Soil`, `SoilProfile` (testa del palo al piano campagna, falda del profilo);
+- tubolari dei micropali: `SectionCHS`, dai cataloghi EN 10210-2 / EN 10219-2 di ModelData o da D e t;
+- acciaio: `SteelMaterial`, con γM0 della norma acciaio `StandardEN1993p11` (NTC 1,05, EN 1,00);
+- coefficienti: ξ3, ξ4, γb, γs, γst, γT e γG dalle norme geotecniche di Model (`FromStandard`).
+
+I parametri propri del metodo stanno nella libreria: comportamento granulare o coesivo dello strato, addensamento per K,
+Nc, terreno e α di Bustamante-Doix.
+
+| Tipo | Funzione |
+| --- | --- |
+| `Piles.BearingCapacityFactors` | Nq (D ≤ 0,80 m) e Nq* (D > 0,80 m), versione NQ-2026-09-09 |
+| `Piles.BustamanteDoix` | Tab. 13.12-13.13 e abachi 13.16-13.19 di Viggiani; tratti iniettati di un micropalo |
+| `Piles.MicropileTube` | Peso del micropalo (acciaio e malta); classe del CHS; momento resistente con interazione N-M lineare |
+| `Piles.LateralPileCapacity` | Capacità trasversale: Broms ed estensione stratificata; diagrammi, diagnostica delle tensioni; verifica con ξ, γR ed efficienza (manuale o Reese e Van Impe) |
+| `Piles.AxialPileCapacity` | Portanza verticale di pali e micropali lungo la profondità, con più verticali indagate, curve di progetto, azioni con il peso, efficienza di gruppo (Converse-Labarre, Feld, assegnata) |
+
+**Nq.** Equazioni, non tabelle di valori:
+- D ≤ 0,80 m: rette del diagramma semilogaritmico fornito dall'utente, Nq = 10^(1 + (φ − φ10)/(φ100 − φ10)), con gli
+  ancoraggi φ10 e φ100 dati per L/D = 5, 10, 20, 50;
+- D > 0,80 m: cubiche a tratti in u = φ − 34° (continuità C2 a 34° e 38°) adattate alla figura per L/D = 4 e 32;
+- tra le curve z/D è interpolato in scala logaritmica, con media geometrica di Nq e aritmetica di Nq*;
+- fuori dal tratto visibile si usa il bordo, segnalato; φ non è ridotto.
+
+Le fonti (immagini, digitalizzazione, punti di controllo) sono in `ANTHEA/supporto/documentazione/riferimenti_nq`.
+
+**Bustamante-Doix.**
+- Formula: Rs = Σ π α D L s; pl = pressione d'iniezione (ipotesi progettuale di ANTHEA).
+- Tabelle 13.12 e 13.13 di Viggiani verificate sulle pagine scansionate.
+- Abachi digitalizzati, senza estrapolazione; le curve R sono il limite inferiore.
+
+**Broms.** Viggiani pp. 400-415, verificato con le formule chiuse nei test:
+- testa impedita, palo corto: 9 cu D (L − 1,5 D) e 1,5 γ D L² Kp;
+- testa libera, palo lungo in argilla: My = H (1,5 D + f/2);
+- testa libera, palo lungo in sabbia: My = (2/3) H √(H/(1,5 Kp γ D)).
+
+L'estensione stratificata con reazioni distribuite (G. Pacini) è un modello sperimentale.
+
+**Portanza verticale** (motore di `Calcolo.cs`, che in ANTHEA resta solo adattatore).
+- Fusto: τ = c' + K μ σ'v,media in condizioni drenate; α(cu) cu sotto falda in condizioni non drenate.
+- Base: A σ'v Nq; nei coesivi sotto falda in condizioni non drenate A (Nc cu + σv).
+- Micropali: fusto di Bustamante-Doix lungo l'asse, quota di punta 0-15%.
+- Curve di progetto: min(media/ξ3; minimo/ξ4) con γb, γs, γst ed ηg.
+- Da riscontrare (fonte non disponibile): la tabella K-μ per tipo di palo e la legge α(cu).
+
+**Tab. 6.4.II NTC.** I coefficienti dei pali dipendono dall'esecuzione: γb vale 1,15 per i pali infissi, 1,35 per i
+trivellati e 1,30 per quelli a elica continua. `StandardNTC2018Geotechnics.PileExecution` li seleziona; il valore
+predefinito è trivellato, come ANTHEA, che usava 1,35 per ogni palo.
+
+**Casi legacy congelati e riprodotti** (`PilesMigrationTests`, `PileCapacityMigrationTests`, `Fixtures/piles-*.jsonl`,
+harness ANTHEA 2663c96):
+- 805 Nq e 566 valori delle curve;
+- Bustamante-Doix: intervalli di α, letture degli abachi, tratti, coseni;
+- 388 pesi CHS e 121 sezioni;
+- 126 pali orizzontali con diagrammi e diagnostica, 12 rifiuti;
+- 37 pali e micropali verticali con le curve a tutte le quote, 10 rifiuti.
+
+Gli input non esprimibili con i tipi (nomi sconosciuti, strati disattivati nel modello orizzontale) sono elencati nei test.
+Casi limite in `PileEdgeCaseTests`, cinque esempi in `PileExamplesTests`.
+
 ## Migrazione (prossime famiglie)
 
-1. Pali e micropali: Broms, Bustamante-Doix, Nq.
-2. Muri di sostegno: spinte, equilibrio, sismica, stabilità globale; le sezioni c.a. passano a Concrete.
+1. Muri di sostegno: spinte, equilibrio, sismica, stabilità globale; le sezioni c.a. passano a Concrete.
 
 Ogni famiglia segue lo stesso schema:
 - casi legacy congelati con l'harness `ANTHEA/supporto/test/CheckerMigration.Capture`;

@@ -12,6 +12,8 @@
     <PackageReference Include="MSTest.TestAdapter" Version="3.6.4" />
     <PackageReference Include="MSTest.TestFramework" Version="3.6.4" />
     <Reference Include="GPCModel"><HintPath>../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>
+    <!-- Catalogues of the sections (CHS of the micropiles) used by the examples. -->
+    <Reference Include="GPCModelData"><HintPath>../../Model/ModelData/bin/Release/netstandard2.0/GPCModelData.dll</HintPath></Reference>
     <Reference Include="GPCGeometry"><HintPath>../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
     <Reference Include="GPCUtilities"><HintPath>../../Utilities/GPCUtilities/bin/Release/netstandard2.0/GPCUtilities.dll</HintPath></Reference>
   </ItemGroup>
