@@ -14,6 +14,7 @@ public sealed class SandReactionRow
 }
 public sealed class CohesiveReactionRow
 {
+    public string Category => Soil;
     public string Id { get; }
     public string Soil { get; }
     public string Author { get; }
@@ -39,6 +40,7 @@ public sealed class HorizontalSoilAssignment
     public double? OverrideNh { get; set; }
     public string OverrideReason { get; set; } = "";
     public string Conditions { get; set; } = "";
+    public string SelectionOrigin { get; set; } = "";
 }
 public sealed class HorizontalSoilDetermination
 {
@@ -56,6 +58,9 @@ public sealed class HorizontalSoilDetermination
     public double? TableMinimumNPerCm3 { get; set; }
     public double? TableMaximumNPerCm3 { get; set; }
     public double? A { get; set; }
+    public double? InitialMean { get; set; }
+    public string InitialMeanUnit { get; set; } = "";
+    public string SelectionOrigin { get; set; } = "";
     public double? MinimumA { get; set; }
     public double? MaximumA { get; set; }
     public double? RecommendedA { get; set; }
@@ -96,6 +101,8 @@ public static class ViggianiHorizontalSoil
     {if(!value.HasValue||!Finite(value.Value)||(zero?value.Value<0:value.Value<=0))throw new ArgumentException(label+": valore finito "+(zero?"non negativo":"positivo")+" richiesto.");return value.Value;}
     public static double ToKnPerM3(double nPerCm3)=>Positive(nPerCm3,"nh [N/cm³]",true)*1000;
     public static double FromA(double a,double unitWeight)=>Positive(a,"A")*Positive(unitWeight,"γ o γ′ [kN/m³]")/1.35;
+    public static double MeanA(string density){var r=SandTable.FirstOrDefault(x=>x.Density==density)??throw new ArgumentException("Selezionare addensamento.");return (r.MinimumA+r.MaximumA)/2;}
+    public static double MeanNh(string id){var r=CohesiveTable.FirstOrDefault(x=>x.Id==id||x.Label==id)??throw new ArgumentException("Selezionare riga 14.6.");return (r.MinimumNPerCm3+r.MaximumNPerCm3)/2;}
     public static HorizontalSoilProfile Resolve(IReadOnlyList<HorizontalSoilAssignment> assignments,double? waterDepth=null,double waterUnitWeight=9.81)
     {
         if(assignments==null||assignments.Count==0)throw new ArgumentException("Assegnare almeno uno strato.");
@@ -127,10 +134,12 @@ public static class ViggianiHorizontalSoil
                 else if(a.Mode==HorizontalSoilMode.CohesiveTable146)
                 {
                     var row=CohesiveTable.FirstOrDefault(r=>r.Id==a.CohesiveRowId)??throw new ArgumentException("Selezionare una riga della tabella 14.6, con la sua fonte.");
-                    double selected=Positive(a.SelectedNhNPerCm3,"Scelta esplicita nh [N/cm³]");
+                    d.InitialMean=MeanNh(row.Id);d.InitialMeanUnit="N/cm³";
+                    double selected=Positive(a.SelectedNhNPerCm3??d.InitialMean,"nh [N/cm³]");
+                    d.SelectionOrigin=a.SelectedNhNPerCm3.HasValue?(string.IsNullOrWhiteSpace(a.SelectionOrigin)?"Scelta utente":a.SelectionOrigin):"Media iniziale del software";
                     if(selected<row.MinimumNPerCm3||selected>row.MaximumNPerCm3)throw new ArgumentException("nh fuori dall'intervallo della riga 14.6 selezionata. Usare un override motivato per valori esterni.");
                     value=ToKnPerM3(selected);d.TableNhNPerCm3=selected;d.TableMinimumNPerCm3=row.MinimumNPerCm3;d.TableMaximumNPerCm3=row.MaximumNPerCm3;
-                    d.Source="Tabella 14.6, libro p. 479 (PDF 244); "+row.Author+". "+Source;d.Applicability=row.Soil+"; valori orientativi, nessuna media automatica.";
+                    d.Source="Tabella 14.6, libro p. 479 (PDF 244); "+row.Author+". "+Source;d.Applicability=row.Soil+"; intervallo orientativo; media iniziale convenzionale del software, non raccomandazione bibliografica.";
                 }
                 else
                 {
@@ -141,7 +150,9 @@ public static class ViggianiHorizontalSoil
                     if(a.Mode==HorizontalSoilMode.SandTable145){d.TableNhNPerCm3=wet?row.SubmergedNhNPerCm3:row.DryNhNPerCm3;value=ToKnPerM3(d.TableNhNPerCm3.Value);}
                     else
                     {
-                        double selectedA=Positive(a.A,"A scelto esplicitamente");
+                        d.InitialMean=MeanA(row.Density);d.InitialMeanUnit="adimensionale";
+                        double selectedA=Positive(a.A??d.InitialMean,"A");
+                        d.SelectionOrigin=a.A.HasValue?(string.IsNullOrWhiteSpace(a.SelectionOrigin)?"Scelta utente":a.SelectionOrigin):"Media iniziale del software";
                         if(selectedA<row.MinimumA||selectedA>row.MaximumA)throw new ArgumentException("A fuori campo della tabella 14.5 per l'addensamento selezionato.");
                         double gamma=wet?Positive(a.SaturatedUnitWeight,"γsat")-waterUnitWeight:Positive(a.UnitWeight,"γ");
                         value=FromA(selectedA,gamma);d.A=selectedA;d.AdoptedUnitWeight=gamma;

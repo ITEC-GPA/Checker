@@ -15,6 +15,10 @@ public sealed class ElasticPileLayer
 }
 public sealed class ElasticPileInput
 {
+    public double AxialHeadForce { get; set; }
+    public double WeightPerLength { get; set; }
+    public IReadOnlyList<double> AdditionalNodes { get; set; } = Array.Empty<double>();
+    public ElasticPileSection? Section { get; set; }
     public double Length { get; set; }
     public double FreeLength { get; set; }
     public double Diameter { get; set; }
@@ -31,6 +35,7 @@ public sealed class ElasticPileInput
 }
 public sealed class ElasticPilePoint
 {
+    public double AxialForce { get; set; }
     public double? Nh { get; set; }
     public double Depth { get; set; }
     public double GroundDepth { get; set; }
@@ -55,6 +60,12 @@ public sealed class ElasticPileExtreme
 }
 public sealed class ElasticPileResult
 {
+    public double AxialHeadForce { get; set; }
+    public double WeightPerLength { get; set; }
+    public string AxialModel => "N positivo a compressione; N(x)=Ntesta+w x. Nessun trasferimento assiale al terreno, galleggiamento o secondo ordine.";
+    public ElasticPileSection? Section { get; set; }
+    public List<ElasticPileNode> Nodes { get; set; } = new List<ElasticPileNode>();
+    public List<ElasticPileSectionDemand> SectionDemands { get; set; } = new List<ElasticPileSectionDemand>();
     public Dictionary<string,double> RelativeMeshChanges { get; set; } = new Dictionary<string,double>();
     public bool MeshConverged { get; set; }
     public int ComparisonElements { get; set; }
@@ -109,6 +120,7 @@ public static class ElasticPile
         Require(Finite(input.Length) && input.Length > 0 && Finite(input.FreeLength) && input.FreeLength >= 0 && input.FreeLength < input.Length, "Total length > free length ≥ 0 required.");
         Require(Finite(input.Diameter) && input.Diameter > 0 && Finite(input.EI) && input.EI > 0 && !string.IsNullOrWhiteSpace(input.EISource), "Positive diameter/EI and explicit EI source required.");
         Require(Finite(input.Force) && Finite(input.HeadMoment) && Finite(input.Eccentricity), "Finite loads required.");
+        Require(Finite(input.AxialHeadForce) && Finite(input.WeightPerLength) && input.WeightPerLength >= 0, "Finite axial load and nonnegative weight required.");
         Require(input.HeadMoment == 0 || input.Eccentricity == 0, "Specify head moment OR eccentricity, not both.");
         Require(Enum.IsDefined(typeof(ElasticPileTip), input.Tip), "Unknown tip boundary.");
         Require(Finite(input.Step) && input.Step > 0 && refinement >= 1 && refinement <= 8, "Positive mesh step and refinement 1…8 required.");
@@ -123,6 +135,8 @@ public static class ElasticPile
             if(bottom < input.Length) boundaries.Add(bottom);
         }
         Require(bottom >= input.Length - 1e-10 * input.Length, "Layers must cover the embedded length."); boundaries.Add(input.Length);
+        foreach(double station in input.AdditionalNodes){Require(Finite(station)&&station>=0&&station<=input.Length,"Invalid verification station.");boundaries.Add(station);}
+        boundaries=boundaries.Distinct().OrderBy(v=>v).ToList();
         bool springs = input.Layers.TakeWhile((s,i)=>input.FreeLength+input.Layers.Take(i).Sum(t=>t.Thickness)<input.Length).Any(s=>s.Value>0);
         Require(springs || input.Tip == ElasticPileTip.Fixed || input.Tip == ElasticPileTip.Pinned && input.FixedHeadRotation, "Unstable model: unconstrained rigid-body motion; no artificial tip fixity is applied.");
         var x = new List<double> { 0 };
@@ -130,7 +144,7 @@ public static class ElasticPile
         {
             double a=boundaries[j-1], b=boundaries[j], count=Math.Ceiling((b-a)/input.Step)*refinement;
             Require(count <= 4000 && x.Count + count <= 4001, "Maximum 4000 elements, including refinement.");
-            for(int i=1;i<=count;i++)x.Add(a+(b-a)*i/count);
+            for(int i=1;i<=count;i++)x.Add(i==count?b:a+(b-a)*i/count);
         }
         int n=2*x.Count; var matrix=new Band(n); var elements=new List<(double[,] K,int Layer,double K0,double K1)>();
         for(int e=0;e<x.Count-1;e++)
@@ -171,9 +185,21 @@ public static class ElasticPile
         }
         r.ForceResidual=input.Force+r.SoilForce+r.TipReactionForce;
         r.MomentResidual=f[1]+r.HeadReactionMoment+r.TipReactionMoment+r.TipReactionForce*input.Length+r.SoilMomentAboutHead;
-        foreach(var item in new Dictionary<string,Func<ElasticPilePoint,double>>{{"y",p=>p.Displacement},{"theta",p=>p.Rotation},{"V",p=>p.Shear},{"M",p=>p.Moment},{"q",p=>p.SoilReaction}})
+        r.Section=input.Section;
+        r.AxialHeadForce=input.AxialHeadForce;r.WeightPerLength=input.WeightPerLength;
+        foreach(var point in r.Points)point.AxialForce=input.AxialHeadForce+input.WeightPerLength*point.Depth;
+        for(int i=0;i<x.Count;i++)
+        {
+            double tributaryTop=i==0?x[i]:(x[i-1]+x[i])/2,tributaryBottom=i==x.Count-1?x[i]:(x[i]+x[i+1])/2, spring=0;
+            if(i>0){var el=elements[i-1];double h=x[i]-x[i-1];spring+=h*(el.K0+3*el.K1)/8;}
+            if(i<elements.Count){var el=elements[i];double h=x[i+1]-x[i];spring+=h*(3*el.K0+el.K1)/8;}
+            r.Nodes.Add(new ElasticPileNode{Depth=x[i],TributaryTop=tributaryTop,TributaryBottom=tributaryBottom,EquivalentSpring=spring});
+        }
+        foreach(var item in new Dictionary<string,Func<ElasticPilePoint,double>>{{"N",p=>p.AxialForce},{"y",p=>p.Displacement},{"theta",p=>p.Rotation},{"V",p=>p.Shear},{"M",p=>p.Moment},{"q",p=>p.SoilReaction}})
         {var lo=r.Points.OrderBy(item.Value).First();var hi=r.Points.OrderByDescending(item.Value).First();var abs=Math.Abs(item.Value(lo))>=Math.Abs(item.Value(hi))?lo:hi;r.Extrema[item.Key]=new ElasticPileExtreme{Minimum=item.Value(lo),MinimumDepth=lo.Depth,Maximum=item.Value(hi),MaximumDepth=hi.Depth,AbsoluteMaximum=Math.Abs(item.Value(abs)),AbsoluteMaximumDepth=abs.Depth};}
-        Require(r.Points.All(p=>Finite(p.Displacement)&&Finite(p.Moment)&&Finite(p.Shear)), "Nonfinite result: review stiffness and units.");
+        foreach(var p in r.Points){var demand=new ElasticPileSectionDemand{Depth=p.Depth,Side=p.Side,Shear=p.Shear,Moment=p.Moment,SectionReference=input.Section?.Reference??input.EISource};foreach(string key in new[]{"V","M"}){var ex=r.Extrema[key];double v=key=="V"?p.Shear:p.Moment;if(p.Depth==ex.MinimumDepth&&v==ex.Minimum)demand.ExtremeReferences.Add(key+":min");if(p.Depth==ex.MaximumDepth&&v==ex.Maximum)demand.ExtremeReferences.Add(key+":max");if(p.Depth==ex.AbsoluteMaximumDepth&&Math.Abs(v)==ex.AbsoluteMaximum)demand.ExtremeReferences.Add(key+":abs");}r.SectionDemands.Add(demand);}
+        for(int i=0;i<r.SectionDemands.Count;i++)r.SectionDemands[i].AxialForce=r.Points[i].AxialForce;
+        Require(r.Points.All(p=>Finite(p.Displacement)&&Finite(p.Moment)&&Finite(p.Shear)&&Finite(p.AxialForce)), "Nonfinite result: review stiffness and units.");
         return r;
     }
     static double Value(double[] p,double t){double v=0;for(int i=p.Length-1;i>=0;i--)v=v*t+p[i];return v;}
