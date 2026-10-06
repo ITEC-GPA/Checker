@@ -14,7 +14,8 @@ public class BridgeMigrationSnapshotTests
         switch (id)
         {
             case 1: d["classe4"] = false; d["rebars_top"] = false; d["rebars_bottom"] = false; break;
-            case 2: d["plate2"] = true; d["t_web"] = 8; break;
+            // Since ANTHEA 0a63315 the input is the total height H: 1875 keeps the 1800 mm web of the captured case.
+            case 2: d["plate2"] = true; d["t_web"] = 8; d["h_trave"] = "1875"; break;
             case 3:
                 d.Array("fasi")[1]!["N"] = -1500; d.Array("fasi")[1]!["riferimento_N"] = BridgeSection.CommonLoadReference; d["y_ref"] = -300;
                 d.Array("fasi")[2]!["N"] = 500; d.Array("fasi")[2]!["riferimento_N"] = BridgeSection.EffectiveLoadReference; break;

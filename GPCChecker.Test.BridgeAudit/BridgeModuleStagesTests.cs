@@ -193,7 +193,8 @@ public class BridgeModuleStagesTests
     [TestMethod]
     public void Class4_SlenderFlangesConvergeUnderCentricCompression()
     {
-        var d=Input(Phase("Solo acciaio",-500,0));d["classe4"]=true;d["b_top"]=582;d["b_bottom"]=582;d["t_top"]=10;d["t_bottom"]=10;d["y_ref"]=-910;
+        // Total height H (ANTHEA 0a63315): 1820 = 10 + 1800 + 10, so the section stays symmetric about y = -910.
+        var d=Input(Phase("Solo acciaio",-500,0));d["classe4"]=true;d["b_top"]=582;d["b_bottom"]=582;d["t_top"]=10;d["t_bottom"]=10;d["h_trave"]=1820;d["y_ref"]=-910;
         var r=BridgeSection.Calculate(d);var s=r.Stages.Single();var c=s.Contributions.Single();
         Assert.IsTrue(s.Effective.Top.Rho<1&&s.Effective.Bottom.Rho<1&&s.Effective.Web.Rho<1);
         Near(s.Effective.TopWidth,s.Effective.BottomWidth,"symmetric effective flanges");Near(c.Centroid,-910,"symmetric centroid");
