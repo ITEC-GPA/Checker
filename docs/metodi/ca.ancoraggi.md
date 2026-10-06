@@ -325,7 +325,7 @@ Gli scarti sono al livello dell'arrotondamento in doppia precisione.
 
 ## Validazione
 
-- Casi congelati del motore precedente (`GPCChecker.Test.Concrete/Fixtures/anchorage-legacy.csv`): 468 righe
+- Casi congelati del motore precedente (`anchorage-legacy.csv` del progetto di test): 468 righe
   NTC.
   - 445 ancoraggi e sovrapposizioni con esito, su griglia, valori limite e 300 casi casuali;
   - 5 dati rifiutati;

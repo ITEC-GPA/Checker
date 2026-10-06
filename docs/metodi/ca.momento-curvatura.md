@@ -330,7 +330,7 @@ e il punto limite al passo 40.
 
 ## Validazione
 
-- Casi congelati del motore precedente (`GPCChecker.Test.Concrete/Fixtures/curvature-legacy.csv`): 5 curve
+- Casi congelati del motore precedente (`curvature-legacy.csv` del progetto di test): 5 curve
   sulle sezioni di `detailing-sections.xml`.
   - Norme: NTC 2018, EN 1992-1-1 e Model Code 2010.
   - Sforzi normali: −200, 0, −1200, −500 e 0 kN.

@@ -476,7 +476,7 @@ Valori della libreria (GPCChecker.Concrete 0.0.15.0, eseguita):
 
 ## Validazione
 
-- Casi congelati del motore precedente (`GPCChecker.Test.Concrete/Fixtures/detailing-legacy.csv`): 144 travi e
+- Casi congelati del motore precedente (`detailing-legacy.csv` del progetto di test): 144 travi e
   pilastri NTC sulle sezioni di `detailing-sections.xml`, cioè rettangolari, a T, circolare, cava e un pilastro
   con barre Ø10. Variano:
   - NEd, staffe e aggregato;

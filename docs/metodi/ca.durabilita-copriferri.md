@@ -414,7 +414,7 @@ Valori della libreria (GPCChecker.Concrete 0.0.15.0, eseguita):
 
 ## Validazione
 
-- Casi congelati del motore precedente (`GPCChecker.Test.Concrete/Fixtures/durability-legacy.csv`).
+- Casi congelati del motore precedente (`durability-legacy.csv` del progetto di test).
   Griglia: 24 combinazioni di esposizione × 7 resistenze × 6 insiemi di opzioni.
   - 588 copriferri EC2 e 1932 NTC: cmin,b, cmin,dur, cmin, cnom, righe EC2 con classe strutturale, dettagli NTC;
   - 505 rifiuti;
