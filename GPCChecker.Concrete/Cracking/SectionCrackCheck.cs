@@ -121,7 +121,7 @@ namespace GPC.Checkers.Concrete.Cracking
     /// Section crack check transferred from ANTHEA (Ntc2018Checks.Cracking, ConcreteTensionCracking, ConcreteInnerCracking, commit fe4652c), without the
     /// global spacing calculator. Partially compressed sections: effective area beyond hc,eff along the strain gradient, governing bar stress, k2 from
     /// the bar stresses (0.5 for the Eurocode family); neutral axis within the cover of the reinforced tensile edge: wk = 0; tensile bars outside Ac,eff: upper bound
-    /// of EC2 7.3.4(4) with sr,max from (h − x). Entirely tensile sections: independent faces (±x, ±y or radial for circles), never summed;
+    /// of EC2 7.3.4(3), eq. (7.14) with sr,max from (h − x). Entirely tensile sections: independent faces (±x, ±y or radial for circles), never summed;
     /// DS adds the coarse system with the whole section (DK NA 7.3.4(1)). Hollow sections: inner walls or ring checked independently.
     /// Fixtures: GPCChecker.Test.Concrete/Fixtures/crack-legacy.csv.
     /// </summary>
@@ -170,7 +170,7 @@ namespace GPC.Checkers.Concrete.Cracking
                 return Stop(CrackOutcome.Evaluated, "Section entirely compressed");
             }
             if (strains.Min() >= 0) return Inner(FullyTensioned(p, profile, req.Limit.Value, details), p, profile);
-            if (!CrackProfiles.IsNtc(profile)) k2 = .5; // a neutral axis crosses the section: bending, EC2 7.3.4(2)
+            if (!CrackProfiles.IsNtc(profile)) k2 = .5; // a neutral axis crosses the section: bending, EC2 7.3.4(3) (k2 of (7.11))
             result.K2 = k2; Add("k2", k2, "−", CrackProfiles.IsNtc(profile) ? "0.5 with a compressed bar, 1.0 otherwise" : "partially compressed section: bending");
             double gradient = CrackSectionGeometry.Hypot(plane.ChiX, plane.ChiY);
             if (gradient <= 1e-15) return Stop(CrackOutcome.NeutralAxisUndetermined, "Neutral axis not determined");
@@ -204,7 +204,7 @@ namespace GPC.Checkers.Concrete.Cracking
             double wlim = req.Limit.Value;
             if (effective.Length == 0)
             {
-                // Tensile bars deeper than hc,eff (neutral axis close to the bars): no bonded bar in Ac,eff, upper bound of EC2 7.3.4(4) with the tensile bars.
+                // Tensile bars deeper than hc,eff (neutral axis close to the bars): no bonded bar in Ac,eff, upper bound of EC2 7.3.4(3), eq. (7.14) with the tensile bars.
                 double sigmaT = tensile.Max(i => stresses[i]), phiT = tensile.Sum(i => g.Bars[i].Diameter * g.Bars[i].Diameter) / tensile.Sum(i => g.Bars[i].Diameter);
                 Add("Øeq", phiT, "mm", "ΣØ²/ΣØ of the tensile bars"); Add("σs", sigmaT, "MPa", "maximum stress of the tensile bars, none in Ac,eff");
                 double bound = CrackWidthCalculator.UnbondedUpperBound(profile, sigmaT, p.Es, p.Fctm, phiT, tensileDepth, p.ShortTerm, p.RibbedBars, details);

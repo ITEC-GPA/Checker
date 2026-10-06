@@ -92,7 +92,7 @@ namespace GPC.Checkers.Concrete.Cracking
         }
 
         /// <summary>
-        /// Upper bound of wk without bonded bars in Ac,eff (EC2 7.3.4(4), Circolare C4.1.2.2.4.5), mm: the limit ρ → 0 of <see cref="Width"/>.
+        /// Upper bound of wk without bonded bars in Ac,eff (EC2 7.3.4(3), eq. (7.14); for NTC by analogy with Circolare C4.1.2.2.4.5 [C4.1.10], which does not treat this case), mm: the limit ρ → 0 of <see cref="Width"/>.
         /// εsm − εcm = βmin σs/Es; sr,max = 1.3 (h − x), NTC 1.7 · 0.75 (h − x) as the sparse-bar branch, DIN also ≤ σs Ø/(3.6 fct).
         /// σs and Ø of the tensile bars outside Ac,eff. MC2010 and DIN only with ribbed bars.
         /// </summary>
@@ -106,7 +106,7 @@ namespace GPC.Checkers.Concrete.Cracking
             if ((mc || din) && !ribbed) throw new ArgumentException("Cracking: the Model Code 2010 / DIN crack model is implemented for ribbed bars.");
             double lower = mc ? 1 - (shortTerm ? .6 : .4) : .6, strain = lower * steelStress / es;
             double sr = CrackProfiles.IsNtc(profile) ? 1.7 * .75 * tensileDepth : 1.3 * tensileDepth;
-            string formula = CrackProfiles.IsNtc(profile) ? "1.7 · 0.75 (h − x), no bonded bar in Ac,eff" : "1.3 (h − x), no bonded bar in Ac,eff (7.3.4(4))";
+            string formula = CrackProfiles.IsNtc(profile) ? "1.7 · 0.75 (h − x), no bonded bar in Ac,eff" : "1.3 (h − x), no bonded bar in Ac,eff (7.3.4(3), eq. (7.14))";
             if (din) { sr = Math.Min(sr, steelStress * diameter / (3.6 * fct)); formula = "min[1.3 (h − x); σs Ø/(3.6 fct)], no bonded bar in Ac,eff"; }
             Add("εsm − εcm", strain, "−", "βmin σs/Es (ρp,eff → 0)"); Add("βmin", lower, "−", mc ? "1 − kt" : "0.6");
             Add("sr,max", sr, "mm", formula); Add("wk", sr * strain, "mm", "sr,max (εsm − εcm), upper bound");

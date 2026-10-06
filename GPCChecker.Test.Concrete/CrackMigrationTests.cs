@@ -129,7 +129,7 @@ namespace ConcreteTests
                 }
                 if (status.StartsWith("Armatura/area efficace assente"))
                 {
-                    // Tensile bars outside Ac,eff: no verdict in ANTHEA, upper bound of EC2 7.3.4(4) now, from h − x and σs of the legacy trace.
+                    // Tensile bars outside Ac,eff: no verdict in ANTHEA, upper bound of EC2 7.3.4(3), eq. (7.14) now, from h − x and σs of the legacy trace.
                     var trace = c[36].Split('|').Select(e => e.Split('=')).ToLookup(e => e[0], e => D(e[1]));
                     double depth = trace["h − x"].Single(), sigma = trace.Where(t => t.Key.EndsWith(" · σs")).SelectMany(t => t).Max();
                     var profile = Profile(c[2]);
@@ -204,7 +204,7 @@ namespace ConcreteTests
 
         /// <summary>
         /// Same section, neutral axis at y = −150: h − x = 100 mm, hc,eff = min[2.5·50; 100/3; 250] = 33.3 mm above the bottom bars (σs = 100 MPa).
-        /// EC2 7.3.4(4): wk = 1.3 (h − x) · 0.6 σs/Es = 130 · 3e-4 = 0.039 mm; NTC: 1.7 · 0.75 · 100 · 3e-4 = 0.03825 mm.
+        /// EC2 7.3.4(3), eq. (7.14): wk = 1.3 (h − x) · 0.6 σs/Es = 130 · 3e-4 = 0.039 mm; NTC: 1.7 · 0.75 · 100 · 3e-4 = 0.03825 mm.
         /// </summary>
         [TestMethod]
         public void TensileBarsOutsideEffectiveAreaGiveUpperBound()
