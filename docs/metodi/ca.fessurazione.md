@@ -68,7 +68,7 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 | ACI 318, AASHTO; classi derivate da quelle elencate | non supportato | errore (`NotSupportedException`) |
 | Combinazione per cui la norma non richiede la verifica | non richiesta | esito `NotRequired` con la combinazione richiesta |
 | Classe di esposizione mancante dove serve | dati insufficienti | esito incompleto (`MissingExposure`) |
-| wlim di progetto mancante dove la norma non dà un valore (Model Code 2010; classi fuori tabella) | dati insufficienti | esito incompleto (`MissingDesignLimit`) |
+| wlim di progetto mancante dove la norma non dà un valore (Model Code 2010; classi fuori tabella; DS anche senza classe di esposizione) | dati insufficienti | esito incompleto (`MissingDesignLimit`) |
 | Decompressione o formazione senza la tensione della sezione non fessurata | dati non validi | errore (`ArgumentException`) |
 | Apertura delle fessure con analisi non lineare o con cls teso | non valutabile | esito incompleto (`RequiresLinearCrackedAnalysis`) |
 | Sezione con trefoli (c.a.p.) | non supportato | esito incompleto (`PrestressNotSupported`) |
