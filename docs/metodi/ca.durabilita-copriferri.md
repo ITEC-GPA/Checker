@@ -63,7 +63,7 @@ classe minima di resistenza della sezione.
 | DS/EN 1992-1-1 con DK NA | supportato | Tabel 4.4N NA senza classi strutturali; Tabel E.1(2) |
 | DIN EN, NS-EN, Model Code 2010, CNR-DT 204 | non supportato | `NotSupportedException` con il motivo |
 | ACI 318, AASHTO | non supportato | implementazione futura |
-| UNI 11104:2025 (edizione in vigore) | valori del codice da riscontrare sul testo | le classi minime di XC3, XD1, XF4 e XA1 coincidono con l'estratto del prospetto 6; le altre classi sono quelle dell'edizione 2016 (riquadro C-1) |
+| UNI 11104:2025 (in vigore dal 24/07/2025), prospetto 6 | non supportato | il catalogo segue la UNI 11104:2016, prospetto 5; secondo un estratto la 2025 cambia classe minima e a/c di XF1 e abbassa il cemento minimo (riquadro C-1) |
 | Composizione della miscela | non supportato | il metodo restituisce i limiti di composizione, non una miscela |
 
 ## 3. Riferimenti normativi
@@ -80,9 +80,9 @@ classe minima di resistenza della sezione.
 | Prospetto E.1N nazionale (XC1 C25/30, XC2 C25/30, XC3-XC4 C30/37, XF2 C30/37) | UNI EN 1992-1-1 | DM 31/07/2012 | E.1(2) | prospetto E.1N | testo (riquadro C-3) |
 | cmin,dur per esposizione senza classi strutturali, vita di almeno 50 anni; Δcdev ≥ 5 mm (10 mm nella classe di controllo ridotta); resistenza minima per gruppi | DS/EN 1992-1-1 | DK NA:2024 | 4.4.1.2(5), 4.4.1.3(1)P, E.1(2) | Tabel 4.4N NA, Tabel E.1(2) | testo |
 | a/c massimo, classe minima, cemento minimo, aria minima per esposizione | UNI EN 206-1 | 2006 | appendice F | prospetto F.1 (informativo) | testo |
-| a/c, classe minima, cemento, aria per XF2-XF4: valori del codice | UNI 11104 | 2016 (documentazione ATECAP 2020) | prospetto dei valori limite | — | fonte secondaria (riquadro C-1) |
-| Classe minima C28/35 per XC3, XD1, XF4 e XA1 | UNI 11104 | 2004 (ritirata) | prospetto 4 | — | fonte secondaria |
-| Classe minima C30/37 per XC3, XD1, XF4 e XA1 | UNI 11104 | 2025 (in vigore dal 24/07/2025) | prospetto 6 | — | fonte secondaria (estratto); le altre classi da riscontrare |
+| a/c, classe minima, cemento minimo, aria per XF2-XF4: valori del codice | UNI 11104 | 2016 (sostituita dalla 2025) | — | prospetto 5 | fonte secondaria: riproduzione ATECAP 2020, p. 19 (riquadro C-1) |
+| Classe minima C28/35 per XC3, XD1, XF4 e XA1 | UNI 11104 | 2004 (ritirata) | — | prospetto 4 | fonte secondaria |
+| Valori limite: XC3, XD1, XF4 e XA1 C30/37 come nella 2016; XF1 C30/37 e a/c 0,55; cemento minimo più basso in tutte le classi che lo prescrivono | UNI 11104 | 2025 (in vigore dal 24/07/2025) | — | prospetto 6 | fonte secondaria: estratto pubblicato il 28/07/2025, da riscontrare sul testo (riquadro C-1) |
 | Membratura in c.a. secondo NTC | CNR-DT 200 | R1/2013 | — | — | da riscontrare |
 
 ## 4. Ipotesi
@@ -133,7 +133,8 @@ Valori implementati per classe. Colonne:
   in %;
 - g: gruppo NTC della Tab. 4.1.III;
 - col. 4.4N: colonna del prospetto 4.4N di EN 1992-1-1 (— = nessuna);
-- UNI 11104: valori del codice (edizione 2016, riquadro C-1), con a/c, classe e cemento;
+- UNI 11104: valori del codice, cioè dell'edizione 2016, prospetto 5 (riquadro C-1), con a/c, classe e cemento minimo
+  in kg/m³;
 - E.1N: classe indicativa di EN 1992-1-1 e del DM 31/07/2012, come nel codice (per XC3 vedi riquadro C-3);
 - DK: DK NA Tabel E.1(2).
 
@@ -162,31 +163,42 @@ UNI 11104, aria inglobata per XF2-XF4: 4% con dg > 20 mm; 5% con 12 mm ≤ dg �
 
 ### 6.2 Classe minima di resistenza secondo UNI 11104
 
-| Classe | Codice (UNI 11104:2016; 2025 da estratto) | UNI 11104:2004 (ritirata) |
-| --- | --- | --- |
-| XC3 | C30/37 | C28/35 |
-| XD1 | C30/37 | C28/35 |
-| XF4 | C30/37 | C28/35 |
-| XA1 | C30/37 | C28/35 |
-| altre 14 classi | come nel catalogo | uguali |
+| Classe | Codice = UNI 11104:2016, prospetto 5 | UNI 11104:2025, prospetto 6 (estratto) | UNI 11104:2004, prospetto 4 (ritirata) |
+| --- | --- | --- | --- |
+| XC3, XD1, XF4, XA1 | C30/37 | C30/37 | C28/35 |
+| XF1 | C32/40 (a/c 0,50) | C30/37 (a/c 0,55) | C32/40 |
+| altre 13 classi | come nel catalogo | uguali | uguali |
 
-Il codice usa la tabella dei valori limite della UNI 11104 riprodotta nella documentazione ATECAP del 2020, che indica
-come edizione di riferimento quella del 2016; per le quattro classi coincide con UNI EN 206-1 prospetto F.1 e, da
-estratto, con il prospetto 6 dell'edizione 2025. Il prospetto 4 dell'edizione 2004 dava C28/35. Per a/c e cemento le
-fonti non mostrano differenze fra le edizioni.
+Il codice usa i valori limite della UNI 11104:2016, prospetto 5, noti in modo indiretto dalla riproduzione nella
+documentazione ATECAP del 2020 (p. 19), che indica come edizione di riferimento quella del 2016. La UNI 11104:2025,
+in vigore dal 24/07/2025, sostituisce la 2016 e riporta i valori limite nel prospetto 6 «Valori limite per la
+composizione e le proprietà del calcestruzzo». Secondo un estratto pubblicato il 28/07/2025 (fonte secondaria, da
+riscontrare sul testo della norma) la 2025 differisce dalla 2016 in due punti:
 
-> **Scostamento dichiarato — C-1 (D7-e) Edizione della UNI 11104 per la classe minima**
+- XF1: classe minima C30/37 invece di C32/40 e a/c massimo 0,55 invece di 0,50;
+- contenuto minimo di cemento più basso in tutte le classi che lo prescrivono.
+
+Per XC3, XD1, XF4 e XA1 la classe minima è C30/37 in entrambe le edizioni, come nel prospetto F.1 della UNI EN 206-1;
+il prospetto 4 dell'edizione 2004 dava C28/35. La colonna 2004 riguarda la sola classe minima.
+
+> **Scostamento dichiarato — C-1 (D7-e) Edizione della UNI 11104**
 >
-> - Norma: UNI 11104 nell'edizione in vigore (2025, che sostituisce la 2016): C30/37 per XC3, XD1, XF4 e XA1;
->   l'edizione 2004, ritirata, dava C28/35.
-> - Programma: C30/37 per le quattro classi; gli altri valori del catalogo sono quelli dell'edizione 2016, ricavati da
->   una fonte secondaria; il testo di riferimento restituito cita «UNI 11104 prospetto 5» senza edizione.
+> - Norma: UNI 11104:2025, in vigore dal 24/07/2025 al posto della 2016, prospetto 6 «Valori limite per la
+>   composizione e le proprietà del calcestruzzo»; secondo l'estratto, XF1 C30/37 con a/c 0,55 e cemento minimo più
+>   basso in tutte le classi che lo prescrivono. L'edizione 2004, ritirata, dava C28/35 per XC3, XD1, XF4 e XA1.
+> - Programma: valori della UNI 11104:2016, prospetto 5 (XF1 C32/40, a/c 0,50; C30/37 per XC3, XD1, XF4 e XA1),
+>   ricavati dalla riproduzione ATECAP 2020; il riferimento restituito cita «UNI 11104 prospetto 5» senza edizione.
+> - Effetto rispetto alla 2025: requisiti del codice più severi, a favore di sicurezza. Con XF1 come classe più
+>   severa della combinazione la classe minima è C32/40 invece di C30/37: un C30/37 risulta insufficiente e nel
+>   profilo NTC, quando la classe UNI 11104 è usata come Cmin pertinente, il copriferro di durabilità con
+>   30 ≤ fck < 32 MPa è 5 mm più alto. Il rapporto a/c e il cemento minimo sono requisiti di composizione
+>   restituiti dal metodo e non entrano nel calcolo dei copriferri né nel controllo della classe minima.
 > - Effetto rispetto all'edizione 2004: la classe minima cambia in 46 delle 520 combinazioni di esposizione
 >   considerate; il controllo della classe minima cambia esito solo per C28/35, insufficiente; nel profilo NTC, quando
 >   la classe UNI 11104 è usata come Cmin pertinente, il copriferro cresce di 5 mm per C28/35 (184 casi su 17 646 di
 >   una griglia di combinazioni, resistenze e tipi di elemento). Esempio 1.
-> - Stato: dichiarato (decisione D7-e del 7/10/2026: edizione in vigore, nessuna scelta del riferimento 2004);
->   restano da riscontrare sul testo 2025 le classi minime di tutte le esposizioni e la citazione del prospetto (R14).
+> - Stato: in verifica (D7-e). Scelta del metodo: l'edizione in vigore; i valori del prospetto 6 si adottano dopo il
+>   riscontro sul testo della norma, insieme alla citazione di prospetto ed edizione nel riferimento restituito (R14).
 
 ### 6.3 Copriferro minimo e nominale, comune a tutti i profili
 
@@ -295,7 +307,8 @@ disponibile per classe e come massimo della resistenza minima.
 | Simbolo | Valore | Fonte | Modificabile | Dove nel codice |
 | --- | --- | --- | --- | --- |
 | catalogo delle classi (18) | 6.1 | EN 206 F.1; NTC Tab. 4.1.III; UNI 11104 (2016); EN E.1N; DM 2012 E.1N; DK E.1(2) | no | `ExposureClasses.All` |
-| classe UNI 11104 di XC3, XD1, XF4, XA1 | C30/37 | UNI 11104 in vigore (riquadro C-1) | no | `ExposureClasses.All` |
+| classe UNI 11104 di XC3, XD1, XF4, XA1 | C30/37 | UNI 11104:2016 prospetto 5; uguale nella 2025 secondo l'estratto (riquadro C-1) | no | `ExposureClasses.All` |
+| classe e a/c UNI 11104 di XF1 | C32/40; 0,50 | UNI 11104:2016 prospetto 5; nella 2025 C30/37 e 0,55 secondo l'estratto (riquadro C-1) | no | `ExposureClasses.All` |
 | minimo assoluto | 10 mm | EN (4.2) | no | `CoverRequirements.Calculate` |
 | maggiorazione di cmin,b | 5 mm per dg > 32 mm | EN prospetto 4.2 | no | `Calculate` |
 | superficie irregolare | 5 mm | EN 4.4.1.2(11) | sì/no (`RoughSurface`) | `CoverInput` |
@@ -308,7 +321,7 @@ disponibile per classe e come massimo della resistenza minima.
 | EN: classe di base, modifiche, soglie | S4; +2, −1, −1, −1; tabella delle soglie | EN prospetto 4.3N; DM 31/07/2012 4.4.1.2(5) | tramite i dati | `CoverRequirements.StructuralClass` |
 | EN: prospetto 4.4N | 6.5 | EN prospetto 4.4N | no | `CoverRequirements.Table44N` |
 | DS: Tabel 4.4N NA | 10/20/30/40 mm | DK NA:2024 | no | `Calculate` |
-| aria UNI 11104 | 4% (dg > 20), 5% (12-16 mm) | UNI 11104 | no | `ExposureClasses.Uni11104Air` |
+| aria UNI 11104 | 4% (dg > 20), 5% (12-16 mm) | UNI 11104:2016 prospetto 5 | no | `ExposureClasses.Uni11104Air` |
 
 ## 8. Implementazione
 
@@ -316,7 +329,8 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
 
 - `GPCChecker.Concrete/Durability/ExposureClasses.cs`:
   - `ExposureClass` (righe 16-42) e `StrengthRequirement` (righe 45-51);
-  - catalogo `All` (righe 56-76); le classi del riquadro C-1 sono alle righe 61, 63, 72 e 73;
+  - catalogo `All` (righe 56-76): i valori UNI 11104 sono il nono, il decimo e l'undicesimo argomento di ogni riga
+    (classe, a/c, cemento); XC3, XD1, XF4 e XA1 sono alle righe 61, 63, 72 e 73, XF1 alla riga 69 (riquadro C-1);
   - `Get` (riga 78) e `Resolve` (righe 81-87), che controlla X0 e la combinazione vuota;
   - `Uni11104MinimumStrength` (riga 90), `En206MinimumStrength` (riga 93), `MinimumStrength` (righe 100-119;
     riferimento testuale alla riga 107), `Uni11104Mix` (righe 122-126), `Uni11104Air` (righe 129-135).
@@ -345,11 +359,12 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
   CNR-DT 204 non supportati.
 - La riduzione della soglia di resistenza con aria inglobata (EN prospetto 4.3N, nota 2) e le riduzioni per acciaio
   inossidabile o protezioni aggiuntive non sono applicate.
-- UNI 11104: valori dell'edizione 2016 da fonte secondaria; l'edizione 2025 è da riscontrare per tutte le classi
+- UNI 11104: valori dell'edizione 2016, prospetto 5, da fonte secondaria. I valori del prospetto 6 dell'edizione
+  2025, in vigore, non sono implementati; secondo l'estratto cambiano classe minima e a/c di XF1 e il cemento minimo
   (riquadro C-1).
 - Prospetto E.1N: XC3 letto come C25/30 (riquadro C-3).
-- Testo dei riferimenti (R14): per il profilo NTC il risultato cita «UNI 11104 prospetto 5»; il numero del prospetto
-  dipende dall'edizione (4 nella 2004, 5 nella documentazione usata, 6 nella 2025 secondo l'estratto).
+- Testo dei riferimenti (R14): per il profilo NTC il risultato cita «UNI 11104 prospetto 5», il prospetto
+  dell'edizione 2016, senza l'edizione; i valori limite sono nel prospetto 4 nella 2004 e nel prospetto 6 nella 2025.
 - Aria inglobata UNI 11104: nessun valore per 16 mm < dg ≤ 20 mm e per dg < 12 mm, dove la norma indica solo un
   aumento rispetto al 4%.
 - Nel profilo NTC, senza Cmin pertinente si usa la classe di tabella dell'ambiente (riquadro C-2).
@@ -362,12 +377,15 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
 senza controllo di qualità.
 
 1. g = 0 (XC3 ordinaria), C0 = 35 MPa; ctab = 20 + 0 + 5 = 25 mm, perché 28 < 35.
-2. Cmin = 30 (UNI 11104 in vigore, valore del codice): 28 < 30, quindi cmin,dur = 25 + 5 = 30 mm.
+2. Cmin = 30 (UNI 11104, valore del codice, uguale nella 2016 e, secondo l'estratto, nella 2025): 28 < 30, quindi
+   cmin,dur = 25 + 5 = 30 mm.
    cmin = max(10; 8; 30) = 30 mm; cnom = 40 mm.
 3. Cmin = 28 (UNI 11104:2004, ritirata): nessuna maggiorazione, cmin,dur = 25 mm, cnom = 35 mm.
 4. Senza Cmin pertinente (default 25): cmin,dur = 25 mm, cnom = 35 mm.
-5. Classe minima: UNI 11104 in vigore C30/37, quindi C28/35 insufficiente (con l'edizione 2004 sarebbe sufficiente).
-   EN 206 F.1: C30/37, a/c 0,55, cemento 280 kg/m³. UNI 11104: a/c 0,55, cemento 320 kg/m³.
+5. Classe minima: UNI 11104 C30/37 (2016 e 2025), quindi C28/35 insufficiente (con l'edizione 2004 sarebbe
+   sufficiente).
+   EN 206 F.1: C30/37, a/c 0,55, cemento 280 kg/m³. UNI 11104:2016: a/c 0,55, cemento 320 kg/m³ (nella 2025
+   cemento minimo più basso secondo l'estratto).
 
 **Esempio 2 — XC4 + XD1, C40/50, staffe Ø12, dg = 20 mm, Δcdev = 10 mm.**
 
@@ -392,7 +410,7 @@ Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita):
 
 | Caso | A mano: cmin,dur / cmin / cnom [mm] | Libreria | Scarto |
 | --- | --- | --- | --- |
-| 1, Cmin = 30 (UNI 11104 in vigore) | 30 / 30 / 40 | 30 / 30 / 40 (g 0, C0 35, tab. 25, +5) | 0 |
+| 1, Cmin = 30 (UNI 11104:2016 e 2025) | 30 / 30 / 40 | 30 / 30 / 40 (g 0, C0 35, tab. 25, +5) | 0 |
 | 1, Cmin = 28 (UNI 11104:2004) | 25 / 25 / 35 | 25 / 25 / 35 | 0 |
 | 1, Cmin di default | 25 / 25 / 35 | 25 / 25 / 35 (Cmin 25) | 0 |
 | 1, classe minima NTC | C30/37 | 30 (riferimento «UNI 11104 prospetto 5 (NTC 2018 §11.2.11)») | 0 |
@@ -430,10 +448,13 @@ Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita):
 - UNI EN 1992-1-1, appendice nazionale: DM 31 luglio 2012.
 - DS/EN 1992-1-1 DK NA:2024, §4.4.1 e appendice E.
 - UNI EN 206-1:2006, *Calcestruzzo — Parte 1: Specificazione, prestazione, produzione e conformità*, appendice F.
-- UNI 11104:2004, UNI 11104:2016 e UNI 11104:2025, *Calcestruzzo — Specificazione, prestazione, produzione e
-  conformità — Istruzioni complementari per l'applicazione della EN 206*.
-- ATECAP, *La corretta prescrizione del calcestruzzo — Documentazione di riferimento*, 2020 (prospetto «Norma UNI
-  11104: valori limite per la composizione e le proprietà del calcestruzzo»).
+- UNI 11104:2025, *Calcestruzzo — Specificazione, prestazione, produzione e conformità — Specificazioni
+  complementari per l'applicazione della EN 206*, prospetto 6; in vigore dal 24/07/2025.
+- UNI 11104:2016, stesso titolo, prospetto 5; sostituita dalla UNI 11104:2025.
+- UNI 11104:2004, *Calcestruzzo — Specificazione, prestazione, produzione e conformità — Istruzioni complementari
+  per l'applicazione della EN 206-1*, prospetto 4; ritirata.
+- ATECAP, *La corretta prescrizione del calcestruzzo — Documentazione di riferimento*, 2020, p. 19 (prospetto «Norma
+  UNI 11104: valori limite per la composizione e le proprietà del calcestruzzo»).
 - Consiglio Superiore dei Lavori Pubblici, Servizio Tecnico Centrale, *Linee guida sul calcestruzzo strutturale*.
 - CNR-DT 200 R1/2013, *Istruzioni per la progettazione, l'esecuzione ed il controllo di interventi di
   consolidamento statico mediante l'utilizzo di compositi fibrorinforzati*.

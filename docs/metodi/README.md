@@ -110,4 +110,4 @@ L'id di un riferimento è `<documento>-<paragrafo>`, con il paragrafo come stamp
 | `cnr-dt200-r1-2013` | CNR-DT 200 R1/2013, rinforzo con FRP | 2013 |
 | `cnr-dt204-2006` | CNR-DT 204/2006, calcestruzzo fibrorinforzato | 2006 |
 | `uni-en206-1` | UNI EN 206-1, calcestruzzo: specificazione, prestazione, produzione e conformità | 2006 |
-| `uni11104` | UNI 11104, istruzioni complementari per l'applicazione della EN 206 | 2016 per i valori del codice; 2025 in vigore; 2004 ritirata |
+| `uni11104` | UNI 11104, specificazioni complementari per l'applicazione della EN 206 | 2016 (prospetto 5) per i valori del codice; 2025 (prospetto 6) in vigore dal 24/07/2025; 2004 ritirata |
