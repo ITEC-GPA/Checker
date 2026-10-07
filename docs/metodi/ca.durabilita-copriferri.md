@@ -291,7 +291,7 @@ f_{ck,min}(X) = \begin{cases} \max_X f_{UNI\,11104}(X) & \text{NTC, CNR-DT 200 (
 Requisiti di composizione UNI 11104 della combinazione: a/c = minX, cemento = maxX, aria come sopra. EN 206 F.1 è
 disponibile per classe e come massimo della resistenza minima.
 
-> **Scostamento dichiarato — C-3 Prospetto E.1N per XC3**
+> **Scostamento dichiarato — C-3 (R17) Prospetto E.1N per XC3**
 >
 > - Norma: il prospetto E.1N del DM 31/07/2012 dà per XC3 e XC4 una sola cella con C30/37 (XC1 e XC2 hanno celle
 >   proprie, C25/30); il DM riproduce l'impaginazione del prospetto E.1N della EN 1992-1-1 cambiando i valori
@@ -299,8 +299,8 @@ disponibile per classe e come massimo della resistenza minima.
 > - Programma: C25/30 per XC3 nei profili EN e UNI, con le celle unite lette come XC2-XC3.
 > - Effetto: a sfavore di sicurezza; con XC3 sola (o combinata con classi meno severe) il controllo della classe
 >   minima accetta C25/30 e C28/35. Nessun effetto sui copriferri.
-> - Stato: da correggere per il profilo UNI (testo riscontrato); per il profilo EN da riscontrare sull'impaginazione
->   del prospetto della EN 1992-1-1 (nuovo).
+> - Stato: da discutere (voce R17 del registro delle differenze, a sfavore di sicurezza). Per il profilo UNI il testo
+>   è riscontrato; per il profilo EN resta da riscontrare l'impaginazione del prospetto della EN 1992-1-1.
 
 ## 7. Coefficienti e valori predefiniti
 

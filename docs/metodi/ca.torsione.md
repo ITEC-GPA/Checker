@@ -264,7 +264,7 @@ accetta solo cot θ = 1.
 >   più stretto (a favore).
 > - Stato: dichiarato.
 
-> **Scostamento dichiarato — R-4 DS: fattore di efficienza delle bielle in torsione**
+> **Scostamento dichiarato — R-4 (R16) DS: fattore di efficienza delle bielle in torsione**
 >
 > - Norma: DK NA 5.6.1(3)P, informazione supplementare, distingue il fattore di efficienza del taglio,
 >   νv = 0,7 − fck/200 ≥ 0,45 (5.103 NA), da quello della torsione, νt = 0,7 (0,7 − fck/200) (5.104 NA); νt si
@@ -277,7 +277,7 @@ accetta solo cot θ = 1.
 >   volte quelli della norma (1,61 volte con fck = 60 MPa, dove νv è limitato a 0,45 e νt no). Con il profilo
 >   dell'esempio (DS, fcd = 30/1,45 MPa, cot θ = 1,5): TRcd = 83,11 kNm con νv = 0,55 invece di 58,17 kNm con
 >   νt = 0,385.
-> - Stato: da discutere (nuovo, a sfavore di sicurezza).
+> - Stato: da discutere (voce R16 del registro delle differenze, a sfavore di sicurezza).
 
 Il campo di cot θ del profilo Model Code 2010 non dipende da εx: vale il riquadro T-1 della pagina
 [ca.taglio](ca.taglio.md).
@@ -346,7 +346,7 @@ Il metodo non ha iterazioni: cot θ è un dato.
 - Norme americane.
 - Testo dei riferimenti (`TorsionProfiles.Reference`): per NTC 2018 il risultato cita le equazioni «4.1.27-4.1.32», che
   in NTC 2018 sono del taglio (la torsione è in [4.1.34]-[4.1.40]); per DS cita «θ 6.7a NA» mentre il limite
-  applicato è cot θ ≤ 2 di (6.7b NA). Il valore calcolato non cambia.
+  applicato è cot θ ≤ 2 di (6.7b NA). Il valore calcolato non cambia (voce R19 del registro delle differenze).
 
 ## 10. Esempio numerico verificato
 

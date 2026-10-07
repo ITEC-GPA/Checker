@@ -289,7 +289,7 @@ L'esito complessivo è:
 \text{Passed} = \begin{cases} \text{false} & \exists\ \text{controllo non soddisfatto} \\ \text{null} & \text{altrimenti, se}\ \exists\ \text{controllo in sospeso} \\ \text{true} & \text{altrimenti} \end{cases} \qquad \text{(D.11)}
 ```
 
-> **Scostamento dichiarato — D-5 DS: valori nazionali delle travi non implementati**
+> **Scostamento dichiarato — D-5 (R20) DS: valori nazionali delle travi non implementati**
 >
 > - Norma: DK NA:2024 9.2.2(5) fissa ρw,min = 0,063 √fck/fyk (9.5N NA); la scelta nazionale di 9.2.1.1(1) prescrive
 >   nelle anime alte un'armatura distribuita sulle facce con il rapporto di 9.2.2(5); 9.2.1.2(3) estende alle travi la
@@ -298,7 +298,7 @@ L'esito complessivo è:
 >   `NotImplemented` = true; il trattenimento delle barre compresse è una conferma.
 > - Effetto: esito complessivo DS delle travi sempre in sospeso; nessun esito errato. Il valore di ρw,min è nel testo
 >   e può essere implementato.
-> - Stato: dichiarato (nuovo).
+> - Stato: da discutere (voce R20 del registro delle differenze, per ρw,min).
 
 ## 7. Coefficienti e valori predefiniti
 

@@ -226,7 +226,7 @@ h_{c,eff} = \min\left[\beta\,(h - d);\; \frac{h}{2}\right],\quad \beta = \min\le
 ```
 
 dove c è il copriferro nominale del dato `NominalCover`, anche quando il copriferro della formula di wk è assegnato
-con `CoverOverride`.
+con `CoverOverride` (voce R21 del registro delle differenze).
 
 Profilo DS: hc,eff è l'altezza della fascia tesa, a partire dal lembo, il cui baricentro coincide con quello delle
 barre tese (DK NA 7.3.2(1)P, Fig. 7.100 NA), cercata in [0; min(h; h − x)].

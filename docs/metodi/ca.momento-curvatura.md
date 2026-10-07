@@ -149,7 +149,7 @@ Leggi di progetto (NTC §4.1.2.1.2.1-2; EN (3.17), 3.2.7), con compressione posi
 L'espressione dell'acciaio vale per il ramo superiore orizzontale (acciaio senza incrudimento, come nell'esempio); con
 incrudimento vale il riquadro M-2. Si ha εud = k · εuk con k = 0,9 (`SteelCoefficientStrainTension`).
 
-> **Scostamento dichiarato — M-2 Ramo di incrudimento dell'acciaio di progetto**
+> **Scostamento dichiarato — M-2 (R18) Ramo di incrudimento dell'acciaio di progetto**
 >
 > - Norma: EN 1992-1-1 3.2.7(2) e Fig. 3.8 (anche NTC Fig. 4.1.3(a)): ramo superiore inclinato da fyd in εyd fino a
 >   k fyk/γs in εuk, con il limite εud; in alternativa ramo orizzontale senza limite di deformazione.
@@ -159,7 +159,7 @@ incrudimento vale il riquadro M-2. Si ha εud = k · εuk con k = 0,9 (`SteelCoe
 > - Effetto: nessuno con acciaio senza incrudimento; con incrudimento il ramo di progetto supera quello della norma di
 >   circa (k − 1)(fyk − fyd)(ε − εyd)/(εuk − εyd): per B450C con k = 1,15 ed εuk = 7,5% circa 8 MPa (2%) in εud, a
 >   sfavore di sicurezza. Riguarda anche il dominio di rottura del solutore.
-> - Stato: da discutere (nuovo).
+> - Stato: da discutere (voce R18 del registro delle differenze).
 
 ### 6.2 Punto limite e campionamento
 
