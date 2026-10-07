@@ -10,10 +10,11 @@ classi:
   - GPC.Checkers.Concrete.Shear.ShearProfiles
   - GPC.Checkers.Concrete.Shear.ShearProfile
   - GPC.Checkers.Concrete.Shear.ShearVerdict
-versione: 0.0.15.0
+versione: 0.0.17.0
 norme:
   - ntc2018-4.1.2.3.5.1
   - ntc2018-4.1.2.3.5.2
+  - ntc2018-4.1.2.3.5.3
   - en1992-1-1-6.2.1
   - en1992-1-1-6.2.2
   - en1992-1-1-6.2.3
@@ -74,23 +75,26 @@ traccia dei valori intermedi. La norma si sceglie dal tipo esatto della classe n
 
 | Formula o grandezza | Norma | Edizione e appendice | Paragrafo | Eq. o tabella | Riscontro |
 | --- | --- | --- | --- | --- | --- |
-| VRd senza armatura trasversale (T.4), k, ρl, vmin, σcp ≤ 0,2 fcd | NTC | 2018 | 4.1.2.3.5.1 | n. da riscontrare | testo NTC 2008 |
-| VRd,s, VRd,max (T.11)-(T.13), αc (T.14), ν = 0,5, 1 ≤ cot θ ≤ 2,5 | NTC | 2018 | 4.1.2.3.5.2 | n. da riscontrare | testo NTC 2008 |
-| cot θ di uguale resistenza (T.15) | NTC, Circolare | 2018, 2019 | 4.1.2.3.5.2, C4.1.2.3.5.2 | — | da riscontrare |
+| VRd senza armatura trasversale (T.4), k, ρl, vmin, σcp ≤ 0,2 fcd | NTC | 2018 | 4.1.2.3.5.1 | [4.1.22], [4.1.23] | testo |
+| Trazione significativa: resistenza a taglio del calcestruzzo nulla, elementi senza armatura trasversale non ammessi | NTC | 2018 | 4.1.2.3.5.1 | — | testo |
+| VRd,s, VRd,max (T.11)-(T.13), αc (T.14), ν = 0,5, 1 ≤ cot θ ≤ 2,5 | NTC | 2018 | 4.1.2.3.5.2 | [4.1.25], [4.1.27]-[4.1.29] | testo |
+| cot θ di uguale resistenza (T.15) | — | — | — | — | scelta del metodo nel campo di [4.1.25]: NTC 2018 e Circolare 2019 non prescrivono il valore |
+| VEd ≤ 0,5 bw d ν fcd con il taglio non ridotto (non applicato, vedi 9) | NTC | 2018 | 4.1.2.3.5.3 | [4.1.33] | testo |
 | VRd,c (T.4), k, ρl, vmin, k1, CRd,c | EN 1992-1-1 | 2004 + AC:2010 | 6.2.2(1) | (6.2.a), (6.2.b), (6.3N) | da riscontrare |
 | VRd,s, VRd,max, campo di cot θ, αcw, ν1 | EN 1992-1-1 | 2004 + AC:2010 | 6.2.3(2), 6.2.3(3), 6.2.3(4) | (6.7N), (6.13), (6.14) | da riscontrare |
 | ν = 0,6 (1 − fck/250) | EN 1992-1-1 | 2004 + AC:2010 | 6.2.2(6) | (6.6N) | da riscontrare |
-| CRd,c, k1, vmin; ν = 0,5 fino a C70/85; 1 ≤ cot θ ≤ 2,5 | UNI EN 1992-1-1 | DM 31/07/2012 | 6.2.2(1), 6.2.2(6), 6.2.3(2) | — | testo |
+| CRd,c, k1, vmin; ν = 0,5 fino a C70/85; 1 ≤ cot θ ≤ 2,5 | UNI EN 1992-1-1 | DM 31/07/2012 | 6.2.2(1), 6.2.2(6), 6.2.3(2) | (6.3N), (6.6N), (6.7N) | testo |
+| ν1 = ν anche con tensione delle staffe inferiore a 0,8 fyk; αcw | UNI EN 1992-1-1 | DM 31/07/2012 | 6.2.3(3) | (6.11.aN)-(6.11.cN) | testo |
 | CRd,c = 0,15/γc, k1 = 0,12, vmin con κ1 dipendente da d | DIN EN 1992-1-1 | NA | 6.2.2(1) | — | fonte secondaria |
 | ν1 = 0,75 ν2; VRd,cc e cot θmax | DIN EN 1992-1-1 | NA | 6.2.3(2), 6.2.3(3) | (6.7aDE), (6.7bDE) | fonte secondaria |
 | vmin = 0,051/γc k^1,5 fck^0,5 | DS/EN 1992-1-1 | DK NA:2024 | 6.2.2(1) | — | testo |
-| ν = 0,7 − fck/200 ≥ 0,45 | DS/EN 1992-1-1 | DK NA:2024 | 5.6.1(3)P (richiamato da 6.2.2(6) e 6.2.3(3)) | — | da riscontrare (formula in immagine) |
-| tan(α/2) ≤ cot θ ≤ 2,5 (acciaio B, C), ≤ 2,0 con armatura interrotta | DS/EN 1992-1-1 | DK NA:2024 | 6.2.3(2) | (6.7a NA), (6.7b NA) | testo |
+| νv = 0,7 − fck/200 ≥ 0,45 (taglio) | DS/EN 1992-1-1 | DK NA:2024 | 5.6.1(3)P, informazione supplementare (richiamata da 6.2.2(6) e 6.2.3(3)) | (5.103 NA) | testo |
+| tan(α/2) ≤ cot θ ≤ 2,5 (acciaio B, C), ≤ 2,0 con armatura interrotta; acciaio A con 1 ≤ cot θ ≤ 2 solo se T ≤ 0,1 V | DS/EN 1992-1-1 | DK NA:2024 | 6.2.3(2) | (6.7a NA), (6.7b NA) | testo |
 | CRd,c = 0,15/γc per dg < 16 mm; k1 = 0,30 in trazione | NS-EN 1992-1-1 | NA | 6.2.2(1) | — | fonte secondaria |
 | cot θ ≤ 1,25 con trazione significativa (σct ≥ fctk,0,05) | NS-EN 1992-1-1 | NA | 6.2.3(2) | — | fonte secondaria |
 | fck ≤ 60 MPa (C60/75) nelle formule del taglio | NS-EN 1992-1-1 | NA | 3.1.2(2)P | — | fonte secondaria |
 | εx, kdg, kv, VRd,c (livello II) | fib MC2010 | 2013 | 7.3.3.2, 7.3.2 | n. da riscontrare | da riscontrare |
-| VRd,s, VRd,max, kc, ε1, campo di θ (livello II) | fib MC2010 | 2013 | 7.3.3.3 | n. da riscontrare | da riscontrare |
+| VRd,s, VRd,max, kc, ε1, campo di θ (livello II) | fib MC2010 | 2013 | 7.3.3.3 | n. da riscontrare | da riscontrare (θmin: riquadro T-1) |
 | VRd,F dei calcestruzzi fibrorinforzati (T.10) | CNR-DT 204 | 2006 | 4.2.3 | n. da riscontrare | da riscontrare |
 | VRd,F (stessa formula) | fib MC2010 | 2013 | 7.7.3.2.2 | n. da riscontrare | da riscontrare |
 | VRd = min(VRd,s + VRd,f; VRd,max) | CNR-DT 200 | R1/2013 | 4.3.3 | — | da riscontrare |
@@ -176,11 +180,11 @@ V_{Rd,c} = \max\left\{0;\; \left[C_{Rd,c}\, k\, (100\, \rho_l\, f_{ck})^{1/3} + 
 v_{min} = \kappa\, k^{3/2} f_{ck}^{1/2} \qquad \text{(T.5)}
 ```
 
-Fonti: NTC 2018 §4.1.2.3.5.1; EN 1992-1-1 6.2.2(1), (6.2.a), (6.2.b), (6.3N). Differenze tra i profili:
+Fonti: NTC 2018 §4.1.2.3.5.1, [4.1.23]; EN 1992-1-1 6.2.2(1), (6.2.a), (6.2.b), (6.3N). Differenze tra i profili:
 
 | Profilo | CRd,c | k1 | κ in vmin | Note |
 | --- | --- | --- | --- | --- |
-| NTC 2018, CNR-DT 200 | 0,18/γc | 0,15 | 0,035 | solo σcp ≥ 0: con N > 0 la verifica non è valutata |
+| NTC 2018, CNR-DT 200 | 0,18/γc | 0,15 | 0,035 | solo σcp ≥ 0: con N > 0 la verifica non è valutata. NTC 2018 §4.1.2.3.5.1 annulla la resistenza del calcestruzzo con trazione significativa; il metodo non ne valuta l'entità e non dà esito con qualunque trazione |
 | EN 1992-1-1, UNI | 0,18/γc | 0,15 | 0,035 | σcp < 0 (trazione) riduce la resistenza |
 | DIN | 0,15/γc | 0,12 | 0,0525/γc per d ≤ 600 mm, 0,0375/γc per d ≥ 800 mm, lineare tra i due | |
 | DS | 0,18/γc | 0,15 | 0,051/γc | |
@@ -231,16 +235,17 @@ V_{Rd,max} = z\, b_w\, f_{c,s}\, \frac{\cot\theta + \cot\alpha}{1 + \cot^2\theta
 V_{Rd} = \min\left(V_{Rd,s};\; V_{Rd,max}\right), \qquad \eta = \frac{|V_{Ed}|}{V_{Rd}} \qquad \text{(T.13)}
 ```
 
-Fonti: NTC 2018 §4.1.2.3.5.2; EN 1992-1-1 (6.13), (6.14); fib MC2010 §7.3.3.3. La resistenza delle bielle fc,s
-dipende dal profilo.
+Fonti: NTC 2018 §4.1.2.3.5.2, [4.1.27]-[4.1.29]; EN 1992-1-1 (6.13), (6.14); fib MC2010 §7.3.3.3. La resistenza
+delle bielle fc,s dipende dal profilo.
 
-**NTC 2018 e CNR-DT 200.** fc,s = αc ν fcd con ν = 0,5 e, con σc = max(0; −N/Ac):
+**NTC 2018 e CNR-DT 200.** fc,s = αc ν fcd con ν = 0,5 e, con σc = max(0; −N/Ac) (NTC 2018 §4.1.2.3.5.2):
 
 ```math
 \alpha_c = \begin{cases} 1 + \sigma_c / f_{cd} & 0 \le \sigma_c \le 0{,}25 f_{cd} \\ 1{,}25 & 0{,}25 f_{cd} < \sigma_c \le 0{,}5 f_{cd} \\ \max\left[0;\; 2{,}5\,(1 - \sigma_c / f_{cd})\right] & \sigma_c > 0{,}5 f_{cd} \end{cases} \qquad \text{(T.14)}
 ```
 
-Se cot θ non è assegnato, il metodo usa l'inclinazione per cui VRd,s = VRd,max, limitata al campo [1; 2,5]:
+Se cot θ non è assegnato, il metodo usa l'inclinazione per cui VRd,s = VRd,max, limitata al campo [1; 2,5] di
+[4.1.25]; la norma ammette qualunque valore del campo e non prescrive questa scelta:
 
 ```math
 \cot\theta = \min\left\{2{,}5;\; \max\left[1;\; \sqrt{\max\left(0;\; \frac{\nu f_{cd}\, b_w\, \alpha_c}{(A_{sw}/s)\, f_{yd} \sin\alpha} - 1\right)}\right]\right\} \qquad \text{(T.15)}
@@ -289,21 +294,24 @@ V_{Rd,cc} = 0{,}24\, f_{ck}^{1/3} \max\left(0;\; 1 - 1{,}2\,\frac{\sigma_{cp}}{f
 
 e cot θ da (T.17). Anche con le staffe il profilo richiede Asl > 0, perché εx entra in kc.
 
-> **Scostamento dichiarato — T-1 Model Code 2010: campo di θ indipendente da εx**
+> **Scostamento dichiarato — T-1 (R4) Model Code 2010: campo di θ indipendente da εx**
 >
-> - Norma: nel livello II di approssimazione il Model Code 2010 (§7.3.3.3) fissa l'inclinazione minima delle bielle
->   θmin = 20° + 10000 εx, che si riduce a 20° solo per εx = 0.
+> - Norma: nei livelli II e III di approssimazione il Model Code 2010 (§7.3.3.3) fissa l'inclinazione minima delle
+>   bielle θmin = 20° + 10000 εx, che si riduce a 20° solo per εx = 0.
 > - Programma: θmin = 20° per ogni εx (cot θmax = 2,747); εx entra solo in kc.
 > - Effetto: a sfavore di sicurezza quando governa l'armatura trasversale. Nella trave dell'esempio S5
 >   (εx = 6,79 · 10⁻⁴, staffe Ø8/150) la norma darebbe θmin = 26,79°, cot θ = 1,980 e VRd = 215,0 kN; il programma
 >   restituisce 298,3 kN (+38,8%). Lo stesso campo vale per la torsione con il profilo Model Code 2010.
-> - Stato: da riscontrare sul testo del Model Code 2010 e da decidere.
+> - Stato: da discutere (voce R4 del registro delle differenze, a sfavore di sicurezza); testo del Model Code 2010
+>   da riscontrare.
 
 > **Scostamento dichiarato — T-2 DS: cot θ ≤ 2 anche con acciaio di classe B o C**
 >
 > - Norma: DK NA 6.2.3(2) ammette tan(α/2) ≤ cot θ ≤ 2,5 con acciaio di classe B o C (6.7a NA) e limita
->   cot θ ≤ 2,0 solo con armatura longitudinale interrotta (6.7b NA).
-> - Programma: cot θ ≤ 2,0 sempre, perché il metodo non sa se l'armatura è interrotta.
+>   cot θ ≤ 2,0 con armatura longitudinale interrotta (6.7b NA); con staffe di acciaio di classe A ammette
+>   1 ≤ cot θ ≤ 2 solo per travi isostatiche con staffe verticali e T ≤ 0,1 V (T in kNm, V in kN).
+> - Programma: cot θ ≤ 2,0 sempre, perché il metodo non sa se l'armatura è interrotta; la classe dell'acciaio non
+>   è considerata (vedi 9).
 > - Effetto: a favore di sicurezza. Quando governa l'armatura trasversale VRd,s si riduce fino al 20% (2/2,5): nella
 >   trave dell'esempio S6 VRd = 208,1 kN invece di 260,1 kN.
 > - Stato: dichiarato.
@@ -329,7 +337,7 @@ e cot θ da (T.17). Anche con le staffe il profilo richiede Asl > 0, perché εx
 | σcp,max | 0,2 fcd | tutti tranne Model Code 2010 | NTC; EN 6.2.2(1) | no | `SectionShearCalculator.Ntc`, `.Eurocode`, `.FibreReinforced` |
 | ν | 0,5 | NTC, CNR-DT 200; UNI con fck ≤ 70 | NTC 4.1.2.3.5.2; DM 2012 6.2.2(6) | no | `SectionShearCalculator.Ntc`, `.StrutEfficiency` |
 | ν | 0,6 (1 − fck/250) | EN, NS, UNI con fck > 70 | EN (6.6N) | no | `SectionShearCalculator.StrutEfficiency` |
-| ν | max(0,45; 0,7 − fck/200) | DS | DK NA 5.6.1(3)P | no | `SectionShearCalculator.StrutEfficiency` |
+| ν | max(0,45; 0,7 − fck/200) | DS | DK NA 5.6.1(3)P, (5.103 NA) | no | `SectionShearCalculator.StrutEfficiency` |
 | ν1 | 0,75 min(1; 1,1 − fck/500) | DIN | NA DIN 6.2.3(3) | no | `SectionShearCalculator.Eurocode` |
 | αcw | 1 | famiglia Eurocodice | EN 6.2.3(3) nota 3 | no | `SectionShearCalculator.Eurocode` |
 | αc | (T.14) | NTC, CNR-DT 200 | NTC 4.1.2.3.5.2 | no | `SectionShearCalculator.Ntc` |
@@ -390,25 +398,29 @@ della formula usata.
 ## 9. Limiti e casi non supportati
 
 - Precompressione e sezioni composte acciaio-calcestruzzo.
-- Riduzione del taglio per carichi vicini agli appoggi (EN 1992-1-1 6.2.2(6) e 6.2.3(8)) e controllo
-  VEd ≤ 0,5 bw d ν fcd degli elementi senza armatura trasversale: non applicati. Senza la riduzione il controllo
-  non governa nelle sezioni usuali.
+- Riduzione del taglio per carichi vicini agli appoggi (NTC 2018 §4.1.2.3.5.3, [4.1.32]; EN 1992-1-1 6.2.2(6) e
+  6.2.3(8)) e controllo VEd ≤ 0,5 bw d ν fcd con il taglio non ridotto (NTC [4.1.33]; EN (6.5)): non applicati.
+  Il metodo non riduce il taglio, quindi un esito soddisfatto senza armatura trasversale implica
+  VEd ≤ VRd,c, molto minore di 0,5 bw d ν fcd; se il chiamante passa un taglio già ridotto, il controllo
+  [4.1.33] / (6.5) resta a suo carico (voce R9 del registro delle differenze).
 - EN 1992-1-1 6.2.3(3) nota 2 (ν1 = 0,6 se la tensione delle staffe è inferiore a 0,8 fyk): non usata; il metodo
-  usa sempre ν1 = ν, a favore di sicurezza.
+  usa sempre ν1 = ν di (6.6N), minore del valore della nota 2 per ogni classe, quindi a favore di sicurezza (R9).
+  Il DM 31/07/2012 prescrive ν1 = ν anche in quel caso.
 - Verifica dell'armatura longitudinale per l'effetto del taglio (traslazione del diagramma dei momenti) e armature
   minime: fuori dal metodo.
 - NTC 2018 senza armatura trasversale con trazione assiale: non valutato.
 - CNR-DT 204 con staffe e fibre insieme; contributo FRP di CNR-DT 200 (le sezioni non hanno dati FRP).
 - DS con staffe di acciaio di classe A (DK NA 6.2.3(2), campo 1 ≤ cot θ ≤ 2 solo con T ≤ 0,1 V): il metodo non
-  distingue la classe dell'acciaio.
-- Model Code 2010: solo livello II di approssimazione; nessun contributo del calcestruzzo con le staffe (livello III).
+  distingue la classe dell'acciaio (R9).
+- Model Code 2010: solo livello II di approssimazione; nessun contributo del calcestruzzo con le staffe (livello III);
+  θmin indipendente da εx (riquadro T-1).
 - Norme americane (ACI 318, AASHTO).
 
 ## 10. Esempio numerico verificato
 
 Dati comuni: sezione 300 × 500 mm (Ac = 150 000 mm²), bw = 300 mm, d = 460 mm, Asl = 4Ø20 = 1256,64 mm²,
 calcestruzzo C30/37 (fck = 30 MPa, γc = 1,5), acciaio B450C (fyd = 450/1,15 = 391,30 MPa, Es = 200 000 MPa),
-z = 0,9 d = 414 mm. Libreria GPCChecker.Concrete 0.0.15.0.
+z = 0,9 d = 414 mm. Libreria GPCChecker.Concrete 0.0.17.0.
 
 **S1. NTC 2018, senza armatura trasversale, N = −200 kN, VEd = 100 kN** (fcd = 0,85 · 30/1,5 = 17,0 MPa).
 
@@ -476,7 +488,8 @@ Esempi dei riquadri, con gli stessi dati:
   - risoluzione dei profili per tipo esatto, CS-TR34 e ACI.
 - **Integrazione**: i test del verificatore di modello confrontano il taglio nelle due direzioni con la chiamata
   diretta di questo metodo per tutte le norme non americane.
-- **Esempi di questa pagina**: S1-S6 eseguiti con la libreria 0.0.15.0, scarto inferiore a 10⁻⁹.
+- **Esempi di questa pagina**: S1-S6 eseguiti con la libreria 0.0.17.0 e ricalcolati in modo indipendente dalle
+  formule della norma, scarto inferiore a 10⁻⁹.
 - **Benchmark indipendenti pubblicati**: nessuno, per ora. I valori di DIN, NS, Model Code 2010 e CNR-DT 204 sono
   verificati con calcoli a mano sulle formule del codice, non su esempi delle norme.
 
@@ -484,8 +497,6 @@ Esempi dei riquadri, con gli stessi dati:
 
 - Ministero delle Infrastrutture e dei Trasporti, DM 17 gennaio 2018, *Aggiornamento delle Norme tecniche per le
   costruzioni*, §4.1.2.3.5.
-- Circolare 21 gennaio 2019 n. 7 C.S.LL.PP., *Istruzioni per l'applicazione dell'Aggiornamento delle Norme tecniche
-  per le costruzioni*, §C4.1.2.3.5.
 - EN 1992-1-1:2004 + AC:2010, *Eurocode 2: Design of concrete structures — Part 1-1: General rules and rules for
   buildings*, §6.2.
 - UNI EN 1992-1-1, appendice nazionale: DM 31 luglio 2012 (G.U. n. 73 del 27 marzo 2013).
