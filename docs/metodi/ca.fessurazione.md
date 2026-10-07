@@ -314,17 +314,23 @@ delle barre) né i testi della traccia (la voce k2 dice "legacy rule" e compare 
 > - Programma fino alla 0.0.15.0, profili NTC e CNR-DT 200: k2 = 0,5 solo se almeno una barra era compressa; una
 >   trave inflessa senza barre compresse (semplice armatura), una soletta con la rete superiore tesa o una sezione in
 >   tensoflessione con l'asse neutro interno avevano k2 = 1,0.
-> - Programma dalla 0.0.16.0 (decisione D7-b, docs/refactoring/scostamenti.md di ANTHEA): k2 = 0,5 per ogni
->   profilo quando l'asse neutro taglia la sezione; nella pura compressione wk = 0 e k2 non si applica. Le superfici
->   interne delle sezioni cave mantengono il k2 della propria fascia tesa (6.7, 6.10). La regola precedente resta
->   solo come opzione legacy.
+> - Decisione dell'utente del 7/10/2026 sullo scostamento D7-b di ANTHEA: k2 = 0,5 quando l'asse neutro taglia la
+>   sezione, senza ricadere nel caso della pura compressione. La regola adottata, con i rami e l'opzione legacy, è
+>   quella di 6.7 (F.13); questa pagina ne è il riferimento completo.
+> - Programma dalla 0.0.16.0: k2 = 0,5 per ogni profilo, NTC 2018 e CNR-DT 200 compresi, quando l'asse neutro taglia
+>   la sezione; nella pura compressione wk = 0 e k2 non si applica (K2 nullo, nessuna voce k2 nella traccia); la
+>   sezione interamente tesa e i rami F.14 e F.15 sono invariati. La regola precedente resta solo come opzione legacy.
+> - Domanda aperta (non coperta dalla decisione): le superfici interne delle sezioni cave (pareti, anello) restano
+>   verificate con il k2 della propria fascia tesa anche con l'asse neutro interno, come nel motore precedente (6.7,
+>   6.10); se governano, il k2 del risultato può superare 0,5 in una sezione inflessa (0,9 nel cassone di 6.7). Va confermato se estendere
+>   anche a loro k2 = 0,5.
 > - Effetto: wd minore dove il motore precedente usava k2 = 1. Nell'esempio C2 (trave con sole barre tese) wd =
 >   0,2538 mm invece di 0,3683 mm (−31,1%) e la verifica passa da non soddisfatta a soddisfatta. Nei 936 stati
 >   congelati (176 NTC valutati) cambia un solo stato (R400x400, trazione con flessione deviata, tutte le barre
 >   tese): wd da 0,608 a 0,360 mm (−40,85%), esito invariato (oltre 0,3 mm). Sulla griglia di 222 912 stati della
 >   scheda D7-b, nei 37 128 stati parzializzati che avevano k2 = 1 wd diminuisce fino al 48% (mediana tra 33% e 40%
 >   secondo la famiglia) e l'esito cambia in 9282 stati.
-> - Stato: risolto in GPCChecker.Concrete 0.0.16.0.
+> - Stato: corretto in GPCChecker.Concrete 0.0.16.0 per la zona tesa esterna; superfici interne da discutere.
 
 ### 6.8 Casi particolari della sezione parzializzata
 
