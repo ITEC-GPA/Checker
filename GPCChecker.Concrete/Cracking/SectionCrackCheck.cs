@@ -44,11 +44,17 @@ namespace GPC.Checkers.Concrete.Cracking
         public double? SpacingOverride { get; }
         /// <summary>Maximum concrete stress (tension positive) of the uncracked linear section with tensile concrete, for decompression and crack formation.</summary>
         public Func<double> UncrackedMaximumConcreteStress { get; }
+        /// <summary>
+        /// Legacy rule of ANTHEA before the D7-b deviation, for NTC 2018 and CNR-DT 200 only: with the neutral axis inside the section k2 comes from the
+        /// ordinary bar stresses (0.5 with a compressed bar, 1.0 otherwise, <see cref="CrackWidthCalculator.K2"/>), so a singly reinforced bent section gets
+        /// k2 = 1. Kept to reproduce the frozen fixtures and the comparisons; the other profiles always use k2 = 0.5 when the neutral axis crosses the section.
+        /// </summary>
+        public bool NtcK2FromCompressedBars { get; }
 
         public SectionCrackInput(Standard standard, ServiceabilityCombination combination, string exposure, bool sensitiveReinforcement, double? designLimit,
             CrackSectionGeometry geometry, StrainPlane strainPlane, IEnumerable<double> barStresses, bool linearAnalysis, bool tensileConcrete, bool prestressed,
             double es, double ecm, double fctm, bool shortTerm, bool ribbedBars, double nominalCover, double? coverOverride = null, double? spacingOverride = null,
-            Func<double> uncrackedMaximumConcreteStress = null)
+            Func<double> uncrackedMaximumConcreteStress = null, bool ntcK2FromCompressedBars = true)
         {
             Standard = standard ?? throw new ArgumentNullException(nameof(standard));
             Geometry = geometry ?? throw new ArgumentNullException(nameof(geometry));
@@ -62,7 +68,7 @@ namespace GPC.Checkers.Concrete.Cracking
             Combination = combination; Exposure = exposure; SensitiveReinforcement = sensitiveReinforcement; DesignLimit = designLimit;
             LinearAnalysis = linearAnalysis; TensileConcrete = tensileConcrete; Prestressed = prestressed; Es = es; Ecm = ecm; Fctm = fctm;
             ShortTerm = shortTerm; RibbedBars = ribbedBars; NominalCover = nominalCover; CoverOverride = coverOverride; SpacingOverride = spacingOverride;
-            UncrackedMaximumConcreteStress = uncrackedMaximumConcreteStress;
+            UncrackedMaximumConcreteStress = uncrackedMaximumConcreteStress; NtcK2FromCompressedBars = ntcK2FromCompressedBars;
         }
 
         /// <summary>Ordinary bar stresses of a native stress result in the order of <see cref="CrackSectionGeometry.From"/> (linear: with the creep coefficients).</summary>
@@ -170,8 +176,9 @@ namespace GPC.Checkers.Concrete.Cracking
                 return Stop(CrackOutcome.Evaluated, "Section entirely compressed");
             }
             if (strains.Min() >= 0) return Inner(FullyTensioned(p, profile, req.Limit.Value, details), p, profile);
-            if (!CrackProfiles.IsNtc(profile)) k2 = .5; // a neutral axis crosses the section: bending, EC2 7.3.4(3) (k2 of (7.11))
-            result.K2 = k2; Add("k2", k2, "−", CrackProfiles.IsNtc(profile) ? "0.5 with a compressed bar, 1.0 otherwise" : "partially compressed section: bending");
+            bool legacyK2 = p.NtcK2FromCompressedBars && CrackProfiles.IsNtc(profile);
+            if (!legacyK2) k2 = .5; // a neutral axis crosses the section: bending, EC2 7.3.4(3) (k2 of (7.11))
+            result.K2 = k2; Add("k2", k2, "−", legacyK2 ? "0.5 with a compressed bar, 1.0 otherwise" : "partially compressed section: bending");
             double gradient = CrackSectionGeometry.Hypot(plane.ChiX, plane.ChiY);
             if (gradient <= 1e-15) return Stop(CrackOutcome.NeutralAxisUndetermined, "Neutral axis not determined");
             double qx = plane.ChiX / gradient, qy = plane.ChiY / gradient;
