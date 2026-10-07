@@ -78,7 +78,7 @@ traccia dei valori intermedi. La norma si sceglie dal tipo esatto della classe n
 | VRd senza armatura trasversale (T.4), k, ρl, vmin, σcp ≤ 0,2 fcd | NTC | 2018 | 4.1.2.3.5.1 | [4.1.22], [4.1.23] | testo |
 | Trazione significativa: resistenza a taglio del calcestruzzo nulla, elementi senza armatura trasversale non ammessi | NTC | 2018 | 4.1.2.3.5.1 | — | testo |
 | VRd,s, VRd,max (T.11)-(T.13), αc (T.14), ν = 0,5, 1 ≤ cot θ ≤ 2,5 | NTC | 2018 | 4.1.2.3.5.2 | [4.1.25], [4.1.27]-[4.1.29] | testo |
-| cot θ di uguale resistenza (T.15) | — | — | — | — | scelta del metodo nel campo di [4.1.25]: NTC 2018 e Circolare 2019 non prescrivono il valore |
+| cot θ di uguale resistenza (T.15): scelta del metodo nel campo di [4.1.25], di cui NTC 2018 e Circolare 2019 non prescrivono il valore | — | — | — | — | — |
 | VEd ≤ 0,5 bw d ν fcd con il taglio non ridotto (non applicato, vedi 9) | NTC | 2018 | 4.1.2.3.5.3 | [4.1.33] | testo |
 | VRd,c (T.4), k, ρl, vmin, k1, CRd,c | EN 1992-1-1 | 2004 + AC:2010 | 6.2.2(1) | (6.2.a), (6.2.b), (6.3N) | da riscontrare |
 | VRd,s, VRd,max, campo di cot θ, αcw, ν1 | EN 1992-1-1 | 2004 + AC:2010 | 6.2.3(2), 6.2.3(3), 6.2.3(4) | (6.7N), (6.13), (6.14) | da riscontrare |

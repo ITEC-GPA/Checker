@@ -49,7 +49,10 @@ template.
   - `testo NTC 2008`: verificata sul testo del DM 14/01/2008, con la clausola corrispondente di NTC 2018 ancora da
     ripetere sul testo 2018;
   - `fonte secondaria`: verificata su una documentazione tecnica che riporta l'annesso, non sul testo ufficiale;
-  - `da riscontrare`: non ancora verificata su una fonte; il valore è quello del codice.
+  - `da riscontrare`: non ancora verificata su una fonte; il valore è quello del codice;
+  - `—`: scelta del metodo, senza una formula di norma da riscontrare.
+
+  Una nota tra parentesi può precisare il riscontro (per esempio il riquadro che tratta la differenza).
 
 ## Riquadri
 
