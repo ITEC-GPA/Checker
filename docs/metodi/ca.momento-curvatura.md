@@ -94,9 +94,10 @@ una domanda.
 
 ## 5. Notazione, unità e convenzioni
 
-Unità: N, Nmm, mm, MPa; curvature in 1/mm. N è negativo in compressione (convenzione della libreria). Nei punti della
-curva la deformazione del calcestruzzo è restituita come modulo della compressione e quella delle barre come massimo
-modulo.
+Unità: N, Nmm, mm, MPa; curvature in 1/mm. N è negativo in compressione (convenzione della libreria); nel solutore e
+in (M.1) anche tensioni e deformazioni sono negative in compressione, mentre le leggi (M.2) sono scritte con la
+compressione positiva (6.1). Nei punti della curva la deformazione del calcestruzzo è restituita come modulo della
+compressione e quella delle barre come massimo modulo.
 
 | Simbolo | Significato | Unità | Nel codice |
 | --- | --- | --- | --- |
@@ -113,6 +114,8 @@ modulo.
 | χx, χy | componenti del gradiente di deformazione | 1/mm | `GradientX`, `GradientY` |
 | χ | curvatura, modulo del gradiente | 1/mm | `Curvature` |
 | ε0 | deformazione nel punto di riferimento | — | `ReferenceStrain` |
+| xr, yr | punto di riferimento dell'integrazione delle forze, negli assi della sezione | mm | `SectionSolver.IntegrationReferencePoint` |
+| δi | 1 per la barra i interna al calcestruzzo, 0 altrimenti (sezione netta) | — | `SectionSolver.IntegrateRebarStress` |
 | εc | modulo della massima compressione del calcestruzzo ai vertici del contorno | — | `ConcreteCompressionStrain` |
 | εs | massimo modulo della deformazione delle barre | — | `SteelStrain` |
 | χy,1, χu | curvatura al primo snervamento e al punto limite | 1/mm | `YieldCurvature`, `UltimateCurvature` |
@@ -124,11 +127,20 @@ modulo.
 Equilibrio della sezione (EN 6.1; NTC §4.1.2.3.4.1), per un piano di deformazione ε(x, y):
 
 ```math
-N = \int_{A_c}\sigma_c\left(\varepsilon(x,y)\right)dA + \sum_i \left[\sigma_s(\varepsilon_i) - \sigma_c(\varepsilon_i)\,\delta_i\right]A_{s,i}, \qquad M_x = \int_{A_c}\sigma_c\,y\,dA + \sum_i\left[\sigma_s - \sigma_c\,\delta_i\right]A_{s,i}\,y_i \qquad \text{(M.1)}
+N = \int_{A_c}\sigma_c\left(\varepsilon(x,y)\right)dA + \sum_i \left[\sigma_s(\varepsilon_i) - \delta_i\,\sigma_c(\varepsilon_i)\right]A_{s,i}, \qquad M_x = -\left\{\int_{A_c}\sigma_c\,(y - y_r)\,dA + \sum_i\left[\sigma_s - \delta_i\,\sigma_c\right]A_{s,i}\,(y_i - y_r)\right\}, \qquad M_y = \int_{A_c}\sigma_c\,(x - x_r)\,dA + \sum_i\left[\sigma_s - \delta_i\,\sigma_c\right]A_{s,i}\,(x_i - x_r) \qquad \text{(M.1)}
 ```
 
-Qui δi = 1 per le barre interne al calcestruzzo; per My vale l'analoga con x. Leggi di progetto (NTC §4.1.2.1.2.1-2;
-EN (3.17), 3.2.7), con compressione positiva nelle espressioni:
+Qui δi = 1 per le barre interne al calcestruzzo (0 per le altre) e (xr, yr) è il punto di riferimento
+dell'integrazione del solutore (`SectionSolver.IntegrationReferencePoint`).
+
+**Convenzione di segno di (M.1)**, come in `SectionSolver`: tensioni e deformazioni sono negative in compressione,
+quindi N è negativo in compressione, come nel §5; Mx positivo comprime le fibre con y > yr, My positivo quelle con
+x < xr. Le componenti sono negli assi della sezione; le forze del verificatore, date negli assi `axes` della chiamata,
+sono riportate dal verificatore in questi assi. Le leggi (M.2) sono invece scritte, come nelle norme, con la
+compressione positiva: in (M.1) la tensione del calcestruzzo per ε ≤ 0 vale −σc(−ε) di (M.2) ed è nulla in trazione,
+salvo l'opzione del verificatore; la legge dell'acciaio di (M.2) è dispari e vale con entrambe le convenzioni.
+
+Leggi di progetto (NTC §4.1.2.1.2.1-2; EN (3.17), 3.2.7), con compressione positiva nelle espressioni:
 
 ```math
 \sigma_c(\varepsilon) = \begin{cases} f_{cd}\left[1-\left(1-\varepsilon/\varepsilon_{c2}\right)^2\right] & 0 \le \varepsilon \le \varepsilon_{c2} \\ f_{cd} & \varepsilon_{c2} < \varepsilon \le \varepsilon_{cu} \end{cases}, \quad f_{cd} = \frac{\alpha_{cc}f_{ck}}{\gamma_c}; \qquad \sigma_s(\varepsilon) = \operatorname{sgn}(\varepsilon)\min\left(E_s|\varepsilon|;\ f_{yd}\right)\ \ \text{per}\ |\varepsilon| \le \varepsilon_{ud} \qquad \text{(M.2)}
