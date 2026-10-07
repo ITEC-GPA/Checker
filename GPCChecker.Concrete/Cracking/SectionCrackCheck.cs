@@ -146,7 +146,7 @@ namespace GPC.Checkers.Concrete.Cracking
     /// its own tensile band, (εmax + max(0, εmin))/(2 εmax), for every profile and also when the neutral axis cuts the section (local area, EN 7.3.4(3));
     /// their h − x is εmax/|∇ε|, bounded in an entirely tensile section by the height of the section normal to the face of the band (diameter for the
     /// ring), as for the outer faces, and with a negligible gradient uniform tension (k2 = 1, h − x = the same height), see
-    /// <see cref="UniformTensionTolerance"/> (0.0.17.0).
+    /// <see cref="UniformTensionTolerance"/> (0.0.17.0); h − x of a band can therefore jump up where the neutral axis enters the section.
     /// Fixtures: GPCChecker.Test.Concrete/Fixtures/crack-legacy.csv.
     /// </summary>
     public static class SectionCrackCheck
@@ -364,8 +364,13 @@ namespace GPC.Checkers.Concrete.Cracking
             // tensile section, the same test as Evaluate): x = 0 and h − x is bounded by the height h of the section normal to the face of the band
             // (diameter for the ring), the h of the faces of an entirely tensile section (FullyTensioned). A gradient negligible against the strain
             // (solver noise, about 1e-15…1e-12 1/mm) has no direction: uniform tension, whole band, k2 = 1, h − x = that same h, so the general rule
-            // tends to the uniform one as the gradient vanishes, also in non-square sections. Before 0.0.17.0 εmax/|∇ε| was used unbounded (about
-            // 1e12 mm with a noise gradient).
+            // tends to the uniform one as the gradient vanishes, also in non-square sections. The price is a discontinuity where the neutral axis
+            // enters the section: just outside h − x = min[εmax/|∇ε|; h normal to the face], just inside εmax/|∇ε|, which exceeds that h when the
+            // gradient is oblique to the face or runs along the longer side (box 400×600 of the tests: ±x bands 400 at y = 310, 490 at y = 290;
+            // ANTHEA, square box 1000×1000 with an oblique moment: band 1000 → 1183.68 mm, governing wk +18.4 %). Neither the unbounded rule nor
+            // the first 0.0.17.0 bound (height along the gradient on both sides, da7cf02a) jumped there: this rule moved the band discontinuity from
+            // the uniform-tension threshold to the entry of the neutral axis. The ring has no jump (both heights are the diameter). Pending decision
+            // of the user (ANTHEA registro-differenze R15). Before 0.0.17.0 εmax/|∇ε| was used unbounded (about 1e12 mm with a noise gradient).
             double gradient = CrackSectionGeometry.Hypot(plane.ChiX, plane.ChiY);
             double gx = gradient > 0 ? plane.ChiX / gradient : 0, gy = gradient > 0 ? plane.ChiY / gradient : 0;
             double sectionAlongGradient = g.Outline.Max(v => gx * v.X + gy * v.Y) - g.Outline.Min(v => gx * v.X + gy * v.Y);

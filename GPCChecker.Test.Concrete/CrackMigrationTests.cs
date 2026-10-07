@@ -526,7 +526,8 @@ namespace ConcreteTests
         /// 600 for ±y), the h of the outer faces of the entirely tensile section; before, above the threshold, it was the height along the gradient (±x bands:
         /// 600 instead of 400 with the gradient along y, ±y bands: 400 instead of 600 along x), a jump of 50 % in the far crack spacing. wk changes only with σs
         /// and k2 (1 − k2 ≤ 1.01e-4 / 2). Neutral axis inside the section, close to the edge (y = 290): h − x of the ±x bands stays εmax/|∇ε| = 490 mm (beyond
-        /// 400, without the bound and without the entry), the regime changes where the neutral axis leaves the section (y = 310: 400, as for the outer faces).
+        /// 400, without the bound and without the entry); just outside (y = 310) it is 400, bounded by the height normal to the face, where da7cf02a gave
+        /// εmax/|∇ε| = 510. The continuous rule moves the band discontinuity from the threshold to the entry of the neutral axis (pending user decision, R15).
         /// </summary>
         [TestMethod]
         public void HollowSectionInnerBandDepthIsContinuousAtTheUniformThreshold()
