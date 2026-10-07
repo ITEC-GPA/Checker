@@ -47,7 +47,9 @@ namespace GPC.Checkers.Concrete.Cracking
         /// <summary>
         /// Legacy rule of ANTHEA before the D7-b deviation, for NTC 2018 and CNR-DT 200 only: with the neutral axis inside the section k2 comes from the
         /// ordinary bar stresses (0.5 with a compressed bar, 1.0 otherwise, <see cref="CrackWidthCalculator.K2"/>), so a singly reinforced bent section gets
-        /// k2 = 1. Kept to reproduce the frozen fixtures and the comparisons; the other profiles always use k2 = 0.5 when the neutral axis crosses the section.
+        /// k2 = 1. Kept only for the tests dedicated to the option and for historical comparisons with the behaviour before D7-b: the fixtures
+        /// (GPCChecker.Test.Concrete/Fixtures, recaptured in 06d97733 from ANTHEA d2d3225) are captures of the current behaviour and use the default.
+        /// The other profiles always use k2 = 0.5 when the neutral axis crosses the section.
         /// Default false (deviation D7-b of ANTHEA, docs/refactoring/scostamenti.md): k2 = 0.5 whenever the neutral axis is inside the section. It has no
         /// effect on entirely compressed or entirely tensile sections, nor on the inner surfaces of hollow sections.
         /// What it reproduces: wk, ratio, verdict, outcome, status, regions and the k2 of the partially compressed section as before D7-b. What it does not:
