@@ -12,7 +12,7 @@ classi:
   - GPC.Checkers.Concrete.Torsion.TorsionProfiles
   - GPC.Checkers.Concrete.Torsion.TorsionProfile
   - GPC.Checkers.Concrete.Torsion.TorsionVerdict
-versione: 0.0.15.0
+versione: 0.0.17.0
 norme:
   - ntc2018-4.1.2.3.6
   - circ2019-C4.1.2.3.6
@@ -72,15 +72,16 @@ calcolato con la stessa inclinazione delle bielle. Restituisce:
 
 | Formula o grandezza | Norma | Edizione e appendice | Paragrafo | Eq. o tabella | Riscontro |
 | --- | --- | --- | --- | --- | --- |
-| TRcd, TRsd, TRld (R.2)-(R.4), f'cd = 0,5 fcd, interazione delle bielle (R.7), θ comune a taglio e torsione, spessore delle sezioni piene e cave | NTC | 2018 | 4.1.2.3.6 | n. da riscontrare | testo NTC 2008 |
-| Campo 0,4 ≤ cot θ ≤ 2,5 in torsione | NTC | 2018 | 4.1.2.3.6 | — | testo NTC 2008 |
+| TRcd, TRsd, TRld (R.2)-(R.5), interazione delle bielle (R.7), θ comune a taglio e torsione, spessore delle sezioni piene e cave | NTC | 2018 | 4.1.2.3.6 | [4.1.35]-[4.1.37], [4.1.39], [4.1.40] | testo |
+| Campo 1 ≤ cot θ ≤ 2,5 in torsione; in torsione pura cot θ = (al/as)^(1/2) nel campo | NTC | 2018 | 4.1.2.3.6 | [4.1.38] | testo |
+| f'cd = ν fcd con ν = 0,5 | Circolare | 2019 | C4.1.2.3.6 | — | testo |
 | Spessore efficace tef = A/u ≥ 2 a; sezioni cave | EN 1992-1-1 | 2004 + AC:2010 | 6.3.2(1) | — | da riscontrare |
 | Flusso di taglio, armatura longitudinale | EN 1992-1-1 | 2004 + AC:2010 | 6.3.2(1)-(3) | (6.26), (6.27), (6.28) | da riscontrare |
 | Interazione delle bielle, TRd,max | EN 1992-1-1 | 2004 + AC:2010 | 6.3.2(4) | (6.29), (6.30) | da riscontrare |
 | ν di (6.30) | EN 1992-1-1 | 2004 + AC:2010 | 6.2.2(6) | (6.6N) | da riscontrare |
 | ν = 0,5 fino a C70/85 | UNI EN 1992-1-1 | DM 31/07/2012 | 6.2.2(6) | — | testo |
 | ν = 0,525 ν2 (0,75 ν2 per sezioni cave armate sulle due facce); interazione quadratica per sezioni piene; campo di cot θ con VEd,T+V | DIN EN 1992-1-1 | NA | 6.3.2(2), 6.3.2(4) | (6.29) modificata | fonte secondaria (ν), da riscontrare (interazione e VEd,T+V) |
-| ν = 0,7 − fck/200 ≥ 0,45 | DS/EN 1992-1-1 | DK NA:2024 | 5.6.1(3)P | — | da riscontrare (formula in immagine) |
+| νv = 0,7 − fck/200 ≥ 0,45 (taglio); νt = 0,7 (0,7 − fck/200) (torsione), νt = νv con pareti armate su entrambe le facce; media pesata con taglio e torsione | DS/EN 1992-1-1 | DK NA:2024 | 5.6.1(3)P, informazione supplementare | (5.103 NA), (5.104 NA) | testo (νt: riquadro R-4) |
 | cot θ ≤ 2,0 | DS/EN 1992-1-1 | DK NA:2024 | 6.2.3(2) | (6.7b NA) | testo |
 | Regola per V, T, N e M combinati (non applicata) | DS/EN 1992-1-1 | DK NA:2024 | 6.3.2(6) | — | testo |
 | fck ≤ 60 MPa nelle formule del taglio | NS-EN 1992-1-1 | NA | 3.1.2(2)P | — | fonte secondaria |
@@ -97,7 +98,7 @@ calcolato con la stessa inclinazione delle bielle. Restituisce:
 - Taglio e torsione usano lo stesso cot θ (NTC 2018 §4.1.2.3.6; EN 1992-1-1 6.3.2(2)). Il valore è assegnato dal
   chiamante; il metodo non lo sceglie.
 - Il taglio delle due direzioni (V1, V2) sollecita bielle diverse: nell'interazione delle bielle i loro contributi si
-  sommano (vedi riquadro R-2).
+  sommano (vedi riquadro R-1).
 - Interazione delle staffe: la torsione impegna ogni braccio della staffa; il taglio di ciascuna direzione impegna i
   bracci paralleli a quella direzione. La somma |T|/TRsd + |Vi|/VRsd,i equivale a sommare l'area richiesta da
   torsione e taglio su un braccio, se la staffa che resiste al taglio è la stessa della torsione e tutti i bracci
@@ -162,15 +163,15 @@ T_{Rld} = 2\, A_k\, \frac{\Sigma A_l}{u_k}\, \frac{f_{yd,l}}{\cot\theta} \qquad 
 T_{Rd} = \min\left(T_{Rcd};\; T_{Rsd};\; T_{Rld}\right), \qquad \eta_T = \frac{|T_{Ed}|}{T_{Rd}} \qquad \text{(R.5)}
 ```
 
-Fonti: NTC 2018 §4.1.2.3.6; EN 1992-1-1 (6.28) e (6.30), con cot θ/(1 + cot²θ) = sin θ cos θ. La resistenza delle
-bielle fc,s dipende dal profilo:
+Fonti: NTC 2018 §4.1.2.3.6, [4.1.35]-[4.1.37] e [4.1.39]; EN 1992-1-1 (6.28) e (6.30), con
+cot θ/(1 + cot²θ) = sin θ cos θ. La resistenza delle bielle fc,s dipende dal profilo:
 
 | Profilo | fc,s |
 | --- | --- |
-| NTC 2018, CNR-DT 200 | f'cd = 0,5 fcd |
+| NTC 2018, CNR-DT 200 | f'cd = ν fcd con ν = 0,5 (Circolare 2019 C4.1.2.3.6) |
 | EN 1992-1-1, NS | ν fcd, ν = 0,6 (1 − fck/250), αcw = 1; NS con fck ≤ 60 MPa e fcd ridotto in proporzione |
 | UNI | ν fcd, ν = 0,5 per fck ≤ 70 MPa, altrimenti come EN |
-| DS | ν fcd, ν = max(0,45; 0,7 − fck/200) |
+| DS | ν fcd, ν = max(0,45; 0,7 − fck/200), cioè νv del taglio anche in torsione (riquadro R-4) |
 | DIN | ν fcd, ν = 0,525 ν2 (0,75 ν2 per sezioni cave armate sulle due facce delle pareti), ν2 = min(1; 1,1 − fck/500) |
 | Model Code 2010 | kc fck/γc, con kc da (R.6) |
 
@@ -212,8 +213,8 @@ cot θ della torsione (pagina [ca.taglio](ca.taglio.md), (T.11)-(T.12)). Una res
 definito: esito non soddisfatto, rapporto assente. Un'azione inferiore a 10⁻⁶ Nmm (torsione) o 10⁻⁹ N (taglio) dà
 rapporto nullo.
 
-Fonti: NTC 2018 §4.1.2.3.6 (interazione delle bielle lineare); EN 1992-1-1 (6.29); DIN EN 1992-1-1/NA 6.3.2(4) e
-fib MC2010 §7.3.4 per la forma quadratica.
+Fonti: NTC 2018 §4.1.2.3.6, [4.1.40] (interazione delle bielle lineare); EN 1992-1-1 (6.29); DIN EN 1992-1-1/NA
+6.3.2(4) e fib MC2010 §7.3.4 per la forma quadratica.
 
 ### 6.4 Armature richieste
 
@@ -225,9 +226,9 @@ fib MC2010 §7.3.4 per la forma quadratica.
 
 ### 6.5 Campo di cot θ
 
-Il cot θ assegnato deve stare in [1; cmax] con cmax = 2,5 (NTC, EN, UNI, NS, CNR-DT 200), 2 (DS), 3 (DIN),
-cot 20° = 2,747 (Model Code 2010); inoltre il taglio di ogni direzione lo controlla nel proprio campo (pagina
-[ca.taglio](ca.taglio.md), 6.4). Per DIN il campo di ciascuna direzione si calcola con il taglio aumentato del flusso
+Il cot θ assegnato deve stare in [1; cmax] con cmax = 2,5 (NTC 2018 [4.1.38]; EN, UNI, NS con il campo di 6.2.3(2)
+richiamato da 6.3.2(2); CNR-DT 200), 2 (DS), 3 (DIN), cot 20° = 2,747 (Model Code 2010); inoltre il taglio di ogni
+direzione lo controlla nel proprio campo (pagina [ca.taglio](ca.taglio.md), 6.4). Per DIN il campo di ciascuna direzione si calcola con il taglio aumentato del flusso
 di torsione sulla larghezza bw:
 
 ```math
@@ -237,25 +238,14 @@ V_{Ed,T+V} = |V_{Ed}| + \frac{|T_{Ed}|\, z\, b_w}{2\, A_k\, t_{ef}} \qquad \text
 usato in (T.18) al posto di |VEd|; le resistenze si calcolano poi con |VEd|. Senza dati di taglio il profilo DIN
 accetta solo cot θ = 1.
 
-> **Scostamento dichiarato — R-1 NTC: campo di cot θ in torsione**
+> **Scostamento dichiarato — R-1 (R7) Interazione delle bielle con il taglio nelle due direzioni**
 >
-> - Norma: NTC 2018 §4.1.2.3.6 ammette in torsione 0,4 ≤ cot θ ≤ 2,5 (con taglio concomitante vale anche il campo
->   del taglio, 1 ≤ cot θ ≤ 2,5).
-> - Programma: 1 ≤ cot θ ≤ 2,5 per tutti i profili, anche in torsione pura.
-> - Effetto: a favore di sicurezza, solo in torsione pura con ΣAl/uk < Ast/s, quando l'inclinazione ottima
->   cot θ = √[(ΣAl/uk)/(Ast/s)] è minore di 1. TRd è sottostimata al più del fattore √[(Ast/s)/(ΣAl/uk)] ≤ 2,5. Con il
->   profilo dell'esempio, staffe Ø8/150 e ΣAl = 2Ø12: TRd = 12,00 kNm con cot θ = 1 invece di 16,10 kNm con
->   cot θ = 0,745 (−25%).
-> - Stato: dichiarato.
-
-> **Scostamento dichiarato — R-2 Interazione delle bielle con il taglio nelle due direzioni**
->
-> - Norma: NTC 2018 e EN 1992-1-1 (6.29) scrivono l'interazione con un solo taglio VEd.
+> - Norma: NTC 2018 [4.1.40] e EN 1992-1-1 (6.29) scrivono l'interazione con un solo taglio VEd.
 > - Programma: somma i rapporti del taglio delle due direzioni (R.7), (R.8).
 > - Effetto: a favore di sicurezza; coincide con la norma quando una delle due direzioni ha taglio nullo.
-> - Stato: dichiarato (estensione del modello).
+> - Stato: dichiarato (estensione del modello; voce R7 del registro delle differenze).
 
-> **Scostamento dichiarato — R-3 DS: regola di DK NA 6.3.2(6) non applicata**
+> **Scostamento dichiarato — R-2 DS: regola di DK NA 6.3.2(6) non applicata**
 >
 > - Norma: DK NA 6.3.2(6) limita le regole 6.3.2(4)-(5) alla compressione del calcestruzzo per V e T combinati; per
 >   V, T, N e M combinati chiede Σ SEd/SRd ≤ 1 con le resistenze delle singole azioni da sole, oppure la sezione
@@ -265,7 +255,7 @@ accetta solo cot θ = 1.
 > - Effetto: verifica incompleta per DS con N e M concomitanti; segno non determinabile in generale.
 > - Stato: dichiarato.
 
-> **Scostamento dichiarato — R-4 DIN: altezza delle pareti nel flusso di torsione**
+> **Scostamento dichiarato — R-3 DIN: altezza delle pareti nel flusso di torsione**
 >
 > - Norma: DIN EN 1992-1-1/NA 6.3.2(2) calcola il taglio di parete VEd,T = τt,i tef zi con zi altezza della parete
 >   e lo combina con il taglio per il campo di cot θ.
@@ -274,6 +264,21 @@ accetta solo cot θ = 1.
 >   più stretto (a favore).
 > - Stato: dichiarato.
 
+> **Scostamento dichiarato — R-4 DS: fattore di efficienza delle bielle in torsione**
+>
+> - Norma: DK NA 5.6.1(3)P, informazione supplementare, distingue il fattore di efficienza del taglio,
+>   νv = 0,7 − fck/200 ≥ 0,45 (5.103 NA), da quello della torsione, νt = 0,7 (0,7 − fck/200) (5.104 NA); νt si
+>   può porre uguale a νv solo se le pareti del profilo resistente sono armate con staffe chiuse sul perimetro e
+>   barre longitudinali distribuite su entrambe le facce. Con taglio e torsione insieme si usa la media di νv e νt
+>   pesata sulle due azioni.
+> - Programma: νv in ogni caso, anche per le sezioni piene armate sulla sola faccia esterna; l'indicatore
+>   `HollowWithReinforcementOnBothFaces` non è usato dal profilo DS.
+> - Effetto: a sfavore di sicurezza. TRcd e la parte di torsione dell'interazione delle bielle valgono 1/0,7 = 1,43
+>   volte quelli della norma (1,61 volte con fck = 60 MPa, dove νv è limitato a 0,45 e νt no). Con il profilo
+>   dell'esempio (DS, fcd = 30/1,45 MPa, cot θ = 1,5): TRcd = 83,11 kNm con νv = 0,55 invece di 58,17 kNm con
+>   νt = 0,385.
+> - Stato: da discutere (nuovo, a sfavore di sicurezza).
+
 Il campo di cot θ del profilo Model Code 2010 non dipende da εx: vale il riquadro T-1 della pagina
 [ca.taglio](ca.taglio.md).
 
@@ -281,16 +286,16 @@ Il campo di cot θ del profilo Model Code 2010 non dipende da εx: vale il riqua
 
 | Simbolo | Valore | Profilo | Fonte | Modificabile | Dove nel codice |
 | --- | --- | --- | --- | --- | --- |
-| f'cd | 0,5 fcd | NTC, CNR-DT 200 | NTC 4.1.2.3.6 | no | `SectionTorsionCalculator.Evaluate` |
+| f'cd | 0,5 fcd | NTC, CNR-DT 200 | NTC [4.1.35]; Circolare C4.1.2.3.6 | no | `SectionTorsionCalculator.Evaluate` |
 | ν | 0,6 (1 − fck/250) | EN, NS (fck ≤ 60) | EN (6.6N) | no | `SectionShearCalculator.StrutEfficiency` |
 | ν | 0,5 (fck ≤ 70) | UNI | DM 2012 6.2.2(6) | no | idem |
-| ν | max(0,45; 0,7 − fck/200) | DS | DK NA 5.6.1(3)P | no | idem |
+| ν | max(0,45; 0,7 − fck/200) | DS | DK NA (5.103 NA), νv del taglio; per la torsione vedi riquadro R-4 | no | idem |
 | ν | 0,525 ν2; 0,75 ν2 sezioni cave armate sulle due facce | DIN | NA DIN 6.3.2 | no (indicatore della sezione cava sì) | `SectionTorsionCalculator.Evaluate` |
 | ν2 | min(1; 1,1 − fck/500) | DIN | NA DIN 6.2.3(3) | no | idem |
 | kc,max, ηfc | 0,65; min[1; (30/fck)^(1/3)] | Model Code 2010 | MC2010 7.3.3.3 | no | idem |
 | αcw | 1 | famiglia Eurocodice | EN 6.2.3(3) | no | implicito in fc,s |
 | cmax | 2,5; DS 2; DIN 3; MC2010 cot 20° | vedi 6.5 | vedi tabella 3 | no | `TorsionProfiles.MaximumCotTheta` |
-| cmin | 1 | tutti | vedi riquadro R-1 | no | `SectionTorsionCalculator.Validate` |
+| cmin | 1 | tutti | NTC [4.1.38]; EN 6.2.3(2) richiamato da 6.3.2(2) | no | `SectionTorsionCalculator.Validate` |
 | Inclinazione delle staffe | 90° | tutti | — | no (altri valori: errore) | `SectionTorsionInput` |
 | Sezione cava armata sulle due facce | no | DIN, Model Code 2010 | — | sì | `SectionTorsionInput` |
 | Regola dello spessore delle sezioni cave | spessore reale (NTC) | proposta del profilo | NTC 4.1.2.3.6 / EN 6.3.2(1) | sì (`TorsionThicknessRule`) | `TorsionGeometry.Rectangle`, `.Circle` |
@@ -336,16 +341,19 @@ Il metodo non ha iterazioni: cot θ è un dato.
   TEd/TRd,c + VEd/VRd,c ≤ 1): non usati; la verifica richiede sempre staffe chiuse.
 - Torsione di congruenza e ridistribuzione: il metodo verifica la torsione assegnata.
 - Sezioni composte da più rettangoli (EN 1992-1-1 6.3.1(3)): il profilo resistente va assegnato come un'unica parete.
-- DS: regola di DK NA 6.3.2(6) (riquadro R-3).
+- DS: regola di DK NA 6.3.2(6) (riquadro R-2) e fattore νt della torsione (riquadro R-4).
 - CNR-DT 204 (fibre più staffe) e contributo FRP di CNR-DT 200.
 - Norme americane.
+- Testo dei riferimenti (`TorsionProfiles.Reference`): per NTC 2018 il risultato cita le equazioni «4.1.27-4.1.32», che
+  in NTC 2018 sono del taglio (la torsione è in [4.1.34]-[4.1.40]); per DS cita «θ 6.7a NA» mentre il limite
+  applicato è cot θ ≤ 2 di (6.7b NA). Il valore calcolato non cambia.
 
 ## 10. Esempio numerico verificato
 
 Trave 300 × 500 mm, distanza bordo-baricentro delle barre a = 48 mm, C30/37 (fck = 30 MPa, γc = 1,5),
 B450C (fyd = 391,30 MPa), staffe chiuse Ø8/150 (Ast = 50,27 mm², due bracci nel taglio: Asw = 100,53 mm²),
 ΣAl = 4Ø16 = 804,25 mm², cot θ = 1,5. Azioni: TEd = 20 kNm, V2 = 80 kN (bw = 300 mm, d = 460 mm, z = 414 mm,
-N = 0), V1 = 0. Libreria GPCChecker.Concrete 0.0.15.0, `SectionTorsionCalculator.Calculate`.
+N = 0), V1 = 0. Libreria GPCChecker.Concrete 0.0.17.0, `SectionTorsionCalculator.Calculate`.
 
 **Profilo resistente** (`TorsionGeometry.Rectangle`): Ac/u = 150 000/1600 = 93,75 mm < 2a = 96 mm, quindi
 tef = 96 mm; Ak = 204 · 404 = 82 416 mm²; uk = 2 (204 + 404) = 1216 mm.
@@ -379,8 +387,8 @@ TRcd = 2 · 82 416 · 96 · 10,56 · 0,46154 = 77 123 118 Nmm; VRcd = 414 · 300
 | T1 | ΣAl,req; (Ast/s)req | 565,586 mm²; 0,206720 mm²/mm | 565,5859704; 0,2067200184 | < 10⁻⁹ |
 | T2 | TRcd; ηc | 77 123 118 Nmm; 0,39148 | 77 123 117,69 Nmm; 0,3914845646 | < 10⁻⁹ |
 
-Con cot θ = 0,8 il profilo NTC rifiuta i dati (`ArgumentException`: cot θ fuori da [1; 2,5]), come descritto nel
-riquadro R-1.
+Con cot θ = 0,8 il profilo NTC rifiuta i dati (`ArgumentException`: cot θ fuori da [1; 2,5]), come prescrive NTC 2018
+[4.1.38] anche in torsione pura.
 
 ## 11. Validazione
 
@@ -401,7 +409,8 @@ riquadro R-1.
     tipo esatto; avviso DS.
 - **Integrazione**: i test del verificatore di modello eseguono la torsione per 10 norme e confrontano il risultato
   NTC con la chiamata diretta del metodo.
-- **Esempi di questa pagina**: T1 e T2 eseguiti con la libreria 0.0.15.0, scarto inferiore a 10⁻⁹.
+- **Esempi di questa pagina**: T1 e T2 eseguiti con la libreria 0.0.17.0 e ricalcolati in modo indipendente dalle
+  formule della norma, scarto inferiore a 10⁻⁹.
 - **Benchmark indipendenti pubblicati**: nessuno, per ora.
 
 ## 12. Bibliografia
