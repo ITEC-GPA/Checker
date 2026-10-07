@@ -57,7 +57,7 @@ calcolato con la stessa inclinazione delle bielle. Restituisce:
 | CNR-DT 200 R1/2013 | supportato senza dati FRP | elemento in c.a. secondo NTC, TRd,f = 0 dichiarato nella traccia |
 | DS: regola di DK NA 6.3.2(6) per V, T, N e M combinati | non applicata | avviso in `Limitations` di ogni risultato DS |
 | Torsione senza staffe chiuse (area del braccio nulla) | supportato | resistenza nulla: con TEd ≠ 0 esito non soddisfatto senza rapporto |
-| Direzione con taglio non nullo e senza armatura trasversale | dati non validi | errore (`ArgumentException`) |
+| Direzione di taglio assegnata senza armatura trasversale, anche con taglio nullo (una direzione senza taglio si omette) | dati non validi | errore (`ArgumentException`) |
 | Componenti di taglio date con cot θ diverso da quello della torsione | dati non validi | errore (`ArgumentException`) |
 | cot θ fuori dal campo del profilo (anche il campo di ciascuna direzione di taglio) | dati non validi | errore (`ArgumentException`) |
 | DIN senza dati di taglio e cot θ > 1 | dati non validi | errore: il campo di cot θ non si può calcolare |
