@@ -431,9 +431,11 @@ namespace ConcreteTests
         /// Bands: ±y walls 200 × 50 (2Ø20, c = 40), ±x walls 50 × 400 (3Ø20, c = 40). Before the fix h − x was εmax/|∇ε| also for a noise gradient
         /// (1e-12 1/mm: h − x = 5e8 mm, wk ≈ 1e5 mm) and Max(B, H) for a zero gradient.
         /// Noise or zero gradient: uniform tension, k2 = 1, h − x = h of the section normal to the face (600 for ±y, 400 for ±x).
-        /// Eccentric tension, ε = 2e-4 − 1e-6 (y − 250): neutral axis at y = 450, outside; h − x = min(εmax/|∇ε|; h of the section normal to the face),
-        /// the h of the outer faces: −y band 700 → 600, ±x bands 650 → 400, +y band 250 (unchanged, no trace entry). Bending with the neutral axis
-        /// inside: no h − x entry, nothing changes. Continuity at the uniform-tension threshold: <see cref="HollowSectionInnerBandDepthIsContinuousAtTheUniformThreshold"/>.
+        /// Eccentric tension, ε = 2e-4 − 1e-6 (y − 250): neutral axis at y = 450, outside; h − x = min(εmax/|∇ε|; h of the section along the gradient = 600)
+        /// (ANTHEA R15, decision of the user of 7/10/2026): −y band 700 → 600, ±x bands 650 → 600, +y band 250 (unchanged, no trace entry). Bending with
+        /// the neutral axis inside: no h − x entry, nothing changes. Continuity where the neutral axis enters the section:
+        /// <see cref="HollowSectionInnerBandDepthIsContinuousWhereTheNeutralAxisEnters"/>; residual jump at the uniform-tension threshold:
+        /// <see cref="HollowSectionInnerBandDepthJumpsAtTheUniformThresholdWhereTheHeightsDiffer"/>.
         /// </summary>
         [TestMethod]
         public void HollowSectionInnerBandsHaveABoundedTensileDepth()
@@ -466,12 +468,13 @@ namespace ConcreteTests
                 Assert.IsTrue(r.Regions.Any(g => g.Key == "Face+x"), what + ": entirely tensile branch\n" + Trace(r));
                 foreach (var wall in walls)
                 {
-                    var depth = Entry(r, wall.Item1, "h − x"); double expected = wall.Item1 == "InnerWall+y" ? 250 : wall.Item1 == "InnerWall-y" ? 600 : 400;
+                    var depth = Entry(r, wall.Item1, "h − x"); double expected = wall.Item1 == "InnerWall+y" ? 250 : 600;
                     if (wall.Item1 == "InnerWall+y") Assert.IsNull(depth, what + ": +y band within the section, no entry");
                     else
                     {
-                        Assert.AreEqual(expected, depth.Value, what + " " + wall.Item1);
-                        StringAssert.StartsWith(depth.Expression, "min[εmax/|∇ε| = " + (wall.Item1 == "InnerWall-y" ? "700" : "650") + " mm; h of the section normal to the face]", what);
+                        Assert.AreEqual(expected, depth.Value, 1e-9, what + " " + wall.Item1);
+                        Assert.AreEqual("min[εmax/|∇ε| = " + (wall.Item1 == "InnerWall-y" ? "700" : "650") + " mm; h along the gradient]: neutral axis outside the section, x = 0 (EN 1992-1-1 7.3.4(3), eq. (7.14))",
+                            depth.Expression, what);
                     }
                     double k2 = Entry(r, wall.Item1, "k2").Value, sigma = BandStress(eccentric, wall.Item1);
                     double bandMin = wall.Item1 == "InnerWall-y" ? 6.5e-4 : wall.Item1 == "InnerWall+y" ? 2e-4 : 2.5e-4, bandMax = wall.Item1 == "InnerWall-y" ? 7e-4 : wall.Item1 == "InnerWall+y" ? 2.5e-4 : 6.5e-4;
@@ -519,69 +522,160 @@ namespace ConcreteTests
             return ntc ? 1.7 * Math.Max((3.4 * 40 + .8 * k2 * .425 * 20 / rho) / 1.7, .75 * depth) * strain : 1.3 * depth * strain;
         }
 
+        // Geometries of (i) and (j): the box 400×600 of (h); a square box 400×400 with a hole 200×200 and 2Ø20 at 150 mm from the axes on each wall
+        // (x = ±150, y = ±50 and y = ±150, x = ±50); a ring Ø1000 with a hole Ø600 (64-gons with a vertex at 0°), 16Ø20 at r = 440 and 8Ø20 at r = 340
+        // (band 300 ≤ r ≤ 400). Box bands: hc,eff = min[2.5 · 50; 100/2] = 50 mm, c = 40 mm. Spacing assigned 300 mm everywhere.
+        private static readonly CrackSectionGeometry RectangularBox = new CrackSectionGeometry(InnerBoxOutline, new[] { InnerBoxHole }, InnerBoxBars, CrackBarLayout.Rows);
+        private static readonly CrackSectionGeometry SquareBox = new CrackSectionGeometry(
+            new[] { new Point2d(-200, -200), new Point2d(200, -200), new Point2d(200, 200), new Point2d(-200, 200) },
+            new[] { new[] { new Point2d(-100, -100), new Point2d(100, -100), new Point2d(100, 100), new Point2d(-100, 100) } },
+            new[] { -50d, 50 }.SelectMany(t => new[] { new CrackBar(150, t, 20, Math.PI * 100), new CrackBar(-150, t, 20, Math.PI * 100), new CrackBar(t, 150, 20, Math.PI * 100),
+                new CrackBar(t, -150, 20, Math.PI * 100) }).ToArray(), CrackBarLayout.Rows);
+        private static Point2d[] Polygon64(double radius) => Enumerable.Range(0, 64).Select(k => new Point2d(radius * Math.Cos(2 * Math.PI * k / 64), radius * Math.Sin(2 * Math.PI * k / 64))).ToArray();
+        private static readonly CrackSectionGeometry HollowRing = new CrackSectionGeometry(Polygon64(500), new[] { Polygon64(300) },
+            Enumerable.Range(0, 16).Select(k => new CrackBar(440 * Math.Cos(2 * Math.PI * k / 16), 440 * Math.Sin(2 * Math.PI * k / 16), 20, Math.PI * 100))
+                .Concat(Enumerable.Range(0, 8).Select(k => new CrackBar(340 * Math.Cos(2 * Math.PI * (k + .5) / 8), 340 * Math.Sin(2 * Math.PI * (k + .5) / 8), 20, Math.PI * 100))).ToArray(),
+            CrackBarLayout.Ring);
+
+        private static SectionCrackResult HollowSection(CrackSectionGeometry geometry, Standard standard, string exposure, StrainPlane plane) => SectionCrackCheck.Evaluate(
+            new SectionCrackInput(standard, ServiceabilityCombination.QuasiPermanent, exposure, false, null, geometry, plane, geometry.Bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)),
+                true, false, false, 200000, 33000, 2.9, false, true, 40, spacingOverride: 300));
+
+        private static string[] Bands(CrackSectionGeometry geometry) => geometry.Circular ? new[] { "InnerRing" } : InnerWalls.Select(w => w.Item1).ToArray();
+
+        /// <summary>h − x used in wk: NTC Δsm,far / 0.75, EN sr,max / 1.3 (spacing 300 mm &gt; 5 (c + Ø/2)).</summary>
+        private static double UsedDepth(SectionCrackResult r, string band, bool ntc) => ntc ? BandEntry(r, band, "Δsm,far").Value / .75 : BandEntry(r, band, "sr,max").Value / 1.3;
+
+        /// <summary>Vertices of the band of an inner wall of a box (hc,eff = 50 mm) or of the inner ring (r = 400 mm), the bars in it and its area.</summary>
+        private static Tuple<Point2d[], CrackBar[], double> BandOf(CrackSectionGeometry geometry, string band)
+        {
+            if (geometry.Circular) return Tuple.Create(Polygon64(400), geometry.Bars.Where(b => CrackSectionGeometry.Hypot(b.X, b.Y) <= 400).ToArray(), double.NaN);
+            var hole = geometry.Holes[0]; double hw = hole.Max(v => v.X), hh = hole.Max(v => v.Y);
+            double s = band[band.Length - 2] == '+' ? 1 : -1; bool alongX = band.EndsWith("x");
+            double a = alongX ? hw : hh, t = alongX ? hh : hw;
+            var corners = new[] { a, a + 50 }.SelectMany(n => new[] { -t, t }.Select(m => alongX ? new Point2d(s * n, m) : new Point2d(m, s * n))).ToArray();
+            var bars = geometry.Bars.Where(b => { double n = s * (alongX ? b.X : b.Y), m = alongX ? b.Y : b.X; return n > a && n <= a + 50 + 1e-8 && Math.Abs(m) <= t + 1e-8; }).ToArray();
+            return Tuple.Create(corners, bars, 50 * 2 * t);
+        }
+
+        /// <summary>Height of the outline along the unit direction (qx, qy).</summary>
+        private static double HeightAlong(CrackSectionGeometry geometry, double qx, double qy) => geometry.Outline.Max(v => qx * v.X + qy * v.Y) - geometry.Outline.Min(v => qx * v.X + qy * v.Y);
+
+        private static readonly Tuple<string, CrackSectionGeometry, Tuple<double, double>[]>[] InnerSections =
+        {
+            Tuple.Create("box 400×600", RectangularBox, new[] { Tuple.Create(0d, 1d), Tuple.Create(1d, 0d), Tuple.Create(.6, .8) }),
+            Tuple.Create("box 400×400", SquareBox, new[] { Tuple.Create(0d, 1d), Tuple.Create(.6, .8) }),
+            Tuple.Create("ring Ø1000", HollowRing, new[] { Tuple.Create(1d, 0d), Tuple.Create(Math.Cos(Math.PI / 64), Math.Sin(Math.PI / 64)), Tuple.Create(.6, .8) }),
+        };
+
         /// <summary>
-        /// (i) Continuity of h − x of the inner bands at the uniform-tension threshold |∇ε| h = 1e-4 εmax (review of the integration D7-b/d2), box 400×600 of (h),
-        /// ε = 5e-4 + χ (q · p) at the centroid with the gradient along y (h along it 600), along x (400) and oblique (0.6; 0.8) (0.6 · 400 + 0.8 · 600 = 720), and
-        /// |∇ε| h / εmax = 0.99e-4 (uniform) and 1.01e-4 (general rule). In both, h − x of each band is the height of the section normal to its face (400 for ±x,
-        /// 600 for ±y), the h of the outer faces of the entirely tensile section; before, above the threshold, it was the height along the gradient (±x bands:
-        /// 600 instead of 400 with the gradient along y, ±y bands: 400 instead of 600 along x), a jump of 50 % in the far crack spacing. wk changes only with σs
-        /// and k2 (1 − k2 ≤ 1.01e-4 / 2). Neutral axis inside the section, close to the edge (y = 290): h − x of the ±x bands stays εmax/|∇ε| = 490 mm (beyond
-        /// 400, without the bound and without the entry); just outside (y = 310) it is 400, bounded by the height normal to the face, where da7cf02a gave
-        /// εmax/|∇ε| = 510. The continuous rule moves the band discontinuity from the threshold to the entry of the neutral axis (pending user decision, R15).
+        /// (i) Continuity of h − x of the inner bands where the neutral axis enters the section (ANTHEA R15, decision of the user of 7/10/2026: "Altezza lungo
+        /// il gradiente", h − x = min[εmax/|∇ε|; h of the section along the gradient]). Box 400×600, square box 400×400 and ring Ø1000, gradient along an axis
+        /// (straight bending) or oblique (biaxial bending), NTC and EN: ε = 1e-6 (q · p − c), with the neutral axis 1e-6 mm outside (c = min q · p − 1e-6,
+        /// entirely tensile section) and 1e-6 mm inside (c = min q · p + 1e-6, bending). On both sides h − x of each band is εmax/|∇ε| of the band, within the
+        /// height along the gradient, with no "h − x" entry, and h − x, k2 and wk of each band agree within 1e-6 relative. Inside, h − x = εmax/|∇ε| is the rule
+        /// before 0.0.17.0 (unchanged with the neutral axis inside). The ring has the same behaviour. The intermediate rule of d2f81329 (height normal to the
+        /// face in an entirely tensile section) jumped here: box 400×600 with the gradient along y and the neutral axis at y = 310 / 290, ±x bands 400 / 490 mm.
         /// </summary>
         [TestMethod]
-        public void HollowSectionInnerBandDepthIsContinuousAtTheUniformThreshold()
+        public void HollowSectionInnerBandDepthIsContinuousWhereTheNeutralAxisEnters()
+        {
+            int checks = 0;
+            foreach (var section in InnerSections)
+                foreach (var q in section.Item3)
+                    foreach (var s in InnerStandards)
+                    {
+                        var geometry = section.Item2; double qx = q.Item1, qy = q.Item2, kappa = 1e-6;
+                        double edge = geometry.Outline.Min(v => qx * v.X + qy * v.Y);
+                        StrainPlane At(double offset) => new StrainPlane(kappa * qx, kappa * qy, new Point2d(qx * (edge + offset), qy * (edge + offset)), 0);
+                        StrainPlane planeOut = At(-1e-6), planeIn = At(1e-6);
+                        var outside = HollowSection(geometry, s.Item1, s.Item2, planeOut); var inside = HollowSection(geometry, s.Item1, s.Item2, planeIn);
+                        string what = section.Item1 + " " + s.Item1.GetType().Name + " q = (" + qx.ToString("0.####", CultureInfo.InvariantCulture) + "; " + qy.ToString("0.####", CultureInfo.InvariantCulture) + ")";
+                        Assert.IsFalse(outside.Regions.Any(g => g.Key == "TensileZone"), what + ": neutral axis outside, entirely tensile branch\n" + outside.Status);
+                        Assert.IsTrue(inside.Regions.Any(g => g.Key == "TensileZone"), what + ": neutral axis inside, bending branch\n" + inside.Status);
+                        double along = HeightAlong(geometry, qx, qy);
+                        foreach (var band in Bands(geometry))
+                        {
+                            var info = BandOf(geometry, band);
+                            double handOut = info.Item1.Max(v => planeOut.GetStrain(v.X, v.Y)) / kappa, handIn = info.Item1.Max(v => planeIn.GetStrain(v.X, v.Y)) / kappa;
+                            double dOut = UsedDepth(outside, band, s.Item3), dIn = UsedDepth(inside, band, s.Item3);
+                            Assert.IsNull(BandEntry(outside, band, "h − x"), what + " " + band + ": no bound just outside\n" + Trace(outside));
+                            Assert.IsNull(BandEntry(inside, band, "h − x"), what + " " + band + ": no bound just inside\n" + Trace(inside));
+                            Assert.IsTrue(handOut <= along && handIn <= along, what + " " + band + ": εmax/|∇ε| within the height along the gradient");
+                            Assert.AreEqual(handOut, dOut, 1e-9 * handOut, what + " " + band + ": h − x = εmax/|∇ε| just outside");
+                            Assert.AreEqual(handIn, dIn, 1e-9 * handIn, what + " " + band + ": h − x = εmax/|∇ε| just inside (rule before 0.0.17.0)");
+                            Assert.AreEqual(dOut, dIn, 1e-6 * dOut, what + " " + band + ": h − x continuous");
+                            double kOut = BandEntry(outside, band, "k2").Value, kIn = BandEntry(inside, band, "k2").Value;
+                            Assert.AreEqual(kOut, kIn, 1e-6 * kOut, what + " " + band + ": k2 continuous");
+                            double wOut = BandEntry(outside, band, "wk").Value, wIn = BandEntry(inside, band, "wk").Value;
+                            Assert.AreEqual(wOut, wIn, 1e-6 * wOut, what + " " + band + ": wk continuous (" + wOut.ToString("R", CultureInfo.InvariantCulture) + " / " + wIn.ToString("R", CultureInfo.InvariantCulture) + ")");
+                            if (!geometry.Circular)
+                            {
+                                double sigmaIn = info.Item2.Max(b => 200000 * planeIn.GetStrain(b.X, b.Y));
+                                Assert.AreEqual(HollowBandHand(s.Item3, sigmaIn, info.Item3, info.Item2.Length, handIn, kIn), wIn, 1e-12, what + " " + band + ": wk by hand with h − x = εmax/|∇ε|");
+                            }
+                            checks++;
+                        }
+                    }
+            Assert.AreEqual(2 * (3 * 4 + 2 * 4 + 3 * 1), checks);
+        }
+
+        /// <summary>
+        /// (j) Residual jump of the rule of (i) at the uniform-tension threshold |∇ε| h = 1e-4 εmax, declared and pinned: below it uniform tension, h − x = h of
+        /// the section normal to the face (box: 400 / 600 for ±x / ±y, square box 400, ring 1000 = diameter), k2 = 1; above it min[εmax/|∇ε|; h along the
+        /// gradient] = h along the gradient (εmax/|∇ε| ≈ 1e4 h). ε = 5e-4 + χ (q · p) at the centroid, |∇ε| h / εmax = 0.99e-4 and 1.01e-4, NTC and EN.
+        /// Jumps (far crack spacing and wk in the same ratio, k2 and σs move by 1e-4 at most): box 400×600 with the gradient along y, ±x bands 400 → 600 (+50 %);
+        /// along x, ±y bands 600 → 400 (−33 %); oblique (0.6; 0.8), every band → 720; square box along (0.6; 0.8), 400 → 560 (+40 %); ring 1000 → 1000 along a
+        /// vertex and 1000 cos(π/64) = 998.8 between two (polygon only). No jump where the two heights coincide (box bands parallel to the gradient, square box
+        /// in straight bending).
+        /// </summary>
+        [TestMethod]
+        public void HollowSectionInnerBandDepthJumpsAtTheUniformThresholdWhereTheHeightsDiffer()
         {
             const double eps0 = 5e-4;
-            foreach (var direction in new[] { Tuple.Create(0d, 1d, 600d), Tuple.Create(1d, 0d, 400d), Tuple.Create(.6, .8, 720d) })
-                foreach (var s in InnerStandards)
-                {
-                    SectionCrackResult At(double ratio, out StrainPlane plane)
+            int jumps = 0, checks = 0;
+            foreach (var section in InnerSections.Concat(new[] { Tuple.Create("box 400×400 straight", SquareBox, new[] { Tuple.Create(1d, 0d) }) }))
+                foreach (var q in section.Item3)
+                    foreach (var s in InnerStandards)
                     {
-                        // ratio = χ h / εmax with εmax = eps0 + χ h / 2 (centroid at mid-height along the gradient).
-                        double chi = ratio * eps0 / (direction.Item3 * (1 - ratio / 2));
-                        plane = new StrainPlane(chi * direction.Item1, chi * direction.Item2, new Point2d(0, 0), eps0);
-                        return HollowBox(s.Item1, s.Item2, plane);
+                        var geometry = section.Item2; double qx = q.Item1, qy = q.Item2, along = HeightAlong(geometry, qx, qy);
+                        SectionCrackResult At(double ratio, out StrainPlane plane)
+                        {
+                            // ratio = χ h / εmax with εmax = eps0 + χ h / 2 (sections symmetric about the centroid).
+                            double chi = ratio * eps0 / (along * (1 - ratio / 2));
+                            plane = new StrainPlane(chi * qx, chi * qy, new Point2d(0, 0), eps0);
+                            return HollowSection(geometry, s.Item1, s.Item2, plane);
+                        }
+                        var below = At(.99e-4, out var planeBelow); var above = At(1.01e-4, out var planeAbove);
+                        string what = section.Item1 + " " + s.Item1.GetType().Name + " q = (" + qx.ToString("0.####", CultureInfo.InvariantCulture) + "; " + qy.ToString("0.####", CultureInfo.InvariantCulture) + ")";
+                        Assert.IsFalse(below.Regions.Any(g => g.Key == "TensileZone") || above.Regions.Any(g => g.Key == "TensileZone"), what + ": entirely tensile branch");
+                        foreach (var band in Bands(geometry))
+                        {
+                            double normal = geometry.Circular ? 1000 : band.EndsWith("x") ? geometry.Width : geometry.Height;
+                            var d0 = BandEntry(below, band, "h − x"); var d1 = BandEntry(above, band, "h − x");
+                            Assert.AreEqual(normal, d0.Value, 1e-9, what + " " + band + " below"); StringAssert.StartsWith(d0.Expression, "uniform tension", what);
+                            Assert.AreEqual(along, d1.Value, 1e-9, what + " " + band + " above: height along the gradient\n" + Trace(above));
+                            StringAssert.StartsWith(d1.Expression, "min[εmax/|∇ε| = ", what); StringAssert.EndsWith(d1.Expression, " mm; h along the gradient]: neutral axis outside the section, x = 0 (EN 1992-1-1 7.3.4(3), eq. (7.14))", what);
+                            Assert.AreEqual(normal, UsedDepth(below, band, s.Item3), 1e-9, what + " " + band + ": h − x used below");
+                            Assert.AreEqual(along, UsedDepth(above, band, s.Item3), 1e-9, what + " " + band + ": h − x used above");
+                            double k0 = BandEntry(below, band, "k2").Value, k1 = BandEntry(above, band, "k2").Value;
+                            Assert.AreEqual(1, k0, what); Assert.IsTrue(k1 < 1 && k1 >= 1 - 1.01e-4 / 2, what + ": k2 = " + k1);
+                            double w0 = BandEntry(below, band, "wk").Value, w1 = BandEntry(above, band, "wk").Value;
+                            if (!geometry.Circular)
+                            {
+                                var info = BandOf(geometry, band);
+                                Assert.AreEqual(HollowBandHand(s.Item3, info.Item2.Max(b => 200000 * planeBelow.GetStrain(b.X, b.Y)), info.Item3, info.Item2.Length, normal, 1), w0, 1e-12, what + " " + band + " wk by hand below");
+                                Assert.AreEqual(HollowBandHand(s.Item3, info.Item2.Max(b => 200000 * planeAbove.GetStrain(b.X, b.Y)), info.Item3, info.Item2.Length, along, k1), w1, 1e-12, what + " " + band + " wk by hand above");
+                            }
+                            // The far crack spacing governs (NTC Δsm,far = 0.75 (h − x), EN sr,max = 1.3 (h − x)): wk jumps by the ratio of the heights.
+                            Assert.AreEqual(along / normal, w1 / w0, 2e-4, what + " " + band + ": wk " + w0.ToString("R", CultureInfo.InvariantCulture) + " → " + w1.ToString("R", CultureInfo.InvariantCulture));
+                            if (Math.Abs(along - normal) > 1e-9) jumps++;
+                            checks++;
+                        }
                     }
-                    var below = At(.99e-4, out var planeBelow); var above = At(1.01e-4, out var planeAbove);
-                    string what = s.Item1.GetType().Name + " q = (" + direction.Item1 + "; " + direction.Item2 + ")";
-                    Assert.IsTrue(below.Regions.Any(g => g.Key == "Face+x") && above.Regions.Any(g => g.Key == "Face+x"), what + ": entirely tensile branch");
-                    foreach (var wall in InnerWalls)
-                    {
-                        double h = wall.Item1.EndsWith("x") ? 400 : 600;
-                        var d0 = BandEntry(below, wall.Item1, "h − x"); var d1 = BandEntry(above, wall.Item1, "h − x");
-                        Assert.AreEqual(h, d0.Value, what + " " + wall.Item1 + " below"); StringAssert.StartsWith(d0.Expression, "uniform tension", what);
-                        Assert.AreEqual(h, d1.Value, what + " " + wall.Item1 + " above: no jump at the threshold\n" + Trace(above));
-                        StringAssert.StartsWith(d1.Expression, "min[εmax/|∇ε| = ", what); StringAssert.Contains(d1.Expression, "mm; h of the section normal to the face]", what);
-                        double k0 = BandEntry(below, wall.Item1, "k2").Value, k1 = BandEntry(above, wall.Item1, "k2").Value;
-                        Assert.AreEqual(1, k0, what); Assert.IsTrue(k1 < 1 && k1 >= 1 - 1.01e-4 / 2, what + ": k2 = " + k1);
-                        double w0 = BandEntry(below, wall.Item1, "wk").Value, w1 = BandEntry(above, wall.Item1, "wk").Value;
-                        Assert.AreEqual(HollowBandHand(s.Item3, HollowBandStress(planeBelow, wall.Item1), wall.Item2, wall.Item3, h, 1), w0, 1e-12, what + " " + wall.Item1 + " wk by hand below");
-                        Assert.AreEqual(HollowBandHand(s.Item3, HollowBandStress(planeAbove, wall.Item1), wall.Item2, wall.Item3, h, k1), w1, 1e-12, what + " " + wall.Item1 + " wk by hand above");
-                        Assert.AreEqual(w0, w1, 1e-4 * w0, what + " " + wall.Item1 + ": wk continuous at the threshold");
-                    }
-                    Assert.AreEqual(below.Width.Value, above.Width.Value, 1e-4 * below.Width.Value, what + ": governing wk continuous at the threshold");
-                }
-            // Neutral axis inside (y = 290) and just outside (y = 310) the top edge, tension below: ±x bands (y = −200 … 200).
-            foreach (var s in InnerStandards)
-            {
-                var inside = HollowBox(s.Item1, s.Item2, new StrainPlane(0, -1e-6, new Point2d(0, 290), 0));
-                var outside = HollowBox(s.Item1, s.Item2, new StrainPlane(0, -1e-6, new Point2d(0, 310), 0));
-                string what = s.Item1.GetType().Name;
-                Assert.IsFalse(inside.Regions.Any(g => g.Key == "Face+x"), what + ": neutral axis inside, bending branch");
-                Assert.IsTrue(outside.Regions.Any(g => g.Key == "Face+x"), what + ": neutral axis outside, entirely tensile branch");
-                foreach (var wall in new[] { InnerWalls[0], InnerWalls[1] })
-                {
-                    Assert.IsNull(BandEntry(inside, wall.Item1, "h − x"), what + " " + wall.Item1 + ": no bound with the neutral axis inside\n" + Trace(inside));
-                    double k2 = BandEntry(inside, wall.Item1, "k2").Value;
-                    Assert.AreEqual((9e-5 + 4.9e-4) / (2 * 4.9e-4), k2, 1e-12, what + " " + wall.Item1 + " k2 of the band");
-                    var plane = new StrainPlane(0, -1e-6, new Point2d(0, 290), 0);
-                    Assert.AreEqual(HollowBandHand(s.Item3, HollowBandStress(plane, wall.Item1), wall.Item2, wall.Item3, 490, k2), BandEntry(inside, wall.Item1, "wk").Value, 1e-12,
-                        what + " " + wall.Item1 + ": h − x = εmax/|∇ε| = 490 mm");
-                    var depth = BandEntry(outside, wall.Item1, "h − x");
-                    Assert.AreEqual(400, depth.Value, what + " " + wall.Item1); StringAssert.StartsWith(depth.Expression, "min[εmax/|∇ε| = 510 mm; h of the section normal to the face]", what);
-                }
-            }
+            // Bands with a jump: box 400×600 along y (±x) and along x (±y), oblique (4), square box oblique (4), ring between two vertices and oblique, each for NTC and EN.
+            Assert.AreEqual(2 * (3 * 4 + 2 * 4 + 3 * 1 + 4), checks);
+            Assert.AreEqual(2 * (2 + 2 + 4 + 4 + 2), jumps);
         }
 
         private static CrackProfile Profile(string name) => CrackProfiles.Resolve(ServiceabilityMigrationTests.Standard(name));
