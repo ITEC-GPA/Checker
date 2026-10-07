@@ -427,8 +427,10 @@ c = minima distanza delle barre della fascia dalla superficie interna meno Ø/2 
 l'interasse automatico o assegnato e σs la tensione massima delle barre della fascia.
 
 La fascia è in **trazione uniforme** quando |∇ε| hg ≤ 10⁻⁴ εmax,c, con hg l'altezza del contorno lungo il gradiente e
-εmax,c la deformazione massima ai vertici del contorno (un'eccentricità dell'ordine di h/120 000: il solutore restituisce
-gradienti di 10⁻¹⁵…10⁻¹² 1/mm in trazione assiale, la cui direzione non ha significato). Allora la fascia è tutta tesa e:
+εmax,c la deformazione massima ai vertici del contorno. In una sezione rettangolare la soglia corrisponde a
+un'eccentricità della forza di trazione dell'ordine di h/120 000; serve perché in trazione assiale il solutore
+restituisce gradienti di 10⁻¹⁵…10⁻¹² 1/mm, la cui direzione non ha significato. In trazione uniforme la fascia è tutta
+tesa e:
 
 ```math
 k_2 = \begin{cases} 1 & \text{trazione uniforme} \\ \min\left\{1;\; \max\left[0{,}5;\; \dfrac{\max(0;\, \varepsilon_{min,b}) + \varepsilon_{max,b}}{2\,\varepsilon_{max,b}}\right]\right\} & \text{altrimenti} \end{cases}, \qquad h - x = \begin{cases} h_\perp & \text{trazione uniforme} \\ \min\left(\dfrac{\varepsilon_{max,b}}{|\nabla\varepsilon|};\; h_g\right) & \text{altrimenti} \end{cases} \qquad \text{(F.18)}
@@ -456,7 +458,7 @@ una regione non ha esito e le altre rispettano il limite, il risultato è incomp
 >   uniforme, cioè per un'eccentricità trascurabile, dove h⊥ e hg differiscono: cassone 400 × 600 con il gradiente
 >   lungo y, fasce ±x da 400 a 600 mm (wk +50% con barre distanziate); con il gradiente lungo x, fasce ±y da 600 a
 >   400 mm (−33%); con il gradiente lungo (0,6; 0,8) ogni fascia passa a 720 mm; nell'anello solo l'effetto del
->   poligono che approssima il cerchio (al più D cos(π/n)). Esempio C4.
+>   poligono di n lati che approssima il cerchio (h − x passa da D a non meno di D cos(π/n)). Esempio C4.
 > - Stato: corretto in GPCChecker.Concrete 0.0.17.0; salto residuo alla soglia dichiarato.
 
 ### 6.11 Interasse delle barre
