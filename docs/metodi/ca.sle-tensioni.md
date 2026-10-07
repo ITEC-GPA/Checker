@@ -8,11 +8,12 @@ classi:
   - GPC.Checkers.Concrete.Serviceability.StressLimitPoint
   - GPC.Checkers.Concrete.Serviceability.ServiceabilityCombination
   - GPC.Checkers.Concrete.Results.StressAnalysisResult
-versione: 0.0.15.0
+versione: 0.0.17.0
 norme:
   - ntc2018-4.1.2.2.5.1
   - ntc2018-4.1.2.2.5.2
   - ntc2018-4.1.8.1.5
+  - circ2019-C4.1.2.2.5
   - en1992-1-1-7.1
   - en1992-1-1-7.2
   - na-uni-2012-7.2
@@ -59,12 +60,13 @@ massimo. Il metodo non ripete l'equilibrio: usa il piano di deformazione e le te
 
 | Formula o grandezza | Norma | Edizione e appendice | Paragrafo | Eq. o tabella | Riscontro |
 | --- | --- | --- | --- | --- | --- |
-| σc ≤ 0,60 fck (caratteristica), σc ≤ 0,45 fck (quasi permanente), riduzione del 20% per elementi piani gettati in opera con spessore < 50 mm | NTC | 2018 | 4.1.2.2.5.1 | n. da riscontrare | testo NTC 2008 |
-| σs ≤ 0,80 fyk (caratteristica) | NTC | 2018 | 4.1.2.2.5.2 | n. da riscontrare | testo NTC 2008 |
-| σp ≤ 0,80 fp(0,1)k | NTC | 2018 | 4.1.8.1.5, 4.1.2.2.5.2 | — | da riscontrare |
+| σc ≤ 0,60 fck (caratteristica), σc ≤ 0,45 fck (quasi permanente), riduzione del 20% per elementi piani gettati in opera con spessore < 50 mm | NTC | 2018 | 4.1.2.2.5.1 | [4.1.15], [4.1.16] | testo |
+| σs ≤ 0,80 fyk (caratteristica) | NTC | 2018 | 4.1.2.2.5.2 | [4.1.17] | testo |
+| σp ≤ 0,80 fp(0,1)k (rinvio a 4.1.2.2.5.2 con fp(0,1)k, fp(1)k o fpyk al posto di fyk) | NTC | 2018 | 4.1.8.1.5 | — | testo |
+| Analisi lineare con il calcestruzzo teso trascurato; viscosità con il modulo ridotto o n = 15 | Circolare | 2019 | C4.1.2.2.5 | — | testo |
 | k1 fck in XD, XF, XS; k2 fck per il creep lineare; k3 fyk; k4 fyk per deformazioni impresse; k5 fpk | EN 1992-1-1 | 2004 + AC:2010 | 7.2(2), 7.2(3), 7.2(5) | — | da riscontrare |
 | Analisi delle tensioni in esercizio | EN 1992-1-1 | 2004 + AC:2010 | 7.1(2) | — | da riscontrare |
-| k1 = 0,60, k2 = 0,45 (−20% getti sottili), k3 = 0,80, k5 = 0,70 | UNI EN 1992-1-1 | DM 31/07/2012 | 7.2 | — | testo |
+| k1 = 0,60, k2 = 0,45 (−20% getti sottili per entrambi), k3 = 0,80, k4 = 0,90, k5 = 0,70 | UNI EN 1992-1-1 | DM 31/07/2012 | 7.2(2), 7.2(3), 7.2(5) | — | testo |
 | k3 = 0,80, k4 = 1,0, k5 = 0,65 | DIN EN 1992-1-1 | NA | 7.2(5) | — | fonte secondaria (vedi riquadro E-5) |
 | 7.2(2), 7.2(3), 7.2(5) invariati | DS/EN 1992-1-1 | DK NA:2024 | 7.2 | — | testo |
 | 7.2 con i valori raccomandati | NS-EN 1992-1-1 | NA | 7.2 | — | fonte secondaria |
@@ -159,16 +161,16 @@ Nella combinazione frequente ηc, ηs e η non sono definiti; nella quasi perman
 calcestruzzo è il vertice compresso con il rapporto massimo, quello dell'acciaio la barra o il trefolo con il
 rapporto massimo.
 
-> **Scostamento dichiarato — E-1 Limite dell'acciaio anche sulle barre compresse**
+> **Scostamento dichiarato — E-1 (R7) Limite dell'acciaio anche sulle barre compresse**
 >
-> - Norma: EN 1992-1-1 7.2(5) limita la tensione di trazione delle armature; NTC 2018 §4.1.2.2.5.2 parla di
+> - Norma: EN 1992-1-1 7.2(5) limita la tensione di trazione delle armature; NTC 2018 §4.1.2.2.5.2, [4.1.17], parla di
 >   tensione massima.
 > - Programma: confronta |σs| di tutte le barre e dei trefoli, compressi compresi.
 > - Effetto: a favore di sicurezza per la famiglia Eurocodice; governa solo con barre compresse molto sollecitate
 >   (per esempio con φ elevato). Nell'esempio con φ = 1 le barre compresse hanno |σs|/σs,lim = 0,18.
 > - Stato: dichiarato.
 
-> **Scostamento dichiarato — E-2 Limite k1 fck senza condizione sulla classe di esposizione**
+> **Scostamento dichiarato — E-2 (R7) Limite k1 fck senza condizione sulla classe di esposizione**
 >
 > - Norma: EN 1992-1-1 7.2(2) indica il limite k1 fck nelle zone esposte alle classi XD, XF e XS (dove la
 >   fessurazione longitudinale può ridurre la durabilità); NTC 2018 lo applica sempre.
@@ -176,7 +178,7 @@ rapporto massimo.
 > - Effetto: a favore di sicurezza per la famiglia Eurocodice e il Model Code 2010 nelle classi X0, XC e XA.
 > - Stato: dichiarato.
 
-> **Scostamento dichiarato — E-3 Limite k2 fck come verifica**
+> **Scostamento dichiarato — E-3 (R7) Limite k2 fck come verifica**
 >
 > - Norma: EN 1992-1-1 7.2(3) usa k2 fck come soglia oltre la quale si deve considerare il creep non lineare; NTC 2018
 >   lo impone come limite.
@@ -185,25 +187,26 @@ rapporto massimo.
 >   superare la soglia con un'analisi del creep non lineare.
 > - Stato: dichiarato.
 
-> **Scostamento dichiarato — E-4 Analisi non lineare con le leggi costitutive di progetto**
+> **Scostamento dichiarato — E-4 (R5) Analisi non lineare con le leggi costitutive di progetto**
 >
 > - Norma: le tensioni di esercizio si calcolano con le proprietà dei materiali in esercizio (EN 1992-1-1 7.1(2);
 >   moduli Ecm ed Es, eventualmente con il modulo efficace per il creep), non con le leggi di progetto per lo stato
->   limite ultimo (EN 1992-1-1 3.1.7).
+>   limite ultimo (EN 1992-1-1 3.1.7). La Circolare 2019 C4.1.2.2.5 indica le usuali ipotesi di comportamento
+>   lineare con il calcestruzzo teso trascurato.
 > - Programma: con l'analisi non lineare il solutore usa la legge del calcestruzzo moltiplicata per αcc/γc e la legge
 >   di progetto dell'acciaio (snervamento a fyd). Il metodo accetta lo stato senza segnalarlo.
 > - Effetto: a sfavore di sicurezza per il calcestruzzo. Nella trave dell'esempio (NTC, M = 80 kNm) la compressione
 >   massima è 7,60 MPa invece di 10,96 MPa dell'analisi lineare (−31%); a 150 kNm il rapporto del calcestruzzo è
 >   0,83 invece di 1,14 e l'acciaio si ferma a fyd = 391,3 MPa. A parità di deformazione la legge del calcestruzzo è
 >   ridotta del fattore αcc/γc (0,567 con NTC), quindi anche il suo massimo.
-> - Stato: nuovo, da discutere (correzione nel solutore o avviso nel risultato).
+> - Stato: da discutere (voce R5 del registro delle differenze: correzione nel solutore o avviso nel risultato).
 
-> **Scostamento dichiarato — E-5 DIN: limite dei trefoli**
+> **Scostamento dichiarato — E-5 (R6) DIN: limite dei trefoli**
 >
 > - Norma: secondo una fonte secondaria l'annesso tedesco fissa k5 = 0,65 in 7.2(5); da riscontrare sul testo.
 > - Programma: la classe DIN eredita k5 = 0,75 della classe base.
 > - Effetto: se confermato, a sfavore di sicurezza per i trefoli con DIN (+15% sul limite).
-> - Stato: da riscontrare.
+> - Stato: da riscontrare (voce R6 del registro delle differenze).
 
 ## 7. Coefficienti e valori predefiniti
 
@@ -258,7 +261,7 @@ Il metodo non ha iterazioni; l'equilibrio è risolto dal solutore sezionale con 
 Sezione rettangolare 300 × 500 mm, C30/37 (fck = 30 MPa, Ecm = 32 836,57 MPa), B450C (fyk = 450 MPa,
 Es = 200 000 MPa). Barre tese 3Ø20 (As = 942,48 mm²) a 50 mm dal bordo inferiore (d = 450 mm), barre compresse 2Ø16
 (As' = 402,12 mm²) a 48 mm dal bordo superiore. Momento M = 80 kNm che tende il lembo inferiore, N = 0. Analisi
-lineare senza cls teso. Norma NTC 2018. Libreria GPCChecker.Concrete 0.0.15.0, stato dal solutore sezionale e
+lineare senza cls teso. Norma NTC 2018. Libreria GPCChecker.Concrete 0.0.17.0, stato dal solutore sezionale e
 `StressLimitCheck.Evaluate`.
 
 **φ = 0.**
@@ -310,8 +313,8 @@ Esempio del riquadro E-4, stessi dati con NTC e combinazione caratteristica:
   2 test in tutto nella classe).
 - **Integrazione**: i test del verificatore di modello confrontano le tensioni con la chiamata diretta e con i
   coefficienti NTC 0,60 e 0,45 fck e 0,80 fyk, compreso il fattore dei getti sottili.
-- **Esempio di questa pagina**: calcolo a mano della sezione fessurata con φ = 0 e φ = 1; scarto ≤ 3,1 · 10⁻⁵ dovuto
-  al solutore.
+- **Esempio di questa pagina**: calcolo a mano della sezione fessurata con φ = 0 e φ = 1, ripetuto in modo
+  indipendente, e libreria 0.0.17.0; scarto ≤ 3,1 · 10⁻⁵ dovuto al solutore.
 - **Benchmark indipendenti pubblicati**: nessuno, per ora.
 
 ## 12. Bibliografia
