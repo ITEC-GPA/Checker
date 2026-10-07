@@ -307,7 +307,7 @@ profili. Riproduce wk, rapporto, esito, stato, regioni e il k2 della sezione par
 non riproduce il k2 del risultato nelle sezioni interamente compresse (nullo con entrambe le regole, prima era il k2
 delle barre) né i testi della traccia (la voce k2 dice "legacy rule" e compare una volta sola).
 
-> **Scostamento risolto — F-2 (D7-b) NTC: k2 con il criterio della barra compressa**
+> **Scostamento corretto (superfici interne da discutere) — F-2 (D7-b) NTC: k2 con il criterio della barra compressa**
 >
 > - Norma: k2 = 0,5 per la flessione, 1,0 per la trazione pura, (ε1 + ε2)/(2 ε1) per la tensoflessione (EN 1992-1-1
 >   7.3.4(3), (7.13), richiamata dalla Circolare 2019 C4.1.2.2.4.5): una sezione con l'asse neutro interno è inflessa.
@@ -322,8 +322,8 @@ delle barre) né i testi della traccia (la voce k2 dice "legacy rule" e compare 
 >   sezione interamente tesa e i rami F.14 e F.15 sono invariati. La regola precedente resta solo come opzione legacy.
 > - Domanda aperta (non coperta dalla decisione): le superfici interne delle sezioni cave (pareti, anello) restano
 >   verificate con il k2 della propria fascia tesa anche con l'asse neutro interno, come nel motore precedente (6.7,
->   6.10); se governano, il k2 del risultato può superare 0,5 in una sezione inflessa (0,9 nel cassone di 6.7). Va confermato se estendere
->   anche a loro k2 = 0,5.
+>   6.10); se governano, il k2 del risultato può superare 0,5 in una sezione inflessa (0,9 nel cassone di 6.7).
+>   Va confermato se estendere anche a loro k2 = 0,5.
 > - Effetto: wd minore dove il motore precedente usava k2 = 1. Nell'esempio C2 (trave con sole barre tese) wd =
 >   0,2538 mm invece di 0,3683 mm (−31,1%) e la verifica passa da non soddisfatta a soddisfatta. Nei 936 stati
 >   congelati (176 NTC valutati) cambia un solo stato (R400x400, trazione con flessione deviata, tutte le barre
