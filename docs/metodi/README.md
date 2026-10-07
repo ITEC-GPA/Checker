@@ -12,9 +12,13 @@ La pagina è la revisione tecnica del metodo: descrive ciò che il codice fa, no
 | [ca.torsione](ca.torsione.md) | Torsione e interazione taglio-torsione | `SectionTorsionCalculator` | bozza |
 | [ca.sle-tensioni](ca.sle-tensioni.md) | Limiti tensionali in esercizio | `StressLimitCheck` | bozza |
 | [ca.fessurazione](ca.fessurazione.md) | Fessurazione: requisiti, ampiezza delle fessure, aree efficaci, interassi | `SectionCrackCheck`, `CrackWidthCalculator` | bozza |
+| [ca.ancoraggi](ca.ancoraggi.md) | Aderenza, ancoraggi e sovrapposizioni delle barre | `AnchorageCalculator` | bozza |
+| [ca.dettagli](ca.dettagli.md) | Dettagli costruttivi di travi e pilastri | `MemberDetailingCalculator` | bozza |
+| [ca.durabilita-copriferri](ca.durabilita-copriferri.md) | Durabilità, classi di esposizione e copriferri | `ExposureClasses`, `CoverRequirements` | bozza |
+| [ca.momento-curvatura](ca.momento-curvatura.md) | Risposta momento-curvatura a sforzo normale costante | `MomentCurvatureAnalysis` | bozza |
 
-Le altre famiglie della libreria (pressoflessione, dettagli, durabilità, risposta momento-curvatura) avranno
-pagine con lo stesso template.
+La pressoflessione (dominio di rottura e verifica di resistenza della sezione) avrà una pagina con lo stesso
+template.
 
 ## Convenzioni
 
@@ -25,7 +29,7 @@ pagine con lo stesso template.
   - `titolo`;
   - `libreria`: `GPCChecker.Concrete`;
   - `classi`: elenco dei tipi pubblici che implementano il metodo, con il namespace;
-  - `versione`: versione dell'assembly descritto (per esempio `0.0.15.0`);
+  - `versione`: versione dell'assembly descritto (per esempio `0.0.17.0`);
   - `norme`: id del registro normativo riportato sotto;
   - `stato`: `bozza`, `in revisione` o `approvata`.
 - **Lingua e numeri**: italiano; virgola decimale nel testo e nelle formule (in LaTeX `0{,}18`).
@@ -33,9 +37,10 @@ pagine con lo stesso template.
 - **Segni**: come nel codice, compressione negativa per forze assiali, tensioni e deformazioni. Dove una formula
   normativa usa la compressione positiva (per esempio σcp nel taglio) la pagina lo dichiara accanto alla formula.
 - **Formule**: blocchi ` ```math ` in LaTeX, numerati per pagina con una lettera (T taglio, R torsione, E tensioni
-  in esercizio, F fessurazione) e con la fonte accanto. Ogni simbolo è definito nella tabella della notazione.
+  in esercizio, F fessurazione, A ancoraggi, D dettagli, C durabilità e copriferri, M momento-curvatura) e con la
+  fonte accanto. Ogni simbolo è definito nella tabella della notazione.
 - **Riferimenti al codice** (`file:riga`): solo nella sezione Implementazione, relativi alla radice del repository
-  Checker (o del repository Model per le classi `GPC.Model.Standards`).
+  Checker (o del repository Model per le classi di Model e per il verificatore di modello).
 - **Esclusi dal testo**: comandi d'interfaccia, cronaca di sviluppo, percorsi di repository fuori dalla sezione
   Implementazione, riferimenti a programmi di terzi, testi di terzi. Sono ammesse le citazioni normative e la
   bibliografia tecnica dei metodi implementati.
@@ -59,8 +64,9 @@ sezione della formula interessata:
 > - Stato: `dichiarato` (scelta accettata), `in verifica` (riscontro normativo in corso), `da discutere`
 >   (decisione dell'utente aperta), `da riscontrare` (fonte non ancora verificata) oppure `corretto in <versione>`.
 
-Il codice del riquadro ha il prefisso della pagina (T, R, E, F) e un numero; i riquadri delle decisioni D7 del
-refactoring riportano anche la lettera della scheda, per esempio "F-1 (D7-a)".
+Il codice del riquadro ha il prefisso della pagina (T, R, E, F, A, D, C, M) e un numero; i riquadri delle decisioni
+D7 del refactoring riportano anche la lettera della scheda, per esempio "F-1 (D7-a)", e quelli delle voci del
+registro delle differenze di ANTHEA il numero della voce, per esempio "T-1 (R4)".
 
 ## Template della pagina
 
@@ -99,3 +105,5 @@ L'id di un riferimento è `<documento>-<paragrafo>`, con il paragrafo come stamp
 | `mc2010` | fib Model Code for Concrete Structures 2010 | 2013 |
 | `cnr-dt200-r1-2013` | CNR-DT 200 R1/2013, rinforzo con FRP | 2013 |
 | `cnr-dt204-2006` | CNR-DT 204/2006, calcestruzzo fibrorinforzato | 2006 |
+| `uni-en206-1` | UNI EN 206-1, calcestruzzo: specificazione, prestazione, produzione e conformità | 2006 |
+| `uni11104` | UNI 11104, istruzioni complementari per l'applicazione della EN 206 | 2016 per i valori del codice; 2025 in vigore; 2004 ritirata |
