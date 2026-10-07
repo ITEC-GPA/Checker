@@ -19,10 +19,10 @@ classi:
   - GPC.Checkers.Concrete.Cracking.CrackBarLayout
   - GPC.Checkers.Concrete.Cracking.CrackProfiles
   - GPC.Checkers.Concrete.Cracking.CrackProfile
-versione: 0.0.16.0
+versione: 0.0.17.0
 norme:
   - ntc2018-4.1.2.2.4
-  - circ2019-C4.1.2.2.4
+  - circ2019-C4.1.2.2.4.5
   - en1992-1-1-7.3.1
   - en1992-1-1-7.3.2
   - en1992-1-1-7.3.4
@@ -79,7 +79,8 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 | Interasse automatico non determinato (meno di due barre efficaci, barre non allineate, anelli non confermati) | dati insufficienti | esito incompleto (`SpacingUndetermined`); l'interasse si assegna |
 | Piano di deformazione senza gradiente con sezione parzializzata | non valutabile | esito incompleto (`NeutralAxisUndetermined`) |
 | Area efficace nulla | non valutabile | esito incompleto (`NoEffectiveArea`) |
-| Sezione cava con foro rettangolare allineato agli assi o anello circolare | supportato | superfici interne verificate a parte |
+| Sezione cava con foro rettangolare allineato agli assi o anello circolare | supportato | superfici interne verificate a parte (6.10) |
+| Superficie interna in trazione quasi uniforme | supportato | fascia intera, k2 = 1, h − x uguale all'altezza della sezione normale alla faccia (6.10) |
 | Altri fori con superficie interna tesa | non supportato | esito incompleto (`InnerSurfaceNotSupported`) |
 | Superficie interna tesa senza armatura | non valutabile | esito incompleto (`InnerSurfaceUnreinforced`) |
 | Barre lisce con Model Code 2010 o DIN | non supportato | errore (`ArgumentException`) |
@@ -88,24 +89,28 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 
 | Formula o grandezza | Norma | Edizione e appendice | Paragrafo | Eq. o tabella | Riscontro |
 | --- | --- | --- | --- | --- | --- |
-| Gruppi di esposizione | NTC | 2018 | 4.1.2.2.4 | Tab. 4.1.III | testo NTC 2008 |
-| Criteri per combinazione, ambiente e sensibilità delle armature; w1, w2, w3 = 0,2, 0,3, 0,4 mm | NTC | 2018 | 4.1.2.2.4 | Tab. 4.1.IV | testo NTC 2008 |
-| Decompressione; formazione delle fessure con σt = fctm/1,2 | NTC | 2018 | 4.1.2.2.4 | — | testo NTC 2008 |
-| wd = 1,7 wm | NTC | 2018 | 4.1.2.2.4 | — | testo NTC 2008 |
-| εsm, Δsm (F.12); barre distanziate (riquadro F-1) | Circolare | 2019 | C4.1.2.2.4 | n. da riscontrare | in verifica |
+| Condizioni ambientali per classe di esposizione | NTC | 2018 | 4.1.2.2.4.2 | Tab. 4.1.III | testo |
+| Criteri per combinazione, ambiente e sensibilità delle armature | NTC | 2018 | 4.1.2.2.4.4 | Tab. 4.1.IV | testo |
+| w1, w2, w3 = 0,2, 0,3, 0,4 mm; decompressione; formazione delle fessure con σt = fctm/1,2 | NTC | 2018 | 4.1.2.2.4 | [4.1.13] | testo |
+| Tensioni della sezione omogeneizzata non fessurata per decompressione e formazione | NTC | 2018 | 4.1.2.2.4.5 | — | testo |
+| wk = 1,7 εsm Δsm | NTC | 2018 | 4.1.2.2.4.5 | [4.1.14] | testo |
+| wk = 1,7 εsm Δsm; εsm − εcm (F.8) con kt; hc,eff (F.4); aree efficaci separate negli elementi tesi | Circolare | 2019 | C4.1.2.2.4.5 | [C4.1.5], [C4.1.6], Fig. C4.1.10 | testo |
+| Δsm con barre vicine (F.11), Øeq, k1, k2, k3 = 3,4, k4 = 0,425 | Circolare | 2019 | C4.1.2.2.4.5 | [C4.1.7]-[C4.1.9] | testo |
+| Barre distanziate: Δsm = 0,75 (h − x) nella parte rimanente (riquadro F-1) | Circolare | 2019 | C4.1.2.2.4.5 | [C4.1.10], Fig. C4.1.11 | testo |
 | Requisiti con le condizioni ambientali NTC | UNI EN 1992-1-1 | DM 31/07/2012 | 7.3.1(5) | — | testo |
 | k3 = 3,4, k4 = 0,425 | UNI EN 1992-1-1 | DM 31/07/2012 | 7.3.4(3) | — | testo |
-| wmax per classe di esposizione | EN 1992-1-1 | 2004 + AC:2010 | 7.3.1(5) | Prospetto 7.1N | da riscontrare (in particolare XD3) |
-| hc,ef, Ac,eff | EN 1992-1-1 | 2004 + AC:2010 | 7.3.2(3) | Fig. 7.1 | da riscontrare |
-| wk, εsm − εcm, sr,max, Øeq, k2, barre distanziate | EN 1992-1-1 | 2004 + AC:2010 | 7.3.4(1)-(3) | (7.8), (7.9), (7.11), (7.12), (7.13), (7.14) | da riscontrare |
+| wmax per classe di esposizione | EN 1992-1-1 | 2004 + AC:2010 | 7.3.1(5) | Prospetto 7.1N | da riscontrare (in particolare XD3, voce R8) |
+| hc,eff, Ac,eff | EN 1992-1-1 | 2004 + AC:2010 | 7.3.2(3) | Fig. 7.1 | da riscontrare |
+| wk, εsm − εcm, sr,max, Øeq, k2, barre distanziate e assenza di armatura aderente | EN 1992-1-1 | 2004 + AC:2010 | 7.3.4(1)-(3) | (7.8), (7.9), (7.11)-(7.14) | testo |
 | Prospetto 7.1DE (X0, XC1 0,4; altre 0,3) | DIN EN 1992-1-1 | NA | 7.3.1(5) | Tab. 7.1DE | fonte secondaria |
 | hc,ef con coefficiente funzione di h/(h − d) e (h − x)/3 se ≥ c + 20 mm | DIN EN 1992-1-1 | NA | 7.3.2(3) | Bild 7.1DE | fonte secondaria (riquadro F-7) |
-| sr,max = Ø/(3,6 ρ) ≤ σs Ø/(3,6 fct,eff); kt = 0,4 | DIN EN 1992-1-1 | NA | 7.3.4(2), 7.3.4(3) | (7.11) modificata | fonte secondaria |
+| sr,max = Ø/(3,6 ρ) ≤ σs Ø/(3,6 fct,eff), limite esteso a (7.14) | DIN EN 1992-1-1 | NA | 7.3.4(3) | (7.11) modificata | fonte secondaria |
+| kt della durata del carico | DIN EN 1992-1-1 | NA | 7.3.4(2) | — | fonte secondaria (riquadro F-8) |
 | Tabel 7.1 NA (0,2 / 0,3 / 0,4 mm) | DS/EN 1992-1-1 | DK NA:2024 | 7.3.1(5) | Tabel 7.1 NA | testo |
-| Ac,eff con baricentro sull'armatura; sistema fine e grossolano | DS/EN 1992-1-1 | DK NA:2024 | 7.3.2(1)P, 7.3.4(1) | Fig. 7.100 NA | testo |
+| Ac,eff con baricentro sull'armatura; sistema fine e grossolano (secondo membro di (7.8) per ½) | DS/EN 1992-1-1 | DK NA:2024 | 7.3.2(1)P, 7.3.4(1) | Fig. 7.100 NA | testo |
 | k3 = 3,4 (25/c)^(2/3) | DS/EN 1992-1-1 | DK NA:2024 | 7.3.4(3) | — | testo |
 | Tabella NA.7.1N (X0 0,4; XC, XD, XS 0,3 kc; frequente per XD3, XS3) | NS-EN 1992-1-1 | NA | 7.3.1(5) | Tab. NA.7.1N | fonte secondaria (riquadro F-5) |
-| Ampiezza delle fessure, ls,max, τbms, βTS | fib MC2010 | 2013 | 7.6.4 | n. da riscontrare | da riscontrare (riquadro F-6) |
+| Ampiezza delle fessure, ls,max, τbms, β | fib MC2010 | 2013 | 7.6.4.4 | (7.6-3), (7.6-4), Tab. 7.6-2 | fonte secondaria (riquadro F-6) |
 
 ## 4. Ipotesi
 
@@ -117,7 +122,8 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 - La direzione di verifica di una sezione parzializzata è quella del gradiente del piano di deformazione; la zona
   tesa efficace è la parte della sezione oltre la quota Qmax − hc,eff lungo quel gradiente.
 - Nella sezione interamente tesa le facce opposte (±x, ±y, oppure fasce radiali nei cerchi) sono verificate in modo
-  indipendente e le loro aree efficaci non si sommano mai.
+  indipendente e le loro aree efficaci non si sommano mai (Circolare 2019 C4.1.2.2.4.5: negli elementi tesi le due
+  aree efficaci si considerano separatamente).
 - σs è la tensione massima delle barre efficaci (a favore di sicurezza con più strati).
 - Il copriferro c è misurato alla superficie delle barre longitudinali (copriferro nominale più diametro della
   staffa), dato dal chiamante per la zona tesa delle sezioni parzializzate, oppure calcolato dalla geometria per le
@@ -148,9 +154,10 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 | k1, k2, k3, k4 | coefficienti di aderenza, di distribuzione delle deformazioni, del copriferro e del diametro | — | traccia |
 | εsm − εcm | differenza delle deformazioni medie di acciaio e calcestruzzo | — | traccia |
 | sr,max, Δsm | distanza massima (Eurocodice) e media (NTC) tra le fessure | mm | traccia |
-| wk (wd) | ampiezza di calcolo delle fessure | mm | `Width` |
+| wk | ampiezza caratteristica (di calcolo) delle fessure | mm | `Width` |
 | wlim | limite di ampiezza | mm | `Limit` |
 | σct,max, σct,lim | tensione massima della sezione non fessurata e suo limite (trazione positiva) | MPa | `UncrackedMaximumStress`, `StressLimit` |
+| h⊥, hg | altezza della sezione normale alla faccia di una fascia interna e lungo il gradiente | mm | traccia `h − x` delle fasce |
 
 ## 6. Formulazione
 
@@ -169,7 +176,8 @@ XS1, XA1, XA2, XF2, XF3; molto aggressive: XD2, XD3, XS2, XS3, XA3, XF4) e w1 = 
 | Molto aggressivo | frequente | formazione delle fessure | wk ≤ w1 |
 | Molto aggressivo | quasi permanente | decompressione | wk ≤ w1 |
 
-Il wlim di progetto non è usato con questi profili.
+Il wlim di progetto non è usato con questi profili. Il DM 31/07/2012 (7.3.1(5)) riporta la stessa tabella e gli
+stessi gruppi per il profilo UNI.
 
 **Famiglia Eurocodice e Model Code 2010.** Verifica richiesta solo nella combinazione quasi permanente (NS: nella
 frequente per XD3 e XS3); un wlim di progetto, se assegnato, sostituisce la tabella. Senza wlim di progetto:
@@ -188,7 +196,7 @@ frequente per XD3 e XS3); un wlim di progetto, se assegnato, sostituisce la tabe
 ```
 
 con σct,max la tensione massima (trazione positiva) della sezione non fessurata omogeneizzata con il cls teso
-(NTC 2018 §4.1.2.2.4).
+(NTC 2018 §4.1.2.2.4, [4.1.13], e §4.1.2.2.4.5).
 
 ### 6.3 Classificazione dello stato
 
@@ -210,14 +218,18 @@ h - d = Q_{max} - \frac{\sum_{i \in T} Q_i A_i}{\sum_{i \in T} A_i}, \qquad T = 
 h_{c,eff} = \min\left[2{,}5\,(h - d);\; \frac{h - x}{3};\; \frac{h}{2}\right] \qquad \text{(F.4)}
 ```
 
-(EN 1992-1-1 7.3.2(3), Fig. 7.1; profili NTC, UNI, EN, NS, Model Code 2010, CNR-DT 200.) Profilo DIN:
+(EN 1992-1-1 7.3.2(3), Fig. 7.1; Circolare 2019 Fig. C4.1.10; profili NTC, UNI, EN, NS, Model Code 2010,
+CNR-DT 200.) Profilo DIN:
 
 ```math
 h_{c,eff} = \min\left[\beta\,(h - d);\; \frac{h}{2}\right],\quad \beta = \min\left\{5;\; \max\left[2{,}5;\; 2 + 0{,}1\,\frac{h}{h - d}\right]\right\};\quad \text{e}\ \min\left(h_{c,eff};\; \frac{h - x}{3}\right)\ \text{se}\ \frac{h - x}{3} \ge c + 20\ \text{mm} \qquad \text{(F.5)}
 ```
 
+dove c è il copriferro nominale del dato `NominalCover`, anche quando il copriferro della formula di wk è assegnato
+con `CoverOverride`.
+
 Profilo DS: hc,eff è l'altezza della fascia tesa, a partire dal lembo, il cui baricentro coincide con quello delle
-barre tese (DK NA Fig. 7.100 NA), cercata in [0; min(h; h − x)].
+barre tese (DK NA 7.3.2(1)P, Fig. 7.100 NA), cercata in [0; min(h; h − x)].
 
 ```math
 A_{c,eff} = \left|\{P \in \text{sezione}: Q(P) \ge Q_{max} - h_{c,eff}\}\right| - \text{fori}, \qquad A_{s,eff} = \sum_{i \in T,\ Q_i \ge Q_{max} - h_{c,eff}} A_i \qquad \text{(F.6)}
@@ -247,42 +259,49 @@ w_k = s_{r,max}\, (\varepsilon_{sm} - \varepsilon_{cm}) \qquad \text{(F.10)}
 βmin = 0,6; k1 = 0,8 per barre ad aderenza migliorata, 1,6 per barre lisce; k3 = 3,4; k4 = 0,425. Varianti:
 
 - **DS**: k3 = 3,4 (25/c)^(2/3) (DK NA 7.3.4(3)), per c > 0.
-- **DIN**: kt = 0,4 sempre; sr,max = min[Ø/(3,6 ρ) oppure 1,3 (h − x) per barre distanziate; σs Ø/(3,6 fct,eff)]
-  (DIN NA 7.3.4(3)); solo barre ad aderenza migliorata.
+- **DIN**: kt = 0,4 sempre (riquadro F-8); sr,max = min[Ø/(3,6 ρ) oppure 1,3 (h − x) per barre distanziate;
+  σs Ø/(3,6 fct,eff)] (DIN NA 7.3.4(3)); solo barre ad aderenza migliorata.
 - **Model Code 2010**: sr = 2 [c + Ø/(4 (τbm/fctm) ρ)] con τbm/fctm = 1,8 per carichi di breve durata e 1,35 di lunga
-  durata; βmin = 1 − kt; solo barre ad aderenza migliorata; la regola delle barre distanziate non si applica.
+  durata; βmin = 1 − kt; solo barre ad aderenza migliorata; la regola delle barre distanziate non si applica
+  (riquadro F-6).
 
 ### 6.6 Ampiezza delle fessure, NTC 2018 (Circolare 2019)
 
-Con εsm − εcm da (F.8) (βmin = 0,6) e i coefficienti kt, k1 della famiglia Eurocodice:
+Con εsm − εcm da (F.8) (βmin = 0,6, Circolare [C4.1.6]) e i coefficienti kt, k1 della famiglia Eurocodice:
 
 ```math
 \Delta_{sm,v} = \frac{3{,}4\, c + k_1\, k_2\, 0{,}425\, \varnothing_{eq}/\rho}{1{,}7}, \qquad \Delta_{sm} = \begin{cases} \Delta_{sm,v} & s \le 5\,(c + \varnothing_{eq}/2) \\ \max\left[\Delta_{sm,v};\; 0{,}75\,(h - x)\right] & s > 5\,(c + \varnothing_{eq}/2) \end{cases} \qquad \text{(F.11)}
 ```
 
 ```math
-w_d = \max\left[0;\; 1{,}7\, \Delta_{sm}\, (\varepsilon_{sm} - \varepsilon_{cm})\right] \qquad \text{(F.12)}
+w_k = \max\left[0;\; 1{,}7\, \Delta_{sm}\, (\varepsilon_{sm} - \varepsilon_{cm})\right] \qquad \text{(F.12)}
 ```
 
-Con barre vicine (F.12) coincide con (F.10).
+(Circolare 2019 C4.1.2.2.4.5, [C4.1.7] e [C4.1.10]; NTC 2018 [4.1.14] e Circolare [C4.1.5].) Con barre vicine
+(F.12) coincide con (F.10).
 
 > **Scostamento dichiarato — F-1 (D7-a) NTC: barre distanziate**
 >
-> - Norma: per barre con interasse maggiore di 5 (c + Ø/2), EN 1992-1-1 (7.14) sostituisce sr,max con 1,3 (h − x);
->   nella forma NTC con wd = 1,7 Δsm (εsm − εcm) la stessa regola dà Δsm = 1,3 (h − x)/1,7 = 0,765 (h − x), cioè
->   wd = 1,3 (h − x) (εsm − εcm). Il testo della Circolare 2019 per questo caso è in verifica.
-> - Programma: Δsm = max[Δsm,v; 0,75 (h − x)] (F.11), cioè wd = max[sr,max; 1,275 (h − x)] (εsm − εcm). Lo stesso
->   coefficiente 1,7 · 0,75 = 1,275 vale nel limite superiore senza barre aderenti (F.15).
-> - Le due componenti:
->   - coefficiente 1,275 invece di 1,3: dove governa il ramo distante wd è minore dell'1,96% (a sfavore);
->   - massimo invece della sostituzione: dove il ramo vicino supera quello distante il programma tiene il ramo
->     vicino, maggiore (a favore).
-> - Effetto: nell'esempio C3 wd = 0,3671 mm invece di 0,3743 mm (−1,9%). Su una griglia di 222 912 stati di flessione
->   e tensoflessione (C30/37, σs da 200 a 320 MPa, travi, solette, sezioni a T, semplice armatura) il solo
->   coefficiente 1,3 cambia l'esito in 337 stati (da soddisfatto a non soddisfatto); la regola completa con la
->   sostituzione cambia wd tra −67% e +1,96% e l'esito in 4581 stati (337 peggiorano, 4244 migliorano). Nei casi
+> - Norma: con interasse maggiore di 5 (c + Ø/2) la Circolare 2019 C4.1.2.2.4.5 applica [C4.1.7] nella fascia di
+>   estensione 5 (c + Ø/2) attorno alle barre e Δsm = 0,75 (h − x) [C4.1.10] nella parte rimanente (Fig. C4.1.11).
+>   EN 1992-1-1 7.3.4(3) sostituisce invece sr,max con 1,3 (h − x) (7.14); 1,3/1,7 = 0,765, valore che la
+>   Circolare arrotonda a 0,75.
+> - Programma: Δsm = max[Δsm,v; 0,75 (h − x)] (F.11), cioè la Circolare alla lettera, con l'ampiezza della superficie
+>   uguale alla maggiore delle due zone; in termini di distanza tra le fessure sr = max[sr,max; 1,275 (h − x)]. Lo
+>   stesso coefficiente 1,7 · 0,75 = 1,275 vale nel limite superiore senza barre aderenti (F.15), caso che la
+>   Circolare non tratta.
+> - Effetto rispetto alla EN 1992-1-1:
+>   - coefficiente 1,275 invece di 1,3: dove governa la zona distante wk è minore dell'1,92% (a sfavore rispetto
+>     alla EN);
+>   - massimo invece della sostituzione: dove la zona vicina supera quella distante il programma tiene la zona
+>     vicina, maggiore (a favore).
+>
+>   Nell'esempio C3 wk = 0,3671 mm invece di 0,3743 mm (−1,92%). Su una griglia di 222 912 stati di flessione e
+>   tensoflessione (C30/37, σs da 200 a 320 MPa, travi, solette, sezioni a T, semplice armatura) il solo coefficiente
+>   1,3 cambia l'esito in 337 stati (da soddisfatto a non soddisfatto); la regola completa della EN con la
+>   sostituzione cambia wk tra −67% e +1,96% e l'esito in 4581 stati (337 peggiorano, 4244 migliorano). Nei casi
 >   congelati del motore precedente l'esito non cambia.
-> - Stato: in verifica (ricerca normativa separata); decisione dell'utente: "correggi se è sbagliato".
+> - Stato: dichiarato (decisione D7-a: il profilo NTC segue la Circolare e non si corregge).
 
 ### 6.7 Coefficiente k2
 
@@ -290,47 +309,47 @@ Con barre vicine (F.12) coincide con (F.10).
 k_2 = \begin{cases} 0{,}5 & \text{asse neutro interno alla sezione (sezione inflessa, anche in presso- o tensoflessione), tutti i profili} \\ \min\left\{1;\; \max\left[0{,}5;\; \dfrac{\varepsilon_{min} + \varepsilon_{max}}{2\,\varepsilon_{max}}\right]\right\} & \text{sezione interamente tesa (tutti)} \\ \text{non si applica} & \text{sezione interamente compressa (}w_k = 0\text{)} \end{cases} \qquad \text{(F.13)}
 ```
 
-con εmin, εmax le deformazioni estreme del contorno (EN 1992-1-1 (7.13); Circolare 2019 C4.1.2.2.4.5). Nei rami
-"asse neutro nel copriferro" (F.14) e "barre tese fuori da Ac,eff" (F.15) k2 non entra in wk; il risultato e la
-traccia riportano comunque k2 = 0,5. La traccia della sezione parzializzata ha una sola voce k2, con la motivazione.
+con εmin, εmax le deformazioni estreme del contorno (EN 1992-1-1 7.3.4(3), (7.13); Circolare 2019 C4.1.2.2.4.5,
+[C4.1.9]). Nei rami "asse neutro nel copriferro" (F.14) e "barre tese fuori da Ac,eff" (F.15) k2 non entra in wk; il
+risultato e la traccia riportano comunque k2 = 0,5. La traccia della sezione parzializzata ha una sola voce k2, con
+la motivazione.
 
 **Superfici interne delle sezioni cave.** (F.13) vale per la zona tesa esterna. Ogni parete o anello interno (6.10)
-è verificato come zona locale con il k2 della propria fascia tesa, per tutti i profili e anche quando l'asse
-neutro taglia la sezione; se quella superficie governa, il k2 del risultato può superare 0,5 in una sezione inflessa
-(cassone 400 × 600 con foro 200 × 400 e asse neutro a metà altezza: parete inferiore con k2 = 0,9).
+è verificato come zona locale con il k2 della propria fascia tesa, cioè (7.13) / [C4.1.9] applicata alle
+deformazioni della fascia (la Circolare raccomanda valori intermedi di k2 anche "per singole parti di sezione"), per
+tutti i profili e anche quando l'asse neutro taglia la sezione; in trazione uniforme k2 = 1. Se quella superficie
+governa, il k2 del risultato può superare 0,5 in una sezione inflessa (cassone 400 × 600 con foro 200 × 400 e asse
+neutro a metà altezza: parete inferiore con k2 = 0,9). La regola è stata confermata dall'utente il 7/10/2026.
 
 **Opzione legacy** (`SectionCrackInput.NtcK2FromCompressedBars`, predefinito `false`): per i soli profili NTC e
 CNR-DT 200, con l'asse neutro interno, k2 = 0,5 se almeno una barra è compressa e 1,0 altrimenti (una barra con
-tensione nulla non è compressa), come nel motore precedente di ANTHEA. Serve solo a riprodurre i casi congelati e i
-confronti; non agisce sulle sezioni interamente compresse o interamente tese, sulle superfici interne né sugli altri
-profili. Riproduce wk, rapporto, esito, stato, regioni e il k2 della sezione parzializzata del motore precedente;
-non riproduce il k2 del risultato nelle sezioni interamente compresse (nullo con entrambe le regole, prima era il k2
-delle barre) né i testi della traccia (la voce k2 dice "legacy rule" e compare una volta sola).
+tensione nulla non è compressa), come nel motore precedente di ANTHEA prima della correzione D7-b. Resta per le prove
+dedicate all'opzione e per i confronti con il comportamento precedente; i casi congelati della libreria sono
+catture del comportamento attuale e usano la regola predefinita. Non agisce sulle sezioni interamente compresse o
+interamente tese, sulle superfici interne né sugli altri profili. Riproduce wk, rapporto, esito, stato, regioni e il
+k2 della sezione parzializzata della regola precedente; non riproduce il k2 del risultato nelle sezioni interamente
+compresse (nullo con entrambe le regole, prima era il k2 delle barre) né i testi della traccia (la voce k2 dice
+"legacy rule" e compare una volta sola).
 
-> **Scostamento corretto (superfici interne da discutere) — F-2 (D7-b) NTC: k2 con il criterio della barra compressa**
+> **Scostamento corretto — F-2 (D7-b) NTC: k2 con il criterio della barra compressa**
 >
-> - Norma: k2 = 0,5 per la flessione, 1,0 per la trazione pura, (ε1 + ε2)/(2 ε1) per la tensoflessione (EN 1992-1-1
->   7.3.4(3), (7.13), richiamata dalla Circolare 2019 C4.1.2.2.4.5): una sezione con l'asse neutro interno è inflessa.
+> - Norma: k2 = 0,5 per la flessione, 1,0 per la trazione semplice, (ε1 + ε2)/(2 ε1) per la trazione eccentrica
+>   (Circolare 2019 C4.1.2.2.4.5, [C4.1.9]; EN 1992-1-1 7.3.4(3), (7.13)): una sezione con l'asse neutro interno è
+>   inflessa.
 > - Programma fino alla 0.0.15.0, profili NTC e CNR-DT 200: k2 = 0,5 solo se almeno una barra era compressa; una
 >   trave inflessa senza barre compresse (semplice armatura), una soletta con la rete superiore tesa o una sezione in
 >   tensoflessione con l'asse neutro interno avevano k2 = 1,0.
-> - Decisione dell'utente del 7/10/2026 sullo scostamento D7-b di ANTHEA: k2 = 0,5 quando l'asse neutro taglia la
->   sezione, senza ricadere nel caso della pura compressione. La regola adottata, con i rami e l'opzione legacy, è
->   quella di 6.7 (F.13); questa pagina ne è il riferimento completo.
-> - Programma dalla 0.0.16.0: k2 = 0,5 per ogni profilo, NTC 2018 e CNR-DT 200 compresi, quando l'asse neutro taglia
->   la sezione; nella pura compressione wk = 0 e k2 non si applica (K2 nullo, nessuna voce k2 nella traccia); la
->   sezione interamente tesa e i rami F.14 e F.15 sono invariati. La regola precedente resta solo come opzione legacy.
-> - Domanda aperta (non coperta dalla decisione): le superfici interne delle sezioni cave (pareti, anello) restano
->   verificate con il k2 della propria fascia tesa anche con l'asse neutro interno, come nel motore precedente (6.7,
->   6.10); se governano, il k2 del risultato può superare 0,5 in una sezione inflessa (0,9 nel cassone di 6.7).
->   Va confermato se estendere anche a loro k2 = 0,5.
-> - Effetto: wd minore dove il motore precedente usava k2 = 1. Nell'esempio C2 (trave con sole barre tese) wd =
->   0,2538 mm invece di 0,3683 mm (−31,1%) e la verifica passa da non soddisfatta a soddisfatta. Nei 936 stati
->   congelati (176 NTC valutati) cambia un solo stato (R400x400, trazione con flessione deviata, tutte le barre
->   tese): wd da 0,608 a 0,360 mm (−40,85%), esito invariato (oltre 0,3 mm). Sulla griglia di 222 912 stati della
->   scheda D7-b, nei 37 128 stati parzializzati che avevano k2 = 1 wd diminuisce fino al 48% (mediana tra 33% e 40%
->   secondo la famiglia) e l'esito cambia in 9282 stati.
-> - Stato: corretto in GPCChecker.Concrete 0.0.16.0 per la zona tesa esterna; superfici interne da discutere.
+> - Programma dalla 0.0.16.0 (decisione dell'utente del 7/10/2026): k2 = 0,5 per ogni profilo quando l'asse neutro
+>   taglia la sezione; nella pura compressione wk = 0 e k2 non si applica (K2 nullo, nessuna voce k2 nella traccia);
+>   la sezione interamente tesa e i rami F.14 e F.15 sono invariati; le superfici interne usano il k2 della propria
+>   fascia (6.7, 6.10), regola confermata dall'utente. La regola precedente resta solo come opzione legacy.
+> - Effetto: wk minore dove la regola precedente usava k2 = 1. Nell'esempio C2 (trave con sole barre tese) wk =
+>   0,2538 mm invece di 0,3683 mm (−31,1%) e la verifica passa da non soddisfatta a soddisfatta. Nei 936 stati dei
+>   casi congelati del motore precedente (176 NTC valutati) cambia un solo stato (R400x400, trazione con flessione
+>   deviata, tutte le barre tese): wk da 0,608 a 0,360 mm (−40,8%), esito invariato (oltre 0,3 mm). Sulla griglia di
+>   222 912 stati della scheda D7-b, nei 37 128 stati parzializzati che avevano k2 = 1 wk diminuisce fino al 48%
+>   (mediana tra 33% e 40% secondo la famiglia) e l'esito cambia in 9282 stati.
+> - Stato: corretto in GPCChecker.Concrete 0.0.16.0.
 
 ### 6.8 Casi particolari della sezione parzializzata
 
@@ -344,7 +363,7 @@ w_k = 0 \qquad \text{(F.14)}
 Senza barre entro h/2 dal lembo teso la zona tesa non è armata e la verifica non ha esito.
 
 **Barre tese fuori da Ac,eff.** Se le barre tese sono tutte oltre hc,eff (asse neutro vicino alle barre), il metodo
-usa il limite superiore di EN 1992-1-1 (7.14) con ρ → 0 in (F.8):
+usa il limite superiore di EN 1992-1-1 7.3.4(3), (7.14), con ρ → 0 in (F.8):
 
 ```math
 w_k = s_r\, \beta_{min}\, \frac{\sigma_s}{E_s}, \qquad s_r = \begin{cases} 1{,}3\,(h - x) & \text{famiglia Eurocodice, Model Code 2010} \\ 1{,}7 \cdot 0{,}75\,(h - x) & \text{NTC, CNR-DT 200} \\ \min\left[1{,}3\,(h - x);\; \sigma_s \varnothing_{eq}/(3{,}6\, f_{ct,eff})\right] & \text{DIN} \end{cases} \qquad \text{(F.15)}
@@ -352,22 +371,27 @@ w_k = s_r\, \beta_{min}\, \frac{\sigma_s}{E_s}, \qquad s_r = \begin{cases} 1{,}3
 
 con σs e Øeq delle barre tese.
 
-> **Scostamento dichiarato — F-3 Asse neutro nel copriferro: wk = 0**
+> **Scostamento dichiarato — F-3 (R7) Asse neutro nel copriferro: wk = 0**
 >
-> - Norma: le formule (7.8)-(7.9) non trattano esplicitamente il caso di barre tutte compresse con una zona tesa di
->   calcestruzzo nel copriferro.
+> - Norma: le formule (7.8)-(7.9) e [C4.1.5]-[C4.1.7] non trattano esplicitamente il caso di barre tutte compresse
+>   con una zona tesa di calcestruzzo nel copriferro.
 > - Programma: wk = 0, come limite di (7.9) per σs → 0.
 > - Effetto: nessuna fessura di calcolo all'altezza delle barre; la fessura del solo copriferro non è valutata.
 > - Stato: dichiarato.
 
-> **Scostamento dichiarato — F-4 Barre tese fuori da Ac,eff**
+> **Scostamento dichiarato — F-4 (R7) Barre tese fuori da Ac,eff**
 >
 > - Norma: EN 1992-1-1 7.3.4(3) usa sr,max = 1,3 (h − x) come limite superiore quando l'interasse è grande o quando
->   nella zona tesa non c'è armatura aderente.
+>   nella zona tesa non c'è armatura aderente; la Circolare 2019 non tratta il caso senza armatura aderente.
 > - Programma: applica il limite anche quando le barre tese esistono ma stanno tutte oltre hc,eff, con
->   εsm − εcm = βmin σs/Es e σs delle barre tese.
-> - Effetto: un risultato invece di nessun esito; il valore è un limite superiore.
-> - Stato: dichiarato.
+>   εsm − εcm = βmin σs/Es e σs delle barre tese; per NTC e CNR-DT 200 usa per analogia 1,7 · 0,75 (h − x) della
+>   [C4.1.10] (1,92% meno della (7.14)).
+> - Effetto: un risultato invece di nessun esito. Il limite superiore riguarda sr; la deformazione media viene dalle
+>   barre tese, più vicine all'asse neutro del lembo, quindi minore di quella del lembo nel rapporto
+>   (d − x)/(h − x): wk non è un limite superiore dell'apertura al lembo. Nel caso di prova (h − x = 100 mm, barre a
+>   50 mm dal lembo, σs = 100 MPa) wk = 0,039 mm EN e 0,03825 mm NTC; con la deformazione del lembo sarebbe il
+>   doppio.
+> - Stato: dichiarato (il segno dell'interpretazione non è stabilito: da discutere con la voce R7).
 
 ### 6.9 Sezione interamente tesa
 
@@ -378,9 +402,10 @@ gradiente (cerchi):
 - hc,eff = min[2,5 (h − d); h/2] (DIN: (F.5) senza il termine (h − x)/3; DS: fascia baricentrica cercata in
   [0; h/2]);
 - barre efficaci: quelle con Q ≥ Qmax − hc,eff e σs > 0; c = minima distanza dal lembo meno Ø/2;
-- wk da (F.8)-(F.12) con h − x = h e k2 da (F.13).
+- wk da (F.8)-(F.12) con h − x = h (altezza della sezione lungo la normale della faccia) e k2 da (F.13).
 
-L'ampiezza della sezione è la massima delle facce. DS aggiunge il **sistema grossolano** (DK NA 7.3.4(1)):
+L'ampiezza della sezione è la massima delle facce. DS aggiunge il **sistema grossolano** (DK NA 7.3.4(1): (7.8) con
+Ac,eff uguale a tutta l'area tesa e il secondo membro moltiplicato per ½):
 
 ```math
 w_{k,gr} = 0{,}5\; s_{r,max}\, (\varepsilon_{sm} - \varepsilon_{cm}) \quad \text{con}\ A_{c,eff} = A_c,\ A_{s,eff} = \textstyle\sum A_s,\ \sigma_s = \max \sigma_{s,i},\ h - x = \max(b;\, h) \qquad \text{(F.16)}
@@ -388,19 +413,51 @@ w_{k,gr} = 0{,}5\; s_{r,max}\, (\varepsilon_{sm} - \varepsilon_{cm}) \quad \text
 
 ### 6.10 Superfici interne delle sezioni cave
 
-Se una superficie interna è tesa, ogni parete di un foro rettangolare allineato agli assi, oppure l'anello interno di
-una sezione circolare cava, è verificato a parte:
+Se una superficie interna è tesa (deformazione massima ai vertici dei fori maggiore di 10⁻¹²), ogni parete di un foro
+rettangolare allineato agli assi, oppure l'anello interno di una sezione circolare cava, è verificato a parte:
 
 ```math
 h_{c,eff} = \min\left(\gamma\, a_{min};\; \frac{t}{2}\right), \qquad \gamma = \begin{cases} 2 & \text{DS} \\ 2{,}5 & \text{altri profili} \end{cases} \qquad \text{(F.17)}
 ```
 
 con amin la distanza dalla superficie interna del baricentro della barra tesa più vicina (t se la parete non ha barre
-tese) e t lo spessore della parete. Ac,eff è la
-fascia tesa della parete, k2 = (max(0; εmin) + εmax)/(2 εmax) limitato a [0,5; 1] sulle deformazioni della fascia
-(anche con l'asse neutro interno alla sezione, per tutti i profili, con o senza opzione legacy), h − x = εmax/|∇ε|. Una superficie
-interna tesa senza armatura lascia la verifica senza esito. L'ampiezza della sezione è l'inviluppo delle superfici
-esterne e interne; se una regione non ha esito e le altre rispettano il limite, il risultato è incompleto.
+tese) e t lo spessore della parete. La fascia della parete (o la corona dell'anello) di altezza hc,eff è ritagliata
+sulla parte con ε ≥ 0: Ac,eff è l'area di questa parte, le barre efficaci sono le barre tese nella fascia,
+c = minima distanza delle barre della fascia dalla superficie interna meno Ø/2 (oppure il valore assegnato), s è
+l'interasse automatico o assegnato e σs la tensione massima delle barre della fascia.
+
+La fascia è in **trazione uniforme** quando |∇ε| hg ≤ 10⁻⁴ εmax,c, con hg l'altezza del contorno lungo il gradiente e
+εmax,c la deformazione massima ai vertici del contorno (un'eccentricità dell'ordine di h/120 000: il solutore restituisce
+gradienti di 10⁻¹⁵…10⁻¹² 1/mm in trazione assiale, la cui direzione non ha significato). Allora la fascia è tutta tesa e:
+
+```math
+k_2 = \begin{cases} 1 & \text{trazione uniforme} \\ \min\left\{1;\; \max\left[0{,}5;\; \dfrac{\max(0;\, \varepsilon_{min,b}) + \varepsilon_{max,b}}{2\,\varepsilon_{max,b}}\right]\right\} & \text{altrimenti} \end{cases}, \qquad h - x = \begin{cases} h_\perp & \text{trazione uniforme} \\ \min\left(\dfrac{\varepsilon_{max,b}}{|\nabla\varepsilon|};\; h_g\right) & \text{altrimenti} \end{cases} \qquad \text{(F.18)}
+```
+
+con εmin,b, εmax,b le deformazioni estreme ai vertici della parte tesa della fascia e h⊥ l'altezza della sezione
+normale alla faccia (diametro esterno per l'anello). Con l'asse neutro interno alla sezione εmax,b/|∇ε| non supera hg
+e il limite non agisce; agisce con l'asse neutro fuori dalla sezione, per le fasce lontane dall'asse neutro
+(riquadro F-9). La traccia della fascia riporta h − x solo quando vale h⊥ o hg. Il k2 delle fasce vale per tutti i
+profili, con o senza opzione legacy, anche con l'asse neutro interno (6.7). Una superficie interna tesa senza
+armatura lascia la verifica senza esito. L'ampiezza della sezione è l'inviluppo delle superfici esterne e interne; se
+una regione non ha esito e le altre rispettano il limite, il risultato è incompleto.
+
+> **Scostamento corretto — F-9 (R15) Superfici interne: profondità della zona tesa delle fasce**
+>
+> - Norma: in (7.14) e in [C4.1.10] h − x è la profondità della zona tesa, con x ≥ 0; in trazione uniforme k2 = 1
+>   ((7.13); [C4.1.9]).
+> - Programma fino alla 0.0.16.0: h − x = εmax,b/|∇ε| senza limite, anche con un gradiente di rumore del solutore in
+>   trazione quasi uniforme: h − x dell'ordine di 10¹² mm e, con barre distanziate ((F.9), (F.11)), ampiezze prive di
+>   significato (cassone 400 × 600 delle prove: wk = 238 389 mm).
+> - Programma dalla 0.0.17.0: (F.18), regola dell'altezza lungo il gradiente scelta dall'utente il 7/10/2026. Con
+>   l'asse neutro interno alla sezione nulla cambia rispetto alla regola precedente.
+> - Effetto: h − x, k2 e wk delle fasce sono continui dove l'asse neutro entra nella sezione (entro 10⁻⁶ nelle prove,
+>   in flessione retta e deviata, cassoni quadrati e non, anello). Resta un salto alla soglia della trazione
+>   uniforme, cioè per un'eccentricità trascurabile, dove h⊥ e hg differiscono: cassone 400 × 600 con il gradiente
+>   lungo y, fasce ±x da 400 a 600 mm (wk +50% con barre distanziate); con il gradiente lungo x, fasce ±y da 600 a
+>   400 mm (−33%); con il gradiente lungo (0,6; 0,8) ogni fascia passa a 720 mm; nell'anello solo l'effetto del
+>   poligono che approssima il cerchio (al più D cos(π/n)). Esempio C4.
+> - Stato: corretto in GPCChecker.Concrete 0.0.17.0; salto residuo alla soglia dichiarato.
 
 ### 6.11 Interasse delle barre
 
@@ -416,10 +473,10 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 ### 6.12 Esito
 
 ```math
-\eta = \frac{w_k}{w_{lim}} \le 1 \qquad \text{oppure} \qquad \sigma_{ct,max} \le \sigma_{ct,lim} \qquad \text{(F.18)}
+\eta = \frac{w_k}{w_{lim}} \le 1 \qquad \text{oppure} \qquad \sigma_{ct,max} \le \sigma_{ct,lim} \qquad \text{(F.19)}
 ```
 
-> **Scostamento dichiarato — F-5 NS: fattore kc del limite**
+> **Scostamento dichiarato — F-5 (R7) NS: fattore kc del limite**
 >
 > - Norma: secondo una fonte secondaria la Tabella NA.7.1N dà 0,30 kc mm per XC, XD e XS, con
 >   kc = cnom/cmin,dur ≤ 1,3.
@@ -427,15 +484,22 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 > - Effetto: a favore di sicurezza (kc ≥ 1); fino al 23% sul limite.
 > - Stato: da riscontrare sul testo dell'annesso norvegese.
 
-> **Scostamento dichiarato — F-6 Model Code 2010: ritiro e minimo di εsm − εcm**
+> **Scostamento dichiarato — F-6 (R1, R8) Model Code 2010: aderenza, β e ritiro**
 >
-> - Norma: fib MC2010 §7.6.4 sottrae anche la deformazione da ritiro del calcestruzzo, wd = 2 ls,max (εsm − εcm − εcs),
->   e definisce i coefficienti per fase di formazione e di fessurazione stabilizzata.
-> - Programma: εcs = 0; minimo (1 − kt) σs/Es; τbm/fctm = 1,8 o 1,35 secondo la durata.
-> - Effetto: a sfavore di sicurezza dove il ritiro è significativo.
-> - Stato: da riscontrare sul testo del Model Code 2010.
+> - Norma: fib MC2010 §7.6.4.4, secondo fonti secondarie concordi: wd = 2 ls,max (εsm − εcm − εcs) (7.6-3),
+>   ls,max = k c + (1/4) (fctm/τbms) (Ø/ρs,ef) con k = 1 (7.6-4); Tab. 7.6-2: nella fessurazione stabilizzata
+>   τbms = 1,8 fctm a ogni durata (β = 0,6 a breve, 0,4 a lunga durata); nella formazione della singola fessura
+>   β = 0,6, τbms = 1,8 fctm a breve e 1,35 fctm a lunga durata.
+> - Programma: τbm/fctm = 1,8 a breve e 1,35 a lunga durata in ogni stadio; minimo (1 − kt) σs/Es; εcs = 0; senza
+>   barre aderenti il limite 1,3 (h − x) della EN 1992-1-1, che il Model Code non prevede.
+> - Effetto: a lunga durata, nella fessurazione stabilizzata, il termine dell'aderenza è 1,8/1,35 = 1,33 volte quello
+>   della norma (trave 400 × 600 con 2Ø20, c = 40 mm, C30/37, σs = 250 MPa: 0,505 mm invece di 0,394 mm, +28%, a
+>   favore); nella formazione della singola fessura il minimo usa β = 0,4 invece di 0,6 (soletta di 200 mm con
+>   Ø12/200, c = 30 mm, σs = 250 MPa: 0,350 mm invece di 0,233 mm, +50%, a favore). Il ritiro trascurato è a sfavore
+>   dove è significativo.
+> - Stato: τbms e β da correggere dopo il riscontro della Tab. 7.6-2 (voce R1); ritiro da riscontrare (voce R8).
 
-> **Scostamento dichiarato — F-7 DIN: coefficiente di hc,ef**
+> **Scostamento dichiarato — F-7 (R8) DIN: coefficiente di hc,ef**
 >
 > - Norma: DIN EN 1992-1-1/NA Bild 7.1DE dà hc,ef/(h − d) in funzione di h/(h − d).
 > - Programma: β = 2,5 per h/(h − d) ≤ 5, lineare fino a 5,0 per h/(h − d) = 30, 5,0 oltre (F.5). Una fonte secondaria
@@ -445,25 +509,35 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 >   maggiore (a favore di sicurezza).
 > - Stato: da riscontrare sul testo dell'annesso tedesco.
 
+> **Scostamento dichiarato — F-8 (R2) DIN: kt indipendente dalla durata**
+>
+> - Norma: secondo le fonti consultate l'annesso tedesco conserva kt = 0,6 per carichi di breve durata e 0,4 di lunga
+>   durata (7.3.4(2)); il valore fisso 0,4 è della DIN 1045-1.
+> - Programma: kt = 0,4 per ogni durata nel profilo DIN.
+> - Effetto: a favore di sicurezza e piccolo, perché a breve durata governa spesso il minimo 0,6 σs/Es: +0,5% sulla
+>   trave del riquadro F-6 a breve durata, nessun effetto sulla soletta.
+> - Stato: da correggere dopo il riscontro del testo finale dell'annesso (voce R2).
+
 ## 7. Coefficienti e valori predefiniti
 
 | Simbolo | Valore | Profilo | Fonte | Modificabile | Dove nel codice |
 | --- | --- | --- | --- | --- | --- |
-| w1, w2, w3 | 0,2; 0,3; 0,4 mm | NTC, UNI, CNR-DT 200 | NTC Tab. 4.1.IV | no | `CrackRequirements.Ntc` |
+| w1, w2, w3 | 0,2; 0,3; 0,4 mm | NTC, UNI, CNR-DT 200 | NTC 4.1.2.2.4, Tab. 4.1.IV | no | `CrackRequirements.Ntc` |
 | wlim da tabella | 6.1 | EN, DIN, DS, NS | Prospetti 7.1N, 7.1DE, 7.1 NA, NA.7.1N | sì (wlim di progetto) | `CrackRequirements.For` |
-| σct,lim | 0; fctm/1,2 | NTC, UNI, CNR-DT 200 | NTC 4.1.2.2.4 | no | `SectionCrackCheck.Evaluate` |
-| kt | 0,6 breve; 0,4 lunga durata (DIN 0,4) | tutti | EN 7.3.4(2) | durata sì | `CrackWidthCalculator.Width` |
-| βmin | 0,6; Model Code 2010 1 − kt | tutti | EN (7.9) | no | idem |
-| k1 | 0,8 aderenza migliorata; 1,6 liscia | NTC, EN, UNI, DS, NS | EN 7.3.4(3) | aderenza sì | idem |
-| k2 | 0,5 con asse neutro interno; (F.13) per le sezioni tese; superfici interne: formula di (F.13) sulla fascia tesa, anche con asse neutro interno | tutti | EN 7.3.4(3), (7.13); Circolare C4.1.2.2.4.5 | solo opzione legacy NTC/CNR (`NtcK2FromCompressedBars`) | `SectionCrackCheck.Evaluate`, `FullyTensioned`, `Inner` |
-| k3 | 3,4; DS 3,4 (25/c)^(2/3) | famiglia Eurocodice, NTC | EN 7.3.4(3); DK NA | no | idem |
-| k4 | 0,425; DIN 1/3,6 | famiglia Eurocodice, NTC | EN 7.3.4(3); NA DIN | no | idem |
-| τbm/fctm | 1,8 breve; 1,35 lunga durata | Model Code 2010 | MC2010 7.6.4 | durata sì | idem |
-| Soglia delle barre distanziate | 5 (c + Ø/2) | tutti tranne Model Code 2010 | EN 7.3.4(3) | no (s assegnabile) | idem |
-| Coefficiente delle barre distanziate | 1,3 (h − x); NTC 0,75 (h − x) su Δsm | — | EN (7.14); riquadro F-1 | no | idem, `UnbondedUpperBound` |
-| Fattore 1,7 | wd = 1,7 Δsm | NTC, CNR-DT 200 | NTC 4.1.2.2.4 | no | `CrackWidthCalculator.Width` |
-| hc,eff | (F.4), (F.5), fascia DS | — | EN 7.3.2(3); NA DIN; DK NA | no | `CrackSectionGeometry.EffectiveDepth` |
+| σct,lim | 0; fctm/1,2 | NTC, UNI, CNR-DT 200 | NTC 4.1.2.2.4, [4.1.13] | no | `SectionCrackCheck.Evaluate` |
+| kt | 0,6 breve; 0,4 lunga durata (DIN 0,4, riquadro F-8) | tutti | EN 7.3.4(2); Circolare [C4.1.6] | durata sì | `CrackWidthCalculator.Width` |
+| βmin | 0,6; Model Code 2010 1 − kt | tutti | EN (7.9); Circolare [C4.1.6] | no | idem |
+| k1 | 0,8 aderenza migliorata; 1,6 liscia | NTC, EN, UNI, DS, NS | EN 7.3.4(3); Circolare C4.1.2.2.4.5 | aderenza sì | idem |
+| k2 | 0,5 con asse neutro interno; (F.13) per le sezioni tese; superfici interne: (F.18) sulla fascia tesa, anche con asse neutro interno, 1 in trazione uniforme | tutti | EN 7.3.4(3), (7.13); Circolare [C4.1.9] | solo opzione legacy NTC/CNR (`NtcK2FromCompressedBars`) | `SectionCrackCheck.Evaluate`, `FullyTensioned`, `Inner` |
+| k3 | 3,4; DS 3,4 (25/c)^(2/3) | famiglia Eurocodice, NTC | EN 7.3.4(3); Circolare C4.1.2.2.4.5; DK NA | no | `CrackWidthCalculator.Width` |
+| k4 | 0,425; DIN 1/3,6 | famiglia Eurocodice, NTC | EN 7.3.4(3); Circolare C4.1.2.2.4.5; NA DIN | no | idem |
+| τbm/fctm | 1,8 breve; 1,35 lunga durata | Model Code 2010 | MC2010 7.6.4.4 (riquadro F-6) | durata sì | idem |
+| Soglia delle barre distanziate | 5 (c + Ø/2) | tutti tranne Model Code 2010 | EN 7.3.4(3); Circolare C4.1.2.2.4.5 | no (s assegnabile) | idem |
+| Coefficiente delle barre distanziate | 1,3 (h − x); NTC 0,75 (h − x) su Δsm | — | EN (7.14); Circolare [C4.1.10]; riquadro F-1 | no | idem, `UnbondedUpperBound` |
+| Fattore 1,7 | wk = 1,7 Δsm (εsm − εcm) | NTC, CNR-DT 200 | NTC [4.1.14]; Circolare [C4.1.5] | no | `CrackWidthCalculator.Width` |
+| hc,eff | (F.4), (F.5), fascia DS | — | EN 7.3.2(3); Circolare Fig. C4.1.10; NA DIN; DK NA | no | `CrackSectionGeometry.EffectiveDepth` |
 | γ superfici interne | 2,5; DS 2 | — | 2,5 (h − d) di EN; DS 2 (h − d) per la fascia baricentrica | no | `SectionCrackCheck.Inner` |
+| Soglia della trazione uniforme delle fasce interne | \|∇ε\| hg ≤ 10⁻⁴ εmax,c | tutti | scelta del metodo (riquadro F-9) | no | `SectionCrackCheck.UniformTensionTolerance`, `Inner` |
 | Sistema grossolano DS | 0,5 · (7.8) | DS | DK NA 7.3.4(1) | no | `SectionCrackCheck.FullyTensioned` |
 | c | copriferro nominale più staffa | — | — | sì (`CoverOverride`) | `SectionCrackInput` |
 | s | automatico (6.11) | — | — | sì (`SpacingOverride`) | `CrackSectionGeometry.MaximumSpacing` |
@@ -487,20 +561,22 @@ Percorsi relativi alla radice del repository Checker.
   del poligono `Clip` (righe 83-94), regione efficace `Region` (righe 99-104), copriferro di una barra `BarCover`
   (righe 107-119), interasse `MaximumSpacing` (righe 124-164), hc,eff `EffectiveDepth` (righe 192-220; DIN righe
   196-201, DS con bisezione di 65 iterazioni righe 202-218).
-- Verifica: `SectionCrackCheck.Evaluate` (`GPCChecker.Concrete/Cracking/SectionCrackCheck.cs:151-260`):
-  - requisito e casi senza verifica (righe 154-166); decompressione e formazione (righe 168-178);
-  - c.a.p. e analisi richiesta (righe 179-180); validazione delle tensioni delle barre (righe 181-183);
-  - classificazione (righe 184-193), con la sezione interamente compressa senza k2 (righe 187-192);
-  - k2 = 0,5 con asse neutro interno, regola legacy NTC/CNR con l'opzione (righe 194-200);
-  - gradiente, h e h − x (righe 201-207); asse neutro nel copriferro (righe 208-219);
-  - h − d, hc,eff, regione efficace (righe 220-229); limite superiore senza barre aderenti (righe 231-241);
-  - ampiezza ed esito (righe 242-259), con la formula che non ripete k2 nella traccia (righe 251-254).
-- Sezione interamente tesa: `FullyTensioned` (righe 265-341), k2 (righe 270-273), facce (righe 275-286 e 291-316),
-  sistema grossolano DS (righe 317-332), governante (righe 333-340).
-- Superfici interne: `Inner` (righe 344-439): k2 della fascia (riga 379), anello (righe 392-401), foro rettangolare
-  (righe 402-423), fori non supportati (righe 424-425), inviluppo ed esito incompleto (righe 426-438).
-- Dati: `SectionCrackInput` (righe 20-87) con l'opzione `NtcK2FromCompressedBars` (righe 47-57) e
-  `OrdinaryBarStresses` (righe 80-86); `SectionCrackResult` (righe 102-134).
+- Verifica: `SectionCrackCheck.Evaluate` (`GPCChecker.Concrete/Cracking/SectionCrackCheck.cs:160-269`):
+  - requisito e casi senza verifica (righe 166-175); decompressione e formazione (righe 177-187);
+  - c.a.p. e analisi richiesta (righe 188-189); validazione delle tensioni delle barre (righe 190-192);
+  - classificazione (righe 193-202), con la sezione interamente compressa senza k2 (righe 196-201);
+  - k2 = 0,5 con asse neutro interno, regola legacy NTC/CNR con l'opzione (righe 203-209);
+  - gradiente, h e h − x (righe 210-216); asse neutro nel copriferro (righe 217-228);
+  - h − d, hc,eff, regione efficace (righe 229-238); limite superiore senza barre aderenti (righe 239-250);
+  - ampiezza ed esito (righe 251-268), con la formula che non ripete k2 nella traccia (righe 260-263).
+- Sezione interamente tesa: `FullyTensioned` (righe 274-350), k2 (righe 279-282), facce (righe 284-295 e 300-325),
+  sistema grossolano DS (righe 326-341), governante (righe 342-349).
+- Superfici interne: `Inner` (righe 353-475): soglia della trazione uniforme (`UniformTensionTolerance`, righe
+  156-158, e righe 378-381), parte tesa della fascia (righe 382-383), k2 e h − x della fascia con le voci della
+  traccia (righe 407-416), anello (righe 427-436), foro rettangolare (righe 437-459), fori non supportati (righe
+  460-461), inviluppo ed esito incompleto (righe 462-474).
+- Dati: `SectionCrackInput` (righe 20-89) con l'opzione `NtcK2FromCompressedBars` (righe 47-59) e
+  `OrdinaryBarStresses` (righe 81-88); `SectionCrackResult` (righe 104-137).
 
 Iterazioni: solo la fascia baricentrica DS (bisezione di 65 passi sull'altezza della fascia, precisione relativa
 2⁻⁶⁵). Le aree efficaci si ottengono per ritaglio esatto dei poligoni.
@@ -509,8 +585,11 @@ Iterazioni: solo la fascia baricentrica DS (bisezione di 65 passi sull'altezza d
 
 - Calcestruzzo armato precompresso e calcestruzzi fibrorinforzati (CNR-DT 204).
 - Superfici interne di fori non rettangolari o non circolari; più fori nelle sezioni non circolari.
+- Superfici interne: salto di h − x e di wk delle fasce alla soglia della trazione uniforme dove h⊥ ≠ hg
+  (riquadro F-9).
+- Barre tese fuori da Ac,eff: il limite (F.15) non è un limite superiore dell'apertura al lembo (riquadro F-4).
 - Armatura minima per il controllo della fessurazione (EN 1992-1-1 7.3.2(2)) e verifica semplificata senza calcolo
-  diretto (EN 1992-1-1 7.3.3, Circolare): non implementate.
+  diretto (EN 1992-1-1 7.3.3; Circolare 2019 C4.1.2.2.4.5, Tabelle C4.1.II e C4.1.III): non implementate.
 - Fessure con armature in due direzioni ortogonali inclinate sulle tensioni principali (EN 1992-1-1 7.3.4(4),
   (7.15)): non implementate.
 - Deformazioni impresse e ritiro (anche nel Model Code 2010, riquadro F-6).
@@ -525,7 +604,7 @@ barre superiori 2Ø16 a y = +200 mm (x = ±100). Piano di deformazione con asse 
 ε = 1,25 · 10⁻³ alle barre tese: ε(y) = −4,8077 · 10⁻⁶ (y − 60). Tensioni delle barre Es ε: σs = 250 MPa nelle
 barre tese, −134,6 MPa in quelle superiori. Es = 200 000 MPa, Ecm = 33 000 MPa, fctm = 2,9 MPa, carico di lunga
 durata, barre ad aderenza migliorata, c = 40 mm. Combinazione quasi permanente, classe XC3, armature poco
-sensibili: wlim = 0,3 mm per NTC 2018 e per EN 1992-1-1. Libreria GPCChecker.Concrete 0.0.16.0,
+sensibili: wlim = 0,3 mm per NTC 2018 e per EN 1992-1-1. Libreria GPCChecker.Concrete 0.0.17.0,
 `SectionCrackCheck.Evaluate`.
 
 **C1. 3Ø20 tese e 2Ø16 compresse, EN 1992-1-1 e NTC 2018.**
@@ -538,20 +617,35 @@ sensibili: wlim = 0,3 mm per NTC 2018 e per EN 1992-1-1. Libreria GPCChecker.Con
    εsm − εcm = (250 − 45,185)/200 000 = 1,02407 · 10⁻³ ≥ 0,6 · 250/200 000 = 7,5 · 10⁻⁴.
 6. EN: k2 = 0,5; sr,max = 3,4 · 40 + 0,8 · 0,5 · 0,425 · 20/0,030403 = 136 + 111,83 = 247,83 mm;
    wk = 247,83 · 1,02407 · 10⁻³ = 0,2538 mm; η = 0,846.
-7. NTC: le barre superiori sono compresse, k2 = 0,5; Δsm = 247,83/1,7 = 145,78 mm; wd = 1,7 · 145,78 · 1,02407 · 10⁻³ =
+7. NTC: l'asse neutro è interno, k2 = 0,5; Δsm = 247,83/1,7 = 145,78 mm; wk = 1,7 · 145,78 · 1,02407 · 10⁻³ =
    0,2538 mm.
 
 **C2. Sole barre tese 3Ø20** (riquadro F-2). L'asse neutro è interno alla sezione: k2 = 0,5 per entrambi i profili
-e wk = wd = 0,2538 mm come in C1 (soddisfatta). Con l'opzione legacy (NTC: nessuna barra compressa, k2 = 1)
-sr = 136 + 223,67 = 359,67 mm e wd = 0,3683 mm > 0,3 mm: non soddisfatta.
+e wk = 0,2538 mm come in C1 (soddisfatta). Con l'opzione legacy (NTC: nessuna barra compressa, k2 = 1)
+sr = 136 + 223,67 = 359,67 mm e wk = 0,3683 mm > 0,3 mm: non soddisfatta.
 
 **C3. 2Ø20 tese a x = ±130 mm (s = 260 mm > 250 mm) e 2Ø16 compresse** (riquadro F-1).
 
 1. As,eff = 628,32 mm², ρ = 0,020268; kt fct/ρ (1 + αe ρ) = 57,232 · 1,12284 = 64,262 MPa;
    εsm − εcm = (250 − 64,262)/200 000 = 9,2869 · 10⁻⁴.
 2. EN: sr,max = 1,3 · 310 = 403 mm; wk = 0,3743 mm.
-3. NTC: Δsm,v = (136 + 167,75)/1,7 = 178,68 mm; 0,75 · 310 = 232,5 mm; Δsm = 232,5 mm; wd = 1,7 · 232,5 · 9,2869 · 10⁻⁴ =
+3. NTC: Δsm,v = (136 + 167,75)/1,7 = 178,68 mm; 0,75 · 310 = 232,5 mm; Δsm = 232,5 mm; wk = 1,7 · 232,5 · 9,2869 · 10⁻⁴ =
    0,3671 mm. Con Δsm = 1,3 · 310/1,7 = 237,06 mm si avrebbe 0,3743 mm.
+
+**C4. Cassone in trazione eccentrica, fascia interna** (riquadro F-9). Contorno 400 × 600 mm (da (−200, −300) a
+(200, 300)) con foro centrato 200 × 400 mm; 4Ø20 a y = ±250 mm (x = ±50, ±150) e 3Ø20 a x = ±150 mm (y = 0, ±100);
+interasse assegnato 300 mm, c = 40 mm, stessi materiali. Piano ε(y) = 2 · 10⁻⁴ − 10⁻⁶ (y − 250): sezione
+interamente tesa (ε da 1,5 · 10⁻⁴ a y = 300 a 7,5 · 10⁻⁴ a y = −300), asse neutro a y = 450 mm, fuori dalla sezione.
+
+1. Fascia della parete inferiore (−250 ≤ y ≤ −200, |x| ≤ 100): hc,eff = min(2,5 · 50; 100/2) = 50 mm,
+   Ac,eff = 200 · 50 = 10 000 mm², 2Ø20 a x = ±50 mm, As,eff = 628,32 mm², ρ = 0,062832.
+2. εmax,b = 7 · 10⁻⁴ (y = −250), εmin,b = 6,5 · 10⁻⁴ (y = −200): k2 = (6,5 + 7)/(2 · 7) = 0,96429.
+3. h − x = min(7 · 10⁻⁴/10⁻⁶; 600) = min(700; 600) = 600 mm (hg = 600 mm lungo il gradiente).
+4. σs = 200 000 · 7 · 10⁻⁴ = 140 MPa; εsm − εcm = [140 − 0,4 · 2,9/0,062832 · (1 + 6,0606 · 0,062832)]/200 000 =
+   5,7254 · 10⁻⁴ ≥ 0,6 · 140/200 000.
+5. s = 300 mm > 250 mm: EN sr,max = 1,3 · 600 = 780 mm, wk = 0,4466 mm; NTC Δsm = max(141,39; 0,75 · 600) = 450 mm,
+   wk = 1,7 · 450 · 5,7254 · 10⁻⁴ = 0,4380 mm. La fascia governa sulle facce esterne (faccia −y: 0,3566 mm EN,
+   0,3497 mm NTC). Con la regola precedente (h − x = 700 mm) si avrebbe 0,5210 mm EN e 0,5110 mm NTC.
 
 | Caso | Grandezza | Calcolo a mano | Libreria | Scarto |
 | --- | --- | --- | --- | --- |
@@ -560,50 +654,54 @@ sr = 136 + 223,67 = 359,67 mm e wd = 0,3683 mm > 0,3 mm: non soddisfatta.
 | C1 | sr,max (EN); Δsm (NTC) | 247,8329 mm; 145,7840 mm | 247,8328733; 145,7840431 | < 10⁻⁹ |
 | C1 | wk (EN e NTC) | 0,253799 mm | 0,2537993902 mm | < 10⁻⁹ |
 | C2 | wk (EN e NTC, k2 = 0,5) | 0,253799 mm | 0,2537993902 mm | < 10⁻⁹ |
-| C2 | wd (NTC, opzione legacy, k2 = 1) | 0,368325 mm | 0,3683246131 mm | < 10⁻⁹ |
+| C2 | wk (NTC, opzione legacy, k2 = 1) | 0,368325 mm | 0,3683246131 mm | < 10⁻⁹ |
 | C3 | wk (EN) | 0,374261 mm | 0,3742612226 mm | < 10⁻⁹ |
-| C3 | wd (NTC) | 0,367064 mm | 0,3670638914 mm | < 10⁻⁹ |
+| C3 | wk (NTC) | 0,367064 mm | 0,3670638914 mm | < 10⁻⁹ |
+| C4 | k2; h − x della fascia −y | 0,964286; 600 mm | 0,9642857143; 600 | < 10⁻⁹ |
+| C4 | wk (EN; NTC) | 0,446580 mm; 0,437992 mm | 0,4465801219 mm; 0,4379920427 mm | < 10⁻⁹ |
 
 Requisiti per la stessa sezione (`CrackRequirements.For`): XC3 frequente, NTC 0,4 mm, EN non richiesta (richiesta
 nella quasi permanente); XC3 quasi permanente, NTC e EN 0,3 mm; XD1 quasi permanente, NTC 0,2 mm, EN 0,3 mm.
 
 ## 11. Validazione
 
-- **Casi congelati del motore precedente** (`CrackMigrationTests`, 15 test):
+- **Casi congelati del motore precedente** (`CrackMigrationTests`, 18 test):
   - 936 stati di esercizio su 6 sezioni archiviate (rettangolare, a T, circolare, rettangolare cava, circolare cava
     con due anelli, quadrata con barre di lato), 7 norme, 13 azioni (anche trazione e sezioni interamente tese),
     combinazioni caratteristica, frequente e quasi permanente, con esposizione, sensibilità, durata, aderenza,
-    copriferro, interasse e wlim a rotazione. Sono riprodotti, con l'opzione legacy di k2, con tolleranza 10⁻⁹
-    362 ampiezze, 347 esiti, 1104 regioni (chiave, area, armatura, ampiezza, barre) e 10 errori;
-  - confronto con la regola di k2 della 0.0.16.0 (riquadro F-2) sugli stessi stati: i 750 stati dei profili non NTC
-    sono identici; dei 176 stati NTC cambia k2 (e wd) in uno solo, senza cambiare l'esito; i 67 stati interamente
-    compressi non hanno k2 in nessuna delle due regole;
-  - differenze volute rispetto al motore precedente, verificate a parte: 22 stati con asse neutro nel copriferro
-    (wk = 0, riquadro F-3) e 8 stati con le barre tese fuori da Ac,eff (limite superiore (F.15), riquadro F-4), che
-    il motore precedente lasciava senza esito;
+    copriferro, interasse e wlim a rotazione. Le catture sono del motore precedente dopo le correzioni D7-b e R15,
+    con le stesse regole della libreria: k2 = 0,5 con asse neutro interno, wk = 0 con asse neutro nel copriferro,
+    limite (F.15) con le barre tese fuori da Ac,eff, h − x limitato delle fasce interne. Con la regola predefinita
+    e tolleranza 10⁻⁹ sono riprodotti 392 ampiezze (comprese le sezioni interamente compresse), 377 esiti, 1112
+    regioni (chiave, area, armatura, ampiezza, barre) e 10 errori; tra gli stati, 22 con asse neutro nel copriferro
+    e 8 con le barre tese fuori da Ac,eff;
   - 1400 ampiezze scalari casuali e l'intera tabella dei requisiti (1596 combinazioni di norma, combinazione,
     esposizione, sensibilità e wlim).
 - **Calcoli a mano** negli stessi test:
   - EN 1992-1-1 7.3.4: wk = 0,258 mm, barre distanziate, DS con k3 ridotto, DIN, CNR-DT 200 uguale a NTC;
   - Tab. 4.1.IV NTC e requisiti Eurocodice, Model Code 2010 e NS;
   - asse neutro nel copriferro e barre fuori da Ac,eff (wk = 0,039 mm EN, 0,03825 mm NTC);
-  - k2 (D7-b): trave a semplice armatura inflessa NTC e CNR-DT 200 con k2 = 0,5 e wd a mano (k2 = 1 con l'opzione
+  - k2 (D7-b): trave a semplice armatura inflessa NTC e CNR-DT 200 con k2 = 0,5 e wk a mano (k2 = 1 con l'opzione
     legacy); presso- e tensoflessione con asse neutro interno; pura compressione (anche εmax = 0, 5 · 10⁻¹³, 10⁻¹² e
     deformazione nulla) con wk = 0 e senza k2, uguale con e senza opzione; sezioni interamente tese, profili
     Eurocodice e rami copriferro / barre fuori da Ac,eff uguali con e senza opzione; una sola voce k2 nella traccia;
     cassone 400 × 600 inflesso con la parete inferiore governante, k2 = 0,9 della fascia e wk a mano (NTC, CNR-DT 200
     ed EN, con e senza opzione);
+  - h − x delle fasce interne (R15): trazione uniforme con gradiente nullo e di rumore (k2 = 1, h⊥), trazione
+    eccentrica con l'asse neutro fuori (h − x = hg dove εmax,b/|∇ε| la supera), wk a mano; continuità all'ingresso
+    dell'asse neutro (cassoni 400 × 600 e 400 × 400, anello Ø1000, flessione retta e deviata, NTC ed EN, entro 10⁻⁶);
+    salto alla soglia della trazione uniforme con i valori del riquadro F-9;
   - ritaglio, interassi su file e anelli, hc,eff EN, DIN e DS.
 - **Integrazione**: i test del verificatore di modello eseguono la fessurazione per 10 norme e confrontano il
   risultato NTC con la chiamata diretta del metodo.
-- **Esempi di questa pagina**: C1-C3 eseguiti con la libreria 0.0.16.0 (con e senza opzione legacy), scarto
-  inferiore a 10⁻⁹.
+- **Esempi di questa pagina**: C1-C4 eseguiti con la libreria 0.0.17.0 (C2 anche con l'opzione legacy) e ricalcolati
+  in modo indipendente dalle formule della norma, scarto inferiore a 10⁻⁹.
 - **Benchmark indipendenti pubblicati**: nessuno, per ora.
 
 ## 12. Bibliografia
 
 - DM 17 gennaio 2018, *Aggiornamento delle Norme tecniche per le costruzioni*, §4.1.2.2.4.
-- Circolare 21 gennaio 2019 n. 7 C.S.LL.PP., §C4.1.2.2.4.
+- Circolare 21 gennaio 2019 n. 7 C.S.LL.PP., §C4.1.2.2.4.5.
 - EN 1992-1-1:2004 + AC:2010, §7.3.
 - UNI EN 1992-1-1, appendice nazionale: DM 31 luglio 2012, §7.3.
 - DIN EN 1992-1-1/NA, §7.3.
