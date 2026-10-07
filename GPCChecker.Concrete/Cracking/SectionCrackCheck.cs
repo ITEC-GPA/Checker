@@ -361,8 +361,10 @@ namespace GPC.Checkers.Concrete.Cracking
             var results = new List<SectionCrackResult> { outer };
             // Tensile depth h − x of a band (EN 1992-1-1 7.3.4(3), eq. (7.14); ANTHEA R15): h − x = min[εmax/|∇ε|; h of the section along the
             // gradient]. εmax/|∇ε| is measured from the neutral axis; with the neutral axis inside the section it does not exceed the height along
-            // the gradient (the min only guards rounding, the rule before 0.0.17.0 is unchanged there); with the neutral axis outside x = 0 and h − x
-            // is that height. A gradient negligible against the strain (|∇ε| h ≤ 1e-4 εmax: solver noise, about 1e-15…1e-12 1/mm, has no direction)
+            // the gradient (the min only guards rounding, the rule before 0.0.17.0 is unchanged there); with the neutral axis outside (x = 0) the
+            // bound acts where εmax/|∇ε| exceeds that height, i.e. for the bands far from the neutral axis and for every band close to uniform
+            // tension, while a band near the less tensioned side keeps εmax/|∇ε|.
+            // A gradient negligible against the strain (|∇ε| h ≤ 1e-4 εmax: solver noise, about 1e-15…1e-12 1/mm, has no direction)
             // is uniform tension: whole band, k2 = 1, h − x = h of the section normal to the face (diameter for the ring).
             // Continuity: where the neutral axis enters the section εmax/|∇ε| tends to the height along the gradient, so h − x and wk of the bands
             // are continuous there, in straight and biaxial bending, square or not. Residual jump: at the uniform-tension threshold (a negligible
