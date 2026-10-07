@@ -70,7 +70,8 @@ una domanda.
 
 ## 4. Ipotesi
 
-- Conservazione delle sezioni piane: deformazione lineare ε(x, y) = ε0 + χx · y + χy · x nel piano della sezione.
+- Conservazione delle sezioni piane: deformazione lineare ε(x, y) = ε0 + χx (x − x0) + χy (y − y0) nel piano della
+  sezione, con ε0 la deformazione nel punto di riferimento (x0, y0) e χx, χy le componenti del gradiente lungo x e y.
   Il codice usa una propria convenzione per i segni dei gradienti.
 - Aderenza perfetta fra barre e calcestruzzo.
 - Leggi di progetto dei materiali della sezione, con i coefficienti della classe di norma:
