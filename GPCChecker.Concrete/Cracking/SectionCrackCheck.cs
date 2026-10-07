@@ -48,13 +48,15 @@ namespace GPC.Checkers.Concrete.Cracking
         /// Legacy rule of ANTHEA before the D7-b deviation, for NTC 2018 and CNR-DT 200 only: with the neutral axis inside the section k2 comes from the
         /// ordinary bar stresses (0.5 with a compressed bar, 1.0 otherwise, <see cref="CrackWidthCalculator.K2"/>), so a singly reinforced bent section gets
         /// k2 = 1. Kept to reproduce the frozen fixtures and the comparisons; the other profiles always use k2 = 0.5 when the neutral axis crosses the section.
+        /// Default false (D7-b, 7/10/2026): k2 = 0.5 whenever the neutral axis is inside the section. It has no effect on entirely compressed or entirely
+        /// tensile sections.
         /// </summary>
         public bool NtcK2FromCompressedBars { get; }
 
         public SectionCrackInput(Standard standard, ServiceabilityCombination combination, string exposure, bool sensitiveReinforcement, double? designLimit,
             CrackSectionGeometry geometry, StrainPlane strainPlane, IEnumerable<double> barStresses, bool linearAnalysis, bool tensileConcrete, bool prestressed,
             double es, double ecm, double fctm, bool shortTerm, bool ribbedBars, double nominalCover, double? coverOverride = null, double? spacingOverride = null,
-            Func<double> uncrackedMaximumConcreteStress = null, bool ntcK2FromCompressedBars = true)
+            Func<double> uncrackedMaximumConcreteStress = null, bool ntcK2FromCompressedBars = false)
         {
             Standard = standard ?? throw new ArgumentNullException(nameof(standard));
             Geometry = geometry ?? throw new ArgumentNullException(nameof(geometry));
@@ -111,6 +113,11 @@ namespace GPC.Checkers.Concrete.Cracking
         public double? BarSpacing { get; internal set; }
         /// <summary>Automatic, Manual or InnerSurface.</summary>
         public string SpacingSource { get; internal set; }
+        /// <summary>
+        /// k2 of the governing region: 0.5 with the neutral axis inside the section (reported also when wk = 0 in the cover or comes from the upper bound
+        /// without bonded bars, where k2 does not enter), (εmax + εmin)/(2 εmax) for entirely tensile sections and inner surfaces; null when the section is
+        /// entirely compressed (k2 does not apply) or no width is computed before the k2 step.
+        /// </summary>
         public double? K2 { get; internal set; }
         /// <summary>Decompression / crack formation: maximum stress of the uncracked section and its limit, MPa.</summary>
         public double? UncrackedMaximumStress { get; internal set; }
@@ -125,8 +132,9 @@ namespace GPC.Checkers.Concrete.Cracking
 
     /// <summary>
     /// Section crack check transferred from ANTHEA (Ntc2018Checks.Cracking, ConcreteTensionCracking, ConcreteInnerCracking, commit fe4652c), without the
-    /// global spacing calculator. Partially compressed sections: effective area beyond hc,eff along the strain gradient, governing bar stress, k2 from
-    /// the bar stresses (0.5 for the Eurocode family); neutral axis within the cover of the reinforced tensile edge: wk = 0; tensile bars outside Ac,eff: upper bound
+    /// global spacing calculator. Entirely compressed sections: wk = 0, no k2. Partially compressed sections (neutral axis inside the section, D7-b): effective
+    /// area beyond hc,eff along the strain gradient, governing bar stress, k2 = 0.5 for every profile (NTC and CNR-DT 200 from the bar stresses only with
+    /// <see cref="SectionCrackInput.NtcK2FromCompressedBars"/>); neutral axis within the cover of the reinforced tensile edge: wk = 0; tensile bars outside Ac,eff: upper bound
     /// of EC2 7.3.4(3), eq. (7.14) with sr,max from (h − x). Entirely tensile sections: independent faces (±x, ±y or radial for circles), never summed;
     /// DS adds the coarse system with the whole section (DK NA 7.3.4(1)). Hollow sections: inner walls or ring checked independently.
     /// Fixtures: GPCChecker.Test.Concrete/Fixtures/crack-legacy.csv.
@@ -166,19 +174,25 @@ namespace GPC.Checkers.Concrete.Cracking
             if (p.Prestressed) return Stop(CrackOutcome.PrestressNotSupported, "Crack width of prestressed members: bond / decompression model not implemented");
             if (!p.LinearAnalysis || p.TensileConcrete) return Stop(CrackOutcome.RequiresLinearCrackedAnalysis, "wk requires a linear analysis without tensile concrete");
             var stresses = p.BarStresses;
-            double k2 = CrackWidthCalculator.K2(stresses);
+            // Validates the bar stresses (missing or not finite: ArgumentException) before any branch, as before D7-b; the value serves only the legacy rule.
+            double barK2 = CrackWidthCalculator.K2(stresses);
             var points = g.Outline.Concat(g.Holes.SelectMany(h => h)).ToArray();
             var strains = points.Select(plane.GetStrain).ToArray();
             Add("εc,min", strains.Min(), "−", "minimum strain at the vertices"); Add("εc,max", strains.Max(), "−", "maximum strain at the vertices");
             if (strains.Max() <= 1e-12)
             {
-                result.Width = 0; result.Ratio = 0; result.Passed = true; result.K2 = k2;
+                // Pure compression (also a tiny positive εc,max ≤ 1e-12): no crack, wk = 0. k2 does not enter: K2 stays null and the trace has no k2 entry.
+                result.Width = 0; result.Ratio = 0; result.Passed = true;
                 return Stop(CrackOutcome.Evaluated, "Section entirely compressed");
             }
             if (strains.Min() >= 0) return Inner(FullyTensioned(p, profile, req.Limit.Value, details), p, profile);
+            // Neutral axis inside the section: the section is bent, also under axial compression or tension with bending, so k2 = 0.5 for every profile
+            // (Circolare 2019 C4.1.2.2.4.5; EN 1992-1-1 7.3.4(3), k2 of (7.11)). Legacy rule of ANTHEA for NTC 2018 / CNR-DT 200: k2 from the bar stresses.
             bool legacyK2 = p.NtcK2FromCompressedBars && CrackProfiles.IsNtc(profile);
-            if (!legacyK2) k2 = .5; // a neutral axis crosses the section: bending, EC2 7.3.4(3) (k2 of (7.11))
-            result.K2 = k2; Add("k2", k2, "−", legacyK2 ? "0.5 with a compressed bar, 1.0 otherwise" : "partially compressed section: bending");
+            double k2 = legacyK2 ? barK2 : .5;
+            result.K2 = k2;
+            Add("k2", k2, "−", legacyK2 ? "legacy rule (before D7-b): 0.5 with a compressed bar, 1.0 otherwise"
+                : "neutral axis inside the section: bending, k2 = 0.5 (Circolare 2019 C4.1.2.2.4.5; EN 1992-1-1 7.3.4(3))");
             double gradient = CrackSectionGeometry.Hypot(plane.ChiX, plane.ChiY);
             if (gradient <= 1e-15) return Stop(CrackOutcome.NeutralAxisUndetermined, "Neutral axis not determined");
             double qx = plane.ChiX / gradient, qy = plane.ChiY / gradient;

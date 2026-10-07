@@ -92,6 +92,7 @@ namespace ConcreteTests
                 checkers[key] = checker; return checker;
             }
             int widths = 0, verdicts = 0, regions = 0, errors = 0, coverOnly = 0, unbonded = 0;
+            var effect = new K2Effect();
             foreach (var row in rows)
             {
                 var c = row.Split(';'); string id = "state " + c[0] + " " + c[1] + " " + c[2] + " " + c[17] + " " + c[18];
@@ -108,17 +109,23 @@ namespace ConcreteTests
                     errors++; continue;
                 }
                 var concrete = (ConcreteMaterialEuropeanCommon)section.ConcreteMaterial;
-                var input = new SectionCrackInput(ServiceabilityMigrationTests.Standard(c[2]), Combination(c[17]), Exposure(c[18]), c[19] == "Sensibile", N(c[24]),
+                // The fixtures were captured from ANTHEA before D7-b: k2 from the bar stresses for NTC (no CNR-DT 200 rows). The option acts on NTC and
+                // CNR-DT 200 only, so it is passed for every row; the other profiles are checked below to be identical with the current rule.
+                SectionCrackInput Input(bool legacyK2) => new SectionCrackInput(ServiceabilityMigrationTests.Standard(c[2]), Combination(c[17]), Exposure(c[18]), c[19] == "Sensibile", N(c[24]),
                     CrackSectionGeometry.From(section, c[1] == "C1000H"), stress.StrainPlane, SectionCrackInput.OrdinaryBarStresses(stress, section), linear, tension, false,
                     section.Rebars.First().RebarMaterial.E, concrete.Ecm, concrete.Fctm, c[20] == "Breve", c[21] == "Migliorata", Covers[c[1]], N(c[22]), N(c[23]),
-                    () => Checker(c, axes, true, true).GetTensionAnalysisResult(force) is var uncracked ? uncracked.GetConcreteVerticesTension(uncracked.PsiRebar ?? 0).Max(v => v.tension) : 0);
+                    () => Checker(c, axes, true, true).GetTensionAnalysisResult(force) is var uncracked ? uncracked.GetConcreteVerticesTension(uncracked.PsiRebar ?? 0).Max(v => v.tension) : 0,
+                    legacyK2);
+                var input = Input(true);
                 if (c[25] != "ok")
                 {
                     Assert.AreEqual("error:ArgumentException", c[25], id);
                     Assert.ThrowsException<ArgumentException>(() => SectionCrackCheck.Evaluate(input), id + " " + c[30]);
+                    Assert.ThrowsException<ArgumentException>(() => SectionCrackCheck.Evaluate(Input(false)), id + " current rule");
                     errors++; continue;
                 }
                 var r = SectionCrackCheck.Evaluate(input);
+                effect.Add(c, r, SectionCrackCheck.Evaluate(Input(false)), CrackProfiles.IsNtc(Profile(c[2])), id);
                 string status = c[30];
                 if (status.StartsWith("Nessuna armatura tesa"))
                 {
@@ -179,6 +186,69 @@ namespace ConcreteTests
             // 8 tensile zones without bars in Ac,eff.
             Assert.AreEqual(362, widths); Assert.AreEqual(347, verdicts); Assert.AreEqual(1104, regions); Assert.AreEqual(10, errors); Assert.AreEqual(22, coverOnly);
             Assert.AreEqual(8, unbonded);
+            Console.WriteLine(effect.Report());
+            // D7-b on the frozen grid: every captured section has bars on all faces, so a compressed bar exists in all the bent NTC states but one
+            // (state 796, R400x400, N = 400 kN tension with biaxial bending: all the bars tensile, the neutral axis cuts off a compressed corner;
+            // wk 0.608 → 0.360 mm, still beyond wlim = 0.3 mm). Entirely compressed states have no k2 in either rule.
+            Assert.AreEqual(926, effect.States); Assert.AreEqual(750, effect.Other); Assert.AreEqual(176, effect.Ntc); Assert.AreEqual(67, effect.Compressed);
+            Assert.AreEqual(1, effect.K2Changed); Assert.AreEqual(1, effect.WidthChanged); Assert.AreEqual(0, effect.WidthChangedWithoutK2); Assert.AreEqual(0, effect.VerdictChanged);
+        }
+
+        /// <summary>D7-b on the frozen states: legacy rule (fixtures) against the current rule, k2 = 0.5 whenever the neutral axis is inside the section.</summary>
+        private sealed class K2Effect
+        {
+            public int States, Other, Ntc, Compressed, K2Changed, WidthChanged, WidthChangedWithoutK2, VerdictChanged, FailedToPassed;
+            public readonly List<double> Relative = new List<double>();
+            public readonly List<string> Changes = new List<string>();
+            public readonly SortedDictionary<string, int[]> BySection = new SortedDictionary<string, int[]>();
+
+            public void Add(string[] c, SectionCrackResult legacy, SectionCrackResult current, bool ntc, string id)
+            {
+                States++;
+                Assert.AreEqual(legacy.Outcome, current.Outcome, id + " outcome");
+                Assert.AreEqual(legacy.Regions.Count, current.Regions.Count, id + " regions");
+                if (legacy.Status.StartsWith("Section entirely compressed"))
+                {
+                    Compressed++;
+                    Assert.IsTrue(legacy.K2 == null && current.K2 == null && legacy.Width == 0 && current.Width == 0 && current.Passed == true, id + " compressed");
+                    Assert.IsFalse(current.Details.Any(d => d.Symbol == "k2"), id + " compressed: no k2 in the trace");
+                }
+                if (!ntc)
+                {
+                    Other++;
+                    Assert.AreEqual(legacy.Width, current.Width, id + " wk"); Assert.AreEqual(legacy.Ratio, current.Ratio, id + " ratio");
+                    Assert.AreEqual(legacy.Passed, current.Passed, id + " passed"); Assert.AreEqual(legacy.K2, current.K2, id + " k2"); Assert.AreEqual(legacy.Status, current.Status, id);
+                    return;
+                }
+                Ntc++;
+                if (!BySection.TryGetValue(c[1], out var counts)) BySection[c[1]] = counts = new int[4];
+                counts[0]++;
+                bool k2 = legacy.K2.HasValue && current.K2.HasValue && legacy.K2.Value != current.K2.Value;
+                if (k2) { K2Changed++; counts[1]++; Assert.IsTrue(legacy.K2 == 1 && current.K2 == .5, id + " k2 " + legacy.K2 + " → " + current.K2); }
+                if (legacy.Width.HasValue && current.Width.HasValue && legacy.Width.Value != current.Width.Value)
+                {
+                    WidthChanged++; counts[2]++; if (!k2) WidthChangedWithoutK2++;
+                    Assert.IsTrue(current.Width < legacy.Width, id + " wk must decrease");
+                    if (legacy.Width > 0) Relative.Add(current.Width.Value / legacy.Width.Value - 1);
+                    Changes.Add(string.Format(CultureInfo.InvariantCulture, "{0}: k2 {1} -> {2}, wk {3:0.#####} -> {4:0.#####} mm, wlim {5}, {6}", id, legacy.K2, current.K2,
+                        legacy.Width, current.Width, legacy.Limit, current.Status));
+                }
+                if (legacy.Passed != current.Passed) { VerdictChanged++; counts[3]++; if (legacy.Passed == false && current.Passed == true) FailedToPassed++; }
+            }
+
+            public string Report()
+            {
+                var s = new StringBuilder();
+                s.AppendLine("D7-b effect on Fixtures/crack-legacy.csv (states evaluated without exception): " + States);
+                s.AppendLine("  other profiles (identical): " + Other + "; NTC 2018: " + Ntc + "; entirely compressed (k2 null in both rules): " + Compressed);
+                s.AppendLine("  NTC k2 1.0 -> 0.5: " + K2Changed + "; wk changed: " + WidthChanged + " (without k2 change: " + WidthChangedWithoutK2 + ")");
+                if (Relative.Count > 0)
+                    s.AppendLine(string.Format(CultureInfo.InvariantCulture, "  wk current/legacy - 1 over {0} states: min {1:P2}, max {2:P2}, mean {3:P2}", Relative.Count, Relative.Min(), Relative.Max(), Relative.Average()));
+                s.AppendLine("  verdict changed: " + VerdictChanged + " (not satisfied with the legacy rule, satisfied now: " + FailedToPassed + ")");
+                foreach (var change in Changes) s.AppendLine("  " + change);
+                foreach (var kv in BySection) s.AppendLine("  " + kv.Key + ": NTC states " + kv.Value[0] + ", k2 changed " + kv.Value[1] + ", wk changed " + kv.Value[2] + ", verdict changed " + kv.Value[3]);
+                return s.ToString();
+            }
         }
 
         /// <summary>Partially compressed 300×500, bars Ø20 at 50 mm from the edges: neutral axis 20 mm from the bottom edge, inside the cover.</summary>
@@ -220,6 +290,175 @@ namespace ConcreteTests
             Assert.AreEqual(.039, r.Width.Value, 1e-12); Assert.AreEqual(CrackVerdict.Satisfied, r.Verdict);
             Assert.AreEqual(300 * 100 / 3.0, r.EffectiveArea.Value, 1e-6); Assert.AreEqual(0, r.EffectiveSteel.Value);
             Assert.AreEqual(1.7 * .75 * 100 * 3e-4, Evaluate("NTC 2018", "XC1").Width.Value, 1e-12);
+        }
+
+        // D7-b (7/10/2026): with the neutral axis inside the section k2 = 0.5 for every profile (Circolare 2019 C4.1.2.2.4.5; EN 1992-1-1 7.3.4(3));
+        // the legacy NTC / CNR-DT 200 rule (k2 from the bar stresses) only with SectionCrackInput.NtcK2FromCompressedBars. The section-level "k2" entry
+        // of the trace precedes the "k2" of the width formula.
+        private const string BendingK2 = "neutral axis inside the section: bending, k2 = 0.5 (Circolare 2019 C4.1.2.2.4.5; EN 1992-1-1 7.3.4(3))";
+        private static readonly Point2d[] Rectangle300x500 = { new Point2d(-150, -250), new Point2d(150, -250), new Point2d(150, 250), new Point2d(-150, 250) };
+        private static CrackBar[] Row(double y) => new[] { new CrackBar(-100, y, 20, 314.16), new CrackBar(0, y, 20, 314.16), new CrackBar(100, y, 20, 314.16) };
+        private static readonly CrackBar[] Bottom = Row(-200), Doubly = Row(-200).Concat(Row(200)).ToArray();
+
+        private static SectionCrackResult Crack(Standard standard, string exposure, CrackBar[] bars, StrainPlane plane, bool legacyK2)
+            => SectionCrackCheck.Evaluate(new SectionCrackInput(standard, ServiceabilityCombination.QuasiPermanent, exposure, false, null,
+                new CrackSectionGeometry(Rectangle300x500, null, bars, CrackBarLayout.Rows), plane, bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false,
+                200000, 33000, 2.9, false, true, 40, ntcK2FromCompressedBars: legacyK2));
+
+        private static Standard Ntc => ServiceabilityMigrationTests.Standard("NTC 2018");
+
+        private static string Trace(SectionCrackResult r)
+            => string.Join("\n", r.Details.Select(d => d.Symbol + "=" + d.Value.ToString("R", CultureInfo.InvariantCulture) + " [" + d.Expression + "]"));
+
+        private static void AssertSame(SectionCrackResult expected, SectionCrackResult actual, string what)
+        {
+            Assert.AreEqual(expected.Outcome, actual.Outcome, what + " outcome"); Assert.AreEqual(expected.Status, actual.Status, what + " status");
+            Assert.AreEqual(expected.Width, actual.Width, what + " wk"); Assert.AreEqual(expected.Ratio, actual.Ratio, what + " ratio");
+            Assert.AreEqual(expected.Passed, actual.Passed, what + " passed"); Assert.AreEqual(expected.K2, actual.K2, what + " k2");
+            Assert.AreEqual(Trace(expected), Trace(actual), what + " trace");
+        }
+
+        /// <summary>
+        /// (a) 300×500, 3Ø20 at 50 mm from the bottom only, neutral axis at y = 50: h − x = 300, hc,eff = min[125; 100; 250] = 100, Ac,eff = 30 000 mm²,
+        /// σs = 200 MPa, s = 100 mm ≤ 5 (c + Ø/2). Circolare C4.1.2.2.4.5: wk = 1.7 Δsm (εsm − εcm), Δsm = (3.4 c + k1 k2 0.425 Ø/ρ)/1.7.
+        /// No bar is compressed, so the legacy rule gave k2 = 1 although the section is bent.
+        /// </summary>
+        [TestMethod]
+        public void SinglyReinforcedBeamInBendingUsesK2Half()
+        {
+            var plane = new StrainPlane(0, -4e-6, new Point2d(0, 50), 0);
+            double sigma = 200000 * plane.GetStrain(0, -200), rho = 3 * 314.16 / 30000.0;
+            double strain = Math.Max((sigma - .4 * 2.9 / rho * (1 + 200000 / 33000.0 * rho)) / 200000, .6 * sigma / 200000);
+            double Hand(double k2) => 1.7 * ((3.4 * 40 + .8 * k2 * .425 * 20 / rho) / 1.7) * strain;
+            foreach (var standard in new Standard[] { Ntc, new StandardCNR200() })
+            {
+                string what = standard.GetType().Name;
+                var r = Crack(standard, "XC1", Bottom, plane, false);
+                Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, what + " " + r.Status);
+                Assert.AreEqual(30000, r.EffectiveArea.Value, 1e-6, what); Assert.AreEqual(100, r.BarSpacing.Value, 1e-9, what);
+                Assert.AreEqual(.5, r.K2.Value, what); Assert.AreEqual(Hand(.5), r.Width.Value, 1e-12, what + " wk with k2 = 0.5");
+                Assert.AreEqual(BendingK2, r.Details.First(d => d.Symbol == "k2").Expression, what);
+                Assert.AreEqual(.1905, r.Width.Value, 5e-4, what);
+                var legacy = Crack(standard, "XC1", Bottom, plane, true);
+                Assert.AreEqual(1, legacy.K2.Value, what); Assert.AreEqual(Hand(1), legacy.Width.Value, 1e-12, what + " legacy wk with k2 = 1");
+                StringAssert.StartsWith(legacy.Details.First(d => d.Symbol == "k2").Expression, "legacy rule", what);
+                Assert.IsFalse(legacy.Details.Any(d => d.Expression == BendingK2), what);
+            }
+        }
+
+        /// <summary>(b) Neutral axis inside the section with an axial force: bending, k2 = 0.5 whether the bars are all tensile or not.</summary>
+        [TestMethod]
+        public void BendingWithAxialForceUsesK2Half()
+        {
+            // Compression and bending, singly reinforced: neutral axis at y = −100 (350 mm compressed), σs = 80 MPa, no compressed bar.
+            var compression = new StrainPlane(0, -4e-6, new Point2d(0, -100), 0);
+            var r = Crack(Ntc, "XC1", Bottom, compression, false); var legacy = Crack(Ntc, "XC1", Bottom, compression, true);
+            Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, r.Status); Assert.AreEqual(.5, r.K2.Value); Assert.AreEqual(1, legacy.K2.Value);
+            Assert.IsTrue(r.Width.Value > 0 && r.Width.Value < legacy.Width.Value, r.Width + " / " + legacy.Width);
+            // Doubly reinforced: the top bars are compressed, 0.5 also with the legacy rule and the same width.
+            var doubly = Crack(Ntc, "XC1", Doubly, compression, false); var doublyLegacy = Crack(Ntc, "XC1", Doubly, compression, true);
+            Assert.AreEqual(CrackOutcome.Evaluated, doubly.Outcome, doubly.Status); Assert.AreEqual(.5, doubly.K2.Value); Assert.AreEqual(.5, doublyLegacy.K2.Value);
+            Assert.AreEqual(doublyLegacy.Width, doubly.Width); Assert.AreEqual(doublyLegacy.Passed, doubly.Passed);
+            // Tension and bending, neutral axis at y = 230 in the top cover: all the bars are tensile but the section is still bent.
+            var tension = new StrainPlane(0, -4e-6, new Point2d(0, 230), 0);
+            var t = Crack(Ntc, "XC1", Doubly, tension, false); var tLegacy = Crack(Ntc, "XC1", Doubly, tension, true);
+            Assert.AreEqual(CrackOutcome.Evaluated, t.Outcome, t.Status); Assert.AreEqual(.5, t.K2.Value); Assert.AreEqual(1, tLegacy.K2.Value);
+            Assert.IsTrue(t.Width.Value < tLegacy.Width.Value);
+            Assert.AreEqual(BendingK2, t.Details.First(d => d.Symbol == "k2").Expression);
+        }
+
+        /// <summary>
+        /// (c) Pure compression, also with εc,max = 0 or a positive εc,max ≤ 1e-12 and with no strain at all (σs = 0, legacy k2 of the bars = 1): wk = 0, check
+        /// evaluated and satisfied, K2 null and no k2 in the trace (bending is never suggested), identical with and without the legacy option.
+        /// </summary>
+        [TestMethod]
+        public void PureCompressionGivesZeroWidthWithoutK2()
+        {
+            var planes = new[]
+            {
+                new StrainPlane(0, 0, new Point2d(0, 0), -5e-4), new StrainPlane(0, -1e-6, new Point2d(0, -250), 0), new StrainPlane(0, -1e-6, new Point2d(0, -250), 5e-13),
+                new StrainPlane(2e-7, -1e-6, new Point2d(150, -250), 1e-12), new StrainPlane(0, 0, new Point2d(0, 0), 0)
+            };
+            int checks = 0;
+            foreach (var standard in new Standard[] { Ntc, new StandardCNR200() })
+                foreach (var bars in new[] { Bottom, Doubly })
+                    foreach (var plane in planes)
+                    {
+                        string what = standard.GetType().Name + " " + bars.Length + " bars, ε0 = " + plane.StrainReferencePoint + ", χ = " + plane.ChiX + "/" + plane.ChiY;
+                        var r = Crack(standard, "XC1", bars, plane, false);
+                        Assert.IsTrue(r.Details.Single(d => d.Symbol == "εc,max").Value <= 1e-12, what);
+                        Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, what); Assert.AreEqual(CrackVerdict.Satisfied, r.Verdict, what);
+                        Assert.AreEqual("Section entirely compressed", r.Status, what);
+                        Assert.AreEqual(0, r.Width.Value, what); Assert.AreEqual(0, r.Ratio.Value, what); Assert.IsNull(r.K2, what);
+                        Assert.IsFalse(r.Details.Any(d => d.Symbol == "k2" || d.Expression.Contains("bending") || d.Expression.Contains("k2")), what + "\n" + Trace(r));
+                        AssertSame(r, Crack(standard, "XC1", bars, plane, true), what + " legacy");
+                        checks++;
+                    }
+            Assert.AreEqual(20, checks);
+        }
+
+        /// <summary>(d) Entirely tensile sections keep their branch: k2 = (εmax + εmin)/(2 εmax), 1 in uniform tension; the option has no effect.</summary>
+        [TestMethod]
+        public void EntirelyTensileSectionIsUnaffectedByTheLegacyOption()
+        {
+            var eccentric = new StrainPlane(0, -1e-6, new Point2d(0, 250), 2e-4); // 2e-4 at the top, 7e-4 at the bottom
+            var uniform = new StrainPlane(0, 0, new Point2d(0, 0), 5e-4);
+            foreach (var pair in new[] { Tuple.Create(Ntc, "XC1"), Tuple.Create((Standard)new StandardCNR200(), "XC1"), Tuple.Create((Standard)ServiceabilityMigrationTests.Standard("EN 1992-1-1"), "XC3") })
+            {
+                var standard = pair.Item1; string exposure = pair.Item2, what = standard.GetType().Name;
+                var r = Crack(standard, exposure, Doubly, eccentric, false);
+                Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, what + " " + r.Status); StringAssert.StartsWith(r.Status, "Entirely tensile", what);
+                Assert.AreEqual((7e-4 + 2e-4) / (2 * 7e-4), r.K2.Value, 1e-12, what);
+                AssertSame(r, Crack(standard, exposure, Doubly, eccentric, true), what + " eccentric");
+                var u = Crack(standard, exposure, Doubly, uniform, false);
+                Assert.AreEqual(1, u.K2.Value, what); AssertSame(u, Crack(standard, exposure, Doubly, uniform, true), what + " uniform");
+                Assert.IsFalse(r.Details.Concat(u.Details).Any(d => d.Expression.Contains("bending") || d.Expression.StartsWith("legacy")), what);
+            }
+        }
+
+        /// <summary>(e) Eurocode family: k2 = 0.5 with the neutral axis inside the section already before D7-b; the option has no effect.</summary>
+        [TestMethod]
+        public void EurocodeProfilesAreUnaffectedByTheLegacyOption()
+        {
+            var plane = new StrainPlane(0, -4e-6, new Point2d(0, 50), 0);
+            foreach (var name in new[] { "EN 1992-1-1", "UNI EN 1992-1-1", "DIN EN 1992-1-1", "DS EN 1992-1-1", "NS EN 1992-1-1" })
+            {
+                string exposure = name == "UNI EN 1992-1-1" ? "XC1" : "XC3";
+                var r = Crack(ServiceabilityMigrationTests.Standard(name), exposure, Bottom, plane, false);
+                AssertSame(r, Crack(ServiceabilityMigrationTests.Standard(name), exposure, Bottom, plane, true), name);
+                if (r.Outcome != CrackOutcome.Evaluated) { Assert.AreEqual("NS EN 1992-1-1", name, r.Status); continue; }
+                Assert.AreEqual(.5, r.K2.Value, name); Assert.AreEqual(BendingK2, r.Details.First(d => d.Symbol == "k2").Expression, name);
+            }
+            // EN by hand (7.8-7.11), k2 = 0.5: sr,max = 3.4 c + 0.8 · 0.5 · 0.425 Ø/ρ.
+            double sigma = 200000 * plane.GetStrain(0, -200), rho = 3 * 314.16 / 30000.0;
+            double strain = Math.Max(.6 * sigma / 200000, (sigma - .4 * 2.9 / rho * (1 + 200000 / 33000.0 * rho)) / 200000);
+            Assert.AreEqual((3.4 * 40 + .8 * .5 * .425 * 20 / rho) * strain, Crack(ServiceabilityMigrationTests.Standard("EN 1992-1-1"), "XC3", Bottom, plane, false).Width.Value, 1e-12);
+        }
+
+        /// <summary>
+        /// (f) Branches where k2 does not enter wk: neutral axis within the cover without tensile bars (wk = 0, or no verdict without bars on that side) and
+        /// tensile bars outside Ac,eff (upper bound of eq. (7.14)): same width and verdict with and without the option; K2 is reported (0.5 now).
+        /// </summary>
+        [TestMethod]
+        public void CoverAndUnbondedBranchesKeepTheirWidth()
+        {
+            var cover = new StrainPlane(0, -1e-5, new Point2d(0, -230), 0);
+            foreach (var bars in new[] { Bottom, Doubly })
+            {
+                var r = Crack(Ntc, "XC1", bars, cover, false); var legacy = Crack(Ntc, "XC1", bars, cover, true);
+                Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, r.Status); Assert.AreEqual(0, r.Width.Value); Assert.AreEqual(CrackVerdict.Satisfied, r.Verdict);
+                Assert.AreEqual(legacy.Width, r.Width); Assert.AreEqual(legacy.Passed, r.Passed); Assert.AreEqual(legacy.Status, r.Status);
+                Assert.AreEqual(.5, r.K2.Value); Assert.AreEqual(.5, legacy.K2.Value, "the bars are compressed");
+            }
+            var top = Row(200);
+            Assert.AreEqual(CrackOutcome.NoTensileReinforcement, Crack(Ntc, "XC1", top, cover, false).Outcome);
+            Assert.AreEqual(CrackOutcome.NoTensileReinforcement, Crack(Ntc, "XC1", top, cover, true).Outcome);
+            // Neutral axis at y = −150, singly reinforced: σs = 100 MPa, no compressed bar (legacy k2 = 1), hc,eff = 33.3 mm above the bars.
+            var unbonded = new StrainPlane(0, -1e-5, new Point2d(0, -150), 0);
+            var u = Crack(Ntc, "XC1", Bottom, unbonded, false); var uLegacy = Crack(Ntc, "XC1", Bottom, unbonded, true);
+            Assert.AreEqual(CrackOutcome.Evaluated, u.Outcome, u.Status); StringAssert.StartsWith(u.Status, "No bar in Ac,eff");
+            Assert.AreEqual(1.7 * .75 * 100 * 3e-4, u.Width.Value, 1e-12); Assert.AreEqual(uLegacy.Width, u.Width); Assert.AreEqual(uLegacy.Passed, u.Passed);
+            Assert.AreEqual(.5, u.K2.Value); Assert.AreEqual(1, uLegacy.K2.Value);
         }
 
         private static CrackProfile Profile(string name) => CrackProfiles.Resolve(ServiceabilityMigrationTests.Standard(name));
@@ -273,7 +512,7 @@ namespace ConcreteTests
             Assert.ThrowsException<ArgumentException>(() => CrackWidthCalculator.Width(CrackProfile.ModelCode2010, new CrackWidthInput(250, 200000, 33000, 2.9, rho, 20, 40, 100, 330, false, false, .5)));
             // CNR-DT 200 without FRP data uses the NTC member formula.
             Assert.AreEqual(CrackWidthCalculator.Width(CrackProfile.Ntc2018, input), CrackWidthCalculator.Width(CrackProfile.CnrDT200, input));
-            // k2 from the bar stresses: one compressed bar means bending.
+            // k2 from the bar stresses (legacy NTC / CNR-DT 200 rule before D7-b, SectionCrackInput.NtcK2FromCompressedBars): one compressed bar means bending.
             Assert.AreEqual(.5, CrackWidthCalculator.K2(new[] { 120.0, -10 })); Assert.AreEqual(1, CrackWidthCalculator.K2(new[] { 120.0, 0 }));
         }
 
