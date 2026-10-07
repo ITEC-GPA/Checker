@@ -82,7 +82,7 @@ classe minima di resistenza della sezione.
 | a/c massimo, classe minima, cemento minimo, aria minima per esposizione | UNI EN 206-1 | 2006 | appendice F | prospetto F.1 (informativo) | testo |
 | a/c, classe minima, cemento minimo, aria per XF2-XF4: valori del codice | UNI 11104 | 2016 (sostituita dalla 2025) | — | prospetto 5 | fonte secondaria: riproduzione ATECAP 2020, p. 19 (riquadro C-1) |
 | Classe minima C28/35 per XC3, XD1, XF4 e XA1 | UNI 11104 | 2004 (ritirata) | — | prospetto 4 | fonte secondaria |
-| Valori limite: XC3, XD1, XF4 e XA1 C30/37 come nella 2016; XF1 C30/37 e a/c 0,55; cemento minimo più basso in tutte le classi che lo prescrivono | UNI 11104 | 2025 (in vigore dal 24/07/2025) | — | prospetto 6 | fonte secondaria: estratto pubblicato il 28/07/2025, da riscontrare sul testo (riquadro C-1) |
+| Valori limite: XC3, XD1, XF4 e XA1 C30/37 come nella 2016; XF1 C30/37 e a/c 0,55; cemento minimo più basso in tutte le classi che lo prescrivono | UNI 11104 | 2025 (in vigore dal 24/07/2025) | — | prospetto 6 | fonte secondaria: estratto pubblicato il 28/07/2025, da riscontrare sul testo; numero e titolo del prospetto dall'indice dell'anteprima pubblicata da UNI (riquadro C-1) |
 | Membratura in c.a. secondo NTC | CNR-DT 200 | R1/2013 | — | — | da riscontrare |
 
 ## 4. Ipotesi
@@ -172,7 +172,8 @@ UNI 11104, aria inglobata per XF2-XF4: 4% con dg > 20 mm; 5% con 12 mm ≤ dg �
 Il codice usa i valori limite della UNI 11104:2016, prospetto 5, noti in modo indiretto dalla riproduzione nella
 documentazione ATECAP del 2020 (p. 19), che indica come edizione di riferimento quella del 2016. La UNI 11104:2025,
 in vigore dal 24/07/2025, sostituisce la 2016 e riporta i valori limite nel prospetto 6 «Valori limite per la
-composizione e le proprietà del calcestruzzo». Secondo un estratto pubblicato il 28/07/2025 (fonte secondaria, da
+composizione e le proprietà del calcestruzzo» (titolo dall'indice dell'anteprima pubblicata da UNI, che non mostra i
+valori). Secondo un estratto pubblicato il 28/07/2025 (fonte secondaria, da
 riscontrare sul testo della norma) la 2025 differisce dalla 2016 in due punti:
 
 - XF1: classe minima C30/37 invece di C32/40 e a/c massimo 0,55 invece di 0,50;

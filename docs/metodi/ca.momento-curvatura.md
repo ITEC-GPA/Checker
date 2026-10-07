@@ -134,9 +134,11 @@ Qui δi = 1 per le barre interne al calcestruzzo (0 per le altre) e (xr, yr) è 
 dell'integrazione del solutore (`SectionSolver.IntegrationReferencePoint`).
 
 **Convenzione di segno di (M.1)**, come in `SectionSolver`: tensioni e deformazioni sono negative in compressione,
-quindi N è negativo in compressione, come nel §5; Mx positivo comprime le fibre con y > yr, My positivo quelle con
-x < xr. Le componenti sono negli assi della sezione; le forze del verificatore, date negli assi `axes` della chiamata,
-sono riportate dal verificatore in questi assi. Le leggi (M.2) sono invece scritte, come nelle norme, con la
+quindi N è negativo in compressione, come nel §5; con x e y coordinate della sezione, Mx positivo comprime le fibre
+con y > yr, My positivo quelle con x < xr. Mx e My sono quindi le componenti del momento negli assi del solutore
+(`SectionSolver.SolverAxes`), cioè negli assi della sezione ruotati di 180°, di versori (−1; 0; 0) e (0; −1; 0), non
+negli assi della sezione; le forze del verificatore, date negli assi `axes` della chiamata, sono riportate dal
+verificatore in questi assi. Le leggi (M.2) sono invece scritte, come nelle norme, con la
 compressione positiva: in (M.1) la tensione del calcestruzzo per ε ≤ 0 vale −σc(−ε) di (M.2) ed è nulla in trazione,
 salvo l'opzione del verificatore; la legge dell'acciaio di (M.2) è dispari e vale con entrambe le convenzioni.
 
