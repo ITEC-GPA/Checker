@@ -65,7 +65,8 @@ sezione della formula interessata:
 > - Programma: ciò che il codice calcola.
 > - Effetto: segno (a favore o a sfavore di sicurezza) ed entità, con un esempio o una statistica.
 > - Stato: `dichiarato` (scelta accettata), `in verifica` (riscontro normativo in corso), `da discutere`
->   (decisione dell'utente aperta), `da riscontrare` (fonte non ancora verificata) oppure `corretto in <versione>`.
+>   (decisione aperta nel registro delle differenze), `da riscontrare` (fonte non ancora verificata) oppure
+>   `corretto in <versione>`.
 
 Il codice del riquadro ha il prefisso della pagina (T, R, E, F, A, D, C, M) e un numero; i riquadri delle decisioni
 D7 del refactoring riportano anche la lettera della scheda, per esempio "F-1 (D7-a)", e quelli delle voci del

@@ -319,7 +319,8 @@ la motivazione.
 deformazioni della fascia (la Circolare raccomanda valori intermedi di k2 anche "per singole parti di sezione"), per
 tutti i profili e anche quando l'asse neutro taglia la sezione; in trazione uniforme k2 = 1. Se quella superficie
 governa, il k2 del risultato può superare 0,5 in una sezione inflessa (cassone 400 × 600 con foro 200 × 400 e asse
-neutro a metà altezza: parete inferiore con k2 = 0,9). La regola è stata confermata dall'utente il 7/10/2026.
+neutro a metà altezza: parete inferiore con k2 = 0,9). Scelta del metodo: il valore k2 = 0,5 della sezione inflessa
+vale per la zona tesa esterna e non si estende alle superfici interne.
 
 **Opzione legacy** (`SectionCrackInput.NtcK2FromCompressedBars`, predefinito `false`): per i soli profili NTC e
 CNR-DT 200, con l'asse neutro interno, k2 = 0,5 se almeno una barra è compressa e 1,0 altrimenti (una barra con
@@ -339,10 +340,10 @@ compresse (nullo con entrambe le regole, prima era il k2 delle barre) né i test
 > - Programma fino alla 0.0.15.0, profili NTC e CNR-DT 200: k2 = 0,5 solo se almeno una barra era compressa; una
 >   trave inflessa senza barre compresse (semplice armatura), una soletta con la rete superiore tesa o una sezione in
 >   tensoflessione con l'asse neutro interno avevano k2 = 1,0.
-> - Programma dalla 0.0.16.0 (decisione dell'utente del 7/10/2026): k2 = 0,5 per ogni profilo quando l'asse neutro
->   taglia la sezione; nella pura compressione wk = 0 e k2 non si applica (K2 nullo, nessuna voce k2 nella traccia);
->   la sezione interamente tesa e i rami F.14 e F.15 sono invariati; le superfici interne usano il k2 della propria
->   fascia (6.7, 6.10), regola confermata dall'utente. La regola precedente resta solo come opzione legacy.
+> - Programma dalla 0.0.16.0: k2 = 0,5 per ogni profilo quando l'asse neutro taglia la sezione; nella pura
+>   compressione wk = 0 e k2 non si applica (K2 nullo, nessuna voce k2 nella traccia); la sezione interamente tesa e
+>   i rami F.14 e F.15 sono invariati; per scelta del metodo le superfici interne usano il k2 della propria fascia
+>   (6.7, 6.10). La regola precedente resta solo come opzione legacy.
 > - Effetto: wk minore dove la regola precedente usava k2 = 1. Nell'esempio C2 (trave con sole barre tese) wk =
 >   0,2538 mm invece di 0,3683 mm (−31,1%) e la verifica passa da non soddisfatta a soddisfatta. Nei 936 stati dei
 >   casi congelati del motore precedente (176 NTC valutati) cambia un solo stato (R400x400, trazione con flessione
@@ -451,8 +452,9 @@ una regione non ha esito e le altre rispettano il limite, il risultato è incomp
 > - Programma fino alla 0.0.16.0: h − x = εmax,b/|∇ε| senza limite, anche con un gradiente di rumore del solutore in
 >   trazione quasi uniforme: h − x dell'ordine di 10¹² mm e, con barre distanziate ((F.9), (F.11)), ampiezze prive di
 >   significato (cassone 400 × 600 delle prove: wk = 238 389 mm).
-> - Programma dalla 0.0.17.0: (F.18), regola dell'altezza lungo il gradiente scelta dall'utente il 7/10/2026. Con
->   l'asse neutro interno alla sezione nulla cambia rispetto alla regola precedente.
+> - Programma dalla 0.0.17.0: (F.18). Scelta del metodo: h − x della fascia non supera l'altezza hg del contorno
+>   lungo il gradiente e in trazione uniforme vale h⊥. Con l'asse neutro interno alla sezione nulla cambia rispetto
+>   alla regola precedente.
 > - Effetto: h − x, k2 e wk delle fasce sono continui dove l'asse neutro entra nella sezione (entro 10⁻⁶ nelle prove,
 >   in flessione retta e deviata, cassoni quadrati e non, anello). Resta un salto alla soglia della trazione
 >   uniforme, cioè per un'eccentricità trascurabile, dove h⊥ e hg differiscono: cassone 400 × 600 con il gradiente
