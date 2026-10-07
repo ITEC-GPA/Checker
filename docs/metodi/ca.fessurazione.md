@@ -292,12 +292,20 @@ k_2 = \begin{cases} 0{,}5 & \text{asse neutro interno alla sezione (sezione infl
 
 con εmin, εmax le deformazioni estreme del contorno (EN 1992-1-1 (7.13); Circolare 2019 C4.1.2.2.4.5). Nei rami
 "asse neutro nel copriferro" (F.14) e "barre tese fuori da Ac,eff" (F.15) k2 non entra in wk; il risultato e la
-traccia riportano comunque k2 = 0,5.
+traccia riportano comunque k2 = 0,5. La traccia della sezione parzializzata ha una sola voce k2, con la motivazione.
+
+**Superfici interne delle sezioni cave.** (F.13) vale per la zona tesa esterna. Ogni parete o anello interno (6.10)
+è verificato come zona locale con il k2 della propria fascia tesa, per tutti i profili e anche quando l'asse
+neutro taglia la sezione; se quella superficie governa, il k2 del risultato può superare 0,5 in una sezione inflessa
+(cassone 400 × 600 con foro 200 × 400 e asse neutro a metà altezza: parete inferiore con k2 = 0,9).
 
 **Opzione legacy** (`SectionCrackInput.NtcK2FromCompressedBars`, predefinito `false`): per i soli profili NTC e
 CNR-DT 200, con l'asse neutro interno, k2 = 0,5 se almeno una barra è compressa e 1,0 altrimenti (una barra con
 tensione nulla non è compressa), come nel motore precedente di ANTHEA. Serve solo a riprodurre i casi congelati e i
-confronti; non agisce sulle sezioni interamente compresse o interamente tese né sugli altri profili.
+confronti; non agisce sulle sezioni interamente compresse o interamente tese, sulle superfici interne né sugli altri
+profili. Riproduce wk, rapporto, esito, stato, regioni e il k2 della sezione parzializzata del motore precedente;
+non riproduce il k2 del risultato nelle sezioni interamente compresse (nullo con entrambe le regole, prima era il k2
+delle barre) né i testi della traccia (la voce k2 dice "legacy rule" e compare una volta sola).
 
 > **Scostamento risolto — F-2 (D7-b) NTC: k2 con il criterio della barra compressa**
 >
@@ -306,9 +314,10 @@ confronti; non agisce sulle sezioni interamente compresse o interamente tese né
 > - Programma fino alla 0.0.15.0, profili NTC e CNR-DT 200: k2 = 0,5 solo se almeno una barra era compressa; una
 >   trave inflessa senza barre compresse (semplice armatura), una soletta con la rete superiore tesa o una sezione in
 >   tensoflessione con l'asse neutro interno avevano k2 = 1,0.
-> - Programma dalla 0.0.16.0 (decisione dell'utente del 7/10/2026, "fallo come lo hai previsto. se l'asse neutro
->   taglia la sezione"): k2 = 0,5 per ogni profilo quando l'asse neutro è interno alla sezione; nella pura
->   compressione wk = 0 e k2 non si applica. La regola precedente resta solo come opzione legacy.
+> - Programma dalla 0.0.16.0 (decisione D7-b, docs/refactoring/scostamenti.md di ANTHEA): k2 = 0,5 per ogni
+>   profilo quando l'asse neutro taglia la sezione; nella pura compressione wk = 0 e k2 non si applica. Le superfici
+>   interne delle sezioni cave mantengono il k2 della propria fascia tesa (6.7, 6.10). La regola precedente resta
+>   solo come opzione legacy.
 > - Effetto: wd minore dove il motore precedente usava k2 = 1. Nell'esempio C2 (trave con sole barre tese) wd =
 >   0,2538 mm invece di 0,3683 mm (−31,1%) e la verifica passa da non soddisfatta a soddisfatta. Nei 936 stati
 >   congelati (176 NTC valutati) cambia un solo stato (R400x400, trazione con flessione deviata, tutte le barre
@@ -382,7 +391,8 @@ h_{c,eff} = \min\left(\gamma\, a_{min};\; \frac{t}{2}\right), \qquad \gamma = \b
 
 con amin la distanza dalla superficie interna del baricentro della barra tesa più vicina (t se la parete non ha barre
 tese) e t lo spessore della parete. Ac,eff è la
-fascia tesa della parete, k2 = (max(0; εmin) + εmax)/(2 εmax) limitato a [0,5; 1], h − x = εmax/|∇ε|. Una superficie
+fascia tesa della parete, k2 = (max(0; εmin) + εmax)/(2 εmax) limitato a [0,5; 1] sulle deformazioni della fascia
+(anche con l'asse neutro interno alla sezione, per tutti i profili, con o senza opzione legacy), h − x = εmax/|∇ε|. Una superficie
 interna tesa senza armatura lascia la verifica senza esito. L'ampiezza della sezione è l'inviluppo delle superfici
 esterne e interne; se una regione non ha esito e le altre rispettano il limite, il risultato è incompleto.
 
@@ -439,7 +449,7 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 | kt | 0,6 breve; 0,4 lunga durata (DIN 0,4) | tutti | EN 7.3.4(2) | durata sì | `CrackWidthCalculator.Width` |
 | βmin | 0,6; Model Code 2010 1 − kt | tutti | EN (7.9) | no | idem |
 | k1 | 0,8 aderenza migliorata; 1,6 liscia | NTC, EN, UNI, DS, NS | EN 7.3.4(3) | aderenza sì | idem |
-| k2 | 0,5 con asse neutro interno; (F.13) per le sezioni tese | tutti | EN 7.3.4(3), (7.13); Circolare C4.1.2.2.4.5 | solo opzione legacy NTC/CNR (`NtcK2FromCompressedBars`) | `SectionCrackCheck.Evaluate`, `FullyTensioned`, `Inner` |
+| k2 | 0,5 con asse neutro interno; (F.13) per le sezioni tese; superfici interne: formula di (F.13) sulla fascia tesa, anche con asse neutro interno | tutti | EN 7.3.4(3), (7.13); Circolare C4.1.2.2.4.5 | solo opzione legacy NTC/CNR (`NtcK2FromCompressedBars`) | `SectionCrackCheck.Evaluate`, `FullyTensioned`, `Inner` |
 | k3 | 3,4; DS 3,4 (25/c)^(2/3) | famiglia Eurocodice, NTC | EN 7.3.4(3); DK NA | no | idem |
 | k4 | 0,425; DIN 1/3,6 | famiglia Eurocodice, NTC | EN 7.3.4(3); NA DIN | no | idem |
 | τbm/fctm | 1,8 breve; 1,35 lunga durata | Model Code 2010 | MC2010 7.6.4 | durata sì | idem |
@@ -466,25 +476,25 @@ Percorsi relativi alla radice del repository Checker.
 - Ampiezza: `CrackWidthCalculator.Width` (`GPCChecker.Concrete/Cracking/CrackWidthCalculator.cs:43-92`): ramo NTC
   (righe 51-70), famiglia Eurocodice (righe 71-91) con DS (riga 76), Model Code 2010 (riga 79), DIN (righe 80-85),
   barre distanziate (riga 86). Limite superiore senza barre aderenti `UnbondedUpperBound` (righe 99-114), k2 dalle
-  tensioni delle barre `K2` (righe 117-122; validazione delle tensioni e regola legacy).
+  tensioni delle barre `K2` (righe 121-126; validazione delle tensioni e regola legacy).
 - Geometria: `CrackSectionGeometry.From` (`GPCChecker.Concrete/Cracking/CrackSectionGeometry.cs:63-76`), ritaglio
   del poligono `Clip` (righe 83-94), regione efficace `Region` (righe 99-104), copriferro di una barra `BarCover`
   (righe 107-119), interasse `MaximumSpacing` (righe 124-164), hc,eff `EffectiveDepth` (righe 192-220; DIN righe
   196-201, DS con bisezione di 65 iterazioni righe 202-218).
-- Verifica: `SectionCrackCheck.Evaluate` (`GPCChecker.Concrete/Cracking/SectionCrackCheck.cs:146-252`):
-  - requisito e casi senza verifica (righe 149-161); decompressione e formazione (righe 163-173);
-  - c.a.p. e analisi richiesta (righe 174-175); validazione delle tensioni delle barre (righe 176-178);
-  - classificazione (righe 179-188), con la sezione interamente compressa senza k2 (righe 182-187);
-  - k2 = 0,5 con asse neutro interno, regola legacy NTC/CNR con l'opzione (righe 189-195);
-  - gradiente, h e h − x (righe 196-202); asse neutro nel copriferro (righe 203-214);
-  - h − d, hc,eff, regione efficace (righe 215-224); limite superiore senza barre aderenti (righe 226-236);
-  - ampiezza ed esito (righe 237-251).
-- Sezione interamente tesa: `FullyTensioned` (righe 257-333), k2 (righe 262-265), facce (righe 267-278 e 283-308),
-  sistema grossolano DS (righe 309-324), governante (righe 325-332).
-- Superfici interne: `Inner` (righe 336-431): anello (righe 384-393), foro rettangolare (righe 394-415), fori non
-  supportati (righe 416-417), inviluppo ed esito incompleto (righe 418-430).
-- Dati: `SectionCrackInput` (righe 20-84) con l'opzione `NtcK2FromCompressedBars` (righe 47-54) e
-  `OrdinaryBarStresses` (righe 77-83); `SectionCrackResult` (righe 99-131).
+- Verifica: `SectionCrackCheck.Evaluate` (`GPCChecker.Concrete/Cracking/SectionCrackCheck.cs:151-260`):
+  - requisito e casi senza verifica (righe 154-166); decompressione e formazione (righe 168-178);
+  - c.a.p. e analisi richiesta (righe 179-180); validazione delle tensioni delle barre (righe 181-183);
+  - classificazione (righe 184-193), con la sezione interamente compressa senza k2 (righe 187-192);
+  - k2 = 0,5 con asse neutro interno, regola legacy NTC/CNR con l'opzione (righe 194-200);
+  - gradiente, h e h − x (righe 201-207); asse neutro nel copriferro (righe 208-219);
+  - h − d, hc,eff, regione efficace (righe 220-229); limite superiore senza barre aderenti (righe 231-241);
+  - ampiezza ed esito (righe 242-259), con la formula che non ripete k2 nella traccia (righe 251-254).
+- Sezione interamente tesa: `FullyTensioned` (righe 265-341), k2 (righe 270-273), facce (righe 275-286 e 291-316),
+  sistema grossolano DS (righe 317-332), governante (righe 333-340).
+- Superfici interne: `Inner` (righe 344-439): k2 della fascia (riga 379), anello (righe 392-401), foro rettangolare
+  (righe 402-423), fori non supportati (righe 424-425), inviluppo ed esito incompleto (righe 426-438).
+- Dati: `SectionCrackInput` (righe 20-87) con l'opzione `NtcK2FromCompressedBars` (righe 47-57) e
+  `OrdinaryBarStresses` (righe 80-86); `SectionCrackResult` (righe 102-134).
 
 Iterazioni: solo la fascia baricentrica DS (bisezione di 65 passi sull'altezza della fascia, precisione relativa
 2⁻⁶⁵). Le aree efficaci si ottengono per ritaglio esatto dei poligoni.
@@ -553,7 +563,7 @@ nella quasi permanente); XC3 quasi permanente, NTC e EN 0,3 mm; XD1 quasi perman
 
 ## 11. Validazione
 
-- **Casi congelati del motore precedente** (`CrackMigrationTests`, 14 test):
+- **Casi congelati del motore precedente** (`CrackMigrationTests`, 15 test):
   - 936 stati di esercizio su 6 sezioni archiviate (rettangolare, a T, circolare, rettangolare cava, circolare cava
     con due anelli, quadrata con barre di lato), 7 norme, 13 azioni (anche trazione e sezioni interamente tese),
     combinazioni caratteristica, frequente e quasi permanente, con esposizione, sensibilità, durata, aderenza,
@@ -574,7 +584,9 @@ nella quasi permanente); XC3 quasi permanente, NTC e EN 0,3 mm; XD1 quasi perman
   - k2 (D7-b): trave a semplice armatura inflessa NTC e CNR-DT 200 con k2 = 0,5 e wd a mano (k2 = 1 con l'opzione
     legacy); presso- e tensoflessione con asse neutro interno; pura compressione (anche εmax = 0, 5 · 10⁻¹³, 10⁻¹² e
     deformazione nulla) con wk = 0 e senza k2, uguale con e senza opzione; sezioni interamente tese, profili
-    Eurocodice e rami copriferro / barre fuori da Ac,eff uguali con e senza opzione;
+    Eurocodice e rami copriferro / barre fuori da Ac,eff uguali con e senza opzione; una sola voce k2 nella traccia;
+    cassone 400 × 600 inflesso con la parete inferiore governante, k2 = 0,9 della fascia e wk a mano (NTC, CNR-DT 200
+    ed EN, con e senza opzione);
   - ritaglio, interassi su file e anelli, hc,eff EN, DIN e DS.
 - **Integrazione**: i test del verificatore di modello eseguono la fessurazione per 10 norme e confrontano il
   risultato NTC con la chiamata diretta del metodo.
