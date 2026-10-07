@@ -20,8 +20,9 @@ namespace ConcreteTests
 {
     /// <summary>
     /// Bond, anchorage and laps, 1D detailing of beams and columns and the moment-curvature response moved from ANTHEA (ConcreteBond,
-    /// ConcreteAnchorageCalculator, ConcreteDetailingCalculator, MomentCurvatureCalculator; commit fe4652c, captured at e5efa45 with unchanged sources).
-    /// Fixtures: anchorage-legacy.csv (468 cases), detailing-legacy.csv (144 beam/column cases on detailing-sections.xml), curvature-legacy.csv (5 curves).
+    /// ConcreteAnchorageCalculator, ConcreteDetailingCalculator, MomentCurvatureCalculator; commit fe4652c).
+    /// Fixtures: anchorage-legacy.csv (468 cases), detailing-legacy.csv (144 beam/column cases on detailing-sections.xml), curvature-legacy.csv (5 curves),
+    /// captured on 7/10/2026 from ANTHEA refactoring/integrazione-d7b-d2 d2d3225 (supporto/test/CheckerMigration.Capture, mode tutte).
     /// </summary>
     [TestClass]
     public class DetailingMigrationTests

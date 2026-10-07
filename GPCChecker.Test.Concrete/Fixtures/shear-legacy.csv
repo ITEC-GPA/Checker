@@ -1,4 +1,4 @@
-# ConcreteCodeChecks.Shear legacy outputs; ANTHEA commit fe4652c; ANTHEA.Calculations.dll SHA-256 C4D6F8C24C7372B5A900E485BF6C2E712D0B81E40F931DAFF4C04C07F80F8C35
+# ConcreteCodeChecks.Shear legacy outputs; ANTHEA commit d2d3225c0c17a6bea5caf91e08644a6668292ae6; ANTHEA.Calculations.dll SHA-256 A7A90E6EE5B74729FABB293EADF33A12EEA63C524699687944322BD21800305D
 # Units: N_kN, V_kN (kN), M_kNm (kNm), lengths mm, areas mm2, stresses MPa; resistances kN. Compression negative.
 id;standard;N_kN;V_kN;M_kNm;area;bw;d;asl;fck;fcd;fyd;gammaC;es;asw;spacing;alpha;cot;lever;aggregate;ecc;outcome;VRsd_kN;VRcd_kN;VRd_kN;ratio;cotTheta;status;details
 0;NTC 2018;-500;80;120;150000;300;460;1256;30;17;391.3;1.5;200000;0;1;90;;0.9;20;0;ok;151.7466163216058;125.54923328898343;151.7466163216058;0.5271946217927598;0;Resistenza sufficiente · dettagli da verificare;

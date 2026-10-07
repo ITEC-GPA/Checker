@@ -1,4 +1,4 @@
-# ConcreteTorsionCalculator.Geometry legacy outputs; ANTHEA commit b5f2222; ANTHEA.Calculations.dll SHA-256 249CF988F7C446E9F4CFFDD2017134D94F06BB21E66F32D38CC30EB4E82F66AA
+# ConcreteTorsionCalculator.Geometry legacy outputs; ANTHEA commit d2d3225c0c17a6bea5caf91e08644a6668292ae6; ANTHEA.Calculations.dll SHA-256 A7A90E6EE5B74729FABB293EADF33A12EEA63C524699687944322BD21800305D
 # Lengths mm, areas mm2. axis = cover + stirrup diameter + largest bar diameter / 2.
 id;name;shape;width;height;areaCls;axis;hollow;innerWidth;innerHeight;innerDiameter;outcome;A;P;t;message
 0;R300x500;Rettangolare;300;500;150000;48;False;;;;ok;82416;1216;96;

@@ -1,4 +1,4 @@
-# ConcreteTorsionCalculator.Calculate legacy outputs (NTC 2018); ANTHEA commit b5f2222; ANTHEA.Calculations.dll SHA-256 249CF988F7C446E9F4CFFDD2017134D94F06BB21E66F32D38CC30EB4E82F66AA
+# ConcreteTorsionCalculator.Calculate legacy outputs (NTC 2018); ANTHEA commit d2d3225c0c17a6bea5caf91e08644a6668292ae6; ANTHEA.Calculations.dll SHA-256 A7A90E6EE5B74729FABB293EADF33A12EEA63C524699687944322BD21800305D
 # Units: T_kNm (kNm), Vx/Vy and shear resistances kN, lengths mm, areas mm2, stresses MPa; torsional resistances kNm. Shear results synthetic.
 id;T_kNm;A;P;t;fcd;fyd;leg;s;Al;cot;Vx_kN;Vy_kN;xVRsd;xVRcd;xCot;yVRsd;yVRcd;yCot;outcome;TRcd;TRsd;TRld;TRd;torsionRatio;concrete;steel;requiredAl;passed;status
 0;0;82416;1216;96;14.166666666666666;391.3;50.27;100;0;1;0;0;400;900;1;250;700;1;ok;56.04288;32.42352745632;0;0;0;0;0;0;True;Torsione e interazione soddisfatte nel modello assegnato

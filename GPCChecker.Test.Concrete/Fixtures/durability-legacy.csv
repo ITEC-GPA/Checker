@@ -1,4 +1,4 @@
-# Materiali.Durability / NtcCover / MinimumConcrete / AtecapMix legacy outputs; ANTHEA commit dc8415a; ANTHEA.Calculations.dll SHA-256 42C0082D2C33B179B8E5DC151A30F7CFFF5F5A0942B7B7778075EBF6DC44251C
+# Materiali.Durability / NtcCover / MinimumConcrete / AtecapMix legacy outputs; ANTHEA commit d2d3225c0c17a6bea5caf91e08644a6668292ae6; ANTHEA.Calculations.dll SHA-256 A7A90E6EE5B74729FABB293EADF33A12EEA63C524699687944322BD21800305D
 # Lengths mm, strengths MPa. method;exposures;fck;life;strengthReduction;slab;quality;diameter;aggregate;deviation;rough;abrasion;ground;plate;ntcQuality;outcome;bond;durability;minimum;nominal;lines|...
 EC2;X0;20;50;False;False;False;12;16;10;False;0;0;;;ok;12;10;12;22;X0:4:10
 NTC;X0;20;50;False;False;False;12;16;10;False;0;0;False;False;ok;12;30;30;40;Ordinario|0|25|35|25|0|5|0

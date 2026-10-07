@@ -413,3 +413,15 @@ REGISTRO
             - Suite ANTHEA: regressione 464 casi (942.254 valori, scarto relativo massimo 2,6e-14), software, micropalo, orizzontale,
               coesione, γsat, CalculationLibrary, RetainingWall, GlobalStability superate. "bridge" fallisce per modifiche non
               committate di un'altra sessione su BridgeSection (sullo stato committato con le DLL nuove passa).
+2026-10-07  Fixture del c.a. ricatturate (decisione dell'utente del 7/10, refactoring di ANTHEA F2.1): i 13 file di
+            GPCChecker.Test.Concrete/Fixtures (CSV e archivi XML delle sezioni) vengono ora da ANTHEA
+            refactoring/integrazione-d7b-d2 d2d3225 (CheckerMigration.Capture, modalità tutte) invece che da fe4652c.
+            - Differenze rispetto alle fixture del 1/10, tutte con causa: 30 stati di fessurazione (22 con l'asse neutro nel
+              copriferro, wk = 0; 8 con le barre tese fuori da Ac,eff, limite superiore dell'eq. (7.14)), 318 tracce per
+              D7-b (un solo k2; nessun k2 nelle 67 sezioni interamente compresse), di cui una sola con numeri diversi (stato
+              796, wk 0,608 → 0,360 mm), 4 stati C1000H per la fascia interna dei fori (0.0.17.0); negli archivi versioni delle
+              sezioni (3 → 4) e dei materiali (4 → 5), densità in t/mm³, identificativi casuali. Taglio, SLE, torsione,
+              ancoraggi, dettagli, M-χ e durabilità identici.
+            - CrackMigrationTests senza i casi speciali per queste differenze e senza l'opzione legacy di k2 sulle righe
+              catturate (resta nei test dedicati). GPCChecker.Test.Concrete: 508 test superati.
+            - Fixture geotecniche (GPCChecker.Test.Geotechnics/Fixtures) invariate: si ricatturano a fine refactoring.

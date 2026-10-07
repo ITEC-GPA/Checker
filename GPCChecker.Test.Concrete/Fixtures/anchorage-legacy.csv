@@ -1,4 +1,4 @@
-# ConcreteAnchorageCalculator / ConcreteBond.Strength legacy outputs; ANTHEA commit e5efa45; ANTHEA.Calculations.dll SHA-256 716592C40BD61C152889FDD8182C86E07D67197B3FBF12C73C3B3025C0D7F656
+# ConcreteAnchorageCalculator / ConcreteBond.Strength legacy outputs; ANTHEA commit d2d3225c0c17a6bea5caf91e08644a6668292ae6; ANTHEA.Calculations.dll SHA-256 A7A90E6EE5B74729FABB293EADF33A12EEA63C524699687944322BD21800305D
 # Units mm, MPa. Columns: id;diameter;stress;fctk05;gammaC;goodBond;available;lap;percent;clear;outcome;fbd;basic;required;passed;eta1;eta2;alpha6;maxClear;lengthPassed;clearPassed
 0;8;0;1.8;1.5;True;800;False;100;0;ok;2.6999999999999997;0;160;True;1;1;1;32;True;True
 1;8;0;1.8;1.5;True;800;True;25;16;ok;2.6999999999999997;0;200;True;1;1;1;32;True;True

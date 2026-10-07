@@ -11,9 +11,10 @@ using System.Text;
 namespace ConcreteTests
 {
     /// <summary>
-    /// Torsion core moved from ANTHEA (ConcreteTorsionCalculator, commit fe4652c; captured at b5f2222 with unchanged sources) to GPCChecker.Concrete.
+    /// Torsion core moved from ANTHEA (ConcreteTorsionCalculator, commit fe4652c) to GPCChecker.Concrete.
     /// Fixtures/torsion-legacy.csv freezes 986 NTC cases (grid, limits, seeded random), torsion-geometry-legacy.csv the resisting profile
-    /// of 10 outlines. Legacy kN/kNm are converted to N/Nmm. The other standards are checked against hand calculations.
+    /// of 10 outlines, captured on 7/10/2026 from ANTHEA refactoring/integrazione-d7b-d2 d2d3225 (supporto/test/CheckerMigration.Capture,
+    /// mode tutte). Legacy kN/kNm are converted to N/Nmm. The other standards are checked against hand calculations.
     /// </summary>
     [TestClass]
     public class TorsionMigrationTests

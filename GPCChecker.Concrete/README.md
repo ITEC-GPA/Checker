@@ -18,6 +18,14 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 | `GPC.Checkers.Concrete.Response` | Curva momento-curvatura a N costante (`MomentCurvatureAnalysis`): risposta numerica, non verifica | `MomentCurvatureCalculator`, `ConcreteCurvatureAnalysis` |
 | `GPC.Checkers.Concrete.Durability` | Classi di esposizione e loro requisiti (`ExposureClasses`), copriferri per norma (`CoverRequirements`, `DurabilityProfiles`), classi minime di resistenza | `Materiali.Durability`, `NtcCover`, `MinimumConcrete`, `MaterialCover` |
 
+I casi legacy di `GPCChecker.Test.Concrete/Fixtures` (CSV e archivi XML delle sezioni) sono catture del codice di
+ANTHEA, non attesi indipendenti. Congelati il 1/10/2026 da ANTHEA fe4652c, sono stati ricatturati il 7/10/2026 dal
+branch `refactoring/integrazione-d7b-d2` di ANTHEA (commit d2d3225, `supporto/test/CheckerMigration.Capture`, modalità
+`tutte`), che nella fessurazione si comporta già come la libreria: wk = 0 con l'asse neutro nel copriferro, limite
+superiore dell'eq. (7.14) con le barre tese fuori da Ac,eff, k2 = 0,5 con l'asse neutro interno (D7-b), h − x limitato
+nelle fasce interne dei fori (0.0.17.0). I test di migrazione li riproducono con la regola corrente, senza casi
+speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedicati.
+
 ### Taglio
 
 - Profili scelti dal tipo esatto della classe Standard: NTC 2018, Model Code 2010 livello II, EN 1992-1-1 e annessi
@@ -110,7 +118,7 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
   - precompressione;
   - superfici interne di fori non rettangolari o non circolari.
 - **Casi legacy congelati e riprodotti** (`CrackMigrationTests`):
-  - `Fixtures/crack-legacy.csv`: 936 stati su 6 sezioni (`crack-sections.xml`), con 1104 regioni confrontate;
+  - `Fixtures/crack-legacy.csv`: 936 stati su 6 sezioni (`crack-sections.xml`), con 1112 regioni confrontate;
   - `Fixtures/crack-scalar-legacy.csv`: 1400 aperture e 1596 requisiti.
 - Ac,eff si ottiene ritagliando il poligono invece che tagliando la mesh di ANTHEA: risultato identico entro 1e-9.
 

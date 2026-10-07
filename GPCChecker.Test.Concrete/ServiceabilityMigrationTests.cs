@@ -20,7 +20,8 @@ namespace ConcreteTests
     /// <summary>
     /// Serviceability stress limits moved from ANTHEA (CheckerSection.DescribeStress, commit fe4652c) to StressLimitCheck.
     /// Fixtures/stress-legacy.csv: 2016 stress states (4 sections from Fixtures/stress-sections.xml, 9 standards, linear/non linear,
-    /// creep, tension, thin casting; characteristic, quasi-permanent and frequent sets).
+    /// creep, tension, thin casting; characteristic, quasi-permanent and frequent sets), captured on 7/10/2026 from ANTHEA
+    /// refactoring/integrazione-d7b-d2 d2d3225 (supporto/test/CheckerMigration.Capture, mode tutte).
     /// </summary>
     [TestClass]
     public class ServiceabilityMigrationTests

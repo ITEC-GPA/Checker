@@ -22,9 +22,13 @@ namespace ConcreteTests
 {
     /// <summary>
     /// Crack control moved from ANTHEA (Ntc2018Checks.Cracking, ConcreteCodeChecks, ConcreteTensionCracking, ConcreteInnerCracking, TensionBarSpacing,
-    /// SectionRegions; commit fe4652c, captured at 4bb8815 with unchanged sources) to GPC.Checkers.Concrete.Cracking.
+    /// SectionRegions; commit fe4652c) to GPC.Checkers.Concrete.Cracking.
     /// Fixtures/crack-legacy.csv: 936 serviceability states on the 6 sections of Fixtures/crack-sections.xml (7 standards, rotating exposure,
     /// sensitivity, duration, bond and overrides); Fixtures/crack-scalar-legacy.csv: 1400 crack widths and the whole requirement table.
+    /// Captured on 7/10/2026 from ANTHEA refactoring/integrazione-d7b-d2 d2d3225 (supporto/test/CheckerMigration.Capture, mode tutte), which
+    /// already applies D7-b (k2 = 0.5 with the neutral axis inside the section), wk = 0 with the neutral axis in the cover, the upper bound of
+    /// eq. (7.14) with the tensile bars outside Ac,eff and the bounded h − x of the inner bands of hollow sections: the current rule reproduces
+    /// every state.
     /// </summary>
     [TestClass]
     public class CrackMigrationTests
@@ -92,7 +96,6 @@ namespace ConcreteTests
                 checkers[key] = checker; return checker;
             }
             int widths = 0, verdicts = 0, regions = 0, errors = 0, coverOnly = 0, unbonded = 0;
-            var effect = new K2Effect(); var innerUniform = new List<string>();
             foreach (var row in rows)
             {
                 var c = row.Split(';'); string id = "state " + c[0] + " " + c[1] + " " + c[2] + " " + c[17] + " " + c[18];
@@ -109,62 +112,25 @@ namespace ConcreteTests
                     errors++; continue;
                 }
                 var concrete = (ConcreteMaterialEuropeanCommon)section.ConcreteMaterial;
-                // The fixtures were captured from ANTHEA before D7-b: k2 from the bar stresses for NTC (no CNR-DT 200 rows). The option acts on NTC and
-                // CNR-DT 200 only, so it is passed for every row; the other profiles are checked below to be identical with the current rule.
-                SectionCrackInput Input(bool legacyK2) => new SectionCrackInput(ServiceabilityMigrationTests.Standard(c[2]), Combination(c[17]), Exposure(c[18]), c[19] == "Sensibile", N(c[24]),
+                var input = new SectionCrackInput(ServiceabilityMigrationTests.Standard(c[2]), Combination(c[17]), Exposure(c[18]), c[19] == "Sensibile", N(c[24]),
                     CrackSectionGeometry.From(section, c[1] == "C1000H"), stress.StrainPlane, SectionCrackInput.OrdinaryBarStresses(stress, section), linear, tension, false,
                     section.Rebars.First().RebarMaterial.E, concrete.Ecm, concrete.Fctm, c[20] == "Breve", c[21] == "Migliorata", Covers[c[1]], N(c[22]), N(c[23]),
-                    () => Checker(c, axes, true, true).GetTensionAnalysisResult(force) is var uncracked ? uncracked.GetConcreteVerticesTension(uncracked.PsiRebar ?? 0).Max(v => v.tension) : 0,
-                    legacyK2);
-                var input = Input(true);
+                    () => Checker(c, axes, true, true).GetTensionAnalysisResult(force) is var uncracked ? uncracked.GetConcreteVerticesTension(uncracked.PsiRebar ?? 0).Max(v => v.tension) : 0);
                 if (c[25] != "ok")
                 {
                     Assert.AreEqual("error:ArgumentException", c[25], id);
                     Assert.ThrowsException<ArgumentException>(() => SectionCrackCheck.Evaluate(input), id + " " + c[30]);
-                    Assert.ThrowsException<ArgumentException>(() => SectionCrackCheck.Evaluate(Input(false)), id + " current rule");
                     errors++; continue;
                 }
                 var r = SectionCrackCheck.Evaluate(input);
-                effect.Add(c, r, SectionCrackCheck.Evaluate(Input(false)), CrackProfiles.IsNtc(Profile(c[2])), id);
                 string status = c[30];
-                if (status.StartsWith("Nessuna armatura tesa"))
-                {
-                    // Neutral axis within the cover: no verdict in ANTHEA, wk = 0 now (the captured sections have bars on every face).
-                    Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, id + " " + r.Status);
-                    Assert.IsTrue(r.Width == 0 && r.Ratio == 0 && r.Passed == true && r.Regions.Count == 0, id + " " + r.Status);
-                    coverOnly++; continue;
-                }
-                if (status.StartsWith("Armatura/area efficace assente"))
-                {
-                    // Tensile bars outside Ac,eff: no verdict in ANTHEA, upper bound of EC2 7.3.4(3), eq. (7.14) now, from h − x and σs of the legacy trace.
-                    var trace = c[36].Split('|').Select(e => e.Split('=')).ToLookup(e => e[0], e => D(e[1]));
-                    double depth = trace["h − x"].Single(), sigma = trace.Where(t => t.Key.EndsWith(" · σs")).SelectMany(t => t).Max();
-                    var profile = Profile(c[2]);
-                    Assert.AreNotEqual(CrackProfile.DinEN1992p11, profile, id);
-                    double beta = profile == CrackProfile.ModelCode2010 ? (c[20] == "Breve" ? .4 : .6) : .6;
-                    double bound = (CrackProfiles.IsNtc(profile) ? 1.7 * .75 : 1.3) * depth * beta * sigma / section.Rebars.First().RebarMaterial.E;
-                    Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, id + " " + r.Status);
-                    Close(bound, r.Width.Value, id + " wk bound"); Close(trace["Ac,eff"].Single(), r.EffectiveArea.Value, id + " Ac,eff");
-                    Assert.AreEqual(bound <= r.Limit.Value, r.Passed, id);
-                    Assert.IsTrue(r.Regions.Count == 1 && r.Regions[0].Key == "TensileZone" && r.Regions[0].BarIndices.Count == 0, id);
-                    unbonded++; continue;
-                }
-                // Fix of 0.0.17.0 (h − x of the inner bands): with a noise gradient (pure axial tension) an inner band is in uniform tension, k2 = 1
-                // instead of (εmin + εmax)/(2 εmax) = 1 − O(1e-8). Its width, and the governing one when the band governs, moves by that k2 only.
-                bool uniformInner = r.Details.Any(d => d.Symbol.EndsWith(" · h − x") && d.Expression.StartsWith("uniform tension"));
-                void Same(double expected, double actual, string what)
-                {
-                    if (!uniformInner || Math.Abs(expected - actual) <= 1e-9 * Math.Max(1, Math.Abs(expected))) { Close(expected, actual, what); return; }
-                    Assert.AreEqual(expected, actual, 1e-6 * Math.Abs(expected), what + " (inner band in uniform tension, k2 = 1)");
-                    innerUniform.Add(what + ": " + expected.ToString("R", CultureInfo.InvariantCulture) + " → " + actual.ToString("R", CultureInfo.InvariantCulture));
-                }
                 var width = N(c[26]);
                 Assert.AreEqual(width.HasValue, r.Width.HasValue, id + " width defined: " + status + " / " + r.Status);
-                if (width.HasValue) { Same(width.Value, r.Width.Value, id + " wk"); widths++; }
+                if (width.HasValue) { Close(width.Value, r.Width.Value, id + " wk"); widths++; }
                 var wlim = N(c[27]);
                 Assert.AreEqual(wlim.HasValue, r.Limit.HasValue, id + " wlim defined"); if (wlim.HasValue) Close(wlim.Value, r.Limit.Value, id + " wlim");
                 var ratio = N(c[28]);
-                Assert.AreEqual(ratio.HasValue, r.Ratio.HasValue, id + " ratio defined: " + status); if (ratio.HasValue) Same(ratio.Value, r.Ratio.Value, id + " ratio");
+                Assert.AreEqual(ratio.HasValue, r.Ratio.HasValue, id + " ratio defined: " + status); if (ratio.HasValue) Close(ratio.Value, r.Ratio.Value, id + " ratio");
                 bool? passed = c[29].Length == 0 ? (bool?)null : bool.Parse(c[29]);
                 Assert.AreEqual(passed, r.Passed, id + " passed: " + status + " / " + r.Status);
                 if (passed.HasValue) verdicts++;
@@ -186,83 +152,25 @@ namespace ConcreteTests
                     Close(D(parts[1]), region.Area, id + " " + region.Key + " area"); Close(D(parts[2]), region.SteelArea, id + " " + region.Key + " steel");
                     var regionWidth = N(parts[3]);
                     Assert.AreEqual(regionWidth.HasValue, region.Width.HasValue, id + " " + region.Key + " width defined");
-                    if (regionWidth.HasValue) Same(regionWidth.Value, region.Width.Value, id + " " + region.Key + " width");
+                    if (regionWidth.HasValue) Close(regionWidth.Value, region.Width.Value, id + " " + region.Key + " width");
                     CollectionAssert.AreEqual(parts[4].Length == 0 ? new int[0] : parts[4].Split('/').Select(int.Parse).ToArray(), region.BarIndices.ToArray(), id + " " + region.Key + " bars");
                     regions++;
                 }
+                // Branches where wk does not come from the bars in Ac,eff: neutral axis in the cover (wk = 0, no region) and tensile bars outside Ac,eff
+                // (upper bound of EN 1992-1-1 7.3.4(3), eq. (7.14), one tensile zone without bars).
+                if (status.StartsWith("Asse neutro nel copriferro"))
+                {
+                    Assert.IsTrue(r.Width == 0 && r.Passed == true && r.Regions.Count == 0, id + " " + r.Status); coverOnly++;
+                }
+                if (status.StartsWith("Nessuna barra in Ac,eff"))
+                {
+                    Assert.IsTrue(r.Regions.Count == 1 && r.Regions[0].Key == "TensileZone" && r.Regions[0].BarIndices.Count == 0, id + " " + r.Status); unbonded++;
+                }
             }
-            // 362 widths (fully compressed included), 347 verdicts, 1104 regions with area, steel, width and bars, 10 legacy errors, 22 neutral axes in the cover,
+            // 392 widths (fully compressed included), 377 verdicts, 1112 regions with area, steel, width and bars, 10 legacy errors, 22 neutral axes in the cover,
             // 8 tensile zones without bars in Ac,eff.
-            Assert.AreEqual(362, widths); Assert.AreEqual(347, verdicts); Assert.AreEqual(1104, regions); Assert.AreEqual(10, errors); Assert.AreEqual(22, coverOnly);
+            Assert.AreEqual(392, widths); Assert.AreEqual(377, verdicts); Assert.AreEqual(1112, regions); Assert.AreEqual(10, errors); Assert.AreEqual(22, coverOnly);
             Assert.AreEqual(8, unbonded);
-            Console.WriteLine("Inner bands in uniform tension (0.0.17.0), values changed by k2 = 1:\n  " + string.Join("\n  ", innerUniform));
-            // C1000H under N = 300 kN alone (noise gradient): the inner ring changes by 2.8e-8 relative, beyond 1e-9 in three values; it governs only
-            // in state 706 (ratio), verdicts unchanged.
-            CollectionAssert.AreEqual(new[] { "state 639 C1000H NTC 2018 SLE_QP XC3 InnerRing width", "state 706 C1000H UNI EN 1992-1-1 SLE_FREQ XD3 ratio",
-                "state 707 C1000H UNI EN 1992-1-1 SLE_QP XC2 InnerRing width" }, innerUniform.Select(s => s.Substring(0, s.IndexOf(':'))).ToArray(), string.Join("\n", innerUniform));
-            Console.WriteLine(effect.Report());
-            // D7-b on the frozen grid: every captured section has bars on all faces, so a compressed bar exists in all the bent NTC states but one
-            // (state 796, R400x400, N = 400 kN tension with biaxial bending: all the bars tensile, the neutral axis cuts off a compressed corner;
-            // wk 0.608 → 0.360 mm, still beyond wlim = 0.3 mm). Entirely compressed states have no k2 in either rule.
-            Assert.AreEqual(926, effect.States); Assert.AreEqual(750, effect.Other); Assert.AreEqual(176, effect.Ntc); Assert.AreEqual(67, effect.Compressed);
-            Assert.AreEqual(1, effect.K2Changed); Assert.AreEqual(1, effect.WidthChanged); Assert.AreEqual(0, effect.WidthChangedWithoutK2); Assert.AreEqual(0, effect.VerdictChanged);
-        }
-
-        /// <summary>D7-b on the frozen states: legacy rule (fixtures) against the current rule, k2 = 0.5 whenever the neutral axis is inside the section.</summary>
-        private sealed class K2Effect
-        {
-            public int States, Other, Ntc, Compressed, K2Changed, WidthChanged, WidthChangedWithoutK2, VerdictChanged, FailedToPassed;
-            public readonly List<double> Relative = new List<double>();
-            public readonly List<string> Changes = new List<string>();
-            public readonly SortedDictionary<string, int[]> BySection = new SortedDictionary<string, int[]>();
-
-            public void Add(string[] c, SectionCrackResult legacy, SectionCrackResult current, bool ntc, string id)
-            {
-                States++;
-                Assert.AreEqual(legacy.Outcome, current.Outcome, id + " outcome");
-                Assert.AreEqual(legacy.Regions.Count, current.Regions.Count, id + " regions");
-                if (legacy.Status.StartsWith("Section entirely compressed"))
-                {
-                    Compressed++;
-                    Assert.IsTrue(legacy.K2 == null && current.K2 == null && legacy.Width == 0 && current.Width == 0 && current.Passed == true, id + " compressed");
-                    Assert.IsFalse(current.Details.Any(d => d.Symbol == "k2"), id + " compressed: no k2 in the trace");
-                }
-                if (!ntc)
-                {
-                    Other++;
-                    Assert.AreEqual(legacy.Width, current.Width, id + " wk"); Assert.AreEqual(legacy.Ratio, current.Ratio, id + " ratio");
-                    Assert.AreEqual(legacy.Passed, current.Passed, id + " passed"); Assert.AreEqual(legacy.K2, current.K2, id + " k2"); Assert.AreEqual(legacy.Status, current.Status, id);
-                    return;
-                }
-                Ntc++;
-                if (!BySection.TryGetValue(c[1], out var counts)) BySection[c[1]] = counts = new int[4];
-                counts[0]++;
-                bool k2 = legacy.K2.HasValue && current.K2.HasValue && legacy.K2.Value != current.K2.Value;
-                if (k2) { K2Changed++; counts[1]++; Assert.IsTrue(legacy.K2 == 1 && current.K2 == .5, id + " k2 " + legacy.K2 + " → " + current.K2); }
-                if (legacy.Width.HasValue && current.Width.HasValue && legacy.Width.Value != current.Width.Value)
-                {
-                    WidthChanged++; counts[2]++; if (!k2) WidthChangedWithoutK2++;
-                    Assert.IsTrue(current.Width < legacy.Width, id + " wk must decrease");
-                    if (legacy.Width > 0) Relative.Add(current.Width.Value / legacy.Width.Value - 1);
-                    Changes.Add(string.Format(CultureInfo.InvariantCulture, "{0}: k2 {1} -> {2}, wk {3:0.#####} -> {4:0.#####} mm, wlim {5}, {6}", id, legacy.K2, current.K2,
-                        legacy.Width, current.Width, legacy.Limit, current.Status));
-                }
-                if (legacy.Passed != current.Passed) { VerdictChanged++; counts[3]++; if (legacy.Passed == false && current.Passed == true) FailedToPassed++; }
-            }
-
-            public string Report()
-            {
-                var s = new StringBuilder();
-                s.AppendLine("D7-b effect on Fixtures/crack-legacy.csv (states evaluated without exception): " + States);
-                s.AppendLine("  other profiles (identical): " + Other + "; NTC 2018: " + Ntc + "; entirely compressed (k2 null in both rules): " + Compressed);
-                s.AppendLine("  NTC k2 1.0 -> 0.5: " + K2Changed + "; wk changed: " + WidthChanged + " (without k2 change: " + WidthChangedWithoutK2 + ")");
-                if (Relative.Count > 0)
-                    s.AppendLine(string.Format(CultureInfo.InvariantCulture, "  wk current/legacy - 1 over {0} states: min {1:P2}, max {2:P2}, mean {3:P2}", Relative.Count, Relative.Min(), Relative.Max(), Relative.Average()));
-                s.AppendLine("  verdict changed: " + VerdictChanged + " (not satisfied with the legacy rule, satisfied now: " + FailedToPassed + ")");
-                foreach (var change in Changes) s.AppendLine("  " + change);
-                foreach (var kv in BySection) s.AppendLine("  " + kv.Key + ": NTC states " + kv.Value[0] + ", k2 changed " + kv.Value[1] + ", wk changed " + kv.Value[2] + ", verdict changed " + kv.Value[3]);
-                return s.ToString();
-            }
         }
 
         /// <summary>Partially compressed 300×500, bars Ø20 at 50 mm from the edges: neutral axis 20 mm from the bottom edge, inside the cover.</summary>

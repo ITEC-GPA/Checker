@@ -10,9 +10,9 @@ using System.Text;
 namespace ConcreteTests
 {
     /// <summary>
-    /// Durability and covers moved from ANTHEA (Materiali.Durability, NtcCover, MinimumConcrete, AtecapMix; commit fe4652c, captured at dc8415a with unchanged
-    /// sources). Fixtures/durability-legacy.csv: EC2 4.4N and NTC covers on 24 exposure combinations × 7 strengths × 6 option sets, UNI 11104 minimum classes
-    /// and mix limits.
+    /// Durability and covers moved from ANTHEA (Materiali.Durability, NtcCover, MinimumConcrete, AtecapMix; commit fe4652c).
+    /// Fixtures/durability-legacy.csv: EC2 4.4N and NTC covers on 24 exposure combinations × 7 strengths × 6 option sets, UNI 11104 minimum classes
+    /// and mix limits, captured on 7/10/2026 from ANTHEA refactoring/integrazione-d7b-d2 d2d3225 (supporto/test/CheckerMigration.Capture, mode tutte).
     /// </summary>
     [TestClass]
     public class DurabilityMigrationTests

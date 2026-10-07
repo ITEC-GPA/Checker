@@ -12,7 +12,8 @@ namespace ConcreteTests
 {
     /// <summary>
     /// Shear core moved from ANTHEA (ConcreteCodeChecks.Shear / Ntc2018Checks.Shear, commit fe4652c) to GPCChecker.Concrete.
-    /// Fixtures/shear-legacy.csv freezes 2016 legacy cases (7 standards, grid + seeded random); hand calculations check the formulas.
+    /// Fixtures/shear-legacy.csv freezes 2016 legacy cases (7 standards, grid + seeded random), captured on 7/10/2026 from ANTHEA
+    /// refactoring/integrazione-d7b-d2 d2d3225 (supporto/test/CheckerMigration.Capture, mode tutte); hand calculations check the formulas.
     /// Legacy units kN/kNm are converted to N/Nmm; resistances are compared in kN.
     /// </summary>
     [TestClass]
