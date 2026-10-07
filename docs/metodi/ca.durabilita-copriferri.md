@@ -82,7 +82,7 @@ classe minima di resistenza della sezione.
 | a/c massimo, classe minima, cemento minimo, aria minima per esposizione | UNI EN 206-1 | 2006 | appendice F | prospetto F.1 (informativo) | testo |
 | a/c, classe minima, cemento, aria per XF2-XF4: valori del codice | UNI 11104 | 2016 (documentazione ATECAP 2020) | prospetto dei valori limite | — | fonte secondaria (riquadro C-1) |
 | Classe minima C28/35 per XC3, XD1, XF4 e XA1 | UNI 11104 | 2004 (ritirata) | prospetto 4 | — | fonte secondaria |
-| Classe minima C30/37 per XC3, XD1, XF4 e XA1 | UNI 11104 | 2025 (in vigore dal 24/07/2025) | prospetto 6 | — | estratto; le altre classi da riscontrare |
+| Classe minima C30/37 per XC3, XD1, XF4 e XA1 | UNI 11104 | 2025 (in vigore dal 24/07/2025) | prospetto 6 | — | fonte secondaria (estratto); le altre classi da riscontrare |
 | Membratura in c.a. secondo NTC | CNR-DT 200 | R1/2013 | — | — | da riscontrare |
 
 ## 4. Ipotesi
