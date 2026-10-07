@@ -92,7 +92,7 @@ namespace ConcreteTests
                 checkers[key] = checker; return checker;
             }
             int widths = 0, verdicts = 0, regions = 0, errors = 0, coverOnly = 0, unbonded = 0;
-            var effect = new K2Effect();
+            var effect = new K2Effect(); var innerUniform = new List<string>();
             foreach (var row in rows)
             {
                 var c = row.Split(';'); string id = "state " + c[0] + " " + c[1] + " " + c[2] + " " + c[17] + " " + c[18];
@@ -149,13 +149,22 @@ namespace ConcreteTests
                     Assert.IsTrue(r.Regions.Count == 1 && r.Regions[0].Key == "TensileZone" && r.Regions[0].BarIndices.Count == 0, id);
                     unbonded++; continue;
                 }
+                // Fix of 0.0.17.0 (h − x of the inner bands): with a noise gradient (pure axial tension) an inner band is in uniform tension, k2 = 1
+                // instead of (εmin + εmax)/(2 εmax) = 1 − O(1e-8). Its width, and the governing one when the band governs, moves by that k2 only.
+                bool uniformInner = r.Details.Any(d => d.Symbol.EndsWith(" · h − x") && d.Expression.StartsWith("uniform tension"));
+                void Same(double expected, double actual, string what)
+                {
+                    if (!uniformInner || Math.Abs(expected - actual) <= 1e-9 * Math.Max(1, Math.Abs(expected))) { Close(expected, actual, what); return; }
+                    Assert.AreEqual(expected, actual, 1e-6 * Math.Abs(expected), what + " (inner band in uniform tension, k2 = 1)");
+                    innerUniform.Add(what + ": " + expected.ToString("R", CultureInfo.InvariantCulture) + " → " + actual.ToString("R", CultureInfo.InvariantCulture));
+                }
                 var width = N(c[26]);
                 Assert.AreEqual(width.HasValue, r.Width.HasValue, id + " width defined: " + status + " / " + r.Status);
-                if (width.HasValue) { Close(width.Value, r.Width.Value, id + " wk"); widths++; }
+                if (width.HasValue) { Same(width.Value, r.Width.Value, id + " wk"); widths++; }
                 var wlim = N(c[27]);
                 Assert.AreEqual(wlim.HasValue, r.Limit.HasValue, id + " wlim defined"); if (wlim.HasValue) Close(wlim.Value, r.Limit.Value, id + " wlim");
                 var ratio = N(c[28]);
-                Assert.AreEqual(ratio.HasValue, r.Ratio.HasValue, id + " ratio defined: " + status); if (ratio.HasValue) Close(ratio.Value, r.Ratio.Value, id + " ratio");
+                Assert.AreEqual(ratio.HasValue, r.Ratio.HasValue, id + " ratio defined: " + status); if (ratio.HasValue) Same(ratio.Value, r.Ratio.Value, id + " ratio");
                 bool? passed = c[29].Length == 0 ? (bool?)null : bool.Parse(c[29]);
                 Assert.AreEqual(passed, r.Passed, id + " passed: " + status + " / " + r.Status);
                 if (passed.HasValue) verdicts++;
@@ -177,7 +186,7 @@ namespace ConcreteTests
                     Close(D(parts[1]), region.Area, id + " " + region.Key + " area"); Close(D(parts[2]), region.SteelArea, id + " " + region.Key + " steel");
                     var regionWidth = N(parts[3]);
                     Assert.AreEqual(regionWidth.HasValue, region.Width.HasValue, id + " " + region.Key + " width defined");
-                    if (regionWidth.HasValue) Close(regionWidth.Value, region.Width.Value, id + " " + region.Key + " width");
+                    if (regionWidth.HasValue) Same(regionWidth.Value, region.Width.Value, id + " " + region.Key + " width");
                     CollectionAssert.AreEqual(parts[4].Length == 0 ? new int[0] : parts[4].Split('/').Select(int.Parse).ToArray(), region.BarIndices.ToArray(), id + " " + region.Key + " bars");
                     regions++;
                 }
@@ -186,6 +195,11 @@ namespace ConcreteTests
             // 8 tensile zones without bars in Ac,eff.
             Assert.AreEqual(362, widths); Assert.AreEqual(347, verdicts); Assert.AreEqual(1104, regions); Assert.AreEqual(10, errors); Assert.AreEqual(22, coverOnly);
             Assert.AreEqual(8, unbonded);
+            Console.WriteLine("Inner bands in uniform tension (0.0.17.0), values changed by k2 = 1:\n  " + string.Join("\n  ", innerUniform));
+            // C1000H under N = 300 kN alone (noise gradient): the inner ring changes by 2.8e-8 relative, beyond 1e-9 in three values; it governs only
+            // in state 706 (ratio), verdicts unchanged.
+            CollectionAssert.AreEqual(new[] { "state 639 C1000H NTC 2018 SLE_QP XC3 InnerRing width", "state 706 C1000H UNI EN 1992-1-1 SLE_FREQ XD3 ratio",
+                "state 707 C1000H UNI EN 1992-1-1 SLE_QP XC2 InnerRing width" }, innerUniform.Select(s => s.Substring(0, s.IndexOf(':'))).ToArray(), string.Join("\n", innerUniform));
             Console.WriteLine(effect.Report());
             // D7-b on the frozen grid: every captured section has bars on all faces, so a compressed bar exists in all the bent NTC states but one
             // (state 796, R400x400, N = 400 kN tension with biaxial bending: all the bars tensile, the neutral axis cuts off a compressed corner;
@@ -501,6 +515,82 @@ namespace ConcreteTests
                 Assert.AreEqual(r.Ratio, legacy.Ratio, what); Assert.AreEqual(r.Passed, legacy.Passed, what); Assert.AreEqual(r.K2, legacy.K2, what);
                 Assert.AreEqual(Trace(r), Trace(legacy).Replace("legacy rule (before D7-b): 0.5 with a compressed bar, 1.0 otherwise", BendingK2), what);
             }
+        }
+
+        /// <summary>
+        /// (h) Tensile depth h − x of the inner bands (fix of 0.0.17.0). Box 400×600, hole 200×400, 4Ø20 at y = ±250 and 3Ø20 at x = ±150 (y = 0, ±100),
+        /// spacing assigned 300 mm &gt; 5 (c + Ø/2) = 250 mm, so sr,max = 1.3 (h − x) (EN 1992-1-1 7.3.4(3), eq. (7.14)) and NTC Δsm,far = 0.75 (h − x) govern.
+        /// Bands: ±y walls 200 × 50 (2Ø20, c = 40), ±x walls 50 × 400 (3Ø20, c = 40). Before the fix h − x was εmax/|∇ε| also for a noise gradient
+        /// (1e-12 1/mm: h − x = 5e8 mm, wk ≈ 1e5 mm) and Max(B, H) for a zero gradient.
+        /// Noise or zero gradient: uniform tension, k2 = 1, h − x = h of the section normal to the face (600 for ±y, 400 for ±x).
+        /// Eccentric tension, ε = 2e-4 − 1e-6 (y − 250): neutral axis at y = 450, outside; h − x = min(εmax/|∇ε|; 600): −y band 700 → 600, ±x bands 650 → 600,
+        /// +y band 250 (unchanged, no trace entry). Bending with the neutral axis inside: no h − x entry, nothing changes.
+        /// </summary>
+        [TestMethod]
+        public void HollowSectionInnerBandsHaveABoundedTensileDepth()
+        {
+            var box = new[] { new Point2d(-200, -300), new Point2d(200, -300), new Point2d(200, 300), new Point2d(-200, 300) };
+            var hole = new[] { new Point2d(-100, -200), new Point2d(100, -200), new Point2d(100, 200), new Point2d(-100, 200) };
+            var bars = new[] { -150d, -50, 50, 150 }.SelectMany(x => new[] { new CrackBar(x, -250, 20, Math.PI * 100), new CrackBar(x, 250, 20, Math.PI * 100) })
+                .Concat(new[] { -100d, 0, 100 }.SelectMany(y => new[] { new CrackBar(-150, y, 20, Math.PI * 100), new CrackBar(150, y, 20, Math.PI * 100) })).ToArray();
+            SectionCrackResult Hollow(Standard standard, string exposure, StrainPlane plane) => SectionCrackCheck.Evaluate(new SectionCrackInput(standard, ServiceabilityCombination.QuasiPermanent,
+                exposure, false, null, new CrackSectionGeometry(box, new[] { hole }, bars, CrackBarLayout.Rows), plane, bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false,
+                200000, 33000, 2.9, false, true, 40, spacingOverride: 300));
+            var walls = new[] { Tuple.Create("InnerWall+x", 20000d, 3), Tuple.Create("InnerWall-x", 20000d, 3), Tuple.Create("InnerWall+y", 10000d, 2), Tuple.Create("InnerWall-y", 10000d, 2) };
+            GPC.Checkers.Concrete.Shear.ShearCalculationDetail Entry(SectionCrackResult r, string wall, string symbol) => r.Details.SingleOrDefault(d => d.Symbol == wall + " · " + symbol);
+            double BandStress(StrainPlane plane, string wall)
+            {
+                Func<CrackBar, bool> inBand = wall == "InnerWall+x" ? b => b.X == 150 && Math.Abs(b.Y) <= 100 : wall == "InnerWall-x" ? b => b.X == -150 && Math.Abs(b.Y) <= 100
+                    : wall == "InnerWall+y" ? b => b.Y == 250 && Math.Abs(b.X) == 50 : (Func<CrackBar, bool>)(b => b.Y == -250 && Math.Abs(b.X) == 50);
+                return bars.Where(inBand).Max(b => 200000 * plane.GetStrain(b.X, b.Y));
+            }
+            // Hand calculation of the band width with the given h − x and k2 (EN 7.3.4 with sr,max = 1.3 (h − x); NTC C4.1.2.2.4.5 with Δsm = max(near; 0.75 (h − x))).
+            double Hand(bool ntc, double sigma, double area, int count, double depth, double k2)
+            {
+                double rho = count * Math.PI * 100 / area, strain = Math.Max(.6 * sigma / 200000, (sigma - .4 * 2.9 / rho * (1 + 200000 / 33000.0 * rho)) / 200000);
+                return ntc ? 1.7 * Math.Max((3.4 * 40 + .8 * k2 * .425 * 20 / rho) / 1.7, .75 * depth) * strain : 1.3 * depth * strain;
+            }
+            var standards = new[] { Tuple.Create(Ntc, "XC1", true), Tuple.Create((Standard)ServiceabilityMigrationTests.Standard("EN 1992-1-1"), "XC3", false) };
+            int checks = 0;
+            foreach (var plane in new[] { new StrainPlane(3e-13, -9.5e-13, new Point2d(0, 0), 5e-4), new StrainPlane(0, 0, new Point2d(0, 0), 5e-4) })
+                foreach (var s in standards)
+                {
+                    var r = Hollow(s.Item1, s.Item2, plane); string what = s.Item1.GetType().Name + " χ = " + plane.ChiX + "/" + plane.ChiY;
+                    Assert.IsTrue(r.Regions.Any(g => g.Key == "Face+x"), what + ": entirely tensile branch\n" + Trace(r));
+                    Assert.IsTrue(r.Width.Value < 1, what + ": wk = " + r.Width + " mm\n" + Trace(r));
+                    foreach (var wall in walls)
+                    {
+                        double h = wall.Item1.EndsWith("x") ? 400 : 600;
+                        var depth = Entry(r, wall.Item1, "h − x");
+                        Assert.IsNotNull(depth, what + " " + wall.Item1 + "\n" + Trace(r));
+                        Assert.AreEqual(h, depth.Value, what + " " + wall.Item1); StringAssert.StartsWith(depth.Expression, "uniform tension", what);
+                        Assert.AreEqual(1, Entry(r, wall.Item1, "k2").Value, what + " " + wall.Item1 + ": k2 = 1");
+                        Assert.AreEqual(Hand(s.Item3, BandStress(plane, wall.Item1), wall.Item2, wall.Item3, h, 1), Entry(r, wall.Item1, "wk").Value, 1e-12, what + " " + wall.Item1 + " wk by hand");
+                        checks++;
+                    }
+                }
+            var eccentric = new StrainPlane(0, -1e-6, new Point2d(0, 250), 2e-4);
+            foreach (var s in standards)
+            {
+                var r = Hollow(s.Item1, s.Item2, eccentric); string what = s.Item1.GetType().Name + " eccentric";
+                Assert.IsTrue(r.Regions.Any(g => g.Key == "Face+x"), what + ": entirely tensile branch\n" + Trace(r));
+                foreach (var wall in walls)
+                {
+                    var depth = Entry(r, wall.Item1, "h − x"); double expected = wall.Item1 == "InnerWall+y" ? 250 : 600;
+                    if (wall.Item1 == "InnerWall+y") Assert.IsNull(depth, what + ": +y band within the section, no entry");
+                    else { Assert.AreEqual(600, depth.Value, 1e-9, what + " " + wall.Item1); StringAssert.StartsWith(depth.Expression, "min[εmax/|∇ε| = " + (wall.Item1 == "InnerWall-y" ? "700" : "650"), what); }
+                    double k2 = Entry(r, wall.Item1, "k2").Value, sigma = BandStress(eccentric, wall.Item1);
+                    double bandMin = wall.Item1 == "InnerWall-y" ? 6.5e-4 : wall.Item1 == "InnerWall+y" ? 2e-4 : 2.5e-4, bandMax = wall.Item1 == "InnerWall-y" ? 7e-4 : wall.Item1 == "InnerWall+y" ? 2.5e-4 : 6.5e-4;
+                    Assert.AreEqual((bandMin + bandMax) / (2 * bandMax), k2, 1e-12, what + " " + wall.Item1 + " k2 of the band");
+                    Assert.AreEqual(Hand(s.Item3, sigma, wall.Item2, wall.Item3, expected, k2), Entry(r, wall.Item1, "wk").Value, 1e-12, what + " " + wall.Item1 + " wk by hand");
+                    checks++;
+                }
+            }
+            // Bending, neutral axis at y = 0 inside the section: no inner band gets an h − x entry (the depth stays εmax/|∇ε|).
+            var bending = Hollow(Ntc, "XC1", new StrainPlane(0, -4e-6, new Point2d(0, 0), 0));
+            Assert.IsFalse(bending.Details.Any(d => d.Symbol.StartsWith("InnerWall") && d.Symbol.EndsWith("· h − x")), Trace(bending));
+            Assert.AreEqual(Hand(true, 200, 10000, 2, 250, .9), Entry(bending, "InnerWall-y", "wk").Value, 1e-12, "bending: −y band with h − x = 250 mm from the neutral axis");
+            Assert.AreEqual(4 * 4 + 2 * 4, checks);
         }
 
         private static CrackProfile Profile(string name) => CrackProfiles.Resolve(ServiceabilityMigrationTests.Standard(name));
