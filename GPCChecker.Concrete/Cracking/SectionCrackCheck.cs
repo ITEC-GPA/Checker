@@ -142,8 +142,9 @@ namespace GPC.Checkers.Concrete.Cracking
     /// of EC2 7.3.4(3), eq. (7.14) with sr,max from (h − x). Entirely tensile sections: independent faces (±x, ±y or radial for circles), never summed;
     /// DS adds the coarse system with the whole section (DK NA 7.3.4(1)). Hollow sections: inner walls or ring checked independently, each with the k2 of
     /// its own tensile band, (εmax + max(0, εmin))/(2 εmax), for every profile and also when the neutral axis cuts the section (local area, EN 7.3.4(3));
-    /// their h − x is εmax/|∇ε| bounded by the height of the section along the gradient, and with a negligible gradient uniform tension (k2 = 1,
-    /// h − x = h of the section normal to the face), see <see cref="UniformTensionTolerance"/> (0.0.17.0).
+    /// their h − x is εmax/|∇ε|, bounded in an entirely tensile section by the height of the section normal to the face of the band (diameter for the
+    /// ring), as for the outer faces, and with a negligible gradient uniform tension (k2 = 1, h − x = the same height), see
+    /// <see cref="UniformTensionTolerance"/> (0.0.17.0).
     /// Fixtures: GPCChecker.Test.Concrete/Fixtures/crack-legacy.csv.
     /// </summary>
     public static class SectionCrackCheck
@@ -356,14 +357,18 @@ namespace GPC.Checkers.Concrete.Cracking
             if (g.Holes.SelectMany(h => h).Max(E) <= 1e-12) { var compressed = outer.Copy(); compressed.Status += " · inner outline compressed"; return compressed; }
             var details = outer.Details.ToList(); var regions = outer.Regions.ToList();
             var results = new List<SectionCrackResult> { outer };
-            // Tensile depth h − x of a band (EN 1992-1-1 7.3.4(3), eq. (7.14)): εmax/|∇ε| from the neutral axis, never beyond the height h of the
-            // section along the gradient (x ≥ 0), as for the faces of an entirely tensile section. A gradient negligible against the strain
-            // (solver noise, about 1e-15…1e-12 1/mm) has no direction: uniform tension, whole band, k2 = 1, h − x = h of the section normal to the face.
-            // Before 0.0.17.0 εmax/|∇ε| was used unbounded (about 1e12 mm with a noise gradient).
+            // Tensile depth h − x of a band (EN 1992-1-1 7.3.4(3), eq. (7.14)): εmax/|∇ε| from the neutral axis. Neutral axis inside the section:
+            // εmax/|∇ε| does not exceed the height of the section along the gradient (the min only guards rounding). Neutral axis outside (entirely
+            // tensile section, the same test as Evaluate): x = 0 and h − x is bounded by the height h of the section normal to the face of the band
+            // (diameter for the ring), the h of the faces of an entirely tensile section (FullyTensioned). A gradient negligible against the strain
+            // (solver noise, about 1e-15…1e-12 1/mm) has no direction: uniform tension, whole band, k2 = 1, h − x = that same h, so the general rule
+            // tends to the uniform one as the gradient vanishes, also in non-square sections. Before 0.0.17.0 εmax/|∇ε| was used unbounded (about
+            // 1e12 mm with a noise gradient).
             double gradient = CrackSectionGeometry.Hypot(plane.ChiX, plane.ChiY);
             double gx = gradient > 0 ? plane.ChiX / gradient : 0, gy = gradient > 0 ? plane.ChiY / gradient : 0;
             double sectionAlongGradient = g.Outline.Max(v => gx * v.X + gy * v.Y) - g.Outline.Min(v => gx * v.X + gy * v.Y);
             bool uniform = gradient < 1e-15 || gradient * sectionAlongGradient <= UniformTensionTolerance * g.Outline.Max(E);
+            bool entirelyTensile = g.Outline.Concat(g.Holes.SelectMany(h => h)).Min(E) >= 0;
             IReadOnlyList<Point2d> Tension(IReadOnlyList<Point2d> polygon)
                 => uniform ? polygon : CrackSectionGeometry.Clip(polygon, gx, gy, -plane.GetStrain(0, 0) / gradient);
             void Check(string key, IReadOnlyList<Point2d> outline, IEnumerable<IReadOnlyList<Point2d>> holes, int[] indices, Func<CrackBar, double> cover, double effectiveDepth,
@@ -392,13 +397,16 @@ namespace GPC.Checkers.Concrete.Cracking
                 var strains = polygon.Select(E).ToArray();
                 double k2 = uniform ? 1 : strains.Max() > 0 ? Math.Min(1, Math.Max(.5, (Math.Max(0, strains.Min()) + strains.Max()) / (2 * strains.Max()))) : 1;
                 double fromNeutralAxis = uniform ? double.PositiveInfinity : strains.Max() / gradient;
-                double depth = uniform ? uniformDepth : Math.Min(fromNeutralAxis, sectionAlongGradient);
+                double bound = entirelyTensile ? uniformDepth : sectionAlongGradient;
+                double depth = uniform ? uniformDepth : Math.Min(fromNeutralAxis, bound);
                 var trace = new List<ShearCalculationDetail> { new ShearCalculationDetail("hc,eff", effectiveDepth, "mm", "band of the inner wall / ring, at most half the thickness") };
                 // Written only where the bound acts, so that the trace of the other cases is unchanged.
                 if (uniform) trace.Add(new ShearCalculationDetail("h − x", depth, "mm", "uniform tension (|∇ε| h ≤ " + UniformTensionTolerance.ToString("G1", CultureInfo.InvariantCulture)
                     + " εmax): h of the section normal to the face, whole band tensile, k2 = 1 (EN 1992-1-1 7.3.4(3), eq. (7.14))"));
-                else if (fromNeutralAxis > sectionAlongGradient) trace.Add(new ShearCalculationDetail("h − x", depth, "mm", "min[εmax/|∇ε| = "
-                    + fromNeutralAxis.ToString("G6", CultureInfo.InvariantCulture) + " mm; h along the gradient]: neutral axis outside the section, x = 0 (EN 1992-1-1 7.3.4(3), eq. (7.14))"));
+                else if (fromNeutralAxis > bound) trace.Add(new ShearCalculationDetail("h − x", depth, "mm", "min[εmax/|∇ε| = "
+                    + fromNeutralAxis.ToString("G6", CultureInfo.InvariantCulture) + (entirelyTensile
+                        ? " mm; h of the section normal to the face]: entirely tensile section, neutral axis outside, x = 0, as for the outer faces (EN 1992-1-1 7.3.4(3), eq. (7.14))"
+                        : " mm; h along the gradient]: x = 0 (EN 1992-1-1 7.3.4(3), eq. (7.14))")));
                 double width = CrackWidthCalculator.Width(profile, new CrackWidthInput(sigma, p.Es, p.Ecm, p.Fctm, steel / area, phi, c, spacing.Value, depth, p.ShortTerm, p.RibbedBars, k2), trace);
                 details.Add(new ShearCalculationDetail(key + " · Ac,eff", area, "mm2", "tensile band of the inner surface, hole excluded"));
                 details.Add(new ShearCalculationDetail(key + " · As,eff", steel, "mm2", indices.Length + " bars"));

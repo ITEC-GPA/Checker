@@ -431,34 +431,16 @@ namespace ConcreteTests
         /// Bands: ±y walls 200 × 50 (2Ø20, c = 40), ±x walls 50 × 400 (3Ø20, c = 40). Before the fix h − x was εmax/|∇ε| also for a noise gradient
         /// (1e-12 1/mm: h − x = 5e8 mm, wk ≈ 1e5 mm) and Max(B, H) for a zero gradient.
         /// Noise or zero gradient: uniform tension, k2 = 1, h − x = h of the section normal to the face (600 for ±y, 400 for ±x).
-        /// Eccentric tension, ε = 2e-4 − 1e-6 (y − 250): neutral axis at y = 450, outside; h − x = min(εmax/|∇ε|; 600): −y band 700 → 600, ±x bands 650 → 600,
-        /// +y band 250 (unchanged, no trace entry). Bending with the neutral axis inside: no h − x entry, nothing changes.
+        /// Eccentric tension, ε = 2e-4 − 1e-6 (y − 250): neutral axis at y = 450, outside; h − x = min(εmax/|∇ε|; h of the section normal to the face),
+        /// the h of the outer faces: −y band 700 → 600, ±x bands 650 → 400, +y band 250 (unchanged, no trace entry). Bending with the neutral axis
+        /// inside: no h − x entry, nothing changes. Continuity at the uniform-tension threshold: <see cref="HollowSectionInnerBandDepthIsContinuousAtTheUniformThreshold"/>.
         /// </summary>
         [TestMethod]
         public void HollowSectionInnerBandsHaveABoundedTensileDepth()
         {
-            var box = new[] { new Point2d(-200, -300), new Point2d(200, -300), new Point2d(200, 300), new Point2d(-200, 300) };
-            var hole = new[] { new Point2d(-100, -200), new Point2d(100, -200), new Point2d(100, 200), new Point2d(-100, 200) };
-            var bars = new[] { -150d, -50, 50, 150 }.SelectMany(x => new[] { new CrackBar(x, -250, 20, Math.PI * 100), new CrackBar(x, 250, 20, Math.PI * 100) })
-                .Concat(new[] { -100d, 0, 100 }.SelectMany(y => new[] { new CrackBar(-150, y, 20, Math.PI * 100), new CrackBar(150, y, 20, Math.PI * 100) })).ToArray();
-            SectionCrackResult Hollow(Standard standard, string exposure, StrainPlane plane) => SectionCrackCheck.Evaluate(new SectionCrackInput(standard, ServiceabilityCombination.QuasiPermanent,
-                exposure, false, null, new CrackSectionGeometry(box, new[] { hole }, bars, CrackBarLayout.Rows), plane, bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false,
-                200000, 33000, 2.9, false, true, 40, spacingOverride: 300));
-            var walls = new[] { Tuple.Create("InnerWall+x", 20000d, 3), Tuple.Create("InnerWall-x", 20000d, 3), Tuple.Create("InnerWall+y", 10000d, 2), Tuple.Create("InnerWall-y", 10000d, 2) };
-            GPC.Checkers.Concrete.Shear.ShearCalculationDetail Entry(SectionCrackResult r, string wall, string symbol) => r.Details.SingleOrDefault(d => d.Symbol == wall + " · " + symbol);
-            double BandStress(StrainPlane plane, string wall)
-            {
-                Func<CrackBar, bool> inBand = wall == "InnerWall+x" ? b => b.X == 150 && Math.Abs(b.Y) <= 100 : wall == "InnerWall-x" ? b => b.X == -150 && Math.Abs(b.Y) <= 100
-                    : wall == "InnerWall+y" ? b => b.Y == 250 && Math.Abs(b.X) == 50 : (Func<CrackBar, bool>)(b => b.Y == -250 && Math.Abs(b.X) == 50);
-                return bars.Where(inBand).Max(b => 200000 * plane.GetStrain(b.X, b.Y));
-            }
-            // Hand calculation of the band width with the given h − x and k2 (EN 7.3.4 with sr,max = 1.3 (h − x); NTC C4.1.2.2.4.5 with Δsm = max(near; 0.75 (h − x))).
-            double Hand(bool ntc, double sigma, double area, int count, double depth, double k2)
-            {
-                double rho = count * Math.PI * 100 / area, strain = Math.Max(.6 * sigma / 200000, (sigma - .4 * 2.9 / rho * (1 + 200000 / 33000.0 * rho)) / 200000);
-                return ntc ? 1.7 * Math.Max((3.4 * 40 + .8 * k2 * .425 * 20 / rho) / 1.7, .75 * depth) * strain : 1.3 * depth * strain;
-            }
-            var standards = new[] { Tuple.Create(Ntc, "XC1", true), Tuple.Create((Standard)ServiceabilityMigrationTests.Standard("EN 1992-1-1"), "XC3", false) };
+            var walls = InnerWalls; var standards = InnerStandards;
+            Func<Standard, string, StrainPlane, SectionCrackResult> Hollow = HollowBox; Func<SectionCrackResult, string, string, GPC.Checkers.Concrete.Shear.ShearCalculationDetail> Entry = BandEntry;
+            Func<StrainPlane, string, double> BandStress = HollowBandStress; Func<bool, double, double, int, double, double, double> Hand = HollowBandHand;
             int checks = 0;
             foreach (var plane in new[] { new StrainPlane(3e-13, -9.5e-13, new Point2d(0, 0), 5e-4), new StrainPlane(0, 0, new Point2d(0, 0), 5e-4) })
                 foreach (var s in standards)
@@ -484,9 +466,13 @@ namespace ConcreteTests
                 Assert.IsTrue(r.Regions.Any(g => g.Key == "Face+x"), what + ": entirely tensile branch\n" + Trace(r));
                 foreach (var wall in walls)
                 {
-                    var depth = Entry(r, wall.Item1, "h − x"); double expected = wall.Item1 == "InnerWall+y" ? 250 : 600;
+                    var depth = Entry(r, wall.Item1, "h − x"); double expected = wall.Item1 == "InnerWall+y" ? 250 : wall.Item1 == "InnerWall-y" ? 600 : 400;
                     if (wall.Item1 == "InnerWall+y") Assert.IsNull(depth, what + ": +y band within the section, no entry");
-                    else { Assert.AreEqual(600, depth.Value, 1e-9, what + " " + wall.Item1); StringAssert.StartsWith(depth.Expression, "min[εmax/|∇ε| = " + (wall.Item1 == "InnerWall-y" ? "700" : "650"), what); }
+                    else
+                    {
+                        Assert.AreEqual(expected, depth.Value, what + " " + wall.Item1);
+                        StringAssert.StartsWith(depth.Expression, "min[εmax/|∇ε| = " + (wall.Item1 == "InnerWall-y" ? "700" : "650") + " mm; h of the section normal to the face]", what);
+                    }
                     double k2 = Entry(r, wall.Item1, "k2").Value, sigma = BandStress(eccentric, wall.Item1);
                     double bandMin = wall.Item1 == "InnerWall-y" ? 6.5e-4 : wall.Item1 == "InnerWall+y" ? 2e-4 : 2.5e-4, bandMax = wall.Item1 == "InnerWall-y" ? 7e-4 : wall.Item1 == "InnerWall+y" ? 2.5e-4 : 6.5e-4;
                     Assert.AreEqual((bandMin + bandMax) / (2 * bandMax), k2, 1e-12, what + " " + wall.Item1 + " k2 of the band");
@@ -499,6 +485,102 @@ namespace ConcreteTests
             Assert.IsFalse(bending.Details.Any(d => d.Symbol.StartsWith("InnerWall") && d.Symbol.EndsWith("· h − x")), Trace(bending));
             Assert.AreEqual(Hand(true, 200, 10000, 2, 250, .9), Entry(bending, "InnerWall-y", "wk").Value, 1e-12, "bending: −y band with h − x = 250 mm from the neutral axis");
             Assert.AreEqual(4 * 4 + 2 * 4, checks);
+        }
+
+        // Box 400×600 with a hole 200×400 of (h) and (i): 4Ø20 at y = ±250 and 3Ø20 at x = ±150 (y = 0, ±100), spacing assigned 300 mm.
+        private static readonly Point2d[] InnerBoxOutline = { new Point2d(-200, -300), new Point2d(200, -300), new Point2d(200, 300), new Point2d(-200, 300) };
+        private static readonly Point2d[] InnerBoxHole = { new Point2d(-100, -200), new Point2d(100, -200), new Point2d(100, 200), new Point2d(-100, 200) };
+        private static readonly CrackBar[] InnerBoxBars = new[] { -150d, -50, 50, 150 }.SelectMany(x => new[] { new CrackBar(x, -250, 20, Math.PI * 100), new CrackBar(x, 250, 20, Math.PI * 100) })
+            .Concat(new[] { -100d, 0, 100 }.SelectMany(y => new[] { new CrackBar(-150, y, 20, Math.PI * 100), new CrackBar(150, y, 20, Math.PI * 100) })).ToArray();
+        /// <summary>Wall, area of the band (mm2), bars in the band.</summary>
+        private static readonly Tuple<string, double, int>[] InnerWalls =
+            { Tuple.Create("InnerWall+x", 20000d, 3), Tuple.Create("InnerWall-x", 20000d, 3), Tuple.Create("InnerWall+y", 10000d, 2), Tuple.Create("InnerWall-y", 10000d, 2) };
+        /// <summary>Standard, exposure, NTC (Δsm path) or EN (sr,max path).</summary>
+        private static readonly Tuple<Standard, string, bool>[] InnerStandards =
+            { Tuple.Create(Ntc, "XC1", true), Tuple.Create((Standard)ServiceabilityMigrationTests.Standard("EN 1992-1-1"), "XC3", false) };
+
+        private static SectionCrackResult HollowBox(Standard standard, string exposure, StrainPlane plane) => SectionCrackCheck.Evaluate(new SectionCrackInput(standard,
+            ServiceabilityCombination.QuasiPermanent, exposure, false, null, new CrackSectionGeometry(InnerBoxOutline, new[] { InnerBoxHole }, InnerBoxBars, CrackBarLayout.Rows), plane,
+            InnerBoxBars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false, 200000, 33000, 2.9, false, true, 40, spacingOverride: 300));
+
+        private static GPC.Checkers.Concrete.Shear.ShearCalculationDetail BandEntry(SectionCrackResult r, string wall, string symbol) => r.Details.SingleOrDefault(d => d.Symbol == wall + " · " + symbol);
+
+        private static double HollowBandStress(StrainPlane plane, string wall)
+        {
+            Func<CrackBar, bool> inBand = wall == "InnerWall+x" ? b => b.X == 150 && Math.Abs(b.Y) <= 100 : wall == "InnerWall-x" ? b => b.X == -150 && Math.Abs(b.Y) <= 100
+                : wall == "InnerWall+y" ? b => b.Y == 250 && Math.Abs(b.X) == 50 : (Func<CrackBar, bool>)(b => b.Y == -250 && Math.Abs(b.X) == 50);
+            return InnerBoxBars.Where(inBand).Max(b => 200000 * plane.GetStrain(b.X, b.Y));
+        }
+
+        /// <summary>Hand calculation of the band width with the given h − x and k2 (EN 7.3.4 with sr,max = 1.3 (h − x); NTC C4.1.2.2.4.5 with Δsm = max(near; 0.75 (h − x))).</summary>
+        private static double HollowBandHand(bool ntc, double sigma, double area, int count, double depth, double k2)
+        {
+            double rho = count * Math.PI * 100 / area, strain = Math.Max(.6 * sigma / 200000, (sigma - .4 * 2.9 / rho * (1 + 200000 / 33000.0 * rho)) / 200000);
+            return ntc ? 1.7 * Math.Max((3.4 * 40 + .8 * k2 * .425 * 20 / rho) / 1.7, .75 * depth) * strain : 1.3 * depth * strain;
+        }
+
+        /// <summary>
+        /// (i) Continuity of h − x of the inner bands at the uniform-tension threshold |∇ε| h = 1e-4 εmax (review of the integration D7-b/d2), box 400×600 of (h),
+        /// ε = 5e-4 + χ (q · p) at the centroid with the gradient along y (h along it 600), along x (400) and oblique (0.6; 0.8) (0.6 · 400 + 0.8 · 600 = 720), and
+        /// |∇ε| h / εmax = 0.99e-4 (uniform) and 1.01e-4 (general rule). In both, h − x of each band is the height of the section normal to its face (400 for ±x,
+        /// 600 for ±y), the h of the outer faces of the entirely tensile section; before, above the threshold, it was the height along the gradient (±x bands:
+        /// 600 instead of 400 with the gradient along y, ±y bands: 400 instead of 600 along x), a jump of 50 % in the far crack spacing. wk changes only with σs
+        /// and k2 (1 − k2 ≤ 1.01e-4 / 2). Neutral axis inside the section, close to the edge (y = 290): h − x of the ±x bands stays εmax/|∇ε| = 490 mm (beyond
+        /// 400, without the bound and without the entry), the regime changes where the neutral axis leaves the section (y = 310: 400, as for the outer faces).
+        /// </summary>
+        [TestMethod]
+        public void HollowSectionInnerBandDepthIsContinuousAtTheUniformThreshold()
+        {
+            const double eps0 = 5e-4;
+            foreach (var direction in new[] { Tuple.Create(0d, 1d, 600d), Tuple.Create(1d, 0d, 400d), Tuple.Create(.6, .8, 720d) })
+                foreach (var s in InnerStandards)
+                {
+                    SectionCrackResult At(double ratio, out StrainPlane plane)
+                    {
+                        // ratio = χ h / εmax with εmax = eps0 + χ h / 2 (centroid at mid-height along the gradient).
+                        double chi = ratio * eps0 / (direction.Item3 * (1 - ratio / 2));
+                        plane = new StrainPlane(chi * direction.Item1, chi * direction.Item2, new Point2d(0, 0), eps0);
+                        return HollowBox(s.Item1, s.Item2, plane);
+                    }
+                    var below = At(.99e-4, out var planeBelow); var above = At(1.01e-4, out var planeAbove);
+                    string what = s.Item1.GetType().Name + " q = (" + direction.Item1 + "; " + direction.Item2 + ")";
+                    Assert.IsTrue(below.Regions.Any(g => g.Key == "Face+x") && above.Regions.Any(g => g.Key == "Face+x"), what + ": entirely tensile branch");
+                    foreach (var wall in InnerWalls)
+                    {
+                        double h = wall.Item1.EndsWith("x") ? 400 : 600;
+                        var d0 = BandEntry(below, wall.Item1, "h − x"); var d1 = BandEntry(above, wall.Item1, "h − x");
+                        Assert.AreEqual(h, d0.Value, what + " " + wall.Item1 + " below"); StringAssert.StartsWith(d0.Expression, "uniform tension", what);
+                        Assert.AreEqual(h, d1.Value, what + " " + wall.Item1 + " above: no jump at the threshold\n" + Trace(above));
+                        StringAssert.StartsWith(d1.Expression, "min[εmax/|∇ε| = ", what); StringAssert.Contains(d1.Expression, "mm; h of the section normal to the face]", what);
+                        double k0 = BandEntry(below, wall.Item1, "k2").Value, k1 = BandEntry(above, wall.Item1, "k2").Value;
+                        Assert.AreEqual(1, k0, what); Assert.IsTrue(k1 < 1 && k1 >= 1 - 1.01e-4 / 2, what + ": k2 = " + k1);
+                        double w0 = BandEntry(below, wall.Item1, "wk").Value, w1 = BandEntry(above, wall.Item1, "wk").Value;
+                        Assert.AreEqual(HollowBandHand(s.Item3, HollowBandStress(planeBelow, wall.Item1), wall.Item2, wall.Item3, h, 1), w0, 1e-12, what + " " + wall.Item1 + " wk by hand below");
+                        Assert.AreEqual(HollowBandHand(s.Item3, HollowBandStress(planeAbove, wall.Item1), wall.Item2, wall.Item3, h, k1), w1, 1e-12, what + " " + wall.Item1 + " wk by hand above");
+                        Assert.AreEqual(w0, w1, 1e-4 * w0, what + " " + wall.Item1 + ": wk continuous at the threshold");
+                    }
+                    Assert.AreEqual(below.Width.Value, above.Width.Value, 1e-4 * below.Width.Value, what + ": governing wk continuous at the threshold");
+                }
+            // Neutral axis inside (y = 290) and just outside (y = 310) the top edge, tension below: ±x bands (y = −200 … 200).
+            foreach (var s in InnerStandards)
+            {
+                var inside = HollowBox(s.Item1, s.Item2, new StrainPlane(0, -1e-6, new Point2d(0, 290), 0));
+                var outside = HollowBox(s.Item1, s.Item2, new StrainPlane(0, -1e-6, new Point2d(0, 310), 0));
+                string what = s.Item1.GetType().Name;
+                Assert.IsFalse(inside.Regions.Any(g => g.Key == "Face+x"), what + ": neutral axis inside, bending branch");
+                Assert.IsTrue(outside.Regions.Any(g => g.Key == "Face+x"), what + ": neutral axis outside, entirely tensile branch");
+                foreach (var wall in new[] { InnerWalls[0], InnerWalls[1] })
+                {
+                    Assert.IsNull(BandEntry(inside, wall.Item1, "h − x"), what + " " + wall.Item1 + ": no bound with the neutral axis inside\n" + Trace(inside));
+                    double k2 = BandEntry(inside, wall.Item1, "k2").Value;
+                    Assert.AreEqual((9e-5 + 4.9e-4) / (2 * 4.9e-4), k2, 1e-12, what + " " + wall.Item1 + " k2 of the band");
+                    var plane = new StrainPlane(0, -1e-6, new Point2d(0, 290), 0);
+                    Assert.AreEqual(HollowBandHand(s.Item3, HollowBandStress(plane, wall.Item1), wall.Item2, wall.Item3, 490, k2), BandEntry(inside, wall.Item1, "wk").Value, 1e-12,
+                        what + " " + wall.Item1 + ": h − x = εmax/|∇ε| = 490 mm");
+                    var depth = BandEntry(outside, wall.Item1, "h − x");
+                    Assert.AreEqual(400, depth.Value, what + " " + wall.Item1); StringAssert.StartsWith(depth.Expression, "min[εmax/|∇ε| = 510 mm; h of the section normal to the face]", what);
+                }
+            }
         }
 
         private static CrackProfile Profile(string name) => CrackProfiles.Resolve(ServiceabilityMigrationTests.Standard(name));
