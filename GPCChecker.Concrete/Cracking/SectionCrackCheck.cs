@@ -48,8 +48,11 @@ namespace GPC.Checkers.Concrete.Cracking
         /// Legacy rule of ANTHEA before the D7-b deviation, for NTC 2018 and CNR-DT 200 only: with the neutral axis inside the section k2 comes from the
         /// ordinary bar stresses (0.5 with a compressed bar, 1.0 otherwise, <see cref="CrackWidthCalculator.K2"/>), so a singly reinforced bent section gets
         /// k2 = 1. Kept to reproduce the frozen fixtures and the comparisons; the other profiles always use k2 = 0.5 when the neutral axis crosses the section.
-        /// Default false (D7-b, 7/10/2026): k2 = 0.5 whenever the neutral axis is inside the section. It has no effect on entirely compressed or entirely
-        /// tensile sections.
+        /// Default false (deviation D7-b of ANTHEA, docs/refactoring/scostamenti.md): k2 = 0.5 whenever the neutral axis is inside the section. It has no
+        /// effect on entirely compressed or entirely tensile sections, nor on the inner surfaces of hollow sections.
+        /// What it reproduces: wk, ratio, verdict, outcome, status, regions and the k2 of the partially compressed section as before D7-b. What it does not:
+        /// <see cref="SectionCrackResult.K2"/> of an entirely compressed section (null with both rules, k2 does not apply; before D7-b it carried the k2 of
+        /// the bars) and the trace texts (the k2 entry reads "legacy rule ..." and appears once).
         /// </summary>
         public bool NtcK2FromCompressedBars { get; }
 
@@ -115,8 +118,9 @@ namespace GPC.Checkers.Concrete.Cracking
         public string SpacingSource { get; internal set; }
         /// <summary>
         /// k2 of the governing region: 0.5 with the neutral axis inside the section (reported also when wk = 0 in the cover or comes from the upper bound
-        /// without bonded bars, where k2 does not enter), (εmax + εmin)/(2 εmax) for entirely tensile sections and inner surfaces; null when the section is
-        /// entirely compressed (k2 does not apply) or no width is computed before the k2 step.
+        /// without bonded bars, where k2 does not enter), (εmax + εmin)/(2 εmax) for entirely tensile sections; for the inner surfaces of hollow sections
+        /// (walls, ring) the same formula on the strains of the tensile band, also when the neutral axis cuts the section, so a governing inner wall can
+        /// report k2 &gt; 0.5 in a bent section; null when the section is entirely compressed (k2 does not apply) or no width is computed before the k2 step.
         /// </summary>
         public double? K2 { get; internal set; }
         /// <summary>Decompression / crack formation: maximum stress of the uncracked section and its limit, MPa.</summary>
@@ -136,7 +140,8 @@ namespace GPC.Checkers.Concrete.Cracking
     /// area beyond hc,eff along the strain gradient, governing bar stress, k2 = 0.5 for every profile (NTC and CNR-DT 200 from the bar stresses only with
     /// <see cref="SectionCrackInput.NtcK2FromCompressedBars"/>); neutral axis within the cover of the reinforced tensile edge: wk = 0; tensile bars outside Ac,eff: upper bound
     /// of EC2 7.3.4(3), eq. (7.14) with sr,max from (h − x). Entirely tensile sections: independent faces (±x, ±y or radial for circles), never summed;
-    /// DS adds the coarse system with the whole section (DK NA 7.3.4(1)). Hollow sections: inner walls or ring checked independently.
+    /// DS adds the coarse system with the whole section (DK NA 7.3.4(1)). Hollow sections: inner walls or ring checked independently, each with the k2 of
+    /// its own tensile band, (εmax + max(0, εmin))/(2 εmax), for every profile and also when the neutral axis cuts the section (local area, EN 7.3.4(3)).
     /// Fixtures: GPCChecker.Test.Concrete/Fixtures/crack-legacy.csv.
     /// </summary>
     public static class SectionCrackCheck
@@ -243,7 +248,10 @@ namespace GPC.Checkers.Concrete.Cracking
             result.EffectiveArea = aceff; result.EffectiveSteel = steel;
             if (!(spacing > 0)) return Stop(CrackOutcome.SpacingUndetermined, "Automatic spacing not determined: assign the maximum spacing");
             Add("s", spacing.Value, "mm", p.SpacingOverride.HasValue ? "assigned maximum spacing" : "maximum spacing of the effective tensile bars");
-            double width = CrackWidthCalculator.Width(profile, new CrackWidthInput(sigma, p.Es, p.Ecm, p.Fctm, steel / aceff, phi, c, spacing.Value, tensileDepth, p.ShortTerm, p.RibbedBars, k2), details);
+            // The k2 of the width formula is the section-level k2 already in the trace with its reason: one k2 entry only.
+            var formula = new List<ShearCalculationDetail>();
+            double width = CrackWidthCalculator.Width(profile, new CrackWidthInput(sigma, p.Es, p.Ecm, p.Fctm, steel / aceff, phi, c, spacing.Value, tensileDepth, p.ShortTerm, p.RibbedBars, k2), formula);
+            details.AddRange(formula.Where(d => d.Symbol != "k2"));
             result.Width = width; result.Ratio = width / wlim; result.Passed = width <= wlim; result.BarSpacing = spacing;
             result.SpacingSource = p.SpacingOverride.HasValue ? "Manual" : "Automatic"; result.GoverningRegion = region.Key;
             result.Regions = new[] { region.WithWidth(width) };

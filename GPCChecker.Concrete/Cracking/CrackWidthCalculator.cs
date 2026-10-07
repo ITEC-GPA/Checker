@@ -113,7 +113,11 @@ namespace GPC.Checkers.Concrete.Cracking
             return sr * strain;
         }
 
-        /// <summary>k2 from the bar stresses (compression negative): bending (a compressed bar) 0.5, tension 1.0. Zero stresses are not compressed.</summary>
+        /// <summary>
+        /// Legacy NTC 2018 / CNR-DT 200 rule before D7-b (<see cref="SectionCrackInput.NtcK2FromCompressedBars"/>): k2 from the bar stresses (compression
+        /// negative), 0.5 with a compressed bar, 1.0 otherwise; zero stresses are not compressed. Also validates the bar stresses (missing or not finite:
+        /// ArgumentException). The current rule of <see cref="SectionCrackCheck"/> uses k2 = 0.5 whenever the neutral axis cuts the section.
+        /// </summary>
         public static double K2(IReadOnlyList<double> barStresses)
         {
             if (barStresses == null || barStresses.Count == 0 || barStresses.Any(s => double.IsNaN(s) || double.IsInfinity(s)))

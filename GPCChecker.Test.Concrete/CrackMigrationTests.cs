@@ -292,9 +292,9 @@ namespace ConcreteTests
             Assert.AreEqual(1.7 * .75 * 100 * 3e-4, Evaluate("NTC 2018", "XC1").Width.Value, 1e-12);
         }
 
-        // D7-b (7/10/2026): with the neutral axis inside the section k2 = 0.5 for every profile (Circolare 2019 C4.1.2.2.4.5; EN 1992-1-1 7.3.4(3));
-        // the legacy NTC / CNR-DT 200 rule (k2 from the bar stresses) only with SectionCrackInput.NtcK2FromCompressedBars. The section-level "k2" entry
-        // of the trace precedes the "k2" of the width formula.
+        // D7-b: with the neutral axis inside the section k2 = 0.5 for every profile (Circolare 2019 C4.1.2.2.4.5; EN 1992-1-1 7.3.4(3));
+        // the legacy NTC / CNR-DT 200 rule (k2 from the bar stresses) only with SectionCrackInput.NtcK2FromCompressedBars. The trace has one "k2"
+        // entry, the section-level one with its reason (the width formula does not repeat it). Inner surfaces of hollow sections keep the k2 of their band.
         private const string BendingK2 = "neutral axis inside the section: bending, k2 = 0.5 (Circolare 2019 C4.1.2.2.4.5; EN 1992-1-1 7.3.4(3))";
         private static readonly Point2d[] Rectangle300x500 = { new Point2d(-150, -250), new Point2d(150, -250), new Point2d(150, 250), new Point2d(-150, 250) };
         private static CrackBar[] Row(double y) => new[] { new CrackBar(-100, y, 20, 314.16), new CrackBar(0, y, 20, 314.16), new CrackBar(100, y, 20, 314.16) };
@@ -337,11 +337,15 @@ namespace ConcreteTests
                 Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, what + " " + r.Status);
                 Assert.AreEqual(30000, r.EffectiveArea.Value, 1e-6, what); Assert.AreEqual(100, r.BarSpacing.Value, 1e-9, what);
                 Assert.AreEqual(.5, r.K2.Value, what); Assert.AreEqual(Hand(.5), r.Width.Value, 1e-12, what + " wk with k2 = 0.5");
-                Assert.AreEqual(BendingK2, r.Details.First(d => d.Symbol == "k2").Expression, what);
+                Assert.AreEqual(BendingK2, r.Details.Single(d => d.Symbol == "k2").Expression, what);
                 Assert.AreEqual(.1905, r.Width.Value, 5e-4, what);
                 var legacy = Crack(standard, "XC1", Bottom, plane, true);
                 Assert.AreEqual(1, legacy.K2.Value, what); Assert.AreEqual(Hand(1), legacy.Width.Value, 1e-12, what + " legacy wk with k2 = 1");
-                StringAssert.StartsWith(legacy.Details.First(d => d.Symbol == "k2").Expression, "legacy rule", what);
+                StringAssert.StartsWith(legacy.Details.Single(d => d.Symbol == "k2").Expression, "legacy rule", what);
+                Assert.AreEqual(1, legacy.Details.Single(d => d.Symbol == "k2").Value, what);
+                // The width formula still lists its own terms around k2 (k1 before, εsm − εcm after).
+                var symbols = r.Details.Select(d => d.Symbol).ToList();
+                Assert.IsTrue(symbols.Contains("k1") && symbols.Contains("εsm − εcm") && symbols.IndexOf("k2") < symbols.IndexOf("k1"), what + "\n" + Trace(r));
                 Assert.IsFalse(legacy.Details.Any(d => d.Expression == BendingK2), what);
             }
         }
@@ -364,7 +368,7 @@ namespace ConcreteTests
             var t = Crack(Ntc, "XC1", Doubly, tension, false); var tLegacy = Crack(Ntc, "XC1", Doubly, tension, true);
             Assert.AreEqual(CrackOutcome.Evaluated, t.Outcome, t.Status); Assert.AreEqual(.5, t.K2.Value); Assert.AreEqual(1, tLegacy.K2.Value);
             Assert.IsTrue(t.Width.Value < tLegacy.Width.Value);
-            Assert.AreEqual(BendingK2, t.Details.First(d => d.Symbol == "k2").Expression);
+            Assert.AreEqual(BendingK2, t.Details.Single(d => d.Symbol == "k2").Expression);
         }
 
         /// <summary>
@@ -427,7 +431,7 @@ namespace ConcreteTests
                 var r = Crack(ServiceabilityMigrationTests.Standard(name), exposure, Bottom, plane, false);
                 AssertSame(r, Crack(ServiceabilityMigrationTests.Standard(name), exposure, Bottom, plane, true), name);
                 if (r.Outcome != CrackOutcome.Evaluated) { Assert.AreEqual("NS EN 1992-1-1", name, r.Status); continue; }
-                Assert.AreEqual(.5, r.K2.Value, name); Assert.AreEqual(BendingK2, r.Details.First(d => d.Symbol == "k2").Expression, name);
+                Assert.AreEqual(.5, r.K2.Value, name); Assert.AreEqual(BendingK2, r.Details.Single(d => d.Symbol == "k2").Expression, name);
             }
             // EN by hand (7.8-7.11), k2 = 0.5: sr,max = 3.4 c + 0.8 · 0.5 · 0.425 Ø/ρ.
             double sigma = 200000 * plane.GetStrain(0, -200), rho = 3 * 314.16 / 30000.0;
@@ -459,6 +463,44 @@ namespace ConcreteTests
             Assert.AreEqual(CrackOutcome.Evaluated, u.Outcome, u.Status); StringAssert.StartsWith(u.Status, "No bar in Ac,eff");
             Assert.AreEqual(1.7 * .75 * 100 * 3e-4, u.Width.Value, 1e-12); Assert.AreEqual(uLegacy.Width, u.Width); Assert.AreEqual(uLegacy.Passed, u.Passed);
             Assert.AreEqual(.5, u.K2.Value); Assert.AreEqual(1, uLegacy.K2.Value);
+        }
+
+        /// <summary>
+        /// (g) Hollow section in bending: the neutral axis cuts the section (k2 = 0.5 for the outer tensile zone), but each inner wall is checked as a local
+        /// area with the k2 of its own tensile band, for every profile and with or without the legacy option. Box 400×600, hole 200×400, 4Ø20 at y = ±250,
+        /// neutral axis at y = 0: band of the bottom wall 200 ≤ −y ≤ 250 (hc,eff = min[2.5 · 50; 100/2] = 50), ε = 8e-4 … 1e-3, k2 = (8e-4 + 1e-3)/(2e-3) = 0.9;
+        /// 2Ø20 in the band (x = ±50), Ac,eff = 200 · 50, c = 40, s = 100, σs = 200 MPa. That wall governs; the side walls are tensile without bars.
+        /// </summary>
+        [TestMethod]
+        public void HollowSectionInnerWallKeepsItsBandK2()
+        {
+            var box = new[] { new Point2d(-200, -300), new Point2d(200, -300), new Point2d(200, 300), new Point2d(-200, 300) };
+            var hole = new[] { new Point2d(-100, -200), new Point2d(100, -200), new Point2d(100, 200), new Point2d(-100, 200) };
+            var bars = new[] { -150d, -50, 50, 150 }.SelectMany(x => new[] { new CrackBar(x, -250, 20, Math.PI * 100), new CrackBar(x, 250, 20, Math.PI * 100) }).ToArray();
+            var plane = new StrainPlane(0, -4e-6, new Point2d(0, 0), 0);
+            SectionCrackResult Hollow(Standard standard, string exposure, bool legacyK2) => SectionCrackCheck.Evaluate(new SectionCrackInput(standard, ServiceabilityCombination.QuasiPermanent,
+                exposure, false, null, new CrackSectionGeometry(box, new[] { hole }, bars, CrackBarLayout.Rows), plane, bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false,
+                200000, 33000, 2.9, false, true, 40, ntcK2FromCompressedBars: legacyK2));
+            double rho = 2 * Math.PI * 100 / (200 * 50.0), sigma = 200;
+            double strain = Math.Max((sigma - .4 * 2.9 / rho * (1 + 200000 / 33000.0 * rho)) / 200000, .6 * sigma / 200000);
+            double ntcHand = 1.7 * ((3.4 * 40 + .8 * .9 * .425 * 20 / rho) / 1.7) * strain;
+            foreach (var pair in new[] { Tuple.Create(Ntc, "XC1"), Tuple.Create((Standard)new StandardCNR200(), "XC1"), Tuple.Create((Standard)ServiceabilityMigrationTests.Standard("EN 1992-1-1"), "XC3") })
+            {
+                string what = pair.Item1.GetType().Name;
+                var r = Hollow(pair.Item1, pair.Item2, false);
+                Assert.AreEqual(CrackOutcome.InnerSurfaceUnreinforced, r.Outcome, what + " " + r.Status); Assert.IsNull(r.Passed, what);
+                Assert.AreEqual("InnerWall-y", r.GoverningRegion, what); Assert.AreEqual(.9, r.K2.Value, 1e-12, what);
+                Assert.AreEqual(BendingK2, r.Details.Single(d => d.Symbol == "k2").Expression, what + ": the section-level k2 is 0.5");
+                Assert.AreEqual(.5, r.Details.Single(d => d.Symbol == "k2").Value, what);
+                Assert.AreEqual(.9, r.Details.Single(d => d.Symbol == "InnerWall-y · k2").Value, 1e-12, what);
+                Assert.IsTrue(r.Regions.Single(g => g.Key == "TensileZone").Width < r.Width, what);
+                Assert.AreEqual(ntcHand, r.Width.Value, 1e-12, what + " wk of the inner wall with k2 = 0.9");
+                // Legacy rule: the top bars are compressed, so the bars also give 0.5; only the reason of the section-level k2 differs (NTC / CNR-DT 200).
+                var legacy = Hollow(pair.Item1, pair.Item2, true);
+                Assert.AreEqual(r.Outcome, legacy.Outcome, what); Assert.AreEqual(r.Status, legacy.Status, what); Assert.AreEqual(r.Width, legacy.Width, what);
+                Assert.AreEqual(r.Ratio, legacy.Ratio, what); Assert.AreEqual(r.Passed, legacy.Passed, what); Assert.AreEqual(r.K2, legacy.K2, what);
+                Assert.AreEqual(Trace(r), Trace(legacy).Replace("legacy rule (before D7-b): 0.5 with a compressed bar, 1.0 otherwise", BendingK2), what);
+            }
         }
 
         private static CrackProfile Profile(string name) => CrackProfiles.Resolve(ServiceabilityMigrationTests.Standard(name));
