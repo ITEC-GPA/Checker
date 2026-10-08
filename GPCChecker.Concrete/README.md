@@ -198,6 +198,10 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 
   Per ogni stato ci sono i campi del risultato, oppure tipo, messaggio e parametro dell'eccezione. I double sono
   scritti in formato round-trip, quindi il confronto è bit per bit.
+
+  La sezione `standards` dipende anche da Model: registra `Standard.Name` delle norme di Model 5ad56681, che compare
+  pure nel testo di `NotSupportedReason`. Se Model cambia il nome di una norma, il test fallisce anche senza modifiche
+  in Checker. Va trattato come un cambio del contratto da verificare e registrare, non come un errore del test.
 - Restano in ANTHEA la presentazione della composizione della miscela (`MixAutomation`, con i testi e le note della
   scheda) e quella dei diagrammi. I limiti di composizione sono in libreria: `ExposureClasses.Uni11104Mix` (a/c
   massimo e cemento minimo) e `ExposureClasses.Uni11104Air` (aria per XF2-XF4).
