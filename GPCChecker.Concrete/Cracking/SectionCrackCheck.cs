@@ -57,25 +57,95 @@ namespace GPC.Checkers.Concrete.Cracking
         /// the bars) and the trace texts (the k2 entry reads "legacy rule ..." and appears once).
         /// </summary>
         public bool NtcK2FromCompressedBars { get; }
+        /// <summary>Options of the check (0.0.18.0); <see cref="SectionCrackOptions.Default"/> with the constructor without options.</summary>
+        public SectionCrackOptions Options { get; }
 
+        /// <summary>Input with the default options (<see cref="SectionCrackOptions.Default"/>): the behaviour of 0.0.17.0.</summary>
         public SectionCrackInput(Standard standard, ServiceabilityCombination combination, string exposure, bool sensitiveReinforcement, double? designLimit,
             CrackSectionGeometry geometry, StrainPlane strainPlane, IEnumerable<double> barStresses, bool linearAnalysis, bool tensileConcrete, bool prestressed,
             double es, double ecm, double fctm, bool shortTerm, bool ribbedBars, double nominalCover, double? coverOverride = null, double? spacingOverride = null,
             Func<double> uncrackedMaximumConcreteStress = null, bool ntcK2FromCompressedBars = false)
+            : this(standard, combination, exposure, sensitiveReinforcement, designLimit, geometry, strainPlane, barStresses, linearAnalysis, tensileConcrete, prestressed,
+                es, ecm, fctm, shortTerm, ribbedBars, nominalCover, coverOverride, spacingOverride, uncrackedMaximumConcreteStress, ntcK2FromCompressedBars,
+                SectionCrackOptions.Default)
+        {
+        }
+
+        /// <summary>
+        /// Input with options (0.0.18.0). Every argument is required, the options too (<see cref="SectionCrackOptions.Default"/> for the behaviour of
+        /// 0.0.17.0), so no call of the constructor without options can bind here. With <see cref="SectionCrackOptions.ValidateAtUse"/> the nominal cover and
+        /// the overrides are validated by <see cref="SectionCrackCheck.Evaluate"/> where they are used, not here.
+        /// </summary>
+        public SectionCrackInput(Standard standard, ServiceabilityCombination combination, string exposure, bool sensitiveReinforcement, double? designLimit,
+            CrackSectionGeometry geometry, StrainPlane strainPlane, IEnumerable<double> barStresses, bool linearAnalysis, bool tensileConcrete, bool prestressed,
+            double es, double ecm, double fctm, bool shortTerm, bool ribbedBars, double nominalCover, double? coverOverride, double? spacingOverride,
+            Func<double> uncrackedMaximumConcreteStress, bool ntcK2FromCompressedBars, SectionCrackOptions options)
         {
             Standard = standard ?? throw new ArgumentNullException(nameof(standard));
             Geometry = geometry ?? throw new ArgumentNullException(nameof(geometry));
             StrainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
             BarStresses = (barStresses ?? throw new ArgumentNullException(nameof(barStresses))).ToArray();
+            Options = options ?? throw new ArgumentNullException(nameof(options));
             if (BarStresses.Count != geometry.Bars.Count) throw new ArgumentException("Cracking: one stress per ordinary bar is required.");
             if (!CrackSectionGeometry.Positive(es) || !CrackSectionGeometry.Positive(ecm) || !CrackSectionGeometry.Positive(fctm)) throw new ArgumentException("Cracking: Es, Ecm and fctm must be positive.");
-            if (double.IsNaN(nominalCover) || double.IsInfinity(nominalCover) || nominalCover < 0) throw new ArgumentOutOfRangeException(nameof(nominalCover));
-            if (coverOverride.HasValue && (double.IsNaN(coverOverride.Value) || coverOverride < 0)) throw new ArgumentOutOfRangeException(nameof(coverOverride));
-            if (spacingOverride.HasValue && !CrackSectionGeometry.Positive(spacingOverride.Value)) throw new ArgumentOutOfRangeException(nameof(spacingOverride));
+            if (!options.ValidateAtUse)
+            {
+                RequireNominalCover(nominalCover);
+                RequireCoverOverride(coverOverride);
+                RequireSpacingOverride(spacingOverride);
+            }
             Combination = combination; Exposure = exposure; SensitiveReinforcement = sensitiveReinforcement; DesignLimit = designLimit;
             LinearAnalysis = linearAnalysis; TensileConcrete = tensileConcrete; Prestressed = prestressed; Es = es; Ecm = ecm; Fctm = fctm;
             ShortTerm = shortTerm; RibbedBars = ribbedBars; NominalCover = nominalCover; CoverOverride = coverOverride; SpacingOverride = spacingOverride;
             UncrackedMaximumConcreteStress = uncrackedMaximumConcreteStress; NtcK2FromCompressedBars = ntcK2FromCompressedBars;
+        }
+
+        // Criteria of the constructor, applied there by default and at the point of use with SectionCrackOptions.ValidateAtUse (same exception and parameter name).
+        private static void RequireNominalCover(double nominalCover)
+        {
+            if (double.IsNaN(nominalCover) || double.IsInfinity(nominalCover) || nominalCover < 0) throw new ArgumentOutOfRangeException(nameof(nominalCover));
+        }
+
+        private static void RequireCoverOverride(double? coverOverride)
+        {
+            if (coverOverride.HasValue && (double.IsNaN(coverOverride.Value) || coverOverride < 0)) throw new ArgumentOutOfRangeException(nameof(coverOverride));
+        }
+
+        private static void RequireSpacingOverride(double? spacingOverride)
+        {
+            if (spacingOverride.HasValue && !CrackSectionGeometry.Positive(spacingOverride.Value)) throw new ArgumentOutOfRangeException(nameof(spacingOverride));
+        }
+
+        /// <summary>Cover of the width formula in the partially compressed section: the override or the nominal cover, validated here with ValidateAtUse.</summary>
+        internal double FormulaCover()
+        {
+            if (Options.ValidateAtUse) { if (CoverOverride.HasValue) RequireCoverOverride(CoverOverride); else RequireNominalCover(NominalCover); }
+            return CoverOverride ?? NominalCover;
+        }
+
+        /// <summary>Cover override where a branch reads it (faces, DS coarse system, inner surfaces), validated here with ValidateAtUse.</summary>
+        internal double? UsedCoverOverride()
+        {
+            if (Options.ValidateAtUse) RequireCoverOverride(CoverOverride);
+            return CoverOverride;
+        }
+
+        /// <summary>Spacing override where a branch reads it, validated here with ValidateAtUse.</summary>
+        internal double? UsedSpacingOverride()
+        {
+            if (Options.ValidateAtUse) RequireSpacingOverride(SpacingOverride);
+            return SpacingOverride;
+        }
+
+        /// <summary>
+        /// c of the DIN condition (h − x)/3 ≥ c + 20 in a partially compressed section: <see cref="SectionCrackOptions.EffectiveDepthCover"/> or the nominal
+        /// cover, validated here with ValidateAtUse when it is the nominal cover (only the DIN profile reads it).
+        /// </summary>
+        internal double DinConditionCover(CrackProfile profile)
+        {
+            if (Options.EffectiveDepthCover.HasValue) return Options.EffectiveDepthCover.Value;
+            if (Options.ValidateAtUse && profile == CrackProfile.DinEN1992p11) RequireNominalCover(NominalCover);
+            return NominalCover;
         }
 
         /// <summary>Ordinary bar stresses of a native stress result in the order of <see cref="CrackSectionGeometry.From"/> (linear: with the creep coefficients).</summary>
@@ -163,7 +233,7 @@ namespace GPC.Checkers.Concrete.Cracking
             var profile = CrackProfiles.Resolve(p.Standard);
             var details = new List<ShearCalculationDetail>();
             void Add(string symbol, double value, string unit, string expression) => details.Add(new ShearCalculationDetail(symbol, value, unit, expression));
-            var req = CrackRequirements.For(profile, p.Combination, p.Exposure, p.SensitiveReinforcement, p.DesignLimit);
+            var req = CrackRequirements.For(profile, p.Combination, p.Exposure, p.SensitiveReinforcement, p.DesignLimit, p.Options);
             var result = new SectionCrackResult { Profile = profile, Requirement = req, Limit = req.Limit, Reference = CrackProfiles.Reference(profile) };
             SectionCrackResult Stop(CrackOutcome outcome, string status) { result.Outcome = outcome; result.Status = status; result.Details = details.AsReadOnly(); return result; }
             switch (req.Criterion)
@@ -177,7 +247,8 @@ namespace GPC.Checkers.Concrete.Cracking
             if (req.Criterion != CrackCriterion.CrackWidth)
             {
                 // NTC 4.1.2.2.4.5: decompression and crack formation use the uncracked homogenized section, not wk / 0.
-                if (p.UncrackedMaximumConcreteStress == null) throw new ArgumentException("Cracking: the stress of the uncracked section is required for " + req.Criterion + ".");
+                if (p.UncrackedMaximumConcreteStress == null)
+                    throw CrackRejection.Create(CrackRejection.UncrackedStressRequired, "Cracking: the stress of the uncracked section is required for " + req.Criterion + ".");
                 double maximum = p.UncrackedMaximumConcreteStress();
                 double limit = req.Criterion == CrackCriterion.Decompression ? 0 : p.Fctm / 1.2;
                 Add("σct,max", maximum, "MPa", "maximum stress of the uncracked linear section with tensile concrete");
@@ -189,7 +260,9 @@ namespace GPC.Checkers.Concrete.Cracking
             if (!p.LinearAnalysis || p.TensileConcrete) return Stop(CrackOutcome.RequiresLinearCrackedAnalysis, "wk requires a linear analysis without tensile concrete");
             var stresses = p.BarStresses;
             // Validates the bar stresses (missing or not finite: ArgumentException) before any branch, as before D7-b; the value serves only the legacy rule.
-            double barK2 = CrackWidthCalculator.K2(stresses);
+            // With ValidateAtUse and the current k2 rule they are checked after the compression return, where σs is first used (ANTHEA Ntc2018Checks).
+            bool stressesAtUse = p.Options.ValidateAtUse && !p.NtcK2FromCompressedBars;
+            double barK2 = stressesAtUse ? double.NaN : CrackWidthCalculator.K2(stresses);
             var points = g.Outline.Concat(g.Holes.SelectMany(h => h)).ToArray();
             var strains = points.Select(plane.GetStrain).ToArray();
             Add("εc,min", strains.Min(), "−", "minimum strain at the vertices"); Add("εc,max", strains.Max(), "−", "maximum strain at the vertices");
@@ -199,6 +272,8 @@ namespace GPC.Checkers.Concrete.Cracking
                 result.Width = 0; result.Ratio = 0; result.Passed = true;
                 return Stop(CrackOutcome.Evaluated, "Section entirely compressed");
             }
+            if (stressesAtUse && (stresses.Count == 0 || stresses.Any(s => double.IsNaN(s) || double.IsInfinity(s))))
+                throw CrackRejection.Create(CrackRejection.BarStresses, "Cracking: bar stresses missing or not finite.");
             if (strains.Min() >= 0) return Inner(FullyTensioned(p, profile, req.Limit.Value, details), p, profile);
             // Neutral axis inside the section: the section is bent, also under axial compression or tension with bending, so k2 = 0.5 for every profile
             // (Circolare 2019 C4.1.2.2.4.5; EN 1992-1-1 7.3.4(3), k2 of (7.11)). Legacy rule of ANTHEA for NTC 2018 / CNR-DT 200: k2 from the bar stresses.
@@ -228,7 +303,7 @@ namespace GPC.Checkers.Concrete.Cracking
             }
             double centroid = tensile.Sum(i => Q(g.Bars[i].X, g.Bars[i].Y) * g.Bars[i].Area) / tensile.Sum(i => g.Bars[i].Area);
             double coverToCenter = top - centroid;
-            double hc = g.EffectiveDepth(profile, qx, qy, top, height, coverToCenter, tensileDepth, false, p.NominalCover);
+            double hc = g.EffectiveDepth(profile, qx, qy, top, height, coverToCenter, tensileDepth, false, p.DinConditionCover(profile));
             Add("h − d", coverToCenter, "mm", "Qmax − Q of the tensile bars"); Add("hc,eff", hc, "mm", HcExpression(profile));
             if (hc <= 0) return Stop(CrackOutcome.NoEffectiveArea, "Zero effective area");
             double level = top - hc;
@@ -251,8 +326,8 @@ namespace GPC.Checkers.Concrete.Cracking
             if (aceff <= 0) return Stop(CrackOutcome.NoEffectiveArea, "No effective reinforcement or area");
             double steel = effective.Sum(i => g.Bars[i].Area), phi = effective.Sum(i => g.Bars[i].Diameter * g.Bars[i].Diameter) / effective.Sum(i => g.Bars[i].Diameter);
             double sigma = effective.Max(i => stresses[i]);
-            double c = p.CoverOverride ?? p.NominalCover;
-            double? spacing = p.SpacingOverride ?? g.MaximumSpacing(effective);
+            double c = p.FormulaCover();
+            double? spacing = p.UsedSpacingOverride() ?? g.MaximumSpacing(effective);
             Add("Øeq", phi, "mm", "ΣØ²/ΣØ"); Add("σs", sigma, "MPa", "maximum stress of the effective bars"); Add("c", c, "mm", p.CoverOverride.HasValue ? "assigned" : "nominal cover + link");
             result.EffectiveArea = aceff; result.EffectiveSteel = steel;
             if (!(spacing > 0)) return Stop(CrackOutcome.SpacingUndetermined, "Automatic spacing not determined: assign the maximum spacing");
@@ -313,8 +388,8 @@ namespace GPC.Checkers.Concrete.Cracking
                 details.Add(new ShearCalculationDetail(key + " · As,eff", region.SteelArea, "mm2", indices.Length + " bars"));
                 if (region.Area <= 0 || region.SteelArea <= 0) return Stop(CrackOutcome.NoEffectiveArea, key + ": no effective area or reinforcement", region);
                 double phi = indices.Sum(i => g.Bars[i].Diameter * g.Bars[i].Diameter) / indices.Sum(i => g.Bars[i].Diameter);
-                double cover = p.CoverOverride ?? indices.Min(i => top - Q(g.Bars[i].X, g.Bars[i].Y) - g.Bars[i].Diameter / 2);
-                double? spacing = p.SpacingOverride ?? g.MaximumSpacing(indices);
+                double cover = p.UsedCoverOverride() ?? indices.Min(i => top - Q(g.Bars[i].X, g.Bars[i].Y) - g.Bars[i].Diameter / 2);
+                double? spacing = p.UsedSpacingOverride() ?? g.MaximumSpacing(indices);
                 if (!(spacing > 0)) return Stop(CrackOutcome.SpacingUndetermined, key + ": assign the maximum bar spacing", region);
                 double sigma = indices.Max(i => stresses[i]);
                 var calculation = new List<ShearCalculationDetail>();
@@ -328,8 +403,8 @@ namespace GPC.Checkers.Concrete.Cracking
                 var all = Enumerable.Range(0, g.Bars.Count).ToArray();
                 double area = CrackSectionGeometry.Area(g.Outline) - g.Holes.Sum(h => CrackSectionGeometry.Area(h)), steel = g.Bars.Sum(b => b.Area);
                 double phi = g.Bars.Sum(b => b.Diameter * b.Diameter) / g.Bars.Sum(b => b.Diameter);
-                double cover = p.CoverOverride ?? g.Bars.Min(b => g.BarCover(b));
-                double? spacing = p.SpacingOverride ?? g.MaximumSpacing(all);
+                double cover = p.UsedCoverOverride() ?? g.Bars.Min(b => g.BarCover(b));
+                double? spacing = p.UsedSpacingOverride() ?? g.MaximumSpacing(all);
                 var coarse = new CrackRegion("DsCoarseSystem", 0, 0, 0, area, all, steel, null, g.Outline, g.Holes);
                 if (!(spacing > 0)) { result.Outcome = CrackOutcome.SpacingUndetermined; result.Status = "DS coarse system: assign the maximum spacing"; result.Regions = regions.ToArray(); result.Details = details.AsReadOnly(); return result; }
                 var trace = new List<ShearCalculationDetail>();
@@ -397,8 +472,8 @@ namespace GPC.Checkers.Concrete.Cracking
                 var bars = indices.Select(i => g.Bars[i]).ToArray();
                 double sigma = indices.Max(i => stresses[i]);
                 double phi = bars.Sum(b => b.Diameter * b.Diameter) / bars.Sum(b => b.Diameter);
-                double c = p.CoverOverride ?? bars.Min(cover);
-                double? spacing = p.SpacingOverride ?? g.MaximumSpacing(indices);
+                double c = p.UsedCoverOverride() ?? bars.Min(cover);
+                double? spacing = p.UsedSpacingOverride() ?? g.MaximumSpacing(indices);
                 if (!(spacing > 0))
                 {
                     results.Add(new SectionCrackResult { Limit = limit, Outcome = CrackOutcome.SpacingUndetermined, Status = key + ": assign the maximum spacing for the inner surface" });

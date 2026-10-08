@@ -793,5 +793,483 @@ namespace ConcreteTests
             var c = new CrackSectionGeometry(circle, null, ring, CrackBarLayout.Ring);
             Assert.AreEqual(400 * 2 * Math.PI / 8, c.MaximumSpacing(new[] { 0, 1, 2 }).Value, 1e-9);
         }
+
+        // ---- 0.0.18.0 (ANTHEA F2.7 K2): SectionCrackOptions (ValidateAtUse, EffectiveDepthCover) and the codes of the refusals in Exception.Data.
+
+        private static readonly SectionCrackOptions AtUse = SectionCrackOptions.Default.WithValidateAtUse(true);
+        // ε = χy (y − y0) + ε0 on the 300×500 of (a): bent with the neutral axis at y = 50 (h − x = 300, σs = 200 MPa at y = −200), uniform compression,
+        // compressed down to ε = 0 at the bottom edge, entirely tensile (2e-4 top, 7e-4 bottom), neutral axis in the bottom cover, tensile bars outside Ac,eff.
+        private static readonly StrainPlane BentAt50 = new StrainPlane(0, -4e-6, new Point2d(0, 50), 0);
+        private static readonly StrainPlane UniformCompression = new StrainPlane(0, 0, new Point2d(0, 0), -5e-4);
+        private static readonly StrainPlane CompressedToZero = new StrainPlane(0, -1e-6, new Point2d(0, -250), 0);
+        private static readonly StrainPlane EccentricTension = new StrainPlane(0, -1e-6, new Point2d(0, 250), 2e-4);
+        private static readonly StrainPlane AxisInTheCover = new StrainPlane(0, -1e-5, new Point2d(0, -230), 0);
+        private static readonly StrainPlane AxisAboveTheBars = new StrainPlane(0, -1e-5, new Point2d(0, -150), 0);
+        private static readonly ServiceabilityCombination[] AllCombinations =
+            { ServiceabilityCombination.Characteristic, ServiceabilityCombination.Frequent, ServiceabilityCombination.QuasiPermanent };
+        private const string InvalidWidthMessage = "Cracking: invalid crack-width parameters.";
+        private const string RibbedBarsMessage = "Cracking: the Model Code 2010 / DIN crack model is implemented for ribbed bars.";
+
+        /// <summary>A state on the 300×500 of (a): Es 200 GPa, Ecm 33 GPa, fctm 2.9 MPa, long term, linear cracked analysis, σs = Es ε unless given.</summary>
+        private sealed class OptionCase
+        {
+            public string Standard = "NTC 2018"; public ServiceabilityCombination Combination = ServiceabilityCombination.QuasiPermanent; public string Exposure = "XC1";
+            public bool Sensitive; public double? DesignLimit; public CrackBar[] Bars = Bottom; public StrainPlane Plane = BentAt50; public double[] Stresses;
+            public double NominalCover = 40; public double? CoverOverride, SpacingOverride; public Func<double> Uncracked; public bool LegacyK2, Ribbed = true;
+
+            public OptionCase With(Action<OptionCase> change) { var copy = (OptionCase)MemberwiseClone(); change(copy); return copy; }
+            private CrackSectionGeometry Geometry() => new CrackSectionGeometry(Rectangle300x500, null, Bars, CrackBarLayout.Rows);
+            private double[] BarStresses() => Stresses ?? Bars.Select(b => 200000 * Plane.GetStrain(b.X, b.Y)).ToArray();
+
+            /// <summary>Constructor with the options (0.0.18.0).</summary>
+            public SectionCrackInput Input(SectionCrackOptions options) => new SectionCrackInput(ServiceabilityMigrationTests.Standard(Standard), Combination, Exposure, Sensitive,
+                DesignLimit, Geometry(), Plane, BarStresses(), true, false, false, 200000, 33000, 2.9, false, Ribbed, NominalCover, CoverOverride, SpacingOverride, Uncracked, LegacyK2,
+                options);
+
+            /// <summary>Constructor of 0.0.17.0, the one of ModelChecker.</summary>
+            public SectionCrackInput WithoutOptions() => new SectionCrackInput(ServiceabilityMigrationTests.Standard(Standard), Combination, Exposure, Sensitive,
+                DesignLimit, Geometry(), Plane, BarStresses(), true, false, false, 200000, 33000, 2.9, false, Ribbed, NominalCover, CoverOverride, SpacingOverride, Uncracked, LegacyK2);
+
+            public SectionCrackResult Evaluate(SectionCrackOptions options) => SectionCrackCheck.Evaluate(Input(options));
+        }
+
+        private static void AssertSameResult(SectionCrackResult expected, SectionCrackResult actual, string what)
+        {
+            AssertSame(expected, actual, what);
+            Assert.AreEqual(expected.Verdict, actual.Verdict, what + " verdict"); Assert.AreEqual(expected.Limit, actual.Limit, what + " wlim");
+            Assert.AreEqual(expected.EffectiveArea, actual.EffectiveArea, what + " Ac,eff"); Assert.AreEqual(expected.BarSpacing, actual.BarSpacing, what + " s");
+            Assert.AreEqual(string.Join(",", expected.Regions.Select(g => g.Key + ":" + g.Width)), string.Join(",", actual.Regions.Select(g => g.Key + ":" + g.Width)), what + " regions");
+        }
+
+        private static string ParamOf(Func<object> call, string what) => Assert.ThrowsException<ArgumentOutOfRangeException>(call, what).ParamName;
+
+        /// <summary>A refusal with a code: exact type ArgumentException, the message of 0.0.17.0, the code under CrackRejection.DataKey, no parameter name.</summary>
+        private static ArgumentException Refusal(Func<object> call, string code, string message, string what)
+        {
+            var e = Assert.ThrowsException<ArgumentException>(call, what);
+            Assert.AreEqual(message, e.Message, what + " message"); Assert.AreEqual(code, CrackRejection.CodeOf(e), what + " code");
+            Assert.AreEqual(code, e.Data[CrackRejection.DataKey], what + " Data"); Assert.IsNull(e.ParamName, what + " ParamName");
+            return e;
+        }
+
+        /// <summary>
+        /// Default options are the behaviour of 0.0.17.0 (the contract of ModelCheckerContractTests is captured with the constructor without options): same
+        /// results through both constructors on every branch, same refusals (type, message, parameter, place), same requirement table. The With methods copy.
+        /// </summary>
+        [TestMethod]
+        public void DefaultOptionsKeepTheBehaviourOf0017()
+        {
+            Assert.IsFalse(SectionCrackOptions.Default.ValidateAtUse); Assert.IsNull(SectionCrackOptions.Default.EffectiveDepthCover);
+            var changed = SectionCrackOptions.Default.WithValidateAtUse(true).WithEffectiveDepthCover(10);
+            Assert.IsTrue(changed.ValidateAtUse); Assert.AreEqual(10, changed.EffectiveDepthCover.Value);
+            Assert.IsFalse(changed.WithValidateAtUse(false).ValidateAtUse); Assert.IsTrue(changed.ValidateAtUse); Assert.IsNull(changed.WithEffectiveDepthCover(null).EffectiveDepthCover);
+            Assert.IsFalse(SectionCrackOptions.Default.ValidateAtUse); Assert.IsNull(SectionCrackOptions.Default.EffectiveDepthCover);
+            var basic = new OptionCase();
+            Assert.AreSame(SectionCrackOptions.Default, basic.WithoutOptions().Options);
+            Assert.AreSame(AtUse, basic.Input(AtUse).Options);
+            Assert.AreEqual("options", Assert.ThrowsException<ArgumentNullException>(() => basic.Input(null)).ParamName);
+            var states = new[]
+            {
+                basic, basic.With(x => x.Bars = Doubly), basic.With(x => x.Plane = UniformCompression), basic.With(x => { x.Bars = Doubly; x.Plane = EccentricTension; }),
+                basic.With(x => { x.Bars = Doubly; x.Plane = AxisInTheCover; }), basic.With(x => x.Plane = AxisAboveTheBars), basic.With(x => { x.Bars = Doubly; x.CoverOverride = 30; x.SpacingOverride = 150; }),
+                basic.With(x => { x.Exposure = "XD1"; x.Sensitive = true; x.Uncracked = () => -.5; }), basic.With(x => { x.Exposure = "XS3"; x.Sensitive = true; x.Combination = ServiceabilityCombination.Frequent; x.Uncracked = () => 3; }),
+                basic.With(x => x.LegacyK2 = true), basic.With(x => x.Combination = ServiceabilityCombination.Characteristic),
+                basic.With(x => { x.Standard = "DIN EN 1992-1-1"; x.Exposure = "XC3"; x.NominalCover = 90; }), basic.With(x => { x.Standard = "DIN EN 1992-1-1"; x.Exposure = "XC3"; x.CoverOverride = 90; }),
+                basic.With(x => { x.Standard = "EN 1992-1-1"; x.Exposure = "XC3"; x.DesignLimit = .25; }), basic.With(x => { x.Standard = "DS EN 1992-1-1"; x.Exposure = "XC3"; x.Bars = Doubly; x.Plane = EccentricTension; }),
+                basic.With(x => { x.Standard = "Model Code 2010"; x.Exposure = "XC3"; }),
+            };
+            for (int i = 0; i < states.Length; i++)
+                AssertSameResult(SectionCrackCheck.Evaluate(states[i].WithoutOptions()), states[i].Evaluate(SectionCrackOptions.Default), "state " + i);
+            // Refusals of the constructor stay in the constructor, those of Evaluate in Evaluate.
+            foreach (var bad in new Action<OptionCase>[] { x => x.NominalCover = double.NaN, x => x.CoverOverride = -1, x => x.SpacingOverride = 0, x => x.Stresses = new[] { 1.0 } })
+            {
+                var c = basic.With(bad);
+                Exception expected = null, actual = null;
+                try { c.WithoutOptions(); } catch (Exception e) { expected = e; }
+                try { c.Input(SectionCrackOptions.Default); } catch (Exception e) { actual = e; }
+                Assert.IsNotNull(expected); Assert.IsNotNull(actual); Assert.AreEqual(expected.GetType(), actual.GetType()); Assert.AreEqual(expected.Message, actual.Message);
+                Assert.AreEqual(((ArgumentException)expected).ParamName, ((ArgumentException)actual).ParamName);
+            }
+            foreach (var bad in new Action<OptionCase>[] { x => x.DesignLimit = double.NaN, x => { x.Plane = UniformCompression; x.Stresses = new[] { double.NaN, 0, 0 }; },
+                x => { x.Exposure = "XD1"; x.Sensitive = true; }, x => { x.Standard = "DIN EN 1992-1-1"; x.Exposure = "XC3"; x.Ribbed = false; } })
+            {
+                var c = basic.With(bad);
+                var before = c.WithoutOptions(); var after = c.Input(SectionCrackOptions.Default);
+                Exception expected = null, actual = null;
+                try { SectionCrackCheck.Evaluate(before); } catch (Exception e) { expected = e; }
+                try { SectionCrackCheck.Evaluate(after); } catch (Exception e) { actual = e; }
+                Assert.IsNotNull(expected); Assert.IsNotNull(actual); Assert.AreEqual(expected.GetType(), actual.GetType()); Assert.AreEqual(expected.Message, actual.Message);
+                Assert.AreEqual(CrackRejection.CodeOf(expected), CrackRejection.CodeOf(actual));
+            }
+            // The overload of CrackRequirements.For with the default options gives the table of the overload without options.
+            int requirements = 0;
+            foreach (CrackProfile profile in Enum.GetValues(typeof(CrackProfile)))
+                foreach (var combination in AllCombinations)
+                    foreach (var exposure in new string[] { null }.Concat(CrackRequirements.Exposures))
+                        foreach (bool sensitive in new[] { false, true })
+                            foreach (var limit in new double?[] { null, .25 })
+                            {
+                                var a = CrackRequirements.For(profile, combination, exposure, sensitive, limit);
+                                var b = CrackRequirements.For(profile, combination, exposure, sensitive, limit, SectionCrackOptions.Default);
+                                var c = CrackRequirements.For(profile, combination, exposure, sensitive, limit, AtUse);
+                                string what = string.Join(" ", profile, combination, exposure, sensitive, limit);
+                                foreach (var r in new[] { b, c })
+                                {
+                                    Assert.AreEqual(a.Criterion, r.Criterion, what); Assert.AreEqual(a.Limit, r.Limit, what); Assert.AreEqual(a.RequiredCombination, r.RequiredCombination, what);
+                                }
+                                requirements++;
+                            }
+            Assert.AreEqual(8 * 3 * 19 * 2 * 2, requirements);
+        }
+
+        /// <summary>
+        /// ValidateAtUse, design limit (ANTHEA ConcreteCodeChecks.CrackRequirement reads limite_fessure only for the Eurocode family in the required combination):
+        /// NTC 2018 and UNI ignore it, also when it is 0, negative, NaN or infinite; a combination where the check is not required gives NotRequired; where it
+        /// enters (EN, MC2010 and NS in the required combination) it is refused with the ArgumentOutOfRangeException of 0.0.17.0.
+        /// </summary>
+        [TestMethod]
+        public void ValidateAtUseChecksTheDesignLimitOnlyWhereItEnters()
+        {
+            var invalid = new[] { 0, -.2, double.NaN, double.PositiveInfinity };
+            int checks = 0;
+            foreach (var standard in new[] { "NTC 2018", "UNI EN 1992-1-1" })
+                foreach (var combination in AllCombinations)
+                {
+                    var clean = new OptionCase { Standard = standard, Combination = combination };
+                    foreach (double bad in invalid)
+                    {
+                        var c = clean.With(x => x.DesignLimit = bad); string what = standard + " " + combination + " wlim " + bad;
+                        AssertSameResult(clean.Evaluate(AtUse), c.Evaluate(AtUse), what);
+                        Assert.AreEqual("designLimit", ParamOf(() => c.Evaluate(SectionCrackOptions.Default), what + ", default options"));
+                        checks++;
+                    }
+                }
+            Assert.AreEqual(2 * 3 * 4, checks);
+            var en = new OptionCase { Standard = "EN 1992-1-1", Exposure = "XC3", DesignLimit = double.NaN };
+            var frequent = en.With(x => x.Combination = ServiceabilityCombination.Frequent).Evaluate(AtUse);
+            Assert.AreEqual(CrackOutcome.NotRequired, frequent.Outcome); Assert.AreEqual(CrackVerdict.NotRequired, frequent.Verdict);
+            Assert.AreEqual(ServiceabilityCombination.QuasiPermanent, frequent.Requirement.RequiredCombination.Value);
+            Assert.AreEqual("Not required: check the QuasiPermanent combination", frequent.Status); Assert.IsNull(frequent.Limit);
+            Assert.AreEqual(CrackOutcome.NotRequired, en.With(x => x.Combination = ServiceabilityCombination.Characteristic).Evaluate(AtUse).Outcome);
+            foreach (double bad in invalid)
+            {
+                Assert.AreEqual("designLimit", ParamOf(() => en.With(x => x.DesignLimit = bad).Evaluate(AtUse), "EN quasi-permanent " + bad));
+                Assert.AreEqual("designLimit", ParamOf(() => en.With(x => { x.DesignLimit = bad; x.Combination = ServiceabilityCombination.Frequent; }).Evaluate(SectionCrackOptions.Default), "EN frequent, default"));
+            }
+            var mc = en.With(x => x.Standard = "Model Code 2010");
+            Assert.AreEqual(CrackOutcome.NotRequired, mc.With(x => x.Combination = ServiceabilityCombination.Frequent).Evaluate(AtUse).Outcome);
+            Assert.AreEqual("designLimit", ParamOf(() => mc.Evaluate(AtUse), "MC2010 quasi-permanent"));
+            // NS NA: XD3 is checked in the frequent combination.
+            var ns = en.With(x => { x.Standard = "NS EN 1992-1-1"; x.Exposure = "XD3"; });
+            Assert.AreEqual(CrackOutcome.NotRequired, ns.Evaluate(AtUse).Outcome);
+            Assert.AreEqual("designLimit", ParamOf(() => ns.With(x => x.Combination = ServiceabilityCombination.Frequent).Evaluate(AtUse), "NS XD3 frequent"));
+            // A valid design limit is used as before; MC2010 without one still asks for it.
+            var valid = en.With(x => x.DesignLimit = .25);
+            AssertSameResult(valid.Evaluate(SectionCrackOptions.Default), valid.Evaluate(AtUse), "EN wlim 0.25");
+            Assert.AreEqual(.25, valid.Evaluate(AtUse).Limit.Value);
+            Assert.AreEqual(CrackOutcome.MissingDesignLimit, mc.With(x => x.DesignLimit = null).Evaluate(AtUse).Outcome);
+            // CrackRequirements.For with the options; the exposure is still validated up front.
+            var qp = ServiceabilityCombination.QuasiPermanent;
+            Assert.AreEqual(.3, CrackRequirements.For(CrackProfile.Ntc2018, qp, "XC1", false, double.NaN, AtUse).Limit.Value);
+            Assert.AreEqual(CrackCriterion.Decompression, CrackRequirements.For(CrackProfile.UniEN1992p11, qp, "XD1", true, -1, AtUse).Criterion);
+            Assert.AreEqual(CrackCriterion.NotRequired, CrackRequirements.For(CrackProfile.EN1992p11, ServiceabilityCombination.Frequent, "XC3", false, double.NaN, AtUse).Criterion);
+            Assert.AreEqual("designLimit", ParamOf(() => CrackRequirements.For(CrackProfile.EN1992p11, qp, "XC3", false, 0, AtUse), "For EN"));
+            Assert.AreEqual("designLimit", ParamOf(() => CrackRequirements.For(CrackProfile.Ntc2018, qp, "XC1", false, 0, SectionCrackOptions.Default), "For NTC default"));
+            Assert.AreEqual("Unknown exposure class: XY9", Assert.ThrowsException<ArgumentException>(() => CrackRequirements.For(CrackProfile.Ntc2018, qp, "XY9", false, null, AtUse)).Message);
+            Assert.AreEqual("options", Assert.ThrowsException<ArgumentNullException>(() => CrackRequirements.For(CrackProfile.Ntc2018, qp, "XC1", false, null, null)).ParamName);
+        }
+
+        /// <summary>
+        /// ValidateAtUse, nominal cover and overrides (ANTHEA Required("copriferro_fessure"), Required("spaziatura_fessure", strict) and Required("cover_mm") where
+        /// the branch reads them): decompression, crack formation, a combination not required, the neutral axis in the cover, tensile bars outside Ac,eff and the
+        /// entirely compressed section do not read them; the width formula refuses them where it reads them, with the parameter of 0.0.17.0, cover before spacing.
+        /// </summary>
+        [TestMethod]
+        public void ValidateAtUseChecksCoverAndSpacingInTheBranchThatUsesThem()
+        {
+            var basic = new OptionCase();
+            var invalid = new[]
+            {
+                Tuple.Create("nominalCover", (Action<OptionCase>)(x => x.NominalCover = double.NaN)), Tuple.Create("nominalCover", (Action<OptionCase>)(x => x.NominalCover = -1)),
+                Tuple.Create("coverOverride", (Action<OptionCase>)(x => x.CoverOverride = double.NaN)), Tuple.Create("coverOverride", (Action<OptionCase>)(x => x.CoverOverride = -1)),
+                Tuple.Create("spacingOverride", (Action<OptionCase>)(x => x.SpacingOverride = double.NaN)), Tuple.Create("spacingOverride", (Action<OptionCase>)(x => x.SpacingOverride = 0)),
+            };
+            var unread = new[]
+            {
+                Tuple.Create("decompression", basic.With(x => { x.Exposure = "XD1"; x.Sensitive = true; x.Uncracked = () => -.5; })),
+                Tuple.Create("crack formation", basic.With(x => { x.Exposure = "XS3"; x.Sensitive = true; x.Combination = ServiceabilityCombination.Frequent; x.Uncracked = () => 3; })),
+                Tuple.Create("not required", basic.With(x => x.Combination = ServiceabilityCombination.Characteristic)),
+                Tuple.Create("EN not required", basic.With(x => { x.Standard = "EN 1992-1-1"; x.Exposure = "XC3"; x.Combination = ServiceabilityCombination.Frequent; })),
+                Tuple.Create("neutral axis in the cover", basic.With(x => { x.Bars = Doubly; x.Plane = AxisInTheCover; })),
+                Tuple.Create("no bar in Ac,eff", basic.With(x => x.Plane = AxisAboveTheBars)),
+                Tuple.Create("entirely compressed", basic.With(x => { x.Bars = Doubly; x.Plane = UniformCompression; })),
+            };
+            int checks = 0;
+            foreach (var state in unread)
+            {
+                var clean = state.Item2.Evaluate(AtUse);
+                foreach (var bad in invalid)
+                {
+                    var c = state.Item2.With(bad.Item2); string what = state.Item1 + ", invalid " + bad.Item1;
+                    AssertSameResult(clean, c.Evaluate(AtUse), what);
+                    Assert.AreEqual(bad.Item1, ParamOf(() => c.Input(SectionCrackOptions.Default), what + ": refused by the constructor with the default options"));
+                    checks++;
+                }
+                AssertSameResult(clean, state.Item2.With(x => { x.NominalCover = double.NaN; x.CoverOverride = -1; x.SpacingOverride = 0; }).Evaluate(AtUse), state.Item1 + ", all invalid");
+            }
+            Assert.AreEqual(7 * 6, checks);
+            // Width formula of the partially compressed section: refused at use (the constructor accepts the values), cover before spacing.
+            foreach (var bad in invalid)
+            {
+                var input = basic.With(bad.Item2).Input(AtUse);
+                Assert.AreEqual(bad.Item1, ParamOf(() => SectionCrackCheck.Evaluate(input), "bending, invalid " + bad.Item1));
+            }
+            Assert.AreEqual("coverOverride", ParamOf(() => basic.With(x => { x.CoverOverride = double.NaN; x.SpacingOverride = double.NaN; }).Evaluate(AtUse), "cover first"));
+            Assert.AreEqual("nominalCover", ParamOf(() => basic.With(x => { x.NominalCover = double.NaN; x.SpacingOverride = double.NaN; }).Evaluate(AtUse), "nominal cover first"));
+            // An assigned cover replaces the nominal cover in the formula: an invalid nominal cover is not read (NTC hc,eff does not use it).
+            var assigned = basic.With(x => x.CoverOverride = 30);
+            var r = assigned.With(x => x.NominalCover = double.NaN).Evaluate(AtUse);
+            AssertSameResult(assigned.Evaluate(AtUse), r, "assigned cover, nominal NaN");
+            Assert.AreEqual(30, r.Details.Single(d => d.Symbol == "c").Value); Assert.AreEqual("assigned", r.Details.Single(d => d.Symbol == "c").Expression);
+            // Entirely tensile section: the faces read the overrides (cover before spacing), never the nominal cover.
+            var tensile = basic.With(x => { x.Bars = Doubly; x.Plane = EccentricTension; });
+            Assert.AreEqual(CrackOutcome.Evaluated, tensile.Evaluate(AtUse).Outcome);
+            Assert.AreEqual("coverOverride", ParamOf(() => tensile.With(x => x.CoverOverride = double.NaN).Evaluate(AtUse), "faces, cover"));
+            Assert.AreEqual("spacingOverride", ParamOf(() => tensile.With(x => x.SpacingOverride = double.NaN).Evaluate(AtUse), "faces, spacing"));
+            AssertSameResult(tensile.Evaluate(AtUse), tensile.With(x => x.NominalCover = double.NaN).Evaluate(AtUse), "faces, nominal cover not read");
+            var ds = tensile.With(x => { x.Standard = "DS EN 1992-1-1"; x.Exposure = "XC3"; });
+            AssertSameResult(ds.Evaluate(AtUse), ds.With(x => x.NominalCover = double.NaN).Evaluate(AtUse), "DS faces and coarse system, nominal cover not read");
+            // Valid values: the same result in both modes.
+            foreach (var c in new[] { basic, assigned, basic.With(x => x.SpacingOverride = 150), tensile.With(x => { x.CoverOverride = 35; x.SpacingOverride = 120; }), ds })
+                AssertSameResult(c.Evaluate(SectionCrackOptions.Default), c.Evaluate(AtUse), "valid values");
+        }
+
+        /// <summary>
+        /// ValidateAtUse, bar stresses (ANTHEA Ntc2018Checks.Cracking checks them after the compression return): an entirely compressed section gives wk = 0 also with
+        /// missing or non-finite stresses; elsewhere Evaluate refuses them before the branches, with the code BarStresses and the message without "k2:". With
+        /// ntcK2FromCompressedBars the bars choose k2 and are checked before any branch, as in 0.0.17.0.
+        /// </summary>
+        [TestMethod]
+        public void ValidateAtUseChecksTheBarStressesAfterTheCompressionReturn()
+        {
+            var basic = new OptionCase { Bars = Doubly };
+            const string k2Message = "k2: bar stresses missing or not finite.", atUseMessage = "Cracking: bar stresses missing or not finite.";
+            int checks = 0;
+            foreach (var standard in new[] { "NTC 2018", "EN 1992-1-1" })
+                foreach (var plane in new[] { UniformCompression, CompressedToZero })
+                    foreach (double bad in new[] { double.NaN, double.PositiveInfinity, double.NegativeInfinity })
+                    {
+                        var stresses = Doubly.Select(b => 200000 * plane.GetStrain(b.X, b.Y)).ToArray(); stresses[0] = bad;
+                        var clean = basic.With(x => { x.Standard = standard; x.Exposure = standard == "NTC 2018" ? "XC1" : "XC3"; x.Plane = plane; });
+                        var c = clean.With(x => x.Stresses = stresses); string what = standard + " " + plane.StrainReferencePoint + " σs[0] = " + bad;
+                        var r = c.Evaluate(AtUse);
+                        Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, what); Assert.AreEqual("Section entirely compressed", r.Status, what);
+                        Assert.AreEqual(0, r.Width.Value, what); Assert.AreEqual(CrackVerdict.Satisfied, r.Verdict, what); Assert.IsNull(r.K2, what);
+                        AssertSameResult(clean.Evaluate(AtUse), r, what);
+                        Refusal(() => c.Evaluate(SectionCrackOptions.Default), CrackRejection.BarStresses, k2Message, what + ", default options");
+                        Refusal(() => c.With(x => x.LegacyK2 = true).Evaluate(AtUse), CrackRejection.BarStresses, k2Message, what + ", ntcK2FromCompressedBars");
+                        checks++;
+                    }
+            Assert.AreEqual(2 * 2 * 3, checks);
+            var none = basic.With(x => { x.Plane = UniformCompression; x.Bars = new CrackBar[0]; });
+            Assert.AreEqual(0, none.Evaluate(AtUse).Width.Value);
+            Refusal(() => none.Evaluate(SectionCrackOptions.Default), CrackRejection.BarStresses, k2Message, "no bars, default options");
+            Refusal(() => none.With(x => x.Plane = BentAt50).Evaluate(AtUse), CrackRejection.BarStresses, atUseMessage, "no bars, bent");
+            // Bent and entirely tensile sections: the constructor accepts them, Evaluate refuses them after the compression return.
+            foreach (var plane in new[] { BentAt50, EccentricTension, AxisInTheCover })
+                foreach (double bad in new[] { double.NaN, double.PositiveInfinity, double.NegativeInfinity })
+                {
+                    var stresses = Doubly.Select(b => 200000 * plane.GetStrain(b.X, b.Y)).ToArray(); stresses[3] = bad;
+                    var input = basic.With(x => { x.Plane = plane; x.Stresses = stresses; }).Input(AtUse);
+                    Refusal(() => SectionCrackCheck.Evaluate(input), CrackRejection.BarStresses, atUseMessage, "at use, " + plane.StrainReferencePoint + " σs[3] = " + bad);
+                }
+            // Decompression does not read them in either mode.
+            var decompression = basic.With(x => { x.Exposure = "XD1"; x.Sensitive = true; x.Uncracked = () => -.5; x.Stresses = Doubly.Select(b => double.NaN).ToArray(); });
+            AssertSameResult(decompression.Evaluate(SectionCrackOptions.Default), decompression.Evaluate(AtUse), "decompression");
+        }
+
+        /// <summary>
+        /// EffectiveDepthCover (ANTHEA W8): c of the DIN condition (h − x)/3 ≥ c + 20 mm (NCI 7.3.2(3)), by default the nominal cover. 300×500 with 3Ø20 at y = −200,
+        /// neutral axis at y = 50: h − x = 300, h − d = 50, h = 500, coefficient 2 + 0.1 · 500/50 = 3, hc,eff = min(150; 250) = 150 mm unless (h − x)/3 = 100 ≥ c + 20,
+        /// then 100 mm. σs = 200 MPa, s = 100 mm ≤ 5 (c + Ø/2), DIN: kt = 0.4, sr,max = min[Ø/(3.6 ρ); σs Ø/(3.6 fct)], wk = sr,max max[0.6 σs/Es; (σs − kt fct/ρ (1 + αe ρ))/Es].
+        /// </summary>
+        [TestMethod]
+        public void EffectiveDepthCoverChangesOnlyTheDinCondition()
+        {
+            double Hand(double hc)
+            {
+                double rho = 3 * 314.16 / (300 * hc), sigma = 200;
+                double strain = Math.Max(.6 * sigma / 200000, (sigma - .4 * 2.9 / rho * (1 + 200000 / 33000.0 * rho)) / 200000);
+                return Math.Min(20 / (3.6 * rho), sigma * 20 / (3.6 * 2.9)) * strain;
+            }
+            var din = new OptionCase { Standard = "DIN EN 1992-1-1", Exposure = "XC3" };
+            foreach (var options in new[] { SectionCrackOptions.Default, AtUse })
+            {
+                string mode = options.ValidateAtUse ? "at use" : "default";
+                // Nominal 90 mm: 100 < 110, hc,eff = 150; with the DIN cover 40 mm: 100 ≥ 60, hc,eff = 100 while the formula keeps c = 90.
+                var nominal90 = din.With(x => x.NominalCover = 90);
+                foreach (var pair in new[] { Tuple.Create(nominal90, (double?)null, 150d, 90d), Tuple.Create(nominal90, (double?)40, 100d, 90d),
+                    Tuple.Create(din, (double?)null, 100d, 40d), Tuple.Create(din, (double?)90, 150d, 40d), Tuple.Create(din, (double?)-5, 100d, 40d), Tuple.Create(nominal90, (double?)79, 100d, 90d) })
+                {
+                    var r = pair.Item1.Evaluate(options.WithEffectiveDepthCover(pair.Item2));
+                    string what = mode + ", nominal " + pair.Item1.NominalCover + ", DIN cover " + pair.Item2;
+                    Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, what + " " + r.Status);
+                    Assert.AreEqual(pair.Item3, r.Details.Single(d => d.Symbol == "hc,eff").Value, 1e-9, what + " hc,eff");
+                    Assert.AreEqual(300 * pair.Item3, r.EffectiveArea.Value, 1e-6, what + " Ac,eff");
+                    Assert.AreEqual(pair.Item4, r.Details.Single(d => d.Symbol == "c").Value, what + " c of the formula");
+                    Assert.AreEqual(Hand(pair.Item3), r.Width.Value, 1e-12, what + " wk by hand");
+                }
+                // null = nominal cover, as 0.0.17.0.
+                AssertSameResult(nominal90.Evaluate(SectionCrackOptions.Default), nominal90.Evaluate(options.WithEffectiveDepthCover(null)), mode + " null");
+                AssertSameResult(nominal90.Evaluate(SectionCrackOptions.Default), nominal90.Evaluate(options.WithEffectiveDepthCover(90)), mode + " same as nominal");
+                // The other profiles and the entirely tensile section do not read it.
+                foreach (var c in new[] { din.With(x => { x.Standard = "EN 1992-1-1"; }), din.With(x => { x.Standard = "DS EN 1992-1-1"; }), din.With(x => { x.Standard = "NS EN 1992-1-1"; }),
+                    din.With(x => { x.Standard = "Model Code 2010"; x.DesignLimit = .3; }), new OptionCase(), din.With(x => { x.Bars = Doubly; x.Plane = EccentricTension; }) })
+                    AssertSameResult(c.Evaluate(options), c.Evaluate(options.WithEffectiveDepthCover(1000)), mode + " " + c.Standard + " " + c.Plane.StrainReferencePoint);
+            }
+            // Not finite: refused by the option, with its parameter.
+            foreach (double bad in new[] { double.NaN, double.PositiveInfinity, double.NegativeInfinity })
+                Assert.AreEqual("effectiveDepthCover", ParamOf(() => SectionCrackOptions.Default.WithEffectiveDepthCover(bad), "DIN cover " + bad));
+            // ValidateAtUse: without the DIN cover the condition reads the nominal cover and refuses it there, also with an assigned cover of the formula.
+            var nanNominal = din.With(x => { x.NominalCover = double.NaN; x.CoverOverride = 30; });
+            Assert.AreEqual("nominalCover", ParamOf(() => nanNominal.Evaluate(AtUse), "DIN condition with the nominal cover"));
+            var withCover = nanNominal.Evaluate(AtUse.WithEffectiveDepthCover(40));
+            Assert.AreEqual(100, withCover.Details.Single(d => d.Symbol == "hc,eff").Value, 1e-9); Assert.AreEqual(30, withCover.Details.Single(d => d.Symbol == "c").Value);
+            AssertSameResult(din.With(x => x.CoverOverride = 30).Evaluate(AtUse.WithEffectiveDepthCover(40)), withCover, "nominal cover never read");
+        }
+
+        /// <summary>
+        /// Codes of the refusals (CrackRejection): same exact type and message as 0.0.17.0, the code in Exception.Data. WidthParameters and UpperBoundParameters
+        /// share the message and are told apart only by the code; the parameter refusals (ArgumentOutOfRangeException) keep their ParamName and have no code.
+        /// </summary>
+        [TestMethod]
+        public void RejectionCodesTellRefusalsWithTheSameMessageApart()
+        {
+            Assert.AreEqual("GPC.Checkers.Concrete.Cracking.CrackRejection", CrackRejection.DataKey);
+            var codes = new[] { CrackRejection.WidthParameters, CrackRejection.UpperBoundParameters, CrackRejection.RibbedBarsRequired, CrackRejection.BarStresses, CrackRejection.UncrackedStressRequired };
+            CollectionAssert.AreEqual(new[] { "WidthParameters", "UpperBoundParameters", "RibbedBarsRequired", "BarStresses", "UncrackedStressRequired" }, codes);
+            double rho = 942.48 / 33000;
+            CrackWidthInput W(double sigma = 250, double es = 200000, double ecm = 33000, double fct = 2.9, double r = double.NaN, double phi = 20, double cover = 40, double spacing = 100,
+                double depth = 330, bool ribbed = true, double k2 = .5) => new CrackWidthInput(sigma, es, ecm, fct, double.IsNaN(r) ? rho : r, phi, cover, spacing, depth, false, ribbed, k2);
+            var widthCases = new[] { W(sigma: -1), W(sigma: double.NaN), W(es: 0), W(ecm: double.NaN), W(fct: -1), W(r: 0), W(phi: double.PositiveInfinity), W(cover: -1), W(spacing: 0),
+                W(depth: double.NaN), W(k2: .4), W(k2: 1.1), W(cover: double.PositiveInfinity) };
+            int width = 0, bound = 0;
+            foreach (var profile in new[] { CrackProfile.Ntc2018, CrackProfile.EN1992p11, CrackProfile.DinEN1992p11, CrackProfile.ModelCode2010 })
+            {
+                foreach (var input in widthCases)
+                {
+                    Refusal(() => CrackWidthCalculator.Width(profile, input), CrackRejection.WidthParameters, InvalidWidthMessage, profile + " width " + width);
+                    // Invalid parameters come before the bond check, also with plain bars.
+                    Refusal(() => CrackWidthCalculator.Width(profile, new CrackWidthInput(input.SteelStress, input.Es, input.Ecm, input.Fct, input.Rho, input.Diameter, input.Cover,
+                        input.Spacing, input.TensileDepth, false, false, input.K2)), CrackRejection.WidthParameters, InvalidWidthMessage, profile + " plain width " + width);
+                    width++;
+                }
+                foreach (var call in new Func<object>[]
+                {
+                    () => CrackWidthCalculator.UnbondedUpperBound(profile, -1, 200000, 2.9, 20, 300, false, true), () => CrackWidthCalculator.UnbondedUpperBound(profile, double.NaN, 200000, 2.9, 20, 300, false, true),
+                    () => CrackWidthCalculator.UnbondedUpperBound(profile, 200, 0, 2.9, 20, 300, false, true), () => CrackWidthCalculator.UnbondedUpperBound(profile, 200, 200000, double.NaN, 20, 300, false, true),
+                    () => CrackWidthCalculator.UnbondedUpperBound(profile, 200, 200000, 2.9, -20, 300, false, true), () => CrackWidthCalculator.UnbondedUpperBound(profile, 200, 200000, 2.9, 20, 0, false, false),
+                })
+                {
+                    Refusal(call, CrackRejection.UpperBoundParameters, InvalidWidthMessage, profile + " upper bound " + bound);
+                    bound++;
+                }
+                bool needsRibs = profile == CrackProfile.DinEN1992p11 || profile == CrackProfile.ModelCode2010;
+                if (needsRibs)
+                {
+                    Refusal(() => CrackWidthCalculator.Width(profile, W(ribbed: false)), CrackRejection.RibbedBarsRequired, RibbedBarsMessage, profile + " width, plain bars");
+                    Refusal(() => CrackWidthCalculator.UnbondedUpperBound(profile, 200, 200000, 2.9, 20, 300, false, false), CrackRejection.RibbedBarsRequired, RibbedBarsMessage, profile + " bound, plain bars");
+                }
+                else
+                {
+                    Assert.IsTrue(CrackWidthCalculator.Width(profile, W(ribbed: false)) > 0); Assert.IsTrue(CrackWidthCalculator.UnbondedUpperBound(profile, 200, 200000, 2.9, 20, 300, false, false) > 0);
+                }
+            }
+            Assert.AreEqual(4 * 13, width); Assert.AreEqual(4 * 6, bound);
+            // Same message, different codes.
+            var widthRefusal = Assert.ThrowsException<ArgumentException>(() => CrackWidthCalculator.Width(CrackProfile.EN1992p11, W(es: 0)));
+            var boundRefusal = Assert.ThrowsException<ArgumentException>(() => CrackWidthCalculator.UnbondedUpperBound(CrackProfile.EN1992p11, 200, 0, 2.9, 20, 300, false, true));
+            Assert.AreEqual(widthRefusal.Message, boundRefusal.Message); Assert.AreNotEqual(CrackRejection.CodeOf(widthRefusal), CrackRejection.CodeOf(boundRefusal));
+            // Bar stresses of the legacy k2 rule.
+            Refusal(() => CrackWidthCalculator.K2(new double[0]), CrackRejection.BarStresses, "k2: bar stresses missing or not finite.", "K2 empty");
+            Refusal(() => CrackWidthCalculator.K2(new[] { 1, double.NaN }), CrackRejection.BarStresses, "k2: bar stresses missing or not finite.", "K2 NaN");
+            Refusal(() => CrackWidthCalculator.K2(null), CrackRejection.BarStresses, "k2: bar stresses missing or not finite.", "K2 null");
+            // Through Evaluate, in both modes: decompression and crack formation without the uncracked section, plain bars with DIN and MC2010 (formula and upper bound).
+            var basic = new OptionCase();
+            foreach (var options in new[] { SectionCrackOptions.Default, AtUse })
+            {
+                Refusal(() => basic.With(x => { x.Exposure = "XD1"; x.Sensitive = true; }).Evaluate(options), CrackRejection.UncrackedStressRequired,
+                    "Cracking: the stress of the uncracked section is required for Decompression.", "decompression");
+                Refusal(() => basic.With(x => { x.Exposure = "XS3"; x.Sensitive = true; x.Combination = ServiceabilityCombination.Frequent; }).Evaluate(options), CrackRejection.UncrackedStressRequired,
+                    "Cracking: the stress of the uncracked section is required for CrackFormation.", "crack formation");
+                foreach (var plain in new[] { basic.With(x => { x.Standard = "DIN EN 1992-1-1"; x.Exposure = "XC3"; x.Ribbed = false; }),
+                    basic.With(x => { x.Standard = "Model Code 2010"; x.Exposure = "XC3"; x.DesignLimit = .3; x.Ribbed = false; }) })
+                {
+                    Refusal(() => plain.Evaluate(options), CrackRejection.RibbedBarsRequired, RibbedBarsMessage, plain.Standard + " bent");
+                    Refusal(() => plain.With(x => x.Plane = AxisAboveTheBars).Evaluate(options), CrackRejection.RibbedBarsRequired, RibbedBarsMessage, plain.Standard + " upper bound");
+                }
+            }
+            // Parameter refusals: ParamName, no code. Exceptions without a code.
+            var limitRefusal = Assert.ThrowsException<ArgumentOutOfRangeException>(() => basic.With(x => x.DesignLimit = 0).Evaluate(SectionCrackOptions.Default));
+            Assert.AreEqual("designLimit", limitRefusal.ParamName); Assert.IsNull(CrackRejection.CodeOf(limitRefusal));
+            var coverRefusal = Assert.ThrowsException<ArgumentOutOfRangeException>(() => basic.With(x => x.CoverOverride = -1).Evaluate(AtUse));
+            Assert.AreEqual("coverOverride", coverRefusal.ParamName); Assert.IsNull(CrackRejection.CodeOf(coverRefusal));
+            Assert.IsNull(CrackRejection.CodeOf(new ArgumentException("x"))); Assert.IsNull(CrackRejection.CodeOf(null));
+        }
+
+        /// <summary>
+        /// The refusals of the legacy captures carry the code of their cause. crack-scalar-legacy.csv: the 57 widths in error are MC2010 and DIN with plain bars
+        /// (ANTHEA ConcreteCodeChecks.CrackWidth), valid with ribbed bars: RibbedBarsRequired. crack-legacy.csv: the 6 states refused by ANTHEA with "Modello di
+        /// fessurazione MC/DIN implementato per barre ad aderenza migliorata." give RibbedBarsRequired, with ValidateAtUse too (the 4 non-convergent analyses stop before).
+        /// </summary>
+        [TestMethod]
+        public void LegacyRefusalsCarryTheirCode()
+        {
+            int plainWidths = 0;
+            foreach (var row in Rows("crack-scalar-legacy.csv", header: false))
+            {
+                var c = row.Split(';');
+                if (!c[0].StartsWith("W") || c[14] == "ok") continue;
+                var profile = Profile(c[1]);
+                Assert.IsTrue((profile == CrackProfile.ModelCode2010 || profile == CrackProfile.DinEN1992p11) && !bool.Parse(c[12]), c[0] + " " + c[1] + " ribbed " + c[12]);
+                CrackWidthInput Input(bool ribbed) => new CrackWidthInput(D(c[2]), D(c[3]), D(c[4]), D(c[5]), D(c[6]), D(c[7]), D(c[8]), D(c[9]), D(c[10]), bool.Parse(c[11]), ribbed, D(c[13]));
+                Refusal(() => CrackWidthCalculator.Width(profile, Input(false)), CrackRejection.RibbedBarsRequired, RibbedBarsMessage, c[0]);
+                Assert.IsTrue(CrackWidthCalculator.Width(profile, Input(true)) >= 0, c[0] + " valid with ribbed bars");
+                plainWidths++;
+            }
+            Assert.AreEqual(57, plainWidths);
+            string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures");
+            GPC.Model.Models.Model archive;
+            using (var stream = File.OpenRead(Path.Combine(folder, "crack-sections.xml"))) archive = ModelArchive.Load(stream);
+            int refused = 0, notConverged = 0;
+            foreach (var row in Rows("crack-legacy.csv"))
+            {
+                var c = row.Split(';');
+                if (c[25] == "ok") continue;
+                if (c[30].Contains("non convergente")) { notConverged++; continue; }
+                Assert.AreEqual("Modello di fessurazione MC/DIN implementato per barre ad aderenza migliorata.", c[30], c[0]);
+                double[] P(string s) => s.Split(',').Select(D).ToArray();
+                var o = P(c[8]); var v1 = P(c[9]); var v2 = P(c[10]);
+                var axes = new CoordinateSystem(new Point3d(o[0], o[1], o[2]), new Vector3d(v1[0], v1[1], v1[2]), new Vector3d(v2[0], v2[1], v2[2]));
+                bool linear = bool.Parse(c[4]), tension = bool.Parse(c[6]);
+                var standard = ServiceabilityMigrationTests.Standard(c[2]);
+                foreach (var pair in c[3].Split(',')) { var kv = pair.Split('='); typeof(StandardModelCode2010).GetProperty(kv[0]).SetValue(standard, D(kv[1])); }
+                var section = (ReinforcedConcreteSection)archive.BeamProperties[c[1]];
+                var analysis = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(axes, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                    linear ? SectionSolver.StressAnalysisTypes.Linear : SectionSolver.StressAnalysisTypes.NonLinear, D(c[5]), 0, tension, int.Parse(c[7]));
+                var stress = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), analysis, standard, tension)
+                    .GetTensionAnalysisResult(new ResultBeamForces(D(c[11]), D(c[12]), D(c[13]), D(c[14]), D(c[15]), D(c[16]), axes));
+                var concrete = (ConcreteMaterialEuropeanCommon)section.ConcreteMaterial;
+                foreach (var options in new[] { SectionCrackOptions.Default, AtUse })
+                {
+                    var input = new SectionCrackInput(ServiceabilityMigrationTests.Standard(c[2]), Combination(c[17]), Exposure(c[18]), c[19] == "Sensibile", N(c[24]),
+                        CrackSectionGeometry.From(section, c[1] == "C1000H"), stress.StrainPlane, SectionCrackInput.OrdinaryBarStresses(stress, section), linear, tension, false,
+                        section.Rebars.First().RebarMaterial.E, concrete.Ecm, concrete.Fctm, c[20] == "Breve", c[21] == "Migliorata", Covers[c[1]], N(c[22]), N(c[23]), null, false, options);
+                    Refusal(() => SectionCrackCheck.Evaluate(input), CrackRejection.RibbedBarsRequired, RibbedBarsMessage, "state " + c[0] + (options.ValidateAtUse ? " at use" : ""));
+                }
+                refused++;
+            }
+            Assert.AreEqual(6, refused); Assert.AreEqual(4, notConverged);
+        }
     }
 }

@@ -115,6 +115,36 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - **Geometria** (`CrackSectionGeometry.From`): contorno, fori e barre ordinarie della sezione di Model. Il cerchio è
   riconosciuto dai vertici equidistanti; gli anelli concentrici vanno confermati. L'interasse automatico vale per
   file allineate o anelli, altrimenti va assegnato.
+- **Opzioni** (`SectionCrackOptions`, 0.0.18.0). Sono membri nuovi: con `SectionCrackOptions.Default` comportamento
+  e contratto della 0.0.17.0 non cambiano.
+  - Le opzioni sono immutabili: si parte da `Default` e si usano i metodi `With…`, che restituiscono una copia.
+  - Si passano con il costruttore nuovo di `SectionCrackInput`, che chiede tutti gli argomenti più le opzioni, senza
+    valori predefiniti. Il costruttore esistente, quello di ModelChecker, usa `Default`. Anche
+    `CrackRequirements.For` ha un overload con le opzioni obbligatorie.
+  - `ValidateAtUse` (falso di default) controlla i dati dove entrano nel calcolo, come ANTHEA:
+    - il wlim di progetto solo per la famiglia Eurocodice e MC2010 nella combinazione richiesta. NTC e UNI lo
+      ignorano; nelle altre combinazioni l'esito è `NotRequired`;
+    - copriferro nominale, copriferro e interasse assegnati nel ramo che li legge, con la stessa
+      `ArgumentOutOfRangeException` e lo stesso parametro, prima il copriferro e poi l'interasse. Non li leggono
+      decompressione, formazione delle fessure, combinazioni non richieste, asse neutro nel copriferro, barre tese
+      fuori da Ac,eff e sezione interamente compressa;
+    - le tensioni delle barre dopo il ritorno della sezione interamente compressa, che dà wk = 0 anche con tensioni
+      mancanti o non finite. Il messaggio è «Cracking: bar stresses missing or not finite.». Con
+      `NtcK2FromCompressedBars` le tensioni scelgono k2 e restano controllate prima di ogni ramo.
+  - `EffectiveDepthCover` (null = copriferro nominale) è il c della condizione DIN (h − x)/3 ≥ c + 20 mm di hc,eff.
+    La formula di wk usa sempre il copriferro assegnato o quello nominale.
+- **Rifiuti con codice** (`CrackRejection`, 0.0.18.0). I rifiuti restano `ArgumentException` del tipo esatto, con il
+  messaggio della 0.0.17.0. Il codice sta in `Exception.Data` sotto `CrackRejection.DataKey` (`CrackRejection.CodeOf`):
+  - `WidthParameters` e `UpperBoundParameters`: parametri non validi della formula e del limite superiore senza barre
+    aderenti, con lo stesso messaggio;
+  - `RibbedBarsRequired`: MC2010 e DIN con barre lisce;
+  - `BarStresses`: tensioni delle barre mancanti o non finite;
+  - `UncrackedStressRequired`: decompressione o formazione delle fessure senza la sezione non fessurata.
+
+  I rifiuti dei parametri (`ArgumentOutOfRangeException`) non hanno codice: si riconoscono da `ParamName`.
+  Le prove sono in `CrackMigrationTests`: opzioni predefinite uguali al costruttore esistente, i casi di
+  `ValidateAtUse`, hc,eff DIN calcolato a mano, i codici. Hanno codice anche i rifiuti delle catture: i 6 stati di
+  `crack-legacy.csv` e le 57 aperture di `crack-scalar-legacy.csv` con barre lisce danno `RibbedBarsRequired`.
 - **Non supportati:**
   - CS-TR34: non applicabile;
   - CNR-DT 204: modello FRC non implementato;
@@ -126,7 +156,7 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   - `Fixtures/crack-scalar-legacy.csv`: 1400 aperture e 1596 requisiti.
 - **Contratto di ModelChecker della 0.0.17.0** (`ModelCheckerContractTests`, `Fixtures/model-checker-contract.json`).
   Registra Details, Status, Outcome, Verdict, Reference e gli altri membri del risultato, oppure tipo, messaggio e
-  parametro dell'eccezione, con il costruttore attuale di `SectionCrackInput`:
+  parametro dell'eccezione, con il costruttore di `SectionCrackInput` senza opzioni:
   - i 936 stati di `crack-legacy.csv`;
   - ingressi limite: wlim di progetto non valido, override NaN o negativi, tensioni non finite, i tre casi di
     `NoEffectiveArea`, barre lisce con MC2010 e DIN, CS-TR34, CNR-DT 204 e ACI 318;

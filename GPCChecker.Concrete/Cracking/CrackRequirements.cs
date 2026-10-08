@@ -47,14 +47,27 @@ namespace GPC.Checkers.Concrete.Cracking
         /// <param name="sensitive">Reinforcement sensitive to corrosion (NTC 2018 §4.1.2.2.4).</param>
         /// <param name="designLimit">Design wlim, mm, when assigned (Eurocode family and Model Code 2010).</param>
         public static CrackRequirement For(CrackProfile profile, ServiceabilityCombination combination, string exposure, bool sensitive, double? designLimit = null)
+            => For(profile, combination, exposure, sensitive, designLimit, SectionCrackOptions.Default);
+
+        /// <summary>
+        /// Requirement with the options of the crack check (0.0.18.0). With <see cref="SectionCrackOptions.ValidateAtUse"/> the design limit is validated
+        /// only where it is used (Eurocode family and Model Code 2010 in the required combination), otherwise always, as the overload without options.
+        /// </summary>
+        /// <param name="options">Required: <see cref="SectionCrackOptions.Default"/> for the behaviour of 0.0.17.0.</param>
+        public static CrackRequirement For(CrackProfile profile, ServiceabilityCombination combination, string exposure, bool sensitive, double? designLimit,
+            SectionCrackOptions options)
         {
+            if (options == null) throw new ArgumentNullException(nameof(options));
             if (exposure != null && !Exposures.Contains(exposure)) throw new ArgumentException("Unknown exposure class: " + exposure);
-            if (designLimit.HasValue && (double.IsNaN(designLimit.Value) || double.IsInfinity(designLimit.Value) || designLimit <= 0))
-                throw new ArgumentOutOfRangeException(nameof(designLimit));
+            if (!options.ValidateAtUse) RequireDesignLimit(designLimit);
             if (CrackProfiles.IsNtc(profile) || profile == CrackProfile.UniEN1992p11) return Ntc(combination, exposure, sensitive);
             var required = profile == CrackProfile.NsEN1992p11 && (exposure == "XD3" || exposure == "XS3") ? ServiceabilityCombination.Frequent : ServiceabilityCombination.QuasiPermanent;
             if (combination != required) return new CrackRequirement(CrackCriterion.NotRequired, null, required);
-            if (designLimit.HasValue) return new CrackRequirement(CrackCriterion.CrackWidth, designLimit);
+            if (designLimit.HasValue)
+            {
+                RequireDesignLimit(designLimit);
+                return new CrackRequirement(CrackCriterion.CrackWidth, designLimit);
+            }
             if (profile == CrackProfile.ModelCode2010) return new CrackRequirement(CrackCriterion.DesignLimitRequired);
             double? limit;
             if (profile == CrackProfile.DsEN1992p11)
@@ -86,6 +99,12 @@ namespace GPC.Checkers.Concrete.Cracking
                 }
             }
             return new CrackRequirement(CrackCriterion.CrackWidth, limit);
+        }
+
+        private static void RequireDesignLimit(double? designLimit)
+        {
+            if (designLimit.HasValue && (double.IsNaN(designLimit.Value) || double.IsInfinity(designLimit.Value) || designLimit <= 0))
+                throw new ArgumentOutOfRangeException(nameof(designLimit));
         }
 
         private static CrackRequirement Ntc(ServiceabilityCombination combination, string exposure, bool sensitive)

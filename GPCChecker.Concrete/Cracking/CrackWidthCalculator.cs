@@ -45,7 +45,7 @@ namespace GPC.Checkers.Concrete.Cracking
             if (p == null) throw new ArgumentNullException(nameof(p));
             if (new[] { p.Es, p.Ecm, p.Fct, p.Rho, p.Diameter, p.Spacing, p.TensileDepth }.Any(v => double.IsNaN(v) || double.IsInfinity(v) || v <= 0)
                 || double.IsNaN(p.SteelStress + p.Cover + p.K2) || double.IsInfinity(p.SteelStress + p.Cover + p.K2) || p.SteelStress < 0 || p.Cover < 0 || p.K2 < .5 || p.K2 > 1)
-                throw new ArgumentException("Cracking: invalid crack-width parameters.");
+                throw CrackRejection.Create(CrackRejection.WidthParameters, "Cracking: invalid crack-width parameters.");
             void Add(string symbol, double value, string unit, string expression) => details?.Add(new ShearCalculationDetail(symbol, value, unit, expression));
             double sigma = p.SteelStress, es = p.Es, rho = p.Rho, phi = p.Diameter, cover = p.Cover;
             if (CrackProfiles.IsNtc(profile))
@@ -69,7 +69,7 @@ namespace GPC.Checkers.Concrete.Cracking
                 return ntcWidth;
             }
             bool mc = profile == CrackProfile.ModelCode2010, din = profile == CrackProfile.DinEN1992p11, ds = profile == CrackProfile.DsEN1992p11;
-            if ((mc || din) && !p.Ribbed) throw new ArgumentException("Cracking: the Model Code 2010 / DIN crack model is implemented for ribbed bars.");
+            if ((mc || din) && !p.Ribbed) throw CrackRejection.Create(CrackRejection.RibbedBarsRequired, "Cracking: the Model Code 2010 / DIN crack model is implemented for ribbed bars.");
             double ktEc = din ? .4 : p.ShortTerm ? .6 : .4;
             double lower = mc ? 1 - ktEc : .6;
             double strainEc = Math.Max(lower * sigma / es, (sigma - ktEc * p.Fct / rho * (1 + es / p.Ecm * rho)) / es);
@@ -100,10 +100,10 @@ namespace GPC.Checkers.Concrete.Cracking
             List<ShearCalculationDetail> details = null)
         {
             if (new[] { es, fct, diameter, tensileDepth }.Any(v => double.IsNaN(v) || double.IsInfinity(v) || v <= 0) || double.IsNaN(steelStress) || double.IsInfinity(steelStress) || steelStress < 0)
-                throw new ArgumentException("Cracking: invalid crack-width parameters.");
+                throw CrackRejection.Create(CrackRejection.UpperBoundParameters, "Cracking: invalid crack-width parameters.");
             void Add(string symbol, double value, string unit, string expression) => details?.Add(new ShearCalculationDetail(symbol, value, unit, expression));
             bool mc = profile == CrackProfile.ModelCode2010, din = profile == CrackProfile.DinEN1992p11;
-            if ((mc || din) && !ribbed) throw new ArgumentException("Cracking: the Model Code 2010 / DIN crack model is implemented for ribbed bars.");
+            if ((mc || din) && !ribbed) throw CrackRejection.Create(CrackRejection.RibbedBarsRequired, "Cracking: the Model Code 2010 / DIN crack model is implemented for ribbed bars.");
             double lower = mc ? 1 - (shortTerm ? .6 : .4) : .6, strain = lower * steelStress / es;
             double sr = CrackProfiles.IsNtc(profile) ? 1.7 * .75 * tensileDepth : 1.3 * tensileDepth;
             string formula = CrackProfiles.IsNtc(profile) ? "1.7 · 0.75 (h − x), no bonded bar in Ac,eff" : "1.3 (h − x), no bonded bar in Ac,eff (7.3.4(3), eq. (7.14))";
@@ -121,7 +121,7 @@ namespace GPC.Checkers.Concrete.Cracking
         public static double K2(IReadOnlyList<double> barStresses)
         {
             if (barStresses == null || barStresses.Count == 0 || barStresses.Any(s => double.IsNaN(s) || double.IsInfinity(s)))
-                throw new ArgumentException("k2: bar stresses missing or not finite.");
+                throw CrackRejection.Create(CrackRejection.BarStresses, "k2: bar stresses missing or not finite.");
             return barStresses.Any(s => s < 0) ? .5 : 1;
         }
     }
