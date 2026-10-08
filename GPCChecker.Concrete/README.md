@@ -154,6 +154,24 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
     definita solo entro la tolleranza su N del solutore; momento, N e curvatura coincidono a 1e-7.
 - I dettagli accettano anche le maggiorazioni di durabilità: superficie irregolare e abrasione sommate a cmin
   (`CoverAddition`) e il copriferro minimo dei getti contro terreno (`GroundCover`, 40 o 75 mm).
+- **Contratto della 0.0.17.0** (`DetailingContractTests`): fotografia di regressione di `Detailing/` e `Response/`
+  catturata dal codice di 4f54139a prima delle modifiche di F2.8. Non è un atteso indipendente: non si rigenera per
+  far passare il test. Con gli argomenti e le opzioni di oggi deve restare identica byte per byte.
+  - `Fixtures/detailing-contract-0.0.17.csv`:
+    - `MemberDetailingCalculator` su tutti i profili, travi, pilastri e un valore di tipo non definito (trattato
+      come trave), sulle 6 sezioni di `detailing-sections.xml`, con gli argomenti di ModelChecker (`coverAddition`,
+      `groundCover`) e dei pali (22 argomenti) e con gli ingressi limite (rami −1, copriferro NaN, Fctm 0,
+      compressione NaN, cmin,dur +∞, NaN e −5, sezione senza barre);
+    - `AnchorageCalculator` su tutti i profili con le righe di `anchorage-legacy.csv`, barre lisce e αct ≠ 1;
+    - `BondStrength` con le righe di aderenza e i rifiuti.
+
+    Per ogni caso: chiave, valore, limite, unità, esito, riferimento, spiegazione e `NotImplemented` di ogni
+    controllo nell'ordine, oppure tipo esatto e messaggio dell'eccezione.
+  - `Fixtures/curvature-contract-0.0.17.csv`: le 5 curve di `curvature-legacy.csv` (Status, `InterruptedAtStep`,
+    risultati e punti) e, su funzioni analitiche, curve complete, parziali, interrotte e raffinate e i quattro rifiuti
+    (richiesta non valida, punto limite assente, residuo su N, momento limite non positivo), in cultura invariante e
+    italiana.
+  - I double sono scritti in formato round-trip, quindi il confronto è bit per bit.
 
 ### Durabilità e copriferri
 
