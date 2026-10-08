@@ -799,9 +799,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             CalculateForceResultantForDomain(new StrainPlane(0, 0, _integrationReferencePoint, GetYieldingStrainPureCompression())).N;
 
         /// <summary>
-        /// The tolerance on N of the convergence of the search of a point of the domain (N, positive): <see cref="FailureAnalysisDistanceTolerance"/>
+        /// The tolerance on N of the stopping test of the search of a point of the domain (N, positive): <see cref="FailureAnalysisDistanceTolerance"/>
         /// divided by the adimensional axial force of 1 N (<see cref="ConvertToAdimensionalForces"/>), that is the distance tolerance times b h fck.
-        /// See <see cref="DomainPointAxialTolerance.ConvergenceTolerance(SectionSolver)"/>
+        /// Not a bound of the returned point: see <see cref="DomainPointAxialTolerance.ConvergenceTolerance(SectionSolver)"/>
         /// </summary>
         /// <returns>The tolerance; 0 if the scale is not finite or not positive</returns>
         internal double CalculateAxialConvergenceTolerance()

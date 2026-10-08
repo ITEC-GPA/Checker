@@ -60,19 +60,21 @@ namespace ConcreteTests
             Assert.AreEqual(1000.0, DomainPointAxialTolerance.MinimumTolerance);
             Assert.AreEqual(1e-6, DomainPointAxialTolerance.RelativeTolerance);
             Assert.AreEqual(1e-3, DomainPointAxialTolerance.StressBlockFraction);
+            Assert.AreEqual(2.0, DomainPointAxialTolerance.ConvergenceFactor);
         }
 
         [TestMethod]
         public void ContinuousDiagramsKeepTheToleranceOfAnthea()
         {
             // max(1000 N; 1e-6 |N|): 1000 N up to |N| = 1e9 N, then 1e-6 |N| (3e9 N: 3000 N), exactly as SectionMomentResistance of ANTHEA.
-            // The third term, the tolerance of convergence of the search, is 0.25e-4 · 800 · 800 · 40 = 640 N for C2: below 1000 N
+            // The third term, 2 times the tolerance of the stopping test of the search, is 2 · 0.25e-4 · 600 · 600 · 30 = 540 N for C1: below
+            // 1000 N (for C2 it is 1280 N, see ConvergenceToleranceIsTheScaleOfTheSection)
             var diagrams = new[] { ParabolaRectangle, ConcreteMaterial.CompressionStressStrainDiagrams.Bilinear, ConcreteMaterial.CompressionStressStrainDiagrams.NonLinear };
             var cases = new[] { (0.0, 1000.0), (-1.5e6, 1000.0), (2.5e5, 1000.0), (-3e9, 3000.0), (-1e9, 1000.0), (4e9, 4000.0) };
             foreach (var diagram in diagrams)
                 foreach (var state in DomainPointContractTests.States)
                 {
-                    var solver = Solver(Bench("C2"), diagram, state);
+                    var solver = Solver(Bench("C1"), diagram, state);
                     foreach (var c in cases)
                         Assert.AreEqual(c.Item2, DomainPointAxialTolerance.Calculate(solver, c.Item1), diagram + " " + state + " N = " + c.Item1);
                 }
@@ -150,7 +152,7 @@ namespace ConcreteTests
             Assert.AreEqual(1000.0, DomainPointAxialTolerance.Calculate(smallSolver, -2e5));
         }
 
-        // ---------------------------------------------------------------- tolerance of convergence of the search (large sections)
+        // ---------------------------------------------------------------- tolerance of the stopping test of the search (large sections)
 
         /// <summary>
         /// The pile of the horizontal pile module of ANTHEA (defaults of PaloOrizzontale): circle of 32 sides inscribed in the diameter (vertices at
@@ -172,10 +174,15 @@ namespace ConcreteTests
         {
             // 0.25e-4 b h fck, by hand: R1 300 · 500 · 30 → 112.5 N; R2 400 · 600 · 35 → 210 N; R3 300 · 500 · 25 → 93.75 N;
             // C1 600 · 600 · 30 → 270 N; C2 800 · 800 · 40 → 640 N (polygons with vertices on both axes: bounding box D × D).
-            // All below 1000 N: for the sections of the bench and of the contract the rule is that of 0.0.17.0
-            var cases = new[] { ("R1", 112.5), ("R2", 210.0), ("R3", 93.75), ("C1", 270.0), ("C2", 640.0) };
+            // The tolerance of the continuous diagrams at N = 0 is max(1000 N; 2 times these): 1000 N for R1, R2, R3 and C1 (225, 420, 187.5,
+            // 540 N), as the rule of 0.0.17.0; 1280 N for C2
+            var cases = new[] { ("R1", 112.5, 1000.0), ("R2", 210.0, 1000.0), ("R3", 93.75, 1000.0), ("C1", 270.0, 1000.0), ("C2", 640.0, 1280.0) };
             foreach (var c in cases)
-                Assert.AreEqual(c.Item2, DomainPointAxialTolerance.ConvergenceTolerance(Solver(Bench(c.Item1), ParabolaRectangle)), 1e-9 * c.Item2, c.Item1);
+            {
+                var solver = Solver(Bench(c.Item1), ParabolaRectangle);
+                Assert.AreEqual(c.Item2, DomainPointAxialTolerance.ConvergenceTolerance(solver), 1e-9 * c.Item2, c.Item1);
+                Assert.AreEqual(c.Item3, DomainPointAxialTolerance.Calculate(solver, 0), 1e-9 * c.Item3, c.Item1 + " N = 0");
+            }
             // it depends on the section only, not on the diagram or on the state
             foreach (var diagram in DomainPointContractTests.Diagrams)
                 foreach (var state in DomainPointContractTests.States)
@@ -184,32 +191,34 @@ namespace ConcreteTests
         }
 
         /// <summary>
-        /// Pile of D 2000 (bug of the horizontal pile module of ANTHEA, «diameter above 1.6 not calculated any more»): the tolerance of convergence
-        /// of the search is 0.25e-4 · 2000 · 2000 · 35 = 3500 N, beyond the 1000 N of the rule of 0.0.17.0, and it is the tolerance of the
-        /// continuous diagrams; with the stress block NRd,c / 1000 is larger. Expected values by hand and from attesi_palo_d2000.py (Python, standard
-        /// library): polygon area 16 · 1000² · sin(2π/32) = 3 121 445.152258 mm², As = 16 · π · 24² / 4 = 7238.229474 mm²,
-        /// NRd,c = (3 121 445.152258 - 7238.229474) · 19.833333 + 7238.229474 · 391.304348 = 64 597 454.632242 N
+        /// Pile of D 2000 (bug of the horizontal pile module of ANTHEA, «diameter above 1.6 not calculated any more»): the tolerance of the
+        /// stopping test of the search is 0.25e-4 · 2000 · 2000 · 35 = 3500 N, and the tolerance of the continuous diagrams is 2 times it,
+        /// 7000 N, beyond the 1000 N of the rule of 0.0.17.0; with the stress block NRd,c / 1000 is larger. Expected values by hand and from
+        /// attesi_palo_d2000.py (Python, standard library): polygon area 16 · 1000² · sin(2π/32) = 3 121 445.152258 mm²,
+        /// As = 16 · π · 24² / 4 = 7238.229474 mm², NRd,c = (3 121 445.152258 - 7238.229474) · 19.833333 + 7238.229474 · 391.304348
+        /// = 64 597 454.632242 N
         /// </summary>
         [TestMethod]
         public void LargeCircularPileHasTheToleranceOfItsSearch()
         {
-            const double convergence = 3500.0;
+            const double convergence = 3500.0, tolerance = 7000.0;
             Assert.AreEqual(convergence, 0.25e-4 * 2000 * 2000 * 35, 1e-9);
             foreach (var diagram in new[] { ParabolaRectangle, ConcreteMaterial.CompressionStressStrainDiagrams.Bilinear, ConcreteMaterial.CompressionStressStrainDiagrams.NonLinear })
             {
                 var solver = Solver(Pile(2000), diagram);
                 Assert.AreEqual(convergence, DomainPointAxialTolerance.ConvergenceTolerance(solver), 1e-9 * convergence, diagram.ToString());
-                Assert.AreEqual(convergence, DomainPointAxialTolerance.Calculate(solver, 0), 1e-9 * convergence, diagram + " N = 0");
-                Assert.AreEqual(convergence, DomainPointAxialTolerance.Calculate(solver, -1.5e6), 1e-9 * convergence, diagram + " N = -1500 kN");
-                Assert.AreEqual(convergence, DomainPointAxialTolerance.Calculate(solver, 3e9), 1e-9 * convergence, diagram + " N = 3e9 N");
-                // 1e-6 |N| wins beyond |N| = 3.5e9 N
-                Assert.AreEqual(5000.0, DomainPointAxialTolerance.Calculate(solver, -5e9), 1e-9 * 5000, diagram + " N = -5e9 N");
+                Assert.AreEqual(tolerance, DomainPointAxialTolerance.Calculate(solver, 0), 1e-9 * tolerance, diagram + " N = 0");
+                Assert.AreEqual(tolerance, DomainPointAxialTolerance.Calculate(solver, -1.5e6), 1e-9 * tolerance, diagram + " N = -1500 kN");
+                Assert.AreEqual(tolerance, DomainPointAxialTolerance.Calculate(solver, 5e9), 1e-9 * tolerance, diagram + " N = 5e9 N");
+                // 1e-6 |N| wins beyond |N| = 7e9 N
+                Assert.AreEqual(10000.0, DomainPointAxialTolerance.Calculate(solver, -1e10), 1e-9 * 10000, diagram + " N = -1e10 N");
             }
             double area = 16 * 1000.0 * 1000.0 * Math.Sin(2 * Math.PI / 32), steel = 16 * Bar(24);
             double centred = (area - steel) * Fcd(35) + steel * Fyd;
             Assert.AreEqual(64597454.632242, centred, 1e-5);
             var stressBlock = Solver(Pile(2000), StressBlock);
             Assert.AreEqual(convergence, DomainPointAxialTolerance.ConvergenceTolerance(stressBlock), 1e-9 * convergence);
+            Assert.IsTrue(centred / 1000 > tolerance);
             Assert.AreEqual(centred, DomainPointAxialTolerance.CentredCompressionResistance(stressBlock), 1e-6 * centred);
             Assert.AreEqual(centred / 1000, DomainPointAxialTolerance.Calculate(stressBlock, 0), 1e-6 * centred / 1000);
         }
@@ -217,32 +226,90 @@ namespace ConcreteTests
         /// <summary>
         /// The points of the horizontal pile module of ANTHEA (main 98a21d4, .NET 8, defaults of PaloOrizzontale: C35/45 parabola-rectangle,
         /// 16Ø24, N = 0) for Mx+ and Mx-, NRd in N: rejected by the rule of 0.0.17.0 from D 1600 (|ΔN| from 1011 to 2326 N), within the
-        /// tolerance of convergence of the search 0.25e-4 D² 35 (by hand: 1715, 2240, 2528.75, 3500, 5468.75 N), so accepted now.
-        /// D 1400 was accepted also before and stays accepted
+        /// tolerance of the stopping test of the search 0.25e-4 D² 35 (by hand: 1715, 2240, 2528.75, 3500, 5468.75 N) and so within the tolerance,
+        /// 2 times it (3430, 4480, 5057.5, 7000, 10 937.5 N): accepted now. D 1400 was accepted also before and stays accepted
         /// </summary>
         [TestMethod]
         public void PilePointsOfAntheaAreAcceptedWithinTheirConvergence()
         {
             var cases = new[]
             {
-                (1400.0, 1715.0, new[] { -906.711, -929.687 }), (1600.0, 2240.0, new[] { -1289.698, -1238.767 }),
-                (1700.0, 2528.75, new[] { -1011.374, -1008.006 }), (2000.0, 3500.0, new[] { -1364.253, -1401.993 }),
-                (2500.0, 5468.75, new[] { -2188.310, -2325.790 }),
+                (1400.0, 1715.0, 3430.0, new[] { -906.711, -929.687 }), (1600.0, 2240.0, 4480.0, new[] { -1289.698, -1238.767 }),
+                (1700.0, 2528.75, 5057.5, new[] { -1011.374, -1008.006 }), (2000.0, 3500.0, 7000.0, new[] { -1364.253, -1401.993 }),
+                (2500.0, 5468.75, 10937.5, new[] { -2188.310, -2325.790 }),
             };
             foreach (var c in cases)
             {
                 var solver = Solver(Pile(c.Item1), ParabolaRectangle);
-                Assert.AreEqual(c.Item2, DomainPointAxialTolerance.Calculate(solver, 0), 1e-9 * c.Item2, "D " + c.Item1);
-                foreach (double nrd in c.Item3)
+                Assert.AreEqual(c.Item2, DomainPointAxialTolerance.ConvergenceTolerance(solver), 1e-9 * c.Item2, "D " + c.Item1 + " stopping test");
+                Assert.AreEqual(c.Item3, DomainPointAxialTolerance.Calculate(solver, 0), 1e-9 * c.Item3, "D " + c.Item1);
+                foreach (double nrd in c.Item4)
                 {
                     string at = "D " + c.Item1 + " NRd = " + nrd;
                     Assert.AreEqual(c.Item1 <= 1400, Math.Abs(nrd) <= DomainPointContractTests.ToleranceOf0017(0), at + ": rule of 0.0.17.0");
                     Assert.IsTrue(DomainPointAxialTolerance.HasAxialForce(solver, Point(nrd, 1e9), 0), at);
                 }
-                // the edges: the tolerance of convergence is accepted, beyond it is not
-                Assert.IsTrue(DomainPointAxialTolerance.HasAxialForce(solver, Point(-c.Item2 * (1 - 1e-9)), 0), "D " + c.Item1 + " edge");
-                Assert.IsFalse(DomainPointAxialTolerance.HasAxialForce(solver, Point(-c.Item2 * (1 + 1e-9)), 0), "D " + c.Item1 + " beyond");
+                // the edges: the tolerance is accepted, beyond it is not
+                Assert.IsTrue(DomainPointAxialTolerance.HasAxialForce(solver, Point(-c.Item3 * (1 - 1e-9)), 0), "D " + c.Item1 + " edge");
+                Assert.IsFalse(DomainPointAxialTolerance.HasAxialForce(solver, Point(-c.Item3 * (1 + 1e-9)), 0), "D " + c.Item1 + " beyond");
             }
+        }
+
+        /// <summary>
+        /// The stopping test of the search is made on the point before its last step, and the search returns the point after that step, so
+        /// |NRd - N| of the returned point can exceed the tolerance of the test, 0.25e-4 b h fck (review of 6c22df48, B1). Case of the validation
+        /// sample of S-1 (campione.csv, .NET 8: |ΔN| = 183.4 N = 1.467 times the tolerance of the test, the largest of the 6404 points of the
+        /// iterative strategy with the continuous diagrams), found again by a scan of this suite: section S1, 1000 × 200, 5 + 5Ø12 at
+        /// y = ±60 mm and x = -400, -200, 0, 200, 400 mm, C25/30, parabola-rectangle, ULS, N = 0.5 As fyd of tension
+        /// (0.5 · 10 · π · 12² / 4 · 391.304348 = 221 277.40 N in the sample, here rounded to the newton: 221.277 kN, the same ratio),
+        /// moment direction at 30° from x (Mx = cos 30°, My = sin 30°).
+        /// The same section scaled by 4 (4000 × 800, Ø48 at the scaled places, N = 16 · 221.277 kN) has forces 16 times and moments 64 times
+        /// larger and the same adimensional search, so the same ratio; there b h fck = 8e7 N, beyond 2e7 N, and the point is rejected by the rule
+        /// of 0.0.17.0 (1000 N) and by the rule of 6c22df48 (the tolerance of the test, 2000 N), accepted by the rule with the factor 2 (4000 N).
+        /// By hand: tolerance of the test 0.25e-4 · 1000 · 200 · 25 = 125 N and 0.25e-4 · 4000 · 800 · 25 = 2000 N.
+        /// The ratio beyond 1 is a measurement of the search on this runtime, checked as a guard that the case still exercises the margin: if a
+        /// change of the search brings it below 1, look for another case, never change the factor to make this test pass
+        /// </summary>
+        [TestMethod]
+        public void LargeSectionPointBeyondTheStoppingTestIsAccepted()
+        {
+            const double axialKn = 221.277, cos30 = 0.86602540378443865, sin30 = 0.5;
+            Func<double, DomainPointContractTests.BenchSection> scaled = k => new DomainPointContractTests.BenchSection
+            {
+                Name = "S1x" + k, Width = 1000 * k, Height = 200 * k, Fck = 25, AxialKn = new double[0],
+                Bars = Enumerable.Range(0, 5).SelectMany(i => new[] { new[] { (-400 + 200.0 * i) * k, -60 * k, 12 * k }, new[] { (-400 + 200.0 * i) * k, 60 * k, 12 * k } }).ToArray(),
+            };
+            Assert.AreEqual(221277.40, 0.5 * 10 * Bar(12) * Fyd, 0.01);
+            var points = new Dictionary<double, FailureDomain.FailureDomainPoint>();
+            foreach (var c in new[] { (1.0, 125.0, 1000.0), (4.0, 2000.0, 4000.0) })
+            {
+                double k = c.Item1, axial = k * k * axialKn * 1000;
+                string at = "S1 x" + k;
+                var section = DomainPointContractTests.BuildSection(scaled(k), ParabolaRectangle);
+                var solver = DomainPointContractTests.BuildChecker(section, SectionSolver.FailureDomainTypes.Plastic).SectionSolver;
+                Assert.AreEqual(c.Item2, DomainPointAxialTolerance.ConvergenceTolerance(solver), 1e-9 * c.Item2, at + " stopping test");
+                Assert.AreEqual(c.Item3, DomainPointAxialTolerance.Calculate(solver, axial), 1e-9 * c.Item3, at + " tolerance");
+                int before = solver.GetLog().Count;
+                var point = solver.CalculateDomainPoint(new[] { DomainPointContractTests.Force(DomainPointContractTests.LocalAxes(section), k * k * axialKn, cos30, sin30) })[0];
+                Assert.IsNotNull(point, at);
+                Assert.AreEqual(before, solver.GetLog().Count, at + ": iterative strategy, no fallback");
+                double deltaN = Math.Abs(point.NRd - axial);
+                Console.WriteLine(at + ": NRd = " + point.NRd.ToString("R", CultureInfo.InvariantCulture) + " N, |ΔN| = " + deltaN.ToString("R", CultureInfo.InvariantCulture) +
+                    " N = " + (deltaN / c.Item2).ToString("0.0000", CultureInfo.InvariantCulture) + " times the tolerance of the test");
+                Assert.IsTrue(deltaN > c.Item2, at + ": guard, |ΔN| = " + deltaN + " N within the tolerance of the test " + c.Item2 + " N");
+                Assert.IsTrue(DomainPointAxialTolerance.HasAxialForce(solver, point, axial), at + ": |ΔN| = " + deltaN + " N");
+                // the moment is in the direction of 30°
+                Assert.AreEqual(30.0, Math.Atan2(point.MyRd, point.MxRd) * 180 / Math.PI, 0.2, at + " direction");
+                points[k] = point;
+            }
+            // the scaled section: the rule of 0.0.17.0 and the tolerance of the test alone reject the point
+            double deltaLarge = Math.Abs(points[4].NRd - 16 * axialKn * 1000);
+            Assert.IsTrue(deltaLarge > DomainPointContractTests.ToleranceOf0017(16 * axialKn * 1000), "S1 x4: rule of 0.0.17.0");
+            Assert.IsTrue(deltaLarge > 2000.0, "S1 x4: tolerance of the test alone");
+            // and it is the point of S1 scaled: forces 16 times, moments 64 times
+            Assert.AreEqual(16 * points[1].NRd, points[4].NRd, 1e-5 * Math.Abs(points[4].NRd), "N");
+            Assert.AreEqual(64 * points[1].MxRd, points[4].MxRd, 1e-5 * Math.Abs(points[4].MxRd), "Mx");
+            Assert.AreEqual(64 * points[1].MyRd, points[4].MyRd, 1e-5 * Math.Abs(points[4].MyRd), "My");
         }
 
         /// <summary>
@@ -276,7 +343,8 @@ namespace ConcreteTests
         /// <summary>
         /// The point of S-1 as ANTHEA (.NET 8) gets it from the iterative strategy: C2, stress block, N = -1500 kN, direction Mx+:
         /// NRd = -1 502 050.3995876817 N, MxRd = 707 016 620.8788993 Nmm (bench F2.1, esito.md, and the same section built as in these tests on
-        /// .NET 8). |NRd - N| = 2050.3996 N: beyond the 1000 N of the continuous diagrams, within NRd,c / 1000 = 12 279.32 N (attesi_s1.py)
+        /// .NET 8). |NRd - N| = 2050.3996 N: beyond the 1280 N of the continuous diagrams (2 · 0.25e-4 · 800 · 800 · 40; 1000 N with the rule of
+        /// 0.0.17.0), within NRd,c / 1000 = 12 279.32 N (attesi_s1.py)
         /// </summary>
         [TestMethod]
         public void S1PointIsAcceptedOnlyWithTheStressBlock()
@@ -289,11 +357,13 @@ namespace ConcreteTests
             Assert.IsFalse(DomainPointAxialTolerance.HasAxialForce(parabolaRectangle, s1, axial), "parabola-rectangle");
             Assert.IsFalse(Math.Abs(s1.NRd - axial) <= DomainPointContractTests.ToleranceOf0017(axial), "rule of 0.0.17.0");
 
-            // edges with the parabola-rectangle (tolerance 1000 N exactly): |ΔN| = 1000 N accepted on both sides, 1000.001 N rejected
-            Assert.IsTrue(DomainPointAxialTolerance.HasAxialForce(parabolaRectangle, Point(-1501000), axial));
-            Assert.IsTrue(DomainPointAxialTolerance.HasAxialForce(parabolaRectangle, Point(-1499000), axial));
-            Assert.IsFalse(DomainPointAxialTolerance.HasAxialForce(parabolaRectangle, Point(-1501000.001), axial));
-            Assert.IsFalse(DomainPointAxialTolerance.HasAxialForce(parabolaRectangle, Point(-1498999.999), axial));
+            // edges with the parabola-rectangle (tolerance 1280 N, by hand 2 · 0.25e-4 · 800 · 800 · 40): |ΔN| = 1279.999 N accepted on both
+            // sides, 1280.001 N rejected
+            Assert.AreEqual(1280.0, DomainPointAxialTolerance.Calculate(parabolaRectangle, axial), 1e-9 * 1280);
+            Assert.IsTrue(DomainPointAxialTolerance.HasAxialForce(parabolaRectangle, Point(-1501279.999), axial));
+            Assert.IsTrue(DomainPointAxialTolerance.HasAxialForce(parabolaRectangle, Point(-1498720.001), axial));
+            Assert.IsFalse(DomainPointAxialTolerance.HasAxialForce(parabolaRectangle, Point(-1501280.001), axial));
+            Assert.IsFalse(DomainPointAxialTolerance.HasAxialForce(parabolaRectangle, Point(-1498719.999), axial));
             // edges with the stress block, relative to the tolerance of the library
             double tolerance = DomainPointAxialTolerance.Calculate(stressBlock, axial);
             Assert.AreEqual(12279.322472, tolerance, 1e-6 * 12279.322472);
@@ -389,9 +459,10 @@ namespace ConcreteTests
 
         /// <summary>
         /// On the 1024 points of the contract (<see cref="DomainPointContractTests"/>): with the parabola-rectangle, bilinear and non linear diagrams
-        /// the verdict and the tolerance are those of the rule of 0.0.17.0 (bit for bit: the tolerance of convergence of the search of the five
-        /// sections is at most 640 N, below 1000 N, see <see cref="ConvergenceToleranceIsTheScaleOfTheSection"/>); with the stress block every point
-        /// accepted before is still accepted, and the points accepted only now have |ΔN| ≤ NRd,c / 1000
+        /// the verdict is that of the rule of 0.0.17.0 on every point, and the tolerance is the same bit for bit for R1, R2, R3 and C1 (2 times the
+        /// tolerance of the stopping test at most 540 N, below 1000 N); for C2 it is 1280 N (2 · 0.25e-4 · 800 · 800 · 40, see
+        /// <see cref="ConvergenceToleranceIsTheScaleOfTheSection"/>), and no point of C2 has 1000 N &lt; |ΔN| ≤ 1280 N. With the stress block every
+        /// point accepted before is still accepted, and the points accepted only now have |ΔN| ≤ NRd,c / 1000
         /// </summary>
         [TestMethod]
         public void ContractVerdictsAreKeptForTheContinuousDiagrams()
@@ -419,7 +490,13 @@ namespace ConcreteTests
                 {
                     Assert.AreEqual(before, now, at);
                     if (row.ContainsKey("tolerance"))
-                        Assert.AreEqual(row["tolerance"], DomainPointContractTests.N(DomainPointAxialTolerance.Calculate(solver, axial)), at);
+                    {
+                        double tolerance = DomainPointAxialTolerance.Calculate(solver, axial);
+                        if (row["section"] == "C2")
+                            Assert.AreEqual(Math.Max(Number(row["tolerance"]), 1280.0), tolerance, 1e-9 * 1280, at);
+                        else
+                            Assert.AreEqual(row["tolerance"], DomainPointContractTests.N(tolerance), at);
+                    }
                     same++;
                     continue;
                 }
