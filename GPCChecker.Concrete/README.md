@@ -53,6 +53,10 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - Casi legacy congelati: `Fixtures/stress-legacy.csv` (2016 stati) e `Fixtures/stress-sections.xml`
   (`ServiceabilityMigrationTests`).
 - Trefoli con predeformazione nulla: `NotSupportedException`.
+- Contratto di ModelChecker della 0.0.17.0 (`ModelCheckerContractTests`, `Fixtures/model-checker-contract.json`):
+  uscite di `Evaluate` e `NotApplicableReason` con gli argomenti di ModelChecker sui 2016 stati di
+  `stress-legacy.csv`, su tutte le norme e su fattori e combinazioni non validi. È una fotografia di regressione
+  catturata da 4f54139a, non un atteso indipendente: con le opzioni predefinite resta identica byte per byte.
 
 ### Torsione
 
@@ -120,6 +124,15 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - **Casi legacy congelati e riprodotti** (`CrackMigrationTests`):
   - `Fixtures/crack-legacy.csv`: 936 stati su 6 sezioni (`crack-sections.xml`), con 1112 regioni confrontate;
   - `Fixtures/crack-scalar-legacy.csv`: 1400 aperture e 1596 requisiti.
+- **Contratto di ModelChecker della 0.0.17.0** (`ModelCheckerContractTests`, `Fixtures/model-checker-contract.json`).
+  Registra Details, Status, Outcome, Verdict, Reference e gli altri membri del risultato, oppure tipo, messaggio e
+  parametro dell'eccezione, con il costruttore attuale di `SectionCrackInput`:
+  - i 936 stati di `crack-legacy.csv`;
+  - ingressi limite: wlim di progetto non valido, override NaN o negativi, tensioni non finite, i tre casi di
+    `NoEffectiveArea`, barre lisce con MC2010 e DIN, CS-TR34, CNR-DT 204 e ACI 318;
+  - la griglia dei requisiti attraverso `Evaluate` e la tabella dei profili.
+
+  È catturato da 4f54139a. I membri e le opzioni aggiunti dopo non lo cambiano.
 - Ac,eff si ottiene ritagliando il poligono invece che tagliando la mesh di ANTHEA: risultato identico entro 1e-9.
 
 ### Aderenza, ancoraggi e dettagli
