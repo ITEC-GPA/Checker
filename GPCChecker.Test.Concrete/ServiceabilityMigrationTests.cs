@@ -211,9 +211,83 @@ namespace ConcreteTests
         }
 
         /// <summary>
+        /// Linear analysis with φ = 2 of the 300×500 C30/37 with 3Ø20 + 2Ø16 B450C of Fixtures/stress-sections.xml, N = −300 kN,
+        /// M = 120 kNm, under the given standard (the state of LimitsFollowTheCoefficientsOfEveryStandard).
+        /// </summary>
+        private static GPC.Checkers.Concrete.Results.StressAnalysisResult R300x500State(StandardModelCode2010 standard, out ReinforcedConcreteSection section)
+        {
+            string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures");
+            GPC.Model.Models.Model archive;
+            using (var stream = File.OpenRead(Path.Combine(folder, "stress-sections.xml"))) archive = ModelArchive.Load(stream);
+            section = (ReinforcedConcreteSection)archive.BeamProperties["R300x500"];
+            var axes = new CoordinateSystem(section.Centroid, new Vector3d(1, 0, 0), new Vector3d(0, 1, 0));
+            var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(axes, SectionSolver.FailureAnalysisTypes.ConstantN,
+                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.Linear, 2, 0, false, 32);
+            var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), options, standard, false);
+            return checker.GetTensionAnalysisResult(new ResultBeamForces(-300000, 0, 0, 0, 120e6, 0, axes));
+        }
+
+        /// <summary>
+        /// SteelLimit by hand with custom coefficients, which the fixture cannot tell apart (k3 = 0.8 and limitS = 360 MPa on all its
+        /// 2016 rows). B450C, fyk = 450 MPa: k3 = 0.7 gives 315 MPa, k3 = 0.6 gives 270 MPa, k3 = 1 gives 450 MPa, the default
+        /// k3 = 0.8 gives 360 MPa. Through the analysis, as the adapter of ANTHEA passes it (the standard of the stress result, with
+        /// the custom coefficients), k3 = 0.7 gives 315 MPa, the limit of every bar of Evaluate in the characteristic combination.
+        /// </summary>
+        [TestMethod]
+        public void SteelLimitUsesTheCoefficientOfTheGivenStandard()
+        {
+            var custom = new StandardNTC2018Concrete { ServiceabilityStressSteelCoefficientForCharacteristicCombination = 0.7 };
+            var state = R300x500State(custom, out var section);
+            var material = section.Rebars.First().RebarMaterial;
+            Assert.AreEqual(450, Math.Abs(material.Fyk), "B450C");
+            var cases = new (string Name, StandardModelCode2010 Standard, double Expected)[]
+            {
+                ("NTC 2018, k3 = 0.7", new StandardNTC2018Concrete { ServiceabilityStressSteelCoefficientForCharacteristicCombination = 0.7 }, 315),
+                ("UNI EN 1992-1-1, k3 = 0.6", new StandardUNIEN1992p11 { ServiceabilityStressSteelCoefficientForCharacteristicCombination = 0.6 }, 270),
+                ("EN 1992-1-1, k3 = 1", new StandardEN1992p11 { ServiceabilityStressSteelCoefficientForCharacteristicCombination = 1 }, 450),
+                ("NTC 2018, default k3 = 0.8", new StandardNTC2018Concrete(), 360)
+            };
+            foreach (var c in cases) Close(c.Expected, StressLimitCheck.SteelLimit(c.Standard, material), c.Name);
+
+            var standard = (StandardModelCode2010)state.Standard;
+            Assert.AreEqual(0.7, standard.ServiceabilityStressSteelCoefficientForCharacteristicCombination, "custom coefficient of the analysis");
+            Close(315, StressLimitCheck.SteelLimit(standard, material), "standard of the analysis");
+            var characteristic = StressLimitCheck.Evaluate(state, ServiceabilityCombination.Characteristic);
+            Assert.AreEqual(section.Rebars.Count(), characteristic.SteelPoints.Count, "one point per bar");
+            foreach (var p in characteristic.SteelPoints) Close(315, p.Limit, "Evaluate, bar " + p.Id);
+        }
+
+        /// <summary>
+        /// Satisfied at the border, which no row of the fixture reaches: the legacy status is "Entro limiti tensionali" for
+        /// ratio ≤ 1 (aw-int2 X.Calculations/CheckerSection.cs:199). On the quasi-permanent state of R300x500State (NTC 2018) the
+        /// ratio with factor 1 is r = |σc|/(k2 fck) &lt; 1. With concreteLimitFactor = r the governing ratio is r/r = 1 exactly and
+        /// Satisfied is true; with the factor one ulp below r the ratio is above 1 and Satisfied is false.
+        /// </summary>
+        [TestMethod]
+        public void SatisfiedIncludesTheLimit()
+        {
+            var state = R300x500State(new StandardNTC2018Concrete(), out _);
+            var free = StressLimitCheck.Evaluate(state, ServiceabilityCombination.QuasiPermanent);
+            double r = free.Ratio.Value;
+            Assert.IsTrue(r > 0 && r < 1, "ratio with factor 1: " + r.ToString("R", CultureInfo.InvariantCulture));
+            Assert.AreEqual(true, free.Satisfied, "below the limit");
+
+            var atLimit = StressLimitCheck.Evaluate(state, ServiceabilityCombination.QuasiPermanent, r);
+            Assert.AreEqual(1.0, atLimit.Ratio.Value, "ratio exactly 1");
+            Assert.AreEqual(true, atLimit.Satisfied, "ratio = 1 is within the limits");
+
+            double justBelow = BitConverter.Int64BitsToDouble(BitConverter.DoubleToInt64Bits(r) - 1);
+            var beyond = StressLimitCheck.Evaluate(state, ServiceabilityCombination.QuasiPermanent, justBelow);
+            Assert.IsTrue(beyond.Ratio.Value > 1, "ratio one step beyond 1: " + beyond.Ratio.Value.ToString("R", CultureInfo.InvariantCulture));
+            Assert.AreEqual(false, beyond.Satisfied, "ratio > 1 is beyond the limits");
+
+            Assert.IsNull(StressLimitCheck.Evaluate(state, ServiceabilityCombination.Frequent).Satisfied, "frequent: no ratio");
+        }
+
+        /// <summary>
         /// Thin-casting factor of the 9 standards of ANTHEA, created as ANTHEA creates them (ConcreteStandards.Create), plus
         /// CNR-DT 200 (derived from NTC 2018) and ACI 318-19, under both rules. The expected values are written by hand:
-        /// - AntheaBeforeF27: the legacy rule of ANTHEA (CheckerSection.cs:77, ConcreteMaterials.cs:11: 0.8 only when the standard
+        /// - Ntc2018Only: the legacy rule of ANTHEA (CheckerSection.cs:77, ConcreteMaterials.cs:11: 0.8 only when the standard
         ///   is "NTC 2018"), NTC 2018 §4.1.2.1.1.1 and §4.1.2.2.5.1;
         /// - Ntc2018AndItalianAnnex: the method page ca.sle-tensioni (docs/metodi/ca.sle-tensioni.md:143-144, :219), which adds
         ///   DM 31/07/2012 7.2, that is UNI EN 1992-1-1 with the Italian National Annex, and nothing else.
@@ -250,10 +324,10 @@ namespace ConcreteTests
             CollectionAssert.IsSubsetOf(anthea, grid.Select(g => g.Name).ToArray(), "the 9 standards of ANTHEA (ConcreteStandards.Names)");
             foreach (var g in grid)
             {
-                Assert.AreEqual(g.Default, ThinCasting.Factor(g.Standard, ThinCastingRule.AntheaBeforeF27), g.Name + " ANTHEA before F2.7 rule");
+                Assert.AreEqual(g.Default, ThinCasting.Factor(g.Standard, ThinCastingRule.Ntc2018Only), g.Name + " NTC 2018 only rule");
                 Assert.AreEqual(g.WithAnnex, ThinCasting.Factor(g.Standard, ThinCastingRule.Ntc2018AndItalianAnnex), g.Name + " NTC 2018 and Italian annex rule");
             }
-            Assert.ThrowsException<ArgumentNullException>(() => ThinCasting.Factor(null, ThinCastingRule.AntheaBeforeF27));
+            Assert.ThrowsException<ArgumentNullException>(() => ThinCasting.Factor(null, ThinCastingRule.Ntc2018Only));
             Assert.ThrowsException<ArgumentNullException>(() => ThinCasting.Factor(null, ThinCastingRule.Ntc2018AndItalianAnnex));
             Assert.ThrowsException<ArgumentOutOfRangeException>(() => ThinCasting.Factor(new StandardNTC2018Concrete(), (ThinCastingRule)2));
             Assert.ThrowsException<ArgumentOutOfRangeException>(() => ThinCasting.Factor(new StandardUNIEN1992p11(), (ThinCastingRule)(-1)));
@@ -261,16 +335,16 @@ namespace ConcreteTests
 
         /// <summary>
         /// The default does not change: the overload without a rule, the enum value 0 and default(ThinCastingRule) all mean
-        /// AntheaBeforeF27, which gives the values of ANTHEA before F2.7 (0.8 only for NTC 2018, 1 for UNI EN 1992-1-1 and every
+        /// Ntc2018Only, which gives the values of ANTHEA before F2.7 (0.8 only for NTC 2018, 1 for UNI EN 1992-1-1 and every
         /// other standard). The enum has exactly the two values 0 and 1.
         /// </summary>
         [TestMethod]
         public void ThinCastingDefaultRuleKeepsTheValuesBeforeF27()
         {
-            Assert.AreEqual(ThinCastingRule.AntheaBeforeF27, default(ThinCastingRule));
-            Assert.AreEqual(0, (int)ThinCastingRule.AntheaBeforeF27);
+            Assert.AreEqual(ThinCastingRule.Ntc2018Only, default(ThinCastingRule));
+            Assert.AreEqual(0, (int)ThinCastingRule.Ntc2018Only);
             Assert.AreEqual(1, (int)ThinCastingRule.Ntc2018AndItalianAnnex);
-            CollectionAssert.AreEqual(new[] { "AntheaBeforeF27", "Ntc2018AndItalianAnnex" }, Enum.GetNames(typeof(ThinCastingRule)));
+            CollectionAssert.AreEqual(new[] { "Ntc2018Only", "Ntc2018AndItalianAnnex" }, Enum.GetNames(typeof(ThinCastingRule)));
 
             var standards = new (string Name, Standard Standard, double Before)[]
             {

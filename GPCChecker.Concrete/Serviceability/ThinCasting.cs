@@ -5,15 +5,15 @@ namespace GPC.Checkers.Concrete.Serviceability
 {
     /// <summary>
     /// Standards to which <see cref="ThinCasting.Factor(Standard, ThinCastingRule)"/> applies the thin-casting factor 0.8. The
-    /// default value (0) keeps the values ANTHEA used before step F2.7.
+    /// default value (0) is the rule of the overload without a rule, <see cref="ThinCasting.Factor(Standard)"/>.
     /// </summary>
     public enum ThinCastingRule
     {
         /// <summary>
-        /// Default: NTC 2018 only (exact class <see cref="StandardNTC2018Concrete"/>), the values ANTHEA used before step F2.7
-        /// (NTC 2018 §4.1.2.1.1.1 for fcd, §4.1.2.2.5.1 for the serviceability concrete stress limits).
+        /// Default: NTC 2018 only (exact class <see cref="StandardNTC2018Concrete"/>), NTC 2018 §4.1.2.1.1.1 for fcd and
+        /// §4.1.2.2.5.1 for the serviceability concrete stress limits. These are the values ANTHEA used before step F2.7.
         /// </summary>
-        AntheaBeforeF27 = 0,
+        Ntc2018Only = 0,
         /// <summary>
         /// NTC 2018 and UNI EN 1992-1-1 with the Italian National Annex, DM 31/07/2012 7.2 (exact classes
         /// <see cref="StandardNTC2018Concrete"/> and <see cref="StandardUNIEN1992p11"/>). The method page ca.sle-tensioni
@@ -42,10 +42,10 @@ namespace GPC.Checkers.Concrete.Serviceability
     public static class ThinCasting
     {
         /// <summary>
-        /// Factor of a thin casting under the default rule <see cref="ThinCastingRule.AntheaBeforeF27"/>: 0.8 for NTC 2018,
-        /// 1 otherwise. Same as <see cref="Factor(Standard, ThinCastingRule)"/> with <see cref="ThinCastingRule.AntheaBeforeF27"/>.
+        /// Factor of a thin casting under the default rule <see cref="ThinCastingRule.Ntc2018Only"/>: 0.8 for NTC 2018,
+        /// 1 otherwise. Same as <see cref="Factor(Standard, ThinCastingRule)"/> with <see cref="ThinCastingRule.Ntc2018Only"/>.
         /// </summary>
-        public static double Factor(Standard standard) => Factor(standard, ThinCastingRule.AntheaBeforeF27);
+        public static double Factor(Standard standard) => Factor(standard, ThinCastingRule.Ntc2018Only);
 
         /// <summary>
         /// Factor of a thin casting: 0.8 for the exact classes named by <paramref name="rule"/>, 1 for every other class, including

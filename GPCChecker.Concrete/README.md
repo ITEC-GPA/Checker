@@ -57,7 +57,7 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - `ThinCasting.Factor(standard)` e `ThinCasting.Factor(standard, regola)`: fattore dei getti sottili, cioè degli
   elementi piani gettati in opera con spessore minore di 50 mm. Il chiamante sa se l'elemento è sottile e lo applica
   al limite del calcestruzzo (`concreteLimitFactor`) e ad αcc e fcd; i limiti dell'acciaio non cambiano.
-  - Regola predefinita (`ThinCastingRule.AntheaBeforeF27`, valore 0, usata dal metodo senza regola): 0,8 per la
+  - Regola predefinita (`ThinCastingRule.Ntc2018Only`, valore 0, usata dal metodo senza regola): 0,8 per la
     classe esatta NTC 2018 (§4.1.2.1.1.1 per fcd, §4.1.2.2.5.1 per i limiti SLE), 1 per tutte le altre, comprese le
     derivate (CNR-DT 200). Sono i valori di ANTHEA prima di F2.7.
   - Opzione `ThinCastingRule.Ntc2018AndItalianAnnex`: 0,8 anche per UNI EN 1992-1-1 con l'appendice nazionale
@@ -83,6 +83,10 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   (`ServiceabilityMigrationTests`). Su tutti gli stati, compresi frequente e quasi permanente, `SteelLimit` riproduce
   il limite dell'acciaio del legacy, `Satisfied` il testo di stato e `ThinCasting.Factor` la riduzione dei getti
   sottili.
+- Calcoli a mano (`ServiceabilityMigrationTests`), perché la fixture ha k3 = 0,8 e nessun rapporto uguale a 1:
+  - `SteelLimit` con k3 personalizzato, per esempio 0,7 su B450C = 315 MPa, anche con lo standard restituito
+    dall'analisi, uguale al limite delle barre di `Evaluate`;
+  - `Satisfied` al bordo: vero con `Ratio` = 1 esatto, falso un ulp oltre, come `ratio <= 1` del legacy.
 - Omogeneizzazione (`ServiceabilityMigrationTests`): le espressioni di ANTHEA, riscritte nel test, sono confrontate bit
   per bit su φ ∈ {−0,5, −1e-13, 0, 0,5, 2, 15} con 3 moduli dell'acciaio e 4 del calcestruzzo; `Resolve` dà gli
   stessi φ e n o lo stesso rifiuto, anche ai bordi della tolleranza.
