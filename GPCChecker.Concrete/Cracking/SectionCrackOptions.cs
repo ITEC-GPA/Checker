@@ -22,7 +22,9 @@ namespace GPC.Checkers.Concrete.Cracking
         /// <item><see cref="SectionCrackInput.NominalCover"/>, <see cref="SectionCrackInput.CoverOverride"/> and <see cref="SectionCrackInput.SpacingOverride"/>
         /// in the branch that uses them (same criteria as the constructor, same <see cref="ArgumentOutOfRangeException"/> and parameter name), not in the
         /// constructor: decompression, crack formation, not-required states and the branches that stop earlier do not read them; the cover override replaces
-        /// the nominal cover, so an invalid nominal cover with a valid override is never read by the width formula;</item>
+        /// the nominal cover, so an invalid nominal cover with a valid override is never read by the width formula. Exception: with the DIN profile and
+        /// <see cref="EffectiveDepthCover"/> null, the DIN condition of the effective depth reads the nominal cover in every partially compressed section with
+        /// tensile bars, so it is validated there, before the branch of the tensile bars outside Ac,eff, also when that branch follows;</item>
         /// <item>the bar stresses after the return of the entirely compressed section (wk = 0 also with missing or non-finite stresses), before the other
         /// branches, with the code <see cref="CrackRejection.BarStresses"/> and the message "Cracking: bar stresses missing or not finite.". With
         /// <see cref="SectionCrackInput.NtcK2FromCompressedBars"/> the bar stresses choose k2 and are checked before any branch, as in 0.0.17.0.</item>

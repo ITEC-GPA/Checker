@@ -983,6 +983,8 @@ namespace ConcreteTests
         /// ValidateAtUse, nominal cover and overrides (ANTHEA Required("copriferro_fessure"), Required("spaziatura_fessure", strict) and Required("cover_mm") where
         /// the branch reads them): decompression, crack formation, a combination not required, the neutral axis in the cover, tensile bars outside Ac,eff and the
         /// entirely compressed section do not read them; the width formula refuses them where it reads them, with the parameter of 0.0.17.0, cover before spacing.
+        /// The states are NTC 2018; the DIN condition of hc,eff, which reads the nominal cover before the branch of the tensile bars outside Ac,eff, is in
+        /// EffectiveDepthCoverChangesOnlyTheDinCondition.
         /// </summary>
         [TestMethod]
         public void ValidateAtUseChecksCoverAndSpacingInTheBranchThatUsesThem()
@@ -1136,6 +1138,16 @@ namespace ConcreteTests
             var withCover = nanNominal.Evaluate(AtUse.WithEffectiveDepthCover(40));
             Assert.AreEqual(100, withCover.Details.Single(d => d.Symbol == "hc,eff").Value, 1e-9); Assert.AreEqual(30, withCover.Details.Single(d => d.Symbol == "c").Value);
             AssertSameResult(din.With(x => x.CoverOverride = 30).Evaluate(AtUse.WithEffectiveDepthCover(40)), withCover, "nominal cover never read");
+            // Tensile bars outside Ac,eff, neutral axis at y = −150: h − x = 100, h − d = 50; with c = 10 mm (h − x)/3 = 33.3 ≥ 30, hc,eff = 33.3 mm < h − d and
+            // no bar is in Ac,eff (upper bound). The DIN condition reads the nominal cover before that branch: ValidateAtUse refuses an invalid nominal cover
+            // there, unlike NTC (ValidateAtUseChecksCoverAndSpacingInTheBranchThatUsesThem); with the DIN cover assigned the nominal cover is not read.
+            var above = din.With(x => { x.Plane = AxisAboveTheBars; x.NominalCover = 10; });
+            var bound = above.Evaluate(AtUse);
+            Assert.AreEqual(CrackOutcome.Evaluated, bound.Outcome, bound.Status); StringAssert.StartsWith(bound.Status, "No bar in Ac,eff");
+            Assert.AreEqual(100 / 3.0, bound.Details.Single(d => d.Symbol == "hc,eff").Value, 1e-9, "hc,eff = (h − x)/3");
+            Assert.AreEqual("nominalCover", ParamOf(() => above.With(x => x.NominalCover = double.NaN).Evaluate(AtUse), "DIN, tensile bars outside Ac,eff, nominal NaN"));
+            Assert.AreEqual("nominalCover", ParamOf(() => above.With(x => x.NominalCover = -1).Evaluate(AtUse), "DIN, tensile bars outside Ac,eff, nominal −1"));
+            AssertSameResult(bound, above.With(x => x.NominalCover = double.NaN).Evaluate(AtUse.WithEffectiveDepthCover(10)), "DIN cover assigned, nominal cover not read");
         }
 
         /// <summary>

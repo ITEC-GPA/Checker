@@ -178,7 +178,10 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
     - copriferro nominale, copriferro e interasse assegnati nel ramo che li legge, con la stessa
       `ArgumentOutOfRangeException` e lo stesso parametro, prima il copriferro e poi l'interasse. Non li leggono
       decompressione, formazione delle fessure, combinazioni non richieste, asse neutro nel copriferro, barre tese
-      fuori da Ac,eff e sezione interamente compressa;
+      fuori da Ac,eff e sezione interamente compressa. Fa eccezione il copriferro nominale con il profilo DIN e
+      `EffectiveDepthCover` nullo: nella sezione parzialmente compressa con barre tese la condizione DIN di hc,eff
+      lo legge, e quindi lo controlla, prima di stabilire quali barre sono in Ac,eff, anche quando poi non ce n'è
+      nessuna. Con `EffectiveDepthCover` assegnato, come farà l'adattatore di ANTHEA, la regola vale anche per DIN;
     - le tensioni delle barre dopo il ritorno della sezione interamente compressa, che dà wk = 0 anche con tensioni
       mancanti o non finite. Il messaggio è «Cracking: bar stresses missing or not finite.». Con
       `NtcK2FromCompressedBars` le tensioni scelgono k2 e restano controllate prima di ogni ramo.
