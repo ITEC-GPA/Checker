@@ -1271,5 +1271,554 @@ namespace ConcreteTests
             }
             Assert.AreEqual(6, refused); Assert.AreEqual(4, notConverged);
         }
+
+        // ---- 0.0.18.0 (ANTHEA F2.7 K3): trace with stable codes (CrackTraceEntry), SectionCrackResult.Reason, RegionOutcomes and the analysis context.
+
+        private static readonly SectionCrackOptions Traced = SectionCrackOptions.Default.WithTrace(true);
+
+        /// <summary>
+        /// Symbols of the details column of crack-legacy.csv (ANTHEA supporto/test/CheckerMigration.Capture, CrackCapture.Symbols): the entries with a value whose
+        /// symbol is one of these or ends with " · " and one of these (faces, bands, bars).
+        /// </summary>
+        private static readonly string[] DetailSymbols = { "Criterio k₂", "hc,eff", "Ac,eff", "As,eff", "Øeq", "σs", "c", "s", "sr,max", "wk", "εsm − εcm", "Δsm adottata",
+            "σct,max", "σct,lim", "h − x", "Qtaglio" };
+
+        /// <summary>
+        /// Symbol of ANTHEA of every trace code, read from the legacy (X.Calculations 2d40a95: Ntc2018Checks.cs, ConcreteTensionCracking.cs, ConcreteInnerCracking.cs,
+        /// ConcreteCodeChecks.cs): the table the mapping of ANTHEA needs. The bar counts (suffix " per k₂") and RegionCheck (the name of the region) are in LegacySymbol.
+        /// </summary>
+        private static readonly Dictionary<string, string> LegacySymbols = new Dictionary<string, string>
+        {
+            { CrackTraceCodes.AuxiliaryAnalysis, "Analisi ausiliaria" }, { CrackTraceCodes.Fctm, "fctm" }, { CrackTraceCodes.UncrackedMaximumStress, "σct,max" },
+            { CrackTraceCodes.UncrackedStressLimit, "σct,lim" }, { CrackTraceCodes.FormationDivisor, "Divisore formazione" }, { CrackTraceCodes.K2Criterion, "Criterio k₂" },
+            { CrackTraceCodes.MinimumStrain, "εc,min" }, { CrackTraceCodes.MaximumStrain, "εc,max" }, { CrackTraceCodes.CompressionTolerance, "Tolleranza compressione" },
+            { CrackTraceCodes.ChiX, "χx" }, { CrackTraceCodes.ChiY, "χy" }, { CrackTraceCodes.StrainGradient, "|∇ε|" }, { CrackTraceCodes.DirectionX, "qx" },
+            { CrackTraceCodes.DirectionY, "qy" }, { CrackTraceCodes.Qmax, "Qmax" }, { CrackTraceCodes.Qmin, "Qmin" }, { CrackTraceCodes.Height, "h" },
+            { CrackTraceCodes.TensileDepth, "h − x" }, { CrackTraceCodes.CompressedDepth, "x" }, { CrackTraceCodes.NearestBarDepth, "h − d,min" },
+            { CrackTraceCodes.TensileBarCount, "Numero barre tese" }, { CrackTraceCodes.TensileCentroid, "QG,s" }, { CrackTraceCodes.CoverToCentroid, "h − d" },
+            { CrackTraceCodes.EffectiveHeight, "d" }, { CrackTraceCodes.EffectiveDepthCandidate1, "Candidato 1 hc,eff" }, { CrackTraceCodes.EffectiveDepthCandidate2, "Candidato 2 hc,eff" },
+            { CrackTraceCodes.EffectiveDepthCandidate3, "Candidato 3 hc,eff" }, { CrackTraceCodes.EffectiveDepth, "hc,eff" }, { CrackTraceCodes.CutLevel, "Qtaglio" },
+            { CrackTraceCodes.EffectiveArea, "Ac,eff" }, { CrackTraceCodes.EffectiveBarCount, "Numero barre efficaci" }, { CrackTraceCodes.BarStrain, "ε" }, { CrackTraceCodes.BarX, "x" },
+            { CrackTraceCodes.BarY, "y" }, { CrackTraceCodes.BarQ, "Q" }, { CrackTraceCodes.BarDiameter, "Ø" }, { CrackTraceCodes.BarArea, "As" }, { CrackTraceCodes.BarStress, "σs" },
+            { CrackTraceCodes.EquivalentDiameter, "Øeq" }, { CrackTraceCodes.SteelStress, "σs" }, { CrackTraceCodes.EffectiveSteel, "As,eff" }, { CrackTraceCodes.DiameterSquareSum, "ΣØ²" },
+            { CrackTraceCodes.DiameterSum, "ΣØ" }, { CrackTraceCodes.Cover, "c" }, { CrackTraceCodes.Spacing, "s" }, { CrackTraceCodes.AnalysisConcreteModulus, "Ecls analisi" },
+            { CrackTraceCodes.AnalysisModularRatio, "n analisi" }, { CrackTraceCodes.Es, "Es" }, { CrackTraceCodes.Ecm, "Ecm" }, { CrackTraceCodes.EffectiveTensileStrength, "fct,eff = fctm" },
+            { CrackTraceCodes.Rho, "ρp,eff" }, { CrackTraceCodes.AlphaE, "αe" }, { CrackTraceCodes.Kt, "kt" }, { CrackTraceCodes.K1, "k₁" }, { CrackTraceCodes.K2, "k₂" },
+            { CrackTraceCodes.K3, "k₃" }, { CrackTraceCodes.K4, "k₄" }, { CrackTraceCodes.BetaMinimum, "β minimo deformazione" }, { CrackTraceCodes.BetaWidth, "β apertura" },
+            { CrackTraceCodes.FarRegionCoefficient, "Coefficiente regione distante" }, { CrackTraceCodes.SpacingThresholdCoefficient, "Coefficiente soglia interasse" },
+            { CrackTraceCodes.FormulaSteelStress, "σs (formula)" }, { CrackTraceCodes.FormulaDiameter, "Øeq (formula)" }, { CrackTraceCodes.FormulaCover, "c (formula)" },
+            { CrackTraceCodes.FormulaSpacing, "s (formula)" }, { CrackTraceCodes.FormulaTensileDepth, "h − x (formula)" }, { CrackTraceCodes.InteractionFactor, "1 + αe·ρp,eff" },
+            { CrackTraceCodes.TensionStiffening, "Δσ tension stiffening" }, { CrackTraceCodes.ComputedStrainDifference, "Δε calcolata" },
+            { CrackTraceCodes.MinimumStrainDifference, "Δε minima" }, { CrackTraceCodes.MeanStrainDifference, "εsm − εcm" }, { CrackTraceCodes.CoverTerm, "Termine copriferro" },
+            { CrackTraceCodes.ReinforcementTerm, "Termine armatura" }, { CrackTraceCodes.NearSpacing, "Δsm,vicino" }, { CrackTraceCodes.SpacingLimit, "s_lim" },
+            { CrackTraceCodes.SpacingExcess, "s − s_lim" }, { CrackTraceCodes.FarSpacing, "Δsm,distante" }, { CrackTraceCodes.AdoptedSpacing, "Δsm adottata" },
+            { CrackTraceCodes.MaximumCrackSpacing, "sr,max" }, { CrackTraceCodes.Width, "wk" }, { CrackTraceCodes.WidthRatio, "ηw" },
+            { CrackTraceCodes.EntirelyTensileK2, "k₂ · interamente tesa" }, { CrackTraceCodes.GoverningFace, "Faccia governante" },
+            { CrackTraceCodes.BandTensileDepth, "h − x della fascia" }, { CrackTraceCodes.BandK2, "k₂ della fascia" }, { CrackTraceCodes.GoverningSurface, "Superficie governante" },
+            { CrackTraceCodes.InnerBoundaryNote, "Contorno interno" }
+        };
+
+        private static readonly string[] BarCodes = { CrackTraceCodes.BarStrain, CrackTraceCodes.BarX, CrackTraceCodes.BarY, CrackTraceCodes.BarQ, CrackTraceCodes.BarDiameter,
+            CrackTraceCodes.BarArea, CrackTraceCodes.BarStress };
+
+        /// <summary>Name of a region as ANTHEA writes it in the prefix of the trace (inverse of RegionKey; the DS coarse system is "Sistema grossolano" there).</summary>
+        private static string LegacyRegionName(string key)
+        {
+            if (key == "TensileZone") return "Zona tesa efficace";
+            if (key == "DsCoarseSystem") return "Sistema grossolano";
+            if (key == "InnerRing") return "Anello interno";
+            if (key.StartsWith("Face")) return "Faccia " + key.Substring(4).Replace("-", "−");
+            if (key.StartsWith("InnerWall")) return "Parete interna " + key.Substring(9).Replace("-", "−");
+            if (key.StartsWith("Radial(")) return "Fascia radiale " + key.Substring(7).TrimEnd(')') + "°";
+            throw new ArgumentException(key);
+        }
+
+        /// <summary>Symbol of ANTHEA of a trace entry: the code, the region prefix unless the entry is a summary, the bar prefix "Bnn · ".</summary>
+        private static string LegacySymbol(CrackTraceEntry e)
+        {
+            string per = e.HasFlag(CrackTraceFlags.K2FromBars) ? " per k₂" : "", symbol;
+            switch (e.Code)
+            {
+                case CrackTraceCodes.CompressedBars: symbol = "Barre compresse" + per; break;
+                case CrackTraceCodes.TensileBars: symbol = "Barre tese" + per; break;
+                case CrackTraceCodes.ZeroStressBars: symbol = "Barre a tensione nulla" + per; break;
+                case CrackTraceCodes.RegionCheck: return LegacyRegionName(e.Region);
+                default: symbol = LegacySymbols[e.Code]; break;
+            }
+            if (BarCodes.Contains(e.Code)) symbol = "B" + ((int)e.Argument(CrackTraceArguments.Bar).Value + 1).ToString("D2", CultureInfo.InvariantCulture) + " · " + symbol;
+            if (e.Region != null && !e.HasFlag(CrackTraceFlags.Summary)) symbol = LegacyRegionName(e.Region) + " · " + symbol;
+            return symbol;
+        }
+
+        private static string Codes(SectionCrackResult r) => string.Join("\n", r.Trace.Select(e => e.ToString()));
+
+        /// <summary>
+        /// The codes are public constants equal to their name and all different; the table of the symbols of ANTHEA covers every code (the bar counts and
+        /// RegionCheck are composed). Flags and arguments are constants equal to their name.
+        /// </summary>
+        [TestMethod]
+        public void TraceCodesAreStableConstants()
+        {
+            foreach (var type in new[] { typeof(CrackTraceCodes), typeof(CrackTraceFlags), typeof(CrackTraceArguments) })
+            {
+                var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                Assert.IsTrue(fields.Length > 0 && fields.All(f => f.IsLiteral && f.FieldType == typeof(string)), type.Name);
+                foreach (var f in fields) Assert.AreEqual(f.Name, (string)f.GetRawConstantValue(), type.Name + "." + f.Name);
+            }
+            var codes = typeof(CrackTraceCodes).GetFields().Select(f => (string)f.GetRawConstantValue()).ToArray();
+            Assert.AreEqual(91, codes.Length);
+            var composed = new[] { CrackTraceCodes.CompressedBars, CrackTraceCodes.TensileBars, CrackTraceCodes.ZeroStressBars, CrackTraceCodes.RegionCheck };
+            CollectionAssert.AreEquivalent(codes, LegacySymbols.Keys.Concat(composed).ToArray());
+        }
+
+        /// <summary>
+        /// (K3) The trace reproduces the details column of crack-legacy.csv: on every state with a result, the entries with a value whose symbol of ANTHEA (code,
+        /// region prefix, bar prefix) is one of the 16 symbols of the capture, in the same order and within 1e-9: Criterio k₂, hc,eff, Ac,eff, As,eff, Øeq, σs, c, s,
+        /// sr,max, wk, εsm − εcm, Δsm adottata, σct,max, σct,lim, h − x, Qtaglio, also with the prefix of a face, a radial band, the DS coarse system, an inner wall
+        /// or ring and a bar (13 339 values on 400 states). The trace changes nothing else (result, Details, refusals) and is empty without the option; every
+        /// region of the result is in RegionOutcomes with its width.
+        /// </summary>
+        [TestMethod]
+        public void TraceReproducesTheLegacyDetails()
+        {
+            string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures");
+            GPC.Model.Models.Model archive;
+            using (var stream = File.OpenRead(Path.Combine(folder, "crack-sections.xml"))) archive = ModelArchive.Load(stream);
+            var rows = Rows("crack-legacy.csv");
+            Assert.AreEqual(936, rows.Length);
+            var checkers = new Dictionary<string, SectionCheckerModelCode2010>();
+            SectionCheckerModelCode2010 Checker(string[] c, CoordinateSystem axes, bool linear, bool tension)
+            {
+                string key = string.Join("|", c[1], c[2], c[3], linear, c[5], tension, c[8], c[9], c[10]);
+                if (checkers.TryGetValue(key, out var checker)) return checker;
+                var standard = ServiceabilityMigrationTests.Standard(c[2]);
+                foreach (var pair in c[3].Split(',')) { var kv = pair.Split('='); typeof(StandardModelCode2010).GetProperty(kv[0]).SetValue(standard, D(kv[1])); }
+                var section = (ReinforcedConcreteSection)archive.BeamProperties[c[1]];
+                var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(axes, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                    linear ? SectionSolver.StressAnalysisTypes.Linear : SectionSolver.StressAnalysisTypes.NonLinear, D(c[5]), 0, tension, int.Parse(c[7]));
+                checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), options, standard, tension);
+                checkers[key] = checker; return checker;
+            }
+            int states = 0, withDetails = 0, legacyEntries = 0, compared = 0, refusals = 0, regions = 0, prefixed = 0, bars = 0, summaries = 0;
+            foreach (var row in rows)
+            {
+                var c = row.Split(';'); string id = "state " + c[0] + " " + c[1] + " " + c[2] + " " + c[17] + " " + c[18];
+                if (c[25] != "ok" && c[30].Contains("non convergente")) continue;
+                double[] P(string s) => s.Split(',').Select(D).ToArray();
+                var o = P(c[8]); var v1 = P(c[9]); var v2 = P(c[10]);
+                var axes = new CoordinateSystem(new Point3d(o[0], o[1], o[2]), new Vector3d(v1[0], v1[1], v1[2]), new Vector3d(v2[0], v2[1], v2[2]));
+                bool linear = bool.Parse(c[4]), tension = bool.Parse(c[6]);
+                var section = (ReinforcedConcreteSection)archive.BeamProperties[c[1]];
+                var force = new ResultBeamForces(D(c[11]), D(c[12]), D(c[13]), D(c[14]), D(c[15]), D(c[16]), axes);
+                var stress = Checker(c, axes, linear, tension).GetTensionAnalysisResult(force);
+                var concrete = (ConcreteMaterialEuropeanCommon)section.ConcreteMaterial;
+                SectionCrackInput Input(SectionCrackOptions options) => new SectionCrackInput(ServiceabilityMigrationTests.Standard(c[2]), Combination(c[17]), Exposure(c[18]),
+                    c[19] == "Sensibile", N(c[24]), CrackSectionGeometry.From(section, c[1] == "C1000H"), stress.StrainPlane, SectionCrackInput.OrdinaryBarStresses(stress, section), linear,
+                    tension, false, section.Rebars.First().RebarMaterial.E, concrete.Ecm, concrete.Fctm, c[20] == "Breve", c[21] == "Migliorata", Covers[c[1]], N(c[22]), N(c[23]),
+                    () => Checker(c, axes, true, true).GetTensionAnalysisResult(force) is var uncracked ? uncracked.GetConcreteVerticesTension(uncracked.PsiRebar ?? 0).Max(v => v.tension) : 0,
+                    false, options);
+                if (c[25] != "ok")
+                {
+                    var plain = Assert.ThrowsException<ArgumentException>(() => SectionCrackCheck.Evaluate(Input(SectionCrackOptions.Default)), id);
+                    var traced = Assert.ThrowsException<ArgumentException>(() => SectionCrackCheck.Evaluate(Input(Traced)), id);
+                    Assert.AreEqual(plain.Message, traced.Message, id); Assert.AreEqual(CrackRejection.CodeOf(plain), CrackRejection.CodeOf(traced), id);
+                    refusals++; continue;
+                }
+                var r = SectionCrackCheck.Evaluate(Input(SectionCrackOptions.Default)); var t = SectionCrackCheck.Evaluate(Input(Traced));
+                Assert.AreEqual(0, r.Trace.Count, id); Assert.AreEqual(0, r.RegionOutcomes.Count, id);
+                AssertSameResult(r, t, id); Assert.AreEqual(r.Reason, t.Reason, id); Assert.AreEqual(r.GoverningRegion, t.GoverningRegion, id);
+                Assert.AreEqual(r.EffectiveSteel, t.EffectiveSteel, id); Assert.AreEqual(r.UncrackedMaximumStress, t.UncrackedMaximumStress, id);
+                var expected = c[36].Length == 0 ? new string[0] : c[36].Split('|');
+                legacyEntries += expected.Length;
+                var actual = t.Trace.Where(e => e.Value.HasValue).Select(e => Tuple.Create(LegacySymbol(e), e.Value.Value, e))
+                    .Where(e => DetailSymbols.Any(s => e.Item1 == s || e.Item1.EndsWith(" · " + s))).ToArray();
+                string both = "\nlegacy:  " + c[36] + "\nlibrary: " + string.Join("|", actual.Select(a => a.Item1 + "=" + a.Item2.ToString("R", CultureInfo.InvariantCulture)));
+                Assert.AreEqual(expected.Length, actual.Length, id + " entries" + both);
+                for (int i = 0; i < expected.Length; i++)
+                {
+                    int equal = expected[i].LastIndexOf('=');
+                    string symbol = expected[i].Substring(0, equal);
+                    Assert.AreEqual(symbol, actual[i].Item1, id + " entry " + i + both);
+                    Close(D(expected[i].Substring(equal + 1)), actual[i].Item2, id + " " + symbol);
+                    if (actual[i].Item3.Region != null && !actual[i].Item3.HasFlag(CrackTraceFlags.Summary)) prefixed++;
+                    if (actual[i].Item3.HasFlag(CrackTraceFlags.Summary)) summaries++;
+                    if (BarCodes.Contains(actual[i].Item3.Code)) bars++;
+                    compared++;
+                }
+                if (expected.Length > 0) withDetails++;
+                Assert.AreEqual(t.RegionOutcomes.Count, t.RegionOutcomes.Select(x => x.Key).Distinct().Count(), id);
+                foreach (var region in t.Regions)
+                {
+                    var outcome = t.RegionOutcomes.SingleOrDefault(x => x.Key == region.Key);
+                    Assert.IsNotNull(outcome, id + " " + region.Key); Assert.AreEqual(region.Width, outcome.Width, id + " " + region.Key);
+                    Assert.AreEqual(region.Width.HasValue, outcome.Outcome == CrackOutcome.Evaluated, id + " " + region.Key);
+                    regions++;
+                }
+                states++;
+            }
+            // 932 states with a result or a refusal (4 analyses do not converge): 926 results, 6 refusals; 400 states with details, 13 339 values.
+            Assert.AreEqual(926, states); Assert.AreEqual(6, refusals); Assert.AreEqual(400, withDetails);
+            Assert.AreEqual(13339, legacyEntries); Assert.AreEqual(13339, compared); Assert.AreEqual(1112, regions);
+            Assert.IsTrue(prefixed > 0 && bars > 0 && summaries > 0, prefixed + " prefixed, " + bars + " bars, " + summaries + " summaries");
+        }
+
+        /// <summary>
+        /// (K3) Order of the trace of ANTHEA (Ntc2018Checks.Cracking, :102-241, and CalculateCrackWidth, :269-300) on the bent 300×500 of (a), NTC, with every value by
+        /// hand: neutral axis at y = 50, h − x = 300, 3Ø20 at y = −200 (σs = 200 MPa), hc,eff = min[125; 100; 250] = 100, Ac,eff = 30 000 mm², s = 100 mm ≤ s_lim = 250.
+        /// </summary>
+        [TestMethod]
+        public void TraceFollowsTheOrderOfAnthea()
+        {
+            var r = new OptionCase().Evaluate(Traced);
+            Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, r.Status);
+            var bar = new[] { CrackTraceCodes.BarStrain, CrackTraceCodes.BarX, CrackTraceCodes.BarY, CrackTraceCodes.BarQ, CrackTraceCodes.BarDiameter, CrackTraceCodes.BarArea, CrackTraceCodes.BarStress };
+            var order = new[] { CrackTraceCodes.CompressedBars, CrackTraceCodes.TensileBars, CrackTraceCodes.ZeroStressBars, CrackTraceCodes.MinimumStrain, CrackTraceCodes.MaximumStrain,
+                CrackTraceCodes.CompressionTolerance, CrackTraceCodes.K2Criterion, CrackTraceCodes.ChiX, CrackTraceCodes.ChiY, CrackTraceCodes.StrainGradient, CrackTraceCodes.DirectionX,
+                CrackTraceCodes.DirectionY, CrackTraceCodes.Qmax, CrackTraceCodes.Qmin, CrackTraceCodes.Height, CrackTraceCodes.TensileDepth, CrackTraceCodes.CompressedDepth,
+                CrackTraceCodes.TensileBarCount, CrackTraceCodes.TensileCentroid, CrackTraceCodes.CoverToCentroid, CrackTraceCodes.EffectiveHeight, CrackTraceCodes.EffectiveDepthCandidate1,
+                CrackTraceCodes.EffectiveDepthCandidate2, CrackTraceCodes.EffectiveDepthCandidate3, CrackTraceCodes.EffectiveDepth, CrackTraceCodes.CutLevel, CrackTraceCodes.EffectiveArea,
+                CrackTraceCodes.EffectiveBarCount }
+                .Concat(bar).Concat(bar).Concat(bar)
+                .Concat(new[] { CrackTraceCodes.EffectiveSteel, CrackTraceCodes.DiameterSquareSum, CrackTraceCodes.DiameterSum, CrackTraceCodes.EquivalentDiameter, CrackTraceCodes.SteelStress,
+                    CrackTraceCodes.Cover, CrackTraceCodes.Spacing, CrackTraceCodes.Es, CrackTraceCodes.Ecm, CrackTraceCodes.EffectiveTensileStrength, CrackTraceCodes.Rho, CrackTraceCodes.AlphaE,
+                    CrackTraceCodes.Kt, CrackTraceCodes.K1, CrackTraceCodes.K2, CrackTraceCodes.K3, CrackTraceCodes.K4, CrackTraceCodes.BetaMinimum, CrackTraceCodes.BetaWidth,
+                    CrackTraceCodes.FarRegionCoefficient, CrackTraceCodes.SpacingThresholdCoefficient, CrackTraceCodes.FormulaSteelStress, CrackTraceCodes.FormulaDiameter,
+                    CrackTraceCodes.FormulaCover, CrackTraceCodes.FormulaSpacing, CrackTraceCodes.FormulaTensileDepth, CrackTraceCodes.InteractionFactor, CrackTraceCodes.TensionStiffening,
+                    CrackTraceCodes.ComputedStrainDifference, CrackTraceCodes.MinimumStrainDifference, CrackTraceCodes.MeanStrainDifference, CrackTraceCodes.CoverTerm,
+                    CrackTraceCodes.ReinforcementTerm, CrackTraceCodes.NearSpacing, CrackTraceCodes.SpacingLimit, CrackTraceCodes.SpacingExcess, CrackTraceCodes.FarSpacing,
+                    CrackTraceCodes.AdoptedSpacing, CrackTraceCodes.Width, CrackTraceCodes.WidthRatio }).ToArray();
+            CollectionAssert.AreEqual(order, r.Trace.Select(e => e.Code).ToArray(), Codes(r));
+            Assert.IsTrue(r.Trace.All(e => e.Region == null && e.Value.HasValue), Codes(r));
+            double rho = 3 * 314.16 / 30000, alpha = 200000 / 33000.0, stiffening = .4 * 2.9 / rho * (1 + alpha * rho), computed = (200 - stiffening) / 200000, minimum = .6 * 200 / 200000;
+            double strain = Math.Max(computed, minimum), term = .8 * .5 * .425 * 20 / rho, near = (3.4 * 40 + term) / 1.7, wk = 1.7 * near * strain;
+            var values = new double[] { 0, 3, 0, -8e-4, 1.2e-3, 1e-12, .5, 0, -4e-6, 4e-6, 0, -1, 250, -250, 500, 300, 200, 3, 200, 50, 450, 125, 100, 250, 100, 150, 30000, 3 }
+                .Concat(new[] { -100d, 0, 100 }.SelectMany(x => new[] { 1e-3, x, -200, 200, 20, 314.16, 200 }))
+                .Concat(new[] { 3 * 314.16, 1200, 60, 20, 200, 40, 100, 200000, 33000, 2.9, rho, alpha, .4, .8, .5, 3.4, .425, .6, 1.7, .75, 5, 200, 20, 40, 100, 300, 1 + alpha * rho,
+                    stiffening, computed, minimum, strain, 3.4 * 40, term, near, 250, -150, 225, near, wk, wk / .3 }).ToArray();
+            Assert.AreEqual(values.Length, r.Trace.Count);
+            for (int i = 0; i < values.Length; i++) Assert.AreEqual(values[i], r.Trace[i].Value.Value, 1e-12 * Math.Max(1, Math.Abs(values[i])), r.Trace[i].ToString());
+            Assert.AreEqual(r.Width.Value, wk, 1e-12);
+            CrackTraceEntry One(string code) => r.Trace.Single(e => e.Code == code);
+            Assert.IsTrue(One(CrackTraceCodes.K2Criterion).HasFlag(CrackTraceFlags.Bending) && One(CrackTraceCodes.K2Criterion).Flags.Count == 1);
+            Assert.IsTrue(One(CrackTraceCodes.EffectiveDepth).HasFlag(CrackTraceFlags.MinimumOfThree));
+            Assert.IsTrue(r.Trace.Where(e => e.Code == CrackTraceCodes.BarStrain).All(e => e.HasFlag(CrackTraceFlags.Included)));
+            CollectionAssert.AreEqual(new double[] { 0, 1, 2 }, r.Trace.Where(e => e.Code == CrackTraceCodes.BarStress).Select(e => e.Argument(CrackTraceArguments.Bar).Value).ToArray());
+            Assert.IsTrue(One(CrackTraceCodes.Cover).HasFlag(CrackTraceFlags.Nominal) && One(CrackTraceCodes.Spacing).HasFlag(CrackTraceFlags.Automatic));
+            Assert.IsTrue(One(CrackTraceCodes.EquivalentDiameter).HasFlag(CrackTraceFlags.EffectiveBars) && One(CrackTraceCodes.SteelStress).HasFlag(CrackTraceFlags.EffectiveBars));
+            Assert.IsTrue(One(CrackTraceCodes.Kt).HasFlag(CrackTraceFlags.LongTerm) && One(CrackTraceCodes.K1).HasFlag(CrackTraceFlags.Ribbed));
+            Assert.IsTrue(One(CrackTraceCodes.MeanStrainDifference).HasFlag(computed >= minimum ? CrackTraceFlags.ComputedGoverns : CrackTraceFlags.MinimumGoverns));
+            foreach (var code in new[] { CrackTraceCodes.SpacingExcess, CrackTraceCodes.FarSpacing, CrackTraceCodes.AdoptedSpacing }) Assert.IsTrue(One(code).HasFlag(CrackTraceFlags.CloseBars), code);
+            Assert.IsTrue(One(CrackTraceCodes.AdoptedSpacing).HasFlag(CrackTraceFlags.NearGoverns));
+            var computedEntry = One(CrackTraceCodes.ComputedStrainDifference);
+            Assert.AreEqual(200, computedEntry.Argument(CrackTraceArguments.SteelStress).Value, 1e-9); Assert.AreEqual(stiffening, computedEntry.Argument(CrackTraceArguments.TensionStiffening).Value, 1e-12);
+            Assert.AreEqual(200000, computedEntry.Argument(CrackTraceArguments.Es).Value);
+            Assert.AreEqual(near, One(CrackTraceCodes.Width).Argument(CrackTraceArguments.AdoptedSpacing).Value, 1e-12);
+            Assert.AreEqual(strain, One(CrackTraceCodes.Width).Argument(CrackTraceArguments.MeanStrainDifference).Value, 1e-15);
+            CollectionAssert.AreEqual(new[] { "TensileZone: Evaluated" }, r.RegionOutcomes.Select(x => x.Key + ": " + x.Outcome).ToArray());
+            Assert.AreEqual(r.Width, r.RegionOutcomes[0].Width);
+            Assert.AreEqual(CrackReason.None, r.Reason);
+        }
+
+        /// <summary>
+        /// (K3) The branches of the trace: decompression and crack formation (Ntc2018Checks.cs:84-88), tensile bars outside Ac,eff (upper bound, :209-214 and
+        /// ConcreteCodeChecks.cs:230-231), Eurocode formula (ConcreteCodeChecks.cs:206-211), entirely tensile section with the governing face repeated in the summary
+        /// (ConcreteTensionCracking.cs), DS coarse system, radial bands with their angle, neutral axis in the cover; the rule of k2 before D7-b.
+        /// </summary>
+        [TestMethod]
+        public void TraceCoversTheBranchesOfAnthea()
+        {
+            var basic = new OptionCase();
+            string[] CodesOf(SectionCrackResult x) => x.Trace.Select(e => e.Code).ToArray();
+            // Decompression and crack formation.
+            var decompression = basic.With(x => { x.Exposure = "XD1"; x.Sensitive = true; x.Uncracked = () => -.5; }).Evaluate(Traced);
+            CollectionAssert.AreEqual(new[] { CrackTraceCodes.AuxiliaryAnalysis, CrackTraceCodes.Fctm, CrackTraceCodes.UncrackedMaximumStress, CrackTraceCodes.UncrackedStressLimit },
+                CodesOf(decompression), Codes(decompression));
+            CollectionAssert.AreEqual(new double?[] { null, 2.9, -.5, 0 }, decompression.Trace.Select(e => e.Value).ToArray());
+            Assert.IsTrue(decompression.Trace[3].HasFlag(CrackTraceFlags.Decompression));
+            var formation = basic.With(x => { x.Exposure = "XS3"; x.Sensitive = true; x.Combination = ServiceabilityCombination.Frequent; x.Uncracked = () => 3; }).Evaluate(Traced);
+            CollectionAssert.AreEqual(new[] { CrackTraceCodes.AuxiliaryAnalysis, CrackTraceCodes.Fctm, CrackTraceCodes.UncrackedMaximumStress, CrackTraceCodes.UncrackedStressLimit,
+                CrackTraceCodes.FormationDivisor }, CodesOf(formation), Codes(formation));
+            CollectionAssert.AreEqual(new double?[] { null, 2.9, 3, 2.9 / 1.2, 1.2 }, formation.Trace.Select(e => e.Value).ToArray());
+            Assert.IsTrue(formation.Trace[3].HasFlag(CrackTraceFlags.CrackFormation));
+            // Not required, missing exposure, linear analysis required: no calculated entry.
+            foreach (var state in new[] { basic.With(x => x.Combination = ServiceabilityCombination.Characteristic), basic.With(x => x.Exposure = null) })
+                Assert.AreEqual(0, state.Evaluate(Traced).Trace.Count);
+            // Upper bound without bonded bars: Øeq and σs of the tensile bars, the four entries of the bound, ηw. NTC 1.7 · 0.75 (h − x), EN 1.3 (h − x), h − x = 100.
+            foreach (var pair in new[] { Tuple.Create("NTC 2018", "XC1", CrackTraceFlags.UpperBoundNtc, 1.7 * .75 * 100), Tuple.Create("EN 1992-1-1", "XC3", CrackTraceFlags.UpperBoundEurocode, 130.0) })
+            {
+                var u = basic.With(x => { x.Standard = pair.Item1; x.Exposure = pair.Item2; x.Plane = AxisAboveTheBars; }).Evaluate(Traced);
+                var tail = u.Trace.Skip(u.Trace.Count - 7).ToArray();
+                CollectionAssert.AreEqual(new[] { CrackTraceCodes.EquivalentDiameter, CrackTraceCodes.SteelStress, CrackTraceCodes.MeanStrainDifference, CrackTraceCodes.BetaMinimum,
+                    CrackTraceCodes.MaximumCrackSpacing, CrackTraceCodes.Width, CrackTraceCodes.WidthRatio }, tail.Select(e => e.Code).ToArray(), Codes(u));
+                Assert.IsTrue(tail[0].HasFlag(CrackTraceFlags.TensileBars) && tail[1].HasFlag(CrackTraceFlags.TensileBars), pair.Item1);
+                Assert.IsTrue(tail.Skip(2).Take(4).All(e => e.HasFlag(CrackTraceFlags.UpperBound)) && tail[4].HasFlag(pair.Item3), pair.Item1);
+                Assert.AreEqual(pair.Item4, tail[4].Value.Value, 1e-9, pair.Item1); Assert.AreEqual(u.Width, tail[5].Value, pair.Item1);
+                Assert.AreEqual(3, u.Trace.Count(e => e.Code == CrackTraceCodes.BarStrain && e.HasFlag(CrackTraceFlags.Excluded)), pair.Item1);
+                Assert.AreEqual(0, u.Trace.Single(e => e.Code == CrackTraceCodes.EffectiveBarCount).Value, pair.Item1);
+            }
+            // Eurocode formula: ρ, αe, kt, k2, σs, c, Øeq, s, sr,max, εsm − εcm, βmin, wk (no k3); DIN and MC2010: k2 does not enter sr,max (also in the Criterio k₂).
+            foreach (var name in new[] { "EN 1992-1-1", "DIN EN 1992-1-1", "Model Code 2010" })
+            {
+                var e = basic.With(x => { x.Standard = name; x.Exposure = "XC3"; x.DesignLimit = name == "Model Code 2010" ? .3 : (double?)null; }).Evaluate(Traced);
+                int k = Array.IndexOf(CodesOf(e), CrackTraceCodes.Rho);
+                CollectionAssert.AreEqual(new[] { CrackTraceCodes.Rho, CrackTraceCodes.AlphaE, CrackTraceCodes.Kt, CrackTraceCodes.K2, CrackTraceCodes.SteelStress, CrackTraceCodes.Cover,
+                    CrackTraceCodes.EquivalentDiameter, CrackTraceCodes.Spacing, CrackTraceCodes.MaximumCrackSpacing, CrackTraceCodes.MeanStrainDifference, CrackTraceCodes.BetaMinimum,
+                    CrackTraceCodes.Width, CrackTraceCodes.WidthRatio }, CodesOf(e).Skip(k).ToArray(), Codes(e));
+                bool notIn = name != "EN 1992-1-1";
+                Assert.AreEqual(notIn, e.Trace[k + 3].HasFlag(CrackTraceFlags.NotInWidthFormula), name);
+                Assert.AreEqual(notIn, e.Trace.Single(x => x.Code == CrackTraceCodes.K2Criterion).HasFlag(CrackTraceFlags.NotInWidthFormula), name);
+                Assert.IsTrue(e.Trace.Skip(k + 4).Take(4).All(x => x.HasFlag(CrackTraceFlags.Formula)), name);
+                Assert.IsTrue(e.Trace[k + 8].HasFlag(name == "EN 1992-1-1" ? CrackTraceFlags.FormulaStandard : name == "DIN EN 1992-1-1" ? CrackTraceFlags.FormulaDin : CrackTraceFlags.FormulaModelCode2010), name);
+                Assert.AreEqual(e.Width, e.Trace[k + 11].Value, name);
+                Assert.IsTrue(e.Trace.Single(x => x.Code == CrackTraceCodes.EffectiveDepth).HasFlag(name == "DIN EN 1992-1-1" ? CrackTraceFlags.DinCoefficient : CrackTraceFlags.MinimumOfThree), name);
+                // Rule before D7-b: the k2 of the bars first (all profiles), then 0.5 for the partially compressed section; the k2 of DIN / MC2010 keeps its plain text.
+                var legacy = basic.With(x => { x.Standard = name; x.Exposure = "XC3"; x.DesignLimit = name == "Model Code 2010" ? .3 : (double?)null; x.LegacyK2 = true; }).Evaluate(Traced);
+                var criteria = legacy.Trace.Where(x => x.Code == CrackTraceCodes.K2Criterion).ToArray();
+                Assert.AreEqual(2, criteria.Length, name); Assert.IsTrue(criteria[0].HasFlag(CrackTraceFlags.K2FromBars) && criteria[0].Value == 1, name);
+                Assert.IsTrue(criteria[1].HasFlag(CrackTraceFlags.PartiallyCompressed) && criteria[1].Value == .5, name);
+                Assert.IsFalse(legacy.Trace.Single(x => x.Code == CrackTraceCodes.K2).HasFlag(CrackTraceFlags.NotInWidthFormula), name);
+                Assert.IsTrue(legacy.Trace.Take(3).All(x => x.HasFlag(CrackTraceFlags.K2FromBars)), name);
+            }
+            // NTC with the rule before D7-b: one Criterio k₂, from the bars (none compressed: 1), before the strains.
+            var ntcLegacy = basic.With(x => x.LegacyK2 = true).Evaluate(Traced);
+            Assert.AreEqual(CrackTraceCodes.K2Criterion, ntcLegacy.Trace[3].Code); Assert.AreEqual(1, ntcLegacy.Trace[3].Value);
+            Assert.AreEqual(1, ntcLegacy.Trace.Count(x => x.Code == CrackTraceCodes.K2Criterion)); Assert.IsFalse(ntcLegacy.Trace[3].HasFlag(CrackTraceFlags.CompressedBar));
+            Assert.IsTrue(basic.With(x => { x.LegacyK2 = true; x.Bars = Doubly; }).Evaluate(Traced).Trace[3].HasFlag(CrackTraceFlags.CompressedBar));
+            // Neutral axis in the cover: h − d,min after x, then nothing.
+            var cover = basic.With(x => { x.Bars = Doubly; x.Plane = AxisInTheCover; }).Evaluate(Traced);
+            Assert.AreEqual(CrackTraceCodes.NearestBarDepth, cover.Trace.Last().Code, Codes(cover)); Assert.AreEqual(CrackTraceCodes.CompressedDepth, cover.Trace[cover.Trace.Count - 2].Code);
+            Assert.AreEqual(0, cover.RegionOutcomes.Count);
+            // Entirely tensile, EN: Criterio k₂ and k₂ · interamente tesa, then per face header, hc,eff, Ac,eff, As,eff (bars as arguments) and the formula with the region;
+            // the governing face, its formula again as a summary, Ac,eff, As,eff, ηw. With the rule before D7-b the Criterio k₂ of the bars is replaced.
+            foreach (bool legacyK2 in new[] { false, true })
+            {
+                var t = basic.With(x => { x.Standard = "EN 1992-1-1"; x.Exposure = "XC3"; x.Bars = Doubly; x.Plane = EccentricTension; x.LegacyK2 = legacyK2; }).Evaluate(Traced);
+                Assert.AreEqual(CrackOutcome.Evaluated, t.Outcome, t.Status);
+                var criteria = t.Trace.Where(x => x.Code == CrackTraceCodes.K2Criterion).ToArray();
+                Assert.AreEqual(1, criteria.Length, Codes(t)); Assert.IsTrue(criteria[0].HasFlag(CrackTraceFlags.EntirelyTensile)); Assert.AreEqual(t.K2, criteria[0].Value);
+                int at = Array.IndexOf(CodesOf(t), CrackTraceCodes.K2Criterion);
+                Assert.AreEqual(CrackTraceCodes.EntirelyTensileK2, t.Trace[at + 1].Code); Assert.AreEqual(legacyK2, t.Trace[at + 1].HasFlag(CrackTraceFlags.K2FromBars));
+                Assert.AreEqual(CrackTraceCodes.CompressionTolerance, t.Trace[at - 1].Code, "the Criterio k₂ follows the strains");
+                var faces = t.Trace.Where(x => x.Code == CrackTraceCodes.RegionCheck).Select(x => x.Region).ToArray();
+                CollectionAssert.AreEqual(new[] { "Face+x", "Face-x", "Face+y", "Face-y" }, faces);
+                int face = Array.IndexOf(CodesOf(t), CrackTraceCodes.RegionCheck);
+                CollectionAssert.AreEqual(new[] { CrackTraceCodes.RegionCheck, CrackTraceCodes.EffectiveDepth, CrackTraceCodes.EffectiveArea, CrackTraceCodes.EffectiveSteel, CrackTraceCodes.Rho },
+                    CodesOf(t).Skip(face).Take(5).ToArray());
+                Assert.IsTrue(t.Trace.Skip(face).Take(13).All(x => x.Region == "Face+x"), Codes(t));
+                var steel = t.Trace[face + 3]; Assert.AreEqual(t.Regions[0].SteelArea, steel.Value);
+                CollectionAssert.AreEqual(t.Regions[0].BarIndices.Select(i => (double)i).ToArray(), steel.ArgumentsNamed(CrackTraceArguments.Bar).ToArray());
+                int governing = Array.IndexOf(CodesOf(t), CrackTraceCodes.GoverningFace);
+                Assert.AreEqual(t.GoverningRegion, t.Trace[governing].Region); Assert.AreEqual(t.Width, t.Trace[governing].Value);
+                var own = t.Trace.Where(x => x.Region == t.GoverningRegion && !x.HasFlag(CrackTraceFlags.Summary)).SkipWhile(x => x.Code != CrackTraceCodes.Rho).ToArray();
+                var summary = t.Trace.Skip(governing + 1).Take(own.Length).ToArray();
+                CollectionAssert.AreEqual(own.Select(x => x.Code + "=" + x.Value).ToArray(), summary.Select(x => x.Code + "=" + x.Value).ToArray());
+                Assert.IsTrue(summary.All(x => x.HasFlag(CrackTraceFlags.Summary) && x.Region == t.GoverningRegion));
+                CollectionAssert.AreEqual(new[] { CrackTraceCodes.EffectiveArea, CrackTraceCodes.EffectiveSteel, CrackTraceCodes.WidthRatio }, CodesOf(t).Skip(governing + 1 + own.Length).ToArray());
+                CollectionAssert.AreEqual(new[] { "Face+x", "Face-x", "Face+y", "Face-y" }, t.RegionOutcomes.Select(x => x.Key).ToArray());
+            }
+            // DS: the coarse system closes with the halved wk.
+            var ds = basic.With(x => { x.Standard = "DS EN 1992-1-1"; x.Exposure = "XC3"; x.Bars = Doubly; x.Plane = EccentricTension; }).Evaluate(Traced);
+            var half = ds.Trace.Single(x => x.HasFlag(CrackTraceFlags.DsCoarseHalf) && !x.HasFlag(CrackTraceFlags.Summary));
+            Assert.AreEqual("DsCoarseSystem", half.Region); Assert.AreEqual(ds.Regions.Single(x => x.Key == "DsCoarseSystem").Width, half.Value);
+            Assert.AreEqual(.5 * ds.Trace.Last(x => x.Code == CrackTraceCodes.Width && x.Region == "DsCoarseSystem" && !x.HasFlag(CrackTraceFlags.DsCoarseHalf) && !x.HasFlag(CrackTraceFlags.Summary)).Value.Value,
+                half.Value.Value, 1e-15);
+            Assert.AreEqual("DsCoarseSystem", ds.RegionOutcomes.Last().Key);
+            // Radial bands of a ring in uniform tension: the header carries the angle.
+            var ringPlane = new StrainPlane(0, 0, new Point2d(0, 0), 5e-4);
+            var ring = SectionCrackCheck.Evaluate(new SectionCrackInput(Ntc, ServiceabilityCombination.QuasiPermanent, "XC1", false, null, HollowRing, ringPlane,
+                HollowRing.Bars.Select(b => 200000 * ringPlane.GetStrain(b.X, b.Y)), true, false, false, 200000, 33000, 2.9, false, true, 40, null, 300, null, false, Traced));
+            var headers = ring.Trace.Where(x => x.Code == CrackTraceCodes.RegionCheck).ToArray();
+            Assert.IsTrue(headers.Length > 0 && headers.All(x => x.Region.StartsWith("Radial(")), Codes(ring));
+            foreach (var header in headers)
+                Assert.AreEqual("Radial(" + header.Argument(CrackTraceArguments.Angle).Value.ToString("0.##", CultureInfo.InvariantCulture) + ")", header.Region);
+            Assert.AreEqual("Fascia radiale 22.5°", LegacySymbol(headers.Single(x => x.Region == "Radial(22.5)")));
+        }
+
+        /// <summary>
+        /// (K3) Reason separates the three branches that Outcome joins in NoEffectiveArea (ANTHEA Ntc2018Checks.cs:180, :218, ConcreteTensionCracking.cs:42), always,
+        /// also without options; Outcome and Status do not change. Bars on the tensile edge: hc,eff = 0; hole over the tensile band with the bars in it: Ac,eff = 0;
+        /// entirely tensile with bars only at the bottom: the face +y has no steel. DS finds its band by bisection and reaches only the third (ModelCheckerContractTests).
+        /// </summary>
+        [TestMethod]
+        public void ReasonSeparatesTheBranchesOfNoEffectiveArea()
+        {
+            var hole = new[] { new[] { new Point2d(-150, -250), new Point2d(150, -250), new Point2d(150, -200), new Point2d(-150, -200) } };
+            var uniform = new StrainPlane(0, 0, new Point2d(0, 0), 5e-4);
+            SectionCrackResult Rect(string standard, IEnumerable<IEnumerable<Point2d>> holes, CrackBar[] bars, StrainPlane plane, SectionCrackOptions options, double? spacing = null)
+                => SectionCrackCheck.Evaluate(new SectionCrackInput(ServiceabilityMigrationTests.Standard(standard), ServiceabilityCombination.QuasiPermanent,
+                    standard == "NTC 2018" || standard == "UNI EN 1992-1-1" ? "XC1" : "XC3", false, null, new CrackSectionGeometry(Rectangle300x500, holes, bars, CrackBarLayout.Rows),
+                    plane, bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false, 200000, 33000, 2.9, false, true, 40, null, spacing, null, false, options));
+            int checks = 0;
+            foreach (var standard in new[] { "NTC 2018", "UNI EN 1992-1-1", "EN 1992-1-1", "DIN EN 1992-1-1", "NS EN 1992-1-1", "DS EN 1992-1-1" })
+                foreach (var options in new[] { SectionCrackOptions.Default, Traced })
+                {
+                    string what = standard + (options.Trace ? " traced" : "");
+                    var normal = Rect(standard, null, Bottom, BentAt50, options);
+                    Assert.AreEqual(CrackOutcome.Evaluated, normal.Outcome, what); Assert.AreEqual(CrackReason.None, normal.Reason, what);
+                    var face = Rect(standard, null, Bottom, uniform, options, 100);
+                    Assert.AreEqual(CrackOutcome.NoEffectiveArea, face.Outcome, what + " " + face.Status); Assert.AreEqual("Face+y: no effective area or reinforcement", face.Status, what);
+                    Assert.AreEqual(CrackReason.FaceWithoutAreaOrSteel, face.Reason, what);
+                    if (options.Trace)
+                    {
+                        CollectionAssert.AreEqual(new[] { "Face+x: Evaluated", "Face-x: Evaluated", "Face+y: NoEffectiveArea" }, face.RegionOutcomes.Select(x => x.Key + ": " + x.Outcome).ToArray(), what);
+                        Assert.IsNull(face.RegionOutcomes[2].Width, what);
+                        var last = face.Trace.Skip(face.Trace.Count - 4).ToArray();
+                        CollectionAssert.AreEqual(new[] { CrackTraceCodes.RegionCheck, CrackTraceCodes.EffectiveDepth, CrackTraceCodes.EffectiveArea, CrackTraceCodes.EffectiveSteel },
+                            last.Select(x => x.Code).ToArray(), Codes(face));
+                        Assert.IsTrue(last.All(x => x.Region == "Face+y"), what); Assert.AreEqual(0, last[3].Value, what); Assert.AreEqual(0, last[3].Arguments.Count, what);
+                    }
+                    checks++;
+                    if (standard == "DS EN 1992-1-1") continue;
+                    var edge = Rect(standard, null, Row(-250), BentAt50, options);
+                    Assert.AreEqual(CrackOutcome.NoEffectiveArea, edge.Outcome, what); Assert.AreEqual("Zero effective area", edge.Status, what);
+                    Assert.AreEqual(CrackReason.ZeroEffectiveDepth, edge.Reason, what);
+                    var covered = Rect(standard, hole, Row(-240), BentAt50, options);
+                    Assert.AreEqual(CrackOutcome.NoEffectiveArea, covered.Outcome, what); Assert.AreEqual("No effective reinforcement or area", covered.Status, what);
+                    Assert.AreEqual(CrackReason.NoEffectiveSteelOrArea, covered.Reason, what);
+                    if (options.Trace)
+                    {
+                        Assert.AreEqual(CrackTraceCodes.EffectiveDepth, edge.Trace.Last().Code, Codes(edge)); Assert.AreEqual(0, edge.Trace.Last().Value, what);
+                        Assert.AreEqual(0, edge.RegionOutcomes.Count, what);
+                        Assert.AreEqual(0, covered.Trace.Single(x => x.Code == CrackTraceCodes.EffectiveArea).Value, what);
+                        Assert.AreEqual(3, covered.Trace.Single(x => x.Code == CrackTraceCodes.EffectiveBarCount).Value, what);
+                        Assert.AreEqual(CrackTraceCodes.BarStress, covered.Trace.Last().Code, Codes(covered));
+                        CollectionAssert.AreEqual(new[] { "TensileZone: NoEffectiveArea" }, covered.RegionOutcomes.Select(x => x.Key + ": " + x.Outcome).ToArray(), what);
+                    }
+                    checks += 2;
+                }
+            Assert.AreEqual(2 * 6 + 2 * 2 * 5, checks);
+            // Every other outcome keeps Reason None.
+            var basic = new OptionCase();
+            foreach (var state in new[] { basic.With(x => x.Combination = ServiceabilityCombination.Characteristic), basic.With(x => x.Exposure = null), basic.With(x => x.Plane = UniformCompression),
+                basic.With(x => { x.Bars = Row(200); x.Plane = AxisInTheCover; }), basic.With(x => x.Plane = AxisAboveTheBars), basic.With(x => x.Bars = new[] { new CrackBar(0, -200, 20, 314.16) }) })
+            {
+                var r = state.Evaluate(SectionCrackOptions.Default);
+                Assert.AreEqual(CrackReason.None, r.Reason, r.Outcome + " " + r.Status);
+            }
+        }
+
+        /// <summary>
+        /// (K3) RegionOutcomes of the inner surfaces (ANTHEA ConcreteInnerCracking.cs:131-134 composes the status from them): box 400×600 with a hole 200×400 of (g), in
+        /// bending. Tensile zone evaluated, side walls tensile without bars, bottom wall evaluated and governing; with one bar in the bottom wall its spacing is not
+        /// determined and the outer zone governs; a hole that is neither an axis-aligned rectangle nor a ring gives "InnerSurfaces". The trace repeats the governing
+        /// band as a summary and closes with the note of the inner boundary.
+        /// </summary>
+        [TestMethod]
+        public void RegionOutcomesListTheInnerSurfaces()
+        {
+            var box = new[] { new Point2d(-200, -300), new Point2d(200, -300), new Point2d(200, 300), new Point2d(-200, 300) };
+            var hole = new[] { new Point2d(-100, -200), new Point2d(100, -200), new Point2d(100, 200), new Point2d(-100, 200) };
+            var plane = new StrainPlane(0, -4e-6, new Point2d(0, 0), 0);
+            SectionCrackResult Hollow(IEnumerable<double> xs, SectionCrackOptions options, bool legacyK2 = false)
+            {
+                var bars = xs.SelectMany(x => new[] { new CrackBar(x, -250, 20, Math.PI * 100), new CrackBar(x, 250, 20, Math.PI * 100) }).ToArray();
+                return SectionCrackCheck.Evaluate(new SectionCrackInput(Ntc, ServiceabilityCombination.QuasiPermanent, "XC1", false, null, new CrackSectionGeometry(box, new[] { hole }, bars,
+                    CrackBarLayout.Rows), plane, bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false, 200000, 33000, 2.9, false, true, 40, null, null, null, legacyK2, options));
+            }
+            var four = new[] { -150d, -50, 50, 150 };
+            var r = Hollow(four, Traced); var d = Hollow(four, SectionCrackOptions.Default);
+            AssertSameResult(d, r, "box"); Assert.AreEqual(0, d.RegionOutcomes.Count); Assert.AreEqual(0, d.Trace.Count);
+            Assert.AreEqual(CrackOutcome.InnerSurfaceUnreinforced, r.Outcome, r.Status); Assert.AreEqual("InnerWall-y", r.GoverningRegion);
+            CollectionAssert.AreEqual(new[] { "TensileZone: Evaluated", "InnerWall+x: InnerSurfaceUnreinforced", "InnerWall-x: InnerSurfaceUnreinforced", "InnerWall-y: Evaluated" },
+                r.RegionOutcomes.Select(x => x.Key + ": " + x.Outcome).ToArray());
+            CollectionAssert.AreEqual(r.Regions.Select(x => x.Key + ":" + x.Width).ToArray(), r.RegionOutcomes.Select(x => x.Key + ":" + x.Width).ToArray());
+            Assert.AreEqual(r.Width, r.RegionOutcomes[3].Width);
+            var criterion = r.Trace.Single(x => x.Code == CrackTraceCodes.K2Criterion);
+            Assert.IsTrue(criterion.HasFlag(CrackTraceFlags.Bending) && criterion.HasFlag(CrackTraceFlags.InnerBands));
+            // The band: Ac,eff, As,eff (bars), hc,eff, k₂ della fascia (local, 0.9), formula; then the governing surface, the band again, Ac,eff, As,eff, wk and ηw of the envelope, the note.
+            var band = r.Trace.Where(x => x.Region == "InnerWall-y" && !x.HasFlag(CrackTraceFlags.Summary)).ToArray();
+            CollectionAssert.AreEqual(new[] { CrackTraceCodes.EffectiveArea, CrackTraceCodes.EffectiveSteel, CrackTraceCodes.EffectiveDepth, CrackTraceCodes.BandK2, CrackTraceCodes.Es },
+                band.Take(5).Select(x => x.Code).ToArray(), Codes(r));
+            Assert.AreEqual(10000, band[0].Value.Value, 1e-9); Assert.AreEqual(2, band[1].ArgumentsNamed(CrackTraceArguments.Bar).Count()); Assert.AreEqual(50, band[2].Value.Value, 1e-12);
+            Assert.AreEqual(.9, band[3].Value.Value, 1e-12); Assert.IsTrue(band[3].HasFlag(CrackTraceFlags.Local) && band.Take(3).All(x => x.HasFlag(CrackTraceFlags.InnerBand)));
+            int governing = Array.FindIndex(r.Trace.ToArray(), x => x.Code == CrackTraceCodes.GoverningSurface);
+            Assert.AreEqual("InnerWall-y", r.Trace[governing].Region); Assert.IsNull(r.Trace[governing].Value); Assert.IsTrue(r.Trace[governing].HasFlag(CrackTraceFlags.Summary));
+            var repeated = r.Trace.Skip(governing + 1).Take(band.Length - 2).ToArray();
+            CollectionAssert.AreEqual(band.Skip(2).Select(x => x.Code + "=" + x.Value).ToArray(), repeated.Select(x => x.Code + "=" + x.Value).ToArray());
+            Assert.IsTrue(repeated.All(x => x.HasFlag(CrackTraceFlags.Summary) && x.Region == "InnerWall-y"));
+            var tail = r.Trace.Skip(governing + 1 + repeated.Length).ToArray();
+            CollectionAssert.AreEqual(new[] { CrackTraceCodes.EffectiveArea, CrackTraceCodes.EffectiveSteel, CrackTraceCodes.Width, CrackTraceCodes.WidthRatio, CrackTraceCodes.InnerBoundaryNote },
+                tail.Select(x => x.Code).ToArray(), Codes(r));
+            Assert.AreEqual(r.EffectiveArea, tail[0].Value); Assert.AreEqual(r.Width, tail[2].Value); Assert.IsTrue(tail[2].HasFlag(CrackTraceFlags.Envelope) && tail[2].Region == null);
+            Assert.AreEqual(r.Ratio, tail[3].Value, "suspended ηw: a surface is left without a check");
+            // Rule before D7-b: no k₂ della fascia.
+            Assert.IsFalse(Hollow(four, Traced, true).Trace.Any(x => x.Code == CrackTraceCodes.BandK2));
+            // One bar in the bottom wall: spacing not determined there, every band without width, the outer zone governs.
+            var sparse = Hollow(new[] { -150d, -50, 150 }, Traced);
+            CollectionAssert.AreEqual(new[] { "TensileZone: Evaluated", "InnerWall+x: InnerSurfaceUnreinforced", "InnerWall-x: InnerSurfaceUnreinforced", "InnerWall-y: SpacingUndetermined" },
+                sparse.RegionOutcomes.Select(x => x.Key + ": " + x.Outcome).ToArray());
+            Assert.AreEqual("TensileZone", sparse.GoverningRegion); Assert.AreEqual(CrackOutcome.InnerSurfaceUnreinforced, sparse.Outcome);
+            Assert.IsFalse(sparse.Trace.Any(x => x.Code == CrackTraceCodes.GoverningSurface || x.Region != null), Codes(sparse));
+            Assert.AreEqual(CrackTraceCodes.InnerBoundaryNote, sparse.Trace.Last().Code);
+            // A triangular hole: inner surfaces not supported.
+            var triangle = new[] { new[] { new Point2d(-50, -100), new Point2d(50, -100), new Point2d(0, -20) } };
+            var odd = SectionCrackCheck.Evaluate(new SectionCrackInput(Ntc, ServiceabilityCombination.QuasiPermanent, "XC1", false, null, new CrackSectionGeometry(Rectangle300x500, triangle,
+                Bottom, CrackBarLayout.Rows), BentAt50, Bottom.Select(b => 200000 * BentAt50.GetStrain(b.X, b.Y)), true, false, false, 200000, 33000, 2.9, false, true, 40, null, null, null,
+                false, Traced));
+            Assert.AreEqual(CrackOutcome.InnerSurfaceNotSupported, odd.Outcome, odd.Status);
+            CollectionAssert.AreEqual(new[] { "TensileZone: Evaluated", "InnerSurfaces: InnerSurfaceNotSupported" }, odd.RegionOutcomes.Select(x => x.Key + ": " + x.Outcome).ToArray());
+            Assert.IsFalse(odd.Trace.Any(x => x.Code == CrackTraceCodes.InnerBoundaryNote));
+        }
+
+        /// <summary>
+        /// (K3, K0) Without SectionCrackOptions.Trace the trace and the region outcomes are empty; with it nothing else changes, on every branch and with ValidateAtUse,
+        /// refusals included. The analysis context adds "Ecls analisi" and "n analisi" = Es (1 + φ)/Ecls before the width formula, only with the trace.
+        /// </summary>
+        [TestMethod]
+        public void TraceIsOffByDefaultAndChangesNothingElse()
+        {
+            Assert.IsFalse(SectionCrackOptions.Default.Trace); Assert.IsNull(SectionCrackOptions.Default.AnalysisConcreteModulus); Assert.IsNull(SectionCrackOptions.Default.AnalysisPsiRebar);
+            Assert.IsTrue(Traced.Trace); Assert.IsFalse(Traced.WithTrace(false).Trace); Assert.IsFalse(SectionCrackOptions.Default.Trace);
+            Assert.IsTrue(Traced.WithValidateAtUse(true).Trace && Traced.WithValidateAtUse(true).ValidateAtUse);
+            var basic = new OptionCase();
+            var states = new[]
+            {
+                basic, basic.With(x => x.Bars = Doubly), basic.With(x => x.Plane = UniformCompression), basic.With(x => { x.Bars = Doubly; x.Plane = EccentricTension; }),
+                basic.With(x => { x.Bars = Doubly; x.Plane = AxisInTheCover; }), basic.With(x => x.Plane = AxisAboveTheBars), basic.With(x => { x.Bars = Doubly; x.CoverOverride = 30; x.SpacingOverride = 150; }),
+                basic.With(x => { x.Exposure = "XD1"; x.Sensitive = true; x.Uncracked = () => -.5; }), basic.With(x => { x.Exposure = "XS3"; x.Sensitive = true; x.Combination = ServiceabilityCombination.Frequent; x.Uncracked = () => 3; }),
+                basic.With(x => x.LegacyK2 = true), basic.With(x => x.Combination = ServiceabilityCombination.Characteristic),
+                basic.With(x => { x.Standard = "DIN EN 1992-1-1"; x.Exposure = "XC3"; x.NominalCover = 90; }), basic.With(x => { x.Standard = "DS EN 1992-1-1"; x.Exposure = "XC3"; x.Bars = Doubly; x.Plane = EccentricTension; }),
+                basic.With(x => { x.Standard = "Model Code 2010"; x.Exposure = "XC3"; x.DesignLimit = .3; }), basic.With(x => x.Bars = new[] { new CrackBar(0, -200, 20, 314.16) }),
+            };
+            for (int i = 0; i < states.Length; i++)
+                foreach (var pair in new[] { Tuple.Create(SectionCrackOptions.Default, Traced), Tuple.Create(AtUse, AtUse.WithTrace(true)) })
+                {
+                    string what = "state " + i + (pair.Item1.ValidateAtUse ? " at use" : "");
+                    var plain = states[i].Evaluate(pair.Item1); var traced = states[i].Evaluate(pair.Item2);
+                    Assert.AreEqual(0, plain.Trace.Count, what); Assert.AreEqual(0, plain.RegionOutcomes.Count, what);
+                    AssertSameResult(plain, traced, what); Assert.AreEqual(plain.Reason, traced.Reason, what);
+                    if (!pair.Item1.ValidateAtUse) AssertSameResult(SectionCrackCheck.Evaluate(states[i].WithoutOptions()), traced, what + " without options");
+                    Assert.AreEqual(plain.Outcome == CrackOutcome.NotRequired, traced.Trace.Count == 0, what);
+                }
+            foreach (var bad in new Action<OptionCase>[] { x => x.DesignLimit = double.NaN, x => { x.Plane = UniformCompression; x.Stresses = new[] { double.NaN, 0, 0 }; },
+                x => { x.Exposure = "XD1"; x.Sensitive = true; }, x => { x.Standard = "DIN EN 1992-1-1"; x.Exposure = "XC3"; x.Ribbed = false; }, x => { x.Stresses = new[] { 200, double.NaN, 200 }; } })
+            {
+                Exception expected = null, actual = null;
+                try { basic.With(bad).Evaluate(SectionCrackOptions.Default); } catch (Exception e) { expected = e; }
+                try { basic.With(bad).Evaluate(Traced); } catch (Exception e) { actual = e; }
+                Assert.IsNotNull(expected); Assert.IsNotNull(actual); Assert.AreEqual(expected.GetType(), actual.GetType()); Assert.AreEqual(expected.Message, actual.Message);
+                Assert.AreEqual(CrackRejection.CodeOf(expected), CrackRejection.CodeOf(actual));
+            }
+            // Analysis context: modulus 30 GPa, φ = 1.5: n = 200000 (1 + 1.5)/30000, after s and before the formula; nothing without the trace.
+            var context = Traced.WithAnalysisContext(30000, 1.5);
+            Assert.AreEqual(30000, context.AnalysisConcreteModulus); Assert.AreEqual(1.5, context.AnalysisPsiRebar); Assert.IsTrue(context.Trace);
+            var with = basic.Evaluate(context); var without = basic.Evaluate(Traced);
+            int s = Array.FindIndex(with.Trace.ToArray(), x => x.Code == CrackTraceCodes.Spacing);
+            Assert.AreEqual(CrackTraceCodes.AnalysisConcreteModulus, with.Trace[s + 1].Code); Assert.AreEqual(30000, with.Trace[s + 1].Value);
+            Assert.AreEqual(CrackTraceCodes.AnalysisModularRatio, with.Trace[s + 2].Code); Assert.AreEqual(200000 * (1 + 1.5) / 30000, with.Trace[s + 2].Value);
+            Assert.AreEqual(CrackTraceCodes.Es, with.Trace[s + 3].Code);
+            CollectionAssert.AreEqual(without.Trace.Select(x => x.ToString()).ToArray(), with.Trace.Where(x => x.Code != CrackTraceCodes.AnalysisConcreteModulus && x.Code != CrackTraceCodes.AnalysisModularRatio)
+                .Select(x => x.ToString()).ToArray());
+            AssertSameResult(without, with, "context");
+            Assert.AreEqual(0, basic.Evaluate(SectionCrackOptions.Default.WithAnalysisContext(30000, 1.5)).Trace.Count);
+            Assert.IsFalse(basic.With(x => x.Plane = AxisAboveTheBars).Evaluate(context).Trace.Any(x => x.Code == CrackTraceCodes.AnalysisModularRatio), "only before the width formula");
+            var cleared = context.WithAnalysisContext(null, null); Assert.IsNull(cleared.AnalysisConcreteModulus); Assert.IsNull(cleared.AnalysisPsiRebar);
+            Assert.IsNotNull(context.AnalysisConcreteModulus, "the With methods copy");
+            Assert.ThrowsException<ArgumentException>(() => Traced.WithAnalysisContext(30000, null));
+            Assert.ThrowsException<ArgumentException>(() => Traced.WithAnalysisContext(null, 1));
+            Assert.AreEqual("concreteModulus", Assert.ThrowsException<ArgumentOutOfRangeException>(() => Traced.WithAnalysisContext(0, 1)).ParamName);
+            Assert.AreEqual("concreteModulus", Assert.ThrowsException<ArgumentOutOfRangeException>(() => Traced.WithAnalysisContext(double.NaN, 1)).ParamName);
+            Assert.AreEqual("psiRebar", Assert.ThrowsException<ArgumentOutOfRangeException>(() => Traced.WithAnalysisContext(30000, double.PositiveInfinity)).ParamName);
+        }
     }
 }

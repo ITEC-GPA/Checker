@@ -10,7 +10,7 @@ namespace GPC.Checkers.Concrete.Cracking
     /// </summary>
     public sealed class SectionCrackOptions
     {
-        /// <summary>Behaviour of 0.0.17.0: validation in the constructor, DIN condition with <see cref="SectionCrackInput.NominalCover"/>.</summary>
+        /// <summary>Behaviour of 0.0.17.0: validation in the constructor, DIN condition with <see cref="SectionCrackInput.NominalCover"/>, no trace.</summary>
         public static SectionCrackOptions Default { get; } = new SectionCrackOptions();
 
         /// <summary>
@@ -39,7 +39,42 @@ namespace GPC.Checkers.Concrete.Cracking
         /// </summary>
         public double? EffectiveDepthCover { get; private set; }
 
+        /// <summary>
+        /// Fills <see cref="SectionCrackResult.Trace"/> (the calculated entries of ANTHEA in their order, with the stable codes of <see cref="CrackTraceCodes"/>)
+        /// and <see cref="SectionCrackResult.RegionOutcomes"/> (false by default: both empty). Nothing else changes: Details, Status, Outcome, the numbers
+        /// and the exceptions are those without the trace.
+        /// </summary>
+        public bool Trace { get; private set; }
+
+        /// <summary>
+        /// Modulus of the concrete in the stress analysis, MPa (analysis context, null by default): with <see cref="Trace"/> the trace adds "Ecls analisi" and
+        /// "n analisi" = Es (1 + φ)/Ecls (<see cref="CrackTraceCodes.AnalysisConcreteModulus"/>, <see cref="CrackTraceCodes.AnalysisModularRatio"/>) before the
+        /// width formula of the partially compressed section. Set with <see cref="AnalysisPsiRebar"/> by <see cref="WithAnalysisContext"/>.
+        /// </summary>
+        public double? AnalysisConcreteModulus { get; private set; }
+
+        /// <summary>Creep coefficient φ of the bars in the stress analysis (analysis context, null by default), see <see cref="AnalysisConcreteModulus"/>.</summary>
+        public double? AnalysisPsiRebar { get; private set; }
+
         private SectionCrackOptions() { }
+
+        /// <summary>Copy with <see cref="Trace"/>.</summary>
+        public SectionCrackOptions WithTrace(bool trace)
+        {
+            var copy = Copy(); copy.Trace = trace; return copy;
+        }
+
+        /// <summary>
+        /// Copy with the analysis context: both values or none (null, null removes it). The modulus must be finite and positive, φ finite; otherwise
+        /// <see cref="ArgumentOutOfRangeException"/>; only one of the two gives <see cref="ArgumentException"/>.
+        /// </summary>
+        public SectionCrackOptions WithAnalysisContext(double? concreteModulus, double? psiRebar)
+        {
+            if (concreteModulus.HasValue != psiRebar.HasValue) throw new ArgumentException("Cracking: the analysis context needs both the concrete modulus and the creep coefficient.");
+            if (concreteModulus.HasValue && !CrackSectionGeometry.Positive(concreteModulus.Value)) throw new ArgumentOutOfRangeException(nameof(concreteModulus));
+            if (psiRebar.HasValue && (double.IsNaN(psiRebar.Value) || double.IsInfinity(psiRebar.Value))) throw new ArgumentOutOfRangeException(nameof(psiRebar));
+            var copy = Copy(); copy.AnalysisConcreteModulus = concreteModulus; copy.AnalysisPsiRebar = psiRebar; return copy;
+        }
 
         /// <summary>Copy with <see cref="ValidateAtUse"/>.</summary>
         public SectionCrackOptions WithValidateAtUse(bool validateAtUse)

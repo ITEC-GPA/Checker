@@ -145,6 +145,39 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   Le prove sono in `CrackMigrationTests`: opzioni predefinite uguali al costruttore esistente, i casi di
   `ValidateAtUse`, hc,eff DIN calcolato a mano, i codici. Hanno codice anche i rifiuti delle catture: i 6 stati di
   `crack-legacy.csv` e le 57 aperture di `crack-scalar-legacy.csv` con barre lisce danno `RibbedBarsRequired`.
+- **Traccia con chiavi stabili** (0.0.18.0, opzione `Trace`, falsa di default). `SectionCrackResult.Trace` elenca le
+  voci calcolate di ANTHEA nello stesso ordine (`Ntc2018Checks.Cracking`, `ConcreteTensionCracking`,
+  `ConcreteInnerCracking`, `ConcreteCodeChecks.CrackWidth` e `UnbondedCrackWidthBound`). Ogni `CrackTraceEntry` ha:
+  - `Code`: una delle 91 costanti di `CrackTraceCodes`, ciascuna con il simbolo di ANTHEA nella documentazione;
+  - `Region`: la chiave della faccia, della fascia radiale, del sistema grossolano DS o della superficie interna,
+    null per le voci della sezione. ANTHEA le scrive con il nome della regione come prefisso, salvo quelle con il
+    flag `Summary`, che ripetono la regione governante nel riepilogo;
+  - `Value` (null per le note e per i valori che ANTHEA non calcola), `Unit`;
+  - `Arguments`: i numeri dell'espressione (`CrackTraceArguments`), per esempio l'indice della barra (B01 = 0) o
+    l'angolo della fascia radiale;
+  - `Flags`: il ramo che sceglie il testo (`CrackTraceFlags`), per esempio la variante di sr,max, chi governa
+    εsm − εcm o Δsm, la regola di k2 precedente a D7-b.
+
+  Le voci che ripetono gli ingressi (Verifica, Modello, N, Mx, My, φ, γc, γs, normativa, criterio, wlim) le scrive
+  il chiamante. Con la traccia attiva nient'altro cambia: risultato, `Details`, `Status`, `Outcome` e rifiuti sono
+  quelli senza traccia.
+  - Contesto d'analisi facoltativo (`WithAnalysisContext`: modulo del calcestruzzo e φ delle barre dell'analisi):
+    con la traccia aggiunge «Ecls analisi» e «n analisi» = Es (1 + φ)/Ecls prima della formula di wk.
+  - `RegionOutcomes` (anch'esso solo con `Trace`): chiave, esito e larghezza di ogni regione raggiunta, cioè zona
+    tesa o facce (anche quella che ferma la verifica), sistema grossolano DS, pareti o anello interno (verificati,
+    senza armatura o senza interasse) e «InnerSurfaces» per le superfici interne non supportate. Con questi dati il
+    chiamante compone gli stati delle superfici interne senza leggere il testo inglese.
+- **Motivo fine** (`SectionCrackResult.Reason`, 0.0.18.0, sempre valorizzato anche senza opzioni). Separa i tre
+  rami che `Outcome` riunisce in `NoEffectiveArea`: `ZeroEffectiveDepth` (hc,eff nullo), `NoEffectiveSteelOrArea`
+  (barre efficaci ma Ac,eff nullo), `FaceWithoutAreaOrSteel` (faccia della sezione interamente tesa senza area o
+  armatura efficace). Negli altri casi vale `None`. `Outcome` e `Status` non cambiano.
+
+  Le prove sono in `CrackMigrationTests`. La traccia riproduce entro 1e-9, nello stesso ordine, i 16 simboli della
+  colonna `details` di `crack-legacy.csv` (13 339 valori su 400 stati, anche con il prefisso di faccia, fascia,
+  sistema grossolano, superficie interna e barra). L'ordine e i valori del caso inflesso NTC sono calcolati a mano.
+  Ci sono poi i rami (decompressione, limite superiore, Eurocodice, sezione interamente tesa, DS, fasce radiali,
+  regola di k2 prima di D7-b), un test per ciascun motivo, gli esiti delle superfici interne e la traccia vuota di
+  default.
 - **Non supportati:**
   - CS-TR34: non applicabile;
   - CNR-DT 204: modello FRC non implementato;
