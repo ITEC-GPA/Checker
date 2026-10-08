@@ -9,13 +9,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
     /// constant N and My): the point is the resistance at that axial force only if |NRd - N| is within the tolerance.
     /// <see cref="SectionSolver.CalculateDomainPoint(GPC.Model.Results.ResultBeamForces[])"/> does not apply the check: the caller applies it.
     /// Forces in N, compression negative.<br/>
-    /// The tolerance depends on the compressive stress-strain diagram of the concrete:
+    /// The tolerance depends on the compressive stress-strain diagram of the concrete and is never smaller than the tolerance with which the
+    /// iterative strategy converges for the section (<see cref="ConvergenceTolerance(SectionSolver)"/>, 0.25e-4 b h fck):
     /// <list type="bullet">
-    /// <item>parabola-rectangle, bilinear, non linear and generic diagrams: max(<see cref="MinimumTolerance"/>; <see cref="RelativeTolerance"/> |N|),
-    /// that is max(1 kN; 1e-6 |N|), the rule used by ANTHEA up to GPCChecker.Concrete 0.0.17.0;</item>
+    /// <item>parabola-rectangle, bilinear, non linear and generic diagrams: max(<see cref="MinimumTolerance"/>; <see cref="RelativeTolerance"/> |N|;
+    /// <see cref="ConvergenceTolerance(SectionSolver)"/>), that is max(1 kN; 1e-6 |N|; 0.25e-4 b h fck). The rule used by ANTHEA up to
+    /// GPCChecker.Concrete 0.0.17.0 was max(1 kN; 1e-6 |N|): the same up to b h fck = 4e7 N (for instance a circle of D 1069 mm in C35/45), while
+    /// for larger sections it could reject points converged within the tolerance of the search (in ANTHEA every pile of D 1600 mm or more in
+    /// C35/45 at N = 0: |NRd - N| from 1.01 to 2.33 kN);</item>
     /// <item>rectangular stress block: also at least <see cref="StressBlockFraction"/> times the centred compression resistance
     /// (<see cref="CentredCompressionResistance(SectionSolver)"/>), that is 1/1000 of NRd,c.</item>
     /// </list>
+    /// The rule changes only which points are accepted, never their forces: it is never narrower than the rule of 0.0.17.0, so every point
+    /// accepted by that rule is still accepted, with the same values. Points returned by the fallbacks of the search on a jump of the forces
+    /// (closest point or bisection, up to 10 times the distance tolerance) can still be rejected.<br/>
     /// With the stress block the result can be less precise. The stress jumps from 0 to η fcd at the strain (1 - λ) εcu; the concrete is
     /// integrated on the fixed Gauss points of the mesh, which is not cut along the jump, so the resultant changes by steps when the strain plane
     /// moves, and the iterative strategy can stop at a point whose axial force differs from the assigned one by more than its own tolerance. The
@@ -76,8 +83,25 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <summary>
-        /// The tolerance on the axial force of a point searched at the assigned axial force: max(1000 N; 1e-6 |N|), and with the stress block
-        /// at least 1e-3 NRd,c. For the other diagrams the section is not integrated
+        /// The tolerance on N with which the iterative strategy of the solver converges for the section (N, positive): the distance tolerance of
+        /// the adimensional forces of the search (0.25e-4) times the scale of N of the solver, b h fck, with b and h the sizes of the bounding box
+        /// of the concrete and fck its characteristic strength (for composite sections plus A 15 fck of each steel section). It grows with the
+        /// section and does not depend on the diagram: 112.5 N for 300 × 500 in C30/37, 640 N for a circle of D 800 in C40/50, 3500 N for a
+        /// circle of D 2000 in C35/45. A converged point can differ from the assigned axial force by up to about this value
+        /// </summary>
+        /// <param name="solver">The section solver</param>
+        /// <returns>The tolerance; 0 if the scale of the section is not finite or not positive</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="solver"/> is null</exception>
+        public static double ConvergenceTolerance(SectionSolver solver)
+        {
+            if (solver == null)
+                throw new ArgumentNullException(nameof(solver));
+            return solver.CalculateAxialConvergenceTolerance();
+        }
+
+        /// <summary>
+        /// The tolerance on the axial force of a point searched at the assigned axial force: max(1000 N; 1e-6 |N|; tolerance of convergence of the
+        /// search, 0.25e-4 b h fck), and with the stress block at least 1e-3 NRd,c. For the other diagrams the section is not integrated
         /// </summary>
         /// <param name="solver">The section solver of the point</param>
         /// <param name="axialForce">The assigned axial force (N, compression negative)</param>
@@ -90,7 +114,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 throw new ArgumentNullException(nameof(solver));
             if (double.IsNaN(axialForce) || double.IsInfinity(axialForce))
                 throw new ArgumentException("The axial force must be finite", nameof(axialForce));
-            double tolerance = Math.Max(MinimumTolerance, RelativeTolerance * Math.Abs(axialForce));
+            double tolerance = Math.Max(Math.Max(MinimumTolerance, RelativeTolerance * Math.Abs(axialForce)), ConvergenceTolerance(solver));
             if (!HasReducedPrecision(solver))
                 return tolerance;
             return Math.Max(tolerance, StressBlockFraction * CentredCompressionResistance(solver));
