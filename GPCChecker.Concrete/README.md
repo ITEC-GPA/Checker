@@ -31,18 +31,27 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - `SectionSolvers.DomainPointAxialTolerance` dice se un punto del dominio cercato a N assegnato (N costante, N e Mx,
   N e My) è la resistenza a quello N: |NRd − N| ≤ tolleranza. `SectionSolver.CalculateDomainPoint` non applica il
   controllo: lo applica il chiamante (in ANTHEA `SectionMomentResistance`).
-- Parabola-rettangolo, bilineare, non lineare e tabelle generiche: max(1000 N; 1e-6 |N|; 0,25e-4 b h fck). Il calcolo
+- Parabola-rettangolo, bilineare, non lineare e tabelle generiche: max(1000 N; 1e-6 |N|; 0,5e-4 b h fck). Il calcolo
   non integra la sezione.
-- Il terzo termine è la tolleranza con cui la ricerca iterativa converge su N per quella sezione
-  (`ConvergenceTolerance`): tolleranza di distanza delle forze adimensionali (0,25e-4) per la scala di N del solutore,
-  b h fck (b e h lati del rettangolo che contiene il calcestruzzo; nelle sezioni composte più A 15 fck dei profili).
-  Non dipende dal legame e vale anche con lo stress block. Esempi: 112,5 N per 300 × 500 C30/37, 640 N per D 800
-  C40/50, 3500 N per D 2000 C35/45.
-- La regola usata da ANTHEA fino alla 0.0.17.0 era max(1000 N; 1e-6 |N|). È la stessa fino a b h fck = 4e7 N (per
-  esempio un cerchio di D 1069 mm in C35/45). Per sezioni più grandi poteva rifiutare punti convergenti entro la
-  tolleranza della ricerca: nel modulo palo orizzontale di ANTHEA, con i dati usuali (C35/45, 16Ø24, N = 0), ogni
-  palo da D 1600 mm in su dava «Soluzione non coerente con N e direzione assegnati», con |NRd − N| da 1,01 a 2,33 kN
-  e tolleranze di convergenza da 2,24 a 5,47 kN.
+- Il terzo termine è 2 volte (`ConvergenceFactor`) la tolleranza su N della prova di arresto della ricerca iterativa
+  per quella sezione (`ConvergenceTolerance`): tolleranza di distanza delle forze adimensionali (0,25e-4) per la scala
+  di N del solutore, b h fck (b e h lati del rettangolo che contiene il calcestruzzo; nelle sezioni composte più
+  A 15 fck dei profili). Non dipende dal legame e vale anche con lo stress block. Esempi della prova di arresto:
+  112,5 N per 300 × 500 C30/37, 640 N per D 800 C40/50, 3500 N per D 2000 C35/45; tolleranze: 1000 N (il minimo),
+  1280 N, 7000 N.
+- La prova di arresto non limita il punto restituito. La ricerca controlla la distanza dal bersaglio del punto prima
+  dell'ultimo passo, poi fa il passo e restituisce il punto nuovo, che può essere più lontano. Campione di convalida
+  di S-1 (.NET 8): fra i 6404 punti del percorso iterativo con i legami continui lo scarto su N arriva a 1,47 volte la
+  tolleranza della prova (un punto: sezione 1000 × 200 C25/30, parabola-rettangolo, N di trazione, direzione a 30°);
+  gli altri restano entro 0,91 volte. Il fattore 2 è un margine su queste misure, non un limite dimostrato.
+- La regola usata da ANTHEA fino alla 0.0.17.0 era max(1000 N; 1e-6 |N|). È la stessa fino a b h fck = 2e7 N (per
+  esempio un cerchio di D 756 mm in C35/45). Per sezioni più grandi poteva rifiutare punti in cui la ricerca si era
+  fermata normalmente: nel modulo palo orizzontale di ANTHEA, con i dati usuali (C35/45, 16Ø24, N = 0), ogni palo da
+  D 1600 mm in su dava «Soluzione non coerente con N e direzione assegnati», con |NRd − N| da 1,01 a 2,33 kN e
+  tolleranze della prova di arresto da 2,24 a 5,47 kN.
+- Cambia anche con i legami continui: sulle sezioni con b h fck oltre 2e7 N (per esempio la C2 del banco F2.1, D 800
+  C40/50: 1280 N) la tolleranza è più larga di quella della 0.0.17.0. Lo scarto su N accettato resta sotto
+  0,5e-4 b h fck.
 - La regola cambia solo quali punti sono accettati, mai i loro valori: non è mai più stretta della regola della
   0.0.17.0, quindi ogni punto accettato prima resta accettato e identico. I punti dati dai ripieghi della ricerca su un
   salto delle forze (punto più vicino o bisezione, fino a 10 volte la tolleranza di distanza) possono restare rifiutati.
@@ -60,18 +69,24 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   runtime. Sezione C2 del banco F2.1 di ANTHEA (D 800, 12Ø16), N = −1500 kN, Mx+: NRd = −1502,05 kN con .NET 8
   (accettato), −1513,15 kN con .NET Framework 4.7.2 (scarto 1,07e-3 NRd,c, rifiutato).
 - Prove: `DomainPointAxialToleranceTests`, con attesi a mano e Python (NRd,c di rettangolo, poligono di 144 lati e
-  C70/85, tolleranze, punto di S-1, stati del banco F2.1 entro 5e-3 dalla forma chiusa; tolleranza di convergenza
-  delle sezioni del banco e del palo di D 2000, punti del palo di ANTHEA da D 1400 a D 2500, MRd del palo di D 2000 a
-  N = 0 entro 2e-3 da 2536,846 kNm).
-- Controllo sul campione di convalida (8840 punti, .NET 8): le 13 sezioni hanno b h fck sotto 4e7 N, quindi nessun
-  esito cambia rispetto alla regola precedente (0 punti accettati in più, 0 rifiutati).
+  C70/85, tolleranze, punto di S-1, stati del banco F2.1 entro 5e-3 dalla forma chiusa; tolleranza della prova di
+  arresto delle sezioni del banco e del palo di D 2000, punti del palo di ANTHEA da D 1400 a D 2500, MRd del palo di
+  D 2000 a N = 0 entro 2e-3 da 2536,846 kNm). `LargeSectionPointBeyondTheStoppingTestIsAccepted` cerca il punto del
+  campione con scarto 1,47 volte la prova di arresto, sulla sezione 1000 × 200 e sulla stessa scalata per 4
+  (4000 × 800, b h fck = 8e7 N): forze 16 volte, momenti 64 volte, stesso rapporto. Sulla sezione grande lo scarto è
+  2,93 kN: la regola della 0.0.17.0 (1 kN) e la sola prova di arresto (2 kN) lo rifiutano, la regola con il fattore 2
+  (4 kN) lo accetta.
+- Controllo sul campione di convalida (8840 punti, .NET 8): tre sezioni hanno b h fck oltre 2e7 N (D 800 C40/50 due
+  volte: 2,56e7 N, tolleranza 1280 N; D 1200 C30/37: 4,32e7 N, 2160 N). Nessun esito cambia rispetto alla regola
+  precedente (0 punti accettati in più, 0 rifiutati).
 - **Contratto della 0.0.17.0** (`DomainPointContractTests`, `Fixtures/domain-point-contract.json`): fotografia di
   regressione di `CalculateDomainPoint` catturata dal codice di 4f54139a prima della regola, sul runtime della suite.
   Non è un atteso indipendente: non si rigenera per far passare il test. Registra 1024 punti (le 5 sezioni in forma
   chiusa del banco, 4 legami, SLU e SLV, 6 o 7 sforzi normali, 4 direzioni) con percorso del solutore, punto ed esito
   della regola della 0.0.17.0. `ContractVerdictsAreKeptForTheContinuousDiagrams` controlla che con i legami continui
-  esito e tolleranza restino identici (768 punti: la tolleranza di convergenza delle 5 sezioni è al massimo 640 N) e
-  che con lo stress block nessun punto accettato prima sia rifiutato (164 confermati, 7 accettati in più).
+  l'esito resti identico in tutti i 768 punti e la tolleranza resti identica bit per bit per R1, R2, R3 e C1 (2 volte
+  la prova di arresto al massimo 540 N); per C2 la tolleranza è 1280 N e nessun punto ha scarto fra 1000 e 1280 N.
+  Con lo stress block nessun punto accettato prima è rifiutato (164 confermati, 7 accettati in più).
 
 ### Taglio
 
