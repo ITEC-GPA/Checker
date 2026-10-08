@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using GPC.Model.Materials;
 
 namespace GPC.Checkers.Concrete.Detailing
 {
@@ -57,6 +58,22 @@ namespace GPC.Checkers.Concrete.Detailing
         public string Reference { get; internal set; }
     }
 
+    /// <summary>Complete bond strength of <see cref="AnchorageCalculator.Bond"/> (EC2 8.4.2 with 3.1.6(2)), MPa.</summary>
+    public sealed class BondResult
+    {
+        /// <summary>|fctk,0.05| of the concrete used for the bond, limited to the C60/75 value when requested.</summary>
+        public double Fctk05 { get; internal set; }
+        /// <summary>True when the C60/75 limit was requested and fck exceeds <see cref="AnchorageCalculator.BondStrengthClassLimit"/>.</summary>
+        public bool Capped { get; internal set; }
+        /// <summary>fctd = αct fctk,0.05/γc.</summary>
+        public double Fctd { get; internal set; }
+        public double Eta1 { get; internal set; }
+        /// <summary>η2 = 1 for Ø ≤ 32 mm, (132 − Ø)/100 otherwise.</summary>
+        public double Eta2 { get; internal set; }
+        /// <summary>fbd = 2.25 η1 η2 αct fctk,0.05/γc (<see cref="AnchorageCalculator.BondStrength"/>).</summary>
+        public double Fbd { get; internal set; }
+    }
+
     /// <summary>
     /// Anchorage and lap lengths of straight ribbed bars, transferred from ANTHEA (ConcreteAnchorageCalculator and ConcreteBond.Strength, commit fe4652c):
     /// NTC 2018: lbd = max(lb,rqd; 20Ø; 150 mm), l0 = max(α6 lb,rqd; 0.3 α6 lb,rqd; 20Ø; 200 mm), clear distance of lapped bars ≤ 4Ø.
@@ -66,6 +83,37 @@ namespace GPC.Checkers.Concrete.Detailing
     /// </summary>
     public static class AnchorageCalculator
     {
+        /// <summary>Strength class limit of fctk,0.05 for the bond, EC2 8.4.2(2): the value of C60/75 (fck = 60 MPa) is used above it.</summary>
+        public const double BondStrengthClassLimit = 60;
+
+        /// <summary>
+        /// |fctk,0.05| of an EN 1992-1-1 concrete of the given fck (MPa) for the bond: Model ConcreteMaterialEN1992 with the parabola-rectangle diagram
+        /// (fctk,0.05 = 0.7 fctm does not depend on the diagram), with fck limited to <see cref="BondStrengthClassLimit"/> when
+        /// <paramref name="capAtC60"/>. No validation: <see cref="Bond"/> validates fck. <see cref="Calculate"/> keeps taking fctk,0.05 from the caller.
+        /// </summary>
+        public static double BondFctk05(double fck, bool capAtC60 = true)
+            => Math.Abs(new ConcreteMaterialEN1992("Concrete", capAtC60 ? Math.Min(fck, BondStrengthClassLimit) : fck,
+                ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle).Fctk05);
+
+        /// <summary>
+        /// Bond strength of a bar from fck, with the checks and the order of ANTHEA ConcreteBond.Calculate (ANTHEA 98a21d4; fixtures bond-legacy.csv):
+        /// first fck finite and positive, αct finite and ≤ 1, γc ≥ 1 (a NaN or infinite γc and αct ≤ 0 pass this stage), then fctk,0.05
+        /// (<see cref="BondFctk05"/>, C60/75 limit when <paramref name="capAtC60"/>), then <see cref="BondStrength"/> with its own rejection
+        /// (diameter, strength and coefficients). Both rejections are <see cref="ArgumentException"/> with distinct messages.
+        /// </summary>
+        public static BondResult Bond(double fck, double diameter, double eta1, double alphaCt, double gammaC, bool capAtC60 = true)
+        {
+            if (double.IsNaN(fck) || double.IsInfinity(fck) || fck <= 0 || double.IsNaN(alphaCt) || double.IsInfinity(alphaCt) || alphaCt > 1 || gammaC < 1)
+                throw new ArgumentException("Bond: check fck (> 0), αct (0 < αct ≤ 1) and γc (≥ 1).");
+            double fct = BondFctk05(fck, capAtC60);
+            double fbd = BondStrength(fct, diameter, eta1, alphaCt, gammaC);
+            return new BondResult
+            {
+                Fctk05 = fct, Capped = capAtC60 && fck > BondStrengthClassLimit, Fctd = alphaCt * fct / gammaC, Eta1 = eta1, Eta2 = diameter <= 32 ? 1 : (132 - diameter) / 100,
+                Fbd = fbd
+            };
+        }
+
         public static double BondStrength(double fctk05, double diameter, double eta1, double alphaCt, double gammaC)
         {
             if (new[] { fctk05, diameter, eta1, alphaCt, gammaC }.Any(v => double.IsNaN(v) || double.IsInfinity(v) || v <= 0) || diameter >= 132)

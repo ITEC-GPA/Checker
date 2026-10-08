@@ -14,8 +14,8 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 | `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck`; fattore dei getti sottili: `ThinCasting`; omogeneizzazione n ↔ φ: `Homogenization` | `CheckerSection.DescribeStress`, `Homogenization` (`ConcreteSectionProperties`) |
 | `GPC.Checkers.Concrete.Torsion` | Torsione con interazione del taglio nelle due direzioni: `SectionTorsionCalculator`, `SectionTorsionInput`, `TorsionGeometry`, `TorsionProfiles` | `ConcreteTorsionCalculator`, `ConcreteShearAnalysis.Torsion` |
 | `GPC.Checkers.Concrete.Cracking` | Fessurazione di sezione: `SectionCrackCheck`, `CrackRequirements`, `CrackWidthCalculator`, `CrackSectionGeometry`, `CrackProfiles` | `Ntc2018Checks.Cracking`, `ConcreteCodeChecks` (requisiti, wk, hc,eff), `ConcreteTensionCracking`, `ConcreteInnerCracking`, `TensionBarSpacing`, `SectionRegions` |
-| `GPC.Checkers.Concrete.Detailing` | Aderenza, ancoraggi e sovrapposizioni (`AnchorageCalculator`), dettagli 1D di travi e pilastri (`MemberDetailingCalculator`), `DetailingProfiles` | `ConcreteBond`, `ConcreteAnchorageCalculator`, `ConcreteDetailingCalculator` |
-| `GPC.Checkers.Concrete.Response` | Curva momento-curvatura a N costante (`MomentCurvatureAnalysis`): risposta numerica, non verifica | `MomentCurvatureCalculator`, `ConcreteCurvatureAnalysis` |
+| `GPC.Checkers.Concrete.Detailing` | Aderenza, ancoraggi e sovrapposizioni (`AnchorageCalculator`), dettagli 1D di travi, pilastri, solette piene e pareti (`MemberDetailingCalculator`), `DetailingProfiles` | `ConcreteBond`, `ConcreteAnchorageCalculator`, `ConcreteDetailingCalculator` |
+| `GPC.Checkers.Concrete.Response` | Curva momento-curvatura a N costante (`MomentCurvatureAnalysis`), anche nelle unità del chiamante, con esito strutturato e rifiuti tipizzati: risposta numerica, non verifica | `MomentCurvatureCalculator`, `ConcreteCurvatureAnalysis` |
 | `GPC.Checkers.Concrete.Durability` | Classi di esposizione e loro requisiti (`ExposureClasses`), copriferri per norma (`CoverRequirements`, `DurabilityProfiles`), classi minime di resistenza | `Materiali.Durability`, `NtcCover`, `MinimumConcrete`, `MaterialCover` |
 
 I casi legacy di `GPCChecker.Test.Concrete/Fixtures` (CSV e archivi XML delle sezioni) sono catture del codice di
@@ -297,18 +297,85 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   - fbd = 2,25 η1 η2 αct fctk,0,05/γc.
   - NTC: lbd = max(lb,rqd; 20Ø; 150), l0 = max(α6 lb,rqd; 0,3 α6 lb,rqd; 20Ø; 200), interferro ≤ 4Ø.
   - Eurocodice: lb,min e l0,min (8.6, 8.11); la sovrapposizione si allunga dell'interferro oltre min(4Ø; 50 mm).
+  - `Calculate` riceve fctk,0,05 dal chiamante: il tetto C60/75 resta una scelta del chiamante (R10).
+- **Aderenza completa** (0.0.18.0):
+  - `BondStrengthClassLimit` = 60: limite di classe di fctk,0,05 per l'aderenza, EC2 8.4.2(2);
+  - `BondFctk05(fck, capAtC60 = true)`: |fctk,0,05| di `ConcreteMaterialEN1992` di Model con fck limitato a 60 se
+    richiesto (fctk,0,05 = 0,7 fctm non dipende dal diagramma), senza validazione;
+  - `Bond(fck, Ø, η1, αct, γc, capAtC60 = true)` → `BondResult` (`Fctk05`, `Capped`, `Fctd`, `Eta1`, `Eta2`,
+    `Fbd`), con controlli e ordine di `ConcreteBond.Calculate` di ANTHEA: prima fck finito e positivo, αct finito
+    e ≤ 1, γc ≥ 1 (γc NaN o infinito e αct ≤ 0 passano), poi fctk,0,05, poi `BondStrength` con il suo rifiuto. I
+    due rifiuti sono `ArgumentException` con messaggi distinti.
 - **Dettagli 1D** (`MemberDetailingCalculator`), per travi e pilastri:
   - interferro;
   - copriferro nominale e margine di ogni barra (cmin,dur è un dato del progetto di durabilità);
   - armatura longitudinale minima e massima, staffe minime e passi.
-  Le regole di piastre e pareti restano alle verifiche plate. Ogni controllo in sospeso indica se mancano dati o
-  conferme oppure se la regola non è implementata.
+  Ogni controllo in sospeso indica se mancano dati o conferme oppure se la regola non è implementata.
+- **Solette piene e pareti** (0.0.18.0, `MemberDetailingKind.Slab` e `Wall`), solo con il profilo NTC 2018 e con
+  CNR-DT 200; con gli altri profili `NotSupportedException`. Regole e ordine di ANTHEA (`ConcreteDetailing.cs` a
+  98a21d4):
+  - i dati che le barre della sezione non danno stanno in `PlateDetailingData`: armatura secondaria (soletta) od
+    orizzontale (parete) in mm²/m, somma delle due facce; il suo passo (0 = non dato, controllo in sospeso); zona
+    critica della soletta. Si passano con il costruttore nuovo di `MemberDetailingInput` (25 argomenti, l'ultimo
+    `MemberDetailingOptions`); senza questi dati soletta e parete danno `ArgumentException`;
+  - soletta: striscia rettangolare senza fori (b = larghezza, h = spessore), controllata prima della validazione
+    numerica; As,min e As,max delle due facce come la trave ma senza staffe; interasse principale min(2h; 250) in
+    zona critica, min(3h; 400) altrove, senza controllo in sospeso se la disposizione non è riconosciuta; armatura
+    secondaria ≥ 20 % della principale; passo secondario min(3h; 400) o min(3,5h; 450); ripartizione sulle facce e
+    bordi, appoggi e punzonamento in sospeso; niente trattenimento delle barre compresse né ancoraggio agli appoggi;
+  - parete: As,v ≥ 0,002 Ac e ≤ 0,04 Ac fuori dalle sovrapposizioni, interasse verticale ≤ min(3t; 400),
+    orizzontale ≥ max(0,25 As,v; 0,001 Ac) per metro, passo orizzontale ≤ 400, facce e legature in sospeso;
+    nella zona di sovrapposizione As ≤ 0,08 Ac, come i pilastri;
+  - i dati di `PlateDetailingData`, se presenti, si validano per ogni tipo di elemento (finiti e non negativi),
+    come fa ANTHEA anche per travi e pilastri; con travi e pilastri non cambiano i controlli;
+  - un valore di tipo non definito (fuori da 0-3) resta una trave, come nella 0.0.17.0. I valori 2 e 3, non
+    definiti nella 0.0.17.0 e trattati allora come trave, ora sono `Slab` e `Wall`: senza i dati della piastra il
+    costruttore di `MemberDetailingInput` dà `ArgumentException`. Nessun chiamante converte interi in questo tipo.
+- **Opzione legacy `MemberDetailingOptions.LegacyNegativeLinkLegs`** (falsa con `Default`): accetta un numero di
+  rami negativo e lo usa com'è in Ast/s della trave, come ANTHEA prima della 0.0.18.0 (`rami_y` del pannello dei
+  parametri). Con la famiglia Eurocodice l'interasse trasversale dei rami resta in sospeso. È il comportamento di
+  ANTHEA conservato per l'adattatore; la correzione è la proposta F2.8-U2 all'utente.
 - **M-curvatura** (`MomentCurvatureAnalysis`): ramo a momento crescente con N costante. Usa il punto limite del
   dominio di rottura nativo e le analisi non lineari, e raffina il primo snervamento per bisezione. È una risposta,
-  non un esito normativo.
+  non un esito normativo. Aggiunte della 0.0.18.0, senza effetto sui chiamanti di oggi (contratto L0):
+  - sovraccarico con `MomentCurvatureUnits(force, moment)`: forze, momenti e `AxialTolerance` nelle unità coerenti
+    del chiamante (per esempio kN e kNm), etichettate nello Status e nei messaggi; i metodi di oggi usano
+    `MomentCurvatureUnits.NewtonMillimetre` («N», «Nmm»). La tolleranza di default di `MomentCurvatureRequest`
+    (1000) vale 1000 N senza unità e 1000 nell'unità del chiamante con il sovraccarico (1000 kN con i kN): con altre
+    unità il chiamante passa la sua tolleranza. Momenti dei punti e curvature seguono le unità del chiamante;
+  - esito strutturato: `InterruptionMessage` (messaggio grezzo che ferma la curva al passo `InterruptedAtStep`) e
+    `YieldRefinement` (`Applied`, `Bisections`, `Moment` nelle unità del chiamante, `InterruptionMessage`; nullo se il
+    raffinamento non è tentato): bastano a ricostruire lo Status senza leggere il testo inglese, tranne il messaggio
+    dell'interruzione. `InterruptionMessage` è il messaggio dell'eccezione lanciata da una funzione del chiamante
+    oppure uno dei due testi inglesi della libreria: «Response not finite.» (curvatura o deformazione dell'acciaio non
+    finite, anche al punto limite) e «Response: strain state of the limit point not available.» (punto limite pigro
+    che restituisce null). Il chiamante che vuole i suoi testi convalida le deformazioni nelle sue funzioni e lancia
+    prima il suo messaggio, oppure traduce questi due;
+  - punto limite pigro: costruttore di `MomentCurvatureLimit` con `Func<MomentCurvatureStrains>`, valutata al primo
+    accesso e conservata nell'istanza. La curva la legge solo al passo limite (frazione 1) e dentro il passo, quindi
+    un errore ferma la curva a quel passo; con frazione < 1 non viene mai valutata;
+  - rifiuti tipizzati del sovraccarico con le unità: `MomentCurvatureException` (derivata da `ArgumentException`)
+    con `Reason` (`InvalidRequest`, `LimitPointNotAvailable`, `AxialResidual`, `NonPositiveLimitMoment`) e i valori
+    `AxialForce`, `LimitAxialForce`, `AxialTolerance`, `LimitMoment` (NaN se non raggiunti), con il messaggio di oggi.
+    I metodi di oggi lanciano ancora il tipo esatto `ArgumentException` con lo stesso messaggio; entrambi portano il
+    motivo in `Exception.Data[MomentCurvatureAnalysis.RejectionKey]`. `MomentCurvatureException` è serializzabile
+    con i suoi valori (confini di AppDomain negli host .NET Framework);
+  - solo nel sorgente: un `null` o un `default` letterale come ultimo argomento del costruttore di
+    `MomentCurvatureLimit` è ambiguo (CS0121; basta il cast al tipo voluto). Come argomento delle unità di
+    `Calculate`, `null` sceglie il sovraccarico nuovo, che lo rifiuta con `ArgumentNullException`, mentre `default`
+    resta legato al sovraccarico della 0.0.17.0 come token di annullamento.
 - **Casi legacy congelati e riprodotti** (`DetailingMigrationTests`):
   - `Fixtures/anchorage-legacy.csv`: 445 ancoraggi, 5 rifiuti, 18 resistenze di aderenza;
+  - `Fixtures/bond-legacy.csv`: 1918 casi di `ConcreteBond.Calculate`, cioè 712 calcoli identici bit per bit
+    (fctk,0,05 col tetto, fctd, η2, fbd) e 1206 rifiuti nelle stesse righe (746 del primo controllo, 460 della
+    resistenza di aderenza); `BondFctk05` coincide bit per bit con Model per 4 diagrammi su fck da 12 a 90 con
+    passo 0,5;
   - `Fixtures/detailing-legacy.csv`: 144 travi e pilastri NTC su `detailing-sections.xml`;
+  - `Fixtures/detailing-plate-legacy.csv`: 282 righe su `detailing-plate-sections.xml`, cioè 272 calcoli (143
+    solette, 123 pareti, 3 travi, 3 pilastri) e 10 rifiuti (7 contorni di soletta, 3 numerici). Le 12 righe con rami
+    −2, 3 per tipo, si riproducono con l'opzione legacy e si rifiutano senza. 2610 controlli, 701 in sospeso:
+    stesse chiavi nello stesso ordine, stessi esiti e unità, valori e limiti a 1e-9. Le fixture di solette, pareti
+    e aderenza vengono dalla cattura A0 di ANTHEA (riferimento F2-pre-f28, `a/tutte`, ANTHEA 1baeb60);
   - `Fixtures/curvature-legacy.csv`: 5 curve.
   Tolleranza delle curve:
   - 1e-7 sulle deformazioni dei punti con acciaio elastico;
@@ -316,6 +383,24 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
     definita solo entro la tolleranza su N del solutore; momento, N e curvatura coincidono a 1e-7.
 - I dettagli accettano anche le maggiorazioni di durabilità: superficie irregolare e abrasione sommate a cmin
   (`CoverAddition`) e il copriferro minimo dei getti contro terreno (`GroundCover`, 40 o 75 mm).
+- **Contratto della 0.0.17.0** (`DetailingContractTests`): fotografia di regressione di `Detailing/` e `Response/`
+  catturata dal codice di 4f54139a prima delle modifiche di F2.8. Non è un atteso indipendente: non si rigenera per
+  far passare il test. Con gli argomenti e le opzioni di oggi deve restare identica byte per byte.
+  - `Fixtures/detailing-contract-0.0.17.csv`:
+    - `MemberDetailingCalculator` su tutti i profili, travi, pilastri e un valore di tipo non definito (7, trattato
+      come trave), sulle 6 sezioni di `detailing-sections.xml`, con gli argomenti di ModelChecker (`coverAddition`,
+      `groundCover`) e dei pali (22 argomenti) e con gli ingressi limite (rami −1, copriferro NaN, Fctm 0,
+      compressione NaN, cmin,dur +∞, NaN e −5, sezione senza barre);
+    - `AnchorageCalculator` su tutti i profili con le righe di `anchorage-legacy.csv`, barre lisce e αct ≠ 1;
+    - `BondStrength` con le righe di aderenza e i rifiuti.
+
+    Per ogni caso: chiave, valore, limite, unità, esito, riferimento, spiegazione e `NotImplemented` di ogni
+    controllo nell'ordine, oppure tipo esatto e messaggio dell'eccezione.
+  - `Fixtures/curvature-contract-0.0.17.csv`: le 5 curve di `curvature-legacy.csv` (Status, `InterruptedAtStep`,
+    risultati e punti) e, su funzioni analitiche, curve complete, parziali, interrotte e raffinate e i quattro rifiuti
+    (richiesta non valida, punto limite assente, residuo su N, momento limite non positivo), in cultura invariante e
+    italiana.
+  - I double sono scritti in formato round-trip, quindi il confronto è bit per bit.
 
 ### Durabilità e copriferri
 

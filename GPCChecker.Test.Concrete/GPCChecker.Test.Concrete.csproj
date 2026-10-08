@@ -110,6 +110,7 @@
     <Compile Include="TorsionMigrationTests.cs" />
     <Compile Include="CrackMigrationTests.cs" />
     <Compile Include="DetailingMigrationTests.cs" />
+    <Compile Include="DetailingContractTests.cs" />
     <Compile Include="DurabilityMigrationTests.cs" />
     <Compile Include="DurabilityEdgeCaseTests.cs" />
     <Compile Include="DurabilityExamplesTests.cs" />
@@ -154,6 +155,21 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\curvature-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\detailing-contract-0.0.17.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\curvature-contract-0.0.17.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\detailing-plate-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\detailing-plate-sections.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\bond-legacy.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\durability-legacy.csv">
