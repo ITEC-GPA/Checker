@@ -545,6 +545,224 @@ namespace ConcreteTests
             Assert.AreEqual("Bond: check fck (> 0), αct (0 < αct ≤ 1) and γc (≥ 1).", Assert.ThrowsException<ArgumentException>(() => AnchorageCalculator.Bond(double.PositiveInfinity, 16, 1, 1, 1.5)).Message);
         }
 
+        // ---------------------------------------------------------------- moment-curvature: units, structured outcome, lazy limit, typed rejections (0.0.18.0, F2.8 L3)
+
+        private static T InCulture<T>(string culture, Func<T> action)
+        {
+            var thread = System.Threading.Thread.CurrentThread; var culture0 = thread.CurrentCulture;
+            try { thread.CurrentCulture = CultureInfo.GetCultureInfo(culture); return action(); }
+            finally { thread.CurrentCulture = culture0; }
+        }
+
+        /// <summary>Status rebuilt from the structured fields only, as ANTHEA rebuilds its Italian text (MomentCurvature.cs:40, :54, :65, :67, :69).</summary>
+        private static string StatusFromFields(MomentCurvatureResult r, MomentCurvatureUnits units)
+        {
+            var s = new StringBuilder("Increasing-moment branch at constant N; material laws and factors of the section and standard.");
+            if (r.InterruptedAtStep.HasValue) s.Append(" Interrupted at step " + r.InterruptedAtStep.Value + ": " + r.InterruptionMessage);
+            else Assert.IsNull(r.InterruptionMessage);
+            var y = r.YieldRefinement;
+            if (y != null)
+                s.Append(y.Applied ? $" First yield refined with {y.Bisections} bisections, My = {y.Moment.Value:G7} {units.Moment}."
+                    : " Yield taken at the first sample: refinement interrupted, " + y.InterruptionMessage);
+            s.Append($" N at the limit point = {r.LimitAxialForce:G9} {units.Force}; residual = {r.AxialResidual:G6} {units.Force}. No post-peak branch.");
+            return s.ToString();
+        }
+
+        /// <summary>
+        /// InterruptedAtStep, InterruptionMessage and YieldRefinement give back the whole Status (invariant and Italian culture) of the analytic curves of the
+        /// contract and of the 5 curves of curvature-legacy.csv, so a caller rebuilds its own text without reading the English one.
+        /// </summary>
+        [TestMethod]
+        public void MomentCurvatureStructuredFieldsGiveTheStatus()
+        {
+            int curves = 0, interrupted = 0, refined = 0, refinementInterrupted = 0, notAttempted = 0;
+            foreach (var culture in new[] { "", "it-IT" })
+                InCulture(culture, () =>
+                {
+                    foreach (var a in DetailingContractTests.AnalyticCases().Where(x => !x.Rejection))
+                    {
+                        var r = MomentCurvatureAnalysis.Calculate(a.Request, a.Limit, a.Response, a.YieldStrain);
+                        Assert.AreEqual(r.Status, StatusFromFields(r, MomentCurvatureUnits.NewtonMillimetre), a.Name);
+                        if (r.InterruptedAtStep.HasValue) interrupted++;
+                        if (r.YieldRefinement == null) notAttempted++;
+                        else if (r.YieldRefinement.Applied)
+                        {
+                            refined++; Assert.AreEqual(a.Request.YieldRefinementSteps, r.YieldRefinement.Bisections); Assert.IsNull(r.YieldRefinement.InterruptionMessage);
+                            Assert.IsTrue(r.Points.Any(v => v.Moment == r.YieldRefinement.Moment.Value || v.Yielded), a.Name);
+                        }
+                        else { refinementInterrupted++; Assert.IsNull(r.YieldRefinement.Moment); }
+                        curves++;
+                    }
+                    return 0;
+                });
+            Assert.AreEqual(2 * 17, curves); Assert.AreEqual(2 * 3, interrupted); Assert.AreEqual(2 * 1, refinementInterrupted);
+            Assert.AreEqual(2 * 8, refined); Assert.AreEqual(2 * 8, notAttempted);
+
+            var archive = Archive();
+            foreach (var row in Rows("curvature-legacy.csv").Skip(1))
+            {
+                var c = row.Split(';');
+                var standard = ServiceabilityMigrationTests.Standard(c[2]);
+                foreach (var pair in c[3].Split(',')) { var kv = pair.Split('='); typeof(StandardModelCode2010).GetProperty(kv[0]).SetValue(standard, D(kv[1])); }
+                double[] P(string s) => s.Split(',').Select(D).ToArray();
+                var o = P(c[4]); var v1 = P(c[5]); var v2 = P(c[6]);
+                var axes = new CoordinateSystem(new Point3d(o[0], o[1], o[2]), new Vector3d(v1[0], v1[1], v1[2]), new Vector3d(v2[0], v2[1], v2[2]));
+                var section = (ReinforcedConcreteSection)archive.BeamProperties[c[1]];
+                var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(axes, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                    SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 32);
+                var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), options, standard, false);
+                var r = MomentCurvatureAnalysis.Calculate(new MomentCurvatureRequest(D(c[8]) * 1000, D(c[9]), int.Parse(c[10]), D(c[11]), bool.Parse(c[12]), D(c[13]) * 1000,
+                    int.Parse(c[14])), checker, section, axes, D(c[7]));
+                Assert.AreEqual(r.Status, StatusFromFields(r, MomentCurvatureUnits.NewtonMillimetre), c[0]);
+                Assert.IsTrue(r.YieldRefinement.Applied); Assert.AreEqual(12, r.YieldRefinement.Bisections); Assert.IsNull(r.InterruptedAtStep);
+            }
+        }
+
+        /// <summary>
+        /// Lazy limit point: with an end fraction below 1 the function is never evaluated (even if it throws); with the end fraction 1 it is evaluated once,
+        /// inside the limit step, so an error there stops the curve at the last step with its message; the curve is the same as with the eager constructor.
+        /// </summary>
+        [TestMethod]
+        public void LazyLimitPointIsEvaluatedOnlyAtTheLimitStep()
+        {
+            double M = DetailingContractTests.Mlim; int calls = 0;
+            Func<double, double, double, MomentCurvatureStrains> response = DetailingContractTests.Strains;
+            Func<double, double, double, MomentCurvatureLimit> throwing = (n, c, s) => new MomentCurvatureLimit(n, M * c, M * s,
+                () => { calls++; throw new InvalidOperationException("limit state failed"); });
+            var partial = MomentCurvatureAnalysis.Calculate(new MomentCurvatureRequest(0, 30, 20, .9), throwing, response, .002, new MomentCurvatureUnits("kN", "kNm"));
+            Assert.AreEqual(0, calls); Assert.IsNull(partial.InterruptedAtStep); Assert.IsNull(partial.InterruptionMessage);
+            Assert.IsFalse(partial.Points.Any(v => v.Limit)); Assert.IsTrue(partial.Points.Count >= 21); Assert.IsNull(partial.UltimateCurvature);
+            StringAssert.Contains(partial.Status, " kN; residual = 0 kN.");
+            var stopped = MomentCurvatureAnalysis.Calculate(new MomentCurvatureRequest(0, 30, 20), throwing, response, .002);
+            Assert.AreEqual(1, calls); Assert.AreEqual(20, stopped.InterruptedAtStep); Assert.AreEqual("limit state failed", stopped.InterruptionMessage);
+            Assert.IsNull(stopped.UltimateCurvature); StringAssert.Contains(stopped.Status, " Interrupted at step 20: limit state failed");
+            Assert.IsFalse(stopped.Points.Any(v => v.Limit));
+            var noState = MomentCurvatureAnalysis.Calculate(new MomentCurvatureRequest(0, 30, 20), (n, c, s) => new MomentCurvatureLimit(n, M * c, M * s, () => null), response, .002);
+            Assert.AreEqual(20, noState.InterruptedAtStep); Assert.AreEqual("Response: strain state of the limit point not available.", noState.InterruptionMessage);
+
+            int evaluations = 0;
+            Func<double, double, double, MomentCurvatureLimit> lazy = (n, c, s) => new MomentCurvatureLimit(n, M * c, M * s,
+                () => { evaluations++; return DetailingContractTests.Strains(n, 1.05 * M * c, 1.05 * M * s); });
+            Func<double, double, double, MomentCurvatureLimit> eager = (n, c, s) => new MomentCurvatureLimit(n, M * c, M * s, DetailingContractTests.Strains(n, 1.05 * M * c, 1.05 * M * s));
+            var a = MomentCurvatureAnalysis.Calculate(new MomentCurvatureRequest(-1e5, 135, 30), lazy, response, .002);
+            var b = MomentCurvatureAnalysis.Calculate(new MomentCurvatureRequest(-1e5, 135, 30), eager, response, .002);
+            Assert.AreEqual(1, evaluations); Assert.AreEqual(b.Status, a.Status); Assert.AreEqual(b.Points.Count, a.Points.Count);
+            for (int i = 0; i < a.Points.Count; i++)
+            {
+                Assert.AreEqual(BitConverter.DoubleToInt64Bits(b.Points[i].Curvature), BitConverter.DoubleToInt64Bits(a.Points[i].Curvature), "point " + i);
+                Assert.AreEqual(b.Points[i].Limit, a.Points[i].Limit);
+            }
+            Assert.AreEqual(b.UltimateCurvature, a.UltimateCurvature);
+            var once = new MomentCurvatureLimit(0, 1, 0, () => { evaluations++; return DetailingContractTests.Strains(0, 1, 0); });
+            Assert.AreSame(once.Strains, once.Strains); Assert.AreEqual(2, evaluations, "kept in the instance");
+            Assert.AreEqual("strains", Assert.ThrowsException<ArgumentNullException>(() => new MomentCurvatureLimit(0, 1, 0, (Func<MomentCurvatureStrains>)null)).ParamName);
+            Assert.AreEqual("strains", Assert.ThrowsException<ArgumentNullException>(() => new MomentCurvatureLimit(0, 1, 0, (MomentCurvatureStrains)null)).ParamName);
+        }
+
+        /// <summary>
+        /// Rejections: the overload with units throws <see cref="MomentCurvatureException"/> with the reason and the values (caller units, NaN where not
+        /// reached) and the message of 0.0.17.0 with its labels; the overloads of 0.0.17.0 keep the exact type <see cref="ArgumentException"/> and the message,
+        /// with the reason in Exception.Data.
+        /// </summary>
+        [TestMethod]
+        public void MomentCurvatureRejectionsAreTyped()
+        {
+            var kN = new MomentCurvatureUnits("kN", "kNm");
+            Func<double, double, double, MomentCurvatureStrains> response = DetailingContractTests.Strains;
+            void Check(MomentCurvatureRequest request, Func<double, double, double, MomentCurvatureLimit> limit, double yieldStrain, MomentCurvatureRejection reason,
+                double limitN, double limitMoment, string messageN, string messageKn)
+            {
+                var plain = Assert.ThrowsException<ArgumentException>(() => MomentCurvatureAnalysis.Calculate(request, limit, response, yieldStrain), reason.ToString());
+                Assert.AreEqual(messageN, plain.Message); Assert.AreEqual(reason, plain.Data[MomentCurvatureAnalysis.RejectionKey]);
+                var typed = Assert.ThrowsException<MomentCurvatureException>(() => MomentCurvatureAnalysis.Calculate(request, limit, response, yieldStrain, kN), reason.ToString());
+                Assert.AreEqual(messageKn, typed.Message); Assert.AreEqual(reason, typed.Reason); Assert.AreEqual(reason, typed.Data[MomentCurvatureAnalysis.RejectionKey]);
+                Assert.AreEqual(request.AxialForce, typed.AxialForce); Assert.AreEqual(request.AxialTolerance, typed.AxialTolerance);
+                Assert.AreEqual(limitN, typed.LimitAxialForce); Assert.AreEqual(limitMoment, typed.LimitMoment);
+                Assert.IsInstanceOfType(typed, typeof(ArgumentException)); Assert.IsNull(typed.ParamName);
+            }
+            const string invalid = "Moment-curvature: 10-500 steps, end fraction in (0; 1], finite N and direction.";
+            Check(new MomentCurvatureRequest(-12.5, 0, 9), DetailingContractTests.AnalyticLimit(0, 300), .002, MomentCurvatureRejection.InvalidRequest, double.NaN, double.NaN, invalid, invalid);
+            Check(new MomentCurvatureRequest(-12.5, 0, 10), DetailingContractTests.AnalyticLimit(0, 300), 0, MomentCurvatureRejection.InvalidRequest, double.NaN, double.NaN, invalid, invalid);
+            Check(new MomentCurvatureRequest(-12.5, 0, 10), (n, c, s) => null, .002, MomentCurvatureRejection.LimitPointNotAvailable, double.NaN, double.NaN,
+                "Limit point not available at the assigned N.", "Limit point not available at the assigned N.");
+            InCulture("", () =>
+            {
+                Check(new MomentCurvatureRequest(-123.456789, 30, 10, 1, true, 1.0005), DetailingContractTests.AnalyticLimit(1.2345678, 300), .002, MomentCurvatureRejection.AxialResidual,
+                    -123.456789 + 1.2345678, double.NaN,
+                    "Residual N at the limit point beyond the tolerance 1.0005 N: N = -123.456789 N, limit N = -122.222221 N.",
+                    "Residual N at the limit point beyond the tolerance 1.0005 kN: N = -123.456789 kN, limit N = -122.222221 kN.");
+                return 0;
+            });
+            InCulture("it-IT", () =>
+            {
+                Check(new MomentCurvatureRequest(25, 30, 10, 1, true, .01), DetailingContractTests.AnalyticLimit(-.01025, 300), .002, MomentCurvatureRejection.AxialResidual,
+                    25 - .01025, double.NaN,
+                    "Residual N at the limit point beyond the tolerance 0,01 N: N = 25 N, limit N = 24,98975 N.",
+                    "Residual N at the limit point beyond the tolerance 0,01 kN: N = 25 kN, limit N = 24,98975 kN.");
+                return 0;
+            });
+            Check(new MomentCurvatureRequest(-12.5, 0, 10), DetailingContractTests.AnalyticLimit(0, -300), .002, MomentCurvatureRejection.NonPositiveLimitMoment, -12.5, -300,
+                "Non-positive limit moment in the requested direction.", "Non-positive limit moment in the requested direction.");
+            Assert.AreEqual("units", Assert.ThrowsException<ArgumentNullException>(() => MomentCurvatureAnalysis.Calculate(new MomentCurvatureRequest(0, 0, 10),
+                DetailingContractTests.AnalyticLimit(0, 300), response, .002, (MomentCurvatureUnits)null)).ParamName);
+            Assert.ThrowsException<ArgumentNullException>(() => new MomentCurvatureUnits(null, "kNm"));
+            Assert.AreEqual("N", MomentCurvatureUnits.NewtonMillimetre.Force); Assert.AreEqual("Nmm", MomentCurvatureUnits.NewtonMillimetre.Moment);
+        }
+
+        /// <summary>
+        /// Scale invariance: the analytic curves of the contract in (N; Nmm) and in (kN; kNm) give the same points to the conversion factors within 1e-12, the
+        /// same steps, verdicts and rejections, with the labels of each overload in the Status.
+        /// </summary>
+        [TestMethod]
+        public void MomentCurvatureIsScaleInvariant()
+        {
+            var kN = new MomentCurvatureUnits("kN", "kNm");
+            void Close12(double expected, double actual, string what) => Assert.AreEqual(expected, actual, 1e-12 * Math.Max(1e-300, Math.Abs(expected)), what);
+            var newton = DetailingContractTests.AnalyticCases().ToArray(); var kilo = DetailingContractTests.AnalyticCases().ToArray();
+            int compared = 0;
+            for (int k = 0; k < newton.Length; k++)
+            {
+                var a = newton[k]; var q = a.Request; var limitN = kilo[k].Limit; var responseN = kilo[k].Response;
+                var request = new MomentCurvatureRequest(q.AxialForce / 1000, q.DirectionDegrees, q.Steps, q.EndFraction, q.QuadraticSampling, q.AxialTolerance / 1000, q.YieldRefinementSteps);
+                Func<double, double, double, MomentCurvatureLimit> limit = (n, c, s) =>
+                {
+                    var l = limitN(n * 1000, c, s);
+                    return l == null ? null : new MomentCurvatureLimit(l.AxialForce / 1000, l.Mx / 1e6, l.My / 1e6, () => l.Strains);
+                };
+                Func<double, double, double, MomentCurvatureStrains> response = (n, mx, my) => responseN(n * 1000, mx * 1e6, my * 1e6);
+                if (a.Rejection)
+                {
+                    var plain = Assert.ThrowsException<ArgumentException>(() => MomentCurvatureAnalysis.Calculate(q, a.Limit, a.Response, a.YieldStrain), a.Name);
+                    var typed = Assert.ThrowsException<MomentCurvatureException>(() => MomentCurvatureAnalysis.Calculate(request, limit, response, a.YieldStrain, kN), a.Name);
+                    Assert.AreEqual(plain.Data[MomentCurvatureAnalysis.RejectionKey], typed.Reason, a.Name);
+                    continue;
+                }
+                var rN = MomentCurvatureAnalysis.Calculate(q, a.Limit, a.Response, a.YieldStrain);
+                var rK = MomentCurvatureAnalysis.Calculate(request, limit, response, a.YieldStrain, kN);
+                Assert.AreEqual(rN.Points.Count, rK.Points.Count, a.Name); Assert.AreEqual(rN.InterruptedAtStep, rK.InterruptedAtStep, a.Name);
+                Assert.AreEqual(rN.InterruptionMessage, rK.InterruptionMessage, a.Name);
+                Close12(rN.LimitMoment, rK.LimitMoment * 1e6, a.Name + " limit moment"); Close12(rN.LimitAxialForce, rK.LimitAxialForce * 1000, a.Name + " limit N");
+                Assert.AreEqual(rN.YieldCurvature.HasValue, rK.YieldCurvature.HasValue, a.Name);
+                if (rN.YieldCurvature.HasValue) Close12(rN.YieldCurvature.Value, rK.YieldCurvature.Value, a.Name + " yield curvature");
+                Assert.AreEqual(rN.UltimateCurvature.HasValue, rK.UltimateCurvature.HasValue, a.Name);
+                if (rN.UltimateCurvature.HasValue) Close12(rN.UltimateCurvature.Value, rK.UltimateCurvature.Value, a.Name + " ultimate curvature");
+                for (int i = 0; i < rN.Points.Count; i++)
+                {
+                    var n = rN.Points[i]; var m = rK.Points[i]; string what = a.Name + " point " + i;
+                    Close12(n.Moment, m.Moment * 1e6, what + " M"); Close12(n.Mx, m.Mx * 1e6, what + " Mx"); Close12(n.My, m.My * 1e6, what + " My");
+                    Close12(n.Curvature, m.Curvature, what + " χ"); Close12(n.SteelStrain, m.SteelStrain, what + " εs"); Close12(n.ReferenceStrain, m.ReferenceStrain, what + " ε0");
+                    Assert.AreEqual(n.Yielded, m.Yielded, what); Assert.AreEqual(n.Limit, m.Limit, what);
+                }
+                Assert.AreEqual(rN.YieldRefinement == null, rK.YieldRefinement == null, a.Name);
+                if (rN.YieldRefinement != null && rN.YieldRefinement.Applied) Close12(rN.YieldRefinement.Moment.Value, rK.YieldRefinement.Moment.Value * 1e6, a.Name + " My");
+                Assert.AreEqual(rK.Status, StatusFromFields(rK, kN), a.Name);
+                StringAssert.Contains(rK.Status, " kN; residual = ", a.Name); Assert.IsFalse(rK.Status.Contains(" Nmm"), a.Name);
+                if (rK.YieldRefinement != null && rK.YieldRefinement.Applied) StringAssert.Contains(rK.Status, " kNm.", a.Name);
+                compared++;
+            }
+            Assert.AreEqual(17, compared);
+        }
+
         [TestMethod]
         public void LegacyMomentCurvatureIsReproduced()
         {

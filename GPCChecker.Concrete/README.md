@@ -15,7 +15,7 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 | `GPC.Checkers.Concrete.Torsion` | Torsione con interazione del taglio nelle due direzioni: `SectionTorsionCalculator`, `SectionTorsionInput`, `TorsionGeometry`, `TorsionProfiles` | `ConcreteTorsionCalculator`, `ConcreteShearAnalysis.Torsion` |
 | `GPC.Checkers.Concrete.Cracking` | Fessurazione di sezione: `SectionCrackCheck`, `CrackRequirements`, `CrackWidthCalculator`, `CrackSectionGeometry`, `CrackProfiles` | `Ntc2018Checks.Cracking`, `ConcreteCodeChecks` (requisiti, wk, hc,eff), `ConcreteTensionCracking`, `ConcreteInnerCracking`, `TensionBarSpacing`, `SectionRegions` |
 | `GPC.Checkers.Concrete.Detailing` | Aderenza, ancoraggi e sovrapposizioni (`AnchorageCalculator`), dettagli 1D di travi, pilastri, solette piene e pareti (`MemberDetailingCalculator`), `DetailingProfiles` | `ConcreteBond`, `ConcreteAnchorageCalculator`, `ConcreteDetailingCalculator` |
-| `GPC.Checkers.Concrete.Response` | Curva momento-curvatura a N costante (`MomentCurvatureAnalysis`): risposta numerica, non verifica | `MomentCurvatureCalculator`, `ConcreteCurvatureAnalysis` |
+| `GPC.Checkers.Concrete.Response` | Curva momento-curvatura a N costante (`MomentCurvatureAnalysis`), anche nelle unità del chiamante, con esito strutturato e rifiuti tipizzati: risposta numerica, non verifica | `MomentCurvatureCalculator`, `ConcreteCurvatureAnalysis` |
 | `GPC.Checkers.Concrete.Durability` | Classi di esposizione e loro requisiti (`ExposureClasses`), copriferri per norma (`CoverRequirements`, `DurabilityProfiles`), classi minime di resistenza | `Materiali.Durability`, `NtcCover`, `MinimumConcrete`, `MaterialCover` |
 
 I casi legacy di `GPCChecker.Test.Concrete/Fixtures` (CSV e archivi XML delle sezioni) sono catture del codice di
@@ -173,7 +173,23 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   ANTHEA conservato per l'adattatore; la correzione è la proposta F2.8-U2 all'utente.
 - **M-curvatura** (`MomentCurvatureAnalysis`): ramo a momento crescente con N costante. Usa il punto limite del
   dominio di rottura nativo e le analisi non lineari, e raffina il primo snervamento per bisezione. È una risposta,
-  non un esito normativo.
+  non un esito normativo. Aggiunte della 0.0.18.0, senza effetto sui chiamanti di oggi (contratto L0):
+  - sovraccarico con `MomentCurvatureUnits(force, moment)`: forze, momenti e `AxialTolerance` nelle unità coerenti
+    del chiamante (per esempio kN e kNm), etichettate nello Status e nei messaggi; i metodi di oggi usano
+    `MomentCurvatureUnits.NewtonMillimetre` («N», «Nmm»);
+  - esito strutturato: `InterruptionMessage` (messaggio grezzo che ferma la curva al passo `InterruptedAtStep`) e
+    `YieldRefinement` (`Applied`, `Bisections`, `Moment` nelle unità del chiamante, `InterruptionMessage`; nullo se il
+    raffinamento non è tentato): bastano a ricostruire lo Status senza leggere il testo inglese;
+  - punto limite pigro: costruttore di `MomentCurvatureLimit` con `Func<MomentCurvatureStrains>`, valutata al primo
+    accesso e conservata nell'istanza. La curva la legge solo al passo limite (frazione 1) e dentro il passo, quindi
+    un errore ferma la curva a quel passo; con frazione < 1 non viene mai valutata;
+  - rifiuti tipizzati del sovraccarico con le unità: `MomentCurvatureException` (derivata da `ArgumentException`)
+    con `Reason` (`InvalidRequest`, `LimitPointNotAvailable`, `AxialResidual`, `NonPositiveLimitMoment`) e i valori
+    `AxialForce`, `LimitAxialForce`, `AxialTolerance`, `LimitMoment` (NaN se non raggiunti), con il messaggio di oggi.
+    I metodi di oggi lanciano ancora il tipo esatto `ArgumentException` con lo stesso messaggio; entrambi portano il
+    motivo in `Exception.Data[MomentCurvatureAnalysis.RejectionKey]`;
+  - solo nel sorgente: un `null` letterale come ultimo argomento del costruttore di `MomentCurvatureLimit` è
+    ambiguo, e come argomento delle unità sceglie il sovraccarico nuovo, che lo rifiuta.
 - **Casi legacy congelati e riprodotti** (`DetailingMigrationTests`):
   - `Fixtures/anchorage-legacy.csv`: 445 ancoraggi, 5 rifiuti, 18 resistenze di aderenza;
   - `Fixtures/bond-legacy.csv`: 1918 casi di `ConcreteBond.Calculate`, cioè 712 calcoli identici bit per bit
