@@ -5,6 +5,7 @@ using GPC.Checkers.Concrete.Detailing;
 using GPC.Checkers.Concrete.Response;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
+using GPC.Model.Materials;
 using GPC.Model.Persistence;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
@@ -453,6 +454,95 @@ namespace ConcreteTests
             // A kind value that is not defined is a beam, as in 0.0.17.0.
             Assert.AreEqual(Describe(MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, Input(MemberDetailingKind.Beam, MemberDetailingOptions.Default))),
                 Describe(MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, Input((MemberDetailingKind)9, MemberDetailingOptions.Default))));
+        }
+
+        // ---------------------------------------------------------------- complete bond strength (0.0.18.0, ANTHEA F2.8 L2)
+
+        private static readonly Dictionary<string, string> BondMessages = new Dictionary<string, string>
+        {
+            { "Controllare fck (> 0), αct (0 < αct ≤ 1) e γc (≥ 1).", "Bond: check fck (> 0), αct (0 < αct ≤ 1) and γc (≥ 1)." },
+            { "Aderenza: controllare diametro, resistenza e coefficienti.", "Bond: check diameter, strength and coefficients." }
+        };
+        private static void Bits(string expected, double actual, string what)
+            => Assert.AreEqual(BitConverter.DoubleToInt64Bits(D(expected)), BitConverter.DoubleToInt64Bits(actual), what + ": " + expected + " / " + actual.ToString("R", CultureInfo.InvariantCulture));
+
+        /// <summary>
+        /// ANTHEA ConcreteBond.Calculate (bond-legacy.csv, captured from ANTHEA 98a21d4 with the cases of the F2.8 A0 capture): fctk,0.05 with the C60/75
+        /// limit, fctd, η2 and fbd identical bit for bit; the two rejections (data of the first stage, then those of the bond strength) on the same rows with
+        /// the corresponding message, both <see cref="ArgumentException"/>.
+        /// </summary>
+        [TestMethod]
+        public void LegacyBondIsReproduced()
+        {
+            var lines = Rows("bond-legacy.csv");
+            Assert.IsTrue(lines[0].StartsWith("id;block;class;fck;"), "header");
+            int ok = 0, first = 0, second = 0, capped = 0;
+            foreach (var row in lines.Skip(1))
+            {
+                var c = row.Split(';'); string id = "bond " + c[0] + " block " + c[1] + " fck " + c[3] + " Ø " + c[4] + " αct " + c[6] + " γc " + c[7];
+                double fck = D(c[3]), diameter = D(c[4]), eta1 = D(c[5]), alpha = D(c[6]), gamma = D(c[7]);
+                if (c[8] != "ok")
+                {
+                    Assert.AreEqual("error:ArgumentException", c[8], id);
+                    var ex = Assert.ThrowsException<ArgumentException>(() => AnchorageCalculator.Bond(fck, diameter, eta1, alpha, gamma), id);
+                    Assert.AreEqual(BondMessages[c[13]], ex.Message, id);
+                    if (c[13].StartsWith("Controllare")) first++; else second++;
+                    continue;
+                }
+                var r = AnchorageCalculator.Bond(fck, diameter, eta1, alpha, gamma);
+                Bits(c[9], r.Fctk05, id + " fctk,0.05"); Bits(c[10], r.Fctd, id + " fctd"); Bits(c[11], r.Eta2, id + " η2"); Bits(c[12], r.Fbd, id + " fbd");
+                Assert.AreEqual(fck > 60, r.Capped, id + " capped"); Assert.AreEqual(eta1, r.Eta1, id);
+                Assert.AreEqual(BitConverter.DoubleToInt64Bits(r.Fbd), BitConverter.DoubleToInt64Bits(AnchorageCalculator.BondStrength(r.Fctk05, diameter, eta1, alpha, gamma)), id);
+                if (r.Capped) capped++;
+                ok++;
+            }
+            Assert.AreEqual(712, ok); Assert.AreEqual(746, first); Assert.AreEqual(460, second); Assert.IsTrue(capped > 50, capped + " capped");
+        }
+
+        /// <summary>
+        /// fctk,0.05 of the bond: equal to Model's |fctk,0.05| of ConcreteMaterialEN1992(min(fck; 60)) for the four diagrams (it does not depend on the
+        /// diagram) on fck 12…90 step 0.5, and to the uncapped value without the limit. By hand (EC2 Table 3.1): fctm = 0.30 fck^(2/3) up to C50/60,
+        /// 2.12 ln(1 + fcm/10) beyond; C30/37: 0.7·2.8965 = 2.0276 MPa; C60/75 (and every class above with the limit): 0.7·4.3547 = 3.0483 MPa;
+        /// C70/85 without the limit: 0.7·4.6105 = 3.2273 MPa; C90/105: 0.7·5.0446 = 3.5312 MPa.
+        /// </summary>
+        [TestMethod]
+        public void BondFctk05MatchesModelAndHandCalculation()
+        {
+            Assert.AreEqual(60, AnchorageCalculator.BondStrengthClassLimit);
+            var diagrams = new[] { ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle, ConcreteMaterial.CompressionStressStrainDiagrams.Bilinear,
+                ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock, ConcreteMaterial.CompressionStressStrainDiagrams.NonLinear };
+            int count = 0;
+            for (double fck = 12; fck <= 90; fck += .5)
+            {
+                double capped = AnchorageCalculator.BondFctk05(fck), free = AnchorageCalculator.BondFctk05(fck, false);
+                Assert.AreEqual(capped, AnchorageCalculator.BondFctk05(fck, true));
+                foreach (var d in diagrams)
+                {
+                    Assert.AreEqual(BitConverter.DoubleToInt64Bits(Math.Abs(new ConcreteMaterialEN1992("C", Math.Min(fck, 60), d).Fctk05)), BitConverter.DoubleToInt64Bits(capped), fck + " " + d);
+                    Assert.AreEqual(BitConverter.DoubleToInt64Bits(Math.Abs(new ConcreteMaterialEN1992("C", fck, d).Fctk05)), BitConverter.DoubleToInt64Bits(free), fck + " " + d + " without the limit");
+                    count++;
+                }
+                if (fck <= 60) Assert.AreEqual(capped, free, fck.ToString());
+            }
+            Assert.AreEqual(157 * 4, count);
+            Assert.AreEqual(.7 * .3 * Math.Pow(30, 2d / 3), AnchorageCalculator.BondFctk05(30), 1e-9);
+            Assert.AreEqual(2.0276, AnchorageCalculator.BondFctk05(30), 1e-4);
+            Assert.AreEqual(3.0483, AnchorageCalculator.BondFctk05(70), 1e-4); Assert.AreEqual(3.0483, AnchorageCalculator.BondFctk05(90), 1e-4);
+            Assert.AreEqual(3.2273, AnchorageCalculator.BondFctk05(70, false), 1e-4); Assert.AreEqual(3.5312, AnchorageCalculator.BondFctk05(90, false), 1e-4);
+            // Bond by hand: C70/85, Ø 40, poor bond, αct 0.85, γc 1.5: fctk,0.05 = 3.0483 (limited), fctd = 0.85·3.0483/1.5 = 1.7274 MPa,
+            // η2 = (132 − 40)/100 = 0.92, fbd = 2.25·0.7·0.92·0.85·3.0483/1.5 = 2.5030 MPa; without the limit fbd = 2.25·0.7·0.92·0.85·3.2273/1.5 = 2.6500 MPa.
+            var b = AnchorageCalculator.Bond(70, 40, .7, .85, 1.5);
+            Assert.IsTrue(b.Capped); Assert.AreEqual(1.7274, b.Fctd, 1e-4); Assert.AreEqual(.92, b.Eta2, 1e-12); Assert.AreEqual(2.5030, b.Fbd, 1e-4); Assert.AreEqual(.7, b.Eta1);
+            var free70 = AnchorageCalculator.Bond(70, 40, .7, .85, 1.5, false);
+            Assert.IsFalse(free70.Capped); Assert.AreEqual(2.6500, free70.Fbd, 1e-4);
+            Assert.IsFalse(AnchorageCalculator.Bond(60, 16, 1, 1, 1.5).Capped, "C60/75 is not above the limit");
+            // Stage order: αct ≤ 0 and γc NaN pass the first stage and are rejected by the bond strength; αct > 1 and γc < 1 by the first stage.
+            Assert.AreEqual("Bond: check diameter, strength and coefficients.", Assert.ThrowsException<ArgumentException>(() => AnchorageCalculator.Bond(30, 16, 1, 0, 1.5)).Message);
+            Assert.AreEqual("Bond: check diameter, strength and coefficients.", Assert.ThrowsException<ArgumentException>(() => AnchorageCalculator.Bond(30, 16, 1, 1, double.NaN)).Message);
+            Assert.AreEqual("Bond: check diameter, strength and coefficients.", Assert.ThrowsException<ArgumentException>(() => AnchorageCalculator.Bond(30, 132, 1, 1, 1.5)).Message);
+            Assert.AreEqual("Bond: check fck (> 0), αct (0 < αct ≤ 1) and γc (≥ 1).", Assert.ThrowsException<ArgumentException>(() => AnchorageCalculator.Bond(30, 16, 1, 1.01, 1.5)).Message);
+            Assert.AreEqual("Bond: check fck (> 0), αct (0 < αct ≤ 1) and γc (≥ 1).", Assert.ThrowsException<ArgumentException>(() => AnchorageCalculator.Bond(30, 16, 1, 1, .99)).Message);
+            Assert.AreEqual("Bond: check fck (> 0), αct (0 < αct ≤ 1) and γc (≥ 1).", Assert.ThrowsException<ArgumentException>(() => AnchorageCalculator.Bond(double.PositiveInfinity, 16, 1, 1, 1.5)).Message);
         }
 
         [TestMethod]

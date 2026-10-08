@@ -135,6 +135,15 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   - fbd = 2,25 η1 η2 αct fctk,0,05/γc.
   - NTC: lbd = max(lb,rqd; 20Ø; 150), l0 = max(α6 lb,rqd; 0,3 α6 lb,rqd; 20Ø; 200), interferro ≤ 4Ø.
   - Eurocodice: lb,min e l0,min (8.6, 8.11); la sovrapposizione si allunga dell'interferro oltre min(4Ø; 50 mm).
+  - `Calculate` riceve fctk,0,05 dal chiamante: il tetto C60/75 resta una scelta del chiamante (R10).
+- **Aderenza completa** (0.0.18.0):
+  - `BondStrengthClassLimit` = 60: limite di classe di fctk,0,05 per l'aderenza, EC2 8.4.2(2);
+  - `BondFctk05(fck, capAtC60 = true)`: |fctk,0,05| di `ConcreteMaterialEN1992` di Model con fck limitato a 60 se
+    richiesto (fctk,0,05 = 0,7 fctm non dipende dal diagramma), senza validazione;
+  - `Bond(fck, Ø, η1, αct, γc, capAtC60 = true)` → `BondResult` (`Fctk05`, `Capped`, `Fctd`, `Eta1`, `Eta2`,
+    `Fbd`), con controlli e ordine di `ConcreteBond.Calculate` di ANTHEA: prima fck finito e positivo, αct finito
+    e ≤ 1, γc ≥ 1 (γc NaN o infinito e αct ≤ 0 passano), poi fctk,0,05, poi `BondStrength` con il suo rifiuto. I
+    due rifiuti sono `ArgumentException` con messaggi distinti.
 - **Dettagli 1D** (`MemberDetailingCalculator`), per travi e pilastri:
   - interferro;
   - copriferro nominale e margine di ogni barra (cmin,dur è un dato del progetto di durabilità);
@@ -167,6 +176,10 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   non un esito normativo.
 - **Casi legacy congelati e riprodotti** (`DetailingMigrationTests`):
   - `Fixtures/anchorage-legacy.csv`: 445 ancoraggi, 5 rifiuti, 18 resistenze di aderenza;
+  - `Fixtures/bond-legacy.csv`: 1918 casi di `ConcreteBond.Calculate`, cioè 712 calcoli identici bit per bit
+    (fctk,0,05 col tetto, fctd, η2, fbd) e 1206 rifiuti nelle stesse righe (746 del primo controllo, 460 della
+    resistenza di aderenza); `BondFctk05` coincide bit per bit con Model per 4 diagrammi su fck da 12 a 90 con
+    passo 0,5;
   - `Fixtures/detailing-legacy.csv`: 144 travi e pilastri NTC su `detailing-sections.xml`;
   - `Fixtures/detailing-plate-legacy.csv`: 182 righe su `detailing-plate-sections.xml`, cioè 172 calcoli (103
     solette, 63 pareti, 3 travi, 3 pilastri) e 10 rifiuti (7 contorni di soletta, 3 numerici). Le 12 righe con rami
