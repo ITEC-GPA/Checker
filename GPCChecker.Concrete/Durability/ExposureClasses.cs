@@ -74,10 +74,7 @@ namespace GPC.Checkers.Concrete.Durability
             new ExposureClass("XA2", "Moderately aggressive chemical environment", .50, 30, 320, 0, -1, 1, 32, .50, 340, 30, 30, 35),
             new ExposureClass("XA3", "Highly aggressive chemical environment", .45, 35, 360, 0, -1, 2, 35, .45, 360, 35, 35, 40)
         };
-
-        /// <summary>The 18 classes in this order: read-only view of the private catalog that Get and Resolve read (a cast to an array cannot change it).</summary>
-        public static readonly IReadOnlyList<ExposureClass> All = new System.Collections.ObjectModel.ReadOnlyCollection<ExposureClass>(Catalog);
-
+        public static readonly IReadOnlyList<ExposureClass> All = new System.Collections.ObjectModel.ReadOnlyCollection<ExposureClass>(Catalog); // read-only view of Catalog: a cast to an array cannot change it
         public static ExposureClass Get(string code) => Catalog.FirstOrDefault(e => e.Code == code) ?? throw new ArgumentException("Unknown exposure class: " + code);
 
         /// <summary>At least one class; X0 cannot be combined with other classes.</summary>
