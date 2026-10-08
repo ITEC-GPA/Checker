@@ -20,11 +20,12 @@ La pagina è la revisione tecnica del metodo: descrive ciò che il codice fa, no
 La pressoflessione (dominio di rottura e verifica di resistenza della sezione) avrà una pagina con lo stesso
 template. Fino ad allora vale l'avvertenza della libreria sulla tolleranza su N dei punti a N assegnato
 (`DomainPointAxialTolerance`, sezione «Resistenza a N assegnato» del README di GPCChecker.Concrete): con lo stress
-block il punto è meno preciso. La pagina riporterà questo riquadro (prefisso P), nelle sezioni 8 e 9:
+block il punto è meno preciso. La pagina riporterà questi riquadri (prefisso P), nelle sezioni 8 e 9:
 
 > **Limite numerico — P-1 (S-1) Stress block: punto a N assegnato meno preciso**
 >
-> - Metodo: il punto del dominio cercato a N assegnato è la resistenza a quello N se |NRd − N| ≤ max(1 kN; 1e-6 |N|).
+> - Metodo: il punto del dominio cercato a N assegnato è la resistenza a quello N se |NRd − N| ≤ max(1 kN; 1e-6 |N|;
+>   0,25e-4 b h fck), con l'ultimo termine come nel riquadro P-2.
 > - Programma: con lo stress block la tensione salta da 0 a η fcd a (1 − λ) εcu e la risultante integrata sui punti
 >   di Gauss di una mesh fissa cambia a gradini; la ricerca iterativa può fermarsi con N diverso da quello assegnato.
 >   La tolleranza è almeno 1e-3 NRd,c, con NRd,c resistenza a compressione centrata della sezione
@@ -32,6 +33,17 @@ block il punto è meno preciso. La pagina riporterà questo riquadro (prefisso P
 > - Effetto: momento resistente diverso da quello a N esatto di meno dello 0,5 % nel 95 % dei punti del campione di
 >   convalida (13 sezioni, 4 legami, 8840 punti), fino a circa 1-2 % vicino agli estremi del dominio; segno variabile.
 >   Il percorso della ricerca è caotico e può cambiare con il runtime.
+> - Stato: `dichiarato`.
+
+> **Limite numerico — P-2 (S-1) Tolleranza su N proporzionale alla sezione**
+>
+> - Metodo: la ricerca iterativa del punto a N assegnato si ferma quando lo scarto su N, diviso per b h fck, è sotto
+>   0,25e-4 (b e h lati del rettangolo che contiene il calcestruzzo).
+> - Programma: la tolleranza su N del punto non è mai più stretta di 0,25e-4 b h fck, per tutti i legami
+>   (`DomainPointAxialTolerance.ConvergenceTolerance`). Esempi: 640 N per D 800 C40/50, 3,5 kN per D 2000 C35/45. La
+>   regola fino alla 0.0.17.0 (max(1 kN; 1e-6 |N|)) rifiutava i pali di ANTHEA da D 1600 in su a N = 0.
+> - Effetto: sulle sezioni con b h fck oltre 4e7 N sono accettati punti con scarto su N fino a 0,25e-4 b h fck; i
+>   valori dei punti non cambiano. Palo D 2000, N = 0: MRd 2537,95 kNm contro 2536,85 kNm della forma chiusa (0,04 %).
 > - Stato: `dichiarato`.
 
 ## Convenzioni
