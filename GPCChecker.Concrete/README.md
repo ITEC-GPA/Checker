@@ -11,7 +11,7 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 | Namespace | Contenuto | Origine in ANTHEA (commit fe4652c) |
 | --- | --- | --- |
 | `GPC.Checkers.Concrete.Shear` | Taglio di sezione in una direzione: `SectionShearCalculator`, `SectionShearInput`, `SectionShearResult`, `ShearProfiles` | `ConcreteCodeChecks.Shear`, `Ntc2018Checks.Shear` |
-| `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck` | `CheckerSection.DescribeStress` |
+| `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck`; fattore dei getti sottili: `ThinCasting` | `CheckerSection.DescribeStress` |
 | `GPC.Checkers.Concrete.Torsion` | Torsione con interazione del taglio nelle due direzioni: `SectionTorsionCalculator`, `SectionTorsionInput`, `TorsionGeometry`, `TorsionProfiles` | `ConcreteTorsionCalculator`, `ConcreteShearAnalysis.Torsion` |
 | `GPC.Checkers.Concrete.Cracking` | Fessurazione di sezione: `SectionCrackCheck`, `CrackRequirements`, `CrackWidthCalculator`, `CrackSectionGeometry`, `CrackProfiles` | `Ntc2018Checks.Cracking`, `ConcreteCodeChecks` (requisiti, wk, hc,eff), `ConcreteTensionCracking`, `ConcreteInnerCracking`, `TensionBarSpacing`, `SectionRegions` |
 | `GPC.Checkers.Concrete.Detailing` | Aderenza, ancoraggi e sovrapposizioni (`AnchorageCalculator`), dettagli 1D di travi e pilastri (`MemberDetailingCalculator`), `DetailingProfiles` | `ConcreteBond`, `ConcreteAnchorageCalculator`, `ConcreteDetailingCalculator` |
@@ -50,8 +50,22 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - Frequente: nessun limite.
 - I coefficienti vengono dalla classe Standard. Il fattore sul limite del calcestruzzo (getti sottili) è esplicito.
 - CS-TR34 non fissa limiti tensionali di sezione (`StressLimitCheck.NotApplicableReason`).
+- `StressLimitResult.Satisfied`: vero con `Ratio` ≤ 1, falso oltre, null senza `Ratio` (combinazione frequente).
+- `StressLimitCheck.SteelLimit(standard, materiale)`: limite dell'acciaio |k3·fyk| del materiale, con i coefficienti
+  della classe (anche personalizzati). Non dipende dalla combinazione: serve a chi mostra il limite dell'acciaio
+  anche nelle combinazioni quasi permanente e frequente, dove `Evaluate` non lo fissa. Per un trefolo resta k3·fyk.
+- `ThinCasting.Factor(standard)`: fattore dei getti sottili, cioè degli elementi piani gettati in opera con spessore
+  minore di 50 mm. Il chiamante sa se l'elemento è sottile e lo applica al limite del calcestruzzo
+  (`concreteLimitFactor`) e ad αcc e fcd; i limiti dell'acciaio non cambiano.
+  - Regola predefinita (`ThinCastingRule.Ntc2018`): 0,8 per la classe esatta NTC 2018 (§4.1.2.1.1.1 per fcd,
+    §4.1.2.2.5.1 per i limiti SLE), 1 per tutte le altre, comprese le derivate (CNR-DT 200). Sono i valori di ANTHEA
+    prima di F2.7.
+  - Opzione `ThinCastingRule.Ntc2018AndUniEn1992`: 0,8 anche per UNI EN 1992-1-1 (appendice nazionale, DM 31/07/2012
+    7.2).
 - Casi legacy congelati: `Fixtures/stress-legacy.csv` (2016 stati) e `Fixtures/stress-sections.xml`
-  (`ServiceabilityMigrationTests`).
+  (`ServiceabilityMigrationTests`). Su tutti gli stati, compresi frequente e quasi permanente, `SteelLimit` riproduce
+  il limite dell'acciaio del legacy, `Satisfied` il testo di stato e `ThinCasting.Factor` la riduzione dei getti
+  sottili.
 - Trefoli con predeformazione nulla: `NotSupportedException`.
 
 ### Torsione

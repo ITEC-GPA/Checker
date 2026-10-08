@@ -131,5 +131,115 @@ namespace ConcreteTests
                 Assert.AreEqual(characteristic.ConcreteMinStress, quasiPermanent.ConcreteMinStress, 1e-12, name + " same stress state");
             }
         }
+
+        /// <summary>
+        /// Every state of Fixtures/stress-legacy.csv, frequent and quasi-permanent included:
+        /// - SteelLimit with the standard of the analysis (custom coefficients) and the material of the first bar equals the legacy
+        ///   limitS, k3·|fyk| of the first bar (column 24);
+        /// - Satisfied follows the legacy status text (column 25): "Entro limiti tensionali" true, "Oltre limiti tensionali" false,
+        ///   "Stato tensionale calcolato" null;
+        /// - every legacy thin-casting reduction different from 1 (column 8) is ThinCasting.Factor of the standard.
+        /// The expected counts come from the fixture.
+        /// </summary>
+        [TestMethod]
+        public void SteelLimitSatisfiedAndThinCastingFollowTheLegacyOnEveryState()
+        {
+            string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures");
+            GPC.Model.Models.Model archive;
+            using (var stream = File.OpenRead(Path.Combine(folder, "stress-sections.xml"))) archive = ModelArchive.Load(stream);
+            var rows = File.ReadAllLines(Path.Combine(folder, "stress-legacy.csv"), Encoding.UTF8).Where(l => !l.StartsWith("#")).Skip(1).ToArray();
+            Assert.AreEqual(2016, rows.Length);
+            var checkers = new Dictionary<string, SectionCheckerModelCode2010>();
+            int steel = 0, within = 0, beyond = 0, calculated = 0, thin = 0;
+            foreach (var row in rows)
+            {
+                var c = row.Split(';'); string id = "state " + c[0] + " " + c[1] + " " + c[2] + " " + c[18];
+                double[] P(string s) => s.Split(',').Select(D).ToArray();
+                var o = P(c[9]); var v1 = P(c[10]); var v2 = P(c[11]);
+                var axes = new CoordinateSystem(new Point3d(o[0], o[1], o[2]), new Vector3d(v1[0], v1[1], v1[2]), new Vector3d(v2[0], v2[1], v2[2]));
+                bool linear = bool.Parse(c[4]), tension = bool.Parse(c[6]); double psi = D(c[5]);
+                string key = string.Join("|", c[1], c[2], c[3], c[4], c[5], c[6], c[9], c[10], c[11]);
+                var section = (ReinforcedConcreteSection)archive.BeamProperties[c[1]];
+                if (!checkers.TryGetValue(key, out var checker))
+                {
+                    var custom = Standard(c[2]);
+                    foreach (var pair in c[3].Split(','))
+                    {
+                        var kv = pair.Split('=');
+                        typeof(StandardModelCode2010).GetProperty(kv[0]).SetValue(custom, D(kv[1]));
+                    }
+                    var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(axes, SectionSolver.FailureAnalysisTypes.ConstantN,
+                        SectionSolver.FailureDomainTypes.Plastic, linear ? SectionSolver.StressAnalysisTypes.Linear : SectionSolver.StressAnalysisTypes.NonLinear,
+                        psi, 0, tension, int.Parse(c[7]));
+                    checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), options, custom, tension);
+                    checkers[key] = checker;
+                }
+                var state = checker.GetTensionAnalysisResult(new ResultBeamForces(D(c[12]), D(c[13]), D(c[14]), D(c[15]), D(c[16]), D(c[17]), axes));
+                var standard = (StandardModelCode2010)state.Standard;
+                Assert.AreEqual(Standard(c[2]).GetType(), standard.GetType(), id + " standard of the analysis");
+                Close(D(c[24]), StressLimitCheck.SteelLimit(standard, section.Rebars.First().RebarMaterial), id + " SteelLimit");
+                steel++;
+
+                double reduction = D(c[8]);
+                if (reduction != 1)
+                {
+                    Assert.AreEqual(reduction, ThinCasting.Factor(standard), id + " thin casting");
+                    thin++;
+                }
+                var combination = c[18] == "SLE" ? ServiceabilityCombination.Characteristic : c[18] == "SLE_QP" ? ServiceabilityCombination.QuasiPermanent
+                    : ServiceabilityCombination.Frequent;
+                var limits = StressLimitCheck.Evaluate(state, combination, reduction);
+                switch (c[25])
+                {
+                    case "Entro limiti tensionali": Assert.AreEqual(true, limits.Satisfied, id + " within"); within++; break;
+                    case "Oltre limiti tensionali": Assert.AreEqual(false, limits.Satisfied, id + " beyond"); beyond++; break;
+                    case "Stato tensionale calcolato": Assert.IsNull(limits.Satisfied, id + " calculated"); calculated++; break;
+                    default: Assert.Fail(id + " unknown legacy status " + c[25]); break;
+                }
+            }
+            Assert.AreEqual(2016, steel);
+            Assert.AreEqual(1250, within);
+            Assert.AreEqual(94, beyond);
+            Assert.AreEqual(672, calculated);
+            Assert.AreEqual(72, thin);
+
+            var material = ((ReinforcedConcreteSection)archive.BeamProperties["R300x500"]).Rebars.First().RebarMaterial;
+            Assert.ThrowsException<ArgumentNullException>(() => StressLimitCheck.SteelLimit(null, material));
+            Assert.ThrowsException<ArgumentNullException>(() => StressLimitCheck.SteelLimit(new StandardNTC2018Concrete(), null));
+        }
+
+        /// <summary>
+        /// Thin-casting factor of the 9 standards of ANTHEA, created as ANTHEA creates them (ConcreteStandards.Create), plus
+        /// CNR-DT 200 (derived from NTC 2018) and ACI 318-19. Default rule: 0.8 only for the exact NTC 2018 class, the values of
+        /// ANTHEA before F2.7 (NTC 2018 §4.1.2.1.1.1 and §4.1.2.2.5.1). Ntc2018AndUniEn1992 adds UNI EN 1992-1-1 (DM 31/07/2012
+        /// 7.2) and nothing else.
+        /// </summary>
+        [TestMethod]
+        public void ThinCastingFactorOfEveryStandard()
+        {
+            var grid = new (string Name, Standard Standard, double Default, double WithUni)[]
+            {
+                ("NTC 2018", new StandardNTC2018Concrete(), 0.8, 0.8),
+                ("Model Code 2010", new StandardModelCode2010(), 1, 1),
+                ("EN 1992-1-1", new StandardEN1992p11(), 1, 1),
+                ("UNI EN 1992-1-1", new StandardUNIEN1992p11 { AlphaCC = .85 }, 1, 0.8),
+                ("DIN EN 1992-1-1", new StandardDINEN1992p11 { AlphaCT = .85 }, 1, 1),
+                ("DS EN 1992-1-1", new StandardDSEN1992p11(), 1, 1),
+                ("NS EN 1992-1-1", new StandardNSEN1992p11 { AlphaCT = .85, SteelCoefficientStrainTension = .4 }, 1, 1),
+                ("CNR-DT 204/2006", new StandardCNR204(), 1, 1),
+                ("CS-TR34", new StandardCSTR34(), 1, 1),
+                ("CNR-DT 200 R1/2013", new StandardCNR200(), 1, 1),
+                ("ACI 318-19", new StandardACI318p19(), 1, 1)
+            };
+            foreach (var g in grid)
+            {
+                Assert.AreEqual(g.Default, ThinCasting.Factor(g.Standard), g.Name + " default");
+                Assert.AreEqual(g.Default, ThinCasting.Factor(g.Standard, ThinCastingRule.Ntc2018), g.Name + " NTC 2018 rule");
+                Assert.AreEqual(g.WithUni, ThinCasting.Factor(g.Standard, ThinCastingRule.Ntc2018AndUniEn1992), g.Name + " NTC 2018 and UNI rule");
+            }
+            Assert.ThrowsException<ArgumentNullException>(() => ThinCasting.Factor(null));
+            Assert.ThrowsException<ArgumentNullException>(() => ThinCasting.Factor(null, ThinCastingRule.Ntc2018AndUniEn1992));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => ThinCasting.Factor(new StandardNTC2018Concrete(), (ThinCastingRule)2));
+        }
     }
 }
