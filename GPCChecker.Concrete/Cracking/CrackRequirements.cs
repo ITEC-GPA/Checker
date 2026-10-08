@@ -75,7 +75,7 @@ namespace GPC.Checkers.Concrete.Cracking
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (exposure != null && !ExposureOrder.Contains(exposure)) throw new ArgumentException("Unknown exposure class: " + exposure);
             if (!options.ValidateAtUse) RequireDesignLimit(designLimit);
-            if (CrackProfiles.IsNtc(profile) || profile == CrackProfile.UniEN1992p11) return Ntc(combination, exposure, sensitive);
+            if (CrackProfiles.HasNtcRequirementTable(profile)) return Ntc(combination, exposure, sensitive);
             var required = profile == CrackProfile.NsEN1992p11 && (exposure == "XD3" || exposure == "XS3") ? ServiceabilityCombination.Frequent : ServiceabilityCombination.QuasiPermanent;
             if (combination != required) return new CrackRequirement(CrackCriterion.NotRequired, null, required);
             if (designLimit.HasValue)

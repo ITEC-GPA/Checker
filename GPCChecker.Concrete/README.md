@@ -224,10 +224,30 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
     tesa o facce (anche quella che ferma la verifica), sistema grossolano DS, pareti o anello interno (verificati,
     senza armatura o senza interasse) e «InnerSurfaces» per le superfici interne non supportate. Con questi dati il
     chiamante compone gli stati delle superfici interne senza leggere il testo inglese.
+  - Requisito della sezione interamente tesa (ciclo di prototipo di F2.7): con `Trace` anche il risultato della
+    sezione interamente tesa, comprese le superfici interne, porta `Requirement` (lo stesso di `CrackRequirements.For`
+    con i dati dell'ingresso). Senza la traccia resta nullo, come nella 0.0.17.0: il contratto K0 di ModelChecker
+    registra nullo il criterio di quel ramo.
 - **Motivo fine** (`SectionCrackResult.Reason`, 0.0.18.0, sempre valorizzato anche senza opzioni). Separa i tre
   rami che `Outcome` riunisce in `NoEffectiveArea`: `ZeroEffectiveDepth` (hc,eff nullo), `NoEffectiveSteelOrArea`
   (barre efficaci ma Ac,eff nullo), `FaceWithoutAreaOrSteel` (faccia della sezione interamente tesa senza area o
-  armatura efficace). Negli altri casi vale `None`. `Outcome` e `Status` non cambiano.
+  armatura efficace). `EntirelyCompressed` (ciclo di prototipo di F2.7) segna la sezione interamente compressa
+  (εc,max ≤ 1e-12, wk = 0, esito `Evaluated`), l'unico ramo valutato senza una voce propria nella traccia: asse
+  neutro nel copriferro, limite superiore e sezione interamente tesa l'hanno (`NearestBarDepth`, flag `UpperBound`,
+  `GoverningFace`). Negli altri casi vale `None`. `Outcome` e `Status` non cambiano.
+- **Famiglie dei profili** (`CrackProfiles`, ciclo di prototipo di F2.7, 0.0.18.0). Dicono al chiamante ciò che
+  prima doveva ricopiare dalla libreria; un profilo fuori dall'enumerazione dà `ArgumentOutOfRangeException`:
+  - `WidthFormula`: `CrackWidthFormula.Ntc2018` (NTC 2018 e CNR-DT 200: formula della Circolare, voci della traccia
+    da Es a wk, limite superiore 1,7 · 0,75 (h − x)) o `Eurocode` (EN, UNI, DIN, DS, NS e Model Code 2010);
+  - `UsesDesignLimit`: vero se il requisito legge il wlim di progetto (famiglia Eurocodice e Model Code 2010), falso
+    per NTC 2018, UNI e CNR-DT 200, il cui requisito è la Tab. 4.1.IV;
+  - `EffectiveDepthReadsCover`: vero solo per DIN, l'unico profilo la cui hc,eff legge il copriferro (condizione
+    (h − x)/3 ≥ c + 20 mm, `EffectiveDepthCover`).
+
+  Prove in `CrackMigrationTests`: la tabella scritta a mano dal legacy di ANTHEA e il comportamento della verifica
+  (voci NTC solo con la formula NTC, variante del limite superiore, wlim di progetto che cambia il requisito solo
+  dove è letto, hc,eff DIN da 100 a 150 mm con il copriferro della condizione); requisito della sezione
+  interamente tesa con e senza traccia, anche cava; `EntirelyCompressed` con ogni profilo, con e senza opzioni.
 
   Le prove sono in `CrackMigrationTests`. La traccia riproduce entro 1e-9, nello stesso ordine, i 16 simboli della
   colonna `details` di `crack-legacy.csv` (13 339 valori su 400 stati, anche con il prefisso di faccia, fascia,

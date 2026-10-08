@@ -6,8 +6,10 @@ using System.Linq;
 namespace GPC.Checkers.Concrete.Cracking
 {
     /// <summary>
-    /// Fine reason of a crack result (0.0.18.0), always set: it separates the three branches that <see cref="CrackOutcome.NoEffectiveArea"/> joins.
-    /// <see cref="None"/> for every other result, where <see cref="SectionCrackResult.Outcome"/> says it all.
+    /// Fine reason of a crack result (0.0.18.0), always set: it separates the three branches that <see cref="CrackOutcome.NoEffectiveArea"/> joins and marks the
+    /// entirely compressed section, the only <see cref="CrackOutcome.Evaluated"/> branch without an entry of its own in the trace (the others have one: neutral
+    /// axis in the cover <see cref="CrackTraceCodes.NearestBarDepth"/>, upper bound <see cref="CrackTraceFlags.UpperBound"/>, entirely tensile section
+    /// <see cref="CrackTraceCodes.GoverningFace"/>). <see cref="None"/> for every other result, where <see cref="SectionCrackResult.Outcome"/> says it all.
     /// </summary>
     public enum CrackReason
     {
@@ -18,7 +20,12 @@ namespace GPC.Checkers.Concrete.Cracking
         /// <summary>Partially compressed section with effective bars but Ac,eff ≤ 0. ANTHEA: "Armatura/area efficace assente".</summary>
         NoEffectiveSteelOrArea,
         /// <summary>Entirely tensile section: a face or radial band without effective area or steel. ANTHEA: "&lt;face&gt;: area o armatura efficace assente".</summary>
-        FaceWithoutAreaOrSteel
+        FaceWithoutAreaOrSteel,
+        /// <summary>
+        /// Entirely compressed section (εc,max ≤ 1e-12 at the vertices, holes included): wk = 0, no k2, outcome <see cref="CrackOutcome.Evaluated"/>
+        /// (ANTHEA "Sezione interamente compressa", Ntc2018Checks.cs:124). Added by the prototype cycle of ANTHEA F2.7 (0.0.18.0).
+        /// </summary>
+        EntirelyCompressed
     }
 
     /// <summary>

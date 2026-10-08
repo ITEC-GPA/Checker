@@ -144,7 +144,7 @@ namespace GPC.Checkers.Concrete.Cracking
         internal double DinConditionCover(CrackProfile profile)
         {
             if (Options.EffectiveDepthCover.HasValue) return Options.EffectiveDepthCover.Value;
-            if (Options.ValidateAtUse && profile == CrackProfile.DinEN1992p11) RequireNominalCover(NominalCover);
+            if (Options.ValidateAtUse && CrackProfiles.ReadsDinCover(profile)) RequireNominalCover(NominalCover);
             return NominalCover;
         }
 
@@ -174,6 +174,11 @@ namespace GPC.Checkers.Concrete.Cracking
     public sealed class SectionCrackResult
     {
         public CrackProfile Profile { get; internal set; }
+        /// <summary>
+        /// Requirement of the check (<see cref="CrackRequirements.For(CrackProfile, ServiceabilityCombination, string, bool, double?, SectionCrackOptions)"/> with the
+        /// data of the input). Null in the result of an entirely tensile section unless <see cref="SectionCrackOptions.Trace"/> (behaviour of 0.0.17.0, kept for the
+        /// contract of ModelChecker); with the trace it is always set (0.0.18.0).
+        /// </summary>
         public CrackRequirement Requirement { get; internal set; }
         public double? Width { get; internal set; }
         public double? Limit { get; internal set; }
@@ -204,8 +209,9 @@ namespace GPC.Checkers.Concrete.Cracking
         public IReadOnlyList<ShearCalculationDetail> Details { get; internal set; } = new ShearCalculationDetail[0];
         /// <summary>
         /// Fine reason (0.0.18.0), always set, also without options: the three branches of <see cref="CrackOutcome.NoEffectiveArea"/>
-        /// (<see cref="CrackReason.ZeroEffectiveDepth"/>, <see cref="CrackReason.NoEffectiveSteelOrArea"/>, <see cref="CrackReason.FaceWithoutAreaOrSteel"/>),
-        /// <see cref="CrackReason.None"/> otherwise. <see cref="Outcome"/> does not change.
+        /// (<see cref="CrackReason.ZeroEffectiveDepth"/>, <see cref="CrackReason.NoEffectiveSteelOrArea"/>, <see cref="CrackReason.FaceWithoutAreaOrSteel"/>), the
+        /// entirely compressed section (<see cref="CrackReason.EntirelyCompressed"/>, outcome Evaluated), <see cref="CrackReason.None"/> otherwise.
+        /// <see cref="Outcome"/> does not change.
         /// </summary>
         public CrackReason Reason { get; internal set; }
         /// <summary>
@@ -321,12 +327,20 @@ namespace GPC.Checkers.Concrete.Cracking
             if (strains.Max() <= 1e-12)
             {
                 // Pure compression (also a tiny positive εc,max ≤ 1e-12): no crack, wk = 0. k2 does not enter: K2 stays null and the trace has no k2 entry.
-                result.Width = 0; result.Ratio = 0; result.Passed = true;
+                // Reason (0.0.18.0): the only Evaluated branch without an entry of its own in the trace.
+                result.Width = 0; result.Ratio = 0; result.Passed = true; result.Reason = CrackReason.EntirelyCompressed;
                 return Stop(CrackOutcome.Evaluated, "Section entirely compressed");
             }
             if (stressesAtUse && (stresses.Count == 0 || stresses.Any(s => double.IsNaN(s) || double.IsInfinity(s))))
                 throw CrackRejection.Create(CrackRejection.BarStresses, "Cracking: bar stresses missing or not finite.");
-            if (strains.Min() >= 0) return Inner(FullyTensioned(p, profile, req.Limit.Value, details, trace), p, profile, trace);
+            if (strains.Min() >= 0)
+            {
+                var tensioned = FullyTensioned(p, profile, req.Limit.Value, details, trace);
+                // 0.0.18.0: with the trace the entirely tensile result carries its requirement too; without it Requirement stays null, as in 0.0.17.0
+                // (contract K0 of ModelChecker, criterion recorded null).
+                if (trace != null) tensioned.Requirement = req;
+                return Inner(tensioned, p, profile, trace);
+            }
             // Neutral axis inside the section: the section is bent, also under axial compression or tension with bending, so k2 = 0.5 for every profile
             // (Circolare 2019 C4.1.2.2.4.5; EN 1992-1-1 7.3.4(3), k2 of (7.11)). Legacy rule of ANTHEA for NTC 2018 / CNR-DT 200: k2 from the bar stresses.
             bool legacyK2 = p.NtcK2FromCompressedBars && CrackProfiles.IsNtc(profile);

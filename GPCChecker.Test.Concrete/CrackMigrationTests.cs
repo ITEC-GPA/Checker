@@ -1708,9 +1708,10 @@ namespace ConcreteTests
                     checks += 2;
                 }
             Assert.AreEqual(2 * 6 + 2 * 2 * 5, checks);
-            // Every other outcome keeps Reason None.
+            // Every other outcome keeps Reason None; the entirely compressed section has its own reason since the prototype cycle of F2.7
+            // (ReasonMarksTheEntirelyCompressedSection).
             var basic = new OptionCase();
-            foreach (var state in new[] { basic.With(x => x.Combination = ServiceabilityCombination.Characteristic), basic.With(x => x.Exposure = null), basic.With(x => x.Plane = UniformCompression),
+            foreach (var state in new[] { basic.With(x => x.Combination = ServiceabilityCombination.Characteristic), basic.With(x => x.Exposure = null),
                 basic.With(x => { x.Bars = Row(200); x.Plane = AxisInTheCover; }), basic.With(x => x.Plane = AxisAboveTheBars), basic.With(x => x.Bars = new[] { new CrackBar(0, -200, 20, 314.16) }) })
             {
                 var r = state.Evaluate(SectionCrackOptions.Default);
@@ -1974,6 +1975,208 @@ namespace ConcreteTests
             }
             CollectionAssert.AreEqual(saved, CrackRequirements.Exposures);
             CollectionAssert.AreEqual(saved, CrackRequirements.ExposureClasses.ToArray());
+        }
+
+        // ---- 0.0.18.0 (ANTHEA F2.7, prototype cycle, round 1): what the mapping of ANTHEA had to replicate (formula family, requirement table, cover of the DIN
+        // condition of hc,eff), the requirement of the entirely tensile section with the trace, the reason of the entirely compressed section.
+
+        /// <summary>The eight crack profiles through the standards of Model (names of ServiceabilityMigrationTests.Standard).</summary>
+        private static readonly string[] ProfileStandards = { "NTC 2018", "Model Code 2010", "EN 1992-1-1", "UNI EN 1992-1-1", "DIN EN 1992-1-1", "DS EN 1992-1-1",
+            "NS EN 1992-1-1", "CNR-DT 200 R1/2013" };
+
+        /// <summary>A state of OptionCase with the standard, exposure XC3 and, for Model Code 2010, the design limit 0.3 it requires.</summary>
+        private static OptionCase Case(string standard, Action<OptionCase> change = null)
+            => new OptionCase().With(x =>
+            {
+                x.Standard = standard; x.Exposure = "XC3"; x.DesignLimit = standard == "Model Code 2010" ? .3 : (double?)null;
+                change?.Invoke(x);
+            });
+
+        /// <summary>
+        /// (K3, prototype cycle) Formula family, requirement table and cover of the DIN condition of every profile, against the table written by hand from the legacy
+        /// of ANTHEA (X.Calculations 2d40a95): Ntc2018Checks.CalculateCrackWidth for NTC 2018 and CNR-DT 200, ConcreteCodeChecks.CrackWidth for the others;
+        /// Ntc2018Checks.CrackRequirement, which does not read 'limite_fessure', for NTC 2018, UNI and CNR-DT 200; ConcreteCodeChecks.EffectiveCrackDepth with the
+        /// cover only for DIN. The check agrees: the entries of the NTC formula appear only with the NTC family, the upper bound takes its variant from it, a design
+        /// limit changes the requirement only where it is used, the cover of the DIN condition moves hc,eff only for DIN (100 → 150 mm by hand). A profile outside the
+        /// enumeration is refused.
+        /// </summary>
+        [TestMethod]
+        public void ProfilesTellTheirFormulaRequirementTableAndCover()
+        {
+            var formula = new Dictionary<CrackProfile, CrackWidthFormula>
+            {
+                { CrackProfile.Ntc2018, CrackWidthFormula.Ntc2018 }, { CrackProfile.CnrDT200, CrackWidthFormula.Ntc2018 }, { CrackProfile.ModelCode2010, CrackWidthFormula.Eurocode },
+                { CrackProfile.EN1992p11, CrackWidthFormula.Eurocode }, { CrackProfile.UniEN1992p11, CrackWidthFormula.Eurocode }, { CrackProfile.DinEN1992p11, CrackWidthFormula.Eurocode },
+                { CrackProfile.DsEN1992p11, CrackWidthFormula.Eurocode }, { CrackProfile.NsEN1992p11, CrackWidthFormula.Eurocode }
+            };
+            var designLimit = new HashSet<CrackProfile> { CrackProfile.ModelCode2010, CrackProfile.EN1992p11, CrackProfile.DinEN1992p11, CrackProfile.DsEN1992p11, CrackProfile.NsEN1992p11 };
+            var profiles = (CrackProfile[])Enum.GetValues(typeof(CrackProfile));
+            CollectionAssert.AreEquivalent(profiles, formula.Keys.ToArray());
+            foreach (var profile in profiles)
+            {
+                Assert.AreEqual(formula[profile], CrackProfiles.WidthFormula(profile), profile + " formula");
+                Assert.AreEqual(designLimit.Contains(profile), CrackProfiles.UsesDesignLimit(profile), profile + " design limit");
+                Assert.AreEqual(profile == CrackProfile.DinEN1992p11, CrackProfiles.EffectiveDepthReadsCover(profile), profile + " DIN cover");
+            }
+            var unknown = (CrackProfile)99;
+            Assert.AreEqual("profile", Assert.ThrowsException<ArgumentOutOfRangeException>(() => CrackProfiles.WidthFormula(unknown)).ParamName);
+            Assert.AreEqual("profile", Assert.ThrowsException<ArgumentOutOfRangeException>(() => CrackProfiles.UsesDesignLimit(unknown)).ParamName);
+            Assert.AreEqual("profile", Assert.ThrowsException<ArgumentOutOfRangeException>(() => CrackProfiles.EffectiveDepthReadsCover(unknown)).ParamName);
+
+            var seen = new HashSet<CrackProfile>(); int bounds = 0;
+            foreach (var name in ProfileStandards)
+            {
+                var profile = CrackProfiles.Resolve(ServiceabilityMigrationTests.Standard(name)); seen.Add(profile);
+                bool ntc = CrackProfiles.WidthFormula(profile) == CrackWidthFormula.Ntc2018;
+                // Formula: the NTC entries (β apertura, Δsm) or the Eurocode sr,max of the section.
+                var bent = Case(name).Evaluate(Traced);
+                Assert.AreEqual(CrackOutcome.Evaluated, bent.Outcome, name + " " + bent.Status);
+                Assert.AreEqual(ntc, bent.Trace.Any(e => e.Code == CrackTraceCodes.BetaWidth), name + " NTC entries\n" + Codes(bent));
+                Assert.AreEqual(ntc, bent.Trace.Any(e => e.Code == CrackTraceCodes.AdoptedSpacing), name + " Δsm");
+                Assert.AreEqual(!ntc, bent.Trace.Any(e => e.Code == CrackTraceCodes.MaximumCrackSpacing), name + " sr,max");
+                // Upper bound without bonded bars: the NTC variant only with the NTC family. DIN (hc,eff 150 mm, since (h − x)/3 < c + 20) and DS (band centred
+                // on the bars) reach the bars in this state and use their formula.
+                var bound = Case(name, x => x.Plane = AxisAboveTheBars).Evaluate(Traced);
+                var sr = bound.Trace.Single(e => e.Code == CrackTraceCodes.MaximumCrackSpacing);
+                Assert.AreEqual(profile != CrackProfile.DinEN1992p11 && profile != CrackProfile.DsEN1992p11, sr.HasFlag(CrackTraceFlags.UpperBound), name + " " + sr);
+                if (sr.HasFlag(CrackTraceFlags.UpperBound)) { Assert.AreEqual(ntc, sr.HasFlag(CrackTraceFlags.UpperBoundNtc), name + " " + sr); bounds++; }
+                // Cover of the DIN condition: (h − x)/3 = 100 ≥ c + 20 with c = 0, not with c = 1000; DIN coefficient 2 + 0.1·500/50 = 3, so hc,eff 100 or 150 mm.
+                double Hc(double cover) => Case(name).Evaluate(Traced.WithEffectiveDepthCover(cover)).Trace.Single(e => e.Code == CrackTraceCodes.EffectiveDepth).Value.Value;
+                double low = Hc(0), high = Hc(1000);
+                Assert.AreEqual(CrackProfiles.EffectiveDepthReadsCover(profile), low != high, name + " hc,eff " + low + " / " + high);
+                if (CrackProfiles.EffectiveDepthReadsCover(profile)) { Assert.AreEqual(100, low, 1e-9, name); Assert.AreEqual(150, high, 1e-9, name); }
+            }
+            CollectionAssert.AreEquivalent(profiles, seen.ToArray()); Assert.AreEqual(6, bounds);
+
+            // Requirement table: a design limit changes the requirement only for the profiles that use it, and there in every required combination.
+            int unchanged = 0, assigned = 0;
+            foreach (var profile in profiles)
+                foreach (var combination in AllCombinations)
+                    foreach (var exposure in new string[] { null }.Concat(CrackRequirements.ExposureClasses))
+                        foreach (var sensitive in new[] { false, true })
+                        {
+                            string what = profile + " " + combination + " " + (exposure ?? "null") + " " + sensitive;
+                            var without = CrackRequirements.For(profile, combination, exposure, sensitive, null, AtUse);
+                            var with = CrackRequirements.For(profile, combination, exposure, sensitive, .123, AtUse);
+                            if (!CrackProfiles.UsesDesignLimit(profile) || without.Criterion == CrackCriterion.NotRequired)
+                            {
+                                Assert.AreEqual(without.Criterion, with.Criterion, what); Assert.AreEqual(without.Limit, with.Limit, what);
+                                Assert.AreEqual(without.RequiredCombination, with.RequiredCombination, what);
+                                unchanged++;
+                            }
+                            else
+                            {
+                                Assert.AreEqual(CrackCriterion.CrackWidth, with.Criterion, what); Assert.AreEqual(.123, with.Limit.Value, what);
+                                assigned++;
+                            }
+                        }
+            Assert.AreEqual(8 * 3 * 19 * 2, unchanged + assigned);
+            Assert.AreEqual(5 * 19 * 2, assigned, "five profiles, each in its required combination (NS: the frequent one for XD3 and XS3)");
+        }
+
+        /// <summary>
+        /// (K3, prototype cycle) With the trace the result of an entirely tensile section carries its requirement, equal to CrackRequirements.For with the same data,
+        /// also through the inner surfaces of a hollow section; without the trace it stays null, as in 0.0.17.0 (the contract K0 records the criterion null there).
+        /// Nothing else changes. The other branches carry it with and without the trace.
+        /// </summary>
+        [TestMethod]
+        public void TheEntirelyTensileSectionReportsItsRequirementWithTheTrace()
+        {
+            var uniformTension = new StrainPlane(0, 0, new Point2d(0, 0), 5e-4);
+            void AssertRequirement(CrackRequirement expected, CrackRequirement actual, string what)
+            {
+                Assert.IsNotNull(actual, what);
+                Assert.AreEqual(expected.Criterion, actual.Criterion, what); Assert.AreEqual(expected.Limit, actual.Limit, what);
+                Assert.AreEqual(expected.RequiredCombination, actual.RequiredCombination, what);
+            }
+            int tensile = 0, others = 0;
+            foreach (var name in ProfileStandards)
+            {
+                var states = new[]
+                {
+                    Tuple.Create(true, Case(name, x => { x.Bars = Doubly; x.Plane = EccentricTension; })),
+                    Tuple.Create(true, Case(name, x => { x.Bars = Doubly; x.Plane = uniformTension; })),
+                    Tuple.Create(false, Case(name)), Tuple.Create(false, Case(name, x => x.Plane = UniformCompression)), Tuple.Create(false, Case(name, x => x.Plane = AxisAboveTheBars)),
+                    Tuple.Create(false, Case(name, x => x.Plane = AxisInTheCover))
+                };
+                for (int i = 0; i < states.Length; i++)
+                    foreach (var pair in new[] { Tuple.Create(SectionCrackOptions.Default, Traced), Tuple.Create(AtUse, AtUse.WithTrace(true)) })
+                    {
+                        string what = name + " state " + i + (pair.Item1.ValidateAtUse ? " at use" : "");
+                        var state = states[i].Item2;
+                        var plain = state.Evaluate(pair.Item1); var traced = state.Evaluate(pair.Item2);
+                        AssertSameResult(plain, traced, what); Assert.AreEqual(plain.Reason, traced.Reason, what);
+                        var expected = CrackRequirements.For(CrackProfiles.Resolve(ServiceabilityMigrationTests.Standard(name)), state.Combination, state.Exposure, state.Sensitive,
+                            state.DesignLimit, pair.Item1);
+                        AssertRequirement(expected, traced.Requirement, what + " traced");
+                        if (states[i].Item1)
+                        {
+                            Assert.IsTrue(traced.Trace.Any(e => e.Code == CrackTraceCodes.GoverningFace) || traced.Outcome != CrackOutcome.Evaluated, what + " entirely tensile\n" + Codes(traced));
+                            Assert.IsNull(plain.Requirement, what + " without the trace");
+                            tensile++;
+                        }
+                        else { AssertRequirement(expected, plain.Requirement, what + " plain"); others++; }
+                    }
+            }
+            Assert.AreEqual(8 * 2 * 2, tensile); Assert.AreEqual(8 * 4 * 2, others);
+            // Hollow box in uniform tension: the requirement goes through the inner surfaces.
+            var box = new[] { new Point2d(-200, -300), new Point2d(200, -300), new Point2d(200, 300), new Point2d(-200, 300) };
+            var hole = new[] { new Point2d(-100, -200), new Point2d(100, -200), new Point2d(100, 200), new Point2d(-100, 200) };
+            var bars = new[] { -150d, -50, 50, 150 }.SelectMany(x => new[] { new CrackBar(x, -250, 20, Math.PI * 100), new CrackBar(x, 250, 20, Math.PI * 100) }).ToArray();
+            SectionCrackResult Hollow(SectionCrackOptions options) => SectionCrackCheck.Evaluate(new SectionCrackInput(Ntc, ServiceabilityCombination.QuasiPermanent, "XC1", false, null,
+                new CrackSectionGeometry(box, new[] { hole }, bars, CrackBarLayout.Rows), uniformTension, bars.Select(b => 200000 * uniformTension.GetStrain(b.X, b.Y)), true, false, false,
+                200000, 33000, 2.9, false, true, 40, null, null, null, false, options));
+            var hollowPlain = Hollow(SectionCrackOptions.Default); var hollowTraced = Hollow(Traced);
+            AssertSameResult(hollowPlain, hollowTraced, "hollow");
+            Assert.IsTrue(hollowTraced.Trace.Any(e => e.Code == CrackTraceCodes.GoverningFace) && hollowTraced.RegionOutcomes.Any(o => o.Key.StartsWith("InnerWall")), Codes(hollowTraced));
+            Assert.IsNull(hollowPlain.Requirement, "hollow without the trace");
+            AssertRequirement(CrackRequirements.For(CrackProfile.Ntc2018, ServiceabilityCombination.QuasiPermanent, "XC1", false), hollowTraced.Requirement, "hollow traced");
+        }
+
+        /// <summary>
+        /// (K3, prototype cycle) Reason marks the entirely compressed section (εc,max ≤ 1e-12, ANTHEA "Sezione interamente compressa", Ntc2018Checks.cs:124) with every
+        /// profile, with and without options, also when the bar stresses are not finite (wk = 0 with ValidateAtUse) and in a hollow section; Outcome, Status, wk and K2
+        /// are those of 0.0.17.0. The other Evaluated branches keep None: they have their own entry in the trace.
+        /// </summary>
+        [TestMethod]
+        public void ReasonMarksTheEntirelyCompressedSection()
+        {
+            int compressed = 0;
+            foreach (var name in ProfileStandards)
+            {
+                foreach (var plane in new[] { UniformCompression, CompressedToZero })
+                    foreach (var options in new[] { SectionCrackOptions.Default, Traced, AtUse, AtUse.WithTrace(true) })
+                    {
+                        string what = name + " " + (plane == UniformCompression ? "uniform" : "to zero") + (options.Trace ? " traced" : "") + (options.ValidateAtUse ? " at use" : "");
+                        var r = Case(name, x => x.Plane = plane).Evaluate(options);
+                        Assert.AreEqual(CrackReason.EntirelyCompressed, r.Reason, what); Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, what);
+                        Assert.AreEqual("Section entirely compressed", r.Status, what); Assert.AreEqual(0, r.Width, what); Assert.IsNull(r.K2, what);
+                        Assert.AreEqual(0, r.Regions.Count, what); Assert.IsNull(r.GoverningRegion, what);
+                        if (options.Trace) Assert.AreEqual(CrackTraceCodes.CompressionTolerance, r.Trace.Last().Code, what + "\n" + Codes(r));
+                        compressed++;
+                    }
+                var constructor = SectionCrackCheck.Evaluate(Case(name, x => x.Plane = UniformCompression).WithoutOptions());
+                Assert.AreEqual(CrackReason.EntirelyCompressed, constructor.Reason, name + " constructor of 0.0.17.0");
+                var nonFinite = Case(name, x => { x.Plane = UniformCompression; x.Stresses = new[] { double.NaN, 0, 0 }; }).Evaluate(AtUse);
+                Assert.AreEqual(CrackReason.EntirelyCompressed, nonFinite.Reason, name + " non-finite stresses at use"); Assert.AreEqual(0, nonFinite.Width, name);
+                // The other Evaluated branches: bending, upper bound, neutral axis in the cover, entirely tensile.
+                foreach (var other in new[] { Case(name), Case(name, x => x.Plane = AxisAboveTheBars), Case(name, x => x.Plane = AxisInTheCover),
+                    Case(name, x => { x.Bars = Doubly; x.Plane = EccentricTension; }) })
+                {
+                    var r = other.Evaluate(Traced);
+                    Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, name + " " + r.Status); Assert.AreEqual(CrackReason.None, r.Reason, name + " " + r.Status);
+                }
+                Assert.IsTrue(Case(name, x => x.Plane = AxisInTheCover).Evaluate(Traced).Trace.Any(e => e.Code == CrackTraceCodes.NearestBarDepth), name + " neutral axis in the cover");
+            }
+            Assert.AreEqual(8 * 2 * 4, compressed);
+            // Hollow section in uniform compression: no inner surface, the same reason.
+            var box = new[] { new Point2d(-200, -300), new Point2d(200, -300), new Point2d(200, 300), new Point2d(-200, 300) };
+            var hole = new[] { new Point2d(-100, -200), new Point2d(100, -200), new Point2d(100, 200), new Point2d(-100, 200) };
+            var bars = new[] { new CrackBar(0, -250, 20, Math.PI * 100), new CrackBar(0, 250, 20, Math.PI * 100) };
+            var hollow = SectionCrackCheck.Evaluate(new SectionCrackInput(Ntc, ServiceabilityCombination.QuasiPermanent, "XC1", false, null, new CrackSectionGeometry(box, new[] { hole }, bars,
+                CrackBarLayout.Rows), UniformCompression, bars.Select(b => 200000 * UniformCompression.GetStrain(b.X, b.Y)), true, false, false, 200000, 33000, 2.9, false, true, 40, null, null,
+                null, false, Traced));
+            Assert.AreEqual(CrackReason.EntirelyCompressed, hollow.Reason, hollow.Status); Assert.AreEqual(0, hollow.RegionOutcomes.Count);
         }
     }
 }
