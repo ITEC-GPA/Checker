@@ -168,6 +168,9 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   - le classi indicative dell'Appendice E: EN 1992-1-1 prospetto E.1N, DM 31/07/2012 (XC1 C25/30, XF2 C30/37),
     DK NA Tabel E.1(2) (12/30/35/40 MPa per gruppi). XF4 non è nel prospetto E.1N.
   Le combinazioni agiscono insieme; X0 non si combina.
+  `ExposureClasses.All` è una vista di sola lettura (`ReadOnlyCollection`) del catalogo privato che `Get` e `Resolve`
+  leggono: non si converte in array e non si può modificare. Il tipo del campo e l'ordine delle classi non cambiano
+  (`DurabilityEdgeCaseTests.ExposureCatalogIsReadOnly`).
 - **Copriferri** (`CoverRequirements.Calculate`), profili per tipo esatto:
   - NTC 2018 e CNR-DT 200: tabella C4.1.IV della Circolare (verificata), con +10 mm per 100 anni, +5 mm sotto Cmin,
     −5 mm con controllo di qualità. Cmin è un dato (la classe pertinente all'esposizione);
