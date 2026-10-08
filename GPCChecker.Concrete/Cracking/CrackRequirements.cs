@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using GPC.Checkers.Concrete.Serviceability;
 
@@ -40,10 +42,23 @@ namespace GPC.Checkers.Concrete.Cracking
     /// </summary>
     public static class CrackRequirements
     {
-        /// <summary>Exposure classes in the order of the NTC environment groups: X0..XF1 ordinary, XC4..XF3 aggressive, XD2..XF4 very aggressive.</summary>
-        public static readonly string[] Exposures = { "X0", "XC1", "XC2", "XC3", "XF1", "XC4", "XD1", "XS1", "XA1", "XA2", "XF2", "XF3", "XD2", "XD3", "XS2", "XS3", "XA3", "XF4" };
+        // The list the requirements read (0.0.18.0): private, so a change of the public array Exposures no longer moves the NTC environment groups.
+        // The NTC groups are the index ranges of this order (see Ntc).
+        private static readonly string[] ExposureOrder = { "X0", "XC1", "XC2", "XC3", "XF1", "XC4", "XD1", "XS1", "XA1", "XA2", "XF2", "XF3", "XD2", "XD3", "XS2", "XS3", "XA3", "XF4" };
 
-        /// <param name="exposure">Exposure class of <see cref="Exposures"/>; null when not given.</param>
+        /// <summary>
+        /// Exposure classes in the order of the NTC environment groups: X0..XF1 ordinary, XC4..XF3 aggressive, XD2..XF4 very aggressive (0.0.18.0).
+        /// Read-only view of the private list that the requirements read.
+        /// </summary>
+        public static IReadOnlyList<string> ExposureClasses { get; } = new ReadOnlyCollection<string>(ExposureOrder);
+
+        /// <summary>
+        /// The classes of <see cref="ExposureClasses"/> as a writable array, kept for binary compatibility with 0.0.17.0. Since 0.0.18.0 the library no
+        /// longer reads it: changing its elements does not change the requirements. Use <see cref="ExposureClasses"/>.
+        /// </summary>
+        public static readonly string[] Exposures = ExposureOrder.ToArray();
+
+        /// <param name="exposure">Exposure class of <see cref="ExposureClasses"/>; null when not given.</param>
         /// <param name="sensitive">Reinforcement sensitive to corrosion (NTC 2018 §4.1.2.2.4).</param>
         /// <param name="designLimit">Design wlim, mm, when assigned (Eurocode family and Model Code 2010).</param>
         public static CrackRequirement For(CrackProfile profile, ServiceabilityCombination combination, string exposure, bool sensitive, double? designLimit = null)
@@ -58,7 +73,7 @@ namespace GPC.Checkers.Concrete.Cracking
             SectionCrackOptions options)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
-            if (exposure != null && !Exposures.Contains(exposure)) throw new ArgumentException("Unknown exposure class: " + exposure);
+            if (exposure != null && !ExposureOrder.Contains(exposure)) throw new ArgumentException("Unknown exposure class: " + exposure);
             if (!options.ValidateAtUse) RequireDesignLimit(designLimit);
             if (CrackProfiles.IsNtc(profile) || profile == CrackProfile.UniEN1992p11) return Ntc(combination, exposure, sensitive);
             var required = profile == CrackProfile.NsEN1992p11 && (exposure == "XD3" || exposure == "XS3") ? ServiceabilityCombination.Frequent : ServiceabilityCombination.QuasiPermanent;
@@ -110,7 +125,7 @@ namespace GPC.Checkers.Concrete.Cracking
         private static CrackRequirement Ntc(ServiceabilityCombination combination, string exposure, bool sensitive)
         {
             if (combination == ServiceabilityCombination.Characteristic) return new CrackRequirement(CrackCriterion.NotRequired);
-            int index = exposure == null ? -1 : Array.IndexOf(Exposures, exposure);
+            int index = exposure == null ? -1 : Array.IndexOf(ExposureOrder, exposure);
             if (index < 0) return new CrackRequirement(CrackCriterion.ExposureRequired);
             bool qp = combination == ServiceabilityCombination.QuasiPermanent;
             int environment = index <= 4 ? 0 : index <= 11 ? 1 : 2; // legacy list starts with a placeholder: ≤5 / ≤12 there

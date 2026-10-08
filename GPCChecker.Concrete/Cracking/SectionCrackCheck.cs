@@ -21,7 +21,7 @@ namespace GPC.Checkers.Concrete.Cracking
     {
         public Standard Standard { get; }
         public ServiceabilityCombination Combination { get; }
-        /// <summary>Exposure class (<see cref="CrackRequirements.Exposures"/>); null when not given.</summary>
+        /// <summary>Exposure class (<see cref="CrackRequirements.ExposureClasses"/>); null when not given.</summary>
         public string Exposure { get; }
         public bool SensitiveReinforcement { get; }
         /// <summary>Design wlim, mm (Eurocode family and Model Code 2010); null = limit of the standard.</summary>

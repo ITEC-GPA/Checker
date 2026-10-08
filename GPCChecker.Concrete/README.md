@@ -99,6 +99,19 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   - famiglia Eurocodice: solo la quasi permanente (NS: la frequente per XD3/XS3), con le tabelle EN 7.1N (anche
     DIN), DK NA 7.1 NA e NS NA;
   - wlim di progetto facoltativo; Model Code 2010 lo richiede.
+- **Classi di esposizione** (`CrackRequirements.ExposureClasses`, 0.0.18.0): le 18 classi nell'ordine dei gruppi
+  ambientali NTC, cioè da X0 a XF1 ordinario, da XC4 a XF3 aggressivo, da XD2 a XF4 molto aggressivo.
+  - È una vista di sola lettura (`IReadOnlyList<string>`, sempre lo stesso oggetto) sulla copia privata che i
+    requisiti leggono, sia per riconoscere la classe sia per il gruppo ambientale.
+  - L'array pubblico `Exposures` resta, con le stesse classi, per la compatibilità binaria con la 0.0.17.0, ma la
+    libreria non lo legge più: modificarne gli elementi non sposta i gruppi e non cambia i requisiti.
+  - Prove in `CrackMigrationTests`. L'ordine e i gruppi NTC sono quelli delle righe dei requisiti di
+    `crack-scalar-legacy.csv`. Con l'array pubblico rovesciato e una classe sconosciuta al posto di XF4:
+    - i 1596 requisiti si riproducono con `For` senza opzioni, con le opzioni predefinite e con `ValidateAtUse`;
+    - XF4 resta accettata e la classe sconosciuta resta rifiutata;
+    - `Evaluate` dà gli stessi risultati e lo stesso rifiuto.
+
+    Il test ripristina l'array in un `finally`.
 - **Apertura wk** (`CrackWidthCalculator`):
   - NTC: 1,7 Δsm (εsm − εcm) della Circolare;
   - Eurocodice: sr,max (εsm − εcm), con le varianti DS (k3), DIN (kt, limite σs Ø/(3,6 fct)) e MC2010 (sr e βmin).

@@ -1820,5 +1820,134 @@ namespace ConcreteTests
             Assert.AreEqual("concreteModulus", Assert.ThrowsException<ArgumentOutOfRangeException>(() => Traced.WithAnalysisContext(double.NaN, 1)).ParamName);
             Assert.AreEqual("psiRebar", Assert.ThrowsException<ArgumentOutOfRangeException>(() => Traced.WithAnalysisContext(30000, double.PositiveInfinity)).ParamName);
         }
+
+        // ---- 0.0.18.0 (ANTHEA F2.7 K4a): CrackRequirements.ExposureClasses, read-only view of the private list that the requirements read.
+
+        private static string[][] LegacyRequirementRows() => Rows("crack-scalar-legacy.csv", header: false).Select(row => row.Split(';')).Where(c => c[0] == "R").ToArray();
+
+        /// <summary>
+        /// The requirement rows of crack-scalar-legacy.csv (legacy ConcreteCodeChecks.CrackRequirement) through the given call: criterion and wlim, with the
+        /// mapping of LegacyCrackWidthsAndRequirementsAreReproduced. Returns the number of rows.
+        /// </summary>
+        private static int AssertLegacyRequirements(Func<CrackProfile, ServiceabilityCombination, string, bool, double?, CrackRequirement> requirement, string label)
+        {
+            int requirements = 0;
+            foreach (var c in LegacyRequirementRows())
+            {
+                var exposure = Exposure(c[3]);
+                var r = requirement(Profile(c[1]), Combination(c[2]), exposure, bool.Parse(c[4]), N(c[5]));
+                string kind = c[6]; string what = label + ": " + string.Join(" ", c[1], c[2], c[3], c[4], c[5], kind);
+                var expected = kind.StartsWith("Non richiesta") ? CrackCriterion.NotRequired : kind.StartsWith("Selezionare la classe") ? CrackCriterion.ExposureRequired
+                    : kind.StartsWith("Selezionare esposizione") ? (exposure == null ? CrackCriterion.ExposureRequired : CrackCriterion.DesignLimitRequired)
+                    : kind.StartsWith("Selezionare wlim") ? CrackCriterion.DesignLimitRequired : kind == "Decompressione" ? CrackCriterion.Decompression
+                    : kind == "Formazione fessure" ? CrackCriterion.CrackFormation : kind == "Apertura fessure" ? CrackCriterion.CrackWidth : (CrackCriterion)(-1);
+                Assert.AreEqual(expected, r.Criterion, what);
+                var limit = N(c[7]);
+                Assert.AreEqual(limit.HasValue, r.Limit.HasValue, what); if (limit.HasValue) Close(limit.Value, r.Limit.Value, what);
+                requirements++;
+            }
+            return requirements;
+        }
+
+        /// <summary>
+        /// (K4a) ExposureClasses lists the 18 classes in the order of the legacy list: the requirement rows of crack-scalar-legacy.csv run through it after
+        /// "Da scegliere". The NTC environment groups of the captures (NTC 2018 and UNI, frequent combination, little sensitive bars: wlim 0.4 ordinary,
+        /// 0.3 aggressive, 0.2 very aggressive) are the index ranges that the requirements apply to this order: up to XF1, up to XF3, then the rest.
+        /// The view is read-only and the same at every call; the public array stays a public static readonly string[] with the same classes (binary
+        /// compatibility with 0.0.17.0), as a separate object.
+        /// </summary>
+        [TestMethod]
+        public void ExposureClassesAreAReadOnlyViewInTheLegacyOrder()
+        {
+            var rows = LegacyRequirementRows();
+            Assert.AreEqual(7 * 3 * 19 * 2 * 2, rows.Length);
+            var legacyOrder = rows.Select(c => c[3]).Where(e => e != "Da scegliere").Distinct().ToArray();
+            Assert.AreEqual(18, legacyOrder.Length);
+            CollectionAssert.AreEqual(legacyOrder, CrackRequirements.ExposureClasses.ToArray());
+            foreach (var standard in new[] { "NTC 2018", "UNI EN 1992-1-1" })
+                for (int i = 0; i < CrackRequirements.ExposureClasses.Count; i++)
+                {
+                    string exposure = CrackRequirements.ExposureClasses[i];
+                    var row = rows.Single(c => c[1] == standard && c[2] == "SLE_FREQ" && c[3] == exposure && c[4] == "False" && c[5].Length == 0);
+                    Assert.AreEqual("Apertura fessure", row[6], standard + " " + exposure);
+                    int legacyGroup = row[7] == "0.4" ? 0 : row[7] == "0.3" ? 1 : row[7] == "0.2" ? 2 : -1;
+                    Assert.AreEqual(i <= 4 ? 0 : i <= 11 ? 1 : 2, legacyGroup, standard + " " + exposure);
+                }
+            // Read-only view, the same object at every call.
+            var view = CrackRequirements.ExposureClasses;
+            Assert.AreSame(view, CrackRequirements.ExposureClasses);
+            Assert.IsInstanceOfType(view, typeof(System.Collections.ObjectModel.ReadOnlyCollection<string>));
+            Assert.IsFalse(view is string[]);
+            var list = (IList<string>)view;
+            Assert.IsTrue(list.IsReadOnly);
+            Assert.ThrowsException<NotSupportedException>(() => list[0] = "XY9");
+            Assert.ThrowsException<NotSupportedException>(() => list.Add("XY9"));
+            Assert.ThrowsException<NotSupportedException>(() => list.Clear());
+            Assert.AreEqual("X0", view[0]); Assert.AreEqual(18, view.Count);
+            var property = typeof(CrackRequirements).GetProperty(nameof(CrackRequirements.ExposureClasses));
+            Assert.AreEqual(typeof(IReadOnlyList<string>), property.PropertyType); Assert.IsNull(property.SetMethod);
+            // The public array of 0.0.17.0 stays, with the same classes, as a separate object.
+            var field = typeof(CrackRequirements).GetField(nameof(CrackRequirements.Exposures));
+            Assert.IsTrue(field.IsPublic && field.IsStatic && field.IsInitOnly); Assert.AreEqual(typeof(string[]), field.FieldType);
+            CollectionAssert.AreEqual(view.ToArray(), CrackRequirements.Exposures);
+            Assert.AreNotSame(view, CrackRequirements.Exposures);
+        }
+
+        /// <summary>
+        /// (K4a) The requirements read only the private list. With the public array reversed (before 0.0.18.0 X0..XF1 would have become very aggressive)
+        /// and an unknown class in place of XF4, the 1596 requirement rows of crack-scalar-legacy.csv are still reproduced by CrackRequirements.For without
+        /// options, with the default options and with ValidateAtUse; the unknown class is still refused and XF4 accepted; SectionCrackCheck.Evaluate gives
+        /// the results and the refusal of the unchanged array through both constructors. The array is restored in finally.
+        /// </summary>
+        [TestMethod, DoNotParallelize]
+        public void ChangingThePublicExposuresArrayLeavesTheRequirementsUnchanged()
+        {
+            var saved = (string[])CrackRequirements.Exposures.Clone();
+            var basic = new OptionCase();
+            var states = new[]
+            {
+                basic, basic.With(x => x.Exposure = "XF4"), basic.With(x => { x.Exposure = "X0"; x.Sensitive = true; }),
+                basic.With(x => { x.Exposure = "XD1"; x.Sensitive = true; x.Uncracked = () => -.5; }),
+                basic.With(x => { x.Exposure = "XS3"; x.Sensitive = true; x.Combination = ServiceabilityCombination.Frequent; x.Uncracked = () => 3; }),
+                basic.With(x => { x.Standard = "UNI EN 1992-1-1"; x.Exposure = "XF3"; x.Combination = ServiceabilityCombination.Frequent; }),
+                basic.With(x => { x.Standard = "EN 1992-1-1"; x.Exposure = "XC3"; }),
+                basic.With(x => { x.Standard = "NS EN 1992-1-1"; x.Exposure = "XD3"; x.Combination = ServiceabilityCombination.Frequent; }),
+            };
+            var before = states.Select(s => s.Evaluate(SectionCrackOptions.Default)).ToArray();
+            var unknown = basic.With(x => x.Exposure = "XY9");
+            string refusal = Assert.ThrowsException<ArgumentException>(() => unknown.Evaluate(SectionCrackOptions.Default)).Message;
+            Assert.AreEqual("Unknown exposure class: XY9", refusal);
+            var qp = ServiceabilityCombination.QuasiPermanent;
+            try
+            {
+                Array.Reverse(CrackRequirements.Exposures);
+                Assert.AreEqual("XF4", CrackRequirements.Exposures[0]);
+                CrackRequirements.Exposures[0] = "XY9";
+                CollectionAssert.AreEqual(saved, CrackRequirements.ExposureClasses.ToArray(), "the view does not follow the array");
+                Assert.AreEqual(1596, AssertLegacyRequirements((p, c, e, s, l) => CrackRequirements.For(p, c, e, s, l), "without options"));
+                Assert.AreEqual(1596, AssertLegacyRequirements((p, c, e, s, l) => CrackRequirements.For(p, c, e, s, l, SectionCrackOptions.Default), "default options"));
+                Assert.AreEqual(1596, AssertLegacyRequirements((p, c, e, s, l) => CrackRequirements.For(p, c, e, s, l, AtUse), "ValidateAtUse"));
+                Assert.AreEqual(refusal, Assert.ThrowsException<ArgumentException>(() => CrackRequirements.For(CrackProfile.Ntc2018, qp, "XY9", false)).Message);
+                Assert.AreEqual(refusal, Assert.ThrowsException<ArgumentException>(() => CrackRequirements.For(CrackProfile.EN1992p11, qp, "XY9", false, null, AtUse)).Message);
+                Assert.AreEqual(.2, CrackRequirements.For(CrackProfile.Ntc2018, qp, "XF4", false).Limit.Value);
+                Assert.AreEqual(CrackCriterion.CrackFormation, CrackRequirements.For(CrackProfile.Ntc2018, ServiceabilityCombination.Frequent, "XF4", true).Criterion);
+                for (int i = 0; i < states.Length; i++)
+                {
+                    string what = "state " + i + " " + states[i].Standard + " " + states[i].Exposure;
+                    foreach (var after in new[] { states[i].Evaluate(SectionCrackOptions.Default), SectionCrackCheck.Evaluate(states[i].WithoutOptions()), states[i].Evaluate(AtUse) })
+                    {
+                        AssertSameResult(before[i], after, what); Assert.AreEqual(before[i].Reason, after.Reason, what);
+                    }
+                }
+                Assert.AreEqual(refusal, Assert.ThrowsException<ArgumentException>(() => unknown.Evaluate(SectionCrackOptions.Default)).Message);
+                Assert.AreEqual(refusal, Assert.ThrowsException<ArgumentException>(() => SectionCrackCheck.Evaluate(unknown.WithoutOptions())).Message);
+            }
+            finally
+            {
+                Array.Copy(saved, CrackRequirements.Exposures, saved.Length);
+            }
+            CollectionAssert.AreEqual(saved, CrackRequirements.Exposures);
+            CollectionAssert.AreEqual(saved, CrackRequirements.ExposureClasses.ToArray());
+        }
     }
 }
