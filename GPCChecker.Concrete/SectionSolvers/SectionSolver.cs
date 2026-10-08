@@ -789,6 +789,15 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
+        /// <summary>
+        /// The axial force of the failure domain for the uniform strain of pure compression (N, negative): the strain of
+        /// <see cref="GetYieldingStrainPureCompression"/> on the whole section, integrated as the points of the domain (reduction factor and
+        /// compression limit of the standard included). See <see cref="DomainPointAxialTolerance.CentredCompressionResistance(SectionSolver)"/>
+        /// </summary>
+        /// <returns>The axial force; 0 if the integration fails</returns>
+        internal double CalculatePureCompressionAxialForce() =>
+            CalculateForceResultantForDomain(new StrainPlane(0, 0, _integrationReferencePoint, GetYieldingStrainPureCompression())).N;
+
         #endregion
 
         #region Protected method - SectionIntegration

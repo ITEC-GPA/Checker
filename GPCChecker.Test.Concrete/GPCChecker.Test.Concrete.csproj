@@ -113,6 +113,7 @@
     <Compile Include="DurabilityEdgeCaseTests.cs" />
     <Compile Include="DurabilityExamplesTests.cs" />
     <Compile Include="DomainPointContractTests.cs" />
+    <Compile Include="DomainPointAxialToleranceTests.cs" />
     <Compile Include="StressAnalysisPSCTest.cs" />
     <Compile Include="StressAnalysisRCTest.cs" />
     <Compile Include="ValidationTestFailureDomain.cs" />
