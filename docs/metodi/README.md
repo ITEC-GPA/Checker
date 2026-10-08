@@ -18,7 +18,21 @@ La pagina è la revisione tecnica del metodo: descrive ciò che il codice fa, no
 | [ca.momento-curvatura](ca.momento-curvatura.md) | Risposta momento-curvatura a sforzo normale costante | `MomentCurvatureAnalysis` | bozza |
 
 La pressoflessione (dominio di rottura e verifica di resistenza della sezione) avrà una pagina con lo stesso
-template.
+template. Fino ad allora vale l'avvertenza della libreria sulla tolleranza su N dei punti a N assegnato
+(`DomainPointAxialTolerance`, sezione «Resistenza a N assegnato» del README di GPCChecker.Concrete): con lo stress
+block il punto è meno preciso. La pagina riporterà questo riquadro (prefisso P), nelle sezioni 8 e 9:
+
+> **Limite numerico — P-1 (S-1) Stress block: punto a N assegnato meno preciso**
+>
+> - Metodo: il punto del dominio cercato a N assegnato è la resistenza a quello N se |NRd − N| ≤ max(1 kN; 1e-6 |N|).
+> - Programma: con lo stress block la tensione salta da 0 a η fcd a (1 − λ) εcu e la risultante integrata sui punti
+>   di Gauss di una mesh fissa cambia a gradini; la ricerca iterativa può fermarsi con N diverso da quello assegnato.
+>   La tolleranza è almeno 1e-3 NRd,c, con NRd,c resistenza a compressione centrata della sezione
+>   (`DomainPointAxialTolerance`).
+> - Effetto: momento resistente diverso da quello a N esatto di meno dello 0,5 % nel 95 % dei punti del campione di
+>   convalida (13 sezioni, 4 legami, 8840 punti), fino a circa 1-2 % vicino agli estremi del dominio; segno variabile.
+>   Il percorso della ricerca è caotico e può cambiare con il runtime.
+> - Stato: `dichiarato`.
 
 ## Convenzioni
 
@@ -71,6 +85,10 @@ sezione della formula interessata:
 Il codice del riquadro ha il prefisso della pagina (T, R, E, F, A, D, C, M) e un numero; i riquadri delle decisioni
 D7 del refactoring riportano anche la lettera della scheda, per esempio "F-1 (D7-a)", e quelli delle voci del
 registro delle differenze di ANTHEA il numero della voce, per esempio "T-1 (R4)".
+
+Un limite numerico del programma (tolleranze, precisione della ricerca) che non si discosta dalla norma ha un riquadro
+«Limite numerico» con le voci Metodo (ciò che il metodo richiede), Programma, Effetto e Stato; il codice segue le
+stesse regole, per esempio "P-1 (S-1)" per la divergenza S-1 del banco F2.1 di ANTHEA.
 
 ## Template della pagina
 

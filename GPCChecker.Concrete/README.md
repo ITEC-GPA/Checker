@@ -26,6 +26,36 @@ superiore dell'eq. (7.14) con le barre tese fuori da Ac,eff, k2 = 0,5 con l'asse
 nelle fasce interne dei fori (0.0.17.0). I test di migrazione li riproducono con la regola corrente, senza casi
 speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedicati.
 
+### Resistenza a N assegnato: tolleranza su N
+
+- `SectionSolvers.DomainPointAxialTolerance` dice se un punto del dominio cercato a N assegnato (N costante, N e Mx,
+  N e My) è la resistenza a quello N: |NRd − N| ≤ tolleranza. `SectionSolver.CalculateDomainPoint` non applica il
+  controllo: lo applica il chiamante (in ANTHEA `SectionMomentResistance`).
+- Parabola-rettangolo, bilineare, non lineare e tabelle generiche: max(1000 N; 1e-6 |N|), la regola usata da ANTHEA
+  fino alla 0.0.17.0. Il calcolo non integra la sezione.
+- Stress block: anche almeno 1/1000 della resistenza a compressione centrata NRd,c (`CentredCompressionResistance`:
+  risultante del solutore a deformazione uniforme εc2 della parabola-rettangolo, con barre, profili e trefoli; per il
+  c.a. (Ac − As) η fcd + As σs). Esempi: 3,05 kN per 300 × 500 C30/37, 12,28 kN per D 800 C40/50; sotto circa 1 MN di
+  NRd,c vale il minimo di 1 kN.
+- **Con lo stress block il risultato può essere meno preciso.** Il diagramma ha un salto di tensione a (1 − λ) εcu e
+  il calcestruzzo è integrato su punti di Gauss fissi: la risultante cambia a gradini e la ricerca iterativa può
+  fermarsi con N diverso da quello assegnato. Campione di convalida (13 sezioni, 4 legami, 8840 punti, ottobre 2026,
+  .NET 8): scarto su N fino a 9e-4 NRd,c nei punti accettati; momento resistente diverso da quello a N esatto di meno
+  dello 0,5 % nel 95 % dei punti, fino a circa 1-2 % vicino agli estremi del dominio, con segno variabile. Con gli
+  altri legami: scarto su N sotto 6e-5 NRd,c, momento entro 0,4 %.
+- Con lo stress block il percorso della ricerca è caotico: la stessa sezione può dare un punto diverso con un altro
+  runtime. Sezione C2 del banco F2.1 di ANTHEA (D 800, 12Ø16), N = −1500 kN, Mx+: NRd = −1502,05 kN con .NET 8
+  (accettato), −1513,15 kN con .NET Framework 4.7.2 (scarto 1,07e-3 NRd,c, rifiutato).
+- Prove: `DomainPointAxialToleranceTests`, con attesi a mano e Python (NRd,c di rettangolo, poligono di 144 lati e
+  C70/85, tolleranze, punto di S-1, stati del banco F2.1 entro 5e-3 dalla forma chiusa).
+- **Contratto della 0.0.17.0** (`DomainPointContractTests`, `Fixtures/domain-point-contract.json`): fotografia di
+  regressione di `CalculateDomainPoint` catturata dal codice di 4f54139a prima della regola, sul runtime della suite.
+  Non è un atteso indipendente: non si rigenera per far passare il test. Registra 1024 punti (le 5 sezioni in forma
+  chiusa del banco, 4 legami, SLU e SLV, 6 o 7 sforzi normali, 4 direzioni) con percorso del solutore, punto ed esito
+  della regola della 0.0.17.0. `ContractVerdictsAreKeptForTheContinuousDiagrams` controlla che con i legami continui
+  esito e tolleranza restino identici (768 punti) e che con lo stress block nessun punto accettato prima sia
+  rifiutato (164 confermati, 7 accettati in più).
+
 ### Taglio
 
 - Profili scelti dal tipo esatto della classe Standard: NTC 2018, Model Code 2010 livello II, EN 1992-1-1 e annessi
