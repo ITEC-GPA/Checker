@@ -11,7 +11,7 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 | Namespace | Contenuto | Origine in ANTHEA (commit fe4652c) |
 | --- | --- | --- |
 | `GPC.Checkers.Concrete.Shear` | Taglio di sezione in una direzione: `SectionShearCalculator`, `SectionShearInput`, `SectionShearResult`, `ShearProfiles` | `ConcreteCodeChecks.Shear`, `Ntc2018Checks.Shear` |
-| `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck`; fattore dei getti sottili: `ThinCasting` | `CheckerSection.DescribeStress` |
+| `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck`; fattore dei getti sottili: `ThinCasting`; omogeneizzazione n ↔ φ: `Homogenization` | `CheckerSection.DescribeStress`, `Homogenization` (`ConcreteSectionProperties`) |
 | `GPC.Checkers.Concrete.Torsion` | Torsione con interazione del taglio nelle due direzioni: `SectionTorsionCalculator`, `SectionTorsionInput`, `TorsionGeometry`, `TorsionProfiles` | `ConcreteTorsionCalculator`, `ConcreteShearAnalysis.Torsion` |
 | `GPC.Checkers.Concrete.Cracking` | Fessurazione di sezione: `SectionCrackCheck`, `CrackRequirements`, `CrackWidthCalculator`, `CrackSectionGeometry`, `CrackProfiles` | `Ntc2018Checks.Cracking`, `ConcreteCodeChecks` (requisiti, wk, hc,eff), `ConcreteTensionCracking`, `ConcreteInnerCracking`, `TensionBarSpacing`, `SectionRegions` |
 | `GPC.Checkers.Concrete.Detailing` | Aderenza, ancoraggi e sovrapposizioni (`AnchorageCalculator`), dettagli 1D di travi e pilastri (`MemberDetailingCalculator`), `DetailingProfiles` | `ConcreteBond`, `ConcreteAnchorageCalculator`, `ConcreteDetailingCalculator` |
@@ -65,10 +65,27 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   - La classe si riconosce dal tipo esatto. ANTHEA crea «UNI EN 1992-1-1» come `StandardUNIEN1992p11`, che in Model è
     per definizione la UNI EN 1992-1-1:2005 con l'appendice italiana e non ha membri che scelgano un'appendice: basta
     il tipo. I coefficienti personalizzati non cambiano la classe e conservano il fattore.
+- `Homogenization`: rapporto modulare n = Es·(1 + φ)/Ec delle barre (o dei trefoli) omogeneizzate al calcestruzzo e
+  coefficiente di viscosità φ che dà un n scelto.
+  - `ModularRatio(es, ec, phi)` = `es * (1 + phi) / ec` e `CreepFromModularRatio(n, es, ec)` = `n * ec / es - 1`:
+    pura aritmetica senza controlli, con l'ordine delle operazioni delle copie di ANTHEA
+    (`ConcreteSectionProperties.cs:48, :50`, `ConcreteStress.cs:178, :183`, `ReportConcreteShort.cs:78`,
+    `Ntc2018Checks.cs:238`), quindi uguali bit per bit. φ < 0 dà n < Es/Ec, come nella scheda delle tensioni di
+    ANTHEA; NaN e infiniti si propagano.
+  - `Resolve(es, ec, fromN, value)`: φ e n da φ o da n, con i controlli di ANTHEA (`ConcreteSectionProperties.cs:44-53`):
+    moduli finiti e positivi e valore finito; φ, dato o ricavato da n, finito e non minore di −1e-12
+    (`CreepTolerance`), poi max(0, φ); n finito. I rifiuti sono `ArgumentException` (tipo esatto) con messaggio inglese
+    e motivo `HomogenizationRejection` (`InvalidInput`, `NegativeCreep`, `RatioOutOfRange`) in
+    `Exception.Data[Homogenization.RejectionKey]`: il chiamante li mappa sui propri testi senza leggere il messaggio.
+  - La forma Es/(Ec/(1 + φ)) di Model (`ConcreteSectionHelper`) è un'altra espressione e può differire nell'ultima
+    cifra.
 - Casi legacy congelati: `Fixtures/stress-legacy.csv` (2016 stati) e `Fixtures/stress-sections.xml`
   (`ServiceabilityMigrationTests`). Su tutti gli stati, compresi frequente e quasi permanente, `SteelLimit` riproduce
   il limite dell'acciaio del legacy, `Satisfied` il testo di stato e `ThinCasting.Factor` la riduzione dei getti
   sottili.
+- Omogeneizzazione (`ServiceabilityMigrationTests`): le espressioni di ANTHEA, riscritte nel test, sono confrontate bit
+  per bit su φ ∈ {−0,5, −1e-13, 0, 0,5, 2, 15} con 3 moduli dell'acciaio e 4 del calcestruzzo; `Resolve` dà gli
+  stessi φ e n o lo stesso rifiuto, anche ai bordi della tolleranza.
 - Trefoli con predeformazione nulla: `NotSupportedException`.
 
 ### Torsione
