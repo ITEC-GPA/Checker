@@ -18,7 +18,40 @@ La pagina è la revisione tecnica del metodo: descrive ciò che il codice fa, no
 | [ca.momento-curvatura](ca.momento-curvatura.md) | Risposta momento-curvatura a sforzo normale costante | `MomentCurvatureAnalysis` | bozza |
 
 La pressoflessione (dominio di rottura e verifica di resistenza della sezione) avrà una pagina con lo stesso
-template.
+template. Fino ad allora vale l'avvertenza della libreria sulla tolleranza su N dei punti a N assegnato
+(`DomainPointAxialTolerance`, sezione «Resistenza a N assegnato» del README di GPCChecker.Concrete): con lo stress
+block il punto è meno preciso. La pagina riporterà questi riquadri (prefisso P), nelle sezioni 8 e 9:
+
+> **Limite numerico — P-1 (S-1) Stress block: punto a N assegnato meno preciso**
+>
+> - Metodo: il punto del dominio cercato a N assegnato è la resistenza a quello N se |NRd − N| ≤ max(1 kN; 1e-6 |N|;
+>   0,5e-4 b h fck), con l'ultimo termine come nel riquadro P-2.
+> - Programma: con lo stress block la tensione salta da 0 a η fcd a (1 − λ) εcu e la risultante integrata sui punti
+>   di Gauss di una mesh fissa cambia a gradini; la ricerca iterativa può fermarsi con N diverso da quello assegnato.
+>   La tolleranza è almeno 1e-3 NRd,c, con NRd,c resistenza a compressione centrata della sezione
+>   (`DomainPointAxialTolerance`).
+> - Effetto: momento resistente diverso da quello a N esatto di meno dello 0,5 % nel 95 % dei punti del campione di
+>   convalida (13 sezioni, 4 legami, 8840 punti, N da −0,90 a +0,19 NRd,c), fino a circa 1-2 % vicino agli estremi di
+>   questo intervallo; segno variabile. Sono valori misurati, non limiti: vicino alla compressione centrata la
+>   differenza relativa cresce, circa |NRd − N| / (NRd,c − |N|) (circa 5 % con 1e-3 NRd,c a |N| = 0,98 NRd,c).
+>   Il percorso della ricerca è caotico e può cambiare con il runtime.
+> - Stato: `dichiarato`.
+
+> **Limite numerico — P-2 (S-1) Tolleranza su N proporzionale alla sezione**
+>
+> - Metodo: la ricerca iterativa del punto a N assegnato si ferma quando lo scarto su N del punto prima dell'ultimo
+>   passo, diviso per b h fck, è sotto 0,25e-4 (b e h lati del rettangolo che contiene il calcestruzzo). Poi fa quel
+>   passo e restituisce il punto nuovo, che può essere più lontano da N: la prova di arresto non limita il punto
+>   restituito. Nel campione di convalida lo scarto arriva a 1,47 volte 0,25e-4 b h fck (1 punto su 6404 del percorso
+>   iterativo con i legami continui; gli altri entro 0,91 volte).
+> - Programma: la tolleranza su N del punto non è mai più stretta di 2 · 0,25e-4 b h fck = 0,5e-4 b h fck, per tutti i
+>   legami (`DomainPointAxialTolerance.ConvergenceFactor` per `ConvergenceTolerance`). Il fattore 2 è un margine sulle
+>   misure, non un limite dimostrato. Esempi: 1280 N per D 800 C40/50, 7 kN per D 2000 C35/45. La regola fino alla
+>   0.0.17.0 (max(1 kN; 1e-6 |N|)) rifiutava i pali di ANTHEA da D 1600 in su a N = 0.
+> - Effetto: sulle sezioni con b h fck oltre 2e7 N sono accettati punti con scarto su N fino a 0,5e-4 b h fck, anche
+>   con i legami continui; i valori dei punti non cambiano. Palo D 2000, N = 0: MRd 2537,95 kNm contro 2536,85 kNm
+>   della forma chiusa (0,04 %).
+> - Stato: `dichiarato`.
 
 ## Convenzioni
 
@@ -71,6 +104,10 @@ sezione della formula interessata:
 Il codice del riquadro ha il prefisso della pagina (T, R, E, F, A, D, C, M) e un numero; i riquadri delle decisioni
 D7 del refactoring riportano anche la lettera della scheda, per esempio "F-1 (D7-a)", e quelli delle voci del
 registro delle differenze di ANTHEA il numero della voce, per esempio "T-1 (R4)".
+
+Un limite numerico del programma (tolleranze, precisione della ricerca) che non si discosta dalla norma ha un riquadro
+«Limite numerico» con le voci Metodo (ciò che il metodo richiede), Programma, Effetto e Stato; il codice segue le
+stesse regole, per esempio "P-1 (S-1)" per la divergenza S-1 del banco F2.1 di ANTHEA.
 
 ## Template della pagina
 

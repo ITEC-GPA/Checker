@@ -789,6 +789,27 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
+        /// <summary>
+        /// The axial force of the failure domain for the uniform strain of pure compression (N, negative): the strain of
+        /// <see cref="GetYieldingStrainPureCompression"/> on the whole section, integrated as the points of the domain (reduction factor and
+        /// compression limit of the standard included). See <see cref="DomainPointAxialTolerance.CentredCompressionResistance(SectionSolver)"/>
+        /// </summary>
+        /// <returns>The axial force; 0 if the integration fails</returns>
+        internal double CalculatePureCompressionAxialForce() =>
+            CalculateForceResultantForDomain(new StrainPlane(0, 0, _integrationReferencePoint, GetYieldingStrainPureCompression())).N;
+
+        /// <summary>
+        /// The tolerance on N of the stopping test of the search of a point of the domain (N, positive): <see cref="FailureAnalysisDistanceTolerance"/>
+        /// divided by the adimensional axial force of 1 N (<see cref="ConvertToAdimensionalForces"/>), that is the distance tolerance times b h fck.
+        /// Not a bound of the returned point: see <see cref="DomainPointAxialTolerance.ConvergenceTolerance(SectionSolver)"/>
+        /// </summary>
+        /// <returns>The tolerance; 0 if the scale is not finite or not positive</returns>
+        internal double CalculateAxialConvergenceTolerance()
+        {
+            double tolerance = _failureAnalysisDistanceTolerance / ConvertToAdimensionalForces(new ForceTuple(1.0, 0, 0)).N;
+            return double.IsNaN(tolerance) || double.IsInfinity(tolerance) || tolerance < 0 ? 0 : tolerance;
+        }
+
         #endregion
 
         #region Protected method - SectionIntegration
