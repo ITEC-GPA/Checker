@@ -91,6 +91,8 @@
   <ItemGroup>
     <Compile Include="ConcreteTestBase.cs" />
     <Compile Include="ConcreteControlTests.cs" />
+    <Compile Include="DomainPointContractTests.cs" />
+    <Compile Include="DomainPointAxialToleranceTests.cs" />
     <Compile Include="BridgeElasticStagesTests.cs" />
     <Compile Include="BridgeLinearSolverAuditTests.cs" />
     <Compile Include="FailureDomainCheckFRCTest.cs" />
@@ -112,8 +114,6 @@
     <Compile Include="DurabilityMigrationTests.cs" />
     <Compile Include="DurabilityEdgeCaseTests.cs" />
     <Compile Include="DurabilityExamplesTests.cs" />
-    <Compile Include="DomainPointContractTests.cs" />
-    <Compile Include="DomainPointAxialToleranceTests.cs" />
     <Compile Include="StressAnalysisPSCTest.cs" />
     <Compile Include="StressAnalysisRCTest.cs" />
     <Compile Include="ValidationTestFailureDomain.cs" />
@@ -125,6 +125,9 @@
     <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Fixtures\shear-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\domain-point-contract.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\stress-legacy.csv">
@@ -161,9 +164,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\detailing-sections.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Fixtures\domain-point-contract.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
