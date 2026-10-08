@@ -14,7 +14,7 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 | `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck` | `CheckerSection.DescribeStress` |
 | `GPC.Checkers.Concrete.Torsion` | Torsione con interazione del taglio nelle due direzioni: `SectionTorsionCalculator`, `SectionTorsionInput`, `TorsionGeometry`, `TorsionProfiles` | `ConcreteTorsionCalculator`, `ConcreteShearAnalysis.Torsion` |
 | `GPC.Checkers.Concrete.Cracking` | Fessurazione di sezione: `SectionCrackCheck`, `CrackRequirements`, `CrackWidthCalculator`, `CrackSectionGeometry`, `CrackProfiles` | `Ntc2018Checks.Cracking`, `ConcreteCodeChecks` (requisiti, wk, hc,eff), `ConcreteTensionCracking`, `ConcreteInnerCracking`, `TensionBarSpacing`, `SectionRegions` |
-| `GPC.Checkers.Concrete.Detailing` | Aderenza, ancoraggi e sovrapposizioni (`AnchorageCalculator`), dettagli 1D di travi e pilastri (`MemberDetailingCalculator`), `DetailingProfiles` | `ConcreteBond`, `ConcreteAnchorageCalculator`, `ConcreteDetailingCalculator` |
+| `GPC.Checkers.Concrete.Detailing` | Aderenza, ancoraggi e sovrapposizioni (`AnchorageCalculator`), dettagli 1D di travi, pilastri, solette piene e pareti (`MemberDetailingCalculator`), `DetailingProfiles` | `ConcreteBond`, `ConcreteAnchorageCalculator`, `ConcreteDetailingCalculator` |
 | `GPC.Checkers.Concrete.Response` | Curva momento-curvatura a N costante (`MomentCurvatureAnalysis`): risposta numerica, non verifica | `MomentCurvatureCalculator`, `ConcreteCurvatureAnalysis` |
 | `GPC.Checkers.Concrete.Durability` | Classi di esposizione e loro requisiti (`ExposureClasses`), copriferri per norma (`CoverRequirements`, `DurabilityProfiles`), classi minime di resistenza | `Materiali.Durability`, `NtcCover`, `MinimumConcrete`, `MaterialCover` |
 
@@ -139,14 +139,39 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   - interferro;
   - copriferro nominale e margine di ogni barra (cmin,dur è un dato del progetto di durabilità);
   - armatura longitudinale minima e massima, staffe minime e passi.
-  Le regole di piastre e pareti restano alle verifiche plate. Ogni controllo in sospeso indica se mancano dati o
-  conferme oppure se la regola non è implementata.
+  Ogni controllo in sospeso indica se mancano dati o conferme oppure se la regola non è implementata.
+- **Solette piene e pareti** (0.0.18.0, `MemberDetailingKind.Slab` e `Wall`), solo con il profilo NTC 2018 e con
+  CNR-DT 200; con gli altri profili `NotSupportedException`. Regole e ordine di ANTHEA (`ConcreteDetailing.cs` a
+  98a21d4):
+  - i dati che le barre della sezione non danno stanno in `PlateDetailingData`: armatura secondaria (soletta) od
+    orizzontale (parete) in mm²/m, somma delle due facce; il suo passo (0 = non dato, controllo in sospeso); zona
+    critica della soletta. Si passano con il costruttore nuovo di `MemberDetailingInput` (25 argomenti, l'ultimo
+    `MemberDetailingOptions`); senza questi dati soletta e parete danno `ArgumentException`;
+  - soletta: striscia rettangolare senza fori (b = larghezza, h = spessore), controllata prima della validazione
+    numerica; As,min e As,max delle due facce come la trave ma senza staffe; interasse principale min(2h; 250) in
+    zona critica, min(3h; 400) altrove, senza controllo in sospeso se la disposizione non è riconosciuta; armatura
+    secondaria ≥ 20 % della principale; passo secondario min(3h; 400) o min(3,5h; 450); ripartizione sulle facce e
+    bordi, appoggi e punzonamento in sospeso; niente trattenimento delle barre compresse né ancoraggio agli appoggi;
+  - parete: As,v ≥ 0,002 Ac e ≤ 0,04 Ac fuori dalle sovrapposizioni, interasse verticale ≤ min(3t; 400),
+    orizzontale ≥ max(0,25 As,v; 0,001 Ac) per metro, passo orizzontale ≤ 400, facce e legature in sospeso;
+    nella zona di sovrapposizione As ≤ 0,08 Ac, come i pilastri;
+  - i dati di `PlateDetailingData`, se presenti, si validano per ogni tipo di elemento (finiti e non negativi),
+    come fa ANTHEA anche per travi e pilastri; con travi e pilastri non cambiano i controlli;
+  - un valore di tipo non definito resta una trave, come nella 0.0.17.0.
+- **Opzione legacy `MemberDetailingOptions.LegacyNegativeLinkLegs`** (falsa con `Default`): accetta un numero di
+  rami negativo e lo usa com'è in Ast/s della trave, come ANTHEA prima della 0.0.18.0 (`rami_y` del pannello dei
+  parametri). Con la famiglia Eurocodice l'interasse trasversale dei rami resta in sospeso. È il comportamento di
+  ANTHEA conservato per l'adattatore; la correzione è la proposta F2.8-U2 all'utente.
 - **M-curvatura** (`MomentCurvatureAnalysis`): ramo a momento crescente con N costante. Usa il punto limite del
   dominio di rottura nativo e le analisi non lineari, e raffina il primo snervamento per bisezione. È una risposta,
   non un esito normativo.
 - **Casi legacy congelati e riprodotti** (`DetailingMigrationTests`):
   - `Fixtures/anchorage-legacy.csv`: 445 ancoraggi, 5 rifiuti, 18 resistenze di aderenza;
   - `Fixtures/detailing-legacy.csv`: 144 travi e pilastri NTC su `detailing-sections.xml`;
+  - `Fixtures/detailing-plate-legacy.csv`: 182 righe su `detailing-plate-sections.xml`, cioè 172 calcoli (103
+    solette, 63 pareti, 3 travi, 3 pilastri) e 10 rifiuti (7 contorni di soletta, 3 numerici). Le 12 righe con rami
+    −2, 3 per tipo, si riproducono con l'opzione legacy e si rifiutano senza. 1665 controlli, 435 in sospeso:
+    stesse chiavi nello stesso ordine, stessi esiti e unità, valori e limiti a 1e-9;
   - `Fixtures/curvature-legacy.csv`: 5 curve.
   Tolleranza delle curve:
   - 1e-7 sulle deformazioni dei punti con acciaio elastico;
