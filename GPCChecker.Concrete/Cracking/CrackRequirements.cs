@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using GPC.Checkers.Concrete.Serviceability;
 
@@ -40,21 +42,47 @@ namespace GPC.Checkers.Concrete.Cracking
     /// </summary>
     public static class CrackRequirements
     {
-        /// <summary>Exposure classes in the order of the NTC environment groups: X0..XF1 ordinary, XC4..XF3 aggressive, XD2..XF4 very aggressive.</summary>
-        public static readonly string[] Exposures = { "X0", "XC1", "XC2", "XC3", "XF1", "XC4", "XD1", "XS1", "XA1", "XA2", "XF2", "XF3", "XD2", "XD3", "XS2", "XS3", "XA3", "XF4" };
+        // The list the requirements read (0.0.18.0): private, so a change of the public array Exposures no longer moves the NTC environment groups.
+        // The NTC groups are the index ranges of this order (see Ntc).
+        private static readonly string[] ExposureOrder = { "X0", "XC1", "XC2", "XC3", "XF1", "XC4", "XD1", "XS1", "XA1", "XA2", "XF2", "XF3", "XD2", "XD3", "XS2", "XS3", "XA3", "XF4" };
 
-        /// <param name="exposure">Exposure class of <see cref="Exposures"/>; null when not given.</param>
+        /// <summary>
+        /// Exposure classes in the order of the NTC environment groups: X0..XF1 ordinary, XC4..XF3 aggressive, XD2..XF4 very aggressive (0.0.18.0).
+        /// Read-only view of the private list that the requirements read.
+        /// </summary>
+        public static IReadOnlyList<string> ExposureClasses { get; } = new ReadOnlyCollection<string>(ExposureOrder);
+
+        /// <summary>
+        /// The classes of <see cref="ExposureClasses"/> as a writable array, kept for binary compatibility with 0.0.17.0. Since 0.0.18.0 the library no
+        /// longer reads it: changing its elements does not change the requirements. Use <see cref="ExposureClasses"/>.
+        /// </summary>
+        public static readonly string[] Exposures = ExposureOrder.ToArray();
+
+        /// <param name="exposure">Exposure class of <see cref="ExposureClasses"/>; null when not given.</param>
         /// <param name="sensitive">Reinforcement sensitive to corrosion (NTC 2018 §4.1.2.2.4).</param>
         /// <param name="designLimit">Design wlim, mm, when assigned (Eurocode family and Model Code 2010).</param>
         public static CrackRequirement For(CrackProfile profile, ServiceabilityCombination combination, string exposure, bool sensitive, double? designLimit = null)
+            => For(profile, combination, exposure, sensitive, designLimit, SectionCrackOptions.Default);
+
+        /// <summary>
+        /// Requirement with the options of the crack check (0.0.18.0). With <see cref="SectionCrackOptions.ValidateAtUse"/> the design limit is validated
+        /// only where it is used (Eurocode family and Model Code 2010 in the required combination), otherwise always, as the overload without options.
+        /// </summary>
+        /// <param name="options">Required: <see cref="SectionCrackOptions.Default"/> for the behaviour of 0.0.17.0.</param>
+        public static CrackRequirement For(CrackProfile profile, ServiceabilityCombination combination, string exposure, bool sensitive, double? designLimit,
+            SectionCrackOptions options)
         {
-            if (exposure != null && !Exposures.Contains(exposure)) throw new ArgumentException("Unknown exposure class: " + exposure);
-            if (designLimit.HasValue && (double.IsNaN(designLimit.Value) || double.IsInfinity(designLimit.Value) || designLimit <= 0))
-                throw new ArgumentOutOfRangeException(nameof(designLimit));
-            if (CrackProfiles.IsNtc(profile) || profile == CrackProfile.UniEN1992p11) return Ntc(combination, exposure, sensitive);
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (exposure != null && !ExposureOrder.Contains(exposure)) throw new ArgumentException("Unknown exposure class: " + exposure);
+            if (!options.ValidateAtUse) RequireDesignLimit(designLimit);
+            if (CrackProfiles.HasNtcRequirementTable(profile)) return Ntc(combination, exposure, sensitive);
             var required = profile == CrackProfile.NsEN1992p11 && (exposure == "XD3" || exposure == "XS3") ? ServiceabilityCombination.Frequent : ServiceabilityCombination.QuasiPermanent;
             if (combination != required) return new CrackRequirement(CrackCriterion.NotRequired, null, required);
-            if (designLimit.HasValue) return new CrackRequirement(CrackCriterion.CrackWidth, designLimit);
+            if (designLimit.HasValue)
+            {
+                RequireDesignLimit(designLimit);
+                return new CrackRequirement(CrackCriterion.CrackWidth, designLimit);
+            }
             if (profile == CrackProfile.ModelCode2010) return new CrackRequirement(CrackCriterion.DesignLimitRequired);
             double? limit;
             if (profile == CrackProfile.DsEN1992p11)
@@ -88,10 +116,16 @@ namespace GPC.Checkers.Concrete.Cracking
             return new CrackRequirement(CrackCriterion.CrackWidth, limit);
         }
 
+        private static void RequireDesignLimit(double? designLimit)
+        {
+            if (designLimit.HasValue && (double.IsNaN(designLimit.Value) || double.IsInfinity(designLimit.Value) || designLimit <= 0))
+                throw new ArgumentOutOfRangeException(nameof(designLimit));
+        }
+
         private static CrackRequirement Ntc(ServiceabilityCombination combination, string exposure, bool sensitive)
         {
             if (combination == ServiceabilityCombination.Characteristic) return new CrackRequirement(CrackCriterion.NotRequired);
-            int index = exposure == null ? -1 : Array.IndexOf(Exposures, exposure);
+            int index = exposure == null ? -1 : Array.IndexOf(ExposureOrder, exposure);
             if (index < 0) return new CrackRequirement(CrackCriterion.ExposureRequired);
             bool qp = combination == ServiceabilityCombination.QuasiPermanent;
             int environment = index <= 4 ? 0 : index <= 11 ? 1 : 2; // legacy list starts with a placeholder: ≤5 / ≤12 there

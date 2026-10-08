@@ -48,6 +48,11 @@ namespace GPC.Checkers.Concrete.Serviceability
         public StressLimitPoint SteelGoverning { get; internal set; }
         public double? SteelRatio => SteelGoverning?.Ratio;
         public double? Ratio => ConcreteRatio.HasValue || SteelRatio.HasValue ? Math.Max(ConcreteRatio ?? 0, SteelRatio ?? 0) : (double?)null;
+        /// <summary>
+        /// True when <see cref="Ratio"/> ≤ 1 (within the limits, the limit itself included), false when it is greater; null
+        /// without a ratio, when no limit applies to the combination (frequent): the stress state is only calculated.
+        /// </summary>
+        public bool? Satisfied => Ratio.HasValue ? Ratio.Value <= 1 : (bool?)null;
         public IReadOnlyList<StressLimitPoint> ConcretePoints { get; internal set; } = new StressLimitPoint[0];
         public IReadOnlyList<StressLimitPoint> SteelPoints { get; internal set; } = new StressLimitPoint[0];
     }
@@ -69,6 +74,19 @@ namespace GPC.Checkers.Concrete.Serviceability
         public static string NotApplicableReason(Standard standard)
             => standard != null && standard.GetType() == typeof(StandardCSTR34)
                 ? "CS-TR34 (ground-supported floor slabs) does not set serviceability stress limits for the section." : null;
+
+        /// <summary>
+        /// Absolute steel stress limit k3·fyk (MPa) of a bar material, |<see cref="SteelMaterial.GetServiceabilityCharacteristicStress"/>|,
+        /// with the coefficient of <paramref name="standard"/> (custom coefficients included). It does not depend on the combination:
+        /// callers that show the steel limit for every serviceability state use it also for the quasi-permanent and frequent ones,
+        /// where <see cref="Evaluate"/> sets no steel limit. No prestressing rule: for a tendon material it is still k3·fyk.
+        /// </summary>
+        public static double SteelLimit(StandardModelCode2010 standard, SteelMaterial material)
+        {
+            if (standard == null) throw new ArgumentNullException(nameof(standard));
+            if (material == null) throw new ArgumentNullException(nameof(material));
+            return Math.Abs(material.GetServiceabilityCharacteristicStress(standard));
+        }
 
         public static StressLimitResult Evaluate(StressAnalysisResult result, ServiceabilityCombination combination, double concreteLimitFactor = 1)
         {

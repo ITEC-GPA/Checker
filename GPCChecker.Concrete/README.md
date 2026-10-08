@@ -11,7 +11,7 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 | Namespace | Contenuto | Origine in ANTHEA (commit fe4652c) |
 | --- | --- | --- |
 | `GPC.Checkers.Concrete.Shear` | Taglio di sezione in una direzione: `SectionShearCalculator`, `SectionShearInput`, `SectionShearResult`, `ShearProfiles` | `ConcreteCodeChecks.Shear`, `Ntc2018Checks.Shear` |
-| `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck` | `CheckerSection.DescribeStress` |
+| `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck`; fattore dei getti sottili: `ThinCasting`; omogeneizzazione n ↔ φ: `Homogenization` | `CheckerSection.DescribeStress`, `Homogenization` (`ConcreteSectionProperties`) |
 | `GPC.Checkers.Concrete.Torsion` | Torsione con interazione del taglio nelle due direzioni: `SectionTorsionCalculator`, `SectionTorsionInput`, `TorsionGeometry`, `TorsionProfiles` | `ConcreteTorsionCalculator`, `ConcreteShearAnalysis.Torsion` |
 | `GPC.Checkers.Concrete.Cracking` | Fessurazione di sezione: `SectionCrackCheck`, `CrackRequirements`, `CrackWidthCalculator`, `CrackSectionGeometry`, `CrackProfiles` | `Ntc2018Checks.Cracking`, `ConcreteCodeChecks` (requisiti, wk, hc,eff), `ConcreteTensionCracking`, `ConcreteInnerCracking`, `TensionBarSpacing`, `SectionRegions` |
 | `GPC.Checkers.Concrete.Detailing` | Aderenza, ancoraggi e sovrapposizioni (`AnchorageCalculator`), dettagli 1D di travi e pilastri (`MemberDetailingCalculator`), `DetailingProfiles` | `ConcreteBond`, `ConcreteAnchorageCalculator`, `ConcreteDetailingCalculator` |
@@ -50,9 +50,51 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - Frequente: nessun limite.
 - I coefficienti vengono dalla classe Standard. Il fattore sul limite del calcestruzzo (getti sottili) è esplicito.
 - CS-TR34 non fissa limiti tensionali di sezione (`StressLimitCheck.NotApplicableReason`).
+- `StressLimitResult.Satisfied`: vero con `Ratio` ≤ 1, falso oltre, null senza `Ratio` (combinazione frequente).
+- `StressLimitCheck.SteelLimit(standard, materiale)`: limite dell'acciaio |k3·fyk| del materiale, con i coefficienti
+  della classe (anche personalizzati). Non dipende dalla combinazione: serve a chi mostra il limite dell'acciaio
+  anche nelle combinazioni quasi permanente e frequente, dove `Evaluate` non lo fissa. Per un trefolo resta k3·fyk.
+- `ThinCasting.Factor(standard)` e `ThinCasting.Factor(standard, regola)`: fattore dei getti sottili, cioè degli
+  elementi piani gettati in opera con spessore minore di 50 mm. Il chiamante sa se l'elemento è sottile e lo applica
+  al limite del calcestruzzo (`concreteLimitFactor`) e ad αcc e fcd; i limiti dell'acciaio non cambiano.
+  - Regola predefinita (`ThinCastingRule.Ntc2018Only`, valore 0, usata dal metodo senza regola): 0,8 per la
+    classe esatta NTC 2018 (§4.1.2.1.1.1 per fcd, §4.1.2.2.5.1 per i limiti SLE), 1 per tutte le altre, comprese le
+    derivate (CNR-DT 200). Sono i valori di ANTHEA prima di F2.7.
+  - Opzione `ThinCastingRule.Ntc2018AndItalianAnnex`: 0,8 anche per UNI EN 1992-1-1 con l'appendice nazionale
+    italiana (DM 31/07/2012 7.2), come indica la pagina del metodo `ca.sle-tensioni` (§6.2 e riga fs di §7).
+  - La classe si riconosce dal tipo esatto. ANTHEA crea «UNI EN 1992-1-1» come `StandardUNIEN1992p11`, che in Model è
+    per definizione la UNI EN 1992-1-1:2005 con l'appendice italiana e non ha membri che scelgano un'appendice: basta
+    il tipo. I coefficienti personalizzati non cambiano la classe e conservano il fattore.
+- `Homogenization`: rapporto modulare n = Es·(1 + φ)/Ec delle barre (o dei trefoli) omogeneizzate al calcestruzzo e
+  coefficiente di viscosità φ che dà un n scelto.
+  - `ModularRatio(es, ec, phi)` = `es * (1 + phi) / ec` e `CreepFromModularRatio(n, es, ec)` = `n * ec / es - 1`:
+    pura aritmetica senza controlli, con l'ordine delle operazioni delle copie di ANTHEA
+    (`ConcreteSectionProperties.cs:48, :50`, `ConcreteStress.cs:178, :183`, `ReportConcreteShort.cs:78`,
+    `Ntc2018Checks.cs:238`), quindi uguali bit per bit. φ < 0 dà n < Es/Ec, come nella scheda delle tensioni di
+    ANTHEA; NaN e infiniti si propagano.
+  - `Resolve(es, ec, fromN, value)`: φ e n da φ o da n, con i controlli di ANTHEA (`ConcreteSectionProperties.cs:44-53`):
+    moduli finiti e positivi e valore finito; φ, dato o ricavato da n, finito e non minore di −1e-12
+    (`CreepTolerance`), poi max(0, φ); n finito. I rifiuti sono `ArgumentException` (tipo esatto) con messaggio inglese
+    e motivo `HomogenizationRejection` (`InvalidInput`, `NegativeCreep`, `RatioOutOfRange`) in
+    `Exception.Data[Homogenization.RejectionKey]`: il chiamante li mappa sui propri testi senza leggere il messaggio.
+  - La forma Es/(Ec/(1 + φ)) di Model (`ConcreteSectionHelper`) è un'altra espressione e può differire nell'ultima
+    cifra.
 - Casi legacy congelati: `Fixtures/stress-legacy.csv` (2016 stati) e `Fixtures/stress-sections.xml`
-  (`ServiceabilityMigrationTests`).
+  (`ServiceabilityMigrationTests`). Su tutti gli stati, compresi frequente e quasi permanente, `SteelLimit` riproduce
+  il limite dell'acciaio del legacy, `Satisfied` il testo di stato e `ThinCasting.Factor` la riduzione dei getti
+  sottili.
+- Calcoli a mano (`ServiceabilityMigrationTests`), perché la fixture ha k3 = 0,8 e nessun rapporto uguale a 1:
+  - `SteelLimit` con k3 personalizzato, per esempio 0,7 su B450C = 315 MPa, anche con lo standard restituito
+    dall'analisi, uguale al limite delle barre di `Evaluate`;
+  - `Satisfied` al bordo: vero con `Ratio` = 1 esatto, falso un ulp oltre, come `ratio <= 1` del legacy.
+- Omogeneizzazione (`ServiceabilityMigrationTests`): le espressioni di ANTHEA, riscritte nel test, sono confrontate bit
+  per bit su φ ∈ {−0,5, −1e-13, 0, 0,5, 2, 15} con 3 moduli dell'acciaio e 4 del calcestruzzo; `Resolve` dà gli
+  stessi φ e n o lo stesso rifiuto, anche ai bordi della tolleranza.
 - Trefoli con predeformazione nulla: `NotSupportedException`.
+- Contratto di ModelChecker della 0.0.17.0 (`ModelCheckerContractTests`, `Fixtures/model-checker-contract.json`):
+  uscite di `Evaluate` e `NotApplicableReason` con gli argomenti di ModelChecker sui 2016 stati di
+  `stress-legacy.csv`, su tutte le norme e su fattori e combinazioni non validi. È una fotografia di regressione
+  catturata da 4f54139a, non un atteso indipendente: con le opzioni predefinite resta identica byte per byte.
 
 ### Torsione
 
@@ -95,6 +137,19 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   - famiglia Eurocodice: solo la quasi permanente (NS: la frequente per XD3/XS3), con le tabelle EN 7.1N (anche
     DIN), DK NA 7.1 NA e NS NA;
   - wlim di progetto facoltativo; Model Code 2010 lo richiede.
+- **Classi di esposizione** (`CrackRequirements.ExposureClasses`, 0.0.18.0): le 18 classi nell'ordine dei gruppi
+  ambientali NTC, cioè da X0 a XF1 ordinario, da XC4 a XF3 aggressivo, da XD2 a XF4 molto aggressivo.
+  - È una vista di sola lettura (`IReadOnlyList<string>`, sempre lo stesso oggetto) sulla copia privata che i
+    requisiti leggono, sia per riconoscere la classe sia per il gruppo ambientale.
+  - L'array pubblico `Exposures` resta, con le stesse classi, per la compatibilità binaria con la 0.0.17.0, ma la
+    libreria non lo legge più: modificarne gli elementi non sposta i gruppi e non cambia i requisiti.
+  - Prove in `CrackMigrationTests`. L'ordine e i gruppi NTC sono quelli delle righe dei requisiti di
+    `crack-scalar-legacy.csv`. Con l'array pubblico rovesciato e una classe sconosciuta al posto di XF4:
+    - i 1596 requisiti si riproducono con `For` senza opzioni, con le opzioni predefinite e con `ValidateAtUse`;
+    - XF4 resta accettata e la classe sconosciuta resta rifiutata;
+    - `Evaluate` dà gli stessi risultati e lo stesso rifiuto.
+
+    Il test ripristina l'array in un `finally`.
 - **Apertura wk** (`CrackWidthCalculator`):
   - NTC: 1,7 Δsm (εsm − εcm) della Circolare;
   - Eurocodice: sr,max (εsm − εcm), con le varianti DS (k3), DIN (kt, limite σs Ø/(3,6 fct)) e MC2010 (sr e βmin).
@@ -111,6 +166,104 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - **Geometria** (`CrackSectionGeometry.From`): contorno, fori e barre ordinarie della sezione di Model. Il cerchio è
   riconosciuto dai vertici equidistanti; gli anelli concentrici vanno confermati. L'interasse automatico vale per
   file allineate o anelli, altrimenti va assegnato.
+- **Opzioni** (`SectionCrackOptions`, 0.0.18.0). Sono membri nuovi: con `SectionCrackOptions.Default` comportamento
+  e contratto della 0.0.17.0 non cambiano.
+  - Le opzioni sono immutabili: si parte da `Default` e si usano i metodi `With…`, che restituiscono una copia.
+  - Si passano con il costruttore nuovo di `SectionCrackInput`, che chiede tutti gli argomenti più le opzioni, senza
+    valori predefiniti. Il costruttore esistente, quello di ModelChecker, usa `Default`. Anche
+    `CrackRequirements.For` ha un overload con le opzioni obbligatorie.
+  - `ValidateAtUse` (falso di default) controlla i dati dove entrano nel calcolo, come ANTHEA:
+    - il wlim di progetto solo per la famiglia Eurocodice e MC2010 nella combinazione richiesta. NTC e UNI lo
+      ignorano; nelle altre combinazioni l'esito è `NotRequired`;
+    - copriferro nominale, copriferro e interasse assegnati nel ramo che li legge, con la stessa
+      `ArgumentOutOfRangeException` e lo stesso parametro, prima il copriferro e poi l'interasse. Non li leggono
+      decompressione, formazione delle fessure, combinazioni non richieste, asse neutro nel copriferro, barre tese
+      fuori da Ac,eff e sezione interamente compressa. Fa eccezione il copriferro nominale con il profilo DIN e
+      `EffectiveDepthCover` nullo: nella sezione parzialmente compressa con barre tese la condizione DIN di hc,eff
+      lo legge, e quindi lo controlla, prima di stabilire quali barre sono in Ac,eff, anche quando poi non ce n'è
+      nessuna. Con `EffectiveDepthCover` assegnato, come farà l'adattatore di ANTHEA, la regola vale anche per DIN;
+    - le tensioni delle barre dopo il ritorno della sezione interamente compressa, che dà wk = 0 anche con tensioni
+      mancanti o non finite. Il messaggio è «Cracking: bar stresses missing or not finite.». Con
+      `NtcK2FromCompressedBars` le tensioni scelgono k2 e restano controllate prima di ogni ramo.
+  - `EffectiveDepthCover` (null = copriferro nominale) è il c della condizione DIN (h − x)/3 ≥ c + 20 mm di hc,eff.
+    La formula di wk usa sempre il copriferro assegnato o quello nominale.
+- **Rifiuti con codice** (`CrackRejection`, 0.0.18.0). I rifiuti restano `ArgumentException` del tipo esatto, con il
+  messaggio della 0.0.17.0. Il codice sta in `Exception.Data` sotto `CrackRejection.DataKey` (`CrackRejection.CodeOf`):
+  - `WidthParameters` e `UpperBoundParameters`: parametri non validi della formula e del limite superiore senza barre
+    aderenti, con lo stesso messaggio;
+  - `RibbedBarsRequired`: MC2010 e DIN con barre lisce;
+  - `BarStresses`: tensioni delle barre mancanti o non finite;
+  - `UncrackedStressRequired`: decompressione o formazione delle fessure senza la sezione non fessurata.
+
+  I rifiuti dei parametri (`ArgumentOutOfRangeException`) non hanno codice: si riconoscono da `ParamName`.
+  Le prove sono in `CrackMigrationTests`: opzioni predefinite uguali al costruttore esistente, i casi di
+  `ValidateAtUse`, hc,eff DIN calcolato a mano, i codici. Hanno codice anche i rifiuti delle catture: i 6 stati di
+  `crack-legacy.csv` e le 57 aperture di `crack-scalar-legacy.csv` con barre lisce danno `RibbedBarsRequired`.
+- **Traccia con chiavi stabili** (0.0.18.0, opzione `Trace`, falsa di default). `SectionCrackResult.Trace` elenca le
+  voci calcolate di ANTHEA nello stesso ordine (`Ntc2018Checks.Cracking`, `ConcreteTensionCracking`,
+  `ConcreteInnerCracking`, `ConcreteCodeChecks.CrackWidth` e `UnbondedCrackWidthBound`). Ogni `CrackTraceEntry` ha:
+  - `Code`: una delle 91 costanti di `CrackTraceCodes`, ciascuna con il simbolo di ANTHEA nella documentazione;
+  - `Region`: la chiave della faccia, della fascia radiale, del sistema grossolano DS o della superficie interna,
+    null per le voci della sezione. ANTHEA le scrive con il nome della regione come prefisso, salvo quelle con il
+    flag `Summary`, che ripetono la regione governante nel riepilogo;
+  - `Value` (null per le note e per i valori che ANTHEA non calcola), `Unit`;
+  - `Arguments`: i numeri dell'espressione (`CrackTraceArguments`), per esempio l'indice della barra (B01 = 0) o
+    l'angolo della fascia radiale;
+  - `Flags`: il ramo che sceglie il testo (`CrackTraceFlags`), per esempio la variante di sr,max, chi governa
+    εsm − εcm o Δsm, la regola di k2 precedente a D7-b.
+
+  Le voci che ripetono gli ingressi (Verifica, Modello, N, Mx, My, φ, γc, γs, normativa, criterio, wlim) le scrive
+  il chiamante. Con la traccia attiva nient'altro cambia: risultato, `Details`, `Status`, `Outcome` e rifiuti sono
+  quelli senza traccia.
+  - Contesto d'analisi facoltativo (`WithAnalysisContext`: modulo del calcestruzzo e φ delle barre dell'analisi):
+    con la traccia aggiunge «Ecls analisi» e «n analisi» = Es (1 + φ)/Ecls prima della formula di wk. n viene da
+    `Homogenization.ModularRatio` con l'Es dell'ingresso (`SectionCrackInput.Es`), quindi coincide bit per bit con
+    l'espressione di ANTHEA solo se il chiamante passa lo stesso modulo dell'acciaio e lo stesso φ (in ANTHEA il modulo
+    della prima barra efficace e `PsiRebar ?? 0`).
+  - `RegionOutcomes` (anch'esso solo con `Trace`): chiave, esito e larghezza di ogni regione raggiunta, cioè zona
+    tesa o facce (anche quella che ferma la verifica), sistema grossolano DS, pareti o anello interno (verificati,
+    senza armatura o senza interasse) e «InnerSurfaces» per le superfici interne non supportate. Con questi dati il
+    chiamante compone gli stati delle superfici interne senza leggere il testo inglese.
+  - Requisito della sezione interamente tesa (ciclo di prototipo di F2.7): con `Trace` anche il risultato della
+    sezione interamente tesa, comprese le superfici interne, porta `Requirement` (lo stesso di `CrackRequirements.For`
+    con i dati dell'ingresso). Senza la traccia resta nullo, come nella 0.0.17.0: il contratto K0 di ModelChecker
+    registra nullo il criterio di quel ramo.
+- **Motivo fine** (`SectionCrackResult.Reason`, 0.0.18.0, sempre valorizzato anche senza opzioni). Separa i tre
+  rami che `Outcome` riunisce in `NoEffectiveArea`: `ZeroEffectiveDepth` (hc,eff nullo), `NoEffectiveSteelOrArea`
+  (barre efficaci ma Ac,eff nullo), `FaceWithoutAreaOrSteel` (faccia della sezione interamente tesa senza area o
+  armatura efficace). `EntirelyCompressed` (ciclo di prototipo di F2.7) segna la sezione interamente compressa
+  (εc,max ≤ 1e-12, wk = 0, esito `Evaluated`), l'unico ramo valutato senza una voce propria nella traccia: asse
+  neutro nel copriferro, limite superiore e sezione interamente tesa l'hanno (`NearestBarDepth`, flag `UpperBound`,
+  `GoverningFace`). Negli altri casi vale `None`. `Outcome` e `Status` non cambiano.
+- **Famiglie dei profili** (`CrackProfiles`, ciclo di prototipo di F2.7, 0.0.18.0). Dicono al chiamante ciò che
+  prima doveva ricopiare dalla libreria; un profilo fuori dall'enumerazione dà `ArgumentOutOfRangeException`:
+  - `WidthFormula`: `CrackWidthFormula.Ntc2018` (NTC 2018 e CNR-DT 200: formula della Circolare, voci della traccia
+    da Es a wk, limite superiore 1,7 · 0,75 (h − x)) o `Eurocode` (EN, UNI, DIN, DS, NS e Model Code 2010);
+  - `UsesDesignLimit`: vero se il requisito legge il wlim di progetto (famiglia Eurocodice e Model Code 2010), falso
+    per NTC 2018, UNI e CNR-DT 200, il cui requisito è la Tab. 4.1.IV;
+  - `EffectiveDepthReadsCover`: vero solo per DIN, l'unico profilo la cui hc,eff legge il copriferro (condizione
+    (h − x)/3 ≥ c + 20 mm, `EffectiveDepthCover`).
+
+  Prove in `CrackMigrationTests`: la tabella scritta a mano dal legacy di ANTHEA e il comportamento della verifica
+  (voci NTC solo con la formula NTC, variante del limite superiore, wlim di progetto che cambia il requisito solo
+  dove è letto, hc,eff DIN da 100 a 150 mm con il copriferro della condizione); requisito della sezione
+  interamente tesa con e senza traccia, anche cava; `EntirelyCompressed` con ogni profilo, con e senza opzioni.
+
+  Le prove sono in `CrackMigrationTests`. La traccia riproduce entro 1e-9, nello stesso ordine, i 16 simboli della
+  colonna `details` di `crack-legacy.csv` (13 339 valori su 400 stati, anche con il prefisso di faccia, fascia,
+  sistema grossolano, superficie interna e barra). L'ordine e i valori del caso inflesso NTC sono calcolati a mano,
+  con tolleranza relativa 1e-12 e costanti esatte. «n analisi» è confrontato bit per bit con l'espressione di
+  ANTHEA su valori per cui gli altri ordini delle operazioni danno un'altra ultima cifra.
+  Ci sono poi i rami (decompressione, limite superiore, Eurocodice, sezione interamente tesa, DS, fasce radiali,
+  regola di k2 prima di D7-b), un test per ciascun motivo, gli esiti delle superfici interne e la traccia vuota di
+  default.
+- **Chiavi stabili e costanti** (0.0.18.0). Codici e chiavi sono `public const string` (e `CreepTolerance` è
+  `public const double`): le 91 costanti di `CrackTraceCodes`, quelle di `CrackTraceFlags` e `CrackTraceArguments`,
+  `CrackRejection.DataKey` e i codici di rifiuto, `Homogenization.RejectionKey` e `Homogenization.CreepTolerance`.
+  Il compilatore ne copia il valore nei chiamanti, come per i valori delle enumerazioni (`CrackReason`,
+  `HomogenizationRejection`, `ThinCastingRule`). I valori sono stabili e non cambiano nelle versioni successive;
+  se uno cambiasse, ANTHEA e ogni altro chiamante andrebbero ricompilati con la DLL nuova, perché sostituire solo la
+  DLL lascerebbe nei chiamanti il valore vecchio. Una costante nuova si aggiunge senza toccare quelle esistenti.
 - **Non supportati:**
   - CS-TR34: non applicabile;
   - CNR-DT 204: modello FRC non implementato;
@@ -120,6 +273,15 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - **Casi legacy congelati e riprodotti** (`CrackMigrationTests`):
   - `Fixtures/crack-legacy.csv`: 936 stati su 6 sezioni (`crack-sections.xml`), con 1112 regioni confrontate;
   - `Fixtures/crack-scalar-legacy.csv`: 1400 aperture e 1596 requisiti.
+- **Contratto di ModelChecker della 0.0.17.0** (`ModelCheckerContractTests`, `Fixtures/model-checker-contract.json`).
+  Registra Details, Status, Outcome, Verdict, Reference e gli altri membri del risultato, oppure tipo, messaggio e
+  parametro dell'eccezione, con il costruttore di `SectionCrackInput` senza opzioni:
+  - i 936 stati di `crack-legacy.csv`;
+  - ingressi limite: wlim di progetto non valido, override NaN o negativi, tensioni non finite, i tre casi di
+    `NoEffectiveArea`, barre lisce con MC2010 e DIN, CS-TR34, CNR-DT 204 e ACI 318;
+  - la griglia dei requisiti attraverso `Evaluate` e la tabella dei profili.
+
+  È catturato da 4f54139a. I membri e le opzioni aggiunti dopo non lo cambiano.
 - Ac,eff si ottiene ritagliando il poligono invece che tagliando la mesh di ANTHEA: risultato identico entro 1e-9.
 
 ### Aderenza, ancoraggi e dettagli
