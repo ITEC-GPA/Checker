@@ -112,6 +112,7 @@
     <Compile Include="DurabilityMigrationTests.cs" />
     <Compile Include="DurabilityEdgeCaseTests.cs" />
     <Compile Include="DurabilityExamplesTests.cs" />
+    <Compile Include="DurabilityContractTests.cs" />
     <Compile Include="StressAnalysisPSCTest.cs" />
     <Compile Include="StressAnalysisRCTest.cs" />
     <Compile Include="ValidationTestFailureDomain.cs" />
@@ -156,6 +157,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\durability-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\durability-contract.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\detailing-sections.xml">

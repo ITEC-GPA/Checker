@@ -178,4 +178,17 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - **Casi legacy congelati e riprodotti** (`DurabilityMigrationTests`, `Fixtures/durability-legacy.csv`): 588
   copriferri EC2, 1932 NTC, 505 rifiuti e 23 requisiti UNI 11104 su 24 combinazioni, 7 resistenze e 6 insiemi di
   opzioni. Casi limite in `DurabilityEdgeCaseTests`, cinque esempi in `DurabilityExamplesTests`.
+- **Contratto della 0.0.17.0** (`DurabilityContractTests`, `Fixtures/durability-contract.json`): fotografia di
+  regressione di `Durability/` catturata dal codice di 4f54139a prima delle modifiche di F2.9. Non è un atteso
+  indipendente: non si rigenera per far passare il test. Registra:
+  - tutti i campi di `ExposureClasses.All` e `Get` sui 18 codici e su codici non validi;
+  - `DurabilityProfiles` (`TryResolve`, `NotSupportedReason`, `Resolve`, `Reference`) su tutte le norme di Model;
+  - su 37 insiemi di esposizioni (i 24 di `durability-legacy.csv`, insiemi per i gruppi danesi, insiemi non validi):
+    `Resolve`, `MinimumStrength` sui 5 profili, `Uni11104MinimumStrength`, `En206MinimumStrength`, `Uni11104Mix` e
+    `Uni11104Air` con 15 valori di Dmax;
+  - `StructuralClass` e `Calculate` sui 5 profili con fck, vita, opzioni, Ø, Dmax, Δcdev, abrasione, getto contro
+    terreno e Cmin pertinente, anche non validi e combinati.
+
+  Per ogni stato ci sono i campi del risultato, oppure tipo, messaggio e parametro dell'eccezione. I double sono
+  scritti in formato round-trip, quindi il confronto è bit per bit.
 - Restano in ANTHEA la composizione della miscela (`MixAutomation`) e la presentazione dei diagrammi.
