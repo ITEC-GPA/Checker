@@ -160,8 +160,11 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - **Classi di esposizione** (`ExposureClasses`): le 18 classi di EN 206 con
   - i valori del prospetto F.1 di UNI EN 206-1 (a/c, classe minima, cemento, aria), verificati sul testo;
   - il gruppo ambientale NTC (Tab. 4.1.III, verificata);
-  - i requisiti UNI 11104 di ANTHEA (classe minima, a/c, cemento, aria per XF2-XF4). Fonte secondaria (ATECAP
-    2020): XC3, XD1, XF4 e XA1 danno C30/37 dove UNI 11104:2004 dava C28/35, a favore di sicurezza;
+  - i requisiti della UNI 11104:2016, prospetto 5, ripresi da ANTHEA (classe minima, a/c, cemento, aria per
+    XF2-XF4) come riportati in ATECAP 2020 p. 19 (fonte secondaria). La UNI 11104:2025 (in vigore dal 24/07/2025),
+    prospetto 6, secondo un estratto del 28/07/2025 (fonte secondaria, da riscontrare sul testo della norma), ha le
+    stesse classi minime tranne XF1 (C30/37), a/c 0,55 per XF1 e cementi minimi più bassi. XC3, XD1, XF4 e XA1 sono
+    C30/37 in entrambe le edizioni (C28/35 è attribuito alla UNI 11104:2004). La libreria usa i valori della 2016;
   - le classi indicative dell'Appendice E: EN 1992-1-1 prospetto E.1N, DM 31/07/2012 (XC1 C25/30, XF2 C30/37),
     DK NA Tabel E.1(2) (12/30/35/40 MPa per gruppi). XF4 non è nel prospetto E.1N.
   Le combinazioni agiscono insieme; X0 non si combina.
@@ -173,8 +176,9 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   - DS: Tabel 4.4N NA senza classi strutturali, Δcdev ≥ 5 mm, solo 50 anni;
   - DIN, NS, Model Code 2010, CNR-DT 204: non supportati; ACI e AASHTO: implementazione futura.
   cmin = max(10; cmin,b; cmin,dur) + superficie + abrasione; cnom = max(cmin + Δcdev; getto contro terreno).
-- **Classe minima di resistenza** (`ExposureClasses.MinimumStrength`): UNI 11104 per NTC e CNR-DT 200, Appendice E
-  (informativa) per EN e UNI, DK NA E.1(2) per DS.
+- **Classe minima di resistenza** (`ExposureClasses.MinimumStrength`): UNI 11104:2016, prospetto 5, per NTC e
+  CNR-DT 200, Appendice E (informativa) per EN e UNI, DK NA E.1(2) per DS. Per NTC e CNR-DT 200 il riferimento
+  restituito resta «UNI 11104 prospetto 5 (NTC 2018 §11.2.11)».
 - **Casi legacy congelati e riprodotti** (`DurabilityMigrationTests`, `Fixtures/durability-legacy.csv`): 588
   copriferri EC2, 1932 NTC, 505 rifiuti e 23 requisiti UNI 11104 su 24 combinazioni, 7 resistenze e 6 insiemi di
   opzioni. Casi limite in `DurabilityEdgeCaseTests`, cinque esempi in `DurabilityExamplesTests`.
@@ -191,4 +195,6 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 
   Per ogni stato ci sono i campi del risultato, oppure tipo, messaggio e parametro dell'eccezione. I double sono
   scritti in formato round-trip, quindi il confronto è bit per bit.
-- Restano in ANTHEA la composizione della miscela (`MixAutomation`) e la presentazione dei diagrammi.
+- Restano in ANTHEA la presentazione della composizione della miscela (`MixAutomation`, con i testi e le note della
+  scheda) e quella dei diagrammi. I limiti di composizione sono in libreria: `ExposureClasses.Uni11104Mix` (a/c
+  massimo e cemento minimo) e `ExposureClasses.Uni11104Air` (aria per XF2-XF4).

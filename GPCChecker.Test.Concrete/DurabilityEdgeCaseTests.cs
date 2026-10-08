@@ -119,7 +119,7 @@ namespace ConcreteTests
         public void MinimumStrengthDependsOnTheProfile()
         {
             StrengthRequirement S(DurabilityProfile p, params string[] codes) => ExposureClasses.MinimumStrength(p, codes);
-            // XC3: EN Table E.1N C25/30, DM 2012 C25/30, DK NA 30 MPa, UNI 11104 (ANTHEA) C30/37.
+            // XC3: EN Table E.1N C25/30, DM 2012 C25/30, DK NA 30 MPa, UNI 11104:2016 and 2025 C30/37.
             Assert.AreEqual(25, S(DurabilityProfile.EN1992p11, "XC3").Fck); Assert.AreEqual(25, S(DurabilityProfile.UniEN1992p11, "XC3").Fck);
             Assert.AreEqual(30, S(DurabilityProfile.DsEN1992p11, "XC3").Fck); Assert.AreEqual(30, S(DurabilityProfile.Ntc2018, "XC3").Fck);
             Assert.AreEqual(30, S(DurabilityProfile.CnrDT200, "XC3").Fck);
