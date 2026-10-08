@@ -1,5 +1,5 @@
-# ConcreteBond.Calculate legacy outputs (fctk,0.05 with the C60/75 cap, fctd, η2, fbd); ANTHEA commit 98a21d452a0239b3dbe0720cd09653661790bb60; ANTHEA.Calculations.dll SHA-256 EA92EB12C32D0103544578113AA99542BF30AE5087BA233CED4B2D87CDBEBA95; culture it-IT
-# Units MPa, mm. Blocks: a fck × Ø × η1 (αct 1, γc 1.5); b fck × αct × γc (Ø 16, η1 1); c Ø × αct × γc (fck 30, η1 0.7). Rejections: outcome error:<type>, message in the last column.
+# ConcreteBond.Calculate legacy outputs (fctk,0.05 with the C60/75 cap, fctd, η2, fbd); ANTHEA commit 1baeb607237c17e81f4384243e2a8dce2f77c32c; ANTHEA.Calculations.dll SHA-256 BDF9EB9CB0AFC9168E491BB92AD4198CBE2EB1ACE7874071610A71B619CB777B; culture it-IT
+# Units MPa, mm. Blocks: a fck × Ø × η1 (αct 1, γc 1.5); b fck × αct × γc (Ø 16, η1 1); c Ø × αct × γc (fck 30, η1 0.7). Rejections: outcome error:<type>, message in the last column (% ; | CR LF percent-encoded).
 id;block;class;fck;diameter;eta1;alphaCt;gammaC;outcome;fct;fctd;eta2;fbd;message
 0;a;;0;6;1;1;1.5;error:ArgumentException;;;;;Controllare fck (> 0), αct (0 < αct ≤ 1) e γc (≥ 1).
 1;a;;0;6;0.7;1;1.5;error:ArgumentException;;;;;Controllare fck (> 0), αct (0 < αct ≤ 1) e γc (≥ 1).

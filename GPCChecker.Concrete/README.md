@@ -197,10 +197,11 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
     resistenza di aderenza); `BondFctk05` coincide bit per bit con Model per 4 diagrammi su fck da 12 a 90 con
     passo 0,5;
   - `Fixtures/detailing-legacy.csv`: 144 travi e pilastri NTC su `detailing-sections.xml`;
-  - `Fixtures/detailing-plate-legacy.csv`: 182 righe su `detailing-plate-sections.xml`, cioè 172 calcoli (103
-    solette, 63 pareti, 3 travi, 3 pilastri) e 10 rifiuti (7 contorni di soletta, 3 numerici). Le 12 righe con rami
-    −2, 3 per tipo, si riproducono con l'opzione legacy e si rifiutano senza. 1665 controlli, 435 in sospeso:
-    stesse chiavi nello stesso ordine, stessi esiti e unità, valori e limiti a 1e-9;
+  - `Fixtures/detailing-plate-legacy.csv`: 282 righe su `detailing-plate-sections.xml`, cioè 272 calcoli (143
+    solette, 123 pareti, 3 travi, 3 pilastri) e 10 rifiuti (7 contorni di soletta, 3 numerici). Le 12 righe con rami
+    −2, 3 per tipo, si riproducono con l'opzione legacy e si rifiutano senza. 2610 controlli, 701 in sospeso:
+    stesse chiavi nello stesso ordine, stessi esiti e unità, valori e limiti a 1e-9. Le fixture di solette, pareti
+    e aderenza vengono dalla cattura A0 di ANTHEA (riferimento F2-pre-f28, `a/tutte`, ANTHEA 1baeb60);
   - `Fixtures/curvature-legacy.csv`: 5 curve.
   Tolleranza delle curve:
   - 1e-7 sulle deformazioni dei punti con acciaio elastico;

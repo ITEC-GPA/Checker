@@ -257,7 +257,7 @@ namespace ConcreteTests
 
         /// <summary>
         /// ANTHEA ConcreteDetailingCalculator on solid slab strips, walls, slab rejections and rows with −2 link legs (detailing-plate-legacy.csv,
-        /// sections detailing-plate-sections.xml, captured from ANTHEA 98a21d4 with the cases of the F2.8 A0 capture): same keys in the same order,
+        /// sections detailing-plate-sections.xml; F2.8 A0 capture F2-pre-f28 a/tutte, ANTHEA 1baeb60): same keys in the same order,
         /// same verdicts and units, Actual and Limit within 1e-9, rejections on the same rows with the corresponding message. The rows with −2 legs
         /// are reproduced with <see cref="MemberDetailingOptions.LegacyNegativeLinkLegs"/> and rejected without it.
         /// </summary>
@@ -269,8 +269,8 @@ namespace ConcreteTests
             var lines = Rows("detailing-plate-legacy.csv");
             Assert.IsTrue(lines[0].StartsWith("id;section;kind;"), "header");
             var rows = lines.Skip(1).ToArray();
-            Assert.AreEqual(182, rows.Length);
-            int checks = 0, errors = 0, negativeLegs = 0, pending = 0;
+            Assert.AreEqual(282, rows.Length);
+            int checks = 0, errors = 0, negativeLegs = 0, pending = 0, calculated = 0;
             var perKey = new Dictionary<string, int>();
             foreach (var row in rows)
             {
@@ -280,7 +280,7 @@ namespace ConcreteTests
                 {
                     Assert.AreEqual("error:ArgumentException", c[27], id);
                     var ex = Assert.ThrowsException<ArgumentException>(() => MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, PlateInput(c, section, true)), id);
-                    Assert.AreEqual(PlateMessages[c[28]], ex.Message, id);
+                    Assert.AreEqual(PlateMessages[Uri.UnescapeDataString(c[28])], ex.Message, id);
                     errors++; continue;
                 }
                 if (int.Parse(c[17]) < 0)
@@ -290,12 +290,12 @@ namespace ConcreteTests
                     negativeLegs++;
                 }
                 var r = MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, PlateInput(c, section, true));
-                Assert.AreEqual(Kind(c[2]), r.Kind, id);
+                Assert.AreEqual(Kind(c[2]), r.Kind, id); calculated++;
                 var legacy = c[28].Split('|');
                 Assert.AreEqual(legacy.Length, r.Checks.Count, id + ": " + string.Join(",", r.Checks.Select(x => x.Key)));
                 for (int i = 0; i < legacy.Length; i++)
                 {
-                    var parts = legacy[i].Split(':'); var check = r.Checks[i]; string what = id + " " + parts[0];
+                    var parts = legacy[i].Split(':').Select(Uri.UnescapeDataString).ToArray(); var check = r.Checks[i]; string what = id + " " + parts[0];
                     Assert.AreEqual(LibraryKey(parts[0]), check.Key, what);
                     var actual = N(parts[1]); Assert.AreEqual(actual.HasValue, check.Actual.HasValue, what + " actual defined");
                     if (actual.HasValue) Close(actual.Value, check.Actual.Value, what + " actual");
@@ -314,7 +314,8 @@ namespace ConcreteTests
             // Every rule of slabs and walls is met, pending branches included.
             foreach (var key in PlateKeys.Values) Assert.IsTrue(perKey.ContainsKey(key), key + " not covered");
             foreach (var key in new[] { "MaximumAtLap", "BarsHeldByLinks", "MinimumLinks:Bottom", "LongitudinalSpacing" }) Assert.IsTrue(perKey.ContainsKey(key), key + " not covered");
-            Assert.IsTrue(checks > 1500 && pending > 300, checks + " checks, " + pending + " pending");
+            Assert.AreEqual(272, calculated, "143 slabs, 123 walls, 3 beams, 3 columns");
+            Assert.AreEqual(2610, checks); Assert.AreEqual(701, pending);
         }
 
         private static CrackSectionGeometry Strip(double width, double thickness, double y, int count, double diameter, bool topToo)
@@ -467,7 +468,7 @@ namespace ConcreteTests
             => Assert.AreEqual(BitConverter.DoubleToInt64Bits(D(expected)), BitConverter.DoubleToInt64Bits(actual), what + ": " + expected + " / " + actual.ToString("R", CultureInfo.InvariantCulture));
 
         /// <summary>
-        /// ANTHEA ConcreteBond.Calculate (bond-legacy.csv, captured from ANTHEA 98a21d4 with the cases of the F2.8 A0 capture): fctk,0.05 with the C60/75
+        /// ANTHEA ConcreteBond.Calculate (bond-legacy.csv; F2.8 A0 capture F2-pre-f28 a/tutte, ANTHEA 1baeb60): fctk,0.05 with the C60/75
         /// limit, fctd, η2 and fbd identical bit for bit; the two rejections (data of the first stage, then those of the bond strength) on the same rows with
         /// the corresponding message, both <see cref="ArgumentException"/>.
         /// </summary>
@@ -485,7 +486,7 @@ namespace ConcreteTests
                 {
                     Assert.AreEqual("error:ArgumentException", c[8], id);
                     var ex = Assert.ThrowsException<ArgumentException>(() => AnchorageCalculator.Bond(fck, diameter, eta1, alpha, gamma), id);
-                    Assert.AreEqual(BondMessages[c[13]], ex.Message, id);
+                    Assert.AreEqual(BondMessages[Uri.UnescapeDataString(c[13])], ex.Message, id);
                     if (c[13].StartsWith("Controllare")) first++; else second++;
                     continue;
                 }
