@@ -119,7 +119,7 @@ namespace ConcreteTests
         public void MinimumStrengthDependsOnTheProfile()
         {
             StrengthRequirement S(DurabilityProfile p, params string[] codes) => ExposureClasses.MinimumStrength(p, codes);
-            // XC3: EN Table E.1N C25/30, DM 2012 C25/30, DK NA 30 MPa, UNI 11104 (ANTHEA) C30/37.
+            // XC3: EN Table E.1N C25/30, DM 2012 C25/30, DK NA 30 MPa, UNI 11104:2016 and 2025 C30/37.
             Assert.AreEqual(25, S(DurabilityProfile.EN1992p11, "XC3").Fck); Assert.AreEqual(25, S(DurabilityProfile.UniEN1992p11, "XC3").Fck);
             Assert.AreEqual(30, S(DurabilityProfile.DsEN1992p11, "XC3").Fck); Assert.AreEqual(30, S(DurabilityProfile.Ntc2018, "XC3").Fck);
             Assert.AreEqual(30, S(DurabilityProfile.CnrDT200, "XC3").Fck);
@@ -165,6 +165,52 @@ namespace ConcreteTests
             // Groups of NTC Tab. 4.1.III.
             CollectionAssert.AreEquivalent(new[] { "X0", "XC1", "XC2", "XC3", "XF1" }, ExposureClasses.All.Where(e => e.NtcEnvironment == 0).Select(e => e.Code).ToArray());
             CollectionAssert.AreEquivalent(new[] { "XD2", "XD3", "XS2", "XS3", "XA3", "XF4" }, ExposureClasses.All.Where(e => e.NtcEnvironment == 2).Select(e => e.Code).ToArray());
+        }
+
+        /// <summary>
+        /// (ANTHEA F2.9 CD2) ExposureClasses.All is a read-only view of the private catalog that Get and Resolve read: it cannot be cast to an array,
+        /// the list interfaces refuse every change, a copy made with CopyTo does not reach the catalog. The field keeps the type and the order of
+        /// 0.0.17.0 and is the same object at every read; Get and Resolve return the objects of All. No public static field of ExposureClasses is
+        /// writable or an array.
+        /// </summary>
+        [TestMethod]
+        public void ExposureCatalogIsReadOnly()
+        {
+            var all = ExposureClasses.All;
+            Assert.AreSame(all, ExposureClasses.All);
+            Assert.IsInstanceOfType(all, typeof(System.Collections.ObjectModel.ReadOnlyCollection<ExposureClass>));
+            Assert.IsFalse(all is ExposureClass[], "All is not an array");
+            Assert.ThrowsException<InvalidCastException>(() => (ExposureClass[])(object)all);
+            var xc3 = ExposureClasses.Get("XC3");
+            var list = (System.Collections.Generic.IList<ExposureClass>)all;
+            Assert.IsTrue(list.IsReadOnly);
+            Assert.ThrowsException<NotSupportedException>(() => list[0] = xc3);
+            Assert.ThrowsException<NotSupportedException>(() => list.Add(xc3));
+            Assert.ThrowsException<NotSupportedException>(() => list.Insert(0, xc3));
+            Assert.ThrowsException<NotSupportedException>(() => list.Remove(xc3));
+            Assert.ThrowsException<NotSupportedException>(() => list.RemoveAt(0));
+            Assert.ThrowsException<NotSupportedException>(() => list.Clear());
+            var untyped = (System.Collections.IList)all;
+            Assert.IsTrue(untyped.IsReadOnly); Assert.IsTrue(untyped.IsFixedSize);
+            Assert.ThrowsException<NotSupportedException>(() => untyped[0] = xc3);
+            var copy = new ExposureClass[all.Count];
+            list.CopyTo(copy, 0);
+            copy[0] = xc3; Array.Reverse(copy);
+            string[] order = { "X0", "XC1", "XC2", "XC3", "XC4", "XD1", "XD2", "XD3", "XS1", "XS2", "XS3", "XF1", "XF2", "XF3", "XF4", "XA1", "XA2", "XA3" };
+            CollectionAssert.AreEqual(order, all.Select(e => e.Code).ToArray(), "the copy does not reach the catalog");
+            var field = typeof(ExposureClasses).GetField(nameof(ExposureClasses.All));
+            Assert.IsTrue(field.IsPublic && field.IsStatic && field.IsInitOnly);
+            Assert.AreEqual(typeof(System.Collections.Generic.IReadOnlyList<ExposureClass>), field.FieldType);
+            foreach (var e in all)
+            {
+                Assert.AreSame(e, ExposureClasses.Get(e.Code), e.Code);
+                Assert.AreSame(e, ExposureClasses.Resolve(new[] { e.Code }).Single(), e.Code);
+            }
+            foreach (var f in typeof(ExposureClasses).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static))
+            {
+                Assert.IsTrue(f.IsInitOnly, f.Name + " is read-only");
+                Assert.IsFalse(f.FieldType.IsArray || f.GetValue(null) is Array, f.Name + " is not an array");
+            }
         }
     }
 }

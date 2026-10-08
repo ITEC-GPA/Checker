@@ -407,11 +407,17 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - **Classi di esposizione** (`ExposureClasses`): le 18 classi di EN 206 con
   - i valori del prospetto F.1 di UNI EN 206-1 (a/c, classe minima, cemento, aria), verificati sul testo;
   - il gruppo ambientale NTC (Tab. 4.1.III, verificata);
-  - i requisiti UNI 11104 di ANTHEA (classe minima, a/c, cemento, aria per XF2-XF4). Fonte secondaria (ATECAP
-    2020): XC3, XD1, XF4 e XA1 danno C30/37 dove UNI 11104:2004 dava C28/35, a favore di sicurezza;
+  - i requisiti della UNI 11104:2016, prospetto 5, ripresi da ANTHEA (classe minima, a/c, cemento, aria per
+    XF2-XF4) come riportati in ATECAP 2020 p. 19 (fonte secondaria). La UNI 11104:2025 (in vigore dal 24/07/2025),
+    prospetto 6, secondo un estratto del 28/07/2025 (fonte secondaria, da riscontrare sul testo della norma), ha le
+    stesse classi minime tranne XF1 (C30/37), a/c 0,55 per XF1 e cementi minimi più bassi. XC3, XD1, XF4 e XA1 sono
+    C30/37 in entrambe le edizioni (C28/35 è attribuito alla UNI 11104:2004). La libreria usa i valori della 2016;
   - le classi indicative dell'Appendice E: EN 1992-1-1 prospetto E.1N, DM 31/07/2012 (XC1 C25/30, XF2 C30/37),
     DK NA Tabel E.1(2) (12/30/35/40 MPa per gruppi). XF4 non è nel prospetto E.1N.
   Le combinazioni agiscono insieme; X0 non si combina.
+  `ExposureClasses.All` è una vista di sola lettura (`ReadOnlyCollection`) del catalogo privato che `Get` e `Resolve`
+  leggono: non si converte in array e non si può modificare. Il tipo del campo e l'ordine delle classi non cambiano
+  (`DurabilityEdgeCaseTests.ExposureCatalogIsReadOnly`).
 - **Copriferri** (`CoverRequirements.Calculate`), profili per tipo esatto:
   - NTC 2018 e CNR-DT 200: tabella C4.1.IV della Circolare (verificata), con +10 mm per 100 anni, +5 mm sotto Cmin,
     −5 mm con controllo di qualità. Cmin è un dato (la classe pertinente all'esposizione);
@@ -420,9 +426,29 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   - DS: Tabel 4.4N NA senza classi strutturali, Δcdev ≥ 5 mm, solo 50 anni;
   - DIN, NS, Model Code 2010, CNR-DT 204: non supportati; ACI e AASHTO: implementazione futura.
   cmin = max(10; cmin,b; cmin,dur) + superficie + abrasione; cnom = max(cmin + Δcdev; getto contro terreno).
-- **Classe minima di resistenza** (`ExposureClasses.MinimumStrength`): UNI 11104 per NTC e CNR-DT 200, Appendice E
-  (informativa) per EN e UNI, DK NA E.1(2) per DS.
+- **Classe minima di resistenza** (`ExposureClasses.MinimumStrength`): UNI 11104:2016, prospetto 5, per NTC e
+  CNR-DT 200, Appendice E (informativa) per EN e UNI, DK NA E.1(2) per DS. Per NTC e CNR-DT 200 il riferimento
+  restituito resta «UNI 11104 prospetto 5 (NTC 2018 §11.2.11)».
 - **Casi legacy congelati e riprodotti** (`DurabilityMigrationTests`, `Fixtures/durability-legacy.csv`): 588
   copriferri EC2, 1932 NTC, 505 rifiuti e 23 requisiti UNI 11104 su 24 combinazioni, 7 resistenze e 6 insiemi di
   opzioni. Casi limite in `DurabilityEdgeCaseTests`, cinque esempi in `DurabilityExamplesTests`.
-- Restano in ANTHEA la composizione della miscela (`MixAutomation`) e la presentazione dei diagrammi.
+- **Contratto della 0.0.17.0** (`DurabilityContractTests`, `Fixtures/durability-contract.json`): fotografia di
+  regressione di `Durability/` catturata dal codice di 4f54139a prima delle modifiche di F2.9. Non è un atteso
+  indipendente: non si rigenera per far passare il test. Registra:
+  - tutti i campi di `ExposureClasses.All` e `Get` sui 18 codici e su codici non validi;
+  - `DurabilityProfiles` (`TryResolve`, `NotSupportedReason`, `Resolve`, `Reference`) su tutte le norme di Model;
+  - su 37 insiemi di esposizioni (i 24 di `durability-legacy.csv`, insiemi per i gruppi danesi, insiemi non validi):
+    `Resolve`, `MinimumStrength` sui 5 profili, `Uni11104MinimumStrength`, `En206MinimumStrength`, `Uni11104Mix` e
+    `Uni11104Air` con 15 valori di Dmax;
+  - `StructuralClass` e `Calculate` sui 5 profili con fck, vita, opzioni, Ø, Dmax, Δcdev, abrasione, getto contro
+    terreno e Cmin pertinente, anche non validi e combinati.
+
+  Per ogni stato ci sono i campi del risultato, oppure tipo, messaggio e parametro dell'eccezione. I double sono
+  scritti in formato round-trip, quindi il confronto è bit per bit.
+
+  La sezione `standards` dipende anche da Model: registra `Standard.Name` delle norme di Model 5ad56681, che compare
+  pure nel testo di `NotSupportedReason`. Se Model cambia il nome di una norma, il test fallisce anche senza modifiche
+  in Checker. Va trattato come un cambio del contratto da verificare e registrare, non come un errore del test.
+- Restano in ANTHEA la presentazione della composizione della miscela (`MixAutomation`, con i testi e le note della
+  scheda) e quella dei diagrammi. I limiti di composizione sono in libreria: `ExposureClasses.Uni11104Mix` (a/c
+  massimo e cemento minimo) e `ExposureClasses.Uni11104Air` (aria per XF2-XF4).

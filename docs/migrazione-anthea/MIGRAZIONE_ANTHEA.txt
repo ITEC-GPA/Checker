@@ -71,8 +71,9 @@ W — Muri di sostegno (RetainingWall.*.cs):
 M — Materiali e durabilità:
   - Durability: UNI EN 206-1:2006 prospetti 1 e F.1, EN 1992-1-1:2004 prospetto 4.4N.
   - NtcCover: NTC 2018 / Circolare, copriferri.
-  - MaterialCover, MinimumConcrete (UNI 11104 secondo ATECAP 2020).
-  - MixAutomation (rapporti a/c e cemento ATECAP): composizione della miscela, non verifica.
+  - MaterialCover, MinimumConcrete (UNI 11104:2016 prospetto 5, come riportato in ATECAP 2020 p. 19, fonte secondaria).
+  - MixAutomation (a/c e cemento della UNI 11104:2016 prospetto 5, da ATECAP 2020): composizione della miscela, non
+    verifica.
   - RebarMaterial: acciai, anche storici D.M. 9/1/1996.
   - ConcreteMaterials, ConcreteMaterialCatalog: letti da ModelData.
   - MaterialDiagram: solo presentazione.
@@ -257,9 +258,13 @@ REGISTRO
             - Casi congelati e riprodotti (harness CheckerMigration.Capture, DurabilityCapture): 588 copriferri EC2,
               1932 NTC, 505 rifiuti, 23 requisiti UNI 11104.
             - Fonti: EN 206-1 F.1, EN 1992-1-1 4.4N ed E.1N, NTC Tab. 4.1.III, Circolare Tab. C4.1.IV, DK NA
-              verificati sul testo; UNI 11104 solo da fonte secondaria (ATECAP 2020, valori di ANTHEA, a favore di
-              sicurezza rispetto all'edizione 2004); prospetto E.1N del DM letto per corrispondenza delle celle unite.
-            - Restano in ANTHEA: composizione della miscela (MixAutomation), cataloghi e diagrammi di presentazione.
+              verificati sul testo; UNI 11104:2016 prospetto 5 solo da fonte secondaria (ATECAP 2020 p. 19, valori di
+              ANTHEA; XC3, XD1, XF4 e XA1 C30/37 come nella 2025, C28/35 attribuito alla 2004). UNI 11104:2025
+              prospetto 6 (in vigore dal 24/07/2025) da un estratto del 28/07/2025, da riscontrare sul testo: XF1
+              C30/37, a/c 0,55 per XF1, cementi minimi più bassi; restano i valori della 2016. Prospetto E.1N del DM
+              letto per corrispondenza delle celle unite.
+            - Restano in ANTHEA: presentazione della composizione della miscela (MixAutomation; i limiti a/c, cemento
+              e aria sono ExposureClasses.Uni11104Mix e Uni11104Air), cataloghi e diagrammi di presentazione.
 2026-10-02  G: geotecnica generale trasferita in GPCChecker.Geotechnics (Slopes, Foundations, Seismic), unità di Model.
             - Bishop, geometria e ricerca dei pendii con i terreni di Model; SlopeFactors.FromCombination dalle norme
               geotecniche di Model.
