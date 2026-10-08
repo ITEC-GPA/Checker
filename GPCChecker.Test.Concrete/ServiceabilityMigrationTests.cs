@@ -138,7 +138,8 @@ namespace ConcreteTests
         ///   limitS, k3·|fyk| of the first bar (column 24);
         /// - Satisfied follows the legacy status text (column 25): "Entro limiti tensionali" true, "Oltre limiti tensionali" false,
         ///   "Stato tensionale calcolato" null;
-        /// - every legacy thin-casting reduction different from 1 (column 8) is ThinCasting.Factor of the standard.
+        /// - every legacy thin-casting reduction different from 1 (column 8) is ThinCasting.Factor of the standard, with the default
+        ///   rule and with Ntc2018AndItalianAnnex (all of them are NTC 2018).
         /// The expected counts come from the fixture.
         /// </summary>
         [TestMethod]
@@ -184,6 +185,7 @@ namespace ConcreteTests
                 if (reduction != 1)
                 {
                     Assert.AreEqual(reduction, ThinCasting.Factor(standard), id + " thin casting");
+                    Assert.AreEqual(reduction, ThinCasting.Factor(standard, ThinCastingRule.Ntc2018AndItalianAnnex), id + " thin casting, Italian annex rule");
                     thin++;
                 }
                 var combination = c[18] == "SLE" ? ServiceabilityCombination.Characteristic : c[18] == "SLE_QP" ? ServiceabilityCombination.QuasiPermanent
@@ -210,14 +212,18 @@ namespace ConcreteTests
 
         /// <summary>
         /// Thin-casting factor of the 9 standards of ANTHEA, created as ANTHEA creates them (ConcreteStandards.Create), plus
-        /// CNR-DT 200 (derived from NTC 2018) and ACI 318-19. Default rule: 0.8 only for the exact NTC 2018 class, the values of
-        /// ANTHEA before F2.7 (NTC 2018 §4.1.2.1.1.1 and §4.1.2.2.5.1). Ntc2018AndUniEn1992 adds UNI EN 1992-1-1 (DM 31/07/2012
-        /// 7.2) and nothing else.
+        /// CNR-DT 200 (derived from NTC 2018) and ACI 318-19, under both rules. The expected values are written by hand:
+        /// - AntheaBeforeF27: the legacy rule of ANTHEA (CheckerSection.cs:77, ConcreteMaterials.cs:11: 0.8 only when the standard
+        ///   is "NTC 2018"), NTC 2018 §4.1.2.1.1.1 and §4.1.2.2.5.1;
+        /// - Ntc2018AndItalianAnnex: the method page ca.sle-tensioni (docs/metodi/ca.sle-tensioni.md:143-144, :219), which adds
+        ///   DM 31/07/2012 7.2, that is UNI EN 1992-1-1 with the Italian National Annex, and nothing else.
+        /// The rule follows the exact class: custom coefficients (ConcreteStandards.Effective, "coefficienti_unitari") and a
+        /// different name do not change it.
         /// </summary>
         [TestMethod]
         public void ThinCastingFactorOfEveryStandard()
         {
-            var grid = new (string Name, Standard Standard, double Default, double WithUni)[]
+            var grid = new (string Name, Standard Standard, double Default, double WithAnnex)[]
             {
                 ("NTC 2018", new StandardNTC2018Concrete(), 0.8, 0.8),
                 ("Model Code 2010", new StandardModelCode2010(), 1, 1),
@@ -229,17 +235,63 @@ namespace ConcreteTests
                 ("CNR-DT 204/2006", new StandardCNR204(), 1, 1),
                 ("CS-TR34", new StandardCSTR34(), 1, 1),
                 ("CNR-DT 200 R1/2013", new StandardCNR200(), 1, 1),
-                ("ACI 318-19", new StandardACI318p19(), 1, 1)
+                ("ACI 318-19", new StandardACI318p19(), 1, 1),
+                ("NTC 2018, unit coefficients", new StandardNTC2018Concrete { AlphaCC = 1, GammaC = 1, GammaS = 1 }, 0.8, 0.8),
+                ("UNI EN 1992-1-1, unit coefficients", new StandardUNIEN1992p11 { AlphaCC = 1, GammaC = 1, GammaS = 1 }, 1, 0.8),
+                ("UNI EN 1992-1-1, custom SLS coefficients", new StandardUNIEN1992p11
+                {
+                    ServiceabilityStressConcreteCoefficientForCharacteristicCombination = .5,
+                    ServiceabilityStressConcreteCoefficientForQuasiPermanentCombination = .4
+                }, 1, 0.8),
+                ("UNI EN 1992-1-1, other name", new StandardUNIEN1992p11("Progetto"), 1, 0.8)
             };
+            var anthea = new[] { "NTC 2018", "Model Code 2010", "EN 1992-1-1", "UNI EN 1992-1-1", "DIN EN 1992-1-1", "DS EN 1992-1-1",
+                "NS EN 1992-1-1", "CNR-DT 204/2006", "CS-TR34" };
+            CollectionAssert.IsSubsetOf(anthea, grid.Select(g => g.Name).ToArray(), "the 9 standards of ANTHEA (ConcreteStandards.Names)");
             foreach (var g in grid)
             {
-                Assert.AreEqual(g.Default, ThinCasting.Factor(g.Standard), g.Name + " default");
-                Assert.AreEqual(g.Default, ThinCasting.Factor(g.Standard, ThinCastingRule.Ntc2018), g.Name + " NTC 2018 rule");
-                Assert.AreEqual(g.WithUni, ThinCasting.Factor(g.Standard, ThinCastingRule.Ntc2018AndUniEn1992), g.Name + " NTC 2018 and UNI rule");
+                Assert.AreEqual(g.Default, ThinCasting.Factor(g.Standard, ThinCastingRule.AntheaBeforeF27), g.Name + " ANTHEA before F2.7 rule");
+                Assert.AreEqual(g.WithAnnex, ThinCasting.Factor(g.Standard, ThinCastingRule.Ntc2018AndItalianAnnex), g.Name + " NTC 2018 and Italian annex rule");
+            }
+            Assert.ThrowsException<ArgumentNullException>(() => ThinCasting.Factor(null, ThinCastingRule.AntheaBeforeF27));
+            Assert.ThrowsException<ArgumentNullException>(() => ThinCasting.Factor(null, ThinCastingRule.Ntc2018AndItalianAnnex));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => ThinCasting.Factor(new StandardNTC2018Concrete(), (ThinCastingRule)2));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => ThinCasting.Factor(new StandardUNIEN1992p11(), (ThinCastingRule)(-1)));
+        }
+
+        /// <summary>
+        /// The default does not change: the overload without a rule, the enum value 0 and default(ThinCastingRule) all mean
+        /// AntheaBeforeF27, which gives the values of ANTHEA before F2.7 (0.8 only for NTC 2018, 1 for UNI EN 1992-1-1 and every
+        /// other standard). The enum has exactly the two values 0 and 1.
+        /// </summary>
+        [TestMethod]
+        public void ThinCastingDefaultRuleKeepsTheValuesBeforeF27()
+        {
+            Assert.AreEqual(ThinCastingRule.AntheaBeforeF27, default(ThinCastingRule));
+            Assert.AreEqual(0, (int)ThinCastingRule.AntheaBeforeF27);
+            Assert.AreEqual(1, (int)ThinCastingRule.Ntc2018AndItalianAnnex);
+            CollectionAssert.AreEqual(new[] { "AntheaBeforeF27", "Ntc2018AndItalianAnnex" }, Enum.GetNames(typeof(ThinCastingRule)));
+
+            var standards = new (string Name, Standard Standard, double Before)[]
+            {
+                ("NTC 2018", new StandardNTC2018Concrete(), 0.8),
+                ("Model Code 2010", new StandardModelCode2010(), 1),
+                ("EN 1992-1-1", new StandardEN1992p11(), 1),
+                ("UNI EN 1992-1-1", new StandardUNIEN1992p11 { AlphaCC = .85 }, 1),
+                ("DIN EN 1992-1-1", new StandardDINEN1992p11 { AlphaCT = .85 }, 1),
+                ("DS EN 1992-1-1", new StandardDSEN1992p11(), 1),
+                ("NS EN 1992-1-1", new StandardNSEN1992p11 { AlphaCT = .85, SteelCoefficientStrainTension = .4 }, 1),
+                ("CNR-DT 204/2006", new StandardCNR204(), 1),
+                ("CS-TR34", new StandardCSTR34(), 1),
+                ("CNR-DT 200 R1/2013", new StandardCNR200(), 1),
+                ("ACI 318-19", new StandardACI318p19(), 1)
+            };
+            foreach (var s in standards)
+            {
+                Assert.AreEqual(s.Before, ThinCasting.Factor(s.Standard), s.Name + " overload without a rule");
+                Assert.AreEqual(s.Before, ThinCasting.Factor(s.Standard, default(ThinCastingRule)), s.Name + " default(ThinCastingRule)");
             }
             Assert.ThrowsException<ArgumentNullException>(() => ThinCasting.Factor(null));
-            Assert.ThrowsException<ArgumentNullException>(() => ThinCasting.Factor(null, ThinCastingRule.Ntc2018AndUniEn1992));
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => ThinCasting.Factor(new StandardNTC2018Concrete(), (ThinCastingRule)2));
         }
     }
 }

@@ -54,14 +54,17 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - `StressLimitCheck.SteelLimit(standard, materiale)`: limite dell'acciaio |k3·fyk| del materiale, con i coefficienti
   della classe (anche personalizzati). Non dipende dalla combinazione: serve a chi mostra il limite dell'acciaio
   anche nelle combinazioni quasi permanente e frequente, dove `Evaluate` non lo fissa. Per un trefolo resta k3·fyk.
-- `ThinCasting.Factor(standard)`: fattore dei getti sottili, cioè degli elementi piani gettati in opera con spessore
-  minore di 50 mm. Il chiamante sa se l'elemento è sottile e lo applica al limite del calcestruzzo
-  (`concreteLimitFactor`) e ad αcc e fcd; i limiti dell'acciaio non cambiano.
-  - Regola predefinita (`ThinCastingRule.Ntc2018`): 0,8 per la classe esatta NTC 2018 (§4.1.2.1.1.1 per fcd,
-    §4.1.2.2.5.1 per i limiti SLE), 1 per tutte le altre, comprese le derivate (CNR-DT 200). Sono i valori di ANTHEA
-    prima di F2.7.
-  - Opzione `ThinCastingRule.Ntc2018AndUniEn1992`: 0,8 anche per UNI EN 1992-1-1 (appendice nazionale, DM 31/07/2012
-    7.2).
+- `ThinCasting.Factor(standard)` e `ThinCasting.Factor(standard, regola)`: fattore dei getti sottili, cioè degli
+  elementi piani gettati in opera con spessore minore di 50 mm. Il chiamante sa se l'elemento è sottile e lo applica
+  al limite del calcestruzzo (`concreteLimitFactor`) e ad αcc e fcd; i limiti dell'acciaio non cambiano.
+  - Regola predefinita (`ThinCastingRule.AntheaBeforeF27`, valore 0, usata dal metodo senza regola): 0,8 per la
+    classe esatta NTC 2018 (§4.1.2.1.1.1 per fcd, §4.1.2.2.5.1 per i limiti SLE), 1 per tutte le altre, comprese le
+    derivate (CNR-DT 200). Sono i valori di ANTHEA prima di F2.7.
+  - Opzione `ThinCastingRule.Ntc2018AndItalianAnnex`: 0,8 anche per UNI EN 1992-1-1 con l'appendice nazionale
+    italiana (DM 31/07/2012 7.2), come indica la pagina del metodo `ca.sle-tensioni` (§6.2 e riga fs di §7).
+  - La classe si riconosce dal tipo esatto. ANTHEA crea «UNI EN 1992-1-1» come `StandardUNIEN1992p11`, che in Model è
+    per definizione la UNI EN 1992-1-1:2005 con l'appendice italiana e non ha membri che scelgano un'appendice: basta
+    il tipo. I coefficienti personalizzati non cambiano la classe e conservano il fattore.
 - Casi legacy congelati: `Fixtures/stress-legacy.csv` (2016 stati) e `Fixtures/stress-sections.xml`
   (`ServiceabilityMigrationTests`). Su tutti gli stati, compresi frequente e quasi permanente, `SteelLimit` riproduce
   il limite dell'acciaio del legacy, `Satisfied` il testo di stato e `ThinCasting.Factor` la riduzione dei getti
