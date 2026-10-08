@@ -166,7 +166,9 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
     nella zona di sovrapposizione As ≤ 0,08 Ac, come i pilastri;
   - i dati di `PlateDetailingData`, se presenti, si validano per ogni tipo di elemento (finiti e non negativi),
     come fa ANTHEA anche per travi e pilastri; con travi e pilastri non cambiano i controlli;
-  - un valore di tipo non definito resta una trave, come nella 0.0.17.0.
+  - un valore di tipo non definito (fuori da 0-3) resta una trave, come nella 0.0.17.0. I valori 2 e 3, non
+    definiti nella 0.0.17.0 e trattati allora come trave, ora sono `Slab` e `Wall`: senza i dati della piastra il
+    costruttore di `MemberDetailingInput` dà `ArgumentException`. Nessun chiamante converte interi in questo tipo.
 - **Opzione legacy `MemberDetailingOptions.LegacyNegativeLinkLegs`** (falsa con `Default`): accetta un numero di
   rami negativo e lo usa com'è in Ast/s della trave, come ANTHEA prima della 0.0.18.0 (`rami_y` del pannello dei
   parametri). Con la famiglia Eurocodice l'interasse trasversale dei rami resta in sospeso. È il comportamento di
@@ -176,10 +178,17 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   non un esito normativo. Aggiunte della 0.0.18.0, senza effetto sui chiamanti di oggi (contratto L0):
   - sovraccarico con `MomentCurvatureUnits(force, moment)`: forze, momenti e `AxialTolerance` nelle unità coerenti
     del chiamante (per esempio kN e kNm), etichettate nello Status e nei messaggi; i metodi di oggi usano
-    `MomentCurvatureUnits.NewtonMillimetre` («N», «Nmm»);
+    `MomentCurvatureUnits.NewtonMillimetre` («N», «Nmm»). La tolleranza di default di `MomentCurvatureRequest`
+    (1000) vale 1000 N senza unità e 1000 nell'unità del chiamante con il sovraccarico (1000 kN con i kN): con altre
+    unità il chiamante passa la sua tolleranza. Momenti dei punti e curvature seguono le unità del chiamante;
   - esito strutturato: `InterruptionMessage` (messaggio grezzo che ferma la curva al passo `InterruptedAtStep`) e
     `YieldRefinement` (`Applied`, `Bisections`, `Moment` nelle unità del chiamante, `InterruptionMessage`; nullo se il
-    raffinamento non è tentato): bastano a ricostruire lo Status senza leggere il testo inglese;
+    raffinamento non è tentato): bastano a ricostruire lo Status senza leggere il testo inglese, tranne il messaggio
+    dell'interruzione. `InterruptionMessage` è il messaggio dell'eccezione lanciata da una funzione del chiamante
+    oppure uno dei due testi inglesi della libreria: «Response not finite.» (curvatura o deformazione dell'acciaio non
+    finite, anche al punto limite) e «Response: strain state of the limit point not available.» (punto limite pigro
+    che restituisce null). Il chiamante che vuole i suoi testi convalida le deformazioni nelle sue funzioni e lancia
+    prima il suo messaggio, oppure traduce questi due;
   - punto limite pigro: costruttore di `MomentCurvatureLimit` con `Func<MomentCurvatureStrains>`, valutata al primo
     accesso e conservata nell'istanza. La curva la legge solo al passo limite (frazione 1) e dentro il passo, quindi
     un errore ferma la curva a quel passo; con frazione < 1 non viene mai valutata;
@@ -187,9 +196,12 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
     con `Reason` (`InvalidRequest`, `LimitPointNotAvailable`, `AxialResidual`, `NonPositiveLimitMoment`) e i valori
     `AxialForce`, `LimitAxialForce`, `AxialTolerance`, `LimitMoment` (NaN se non raggiunti), con il messaggio di oggi.
     I metodi di oggi lanciano ancora il tipo esatto `ArgumentException` con lo stesso messaggio; entrambi portano il
-    motivo in `Exception.Data[MomentCurvatureAnalysis.RejectionKey]`;
-  - solo nel sorgente: un `null` letterale come ultimo argomento del costruttore di `MomentCurvatureLimit` è
-    ambiguo, e come argomento delle unità sceglie il sovraccarico nuovo, che lo rifiuta.
+    motivo in `Exception.Data[MomentCurvatureAnalysis.RejectionKey]`. `MomentCurvatureException` è serializzabile
+    con i suoi valori (confini di AppDomain negli host .NET Framework);
+  - solo nel sorgente: un `null` o un `default` letterale come ultimo argomento del costruttore di
+    `MomentCurvatureLimit` è ambiguo (CS0121; basta il cast al tipo voluto). Come argomento delle unità di
+    `Calculate`, `null` sceglie il sovraccarico nuovo, che lo rifiuta con `ArgumentNullException`, mentre `default`
+    resta legato al sovraccarico della 0.0.17.0 come token di annullamento.
 - **Casi legacy congelati e riprodotti** (`DetailingMigrationTests`):
   - `Fixtures/anchorage-legacy.csv`: 445 ancoraggi, 5 rifiuti, 18 resistenze di aderenza;
   - `Fixtures/bond-legacy.csv`: 1918 casi di `ConcreteBond.Calculate`, cioè 712 calcoli identici bit per bit
@@ -213,7 +225,7 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   catturata dal codice di 4f54139a prima delle modifiche di F2.8. Non è un atteso indipendente: non si rigenera per
   far passare il test. Con gli argomenti e le opzioni di oggi deve restare identica byte per byte.
   - `Fixtures/detailing-contract-0.0.17.csv`:
-    - `MemberDetailingCalculator` su tutti i profili, travi, pilastri e un valore di tipo non definito (trattato
+    - `MemberDetailingCalculator` su tutti i profili, travi, pilastri e un valore di tipo non definito (7, trattato
       come trave), sulle 6 sezioni di `detailing-sections.xml`, con gli argomenti di ModelChecker (`coverAddition`,
       `groundCover`) e dei pali (22 argomenti) e con gli ingressi limite (rami −1, copriferro NaN, Fctm 0,
       compressione NaN, cmin,dur +∞, NaN e −5, sezione senza barre);

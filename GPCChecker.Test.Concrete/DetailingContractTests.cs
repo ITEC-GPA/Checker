@@ -410,9 +410,8 @@ namespace ConcreteTests
             yield return new AnalyticCase { Name = "residual negative", Request = new MomentCurvatureRequest(2.5e4, 30, 10, 1, true, 10), Limit = AnalyticLimit(-10.25, Mlim),
                 Response = response, Rejection = true };
             yield return new AnalyticCase { Name = "non-positive limit moment", Request = new MomentCurvatureRequest(0, 0, 10), Limit = AnalyticLimit(0, -Mlim), Response = response, Rejection = true };
-            // cos 90° is 6.1e-17, not 0: the limit moment is tiny but positive and the curve is calculated (not a rejection).
             yield return new AnalyticCase { Name = "zero limit moment", Request = new MomentCurvatureRequest(0, 90, 10), Limit = (n, c, s) => new MomentCurvatureLimit(n, Mlim, 0, Strains(n, Mlim, 0)),
-                Response = response };
+                Response = response, Rejection = true };
             yield return new AnalyticCase { Name = "NaN limit moment", Request = new MomentCurvatureRequest(0, 0, 10), Limit = AnalyticLimit(0, double.NaN), Response = response, Rejection = true };
         }
     }

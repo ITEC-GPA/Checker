@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
@@ -14,7 +15,9 @@ namespace GPC.Checkers.Concrete.Response
     /// <summary>
     /// Moment-curvature request at constant axial force: N in N (compression negative), moment direction in degrees in the section axes,
     /// 10-500 steps up to <see cref="EndFraction"/> of the limit moment, quadratic sampling, tolerance on N at the limit point (N) and bisections
-    /// of the first yield.
+    /// of the first yield. With the overload with <see cref="MomentCurvatureUnits"/> N and the tolerance are in the force unit of the caller: the
+    /// default tolerance 1000 is 1000 N with the overloads without units, and 1000 of the caller's unit otherwise (1000 kN with kN), so a caller with
+    /// other units passes its own tolerance.
     /// </summary>
     public sealed class MomentCurvatureRequest
     {
@@ -33,7 +36,10 @@ namespace GPC.Checkers.Concrete.Response
         }
     }
 
-    /// <summary>Strain state of one response: gradient χx, χy (1/mm), strain at the reference point, largest |bar strain|, smallest concrete vertex strain.</summary>
+    /// <summary>
+    /// Strain state of one response: gradient χx, χy (1/mm, or 1/length of the caller), strain at the reference point, largest |bar strain|, smallest
+    /// concrete vertex strain.
+    /// </summary>
     public sealed class MomentCurvatureStrains
     {
         public double ChiX { get; }
@@ -83,7 +89,8 @@ namespace GPC.Checkers.Concrete.Response
         { AxialForce = axialForce; Mx = mx; My = my; this.strains = strains ?? throw new ArgumentNullException(nameof(strains)); }
         /// <summary>
         /// Limit point with the strain state evaluated lazily (0.0.18.0), as ANTHEA reads the limit state only at the limit step. The instance is not meant
-        /// to be shared between threads. A literal null as last argument is ambiguous between the two constructors (source only).
+        /// to be shared between threads. A literal null or default as last argument is ambiguous between the two constructors (CS0121, source only):
+        /// cast it to the intended type.
         /// </summary>
         public MomentCurvatureLimit(double axialForce, double mx, double my, Func<MomentCurvatureStrains> strains)
         { AxialForce = axialForce; Mx = mx; My = my; strainsFunction = strains ?? throw new ArgumentNullException(nameof(strains)); }
@@ -117,7 +124,9 @@ namespace GPC.Checkers.Concrete.Response
     /// Typed rejection of the overload with units (0.0.18.0): an <see cref="ArgumentException"/> with the message of 0.0.17.0 (unit labels of the
     /// overload), the reason and the values in the units of the caller (NaN when not reached). The overloads of 0.0.17.0 keep throwing the exact type
     /// <see cref="ArgumentException"/> with the same message; both carry the reason in <c>Data[</c><see cref="MomentCurvatureAnalysis.RejectionKey"/><c>]</c>.
+    /// Serializable with its values, so it crosses the application domain boundaries of a .NET Framework host.
     /// </summary>
+    [Serializable]
     public sealed class MomentCurvatureException : ArgumentException
     {
         public MomentCurvatureRejection Reason { get; }
@@ -134,6 +143,20 @@ namespace GPC.Checkers.Concrete.Response
             Reason = reason; AxialForce = axialForce; LimitAxialForce = limitAxialForce; AxialTolerance = axialTolerance; LimitMoment = limitMoment;
             Data[MomentCurvatureAnalysis.RejectionKey] = reason;
         }
+
+        private MomentCurvatureException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+            Reason = (MomentCurvatureRejection)info.GetInt32("GPC.Reason"); AxialForce = info.GetDouble("GPC.AxialForce");
+            LimitAxialForce = info.GetDouble("GPC.LimitAxialForce"); AxialTolerance = info.GetDouble("GPC.AxialTolerance"); LimitMoment = info.GetDouble("GPC.LimitMoment");
+        }
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            if (info == null) throw new ArgumentNullException(nameof(info));
+            base.GetObjectData(info, context);
+            info.AddValue("GPC.Reason", (int)Reason); info.AddValue("GPC.AxialForce", AxialForce); info.AddValue("GPC.LimitAxialForce", LimitAxialForce);
+            info.AddValue("GPC.AxialTolerance", AxialTolerance); info.AddValue("GPC.LimitMoment", LimitMoment);
+        }
     }
 
     /// <summary>First yield refined by bisection (0.0.18.0): outcome of the refinement that the Status describes.</summary>
@@ -145,13 +168,19 @@ namespace GPC.Checkers.Concrete.Response
         public int Bisections { get; }
         /// <summary>Refined first yield moment, in the units of the caller; null when not applied.</summary>
         public double? Moment { get; }
-        /// <summary>Raw message of the exception that interrupted the refinement; null when applied.</summary>
+        /// <summary>
+        /// Raw message of the exception that interrupted the refinement; null when applied. It is the message of the response function of the caller or
+        /// the English text of the library "Response not finite." (see <see cref="MomentCurvatureResult.InterruptionMessage"/>).
+        /// </summary>
         public string InterruptionMessage { get; }
         internal MomentCurvatureYieldRefinement(bool applied, int bisections, double? moment, string interruptionMessage)
         { Applied = applied; Bisections = bisections; Moment = moment; InterruptionMessage = interruptionMessage; }
     }
 
-    /// <summary>Point of the curve: moment (Nmm) and components, curvature |∇ε| (1/mm), strains (absolute, compression of concrete positive).</summary>
+    /// <summary>
+    /// Point of the curve: moment (Nmm, or the moment unit of the caller with the overload with units) and components, curvature |∇ε| (1/mm, or
+    /// 1/length of the strains returned by the functions), strains (absolute, compression of concrete positive).
+    /// </summary>
     public sealed class MomentCurvaturePoint
     {
         public double Moment { get; internal set; }
@@ -181,7 +210,13 @@ namespace GPC.Checkers.Concrete.Response
         public double AxialResidual { get; internal set; }
         /// <summary>Step at which a response failed and the curve stopped; null when complete.</summary>
         public int? InterruptedAtStep { get; internal set; }
-        /// <summary>Raw message of the exception that stopped the curve at <see cref="InterruptedAtStep"/>; null when complete (0.0.18.0).</summary>
+        /// <summary>
+        /// Raw message of the exception that stopped the curve at <see cref="InterruptedAtStep"/>; null when complete (0.0.18.0). It is the message
+        /// thrown by a function of the caller or one of the two English texts of the library: "Response not finite." (non-finite curvature or bar
+        /// strain of a response or of the limit point) and "Response: strain state of the limit point not available." (lazy limit state returning
+        /// null). A caller that needs its own texts validates the strains in its functions and throws its own message first, or translates these two.
+        /// With the overload on a native checker the functions are those of the library, with their English texts.
+        /// </summary>
         public string InterruptionMessage { get; internal set; }
         /// <summary>Refinement of the first yield; null when not attempted (no bisections requested, no yield, or yield at the first point) (0.0.18.0).</summary>
         public MomentCurvatureYieldRefinement YieldRefinement { get; internal set; }
@@ -192,7 +227,8 @@ namespace GPC.Checkers.Concrete.Response
     /// Moment-curvature orchestration transferred from ANTHEA (MomentCurvatureCalculator and ConcreteCurvatureAnalysis, commit fe4652c) with N/Nmm and
     /// 1/mm units, or the coherent units of the caller with the overload with <see cref="MomentCurvatureUnits"/> (0.0.18.0). The equilibrium is the native
     /// section solver: limit point at constant N on the failure domain, nonlinear stress analyses. Fixtures: GPCChecker.Test.Concrete/Fixtures/curvature-legacy.csv.
-    /// With a literal <c>null</c> in the position of the units the overload with units is chosen (and rejects it).
+    /// With a literal <c>null</c> in the position of the units the overload with units is chosen (and rejects it with
+    /// <see cref="ArgumentNullException"/>); a literal <c>default</c> there stays bound to the overload of 0.0.17.0, as the cancellation token.
     /// </summary>
     public static class MomentCurvatureAnalysis
     {

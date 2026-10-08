@@ -7,7 +7,8 @@ namespace GPC.Checkers.Concrete.Detailing
 {
     /// <summary>
     /// Kind of member. Slab (solid slab strip) and Wall need <see cref="PlateDetailingData"/> and the NTC 2018 profile (or CNR-DT 200); a value
-    /// that is not defined is handled as a beam, as in 0.0.17.0.
+    /// that is not defined (outside 0-3) is handled as a beam, as in 0.0.17.0. The values 2 and 3, not defined in 0.0.17.0 and handled there as
+    /// beams, are now Slab and Wall: without the plate data they are an <see cref="ArgumentException"/> of <see cref="MemberDetailingInput"/>.
     /// </summary>
     public enum MemberDetailingKind { Beam, Column, Slab, Wall }
 
@@ -197,7 +198,7 @@ namespace GPC.Checkers.Concrete.Detailing
             }
             else Pending("NominalCover", ntc ? ".3" : "§4.4.1", "cmin,dur of the durability design is required.");
 
-            // Explicit dispatch; a kind that is not defined is a beam, as in 0.0.17.0.
+            // Explicit dispatch; a kind that is not defined (outside 0-3) is a beam, as in 0.0.17.0.
             switch (p.Kind)
             {
                 case MemberDetailingKind.Column: Column(profile, p, r, Min, Max, Pending, minPhi, maxPhi, steel); break;

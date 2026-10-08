@@ -391,6 +391,26 @@ namespace ConcreteTests
                 0, false, 8, 200, 2, 20, 25, 15, 10, false, true, true, 0, 0, new MemberDetailingOptions(new PlateDetailingData(300, 250, false), false)));
             Assert.AreEqual(Check(wall, "WallHorizontal").Limit.Value, Check(turned, "WallHorizontal").Limit.Value, 1e-9);
             Assert.AreEqual(400, Check(turned, "WallVerticalSpacing").Limit.Value, 1e-12);
+
+            // Thin members, where the thickness governs the four spacing limits: strip 1000 × 120 mm, 5Ø12 per face at y = ±29 mm (cover 60 − 29 − 6 = 25 mm).
+            // Slab, h = 120: main spacing min(3·120; 400) = 360 mm, critical region min(2·120; 250) = 240 mm; secondary spacing min(3.5·120; 450) = 420 mm,
+            // critical region min(3·120; 400) = 360 mm. Wall 120 × 1000 (t = 120, l = 1000): vertical spacing min(3·120; 400) = 360 mm, also with the
+            // thickness along x. Actual main and vertical spacing 200 mm, secondary 250 mm.
+            var thin = Strip(1000, 120, 29, 5, 12, true);
+            var thinTurned = new CrackSectionGeometry(thin.Outline.Select(v => new Point2d(v.Y, v.X)), null, thin.Bars.Select(b => new CrackBar(b.Y, b.X, b.Diameter, b.Area)),
+                CrackBarLayout.Rows);
+            MemberDetailingResult Thin(MemberDetailingKind kind, CrackSectionGeometry geometry, double width, bool critical)
+                => MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, new MemberDetailingInput(kind, geometry, 120000, 30, fctm, 450, 391.3, width, width, width, 0, false, 8,
+                    200, 2, 20, 25, 15, 10, false, true, true, 0, 0, new MemberDetailingOptions(new PlateDetailingData(300, 250, critical), false)));
+            var thinSlab = Thin(MemberDetailingKind.Slab, thin, 1000, false);
+            Assert.AreEqual(360, Check(thinSlab, "MainSpacing").Limit.Value, 1e-12); Assert.AreEqual(420, Check(thinSlab, "SecondarySpacing").Limit.Value, 1e-12);
+            Assert.AreEqual(200, Check(thinSlab, "MainSpacing").Actual.Value, 1e-9); Assert.AreEqual(true, Check(thinSlab, "MainSpacing").Passed);
+            var thinCritical = Thin(MemberDetailingKind.Slab, thin, 1000, true);
+            Assert.AreEqual(240, Check(thinCritical, "MainSpacing").Limit.Value, 1e-12); Assert.AreEqual(360, Check(thinCritical, "SecondarySpacing").Limit.Value, 1e-12);
+            Assert.AreEqual(true, Check(thinCritical, "SecondarySpacing").Passed);
+            var thinWall = Thin(MemberDetailingKind.Wall, thin, 1000, false);
+            Assert.AreEqual(360, Check(thinWall, "WallVerticalSpacing").Limit.Value, 1e-12); Assert.AreEqual(200, Check(thinWall, "WallVerticalSpacing").Actual.Value, 1e-9);
+            Assert.AreEqual(360, Check(Thin(MemberDetailingKind.Wall, thinTurned, 120, false), "WallVerticalSpacing").Limit.Value, 1e-12);
         }
 
         /// <summary>Options, profiles, rejections and the named legacy option of the link legs.</summary>
@@ -452,9 +472,15 @@ namespace ConcreteTests
             foreach (var profile in (DetailingProfile[])Enum.GetValues(typeof(DetailingProfile)))
                 Assert.AreEqual(Describe(MemberDetailingCalculator.Calculate(profile, Input(MemberDetailingKind.Beam, MemberDetailingOptions.Default, 4))),
                     Describe(MemberDetailingCalculator.Calculate(profile, Input(MemberDetailingKind.Beam, legacy, 4))), profile.ToString());
-            // A kind value that is not defined is a beam, as in 0.0.17.0.
-            Assert.AreEqual(Describe(MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, Input(MemberDetailingKind.Beam, MemberDetailingOptions.Default))),
-                Describe(MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, Input((MemberDetailingKind)9, MemberDetailingOptions.Default))));
+            // A kind value that is not defined (outside 0-3) is a beam, as in 0.0.17.0.
+            foreach (var undefined in new[] { (MemberDetailingKind)9, (MemberDetailingKind)(-1) })
+                Assert.AreEqual(Describe(MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, Input(MemberDetailingKind.Beam, MemberDetailingOptions.Default))),
+                    Describe(MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, Input(undefined, MemberDetailingOptions.Default))), undefined.ToString());
+            // 2 and 3, not defined in 0.0.17.0 (beams there), are now Slab and Wall: with the constructor of 0.0.17.0 they need the plate data.
+            foreach (int value in new[] { 2, 3 })
+                Assert.AreEqual("Detailing: slabs and walls need the plate data (secondary reinforcement, spacing, critical region).",
+                    Assert.ThrowsException<ArgumentException>(() => new MemberDetailingInput((MemberDetailingKind)value, g, 200000, 30, fctm, 450, 391.3, 1000, 1000, 1000, 0, true, 8,
+                        200, 2, 20, 25, 15, 10, false, true, true)).Message, value.ToString());
         }
 
         // ---------------------------------------------------------------- complete bond strength (0.0.18.0, ANTHEA F2.8 L2)
@@ -570,6 +596,12 @@ namespace ConcreteTests
         }
 
         /// <summary>
+        /// Analytic case of the contract that the request rejects. The contract (CL0, kept as captured) also flags "zero limit moment", which only adds
+        /// to its count of rejections: cos 90° = 6.1e-17, so the limit moment is tiny but positive and the curve is calculated.
+        /// </summary>
+        private static bool Rejects(DetailingContractTests.AnalyticCase a) => a.Rejection && a.Name != "zero limit moment";
+
+        /// <summary>
         /// InterruptedAtStep, InterruptionMessage and YieldRefinement give back the whole Status (invariant and Italian culture) of the analytic curves of the
         /// contract and of the 5 curves of curvature-legacy.csv, so a caller rebuilds its own text without reading the English one.
         /// </summary>
@@ -580,7 +612,7 @@ namespace ConcreteTests
             foreach (var culture in new[] { "", "it-IT" })
                 InCulture(culture, () =>
                 {
-                    foreach (var a in DetailingContractTests.AnalyticCases().Where(x => !x.Rejection))
+                    foreach (var a in DetailingContractTests.AnalyticCases().Where(x => !Rejects(x)))
                     {
                         var r = MomentCurvatureAnalysis.Calculate(a.Request, a.Limit, a.Response, a.YieldStrain);
                         Assert.AreEqual(r.Status, StatusFromFields(r, MomentCurvatureUnits.NewtonMillimetre), a.Name);
@@ -711,6 +743,40 @@ namespace ConcreteTests
         }
 
         /// <summary>
+        /// <see cref="MomentCurvatureException"/> crosses a serialization boundary (application domains of a .NET Framework host) with message, reason,
+        /// values (NaN included) and Exception.Data.
+        /// </summary>
+        [TestMethod]
+        public void MomentCurvatureExceptionIsSerializable()
+        {
+            Assert.IsTrue(typeof(MomentCurvatureException).IsSerializable);
+            var kN = new MomentCurvatureUnits("kN", "kNm");
+            Func<double, double, double, MomentCurvatureStrains> response = DetailingContractTests.Strains;
+            var cases = new[]
+            {
+                new { Limit = DetailingContractTests.AnalyticLimit(0, -300), Reason = MomentCurvatureRejection.NonPositiveLimitMoment, LimitN = -12.5, LimitM = -300.0 },
+                new { Limit = (Func<double, double, double, MomentCurvatureLimit>)((n, c, s) => null), Reason = MomentCurvatureRejection.LimitPointNotAvailable,
+                    LimitN = double.NaN, LimitM = double.NaN }
+            };
+            foreach (var x in cases)
+            {
+                var original = Assert.ThrowsException<MomentCurvatureException>(() => MomentCurvatureAnalysis.Calculate(new MomentCurvatureRequest(-12.5, 0, 10, 1, true, 2.5),
+                    x.Limit, response, .002, kN));
+                MomentCurvatureException copy;
+                using (var stream = new MemoryStream())
+                {
+                    var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                    formatter.Serialize(stream, original); stream.Position = 0;
+                    copy = (MomentCurvatureException)formatter.Deserialize(stream);
+                }
+                Assert.AreNotSame(original, copy); Assert.AreEqual(original.Message, copy.Message, x.Reason.ToString()); Assert.IsNull(copy.ParamName);
+                Assert.AreEqual(x.Reason, copy.Reason); Assert.AreEqual(x.Reason, copy.Data[MomentCurvatureAnalysis.RejectionKey]);
+                Assert.AreEqual(-12.5, copy.AxialForce); Assert.AreEqual(2.5, copy.AxialTolerance);
+                Assert.AreEqual(x.LimitN, copy.LimitAxialForce); Assert.AreEqual(x.LimitM, copy.LimitMoment);
+            }
+        }
+
+        /// <summary>
         /// Scale invariance: the analytic curves of the contract in (N; Nmm) and in (kN; kNm) give the same points to the conversion factors within 1e-12, the
         /// same steps, verdicts and rejections, with the labels of each overload in the Status.
         /// </summary>
@@ -731,7 +797,7 @@ namespace ConcreteTests
                     return l == null ? null : new MomentCurvatureLimit(l.AxialForce / 1000, l.Mx / 1e6, l.My / 1e6, () => l.Strains);
                 };
                 Func<double, double, double, MomentCurvatureStrains> response = (n, mx, my) => responseN(n * 1000, mx * 1e6, my * 1e6);
-                if (a.Rejection)
+                if (Rejects(a))
                 {
                     var plain = Assert.ThrowsException<ArgumentException>(() => MomentCurvatureAnalysis.Calculate(q, a.Limit, a.Response, a.YieldStrain), a.Name);
                     var typed = Assert.ThrowsException<MomentCurvatureException>(() => MomentCurvatureAnalysis.Calculate(request, limit, response, a.YieldStrain, kN), a.Name);
