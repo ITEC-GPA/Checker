@@ -11,7 +11,7 @@ Unità: N, Nmm, mm, MPa; compressione negativa.
 | Namespace | Contenuto | Origine in ANTHEA (commit fe4652c) |
 | --- | --- | --- |
 | `GPC.Checkers.Concrete.Shear` | Taglio di sezione in una direzione: `SectionShearCalculator`, `SectionShearInput`, `SectionShearResult`, `ShearProfiles` | `ConcreteCodeChecks.Shear`, `Ntc2018Checks.Shear` |
-| `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck` | `CheckerSection.DescribeStress` |
+| `GPC.Checkers.Concrete.Serviceability` | Limiti tensionali SLE di uno stato già calcolato: `StressLimitCheck`; fattore dei getti sottili: `ThinCasting`; omogeneizzazione n ↔ φ: `Homogenization` | `CheckerSection.DescribeStress`, `Homogenization` (`ConcreteSectionProperties`) |
 | `GPC.Checkers.Concrete.Torsion` | Torsione con interazione del taglio nelle due direzioni: `SectionTorsionCalculator`, `SectionTorsionInput`, `TorsionGeometry`, `TorsionProfiles` | `ConcreteTorsionCalculator`, `ConcreteShearAnalysis.Torsion` |
 | `GPC.Checkers.Concrete.Cracking` | Fessurazione di sezione: `SectionCrackCheck`, `CrackRequirements`, `CrackWidthCalculator`, `CrackSectionGeometry`, `CrackProfiles` | `Ntc2018Checks.Cracking`, `ConcreteCodeChecks` (requisiti, wk, hc,eff), `ConcreteTensionCracking`, `ConcreteInnerCracking`, `TensionBarSpacing`, `SectionRegions` |
 | `GPC.Checkers.Concrete.Detailing` | Aderenza, ancoraggi e sovrapposizioni (`AnchorageCalculator`), dettagli 1D di travi e pilastri (`MemberDetailingCalculator`), `DetailingProfiles` | `ConcreteBond`, `ConcreteAnchorageCalculator`, `ConcreteDetailingCalculator` |
@@ -50,8 +50,42 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - Frequente: nessun limite.
 - I coefficienti vengono dalla classe Standard. Il fattore sul limite del calcestruzzo (getti sottili) è esplicito.
 - CS-TR34 non fissa limiti tensionali di sezione (`StressLimitCheck.NotApplicableReason`).
+- `StressLimitResult.Satisfied`: vero con `Ratio` ≤ 1, falso oltre, null senza `Ratio` (combinazione frequente).
+- `StressLimitCheck.SteelLimit(standard, materiale)`: limite dell'acciaio |k3·fyk| del materiale, con i coefficienti
+  della classe (anche personalizzati). Non dipende dalla combinazione: serve a chi mostra il limite dell'acciaio
+  anche nelle combinazioni quasi permanente e frequente, dove `Evaluate` non lo fissa. Per un trefolo resta k3·fyk.
+- `ThinCasting.Factor(standard)` e `ThinCasting.Factor(standard, regola)`: fattore dei getti sottili, cioè degli
+  elementi piani gettati in opera con spessore minore di 50 mm. Il chiamante sa se l'elemento è sottile e lo applica
+  al limite del calcestruzzo (`concreteLimitFactor`) e ad αcc e fcd; i limiti dell'acciaio non cambiano.
+  - Regola predefinita (`ThinCastingRule.AntheaBeforeF27`, valore 0, usata dal metodo senza regola): 0,8 per la
+    classe esatta NTC 2018 (§4.1.2.1.1.1 per fcd, §4.1.2.2.5.1 per i limiti SLE), 1 per tutte le altre, comprese le
+    derivate (CNR-DT 200). Sono i valori di ANTHEA prima di F2.7.
+  - Opzione `ThinCastingRule.Ntc2018AndItalianAnnex`: 0,8 anche per UNI EN 1992-1-1 con l'appendice nazionale
+    italiana (DM 31/07/2012 7.2), come indica la pagina del metodo `ca.sle-tensioni` (§6.2 e riga fs di §7).
+  - La classe si riconosce dal tipo esatto. ANTHEA crea «UNI EN 1992-1-1» come `StandardUNIEN1992p11`, che in Model è
+    per definizione la UNI EN 1992-1-1:2005 con l'appendice italiana e non ha membri che scelgano un'appendice: basta
+    il tipo. I coefficienti personalizzati non cambiano la classe e conservano il fattore.
+- `Homogenization`: rapporto modulare n = Es·(1 + φ)/Ec delle barre (o dei trefoli) omogeneizzate al calcestruzzo e
+  coefficiente di viscosità φ che dà un n scelto.
+  - `ModularRatio(es, ec, phi)` = `es * (1 + phi) / ec` e `CreepFromModularRatio(n, es, ec)` = `n * ec / es - 1`:
+    pura aritmetica senza controlli, con l'ordine delle operazioni delle copie di ANTHEA
+    (`ConcreteSectionProperties.cs:48, :50`, `ConcreteStress.cs:178, :183`, `ReportConcreteShort.cs:78`,
+    `Ntc2018Checks.cs:238`), quindi uguali bit per bit. φ < 0 dà n < Es/Ec, come nella scheda delle tensioni di
+    ANTHEA; NaN e infiniti si propagano.
+  - `Resolve(es, ec, fromN, value)`: φ e n da φ o da n, con i controlli di ANTHEA (`ConcreteSectionProperties.cs:44-53`):
+    moduli finiti e positivi e valore finito; φ, dato o ricavato da n, finito e non minore di −1e-12
+    (`CreepTolerance`), poi max(0, φ); n finito. I rifiuti sono `ArgumentException` (tipo esatto) con messaggio inglese
+    e motivo `HomogenizationRejection` (`InvalidInput`, `NegativeCreep`, `RatioOutOfRange`) in
+    `Exception.Data[Homogenization.RejectionKey]`: il chiamante li mappa sui propri testi senza leggere il messaggio.
+  - La forma Es/(Ec/(1 + φ)) di Model (`ConcreteSectionHelper`) è un'altra espressione e può differire nell'ultima
+    cifra.
 - Casi legacy congelati: `Fixtures/stress-legacy.csv` (2016 stati) e `Fixtures/stress-sections.xml`
-  (`ServiceabilityMigrationTests`).
+  (`ServiceabilityMigrationTests`). Su tutti gli stati, compresi frequente e quasi permanente, `SteelLimit` riproduce
+  il limite dell'acciaio del legacy, `Satisfied` il testo di stato e `ThinCasting.Factor` la riduzione dei getti
+  sottili.
+- Omogeneizzazione (`ServiceabilityMigrationTests`): le espressioni di ANTHEA, riscritte nel test, sono confrontate bit
+  per bit su φ ∈ {−0,5, −1e-13, 0, 0,5, 2, 15} con 3 moduli dell'acciaio e 4 del calcestruzzo; `Resolve` dà gli
+  stessi φ e n o lo stesso rifiuto, anche ai bordi della tolleranza.
 - Trefoli con predeformazione nulla: `NotSupportedException`.
 - Contratto di ModelChecker della 0.0.17.0 (`ModelCheckerContractTests`, `Fixtures/model-checker-contract.json`):
   uscite di `Evaluate` e `NotApplicableReason` con gli argomenti di ModelChecker sui 2016 stati di
