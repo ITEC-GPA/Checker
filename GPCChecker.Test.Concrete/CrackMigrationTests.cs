@@ -1508,9 +1508,18 @@ namespace ConcreteTests
                 .Concat(new[] { 3 * 314.16, 1200, 60, 20, 200, 40, 100, 200000, 33000, 2.9, rho, alpha, .4, .8, .5, 3.4, .425, .6, 1.7, .75, 5, 200, 20, 40, 100, 300, 1 + alpha * rho,
                     stiffening, computed, minimum, strain, 3.4 * 40, term, near, 250, -150, 225, near, wk, wk / .3 }).ToArray();
             Assert.AreEqual(values.Length, r.Trace.Count);
-            for (int i = 0; i < values.Length; i++) Assert.AreEqual(values[i], r.Trace[i].Value.Value, 1e-12 * Math.Max(1, Math.Abs(values[i])), r.Trace[i].ToString());
-            Assert.AreEqual(r.Width.Value, wk, 1e-12);
+            // Relative tolerance (exact for the zeros): strains (1e-3), curvatures (4e-6) and the small constants are checked at their own scale.
+            for (int i = 0; i < values.Length; i++) Assert.AreEqual(values[i], r.Trace[i].Value.Value, 1e-12 * Math.Abs(values[i]), r.Trace[i].ToString());
+            Assert.AreEqual(wk, r.Width.Value, 1e-12 * wk);
             CrackTraceEntry One(string code) => r.Trace.Single(e => e.Code == code);
+            // Constants of the legacy and inputs, exact: tolerance of the compression return, Es, Ecm, fct,eff and the coefficients of the NTC formula.
+            var exact = new Dictionary<string, double>
+            {
+                { CrackTraceCodes.CompressionTolerance, 1e-12 }, { CrackTraceCodes.Es, 200000 }, { CrackTraceCodes.Ecm, 33000 }, { CrackTraceCodes.EffectiveTensileStrength, 2.9 },
+                { CrackTraceCodes.Kt, .4 }, { CrackTraceCodes.K1, .8 }, { CrackTraceCodes.K2, .5 }, { CrackTraceCodes.K3, 3.4 }, { CrackTraceCodes.K4, .425 },
+                { CrackTraceCodes.BetaMinimum, .6 }, { CrackTraceCodes.BetaWidth, 1.7 }, { CrackTraceCodes.FarRegionCoefficient, .75 }, { CrackTraceCodes.SpacingThresholdCoefficient, 5 }
+            };
+            foreach (var pair in exact) Assert.AreEqual(pair.Value, One(pair.Key).Value.Value, pair.Key);
             Assert.IsTrue(One(CrackTraceCodes.K2Criterion).HasFlag(CrackTraceFlags.Bending) && One(CrackTraceCodes.K2Criterion).Flags.Count == 1);
             Assert.IsTrue(One(CrackTraceCodes.EffectiveDepth).HasFlag(CrackTraceFlags.MinimumOfThree));
             Assert.IsTrue(r.Trace.Where(e => e.Code == CrackTraceCodes.BarStrain).All(e => e.HasFlag(CrackTraceFlags.Included)));
@@ -1811,13 +1820,18 @@ namespace ConcreteTests
                 Assert.IsNotNull(expected); Assert.IsNotNull(actual); Assert.AreEqual(expected.GetType(), actual.GetType()); Assert.AreEqual(expected.Message, actual.Message);
                 Assert.AreEqual(CrackRejection.CodeOf(expected), CrackRejection.CodeOf(actual));
             }
-            // Analysis context: modulus 30 GPa, φ = 1.5: n = 200000 (1 + 1.5)/30000, after s and before the formula; nothing without the trace.
-            var context = Traced.WithAnalysisContext(30000, 1.5);
-            Assert.AreEqual(30000, context.AnalysisConcreteModulus); Assert.AreEqual(1.5, context.AnalysisPsiRebar); Assert.IsTrue(context.Trace);
+            // Analysis context: modulus 27 GPa, φ = 2.55, after s and before the formula; nothing without the trace. n analisi is the expression of ANTHEA
+            // es * (1 + psi) / e (Ntc2018Checks.cs:238, = Homogenization.ModularRatio), bit for bit: with these values the other orders of the operations,
+            // Es/(Ec/(1 + φ)) of Model and Es/Ec·(1 + φ), give another last digit (26.296296296296294 instead of 26.296296296296298).
+            double es = 200000, ecls = 27000, psi = 2.55, n = es * (1 + psi) / ecls;
+            Assert.AreNotEqual(es / (ecls / (1 + psi)), n, "the order of Model differs"); Assert.AreNotEqual(es / ecls * (1 + psi), n, "Es/Ec first differs");
+            var context = Traced.WithAnalysisContext(ecls, psi);
+            Assert.AreEqual(ecls, context.AnalysisConcreteModulus); Assert.AreEqual(psi, context.AnalysisPsiRebar); Assert.IsTrue(context.Trace);
             var with = basic.Evaluate(context); var without = basic.Evaluate(Traced);
             int s = Array.FindIndex(with.Trace.ToArray(), x => x.Code == CrackTraceCodes.Spacing);
-            Assert.AreEqual(CrackTraceCodes.AnalysisConcreteModulus, with.Trace[s + 1].Code); Assert.AreEqual(30000, with.Trace[s + 1].Value);
-            Assert.AreEqual(CrackTraceCodes.AnalysisModularRatio, with.Trace[s + 2].Code); Assert.AreEqual(200000 * (1 + 1.5) / 30000, with.Trace[s + 2].Value);
+            Assert.AreEqual(CrackTraceCodes.AnalysisConcreteModulus, with.Trace[s + 1].Code); Assert.AreEqual(ecls, with.Trace[s + 1].Value);
+            Assert.AreEqual(CrackTraceCodes.AnalysisModularRatio, with.Trace[s + 2].Code);
+            Assert.AreEqual(BitConverter.DoubleToInt64Bits(n), BitConverter.DoubleToInt64Bits(with.Trace[s + 2].Value.Value), "n analisi bit for bit: " + with.Trace[s + 2]);
             Assert.AreEqual(CrackTraceCodes.Es, with.Trace[s + 3].Code);
             CollectionAssert.AreEqual(without.Trace.Select(x => x.ToString()).ToArray(), with.Trace.Where(x => x.Code != CrackTraceCodes.AnalysisConcreteModulus && x.Code != CrackTraceCodes.AnalysisModularRatio)
                 .Select(x => x.ToString()).ToArray());

@@ -51,7 +51,8 @@ namespace GPC.Checkers.Concrete.Cracking
         /// <summary>
         /// Modulus of the concrete in the stress analysis, MPa (analysis context, null by default): with <see cref="Trace"/> the trace adds "Ecls analisi" and
         /// "n analisi" = Es (1 + φ)/Ecls (<see cref="CrackTraceCodes.AnalysisConcreteModulus"/>, <see cref="CrackTraceCodes.AnalysisModularRatio"/>) before the
-        /// width formula of the partially compressed section. Set with <see cref="AnalysisPsiRebar"/> by <see cref="WithAnalysisContext"/>.
+        /// width formula of the partially compressed section, computed by <see cref="Homogenization.ModularRatio"/> with <see cref="SectionCrackInput.Es"/>.
+        /// Set with <see cref="AnalysisPsiRebar"/> by <see cref="WithAnalysisContext"/>.
         /// </summary>
         public double? AnalysisConcreteModulus { get; private set; }
 

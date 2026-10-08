@@ -451,9 +451,10 @@ namespace GPC.Checkers.Concrete.Cracking
             Add("s", spacing.Value, "mm", p.SpacingOverride.HasValue ? "assigned maximum spacing" : "maximum spacing of the effective tensile bars");
             if (trace != null && p.Options.AnalysisConcreteModulus.HasValue)
             {
-                // ANTHEA Ntc2018Checks.cs:237-238, analysis context only: n = Es (1 + φ)/Ecls with the order of operations of ANTHEA.
+                // ANTHEA Ntc2018Checks.cs:237-238, analysis context only: n = Es (1 + φ)/Ecls of Homogenization (K4b), with the order of operations of ANTHEA.
                 double analysisModulus = p.Options.AnalysisConcreteModulus.Value, psi = p.Options.AnalysisPsiRebar.Value;
-                trace.Add(CrackTraceCodes.AnalysisConcreteModulus, analysisModulus, "MPa"); trace.Add(CrackTraceCodes.AnalysisModularRatio, p.Es * (1 + psi) / analysisModulus, none);
+                trace.Add(CrackTraceCodes.AnalysisConcreteModulus, analysisModulus, "MPa");
+                trace.Add(CrackTraceCodes.AnalysisModularRatio, Homogenization.ModularRatio(p.Es, analysisModulus, psi), none);
             }
             // The k2 of the width formula is the section-level k2 already in the trace with its reason: one k2 entry only.
             var formula = new List<ShearCalculationDetail>();

@@ -216,7 +216,10 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   il chiamante. Con la traccia attiva nient'altro cambia: risultato, `Details`, `Status`, `Outcome` e rifiuti sono
   quelli senza traccia.
   - Contesto d'analisi facoltativo (`WithAnalysisContext`: modulo del calcestruzzo e φ delle barre dell'analisi):
-    con la traccia aggiunge «Ecls analisi» e «n analisi» = Es (1 + φ)/Ecls prima della formula di wk.
+    con la traccia aggiunge «Ecls analisi» e «n analisi» = Es (1 + φ)/Ecls prima della formula di wk. n viene da
+    `Homogenization.ModularRatio` con l'Es dell'ingresso (`SectionCrackInput.Es`), quindi coincide bit per bit con
+    l'espressione di ANTHEA solo se il chiamante passa lo stesso modulo dell'acciaio e lo stesso φ (in ANTHEA il modulo
+    della prima barra efficace e `PsiRebar ?? 0`).
   - `RegionOutcomes` (anch'esso solo con `Trace`): chiave, esito e larghezza di ogni regione raggiunta, cioè zona
     tesa o facce (anche quella che ferma la verifica), sistema grossolano DS, pareti o anello interno (verificati,
     senza armatura o senza interasse) e «InnerSurfaces» per le superfici interne non supportate. Con questi dati il
@@ -228,10 +231,19 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 
   Le prove sono in `CrackMigrationTests`. La traccia riproduce entro 1e-9, nello stesso ordine, i 16 simboli della
   colonna `details` di `crack-legacy.csv` (13 339 valori su 400 stati, anche con il prefisso di faccia, fascia,
-  sistema grossolano, superficie interna e barra). L'ordine e i valori del caso inflesso NTC sono calcolati a mano.
+  sistema grossolano, superficie interna e barra). L'ordine e i valori del caso inflesso NTC sono calcolati a mano,
+  con tolleranza relativa 1e-12 e costanti esatte. «n analisi» è confrontato bit per bit con l'espressione di
+  ANTHEA su valori per cui gli altri ordini delle operazioni danno un'altra ultima cifra.
   Ci sono poi i rami (decompressione, limite superiore, Eurocodice, sezione interamente tesa, DS, fasce radiali,
   regola di k2 prima di D7-b), un test per ciascun motivo, gli esiti delle superfici interne e la traccia vuota di
   default.
+- **Chiavi stabili e costanti** (0.0.18.0). Codici e chiavi sono `public const string` (e `CreepTolerance` è
+  `public const double`): le 91 costanti di `CrackTraceCodes`, quelle di `CrackTraceFlags` e `CrackTraceArguments`,
+  `CrackRejection.DataKey` e i codici di rifiuto, `Homogenization.RejectionKey` e `Homogenization.CreepTolerance`.
+  Il compilatore ne copia il valore nei chiamanti, come per i valori delle enumerazioni (`CrackReason`,
+  `HomogenizationRejection`, `ThinCastingRule`). I valori sono stabili e non cambiano nelle versioni successive;
+  se uno cambiasse, ANTHEA e ogni altro chiamante andrebbero ricompilati con la DLL nuova, perché sostituire solo la
+  DLL lascerebbe nei chiamanti il valore vecchio. Una costante nuova si aggiunge senza toccare quelle esistenti.
 - **Non supportati:**
   - CS-TR34: non applicabile;
   - CNR-DT 204: modello FRC non implementato;
