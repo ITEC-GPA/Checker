@@ -56,15 +56,19 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   0.0.17.0, quindi ogni punto accettato prima resta accettato e identico. I punti dati dai ripieghi della ricerca su un
   salto delle forze (punto più vicino o bisezione, fino a 10 volte la tolleranza di distanza) possono restare rifiutati.
 - Stress block: anche almeno 1/1000 della resistenza a compressione centrata NRd,c (`CentredCompressionResistance`:
-  risultante del solutore a deformazione uniforme εc2 della parabola-rettangolo, con barre, profili e trefoli; per il
-  c.a. (Ac − As) η fcd + As σs). Esempi: 3,05 kN per 300 × 500 C30/37, 12,28 kN per D 800 C40/50; sotto circa 1 MN di
+  risultante del solutore a deformazione uniforme εc2 della parabola-rettangolo, εcu con i materiali ACI 318 (senza
+  prove), con barre, profili e trefoli; per il c.a. con materiale europeo (Ac − As) η fcd + As σs). Esempi: 3,05 kN per 300 × 500 C30/37, 12,28 kN per D 800 C40/50; sotto circa 1 MN di
   NRd,c vale il minimo di 1 kN.
 - **Con lo stress block il risultato può essere meno preciso.** Il diagramma ha un salto di tensione a (1 − λ) εcu e
   il calcestruzzo è integrato su punti di Gauss fissi: la risultante cambia a gradini e la ricerca iterativa può
   fermarsi con N diverso da quello assegnato. Campione di convalida (13 sezioni, 4 legami, 8840 punti, ottobre 2026,
-  .NET 8): scarto su N fino a 9e-4 NRd,c nei punti accettati; momento resistente diverso da quello a N esatto di meno
-  dello 0,5 % nel 95 % dei punti, fino a circa 1-2 % vicino agli estremi del dominio, con segno variabile. Con gli
-  altri legami: scarto su N sotto 6e-5 NRd,c, momento entro 0,4 %.
+  .NET 8, N da −0,90 a +0,19 NRd,c): scarto su N fino a 9e-4 NRd,c nei punti accettati; momento resistente diverso da
+  quello a N esatto di meno dello 0,5 % nel 95 % dei punti, fino a circa 1-2 % vicino agli estremi di questo
+  intervallo, con segno variabile. Con gli altri legami: scarto su N sotto 6e-5 NRd,c, momento entro 0,4 %.
+- Questi sono valori misurati, non limiti. La differenza del momento vale circa lo scarto su N per il braccio, con lo
+  scarto fino alla tolleranza. Vicino alla compressione centrata il momento tende a 0 e la differenza relativa
+  cresce, circa |NRd − N| / (NRd,c − |N|): per esempio circa 5 % con 1e-3 NRd,c a |N| = 0,98 NRd,c, anche a sfavore
+  di sicurezza.
 - Con lo stress block il percorso della ricerca è caotico: la stessa sezione può dare un punto diverso con un altro
   runtime. Sezione C2 del banco F2.1 di ANTHEA (D 800, 12Ø16), N = −1500 kN, Mx+: NRd = −1502,05 kN con .NET 8
   (accettato), −1513,15 kN con .NET Framework 4.7.2 (scarto 1,07e-3 NRd,c, rifiutato).

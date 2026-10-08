@@ -31,7 +31,9 @@ block il punto è meno preciso. La pagina riporterà questi riquadri (prefisso P
 >   La tolleranza è almeno 1e-3 NRd,c, con NRd,c resistenza a compressione centrata della sezione
 >   (`DomainPointAxialTolerance`).
 > - Effetto: momento resistente diverso da quello a N esatto di meno dello 0,5 % nel 95 % dei punti del campione di
->   convalida (13 sezioni, 4 legami, 8840 punti), fino a circa 1-2 % vicino agli estremi del dominio; segno variabile.
+>   convalida (13 sezioni, 4 legami, 8840 punti, N da −0,90 a +0,19 NRd,c), fino a circa 1-2 % vicino agli estremi di
+>   questo intervallo; segno variabile. Sono valori misurati, non limiti: vicino alla compressione centrata la
+>   differenza relativa cresce, circa |NRd − N| / (NRd,c − |N|) (circa 5 % con 1e-3 NRd,c a |N| = 0,98 NRd,c).
 >   Il percorso della ricerca è caotico e può cambiare con il runtime.
 > - Stato: `dichiarato`.
 

@@ -27,8 +27,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
     /// With the stress block the result can be less precise. The stress jumps from 0 to η fcd at the strain (1 - λ) εcu; the concrete is
     /// integrated on the fixed Gauss points of the mesh, which is not cut along the jump, so the resultant changes by steps when the strain plane
     /// moves, and the iterative strategy can stop at a point whose axial force differs from the assigned one by more than its own tolerance. The
-    /// resistant moment can then differ from the one at the exact axial force: in the validation sample (13 sections, 4 diagrams, 8840 points)
-    /// by less than 0.5 % in 95 % of the points accepted with the stress block, up to about 1-2 % near the ends of the domain, with either sign.
+    /// resistant moment can then differ from the one at the exact axial force: in the validation sample (13 sections, 4 diagrams, 8840 points,
+    /// N from -0.90 to +0.19 NRd,c) by less than 0.5 % in 95 % of the points accepted with the stress block, up to about 1-2 % near the ends of
+    /// that range, with either sign. These are measurements, not bounds: the difference of the moment is about |NRd - N| times the lever arm,
+    /// with |NRd - N| up to the tolerance, so nearer to the centred compression, where the moment goes to 0, the relative difference grows as
+    /// about |NRd - N| / (NRd,c - |N|) (about 5 % for 1e-3 NRd,c at |N| = 0.98 NRd,c), also on the unsafe side.
     /// The path of the search is chaotic with the stress block: the same section can give a different point on another runtime
     /// </summary>
     public static class DomainPointAxialTolerance
@@ -77,9 +80,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         /// <summary>
         /// The centred compression resistance NRd,c (N, positive): the modulus of the axial force of the failure domain at the uniform strain of
-        /// pure compression (εc2 of the parabola-rectangle diagram, also for the stress block, as the point of pure compression of the plastic
-        /// domain), integrated by the solver with bars, steel sections and tendons and with the reduction factor and the compression limit of the
-        /// standard, if any. For plain reinforced concrete it is (Ac - As) η fcd + As σs(εc2), with η = 1 for the diagrams other than the stress
+        /// pure compression of the solver (for the European concrete materials εc2 of the parabola-rectangle diagram, also for the stress block,
+        /// as the point of pure compression of the plastic domain; for the ACI 318 materials εcu, not covered by tests), integrated by the solver
+        /// with bars, steel sections and tendons and with the reduction factor and the compression limit of the standard, if any. For plain
+        /// reinforced concrete with a European material it is (Ac - As) η fcd + As σs(εc2), with η = 1 for the diagrams other than the stress
         /// block. The same value for plastic and elastic domains
         /// </summary>
         /// <param name="solver">The section solver</param>
