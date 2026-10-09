@@ -232,6 +232,18 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
 - **Geometria** (`CrackSectionGeometry.From`): contorno, fori e barre ordinarie della sezione di Model. Il cerchio è
   riconosciuto dai vertici equidistanti; gli anelli concentrici vanno confermati. L'interasse automatico vale per
   file allineate o anelli, altrimenti va assegnato.
+- **Contorni a curve** (0.0.26.0, Model 4.1 / Geometry 2.3):
+  `CrackSectionGeometry.FromCurves(section, chordTolerance, maxSegmentLength)` usa i contorni nativi
+  di Model; un secondo overload riceve `SectionCurveOutline` e le barre ordinarie. La tolleranza
+  obbligatoria, in mm, limita lo scostamento delle corde dalla curva, non l'errore finale della verifica.
+  Contorno, fori, barre e piano di deformazione conservano lo stesso riferimento di coordinate.
+  I cerchi analitici mantengono il proprio centro anche se traslati; gli anelli di barre concentrici
+  richiedono `concentricRings: true`. Le ellissi e gli altri contorni usano le file allineate:
+  quando l'interasse non e' determinabile va assegnato esplicitamente. La verifica della superficie
+  interna circolare e' disponibile per un unico foro circolare concentrico; restano supportati anche
+  i fori rettangolari allineati agli assi. Fori ellittici o circolari eccentrici restituiscono l'esito
+  esplicito di superficie interna non supportata. Isole e regioni disconnesse sono rifiutate.
+  `From(section)` mantiene il contratto poligonale precedente; il nuovo ingresso e' una scelta esplicita.
 - **Opzioni** (`SectionCrackOptions`, 0.0.18.0). Sono membri nuovi: con `SectionCrackOptions.Default` comportamento
   e contratto della 0.0.17.0 non cambiano.
   - Le opzioni sono immutabili: si parte da `Default` e si usano i metodi `With…`, che restituiscono una copia.

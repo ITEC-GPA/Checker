@@ -9,6 +9,7 @@
     <Reference Include="GPCModel"><HintPath>../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>
     <Reference Include="GPCGeometry"><HintPath>../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
     <Compile Include="../GPCChecker.Test.Concrete/ServiceabilityMigrationTests.cs" Link="ServiceabilityMigrationTests.cs" />
+    <Compile Include="../GPCChecker.Test.Concrete/CurveGeometryTests.cs" Link="CurveGeometryTests.cs" />
     <None Include="../GPCChecker.Test.Concrete/Fixtures/stress-*" Link="Fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

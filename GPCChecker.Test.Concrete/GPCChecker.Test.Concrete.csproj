@@ -92,6 +92,7 @@
   <ItemGroup>
     <Compile Include="ConcreteTestBase.cs" />
     <Compile Include="ConcreteControlTests.cs" />
+    <Compile Include="CurveGeometryTests.cs" />
     <Compile Include="DomainPointContractTests.cs" />
     <Compile Include="DomainPointAxialToleranceTests.cs" />
     <Compile Include="BridgeElasticStagesTests.cs" />
