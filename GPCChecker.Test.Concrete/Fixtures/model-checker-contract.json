@@ -112020,7 +112020,7 @@
       "notApplicableReason": null,
       "strainPlane": "null (ModelChecker: CheckerStressAnalysisNotConverged, the check is not called)",
       "exception": "System.InvalidOperationException",
-      "message": "Stress analysis without strain plane: not converged.",
+      "message": "Numerical analysis not completed: No strain plane.",
       "call": "StressLimitCheck.Evaluate"
     }
   ]

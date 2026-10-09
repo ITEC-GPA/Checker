@@ -41,16 +41,18 @@ Steel, CompositeBridge e Geotechnics: solo ricompilazione contro la Geometry
 nuova; nessuna formula, API o fixture modificata.
 
 Validazione (Release, tutte le suite):
-Concrete .NET Framework (vstest x64): 568 PASS, 1 FAIL (vedi sotto);
+Concrete .NET Framework (vstest x64): 568 PASS e 1 FAIL del contratto K0,
+569/569 con il fixture aggiornato (vedi sotto);
 Steel: 88 PASS e gli stessi 17 FAIL storici, confrontati per nome;
 CompositeBridge: 260 PASS; Geotechnics: 108 PASS; Calculation: 60 PASS.
 Il contratto K0 (112027 righe) coincide in tutti i valori numerici: le mesh
 usuali restano identiche con GPCGeometry 2.1.0.5.
 
-FAIL APERTO, da decidere: ModelCheckerContractOf0017IsUnchanged, caso
-"#44 notConverged" (R300x500, NTC 2018, non lineare, N -1e6 kN). Il messaggio
-atteso "Stress analysis without strain plane: not converged." e' diventato
+Cambio di contratto K0 accettato dall'utente: ModelCheckerContractOf0017IsUnchanged,
+caso "#44 notConverged" (R300x500, NTC 2018, non lineare, N -1e6 kN). Il
+messaggio "Stress analysis without strain plane: not converged." e' diventato
 "Numerical analysis not completed: No strain plane." con 8c45ba30 (separazione
-delle risposte numeriche, StressLimitCheck.cs). Gia' presente nel master prima
-di questa release: la suite net472 di Concrete non era stata rieseguita.
-Il fixture del contratto non e' stato aggiornato.
+delle risposte numeriche, StressLimitCheck.cs), gia' nel master prima di questa
+release (la suite net472 di Concrete non era stata rieseguita). Tipo
+dell'eccezione e chiamata invariati; il fixture cambia solo in quella riga.
+Con il fixture aggiornato: Concrete 569/569.
