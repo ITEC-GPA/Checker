@@ -1,0 +1,23 @@
+VERSIONI LIBRERIE - 9 OTTOBRE 2026
+
+Checker.Concrete        0.0.23.0 -> 0.0.24.0 (Version pacchetto 0.0.24)
+Checker.Steel           2.0.0.0  -> 2.0.1.0  (Version pacchetto 2.0.1)
+Checker.CompositeBridge 1.4.0.5  -> 1.4.0.6
+Checker.Geotechnics     0.1.1.2  -> 0.1.1.3
+
+Release con Model 4.0.1.0, ModelData 0.0.2.5 e
+ModelChecker/Converter/Persistence 2.0.1.0.
+Allineati versione di progetto, AssemblyVersion e FileVersion; aggiunta
+Version esplicita per i pacchetti Concrete/Steel che usano AssemblyInfo manuale.
+Non cambiano formule, metodi, namespace, firme o fixture numeriche.
+
+Validazione delle nuove versioni:
+Concrete Calculation: 50 PASS; CompositeBridge: 254 PASS;
+Geotechnics: 98 PASS; Steel: 77 PASS e gli stessi 17 FAIL storici,
+confrontati per nome/esito con la baseline NamespaceMigration.
+AssemblyVersion e FileVersion verificate sulle DLL prodotte in Release.
+
+I commit sono preparati su codex/model-architecture e integrati nel ramo
+principale master su richiesta dell'utente. Model aggiorna versioni/SHA256
+dei tre checker fissati nel suo manifest dopo la ricompilazione.
+Questa operazione non pubblica pacchetti NuGet ne' aggiorna il bundle Anthea.
