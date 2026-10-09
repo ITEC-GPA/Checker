@@ -1,0 +1,21 @@
+FASE CALCOLO/VERIFICA - 9 OTTOBRE 2026
+
+Concrete 0.0.19.0 aggiunge contratti immutabili per azioni, piano di deformazione,
+campioni di tensione e risposta resistente. ISectionResponseSolver e
+ISectionResistanceSolver consentono motori alternativi senza riscrivere i metodi.
+LegacySectionCalculation adatta il motore corrente: formule, tolleranze e scala
+del rapporto resistente restano quelle esistenti. Non dichiara residui/iterazioni
+che il motore attuale non espone. La cancellazione legacy avviene ai confini
+della chiamata; non interrompe una singola iterazione interna.
+
+StressLimitContext risolve separatamente i limiti normativi. StressLimitCheck
+mantiene la firma precedente, che delega al percorso autonomo. I risultati del
+nuovo percorso non conservano solver, sezioni, materiali o standard modificabili.
+Il risultato storico StressAnalysisResult rimane per Anthea e serializzazione.
+Il caller possiede in esclusiva il checker adattato e mantiene il lock fra
+sessioni finche' il motore non sara' dichiarato e provato thread-safe.
+
+Validazione: dotnet test GPCChecker.Test.Calculation -c Release: 14/14.
+Incluse le fixture storiche SLE (2016 stati, molte norme, lineare/non lineare),
+immutabilita', dispatch async, cancellazione, risposta non convergente,
+capacita' SLU e decisione ai due lati del rapporto 1. Attesi storici invariati.

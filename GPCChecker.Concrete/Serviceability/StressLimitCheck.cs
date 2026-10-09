@@ -91,51 +91,34 @@ namespace GPC.Checkers.Concrete.Serviceability
         public static StressLimitResult Evaluate(StressAnalysisResult result, ServiceabilityCombination combination, double concreteLimitFactor = 1)
         {
             if (result == null) throw new ArgumentNullException(nameof(result));
+            if (!(result.Standard is StandardModelCode2010 standard)) throw new NotSupportedException("Stress limits require a StandardModelCode2010-based standard.");
+            return Evaluate(Analysis.LegacySectionCalculation.Capture(result), StressLimitContext.Resolve(standard, result.ConcreteSection), combination, concreteLimitFactor);
+        }
+
+        /// <summary>The same normative method with a detached numerical response and explicit resolved limits.</summary>
+        public static StressLimitResult Evaluate(Analysis.SectionResponse response, StressLimitContext context, ServiceabilityCombination combination, double concreteLimitFactor = 1)
+        {
+            if (response == null || context == null) throw new ArgumentNullException();
             if (!Enum.IsDefined(typeof(ServiceabilityCombination), combination)) throw new ArgumentOutOfRangeException(nameof(combination));
             if (!IsFinite(concreteLimitFactor) || concreteLimitFactor <= 0 || concreteLimitFactor > 1) throw new ArgumentOutOfRangeException(nameof(concreteLimitFactor));
-            if (!(result.Standard is StandardModelCode2010 standard)) throw new NotSupportedException("Stress limits require a StandardModelCode2010-based standard.");
-            if (!(result.SectionSolver.ConcreteMaterial is ConcreteMaterialEuropeanCommon material)) throw new NotSupportedException("Stress limits require a European concrete material.");
-            if (result.StrainPlane == null) throw new InvalidOperationException("Stress analysis without strain plane: not converged.");
-            var section = result.ConcreteSection;
-            if (section.Rebars.Any(r => r.RebarMaterial.SteelType == SteelMaterial.SteelTypes.Tendon && r.EpsilonP == 0))
-                throw new NotSupportedException("Tendon with zero prestrain: the solver identifies tendons through the prestrain; limits not assigned.");
-
-            bool linear = result.LinearElasticAnalysis;
-            double psi = result.PsiRebar ?? 0, psiTendon = result.PsiTendon ?? 0;
-            var vertices = linear ? result.GetConcreteVerticesTension(psi) : result.GetConcreteVerticesTension();
-            var bars = linear ? result.GetRebarsTension(psi, psiTendon) : result.GetRebarsTension();
-            if (vertices.Length == 0 || vertices.Any(v => !IsFinite(v.tension)) || bars.Any(b => !IsFinite(b.tension)))
-                throw new InvalidOperationException("Non-finite stresses: stress analysis not converged.");
-
-            var output = new StressLimitResult
-            {
-                Combination = combination, LinearAnalysis = linear, PsiRebar = psi, PsiTendon = psiTendon, ConcreteLimitFactor = concreteLimitFactor,
-                ConcreteMinStress = vertices.Min(v => v.tension), SteelMaxStress = bars.Length == 0 ? 0 : bars.Max(b => Math.Abs(b.tension))
-            };
+            if (response.Diagnostics.Status != Analysis.CalculationStatus.Completed) throw new InvalidOperationException("Numerical analysis not completed: " + response.Diagnostics.Message);
+            if (!response.Bars.Select(p => p.Id).OrderBy(id => id, StringComparer.Ordinal).SequenceEqual(context.SteelCharacteristic.Keys.OrderBy(id => id, StringComparer.Ordinal)))
+                throw new ArgumentException("Stress response and normative bar layout differ.");
+            var output = new StressLimitResult { Combination = combination, LinearAnalysis = response.Linear, PsiRebar = response.PsiRebar,
+                PsiTendon = response.PsiTendon, ConcreteLimitFactor = concreteLimitFactor,
+                ConcreteMinStress = response.Concrete.Min(p => p.Stress), SteelMaxStress = response.Bars.Count == 0 ? 0 : response.Bars.Max(p => Math.Abs(p.Stress)) };
             if (combination == ServiceabilityCombination.Frequent) return output;
-
-            // Same native checks used by the application adapters; the factor reduces the concrete limit only.
-            var concrete = combination == ServiceabilityCombination.Characteristic
-                ? (linear ? result.ConcreteServiceabilityCharacteristicCheck(psi) : result.ConcreteServiceabilityCharacteristicCheck())
-                : (linear ? result.ConcreteServiceabilityQuasiPermanentCheck(psi) : result.ConcreteServiceabilityQuasiPermanentCheck());
-            double nativeLimit = Math.Abs(combination == ServiceabilityCombination.Characteristic
-                ? material.GetConcreteServiceabilityCharacteristicStress(standard) : material.GetConcreteServiceabilityQuasiPermanentStress(standard));
-            if (!IsFinite(nativeLimit) || nativeLimit <= 0) throw new InvalidOperationException("Invalid concrete stress limit.");
-            output.ConcreteLimit = nativeLimit * concreteLimitFactor;
-            var points = concrete.Select((c, i) => new { c, i }).Where(v => v.c.tension < 0)
-                .Select(v => new StressLimitPoint("C" + (v.i + 1), v.c.point.X, v.c.point.Y, v.c.tension, output.ConcreteLimit.Value, v.c.workingRatio / concreteLimitFactor)).ToArray();
-            output.ConcretePoints = Array.AsReadOnly(points);
-            output.ConcreteGoverning = points.OrderByDescending(p => p.Ratio).FirstOrDefault();
-
-            if (combination == ServiceabilityCombination.Characteristic && bars.Length != 0)
+            double limit = combination == ServiceabilityCombination.Characteristic ? context.ConcreteCharacteristic : context.ConcreteQuasiPermanent;
+            if (!IsFinite(limit) || limit <= 0) throw new InvalidOperationException("Invalid concrete stress limit.");
+            output.ConcreteLimit = limit * concreteLimitFactor;
+            var points = response.Concrete.Where(p => p.Stress < 0).Select(p => new StressLimitPoint(p.Id, p.X, p.Y, p.Stress,
+                output.ConcreteLimit.Value, Math.Abs(p.Stress / limit) / concreteLimitFactor)).ToArray();
+            output.ConcretePoints = Array.AsReadOnly(points); output.ConcreteGoverning = points.OrderByDescending(p => p.Ratio).FirstOrDefault();
+            if (combination == ServiceabilityCombination.Characteristic && response.Bars.Count != 0)
             {
-                var steel = linear ? result.SteelServiceabilityCharacteristicCheck(psi, psiTendon) : result.SteelServiceabilityCharacteristicCheck();
-                var steelPoints = steel.Select((s, i) => new StressLimitPoint((s.rebar.EpsilonP != 0 ? "P" : "B") + (i + 1), s.rebar.Position.X, s.rebar.Position.Y,
-                    s.tension, Math.Abs(s.rebar.EpsilonP != 0 ? s.rebar.RebarMaterial.GetServiceabilityCharacteristicStressPrestress(standard)
-                        : s.rebar.RebarMaterial.GetServiceabilityCharacteristicStress(standard)), s.workingRatio)).ToArray();
-                if (steelPoints.Any(p => !IsFinite(p.Ratio) || !IsFinite(p.Limit) || p.Limit <= 0)) throw new InvalidOperationException("Invalid steel stress limit.");
-                output.SteelPoints = Array.AsReadOnly(steelPoints);
-                output.SteelGoverning = steelPoints.OrderByDescending(p => p.Ratio).First();
+                var steel = response.Bars.Select(p => new StressLimitPoint(p.Id, p.X, p.Y, p.Stress, context.SteelCharacteristic[p.Id], Math.Abs(p.Stress / context.SteelCharacteristic[p.Id]))).ToArray();
+                if (steel.Any(p => !IsFinite(p.Ratio) || !IsFinite(p.Limit) || p.Limit <= 0)) throw new InvalidOperationException("Invalid steel stress limit.");
+                output.SteelPoints = Array.AsReadOnly(steel); output.SteelGoverning = steel.OrderByDescending(p => p.Ratio).First();
             }
             if (points.Any(p => !IsFinite(p.Ratio))) throw new InvalidOperationException("Invalid concrete stress ratio.");
             return output;
